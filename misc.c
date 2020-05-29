@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.151 2020/05/29 09:02:44 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.152 2020/05/29 11:17:56 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -1207,13 +1207,22 @@ vdollar_percent_expand(int *parseerror, int dollar, int percent,
 #undef EXPAND_MAX_KEYS
 }
 
+/*
+ * Expand only environment variables.
+ * Note that although this function is variadic like the other similar
+ * functions, any such arguments will be unused.
+ */
+
 char *
-dollar_expand(int *parseerr, const char *string)
+dollar_expand(int *parseerr, const char *string, ...)
 {
 	char *ret;
 	int err;
+	va_list ap;
 
-	ret = vdollar_percent_expand(&err, 1, 0, string, NULL);
+	va_start(ap, string);
+	ret = vdollar_percent_expand(&err, 1, 0, string, ap);
+	va_end(ap);
 	if (parseerr != NULL)
 		*parseerr = err;
 	return ret;
