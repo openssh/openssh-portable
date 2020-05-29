@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.326 2020/05/29 04:25:40 dtucker Exp $
+.\" $OpenBSD: ssh_config.5,v 1.327 2020/05/29 05:37:03 djm Exp $
 .Dd $Mdocdate: May 29 2020 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1010,6 +1010,7 @@ Multiple pathnames may be specified and each pathname may contain
 wildcards and, for user configurations, shell-like
 .Sq ~
 references to user home directories.
+Wildcards will be expanded and processed in lexical order.
 Files without absolute paths are assumed to be in
 .Pa ~/.ssh
 if included in a user configuration file or
