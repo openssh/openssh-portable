@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.148 2020/05/26 01:06:52 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.149 2020/05/29 01:20:46 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -487,7 +487,7 @@ a2tun(const char *s, int *remote)
 long
 convtime(const char *s)
 {
-	long total, secs, multiplier = 1;
+	long total, secs, multiplier;
 	const char *p;
 	char *endp;
 
@@ -505,6 +505,7 @@ convtime(const char *s)
 		    secs < 0)
 			return -1;
 
+		multiplier = 1;
 		switch (*endp++) {
 		case '\0':
 			endp--;
