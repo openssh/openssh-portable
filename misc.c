@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.149 2020/05/29 01:20:46 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.150 2020/05/29 04:25:40 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -1084,45 +1084,90 @@ tilde_expand_filename(const char *filename, uid_t uid)
 }
 
 /*
- * Expand a string with a set of %[char] escapes. A number of escapes may be
- * specified as (char *escape_chars, char *replacement) pairs. The list must
- * be terminated by a NULL escape_char. Returns replaced string in memory
- * allocated by xmalloc.
+ * Expand a string with a set of %[char] escapes and/or ${ENVIRONMENT}
+ * substitutions.  A number of escapes may be specified as
+ * (char *escape_chars, char *replacement) pairs. The list must be terminated
+ * by a NULL escape_char. Returns replaced string in memory allocated by
+ * xmalloc which the caller must free.
  */
-char *
-percent_expand(const char *string, ...)
+static char *
+vdollar_percent_expand(int *parseerror, int dollar, int percent,
+    const char *string, va_list ap)
 {
 #define EXPAND_MAX_KEYS	16
-	u_int num_keys, i;
+	u_int num_keys = 0, i;
 	struct {
 		const char *key;
 		const char *repl;
 	} keys[EXPAND_MAX_KEYS];
 	struct sshbuf *buf;
-	va_list ap;
-	int r;
-	char *ret;
+	int r, missingvar = 0;
+	char *ret = NULL, *var, *varend, *val;
+	size_t len;
 
 	if ((buf = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
+	if (parseerror == NULL)
+		fatal("%s: null parseerror arg", __func__);
+	*parseerror = 1;
 
-	/* Gather keys */
-	va_start(ap, string);
-	for (num_keys = 0; num_keys < EXPAND_MAX_KEYS; num_keys++) {
-		keys[num_keys].key = va_arg(ap, char *);
-		if (keys[num_keys].key == NULL)
-			break;
-		keys[num_keys].repl = va_arg(ap, char *);
-		if (keys[num_keys].repl == NULL)
-			fatal("%s: NULL replacement", __func__);
+	/* Gather keys if we're doing percent expansion. */
+	if (percent) {
+		for (num_keys = 0; num_keys < EXPAND_MAX_KEYS; num_keys++) {
+			keys[num_keys].key = va_arg(ap, char *);
+			if (keys[num_keys].key == NULL)
+				break;
+			keys[num_keys].repl = va_arg(ap, char *);
+			if (keys[num_keys].repl == NULL)
+				fatal("%s: NULL replacement for token %s", __func__, keys[num_keys].key);
+		}
+		if (num_keys == EXPAND_MAX_KEYS && va_arg(ap, char *) != NULL)
+			fatal("%s: too many keys", __func__);
+		if (num_keys == 0)
+			fatal("%s: percent expansion without token list",
+			    __func__);
 	}
-	if (num_keys == EXPAND_MAX_KEYS && va_arg(ap, char *) != NULL)
-		fatal("%s: too many keys", __func__);
-	va_end(ap);
 
 	/* Expand string */
 	for (i = 0; *string != '\0'; string++) {
-		if (*string != '%') {
+		/* Optionally process ${ENVIRONMENT} expansions. */
+		if (dollar && string[0] == '$' && string[1] == '{') {
+			string += 2;  /* skip over '${' */
+			if ((varend = strchr(string, '}')) == NULL) {
+				error("%s: environment variable '%s' missing "
+				   "closing '}'", __func__, string);
+				goto out;
+			}
+			len = varend - string;
+			if (len == 0) {
+				error("%s: zero-length environment variable",
+				    __func__);
+				goto out;
+			}
+			var = xmalloc(len + 1);
+			(void)strlcpy(var, string, len + 1);
+			if ((val = getenv(var)) == NULL) {
+				error("%s: env var ${%s} has no value",
+				    __func__, var);
+				missingvar = 1;
+			} else {
+				debug3("%s: expand ${%s} -> '%s'", __func__,
+				    var, val);
+				if ((r = sshbuf_put(buf, val, strlen(val))) !=0)
+					fatal("%s: sshbuf_put: %s", __func__,
+					    ssh_err(r));
+			}
+			free(var);
+			string += len;
+			continue;
+		}
+
+		/*
+		 * Process percent expansions if we have a list of TOKENs.
+		 * If we're not doing percent expansion everything just gets
+		 * appended here.
+		 */
+		if (*string != '%' || !percent) {
  append:
 			if ((r = sshbuf_put_u8(buf, *string)) != 0) {
 				fatal("%s: sshbuf_put_u8: %s",
@@ -1134,8 +1179,10 @@ percent_expand(const char *string, ...)
 		/* %% case */
 		if (*string == '%')
 			goto append;
-		if (*string == '\0')
-			fatal("%s: invalid format", __func__);
+		if (*string == '\0') {
+			error("%s: invalid format", __func__);
+			goto out;
+		}
 		for (i = 0; i < num_keys; i++) {
 			if (strchr(keys[i].key, *string) != NULL) {
 				if ((r = sshbuf_put(buf, keys[i].repl,
@@ -1146,14 +1193,70 @@ percent_expand(const char *string, ...)
 				break;
 			}
 		}
-		if (i >= num_keys)
-			fatal("%s: unknown key %%%c", __func__, *string);
+		if (i >= num_keys) {
+			error("%s: unknown key %%%c", __func__, *string);
+			goto out;
+		}
 	}
-	if ((ret = sshbuf_dup_string(buf)) == NULL)
+	if (!missingvar && (ret = sshbuf_dup_string(buf)) == NULL)
 		fatal("%s: sshbuf_dup_string failed", __func__);
+	*parseerror = 0;
+ out:
 	sshbuf_free(buf);
-	return ret;
+	return *parseerror ? NULL : ret;
 #undef EXPAND_MAX_KEYS
+}
+
+char *
+dollar_expand(int *parseerr, const char *string)
+{
+	char *ret;
+	int err;
+	va_list ap;
+
+	memset(ap, 0, sizeof(ap));  /* unused */
+	ret = vdollar_percent_expand(&err, 1, 0, string, ap);
+	if (parseerr != NULL)
+		*parseerr = err;
+	return ret;
+}
+
+/*
+ * Returns expanded string or NULL if a specified environment variable is
+ * not defined, or calls fatal if the string is invalid.
+ */
+char *
+percent_expand(const char *string, ...)
+{
+	char *ret;
+	int err;
+	va_list ap;
+
+	va_start(ap, string);
+	ret = vdollar_percent_expand(&err, 0, 1, string, ap);
+	va_end(ap);
+	if (err)
+		fatal("%s failed", __func__);
+	return ret;
+}
+
+/*
+ * Returns expanded string or NULL if a specified environment variable is
+ * not defined, or calls fatal if the string is invalid.
+ */
+char *
+percent_dollar_expand(const char *string, ...)
+{
+	char *ret;
+	int err;
+	va_list ap;
+
+	va_start(ap, string);
+	ret = vdollar_percent_expand(&err, 1, 1, string, ap);
+	va_end(ap);
+	if (err)
+		fatal("%s failed", __func__);
+	return ret;
 }
 
 int

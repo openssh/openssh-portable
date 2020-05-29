@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.330 2020/05/27 21:25:18 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.331 2020/05/29 04:25:40 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1809,7 +1809,12 @@ parse_keytypes:
 			    filename, linenum);
   parse_agent_path:
 		/* Extra validation if the string represents an env var. */
-		if (arg[0] == '$' && !valid_env_name(arg + 1)) {
+		if ((arg2 = dollar_expand(&r, arg)) == NULL || r)
+			fatal("%.200s line %d: Invalid environment expansion "
+			    "%s.", filename, linenum, arg);
+		free(arg2);
+		/* check for legacy environment format */
+		if (arg[0] == '$' && arg[1] != '{' && !valid_env_name(arg + 1)) {
 			fatal("%.200s line %d: Invalid environment name %s.",
 			    filename, linenum, arg);
 		}
@@ -2355,12 +2360,19 @@ parse_forward(struct Forward *fwd, const char *fwdspec, int dynamicfwd, int remo
 {
 	struct fwdarg fwdargs[4];
 	char *p, *cp;
-	int i;
+	int i, err;
 
 	memset(fwd, 0, sizeof(*fwd));
 	memset(fwdargs, 0, sizeof(fwdargs));
 
-	cp = p = xstrdup(fwdspec);
+	/*
+	 * We expand environment variables before checking if we think they're
+	 * paths so that if ${VAR} expands to a fully qualified path it is
+	 * treated as a path.
+	 */
+	cp = p = dollar_expand(&err, fwdspec);
+	if (p == NULL || err)
+		return 0;
 
 	/* skip leading spaces */
 	while (isspace((u_char)*cp))
