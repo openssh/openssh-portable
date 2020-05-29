@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.411 2020/05/18 04:29:35 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.412 2020/05/29 03:11:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2938,7 +2938,7 @@ do_download_sk(const char *skprovider, const char *device)
 {
 	struct sshkey **keys;
 	size_t nkeys, i;
-	int r, ok = -1;
+	int r, ret = -1;
 	char *fp, *pin = NULL, *pass = NULL, *path, *pubpath;
 	const char *ext;
 
@@ -3022,13 +3022,13 @@ do_download_sk(const char *skprovider, const char *device)
 	}
 
 	if (i >= nkeys)
-		ok = 0; /* success */
+		ret = 0; /* success */
 	if (pass != NULL)
 		freezero(pass, strlen(pass));
 	for (i = 0; i < nkeys; i++)
 		sshkey_free(keys[i]);
 	free(keys);
-	return ok ? 0 : -1;
+	return ret;
 }
 
 static void
