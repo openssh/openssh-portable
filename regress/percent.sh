@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.6 2020/04/10 00:54:03 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.7 2020/05/29 04:32:26 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -56,7 +56,7 @@ trial()
 
 for i in matchexec localcommand remotecommand controlpath identityagent \
     forwardagent localforward remoteforward; do
-	verbose $tid $i
+	verbose $tid $i percent
 	if [ "$i" = "localcommand" ]; then
 		REMUSER=$USER
 		trial $i '%T' NONE
@@ -81,8 +81,19 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	    "%/$HASH/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
 done
 
+# Subset of above since we don't expand shell-style variables on anything that
+# runs a command because the shell will expand those.
+for i in controlpath identityagent forwardagent localforward remoteforward; do
+	verbose $tid $i dollar
+	FOO=bar
+	export FOO
+	trial $i '${FOO}' $FOO
+done
+
+
 # A subset of options support tilde expansion
 for i in controlpath identityagent forwardagent; do
+	verbose $tid $i tilde
 	trial $i '~' $HOME/
 	trial $i '~/.ssh' $HOME/.ssh
 done
