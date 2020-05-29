@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.1 2019/04/28 22:53:26 dtucker Exp $ */
+/* 	$OpenBSD: tests.c,v 1.2 2020/05/29 01:21:35 dtucker Exp $ */
 /*
  * Regress test for misc helper functions.
  *
@@ -75,5 +75,24 @@ tests(void)
 	ASSERT_INT_EQ(port, 22);
 	ASSERT_STRING_EQ(path, "some/path");
 	free(user); free(host); free(path);
+	TEST_DONE();
+
+	TEST_START("misc_convtime");
+	ASSERT_LONG_EQ(convtime("1"), 1);
+	ASSERT_LONG_EQ(convtime("2s"), 2);
+	ASSERT_LONG_EQ(convtime("3m"), 180);
+	ASSERT_LONG_EQ(convtime("1m30"), 90);
+	ASSERT_LONG_EQ(convtime("1m30s"), 90);
+	ASSERT_LONG_EQ(convtime("1h1s"), 3601);
+	ASSERT_LONG_EQ(convtime("1h30m"), 90 * 60);
+	ASSERT_LONG_EQ(convtime("1d"), 24 * 60 * 60);
+	ASSERT_LONG_EQ(convtime("1w"), 7 * 24 * 60 * 60);
+	ASSERT_LONG_EQ(convtime("1w2d3h4m5"), 788645);
+	ASSERT_LONG_EQ(convtime("1w2d3h4m5s"), 788645);
+	/* any negative number or error returns -1 */
+	ASSERT_LONG_EQ(convtime("-1"),  -1);
+	ASSERT_LONG_EQ(convtime(""),  -1);
+	ASSERT_LONG_EQ(convtime("trout"),  -1);
+	ASSERT_LONG_EQ(convtime("-77"),  -1);
 	TEST_DONE();
 }
