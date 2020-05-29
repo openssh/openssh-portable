@@ -1187,7 +1187,7 @@ set_common_sockopts(int s, int af)
 			&x, sizeof(x)) == -1)
 			err(1, "setsockopt");
 	}
-#ifdef IP_TOS
+#if defined(IP_TOS) && defined(IPV6_TCLASS)
 	if (Tflag != -1) {
 		int proto, option;
 
