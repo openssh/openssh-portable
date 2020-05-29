@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.210 2020/05/06 20:57:38 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.211 2020/05/29 21:22:02 millert Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -373,8 +373,11 @@ typedef struct {
 BUF *allocbuf(BUF *, int, int);
 void lostconn(int);
 int okname(char *);
-void run_err(const char *,...);
-int note_err(const char *,...);
+void run_err(const char *,...)
+    __attribute__((__format__ (printf, 1, 2)))
+    __attribute__((__nonnull__ (1)));
+int note_err(const char *,...)
+    __attribute__((__format__ (printf, 1, 2)));
 void verifydir(char *);
 
 struct passwd *pwd;
@@ -1520,7 +1523,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 				}
 		}
 		if (close(ofd) == -1)
-			note_err(np, "%s: close: %s", np, strerror(errno));
+			note_err("%s: close: %s", np, strerror(errno));
 		(void) response();
 		if (showprogress)
 			stop_progress_meter();
