@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.150 2020/05/29 04:25:40 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.151 2020/05/29 09:02:44 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -1212,10 +1212,8 @@ dollar_expand(int *parseerr, const char *string)
 {
 	char *ret;
 	int err;
-	va_list ap;
 
-	memset(ap, 0, sizeof(ap));  /* unused */
-	ret = vdollar_percent_expand(&err, 1, 0, string, ap);
+	ret = vdollar_percent_expand(&err, 1, 0, string, NULL);
 	if (parseerr != NULL)
 		*parseerr = err;
 	return ret;
