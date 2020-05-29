@@ -210,7 +210,7 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 			fatal("Invalid DSA key length: must be 1024 bits");
 		break;
 	case KEY_RSA:
-		if (*bitsp < SSH_RSA_MINIMUM_MODULUS_SIZE)
+            if (*bitsp < (u_int)SSH_RSA_MINIMUM_MODULUS_SIZE)
 			fatal("Invalid RSA key length: minimum is %d bits",
 			    SSH_RSA_MINIMUM_MODULUS_SIZE);
 		else if (*bitsp > OPENSSL_RSA_MAX_MODULUS_BITS)

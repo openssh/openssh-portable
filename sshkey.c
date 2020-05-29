@@ -93,6 +93,8 @@ int	sshkey_private_serialize_opt(struct sshkey *key,
 static int sshkey_from_blob_internal(struct sshbuf *buf,
     struct sshkey **keyp, int allow_cert);
 
+int	SSH_RSA_MINIMUM_MODULUS_SIZE = SSH_RSA_MINIMUM_MODULUS_SIZE_DEFAULT;
+
 /* Supported key types */
 struct keytype {
 	const char *name;
@@ -1583,7 +1585,7 @@ rsa_generate_private_key(u_int bits, RSA **rsap)
 
 	if (rsap == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
-	if (bits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
+	if (bits < (u_int)SSH_RSA_MINIMUM_MODULUS_SIZE ||
 	    bits > SSHBUF_MAX_BIGNUM * 8)
 		return SSH_ERR_KEY_LENGTH;
 	*rsap = NULL;

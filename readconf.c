@@ -173,6 +173,7 @@ typedef enum {
 	oFingerprintHash, oUpdateHostkeys, oHostbasedKeyTypes,
 	oPubkeyAcceptedKeyTypes, oCASignatureAlgorithms, oProxyJump,
 	oSecurityKeyProvider,
+	oRSAMinimumModulusSize,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -310,6 +311,7 @@ static struct {
 	{ "ignoreunknown", oIgnoreUnknown },
 	{ "proxyjump", oProxyJump },
 	{ "securitykeyprovider", oSecurityKeyProvider },
+	{ "rsaminimummodulussize", oRSAMinimumModulusSize },
 
 	{ NULL, oBadOption }
 };
@@ -1337,6 +1339,20 @@ parse_keytypes:
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *log_level_ptr == SYSLOG_LEVEL_NOT_SET)
 			*log_level_ptr = (LogLevel) value;
+		break;
+
+	case oRSAMinimumModulusSize:
+		intptr = &SSH_RSA_MINIMUM_MODULUS_SIZE;
+		arg = strdelim(&s);
+		if ((errstr = atoi_err(arg, &value)) != NULL)
+			fatal("%s line %d: integer value %s.",
+			    filename, linenum, errstr);
+                if (value < SSH_RSA_MINIMUM_MODULUS_SIZE_HARD) {
+                    fatal("%s line %d: RSAMinimumModulusSize unacceptably small: %d",
+                          filename, linenum, value);
+                    
+                }
+                SSH_RSA_MINIMUM_MODULUS_SIZE = value;
 		break;
 
 	case oLogFacility:
@@ -2770,6 +2786,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_int(oNumberOfPasswordPrompts, o->number_of_password_prompts);
 	dump_cfg_int(oServerAliveCountMax, o->server_alive_count_max);
 	dump_cfg_int(oServerAliveInterval, o->server_alive_interval);
+	dump_cfg_int(oRSAMinimumModulusSize, SSH_RSA_MINIMUM_MODULUS_SIZE);
 
 	/* String options */
 	dump_cfg_string(oBindAddress, o->bind_address);
