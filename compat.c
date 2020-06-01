@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.113 2018/08/13 02:41:05 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.114 2020/06/01 07:11:38 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -155,32 +155,6 @@ compat_datafellows(const char *version)
 	}
 	debug("no match: %s", version);
 	return 0;
-}
-
-#define	SEP	","
-int
-proto_spec(const char *spec)
-{
-	char *s, *p, *q;
-	int ret = SSH_PROTO_UNKNOWN;
-
-	if (spec == NULL)
-		return ret;
-	q = s = strdup(spec);
-	if (s == NULL)
-		return ret;
-	for ((p = strsep(&q, SEP)); p && *p != '\0'; (p = strsep(&q, SEP))) {
-		switch (atoi(p)) {
-		case 2:
-			ret |= SSH_PROTO_2;
-			break;
-		default:
-			logit("ignoring bad proto spec: '%s'.", p);
-			break;
-		}
-	}
-	free(s);
-	return ret;
 }
 
 char *
