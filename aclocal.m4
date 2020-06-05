@@ -21,6 +21,16 @@ int main(int argc, char **argv) {
 	double m = l / 0.5;
 	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
 	printf("%d %d %d %f %f %lld %lld\n", i, j, k, l, m, n, o);
+	/*
+	 * Test fallthrough behaviour.  clang 10's -Wimplicit-fallthrough does
+	 * not understand comments and we don't use the "fallthrough" attribute
+	 * that it's looking for.
+	 */
+	switch(i){
+	case 0: j += i;
+		/* FALLTHROUGH */
+	default: j += k;
+	}
 	exit(0);
 }
 	]])],
