@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.21 2020/04/26 09:38:14 dtucker Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.22 2020/06/05 03:24:36 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -242,7 +242,7 @@ int	sshbuf_put_eckey(struct sshbuf *buf, const EC_KEY *v);
 #endif /* WITH_OPENSSL */
 
 /* Dump the contents of the buffer in a human-readable format */
-void	sshbuf_dump(struct sshbuf *buf, FILE *f);
+void	sshbuf_dump(const struct sshbuf *buf, FILE *f);
 
 /* Dump specified memory in a human-readable format */
 void	sshbuf_dump_data(const void *s, size_t len, FILE *f);
