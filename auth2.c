@@ -337,7 +337,7 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 		debug2("input_userauth_request: try method %s", method);
 		authenticated =	m->userauth(ssh, method);
 	}
-	if (!authctxt->authenticated)
+	if (!authctxt->authenticated && !options.use_pam)
 		ensure_minimum_time_since(tstart,
 		    user_specific_delay(authctxt->user));
 	userauth_finish(ssh, authenticated, method, NULL);
