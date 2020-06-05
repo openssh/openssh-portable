@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.322 2020/05/13 09:52:41 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.323 2020/06/05 03:24:16 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1156,7 +1156,8 @@ key_sig_algorithm(struct ssh *ssh, const struct sshkey *key)
 	while ((cp = strsep(&allowed, ",")) != NULL) {
 		if (sshkey_type_from_name(cp) != key->type)
 			continue;
-		tmp = match_list(sshkey_sigalg_by_name(cp), ssh->kex->server_sig_algs, NULL);
+		tmp = match_list(sshkey_sigalg_by_name(cp),
+		    ssh->kex->server_sig_algs, NULL);
 		if (tmp != NULL)
 			alg = xstrdup(cp);
 		free(tmp);
