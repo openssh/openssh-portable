@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.113 2019/09/06 05:23:55 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.114 2020/01/23 10:24:29 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -146,6 +146,17 @@ cipher_alg_list(char sep, int auth_only)
 		rlen += nlen;
 	}
 	return ret;
+}
+
+const char *
+compression_alg_list(int compression)
+{
+#ifdef WITH_ZLIB
+	return compression ? "zlib@openssh.com,zlib,none" :
+	    "none,zlib@openssh.com,zlib";
+#else
+	return "none";
+#endif
 }
 
 /* used to get the cipher name so when force rekeying to handle the
