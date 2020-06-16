@@ -220,6 +220,9 @@ static int rdynamic_connect_finish(struct ssh *, Channel *);
 /* Setup helper */
 static void channel_handler_init(struct ssh_channels *sc);
 
+static int hpn_disabled = 0;
+static int hpn_buffer_size = 2 * 1024 * 1024;
+
 /* -- channel core */
 
 void
@@ -392,6 +395,7 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	c->local_window = window;
 	c->local_window_max = window;
 	c->local_maxpacket = maxpack;
+	c->dynamic_window = 0;
 	c->remote_name = xstrdup(remote_name);
 	c->ctl_chan = -1;
 	c->delayed = 1;		/* prevent call to channel_post handler */
@@ -1077,6 +1081,28 @@ channel_pre_connecting(struct ssh *ssh, Channel *c,
 {
 	debug3("channel %d: waiting for connection", c->self);
 	FD_SET(c->sock, writeset);
+}
+
+static int
+channel_tcpwinsz(struct ssh *ssh)
+{
+	u_int32_t tcpwinsz = 0;
+	socklen_t optsz = sizeof(tcpwinsz);
+	int ret = -1;
+
+	/* if we aren't on a socket return 128KB */
+	if (!ssh_packet_connection_is_on_socket(ssh))
+		return 128 * 1024;
+
+	ret = getsockopt(ssh_packet_get_connection_in(ssh),
+			 SOL_SOCKET, SO_RCVBUF, &tcpwinsz, &optsz);
+	/* return no more than SSHBUF_SIZE_MAX (currently 256MB) */
+	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
+		tcpwinsz = SSHBUF_SIZE_MAX;
+
+	debug2("tcpwinsz: tcp connection %d, Receive window: %d",
+	       ssh_packet_get_connection_in(ssh), tcpwinsz);
+	return tcpwinsz;
 }
 
 static void
@@ -2178,21 +2204,30 @@ channel_check_window(struct ssh *ssh, Channel *c)
 	    c->local_maxpacket*3) ||
 	    c->local_window < c->local_window_max/2) &&
 	    c->local_consumed > 0) {
+		u_int addition = 0;
+		u_int32_t tcpwinsz = channel_tcpwinsz(ssh);
+		/* adjust max window size if we are in a dynamic environment */
+		if (c->dynamic_window && (tcpwinsz > c->local_window_max)) {
+			/* grow the window somewhat aggressively to maintain pressure */
+			addition = 1.5 * (tcpwinsz - c->local_window_max);
+			c->local_window_max += addition;
+			debug("Channel: Window growth to %d by %d bytes", c->local_window_max, addition);
+		}
 		if (!c->have_remote_id)
 			fatal(":%s: channel %d: no remote id",
 			    __func__, c->self);
 		if ((r = sshpkt_start(ssh,
 		    SSH2_MSG_CHANNEL_WINDOW_ADJUST)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
-		    (r = sshpkt_put_u32(ssh, c->local_consumed)) != 0 ||
+		    (r = sshpkt_put_u32(ssh, c->local_consumed + addition)) != 0 ||
 		    (r = sshpkt_send(ssh)) != 0) {
 			fatal("%s: channel %i: %s", __func__,
 			    c->self, ssh_err(r));
 		}
 		debug2("channel %d: window %d sent adjust %d",
 		    c->self, c->local_window,
-		    c->local_consumed);
-		c->local_window += c->local_consumed;
+		    c->local_consumed + addition);
+		c->local_window += c->local_consumed + addition;
 		c->local_consumed = 0;
 	}
 	return 1;
@@ -2543,7 +2578,7 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 	size_t len, plen;
 	const u_char *pkt;
 	int r;
-
+	
 	if ((len = sshbuf_len(c->input)) == 0) {
 		if (c->istate == CHAN_INPUT_WAIT_DRAIN) {
 			/*
@@ -2589,7 +2624,6 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 			    c->self, ssh_err(r));
 		}
 		c->remote_window -= plen;
-		return;
 	}
 
 	/* Enqueue packet for buffered data. */
@@ -2661,7 +2695,7 @@ channel_output_poll(struct ssh *ssh)
 		c = sc->channels[i];
 		if (c == NULL)
 			continue;
-
+		
 		/*
 		 * We are only interested in channels that can have buffered
 		 * incoming data.
@@ -2671,10 +2705,10 @@ channel_output_poll(struct ssh *ssh)
 		if ((c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD))) {
 			/* XXX is this true? */
 			debug3("channel %d: will not send data after close",
-			    c->self);
+			       c->self);
 			continue;
 		}
-
+		
 		/* Get the amount of buffered data for this channel. */
 		if (c->istate == CHAN_INPUT_OPEN ||
 		    c->istate == CHAN_INPUT_WAIT_DRAIN)
@@ -3378,6 +3412,14 @@ channel_fwd_bind_addr(struct ssh *ssh, const char *listen_addr, int *wildcardp,
 	return addr;
 }
 
+void
+channel_set_hpn(int external_hpn_disabled, int external_hpn_buffer_size)
+{
+	hpn_disabled = external_hpn_disabled;
+	hpn_buffer_size = external_hpn_buffer_size;
+	debug("HPN Disabled: %d, HPN Buffer Size: %d", hpn_disabled, hpn_buffer_size);
+}
+
 static int
 channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
     struct Forward *fwd, int *allocated_listen_port,
@@ -3518,9 +3560,11 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 		}
 
 		/* Allocate a channel number for the socket. */
+		/* explicitly test for hpn disabled option. if true use smaller window size */
 		c = channel_new(ssh, "port listener", type, sock, sock, -1,
-		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
-		    0, "port listener", 1);
+				hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : hpn_buffer_size,
+				CHAN_TCP_PACKET_DEFAULT,
+				0, "port listener", 1);
 		c->path = xstrdup(host);
 		c->host_port = fwd->connect_port;
 		c->listening_addr = addr == NULL ? NULL : xstrdup(addr);
@@ -4675,8 +4719,9 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 		sock = socks[n];
 		nc = channel_new(ssh, "x11 listener",
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
-		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
-		    0, "X11 inet listener", 1);
+				 hpn_disabled ? CHAN_X11_WINDOW_DEFAULT : hpn_buffer_size,
+				 CHAN_X11_PACKET_DEFAULT,
+				 0, "X11 inet listener", 1);
 		nc->single_connection = single_connection;
 		(*chanids)[n] = nc->self;
 	}

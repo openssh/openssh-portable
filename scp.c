@@ -1241,7 +1241,7 @@ sink(int argc, char **argv, const char *src)
 	off_t size, statbytes;
 	unsigned long long ull;
 	int setimes, targisdir, wrerrno = 0;
-	char ch, *cp, *np, *targ, *why, *vect[1], buf[2048], visbuf[2048];
+	char ch, *cp, *np, *targ, *why, *vect[1], buf[16384], visbuf[16384];
 	char **patterns = NULL;
 	size_t n, npatterns = 0;
 	struct timeval tv[2];

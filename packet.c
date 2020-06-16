@@ -292,7 +292,7 @@ struct ssh *
 ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 {
 	struct session_state *state;
-	const struct sshcipher *none = cipher_by_name("none");
+	struct sshcipher *none = cipher_by_name("none");
 	int r;
 
 	if (none == NULL) {
@@ -961,6 +961,24 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	return 0;
 }
 
+/* this supports the forced rekeying required for the NONE cipher */
+int rekey_requested = 0;
+void
+packet_request_rekeying(void)
+{
+	rekey_requested = 1;
+}
+
+/* used to determine if pre or post auth when rekeying for aes-ctr
+ * and none cipher switch */
+int
+packet_authentication_state(const struct ssh *ssh)
+{
+	struct session_state *state = ssh->state;
+
+	return state->after_authentication;
+}
+
 #define MAX_PACKETS	(1U<<31)
 static int
 ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
@@ -986,6 +1004,13 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	 */
 	if (state->p_send.packets == 0 && state->p_read.packets == 0)
 		return 0;
+
+        /* used to force rekeying when called for by the none
+         * cipher switch and aes-mt-ctr methods -cjr */
+        if (rekey_requested == 1) {
+                rekey_requested = 0;
+                return 1;
+        }
 
 	/* Time-based rekeying */
 	if (state->rekey_interval != 0 &&
@@ -1857,17 +1882,21 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
 		ssh_packet_clear_keys(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Connection closed by %s", remote_id);
 	case SSH_ERR_CONN_TIMEOUT:
 		ssh_packet_clear_keys(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Connection %s %s timed out",
 		    ssh->state->server_side ? "from" : "to", remote_id);
 	case SSH_ERR_DISCONNECTED:
 		ssh_packet_clear_keys(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Disconnected from %s", remote_id);
 	case SSH_ERR_SYSTEM_ERROR:
 		if (errno == ECONNRESET) {
 			ssh_packet_clear_keys(ssh);
+			sshpkt_final_log_entry(ssh);
 			logdie("Connection reset by %s", remote_id);
 		}
 		/* FALLTHROUGH */
@@ -1909,6 +1938,24 @@ sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
 	/* NOTREACHED */
 	va_end(ap);
 	logdie("%s: should have exited", __func__);
+}
+
+/* this prints out the final log entry */
+void 
+sshpkt_final_log_entry (struct ssh *ssh) {
+	double total_time;
+	
+	if (ssh->start_time < 1) 
+		/* this will produce a NaN in the output. -cjr */
+		total_time = 0;
+	else
+		total_time = monotime_double() - ssh->start_time;
+	
+	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
+	      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+	      ssh->stdin_bytes, ssh->fdout_bytes, total_time,
+	      ssh->stdin_bytes / total_time,
+	      ssh->fdout_bytes / total_time);
 }
 
 /*
@@ -2739,4 +2786,11 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 {
 	ssh->state->extra_pad = pad;
 	return 0;
+}
+
+/* need this for the moment for the aes-ctr cipher */
+void *
+ssh_packet_get_send_context(struct ssh *ssh)
+{
+        return ssh->state->send_context;
 }
