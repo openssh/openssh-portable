@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.4 2020/01/26 00:09:50 djm Exp $
+#	$OpenBSD: Makefile,v 1.5 2020/04/06 09:43:55 dtucker Exp $
 
 PROG=test_authopt
 SRCS=tests.c
@@ -17,6 +17,7 @@ SRCS+=ssh-ed25519-sk.c sk-usbhid.c
 
 SRCS+=digest-openssl.c
 #SRCS+=digest-libc.c
+SRCS+=utf8.c
 
 REGRESS_TARGETS=run-regress-${PROG}
 
