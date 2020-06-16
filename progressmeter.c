@@ -68,6 +68,8 @@ static const char *file;	/* name of the file being transferred */
 static off_t start_pos;		/* initial position of transfer */
 static off_t end_pos;		/* ending position of transfer */
 static off_t cur_pos;		/* transfer position as of last refresh */
+static off_t last_pos;
+static off_t max_delta_pos = 0;
 static volatile off_t *counter;	/* progress counter */
 static long stalled;		/* how long we have been stalled */
 static int bytes_per_second;	/* current speed in bytes per second */
@@ -127,6 +129,7 @@ refresh_progress_meter(int force_update)
 	int cur_speed;
 	int hours, minutes, seconds;
 	int file_len;
+	off_t delta_pos;
 
 	if ((!force_update && !alarm_fired && !win_resized) || !can_output())
 		return;
@@ -141,6 +144,10 @@ refresh_progress_meter(int force_update)
 	cur_pos = *counter;
 	now = monotime_double();
 	bytes_left = end_pos - cur_pos;
+
+	delta_pos = cur_pos - last_pos;
+	if (delta_pos > max_delta_pos)
+		max_delta_pos = delta_pos;
 
 	if (bytes_left > 0)
 		elapsed = now - last_update;
@@ -166,7 +173,7 @@ refresh_progress_meter(int force_update)
 
 	/* filename */
 	buf[0] = '\0';
-	file_len = win_size - 36;
+	file_len = win_size - 45;
 	if (file_len > 0) {
 		buf[0] = '\r';
 		snmprintf(buf+1, sizeof(buf)-1, &file_len, "%-*s",
@@ -189,6 +196,15 @@ refresh_progress_meter(int force_update)
 	/* bandwidth usage */
 	format_rate(buf + strlen(buf), win_size - strlen(buf),
 	    (off_t)bytes_per_second);
+	strlcat(buf, "/s ", win_size);
+
+	/* instantaneous rate */
+	if (bytes_left > 0)
+		format_rate(buf + strlen(buf), win_size - strlen(buf),
+			    delta_pos);
+	else
+		format_rate(buf + strlen(buf), win_size - strlen(buf),
+			    max_delta_pos);
 	strlcat(buf, "/s ", win_size);
 
 	/* ETA */
@@ -227,6 +243,7 @@ refresh_progress_meter(int force_update)
 
 	atomicio(vwrite, STDOUT_FILENO, buf, win_size - 1);
 	last_update = now;
+	last_pos = cur_pos;
 }
 
 /*ARGSUSED*/
