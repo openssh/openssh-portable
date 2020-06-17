@@ -34,6 +34,7 @@
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif
+#include <dirent.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdio.h>
@@ -842,15 +843,51 @@ user_cert_trusted_ca(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 }
 
 /*
+ * Opens file at path and checks whether key is allowed in it.
+ * This returns 1 if the key is allowed or 0 otherwise.
+ */
+static int
+open_check_authkeys_file(struct ssh *ssh, struct passwd *pw,
+	struct sshkey *key, char *filepath, struct sshauthopt **authoptsp)
+{
+	int found_key = 0;
+	FILE *f;
+
+	debug("trying public key file %s", filepath);
+	f = auth_openkeyfile(filepath, pw, options.strict_modes);
+	if (f != NULL) {
+		found_key = check_authkeys_file(ssh, pw, f, filepath,
+			key, authoptsp);
+		fclose(f);
+	}
+	return found_key;
+}
+
+/*
+ * Filters dotfiles from directory scan results.
+ */
+static int
+user_key_dotfiles_filter(const struct dirent *entry) {
+	if (entry->d_ino == 0)
+		return 0;
+
+	if (strlen(entry->d_name) == 0 || entry->d_name[0] == '.')
+		return 0;
+
+	return 1;
+}
+
+/*
  * Checks whether key is allowed in file.
  * returns 1 if the key is allowed or 0 otherwise.
  */
 static int
 user_key_allowed2(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
-    char *file, struct sshauthopt **authoptsp)
+    char *path, struct sshauthopt **authoptsp)
 {
-	FILE *f;
-	int found_key = 0;
+	char inner_filepath[PATH_MAX];
+	int dir_entries, dir_index = 0, found_key = 0, r;
+	struct dirent **namelist;
 
 	if (authoptsp != NULL)
 		*authoptsp = NULL;
@@ -858,11 +895,27 @@ user_key_allowed2(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 	/* Temporarily use the user's uid. */
 	temporarily_use_uid(pw);
 
-	debug("trying public key file %s", file);
-	if ((f = auth_openkeyfile(file, pw, options.strict_modes)) != NULL) {
-		found_key = check_authkeys_file(ssh, pw, f, file,
-		    key, authoptsp);
-		fclose(f);
+	dir_entries = scandir(path, &namelist, user_key_dotfiles_filter, alphasort);
+	if (dir_entries >= 0) {
+		debug("checking directory %s for public key files", path);
+
+		for(dir_index = 0; found_key == 0 && dir_index < dir_entries; dir_index++) {
+			r = snprintf(inner_filepath, sizeof(inner_filepath), "%s/%s",
+				path, namelist[dir_index]->d_name);
+			if (r <= 0 || (size_t)r >= sizeof(inner_filepath))
+				continue;
+			found_key = open_check_authkeys_file(ssh, pw, key,
+				inner_filepath, authoptsp);
+			if (found_key == 1)
+				break;
+		}
+
+		for(dir_index = 0; dir_index < dir_entries; dir_index++) {
+			free(namelist[dir_index]);
+		}
+		free(namelist);
+	} else {
+		found_key = open_check_authkeys_file(ssh, pw, key, path, authoptsp);
 	}
 
 	restore_uid();
@@ -1009,7 +1062,7 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
     int auth_attempt, struct sshauthopt **authoptsp)
 {
 	u_int success = 0, i;
-	char *file;
+	char *path;
 	struct sshauthopt *opts = NULL;
 
 	if (authoptsp != NULL)
@@ -1024,10 +1077,10 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 	for (i = 0; !success && i < options.num_authkeys_files; i++) {
 		if (strcasecmp(options.authorized_keys_files[i], "none") == 0)
 			continue;
-		file = expand_authorized_keys(
+		path = expand_authorized_keys(
 		    options.authorized_keys_files[i], pw);
-		success = user_key_allowed2(ssh, pw, key, file, &opts);
-		free(file);
+		success = user_key_allowed2(ssh, pw, key, path, &opts);
+		free(path);
 		if (!success) {
 			sshauthopt_free(opts);
 			opts = NULL;
