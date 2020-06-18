@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.556 2020/06/05 06:18:07 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.557 2020/06/18 23:34:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1849,10 +1849,19 @@ main(int ac, char **av)
 		    &pubkey, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
 			do_log2(ll, "Unable to load host key \"%s\": %s",
 			    options.host_key_files[i], ssh_err(r));
-		if (pubkey == NULL && key != NULL)
+		if (pubkey != NULL && key != NULL) {
+			if (!sshkey_equal(pubkey, key)) {
+				error("Public key for %s does not match "
+				    "private key", options.host_key_files[i]);
+				sshkey_free(pubkey);
+				pubkey = NULL;
+			}
+		}
+		if (pubkey == NULL && key != NULL) {
 			if ((r = sshkey_from_private(key, &pubkey)) != 0)
 				fatal("Could not demote key: \"%s\": %s",
 				    options.host_key_files[i], ssh_err(r));
+		}
 		sensitive_data.host_keys[i] = key;
 		sensitive_data.host_pubkeys[i] = pubkey;
 
