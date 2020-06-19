@@ -15,6 +15,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* OPENBSD ORIGINAL: lib/libutil/bcrypt_pbkdf.c */
+
 #include "includes.h"
 
 #ifndef HAVE_BCRYPT_PBKDF
