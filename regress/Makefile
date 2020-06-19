@@ -251,6 +251,8 @@ unit:
 		$$V ${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
 		$$V ${.OBJDIR}/unittests/sshkey/test_sshkey \
 			-d ${.CURDIR}/unittests/sshkey/testdata ; \
+		$$V ${.OBJDIR}/unittests/sshsig/test_sshsig \
+			-d ${.CURDIR}/unittests/sshsig/testdata ; \
 		$$V ${.OBJDIR}/unittests/bitmap/test_bitmap ; \
 		$$V ${.OBJDIR}/unittests/conversion/test_conversion ; \
 		$$V ${.OBJDIR}/unittests/kex/test_kex ; \

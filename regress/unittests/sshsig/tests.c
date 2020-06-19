@@ -25,7 +25,7 @@
 #include "sshsig.h"
 #include "log.h"
 
-#include "test_helper.h"
+#include "../test_helper/test_helper.h"
 
 static struct sshbuf *
 load_file(const char *name)
