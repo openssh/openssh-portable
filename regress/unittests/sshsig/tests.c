@@ -80,8 +80,10 @@ tests(void)
         log_init("test_sshsig", SYSLOG_LEVEL_DEBUG3, SYSLOG_FACILITY_AUTH, 1);
 #endif
 
+#ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
 	ERR_load_CRYPTO_strings();
+#endif
 
 	TEST_START("load data");
 	msg = load_file("namespace");
@@ -91,6 +93,7 @@ tests(void)
 	msg = load_file("signed-data");
 	TEST_DONE();
 
+#ifdef WITH_OPENSSL
 	TEST_START("check RSA signature");
 	check_sig("rsa", "rsa.sig", msg, namespace);
 	TEST_DONE();
@@ -99,17 +102,22 @@ tests(void)
 	check_sig("dsa", "dsa.sig", msg, namespace);
 	TEST_DONE();
 
+#ifdef OPENSSL_HAS_ECC
 	TEST_START("check ECDSA signature");
 	check_sig("ecdsa", "ecdsa.sig", msg, namespace);
 	TEST_DONE();
+#endif
+#endif
 
 	TEST_START("check ED25519 signature");
 	check_sig("ed25519", "ed25519.sig", msg, namespace);
 	TEST_DONE();
 
+#if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 	TEST_START("check ECDSA-SK signature");
 	check_sig("ecdsa_sk", "ecdsa_sk.sig", msg, namespace);
 	TEST_DONE();
+#endif
 
 	TEST_START("check ED25519-SK signature");
 	check_sig("ed25519_sk", "ed25519_sk.sig", msg, namespace);
