@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.7 2020/06/22 05:58:35 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.8 2020/06/22 23:44:27 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -97,6 +97,13 @@ webauthn_check_prepare_hash(const u_char *data, size_t datalen,
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
+
+	/*
+	 * Prepare the preamble to clientData that we expect, poking the
+	 * challenge and origin into their canonical positions in the
+	 * structure. The crossOrigin flag and any additional extension
+	 * fields present are ignored.
+	 */
 #define WEBAUTHN_0	"{\"type\":\"webauthn.get\",\"challenge\":\""
 #define WEBAUTHN_1	"\",\"origin\":\""
 #define WEBAUTHN_2	"\""
@@ -113,7 +120,7 @@ webauthn_check_prepare_hash(const u_char *data, size_t datalen,
 	fprintf(stderr, "%s: expected clientData premable:\n", __func__);
 	sshbuf_dump(m, stderr);
 #endif
-	/* Check that the supplied clientData matches what we expect */
+	/* Check that the supplied clientData has the preamble we expect */
 	if ((r = sshbuf_cmp(wrapper, 0, sshbuf_ptr(m), sshbuf_len(m))) != 0)
 		goto out;
 
