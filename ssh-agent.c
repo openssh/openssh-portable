@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.259 2020/06/19 07:21:42 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.260 2020/06/22 05:52:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -150,8 +150,8 @@ pid_t cleanup_pid = 0;
 char socket_name[PATH_MAX];
 char socket_dir[PATH_MAX];
 
-/* PKCS#11/Security key path whitelist */
-static char *provider_whitelist;
+/* Pattern-list of allowed PKCS#11/Security key paths */
+static char *allowed_providers;
 
 /* locking */
 #define LOCK_SIZE	32
@@ -612,9 +612,9 @@ process_add_identity(SocketEntry *e)
 			free(sk_provider);
 			sk_provider = xstrdup(canonical_provider);
 			if (match_pattern_list(sk_provider,
-			    provider_whitelist, 0) != 1) {
+			    allowed_providers, 0) != 1) {
 				error("Refusing add key: "
-				    "provider %s not whitelisted", sk_provider);
+				    "provider %s not allowed", sk_provider);
 				free(sk_provider);
 				goto send;
 			}
@@ -769,9 +769,9 @@ process_add_smartcard_key(SocketEntry *e)
 		    provider, strerror(errno));
 		goto send;
 	}
-	if (match_pattern_list(canonical_provider, provider_whitelist, 0) != 1) {
+	if (match_pattern_list(canonical_provider, allowed_providers, 0) != 1) {
 		verbose("refusing PKCS#11 add of \"%.100s\": "
-		    "provider not whitelisted", canonical_provider);
+		    "provider not allowed", canonical_provider);
 		goto send;
 	}
 	debug("%s: add %.100s", __func__, canonical_provider);
@@ -1255,7 +1255,7 @@ usage(void)
 	fprintf(stderr,
 	    "usage: ssh-agent [-c | -s] [-Dd] [-a bind_address] [-E fingerprint_hash]\n"
 	    "                 [-P provider_whitelist] [-t life]\n"
-	    "       ssh-agent [-a bind_address] [-E fingerprint_hash] [-P provider_whitelist]\n"
+	    "       ssh-agent [-a bind_address] [-E fingerprint_hash] [-P allowed_providers]\n"
 	    "                 [-t life] command [arg ...]\n"
 	    "       ssh-agent [-c | -s] -k\n");
 	exit(1);
@@ -1320,9 +1320,9 @@ main(int ac, char **av)
 				fatal("Unknown -O option");
 			break;
 		case 'P':
-			if (provider_whitelist != NULL)
+			if (allowed_providers != NULL)
 				fatal("-P option already specified");
-			provider_whitelist = xstrdup(optarg);
+			allowed_providers = xstrdup(optarg);
 			break;
 		case 's':
 			if (c_flag)
@@ -1358,8 +1358,8 @@ main(int ac, char **av)
 	if (ac > 0 && (c_flag || k_flag || s_flag || d_flag || D_flag))
 		usage();
 
-	if (provider_whitelist == NULL)
-		provider_whitelist = xstrdup(DEFAULT_PROVIDER_WHITELIST);
+	if (allowed_providers == NULL)
+		allowed_providers = xstrdup(DEFAULT_PROVIDER_WHITELIST);
 
 	if (ac == 0 && !c_flag && !s_flag) {
 		shell = getenv("SHELL");
