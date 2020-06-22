@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.5 2019/11/26 03:04:27 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.6 2020/06/22 05:56:23 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -83,15 +83,22 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	/* fetch signature */
 	if ((b = sshbuf_from(signature, signaturelen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if (sshbuf_get_cstring(b, &ktype, NULL) != 0 ||
-	    sshbuf_froms(b, &sigbuf) != 0 ||
-	    sshbuf_get_u8(b, &sig_flags) != 0 ||
-	    sshbuf_get_u32(b, &sig_counter) != 0) {
+	if ((details = calloc(1, sizeof(*details))) == NULL) {
+		ret = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (sshbuf_get_cstring(b, &ktype, NULL) != 0) {
 		ret = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if (strcmp(sshkey_ssh_name_plain(key), ktype) != 0) {
-		ret = SSH_ERR_KEY_TYPE_MISMATCH;
+	if (strcmp(ktype, "sk-ecdsa-sha2-nistp256@openssh.com") != 0) {
+		ret = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if (sshbuf_froms(b, &sigbuf) != 0 ||
+	    sshbuf_get_u8(b, &sig_flags) != 0 ||
+	    sshbuf_get_u32(b, &sig_counter) != 0) {
+		ret = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
 	if (sshbuf_len(b) != 0) {
@@ -105,12 +112,8 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 		ret = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if ((sig = ECDSA_SIG_new()) == NULL) {
-		ret = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if (!ECDSA_SIG_set0(sig, sig_r, sig_s)) {
-		ret = SSH_ERR_LIBCRYPTO_ERROR;
+	if (sshbuf_len(sigbuf) != 0) {
+		ret = SSH_ERR_UNEXPECTED_TRAILING_DATA;
 		goto out;
 	}
 #ifdef DEBUG_SK
@@ -123,12 +126,15 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	fprintf(stderr, "%s: sig_flags = 0x%02x, sig_counter = %u\n",
 	    __func__, sig_flags, sig_counter);
 #endif
-	sig_r = sig_s = NULL; /* transferred */
-
-	if (sshbuf_len(sigbuf) != 0) {
-		ret = SSH_ERR_UNEXPECTED_TRAILING_DATA;
+	if ((sig = ECDSA_SIG_new()) == NULL) {
+		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
+	if (!ECDSA_SIG_set0(sig, sig_r, sig_s)) {
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	sig_r = sig_s = NULL; /* transferred */
 
 	/* Reconstruct data that was supposedly signed */
 	if ((original_signed = sshbuf_new()) == NULL) {
@@ -158,10 +164,6 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	if ((ret = ssh_digest_buffer(SSH_DIGEST_SHA256, original_signed,
 	    sighash, sizeof(sighash))) != 0)
 		goto out;
-	if ((details = calloc(1, sizeof(*details))) == NULL) {
-		ret = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
 	details->sk_counter = sig_counter;
 	details->sk_flags = sig_flags;
 #ifdef DEBUG_SK
