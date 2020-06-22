@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp-server.8,v 1.29 2020/06/22 05:53:26 djm Exp $
+.\" $OpenBSD: sftp-server.8,v 1.30 2020/06/22 06:36:40 jmc Exp $
 .\"
 .\" Copyright (c) 2000 Markus Friedl.  All rights reserved.
 .\"
@@ -112,7 +112,7 @@ applied before the allowed list.
 .It Fl p Ar allowed_requests
 Specify a comma-separated list of SFTP protocol requests that are permitted
 by the server.
-All request types that are not on the allowed will be logged and replied
+All request types that are not on the allowed list will be logged and replied
 to with a failure message.
 .Pp
 Care must be taken when using this feature to ensure that requests made
