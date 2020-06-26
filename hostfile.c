@@ -471,13 +471,17 @@ hostfile_create_user_ssh_dir(const char *filename, int notify)
 	else if (errno != ENOENT)
 		error("Could not stat %s: %s", dotsshdir, strerror(errno));
 	else {
+#ifdef WITH_SELINUX
 		ssh_selinux_setfscreatecon(dotsshdir);
+#endif
 		if (mkdir(dotsshdir, 0700) == -1)
 			error("Could not create directory '%.200s' (%s).",
 			    dotsshdir, strerror(errno));
 		else if (notify)
 			logit("Created directory '%s'.", dotsshdir);
+#ifdef WITH_SELINUX
 		ssh_selinux_setfscreatecon(NULL);
+#endif
 	}
 	free(dotsshdir);
 }
