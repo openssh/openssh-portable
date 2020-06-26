@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.155 2020/03/16 02:17:02 dtucker Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.156 2020/06/26 05:04:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -111,25 +111,69 @@ clear_pass(void)
 }
 
 static int
+delete_one(int agent_fd, const struct sshkey *key, const char *comment,
+    const char *path, int qflag)
+{
+	int r;
+
+	if ((r = ssh_remove_identity(agent_fd, key)) != 0) {
+		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
+		    path, ssh_err(r));
+		return r;
+	}
+	if (!qflag) {
+		fprintf(stderr, "Identity removed: %s %s (%s)\n", path,
+		    sshkey_type(key), comment);
+	}
+	return 0;
+}
+
+static int
+delete_stdin(int agent_fd, int qflag)
+{
+	char *line = NULL, *cp;
+	size_t linesize = 0;
+	struct sshkey *key = NULL;
+	int lnum = 0, r, ret = -1;
+
+	while (getline(&line, &linesize, stdin) != -1) {
+		lnum++;
+		sshkey_free(key);
+		key = NULL;
+		line[strcspn(line, "\n")] = '\0';
+		cp = line + strspn(line, " \t");
+		if (*cp == '#' || *cp == '\0')
+			continue;
+		if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
+			fatal("%s: sshkey_new", __func__);
+		if ((r = sshkey_read(key, &cp)) != 0) {
+			error("(stdin):%d: invalid key: %s", lnum, ssh_err(r));
+			continue;
+		}
+		if (delete_one(agent_fd, key, cp, "(stdin)", qflag) == 0)
+			ret = 0;
+	}
+	sshkey_free(key);
+	free(line);
+	return ret;
+}
+
+static int
 delete_file(int agent_fd, const char *filename, int key_only, int qflag)
 {
 	struct sshkey *public, *cert = NULL;
 	char *certpath = NULL, *comment = NULL;
 	int r, ret = -1;
 
+	if (strcmp(filename, "-") == 0)
+		return delete_stdin(agent_fd, qflag);
+
 	if ((r = sshkey_load_public(filename, &public,  &comment)) != 0) {
 		printf("Bad key file %s: %s\n", filename, ssh_err(r));
 		return -1;
 	}
-	if ((r = ssh_remove_identity(agent_fd, public)) == 0) {
-		if (!qflag) {
-			fprintf(stderr, "Identity removed: %s (%s)\n",
-			    filename, comment);
-		}
+	if (delete_one(agent_fd, public, comment, filename, qflag) == 0)
 		ret = 0;
-	} else
-		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
-		    filename, ssh_err(r));
 
 	if (key_only)
 		goto out;
@@ -149,15 +193,8 @@ delete_file(int agent_fd, const char *filename, int key_only, int qflag)
 		fatal("Certificate %s does not match private key %s",
 		    certpath, filename);
 
-	if ((r = ssh_remove_identity(agent_fd, cert)) == 0) {
-		if (!qflag) {
-			fprintf(stderr, "Identity removed: %s (%s)\n",
-			    certpath, comment);
-		}
+	if (delete_one(agent_fd, cert, comment, certpath, qflag) == 0)
 		ret = 0;
-	} else
-		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
-		    certpath, ssh_err(r));
 
  out:
 	sshkey_free(cert);
