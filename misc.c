@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.152 2020/05/29 11:17:56 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.153 2020/06/26 05:16:38 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -253,7 +253,7 @@ waitfd(int fd, int *timeoutp, short events)
 		errno = oerrno;
 		if (r > 0)
 			return 0;
-		else if (r == -1 && errno != EAGAIN)
+		else if (r == -1 && errno != EAGAIN && errno != EINTR)
 			return -1;
 		else if (r == 0)
 			break;
@@ -292,12 +292,17 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
 		return connect(sockfd, serv_addr, addrlen);
 
 	set_nonblock(sockfd);
-	if (connect(sockfd, serv_addr, addrlen) == 0) {
-		/* Succeeded already? */
-		unset_nonblock(sockfd);
-		return 0;
-	} else if (errno != EINPROGRESS)
-		return -1;
+	for (;;) {
+		if (connect(sockfd, serv_addr, addrlen) == 0) {
+			/* Succeeded already? */
+			unset_nonblock(sockfd);
+			return 0;
+		} else if (errno == EINTR)
+			continue;
+		else if (errno != EINPROGRESS)
+			return -1;
+		break;
+	}
 
 	if (waitfd(sockfd, timeoutp, POLLIN | POLLOUT) == -1)
 		return -1;
