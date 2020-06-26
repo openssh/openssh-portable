@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.80 2020/05/13 09:52:41 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.81 2020/06/26 05:02:03 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -57,6 +57,7 @@
 #include "hostfile.h"
 #include "log.h"
 #include "misc.h"
+#include "pathnames.h"
 #include "ssherr.h"
 #include "digest.h"
 #include "hmac.h"
@@ -450,6 +451,38 @@ write_host_entry(FILE *f, const char *host, const char *ip,
 }
 
 /*
+ * Create user ~/.ssh directory if it doesn't exist and we want to write to it.
+ * If notify is set, a message will be emitted if the directory is created.
+ */
+void
+hostfile_create_user_ssh_dir(const char *filename, int notify)
+{
+	char *dotsshdir = NULL, *p;
+	size_t len;
+	struct stat st;
+
+	if ((p = strrchr(filename, '/')) == NULL)
+		return;
+	len = p - filename;
+	dotsshdir = tilde_expand_filename("~/" _PATH_SSH_USER_DIR, getuid());
+	if ((strlen(dotsshdir) > len || strncmp(filename, dotsshdir, len) != 0
+	    || stat(dotsshdir, &st)) == 0)
+		; /* do nothing, path not in ~/.ssh or dir already exists */
+	else if (errno != ENOENT)
+		error("Could not stat %s: %s", dotsshdir, strerror(errno));
+	else {
+		ssh_selinux_setfscreatecon(dotsshdir);
+		if (mkdir(dotsshdir, 0700) == -1)
+			error("Could not create directory '%.200s' (%s).",
+			    dotsshdir, strerror(errno));
+		else if (notify)
+			logit("Created directory '%s'.", dotsshdir);
+		ssh_selinux_setfscreatecon(NULL);
+	}
+	free(dotsshdir);
+}
+
+/*
  * Appends an entry to the host file.  Returns false if the entry could not
  * be appended.
  */
@@ -462,6 +495,7 @@ add_host_to_hostfile(const char *filename, const char *host,
 
 	if (key == NULL)
 		return 1;	/* XXX ? */
+	hostfile_create_user_ssh_dir(filename, 0);
 	f = fopen(filename, "a");
 	if (!f)
 		return 0;

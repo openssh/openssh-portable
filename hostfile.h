@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.h,v 1.25 2020/05/13 09:52:41 djm Exp $ */
+/* $OpenBSD: hostfile.h,v 1.26 2020/06/26 05:02:03 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -105,5 +105,7 @@ typedef int hostkeys_foreach_fn(struct hostkey_foreach_line *l, void *ctx);
 /* Iterate over a hostkeys file */
 int hostkeys_foreach(const char *path, hostkeys_foreach_fn *callback, void *ctx,
     const char *host, const char *ip, u_int options);
+
+void hostfile_create_user_ssh_dir(const char *, int);
 
 #endif
