@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.323 2020/06/05 03:24:16 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.324 2020/06/27 13:39:09 bket Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1671,10 +1671,7 @@ pubkey_prepare(Authctxt *authctxt)
 		}
 		ssh_free_identitylist(idlist);
 		/* append remaining agent keys */
-		for (id = TAILQ_FIRST(&agent); id; id = TAILQ_FIRST(&agent)) {
-			TAILQ_REMOVE(&agent, id, next);
-			TAILQ_INSERT_TAIL(preferred, id, next);
-		}
+		TAILQ_CONCAT(preferred, &agent, next);
 		authctxt->agent_fd = agent_fd;
 	}
 	/* Prefer PKCS11 keys that are explicitly listed */
@@ -1700,10 +1697,7 @@ pubkey_prepare(Authctxt *authctxt)
 		}
 	}
 	/* append remaining keys from the config file */
-	for (id = TAILQ_FIRST(&files); id; id = TAILQ_FIRST(&files)) {
-		TAILQ_REMOVE(&files, id, next);
-		TAILQ_INSERT_TAIL(preferred, id, next);
-	}
+	TAILQ_CONCAT(preferred, &files, next);
 	/* finally, filter by PubkeyAcceptedKeyTypes */
 	TAILQ_FOREACH_SAFE(id, preferred, next, id2) {
 		if (id->key != NULL && !key_type_allowed_by_config(id->key)) {
