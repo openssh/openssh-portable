@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.19 2019/10/31 21:23:19 djm Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.20 2020/07/01 16:28:31 markus Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -152,7 +152,6 @@ ssh_free(struct ssh *ssh)
 {
 	struct key_entry *k;
 
-	ssh_packet_close(ssh);
 	/*
 	 * we've only created the public keys variants in case we
 	 * are a acting as a server.
@@ -167,8 +166,7 @@ ssh_free(struct ssh *ssh)
 		TAILQ_REMOVE(&ssh->private_keys, k, next);
 		free(k);
 	}
-	if (ssh->kex)
-		kex_free(ssh->kex);
+	ssh_packet_close(ssh);
 	free(ssh);
 }
 
