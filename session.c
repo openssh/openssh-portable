@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.321 2020/07/03 06:46:41 djm Exp $ */
+/* $OpenBSD: session.c,v 1.322 2020/07/03 07:02:37 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1212,7 +1212,7 @@ do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 
 	do_xauth =
 	    s->display != NULL && s->auth_proto != NULL && s->auth_data != NULL;
-	user_rc = tilde_expand_filename("~/" _PATH_SSH_USER_RC, getuid());
+	xasprintf(&user_rc, "%s/%s", s->pw->pw_dir, _PATH_SSH_USER_RC);
 
 	/* ignore _PATH_SSH_USER_RC for subsystems and admin forced commands */
 	if (!s->is_subsystem && options.adm_forced_command == NULL &&
