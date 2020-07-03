@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.398 2020/04/25 06:59:36 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.399 2020/07/03 05:08:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -621,6 +621,8 @@ channel_free(struct ssh *ssh, Channel *c)
 	c->path = NULL;
 	free(c->listening_addr);
 	c->listening_addr = NULL;
+	free(c->mux_ctx);
+	c->mux_ctx = NULL;
 	while ((cc = TAILQ_FIRST(&c->status_confirms)) != NULL) {
 		if (cc->abandon_cb != NULL)
 			cc->abandon_cb(ssh, c, cc->ctx);
