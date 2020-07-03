@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.400 2020/07/03 07:17:35 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.401 2020/07/03 07:25:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -603,6 +603,10 @@ channel_free(struct ssh *ssh, Channel *c)
 
 	if (c->type == SSH_CHANNEL_MUX_CLIENT)
 		mux_remove_remote_forwardings(ssh, c);
+	else if (c->type == SSH_CHANNEL_MUX_LISTENER) {
+		free(c->mux_ctx);
+		c->mux_ctx = NULL;
+	}
 
 	if (log_level_get() >= SYSLOG_LEVEL_DEBUG3) {
 		s = channel_open_message(ssh);
