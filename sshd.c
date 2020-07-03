@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.557 2020/06/18 23:34:19 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.558 2020/07/03 10:10:17 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -965,7 +965,7 @@ send_rexec_state(int fd, struct sshbuf *conf)
 	rexec_send_rng_seed(m);
 #endif
 	if (ssh_msg_send(fd, 0, m) == -1)
-		fatal("%s: ssh_msg_send failed", __func__);
+		error("%s: ssh_msg_send failed", __func__);
 
 	sshbuf_free(m);
 	sshbuf_free(inc);
