@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.558 2020/07/03 10:10:17 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.559 2020/07/03 10:11:33 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2108,6 +2108,7 @@ main(int ac, char **av)
 		dup2(config_s[1], REEXEC_CONFIG_PASS_FD);
 		close(config_s[1]);
 
+		ssh_signal(SIGHUP, SIG_IGN); /* avoid reset to SIG_DFL */
 		execv(rexec_argv[0], rexec_argv);
 
 		/* Reexec has failed, fall back and continue */
