@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.295 2020/07/01 16:28:31 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.296 2020/07/05 23:59:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2450,7 +2450,7 @@ ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 	    (r = sshbuf_get_u64(m, &state->p_read.bytes)) != 0)
 		return r;
 	/*
-	 * We set the time here so that in post-auth privsep slave we
+	 * We set the time here so that in post-auth privsep child we
 	 * count from the completion of the authentication.
 	 */
 	state->rekey_time = monotime();

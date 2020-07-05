@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.322 2020/07/03 07:02:37 djm Exp $ */
+/* $OpenBSD: session.c,v 1.323 2020/07/05 23:59:45 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -644,7 +644,7 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 
 	s->pid = pid;
 
-	/* Parent.  Close the slave side of the pseudo tty. */
+	/* Parent.  Close the child side of the pseudo tty. */
 	close(ttyfd);
 
 	/* Enter interactive session. */
@@ -843,12 +843,12 @@ check_quietlogin(Session *s, const char *command)
  * into the environment.  If the file does not exist, this does nothing.
  * Otherwise, it must consist of empty lines, comments (line starts with '#')
  * and assignments of the form name=value.  No other forms are allowed.
- * If whitelist is not NULL, then it is interpreted as a pattern list and
+ * If allowlist is not NULL, then it is interpreted as a pattern list and
  * only variable names that match it will be accepted.
  */
 static void
 read_environment_file(char ***env, u_int *envsize,
-	const char *filename, const char *whitelist)
+	const char *filename, const char *allowlist)
 {
 	FILE *f;
 	char *line = NULL, *cp, *value;
@@ -881,8 +881,8 @@ read_environment_file(char ***env, u_int *envsize,
 		 */
 		*value = '\0';
 		value++;
-		if (whitelist != NULL &&
-		    match_pattern_list(cp, whitelist, 0) != 1)
+		if (allowlist != NULL &&
+		    match_pattern_list(cp, allowlist, 0) != 1)
 			continue;
 		child_set_env(env, envsize, cp, value);
 	}
@@ -1111,10 +1111,10 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 			cp = strchr(ocp, '=');
 			if (*cp == '=') {
 				*cp = '\0';
-				/* Apply PermitUserEnvironment whitelist */
-				if (options.permit_user_env_whitelist == NULL ||
+				/* Apply PermitUserEnvironment allowlist */
+				if (options.permit_user_env_allowlist == NULL ||
 				    match_pattern_list(ocp,
-				    options.permit_user_env_whitelist, 0) == 1)
+				    options.permit_user_env_allowlist, 0) == 1)
 					child_set_env(&env, &envsize,
 					    ocp, cp + 1);
 			}
@@ -1127,7 +1127,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		snprintf(buf, sizeof buf, "%.200s/.ssh/environment",
 		    pw->pw_dir);
 		read_environment_file(&env, &envsize, buf,
-		    options.permit_user_env_whitelist);
+		    options.permit_user_env_allowlist);
 	}
 
 #ifdef USE_PAM
