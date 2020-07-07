@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.211 2020/07/05 23:59:45 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.212 2020/07/07 02:47:21 deraadt Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1568,7 +1568,7 @@ mm_answer_pty(struct ssh *ssh, int sock, struct sshbuf *m)
 	if (fd0 != 0)
 		error("%s: fd0 %d != 0", __func__, fd0);
 
-	/* only need pty master side */
+	/* slave side of pty is not needed */
 	close(s->ttyfd);
 	s->ttyfd = s->ptyfd;
 	/* no need to dup() because nobody closes ptyfd */

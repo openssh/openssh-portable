@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.323 2020/07/05 23:59:45 djm Exp $ */
+/* $OpenBSD: session.c,v 1.324 2020/07/07 02:47:21 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -644,7 +644,7 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 
 	s->pid = pid;
 
-	/* Parent.  Close the child side of the pseudo tty. */
+	/* Parent.  Close the slave side of the pseudo tty. */
 	close(ttyfd);
 
 	/* Enter interactive session. */
