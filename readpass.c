@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.61 2020/01/23 07:10:22 dtucker Exp $ */
+/* $OpenBSD: readpass.c,v 1.62 2020/07/14 23:57:01 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -123,11 +123,26 @@ char *
 read_passphrase(const char *prompt, int flags)
 {
 	char cr = '\r', *askpass = NULL, *ret, buf[1024];
-	int rppflags, use_askpass = 0, ttyfd;
+	int rppflags, ttyfd, use_askpass = 0, allow_askpass = 0;
 	const char *askpass_hint = NULL;
+	const char *s;
+
+	if ((s = getenv("DISPLAY")) != NULL)
+		allow_askpass = *s != '\0';
+	if ((s = getenv(SSH_ASKPASS_REQUIRE_ENV)) != NULL) {
+		if (strcasecmp(s, "force") == 0) {
+			use_askpass = 1;
+			allow_askpass = 1;
+		} else if (strcasecmp(s, "prefer") == 0)
+			use_askpass = allow_askpass;
+		else if (strcasecmp(s, "never") == 0)
+			allow_askpass = 0;
+	}
 
 	rppflags = (flags & RP_ECHO) ? RPP_ECHO_ON : RPP_ECHO_OFF;
-	if (flags & RP_USE_ASKPASS)
+	if (use_askpass)
+		debug("%s: requested to askpass", __func__);
+	else if (flags & RP_USE_ASKPASS)
 		use_askpass = 1;
 	else if (flags & RP_ALLOW_STDIN) {
 		if (!isatty(STDIN_FILENO)) {
@@ -153,10 +168,10 @@ read_passphrase(const char *prompt, int flags)
 		}
 	}
 
-	if ((flags & RP_USE_ASKPASS) && getenv("DISPLAY") == NULL)
+	if ((flags & RP_USE_ASKPASS) && !allow_askpass)
 		return (flags & RP_ALLOW_EOF) ? NULL : xstrdup("");
 
-	if (use_askpass && getenv("DISPLAY")) {
+	if (use_askpass && allow_askpass) {
 		if (getenv(SSH_ASKPASS_ENV))
 			askpass = getenv(SSH_ASKPASS_ENV);
 		else
