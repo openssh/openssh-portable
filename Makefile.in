@@ -130,7 +130,7 @@ SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	sandbox-seccomp-filter.o sandbox-capsicum.o sandbox-pledge.o \
 	sandbox-solaris.o uidswap.o $(SKOBJS)
 
-SCP_OBJS=	scp.o progressmeter.o
+SCP_OBJS=	scp.o sftp-common.o sftp-client.o sftp-glob.o progressmeter.o
 
 SSHADD_OBJS=	ssh-add.o $(SKOBJS)
 
