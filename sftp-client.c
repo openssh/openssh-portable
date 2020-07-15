@@ -1949,3 +1949,52 @@ path_append(const char *p1, const char *p2)
 	return(ret);
 }
 
+char *
+make_absolute(char *p, const char *pwd)
+{
+	char *abs_str;
+
+	/* Derelativise */
+	if (p && !path_absolute(p)) {
+		abs_str = path_append(pwd, p);
+		free(p);
+		return(abs_str);
+	} else
+		return(p);
+}
+
+int
+remote_is_dir(struct sftp_conn *conn, const char *path)
+{
+	Attrib *a;
+
+	/* XXX: report errors? */
+	if ((a = do_stat(conn, path, 1)) == NULL)
+		return(0);
+	if (!(a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS))
+		return(0);
+	return(S_ISDIR(a->perm));
+}
+
+
+int
+local_is_dir(const char *path)
+{
+	struct stat sb;
+
+	/* XXX: report errors? */
+	if (stat(path, &sb) == -1)
+		return(0);
+
+	return(S_ISDIR(sb.st_mode));
+}
+
+/* Check whether path returned from glob(..., GLOB_MARK, ...) is a directory */
+int
+globpath_is_dir(const char *pathname)
+{
+	size_t l = strlen(pathname);
+
+	return l > 0 && pathname[l - 1] == '/';
+}
+

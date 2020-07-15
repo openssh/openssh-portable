@@ -142,4 +142,17 @@ int upload_dir(struct sftp_conn *, const char *, const char *, int, int, int,
 /* Concatenate paths, taking care of slashes. Caller must free result. */
 char *path_append(const char *, const char *);
 
+/* Make absolute path if relative path and CWD is given. Does not modify
+ * original if the the path is already absolute. */
+char *make_absolute(char *, const char *);
+
+/* Check if remote path is directory */
+int remote_is_dir(struct sftp_conn *conn, const char *path);
+
+/* Check if local path is directory */
+int local_is_dir(const char *path);
+
+/* Check whether path returned from glob(..., GLOB_MARK, ...) is a directory */
+int globpath_is_dir(const char *pathname);
+
 #endif
