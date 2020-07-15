@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.204 2020/07/15 04:27:34 dtucker Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.205 2020/07/15 07:50:46 solene Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -44,16 +44,18 @@
 .Sh SYNOPSIS
 .Nm ssh-keygen
 .Op Fl q
+.Op Fl a Ar rounds
 .Op Fl b Ar bits
 .Op Fl C Ar comment
 .Op Fl f Ar output_keyfile
 .Op Fl m Ar format
-.Op Fl t Cm dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa
 .Op Fl N Ar new_passphrase
 .Op Fl O Ar option
+.Op Fl t Cm dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa
 .Op Fl w Ar provider
 .Nm ssh-keygen
 .Fl p
+.Op Fl a Ar rounds
 .Op Fl f Ar keyfile
 .Op Fl m Ar format
 .Op Fl N Ar new_passphrase
@@ -71,6 +73,7 @@
 .Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl c
+.Op Fl a Ar rounds
 .Op Fl C Ar comment
 .Op Fl f Ar keyfile
 .Op Fl P Ar passphrase
@@ -93,6 +96,7 @@
 .Op Fl f Ar known_hosts_file
 .Nm ssh-keygen
 .Fl K
+.Op Fl a Ar rounds
 .Op Fl w Ar provider
 .Nm ssh-keygen
 .Fl R Ar hostname
@@ -125,6 +129,7 @@
 .Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl A
+.Op Fl a Ar rounds
 .Op Fl f Ar prefix_path
 .Nm ssh-keygen
 .Fl k
@@ -248,7 +253,9 @@ keys may be converted using this option in conjunction with the
 .Fl p
 (change passphrase) flag.
 .Pp
-After a key is generated, instructions below detail where the keys
+After a key is generated,
+.Nm
+will ask where the keys
 should be placed to be activated.
 .Pp
 The options are as follows:

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.413 2020/06/26 05:02:03 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.414 2020/07/15 07:50:46 solene Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3035,15 +3035,16 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-	    "usage: ssh-keygen [-q] [-b bits] [-C comment] [-f output_keyfile] [-m format]\n"
+	    "usage: ssh-keygen [-q] [-a rounds] [-b bits] [-C comment] [-f output_keyfile]\n"
+	    "                  [-m format] [-N new_passphrase] [-O option]\n"
 	    "                  [-t dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
-	    "                  [-N new_passphrase] [-O option] [-w provider]\n"
-	    "       ssh-keygen -p [-f keyfile] [-m format] [-N new_passphrase]\n"
+	    "                  [-w provider]\n"
+	    "       ssh-keygen -p [-a rounds] [-f keyfile] [-m format] [-N new_passphrase]\n"
 	    "                   [-P old_passphrase]\n"
 	    "       ssh-keygen -i [-f input_keyfile] [-m key_format]\n"
 	    "       ssh-keygen -e [-f input_keyfile] [-m key_format]\n"
 	    "       ssh-keygen -y [-f input_keyfile]\n"
-	    "       ssh-keygen -c [-C comment] [-f keyfile] [-P passphrase]\n"
+	    "       ssh-keygen -c [-a rounds] [-C comment] [-f keyfile] [-P passphrase]\n"
 	    "       ssh-keygen -l [-v] [-E fingerprint_hash] [-f input_keyfile]\n"
 	    "       ssh-keygen -B [-f input_keyfile]\n");
 #ifdef ENABLE_PKCS11
@@ -3053,7 +3054,7 @@ usage(void)
 	fprintf(stderr,
 	    "       ssh-keygen -F hostname [-lv] [-f known_hosts_file]\n"
 	    "       ssh-keygen -H [-f known_hosts_file]\n"
-	    "       ssh-keygen -K [-w provider]\n"
+	    "       ssh-keygen -K [-a rounds] [-w provider]\n"
 	    "       ssh-keygen -R hostname [-f known_hosts_file]\n"
 	    "       ssh-keygen -r hostname [-g] [-f input_keyfile]\n"
 #ifdef WITH_OPENSSL
@@ -3064,7 +3065,7 @@ usage(void)
 	    "                  [-n principals] [-O option] [-V validity_interval]\n"
 	    "                  [-z serial_number] file ...\n"
 	    "       ssh-keygen -L [-f input_keyfile]\n"
-	    "       ssh-keygen -A [-f prefix_path]\n"
+	    "       ssh-keygen -A [-a rounds] [-f prefix_path]\n"
 	    "       ssh-keygen -k -f krl_file [-u] [-s ca_public] [-z version_number]\n"
 	    "                  file ...\n"
 	    "       ssh-keygen -Q [-l] -f krl_file [file ...]\n"
