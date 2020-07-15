@@ -1,4 +1,4 @@
-#	$OpenBSD: agent.sh,v 1.18 2020/06/26 05:12:21 djm Exp $
+#	$OpenBSD: agent.sh,v 1.19 2020/07/15 04:55:47 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="simple agent test"
@@ -197,7 +197,7 @@ check_key_present() {
 
 # delete the ed25519 key
 trace "delete single key by file"
-${SSHADD} -qdk ssh-ed25519-agent || fail "ssh-add -d ed25519 failed"
+${SSHADD} -qdk $OBJ/ssh-ed25519-agent || fail "ssh-add -d ed25519 failed"
 check_key_absent ssh-ed25519
 check_key_present ssh-ed25519-cert-v01@openssh.com
 # Put key/cert back.
@@ -206,7 +206,7 @@ ${SSHADD} $OBJ/ssh-ed25519-agent-private >/dev/null 2>&1 || \
 check_key_present ssh-ed25519
 # Delete both key and certificate.
 trace "delete key/cert by file"
-${SSHADD} -qd ssh-ed25519-agent || fail "ssh-add -d ed25519 failed"
+${SSHADD} -qd $OBJ/ssh-ed25519-agent || fail "ssh-add -d ed25519 failed"
 check_key_absent ssh-ed25519
 check_key_absent ssh-ed25519-cert-v01@openssh.com
 # Put key/cert back.
@@ -214,11 +214,11 @@ ${SSHADD} $OBJ/ssh-ed25519-agent-private >/dev/null 2>&1 || \
 	fail "ssh-add failed exit code $?"
 check_key_present ssh-ed25519
 # Delete certificate via stdin
-${SSHADD} -qd - < ssh-ed25519-agent-cert.pub || fail "ssh-add -d - failed"
+${SSHADD} -qd - < $OBJ/ssh-ed25519-agent-cert.pub || fail "ssh-add -d - failed"
 check_key_present ssh-ed25519
 check_key_absent ssh-ed25519-cert-v01@openssh.com
 # Delete key via stdin
-${SSHADD} -qd - < ssh-ed25519-agent.pub || fail "ssh-add -d - failed"
+${SSHADD} -qd - < $OBJ/ssh-ed25519-agent.pub || fail "ssh-add -d - failed"
 check_key_absent ssh-ed25519
 check_key_absent ssh-ed25519-cert-v01@openssh.com
 
