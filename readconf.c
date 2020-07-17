@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.332 2020/07/05 23:59:45 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.333 2020/07/17 07:09:24 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -664,7 +664,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 		} else if (strcasecmp(attrib, "exec") == 0) {
-			char *conn_hash_hex;
+			char *conn_hash_hex, *keyalias;
 
 			if (gethostname(thishost, sizeof(thishost)) == -1)
 				fatal("gethostname: %s", strerror(errno));
@@ -675,12 +675,15 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			    (unsigned long long)pw->pw_uid);
 			conn_hash_hex = ssh_connection_hash(thishost, host,
 			   portstr, ruser);
+			keyalias = options->host_key_alias ?
+			    options->host_key_alias : host;
 
 			cmd = percent_expand(arg,
 			    "C", conn_hash_hex,
 			    "L", shorthost,
 			    "d", pw->pw_dir,
 			    "h", host,
+			    "k", keyalias,
 			    "l", thishost,
 			    "n", original_host,
 			    "p", portstr,
