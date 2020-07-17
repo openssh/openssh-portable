@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.532 2020/07/17 03:23:10 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.533 2020/07/17 03:43:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -176,6 +176,7 @@ char *forward_agent_sock_path = NULL;
 /* Various strings used to to percent_expand() arguments */
 static char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
 static char uidstr[32], *host_arg, *conn_hash_hex;
+static const char *keyalias;
 
 /* socket address the host resolves to */
 struct sockaddr_storage hostaddr;
@@ -235,6 +236,7 @@ tilde_expand_paths(char **paths, u_int num_paths)
     "C", conn_hash_hex, \
     "L", shorthost, \
     "i", uidstr, \
+    "k", keyalias, \
     "l", thishost, \
     "n", host_arg, \
     "p", portstr
@@ -1380,6 +1382,7 @@ main(int ac, char **av)
 	snprintf(portstr, sizeof(portstr), "%d", options.port);
 	snprintf(uidstr, sizeof(uidstr), "%llu",
 	    (unsigned long long)pw->pw_uid);
+	keyalias = options.host_key_alias ? options.host_key_alias : host_arg;
 
 	conn_hash_hex = ssh_connection_hash(thishost, host, portstr,
 	    options.user);
