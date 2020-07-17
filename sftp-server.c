@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.118 2020/06/22 05:52:05 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.119 2020/07/17 03:51:32 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -799,18 +799,19 @@ process_write(u_int32_t id)
 		if (!(handle_to_flags(handle) & O_APPEND) &&
 				lseek(fd, off, SEEK_SET) == -1) {
 			status = errno_to_portable(errno);
-			error("process_write: seek failed");
+			error("%s: seek failed", __func__);
 		} else {
 /* XXX ATOMICIO ? */
 			ret = write(fd, data, len);
 			if (ret == -1) {
-				error("process_write: write failed");
+				error("%s: write: %s", __func__,
+				    strerror(errno));
 				status = errno_to_portable(errno);
 			} else if ((size_t)ret == len) {
 				status = SSH2_FX_OK;
 				handle_update_write(handle, ret);
 			} else {
-				debug2("nothing at all written");
+				debug2("%s: nothing at all written", __func__);
 				status = SSH2_FX_FAILURE;
 			}
 		}
