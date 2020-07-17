@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.531 2020/07/05 23:59:45 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.532 2020/07/17 03:23:10 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -654,6 +654,7 @@ main(int ac, char **av)
 	struct Forward fwd;
 	struct addrinfo *addrs = NULL;
 	size_t n, len;
+	u_int j;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -1425,6 +1426,21 @@ main(int ac, char **av)
 		free(p);
 		free(options.forward_agent_sock_path);
 		options.forward_agent_sock_path = cp;
+	}
+
+	for (j = 0; j < options.num_user_hostfiles; j++) {
+		if (options.user_hostfiles[j] != NULL) {
+			cp = tilde_expand_filename(options.user_hostfiles[j],
+			    getuid());
+			p = default_client_percent_dollar_expand(cp,
+			    pw->pw_dir, host, options.user, pw->pw_name);
+			if (strcmp(options.user_hostfiles[j], p) != 0)
+				debug3("expanded UserKnownHostsFile '%s' -> "
+				    "'%s'", options.user_hostfiles[j], p);
+			free(options.user_hostfiles[j]);
+			free(cp);
+			options.user_hostfiles[j] = p;
+		}
 	}
 
 	for (i = 0; i < options.num_local_forwards; i++) {
