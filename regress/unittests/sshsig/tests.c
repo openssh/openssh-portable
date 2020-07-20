@@ -127,10 +127,12 @@ tests(void)
 	check_sig("ed25519_sk.pub", "ed25519_sk.sig", msg, namespace);
 	TEST_DONE();
 
+#if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 	TEST_START("check ECDSA-SK webauthn signature");
 	check_sig("ecdsa_sk_webauthn.pub", "ecdsa_sk_webauthn.sig",
 	    msg, namespace);
  	TEST_DONE();
+#endif
 
 	sshbuf_free(msg);
 	free(namespace);
