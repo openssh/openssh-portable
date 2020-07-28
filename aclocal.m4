@@ -15,6 +15,7 @@ AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
 #include <stdlib.h>
 #include <stdio.h>
 int main(int argc, char **argv) {
+	(void)argv;
 	/* Some math to catch -ftrapv problems in the toolchain */
 	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
 	float l = i * 2.1;
@@ -62,6 +63,7 @@ AC_DEFUN([OSSH_CHECK_CFLAG_LINK], [{
 #include <stdlib.h>
 #include <stdio.h>
 int main(int argc, char **argv) {
+	(void)argv;
 	/* Some math to catch -ftrapv problems in the toolchain */
 	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
 	float l = i * 2.1;
@@ -100,6 +102,7 @@ AC_DEFUN([OSSH_CHECK_LDFLAG_LINK], [{
 #include <stdlib.h>
 #include <stdio.h>
 int main(int argc, char **argv) {
+	(void)argv;
 	/* Some math to catch -ftrapv problems in the toolchain */
 	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
 	float l = i * 2.1;
