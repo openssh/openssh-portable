@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.533 2020/07/17 03:43:42 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.534 2020/07/31 04:19:37 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1256,19 +1256,25 @@ main(int ac, char **av)
 	/* Fill configuration defaults. */
 	fill_default_options(&options);
 
+	if (options.user == NULL)
+		options.user = xstrdup(pw->pw_name);
+
 	/*
 	 * If ProxyJump option specified, then construct a ProxyCommand now.
 	 */
 	if (options.jump_host != NULL) {
 		char port_s[8];
-		const char *sshbin = argv0;
+		const char *jumpuser = options.jump_user, *sshbin = argv0;
 		int port = options.port, jumpport = options.jump_port;
 
 		if (port <= 0)
 			port = default_ssh_port();
 		if (jumpport <= 0)
 			jumpport = default_ssh_port();
-		if (strcmp(options.jump_host, host) == 0 && port == jumpport)
+		if (jumpuser == NULL)
+			jumpuser = options.user;
+		if (strcmp(options.jump_host, host) == 0 && port == jumpport &&
+		    strcmp(options.user, jumpuser) == 0)
 			fatal("jumphost loop via %s", options.jump_host);
 
 		/*
@@ -1370,9 +1376,6 @@ main(int ac, char **av)
 			    "stdin is not a terminal.");
 		tty_flag = 0;
 	}
-
-	if (options.user == NULL)
-		options.user = xstrdup(pw->pw_name);
 
 	/* Set up strings used to percent_expand() arguments */
 	if (gethostname(thishost, sizeof(thishost)) == -1)
