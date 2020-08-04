@@ -4207,6 +4207,7 @@ OSSH_CHECK_HEADER_FOR_FIELD([ut_exit], [utmp.h], [HAVE_EXIT_IN_UTMP])
 OSSH_CHECK_HEADER_FOR_FIELD([ut_time], [utmp.h], [HAVE_TIME_IN_UTMP])
 OSSH_CHECK_HEADER_FOR_FIELD([ut_time], [utmpx.h], [HAVE_TIME_IN_UTMPX])
 OSSH_CHECK_HEADER_FOR_FIELD([ut_tv], [utmpx.h], [HAVE_TV_IN_UTMPX])
+OSSH_CHECK_HEADER_FOR_FIELD([ut_ss], [utmpx.h], [HAVE_SS_IN_UTMPX])
 
 AC_CHECK_MEMBERS([struct stat.st_blksize])
 AC_CHECK_MEMBERS([struct stat.st_mtim])
