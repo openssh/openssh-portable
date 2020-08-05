@@ -1265,6 +1265,7 @@ main(int ac, char **av)
 	if (options.jump_host != NULL) {
 		char port_s[8];
 		const char *jumpuser = options.jump_user, *sshbin = argv0;
+		char *address_family_flavour;
 		int port = options.port, jumpport = options.jump_port;
 
 		if (port <= 0)
@@ -1284,6 +1285,12 @@ main(int ac, char **av)
 		if (strchr(argv0, '/') != NULL && access(argv0, X_OK) != 0)
 			sshbin = "ssh";
 
+		switch (options.address_family) {
+			case AF_INET: address_family_flavour = " -4"; break;
+			case AF_INET6: address_family_flavour = " -6"; break;
+			default: address_family_flavour = "";
+		}
+
 		/* Consistency check */
 		if (options.proxy_command != NULL)
 			fatal("inconsistent options: ProxyCommand+ProxyJump");
@@ -1291,8 +1298,9 @@ main(int ac, char **av)
 		options.proxy_use_fdpass = 0;
 		snprintf(port_s, sizeof(port_s), "%d", options.jump_port);
 		xasprintf(&options.proxy_command,
-		    "%s%s%s%s%s%s%s%s%s%s%.*s -W '[%%h]:%%p' %s",
+		    "%s%s%s%s%s%s%s%s%s%s%s%.*s -W '[%%h]:%%p' %s",
 		    sshbin,
+		    address_family_flavour,
 		    /* Optional "-l user" argument if jump_user set */
 		    options.jump_user == NULL ? "" : " -l ",
 		    options.jump_user == NULL ? "" : options.jump_user,
