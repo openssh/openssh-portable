@@ -876,6 +876,7 @@ main(int ac, char **av)
 				fatal("Cannot specify -J with ProxyCommand");
 			if (parse_jump(optarg, &options, 1) == -1)
 				fatal("Invalid -J argument");
+			free(options.proxy_command);
 			options.proxy_command = xstrdup("none");
 			break;
 		case 't':
