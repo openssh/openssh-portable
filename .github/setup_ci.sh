@@ -13,7 +13,7 @@ lsb_release -a
 
 for TARGET in $TARGETS; do
     case $TARGET in
-    "")
+    ""|--without-openssl|--without-zlib)
         # nothing to do
         ;;
     "--with-kerberos5")

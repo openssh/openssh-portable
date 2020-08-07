@@ -21,6 +21,7 @@ jobs:
         - "--with-security-key-builtin"
         - "--with-selinux"
         - "--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin --with-selinux"
+        - "--without-openssl --without-zlib"
 
     steps:
     - uses: actions/checkout@v2
