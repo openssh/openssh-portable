@@ -18,6 +18,17 @@ done
 
 if [ -z "$LTESTS" ]; then
     make $TEST_TARGET
+    result=$?
 else
     make $TEST_TARGET LTESTS="$LTESTS"
+    result=$?
+fi
+
+if [ "$result" -ne "0" ]; then
+    for i in regress/failed*; do
+        echo -------------------------------------------------------------------------
+        echo LOGFILE $i
+        cat $i
+        echo -------------------------------------------------------------------------
+    done
 fi
