@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.333 2020/07/17 07:09:24 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.334 2020/08/11 09:49:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -877,6 +877,21 @@ static const struct multistate multistate_compression[] = {
 	{ NULL, -1 }
 };
 
+static int
+parse_multistate_value(const char *arg, const char *filename, int linenum,
+    const struct multistate *multistate_ptr)
+{
+	int i;
+
+	if (!arg || *arg == '\0')
+		fatal("%s line %d: missing argument.", filename, linenum);
+	for (i = 0; multistate_ptr[i].key != NULL; i++) {
+		if (strcasecmp(arg, multistate_ptr[i].key) == 0)
+			return multistate_ptr[i].value;
+	}
+	return -1;
+}
+
 /*
  * Processes a single option line as used in the configuration files. This
  * only sets those values that have not already been set.
@@ -1000,19 +1015,11 @@ parse_time:
 		multistate_ptr = multistate_flag;
  parse_multistate:
 		arg = strdelim(&s);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing argument.",
-			    filename, linenum);
-		value = -1;
-		for (i = 0; multistate_ptr[i].key != NULL; i++) {
-			if (strcasecmp(arg, multistate_ptr[i].key) == 0) {
-				value = multistate_ptr[i].value;
-				break;
-			}
-		}
-		if (value == -1)
+		if ((value = parse_multistate_value(arg, filename, linenum,
+		     multistate_ptr)) == -1) {
 			fatal("%s line %d: unsupported option \"%s\".",
 			    filename, linenum, arg);
+		}
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
@@ -1800,9 +1807,42 @@ parse_keytypes:
 		goto parse_keytypes;
 
 	case oAddKeysToAgent:
-		intptr = &options->add_keys_to_agent;
-		multistate_ptr = multistate_yesnoaskconfirm;
-		goto parse_multistate;
+		arg = strdelim(&s);
+		arg2 = strdelim(&s);
+		value = parse_multistate_value(arg, filename, linenum,
+		     multistate_yesnoaskconfirm);
+		value2 = 0; /* unlimited lifespan by default */
+		if (value == 3 && arg2 != NULL) {
+			/* allow "AddKeysToAgent confirm 5m" */
+			if ((value2 = convtime(arg2)) == -1 || value2 > INT_MAX)
+				fatal("%s line %d: invalid time value.",
+				    filename, linenum);
+		} else if (value == -1 && arg2 == NULL) {
+			if ((value2 = convtime(arg)) == -1 || value2 > INT_MAX)
+				fatal("%s line %d: unsupported option",
+				    filename, linenum);
+			value = 1; /* yes */
+		} else if (value == -1 || arg2 != NULL) {
+			fatal("%s line %d: unsupported option",
+			    filename, linenum);
+		}
+		if (*activep && options->add_keys_to_agent == -1) {
+			options->add_keys_to_agent = value;
+			options->add_keys_to_agent_lifespan = value2;
+		}
+		break;
+
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing time value.",
+			    filename, linenum);
+		if (strcmp(arg, "none") == 0)
+			value = -1;
+		else if ((value = convtime(arg)) == -1 || value > INT_MAX)
+			fatal("%s line %d: invalid time value.",
+			    filename, linenum);
+		if (*activep && *intptr == -1)
+			*intptr = value;
 
 	case oIdentityAgent:
 		charptr = &options->identity_agent;
@@ -2016,6 +2056,7 @@ initialize_options(Options * options)
 	options->permit_local_command = -1;
 	options->remote_command = NULL;
 	options->add_keys_to_agent = -1;
+	options->add_keys_to_agent_lifespan = -1;
 	options->identity_agent = NULL;
 	options->visual_host_key = -1;
 	options->ip_qos_interactive = -1;
@@ -2123,8 +2164,10 @@ fill_default_options(Options * options)
 	if (options->number_of_password_prompts == -1)
 		options->number_of_password_prompts = 3;
 	/* options->hostkeyalgorithms, default set in myproposals.h */
-	if (options->add_keys_to_agent == -1)
+	if (options->add_keys_to_agent == -1) {
 		options->add_keys_to_agent = 0;
+		options->add_keys_to_agent_lifespan = 0;
+	}
 	if (options->num_identity_files == 0) {
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_RSA, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_DSA, 0);
@@ -2728,7 +2771,6 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_int(oPort, o->port);
 
 	/* Flag options */
-	dump_cfg_fmtint(oAddKeysToAgent, o->add_keys_to_agent);
 	dump_cfg_fmtint(oAddressFamily, o->address_family);
 	dump_cfg_fmtint(oBatchMode, o->batch_mode);
 	dump_cfg_fmtint(oCanonicalizeFallbackLocal, o->canonicalize_fallback_local);
@@ -2815,6 +2857,15 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_strarray(oSetEnv, o->num_setenv, o->setenv);
 
 	/* Special cases */
+
+	/* AddKeysToAgent */
+	if (o->add_keys_to_agent_lifespan <= 0)
+		dump_cfg_fmtint(oAddKeysToAgent, o->add_keys_to_agent);
+	else {
+		printf("addkeystoagent%s %d\n",
+		    o->add_keys_to_agent == 3 ? " confirm" : "",
+		    o->add_keys_to_agent_lifespan);
+	}
 
 	/* oForwardAgent */
 	if (o->forward_agent_sock_path == NULL)

@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.331 2020/07/17 05:59:05 jmc Exp $
-.Dd $Mdocdate: July 17 2020 $
+.\" $OpenBSD: ssh_config.5,v 1.332 2020/08/11 09:49:57 djm Exp $
+.Dd $Mdocdate: August 11 2020 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -245,13 +245,22 @@ option was specified to
 If this option is set to
 .Cm no ,
 no keys are added to the agent.
+Alternately, this option may be specified as a time interval
+using the format described in the
+.Sx TIME FORMATS
+section of
+.Xr sshd_config 5
+to specify the key's lifetime in
+.Xr ssh-agent 1 ,
+after which it will automatically be removed.
 The argument must be
-.Cm yes ,
-.Cm confirm ,
-.Cm ask ,
-or
 .Cm no
-(the default).
+(the default),
+.Cm yes ,
+.Cm confirm
+(optionally followed by a time interval),
+.Cm ask
+or a time interval.
 .It Cm AddressFamily
 Specifies which address family to use when connecting.
 Valid arguments are
