@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.206 2020/08/27 01:06:18 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.207 2020/08/27 01:08:45 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -382,6 +382,8 @@ The default import format is
 Download resident keys from a FIDO authenticator.
 Public and private key files will be written to the current directory for
 each downloaded key.
+If multiple FIDO authenticators are attached, keys will be downloaded from
+the first touched authenticator.
 .It Fl k
 Generate a KRL file.
 In this mode,

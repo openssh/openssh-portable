@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.417 2020/08/27 01:07:51 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.418 2020/08/27 01:08:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2984,20 +2984,17 @@ do_download_sk(const char *skprovider, const char *device)
 	if (skprovider == NULL)
 		fatal("Cannot download keys without provider");
 
-	for (i = 0; i < 2; i++) {
-		if (i == 1) {
-			pin = read_passphrase("Enter PIN for authenticator: ",
-			    RP_ALLOW_STDIN);
-		}
-		if ((r = sshsk_load_resident(skprovider, device, pin,
-		    &keys, &nkeys)) != 0) {
-			if (i == 0 && r == SSH_ERR_KEY_WRONG_PASSPHRASE)
-				continue;
-			if (pin != NULL)
-				freezero(pin, strlen(pin));
-			error("Unable to load resident keys: %s", ssh_err(r));
-			return -1;
-		}
+	pin = read_passphrase("Enter PIN for authenticator: ", RP_ALLOW_STDIN);
+	if (!quiet) {
+		printf("You may need to touch your authenticator "
+		    "to authorize key download.\n");
+	}
+	if ((r = sshsk_load_resident(skprovider, device, pin,
+	    &keys, &nkeys)) != 0) {
+		if (pin != NULL)
+			freezero(pin, strlen(pin));
+		error("Unable to load resident keys: %s", ssh_err(r));
+		return -1;
 	}
 	if (nkeys == 0)
 		logit("No keys to download");
@@ -3609,9 +3606,15 @@ main(int argc, char **argv)
 			printf("You may need to touch your authenticator "
 			    "to authorize key generation.\n");
 		}
-		passphrase = NULL;
 		if ((attest = sshbuf_new()) == NULL)
 			fatal("sshbuf_new failed");
+		if ((sk_flags &
+		    (SSH_SK_USER_VERIFICATION_REQD|SSH_SK_RESIDENT_KEY))) {
+			passphrase = read_passphrase("Enter PIN for "
+			    "authenticator: ", RP_ALLOW_STDIN);
+		} else {
+			passphrase = NULL;
+		}
 		for (i = 0 ; ; i++) {
 			fflush(stdout);
 			r = sshsk_enroll(type, sk_provider, sk_device,
@@ -3622,9 +3625,8 @@ main(int argc, char **argv)
 				break;
 			if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 				fatal("Key enrollment failed: %s", ssh_err(r));
-			else if (i > 0)
+			else if (passphrase != NULL) {
 				error("PIN incorrect");
-			if (passphrase != NULL) {
 				freezero(passphrase, strlen(passphrase));
 				passphrase = NULL;
 			}
