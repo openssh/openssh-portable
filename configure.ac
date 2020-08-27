@@ -3183,6 +3183,7 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" = "xyes" ; then
 	saved_LIBS="$LIBS"
 	LIBS="$LIBS $LIBFIDO2"
 	AC_CHECK_FUNCS([ \
+		fido_cred_prot \
 		fido_cred_set_prot \
 		fido_dev_get_touch_status \
 		fido_dev_supports_cred_prot \
