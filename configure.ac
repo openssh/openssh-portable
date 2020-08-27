@@ -3180,9 +3180,14 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" = "xyes" ; then
 		], [ AC_MSG_ERROR([no usable libfido2 found]) ],
 		[ $OTHERLIBS ]
 	)
-	AC_CHECK_LIB([fido2], [fido_cred_set_prot], [],
-		[ AC_MSG_ERROR([libfido2 missing fido_cred_set_prot; please use libfido2 >= 1.4.0]) ],
-	)
+	saved_LIBS="$LIBS"
+	LIBS="$LIBS $LIBFIDO2"
+	AC_CHECK_FUNCS([ \
+		fido_cred_set_prot \
+		fido_dev_get_touch_status \
+		fido_dev_supports_cred_prot \
+	])
+	LIBS="$saved_LIBS"
 	AC_CHECK_HEADER([fido.h], [],
 		AC_MSG_ERROR([missing fido.h from libfido2]))
 	AC_CHECK_HEADER([fido/credman.h], [],

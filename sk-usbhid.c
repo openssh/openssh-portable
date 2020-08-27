@@ -41,6 +41,17 @@
 #include <fido.h>
 #include <fido/credman.h>
 
+/* backwards compat for libfido2 */
+#ifndef HAVE_FIDO_DEV_SUPPORTS_CRED_PROT
+#define fido_dev_supports_cred_prot(x) (0)
+#endif
+#ifndef HAVE_FIDO_DEV_GET_TOUCH_BEGIN
+#define fido_dev_get_touch_begin(x) (FIDO_ERR_UNSUPPORTED_OPTION)
+#endif
+#ifndef HAVE_FIDO_DEV_GET_TOUCH_STATUS
+#define fido_dev_get_touch_status(x, y, z) (FIDO_ERR_UNSUPPORTED_OPTION)
+#endif
+
 #ifndef SK_STANDALONE
 # include "log.h"
 # include "xmalloc.h"
@@ -377,6 +388,11 @@ sk_select_by_touch(const fido_dev_info_t *devlist, size_t ndevs)
 	size_t skvcnt, idx;
 	int touch, ms_remain;
 
+#ifndef HAVE_FIDO_DEV_GET_TOUCH_STATUS
+	skdebug(__func__, "libfido2 version does not support a feature needed for multiple tokens. Please upgrade to >=1.5.0");
+	return NULL;
+#endif
+
 	if ((skv = sk_openv(devlist, ndevs, &skvcnt)) == NULL) {
 		skdebug(__func__, "sk_openv failed");
 		return NULL;
@@ -705,6 +721,11 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 		goto out;
 	}
 	if ((flags & (SSH_SK_RESIDENT_KEY|SSH_SK_USER_VERIFICATION_REQD)) != 0) {
+#ifndef HAVE_FIDO_DEV_SUPPORTS_CRED_PROT
+		skdebug(__func__, "libfido2 version does not support a feature required for this operation. Please upgrade to >=1.5.0");
+		ret = SSH_SK_ERR_UNSUPPORTED;
+		goto out;
+#endif
 		if (!fido_dev_supports_cred_prot(sk->dev)) {
 			skdebug(__func__, "%s does not support credprot, "
 			    "refusing to create unprotected "
