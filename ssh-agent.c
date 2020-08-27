@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.262 2020/07/05 23:59:45 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.263 2020/08/27 01:06:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -407,9 +407,10 @@ process_sign_request2(SocketEntry *e)
 			    sshkey_type(id->key), fp);
 		}
 	}
+	/* XXX support PIN required FIDO keys */
 	if ((r = sshkey_sign(id->key, &signature, &slen,
 	    data, dlen, agent_decode_alg(key, flags),
-	    id->sk_provider, compat)) != 0) {
+	    id->sk_provider, NULL, compat)) != 0) {
 		error("%s: sshkey_sign: %s", __func__, ssh_err(r));
 		goto send;
 	}

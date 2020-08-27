@@ -151,7 +151,7 @@ done:
 
 static int
 sshsig_wrap_sign(struct sshkey *key, const char *hashalg,
-    const char *sk_provider, const struct sshbuf *h_message,
+    const char *sk_provider, const char *sk_pin, const struct sshbuf *h_message,
     const char *sig_namespace, struct sshbuf **out,
     sshsig_signer *signer, void *signer_ctx)
 {
@@ -185,14 +185,14 @@ sshsig_wrap_sign(struct sshkey *key, const char *hashalg,
 	if (signer != NULL) {
 		if ((r = signer(key, &sig, &slen,
 		    sshbuf_ptr(tosign), sshbuf_len(tosign),
-		    sign_alg, sk_provider, 0, signer_ctx)) != 0) {
+		    sign_alg, sk_provider, sk_pin, 0, signer_ctx)) != 0) {
 			error("Couldn't sign message: %s", ssh_err(r));
 			goto done;
 		}
 	} else {
 		if ((r = sshkey_sign(key, &sig, &slen,
 		    sshbuf_ptr(tosign), sshbuf_len(tosign),
-		    sign_alg, sk_provider, 0)) != 0) {
+		    sign_alg, sk_provider, sk_pin, 0)) != 0) {
 			error("Couldn't sign message: %s", ssh_err(r));
 			goto done;
 		}
@@ -430,7 +430,8 @@ hash_buffer(const struct sshbuf *m, const char *hashalg, struct sshbuf **bp)
 }
 
 int
-sshsig_signb(struct sshkey *key, const char *hashalg, const char *sk_provider,
+sshsig_signb(struct sshkey *key, const char *hashalg,
+    const char *sk_provider, const char *sk_pin,
     const struct sshbuf *message, const char *sig_namespace,
     struct sshbuf **out, sshsig_signer *signer, void *signer_ctx)
 {
@@ -445,7 +446,7 @@ sshsig_signb(struct sshkey *key, const char *hashalg, const char *sk_provider,
 		error("%s: hash_buffer failed: %s", __func__, ssh_err(r));
 		goto out;
 	}
-	if ((r = sshsig_wrap_sign(key, hashalg, sk_provider, b,
+	if ((r = sshsig_wrap_sign(key, hashalg, sk_provider, sk_pin, b,
 	    sig_namespace, out, signer, signer_ctx)) != 0)
 		goto out;
 	/* success */
@@ -558,7 +559,8 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 }
 
 int
-sshsig_sign_fd(struct sshkey *key, const char *hashalg, const char *sk_provider,
+sshsig_sign_fd(struct sshkey *key, const char *hashalg,
+    const char *sk_provider, const char *sk_pin,
     int fd, const char *sig_namespace, struct sshbuf **out,
     sshsig_signer *signer, void *signer_ctx)
 {
@@ -573,7 +575,7 @@ sshsig_sign_fd(struct sshkey *key, const char *hashalg, const char *sk_provider,
 		error("%s: hash_file failed: %s", __func__, ssh_err(r));
 		return r;
 	}
-	if ((r = sshsig_wrap_sign(key, hashalg, sk_provider, b,
+	if ((r = sshsig_wrap_sign(key, hashalg, sk_provider, sk_pin, b,
 	    sig_namespace, out, signer, signer_ctx)) != 0)
 		goto out;
 	/* success */

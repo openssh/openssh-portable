@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.110 2020/06/24 15:07:33 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.111 2020/08/27 01:06:19 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2727,7 +2727,7 @@ int
 sshkey_sign(struct sshkey *key,
     u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen,
-    const char *alg, const char *sk_provider, u_int compat)
+    const char *alg, const char *sk_provider, const char *sk_pin, u_int compat)
 {
 	int was_shielded = sshkey_is_shielded(key);
 	int r2, r = SSH_ERR_INTERNAL_ERROR;
@@ -2766,7 +2766,7 @@ sshkey_sign(struct sshkey *key,
 	case KEY_ECDSA_SK_CERT:
 	case KEY_ECDSA_SK:
 		r = sshsk_sign(sk_provider, key, sigp, lenp, data,
-		    datalen, compat, /* XXX PIN */ NULL);
+		    datalen, compat, sk_pin);
 		break;
 #ifdef WITH_XMSS
 	case KEY_XMSS:
@@ -2888,7 +2888,8 @@ sshkey_drop_cert(struct sshkey *k)
 /* Sign a certified key, (re-)generating the signed certblob. */
 int
 sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
-    const char *sk_provider, sshkey_certify_signer *signer, void *signer_ctx)
+    const char *sk_provider, const char *sk_pin,
+    sshkey_certify_signer *signer, void *signer_ctx)
 {
 	struct sshbuf *principals = NULL;
 	u_char *ca_blob = NULL, *sig_blob = NULL, nonce[32];
@@ -3026,7 +3027,7 @@ sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
 
 	/* Sign the whole mess */
 	if ((ret = signer(ca, &sig_blob, &sig_len, sshbuf_ptr(cert),
-	    sshbuf_len(cert), alg, sk_provider, 0, signer_ctx)) != 0)
+	    sshbuf_len(cert), alg, sk_provider, sk_pin, 0, signer_ctx)) != 0)
 		goto out;
 	/* Check and update signature_type against what was actually used */
 	if ((ret = sshkey_get_sigtype(sig_blob, sig_len, &sigtype)) != 0)
@@ -3056,19 +3057,20 @@ sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
 static int
 default_key_sign(struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen,
-    const char *alg, const char *sk_provider, u_int compat, void *ctx)
+    const char *alg, const char *sk_provider, const char *sk_pin,
+    u_int compat, void *ctx)
 {
 	if (ctx != NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
 	return sshkey_sign(key, sigp, lenp, data, datalen, alg,
-	    sk_provider, compat);
+	    sk_provider, sk_pin, compat);
 }
 
 int
 sshkey_certify(struct sshkey *k, struct sshkey *ca, const char *alg,
-    const char *sk_provider)
+    const char *sk_provider, const char *sk_pin)
 {
-	return sshkey_certify_custom(k, ca, alg, sk_provider,
+	return sshkey_certify_custom(k, ca, alg, sk_provider, sk_pin,
 	    default_key_sign, NULL);
 }
 

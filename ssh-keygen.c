@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.415 2020/08/03 02:53:51 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.416 2020/08/27 01:06:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -589,7 +589,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 
 	/* try the key */
 	if (sshkey_sign(key, &sig, &slen, data, sizeof(data),
-	    NULL, NULL, 0) != 0 ||
+	    NULL, NULL, NULL, 0) != 0 ||
 	    sshkey_verify(key, sig, slen, data, sizeof(data),
 	    NULL, 0, NULL) != 0) {
 		sshkey_free(key);
@@ -1727,7 +1727,8 @@ load_pkcs11_key(char *path)
 static int
 agent_signer(struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen,
-    const char *alg, const char *provider, u_int compat, void *ctx)
+    const char *alg, const char *provider, const char *pin,
+    u_int compat, void *ctx)
 {
 	int *agent_fdp = (int *)ctx;
 
@@ -1744,7 +1745,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 	u_int n;
 	struct sshkey *ca, *public;
 	char valid[64], *otmp, *tmp, *cp, *out, *comment;
-	char *ca_fp = NULL, **plist = NULL;
+	char *ca_fp = NULL, **plist = NULL, *pin = NULL;
 	struct ssh_identitylist *agent_ids;
 	size_t j;
 	struct notifier_ctx *notifier = NULL;
@@ -1785,6 +1786,12 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 	} else {
 		/* CA key is assumed to be a private key on the filesystem */
 		ca = load_identity(tmp, NULL);
+		if (sshkey_is_sk(ca) &&
+		    (ca->sk_flags & SSH_SK_USER_VERIFICATION_REQD)) {
+			if ((pin = read_passphrase("Enter PIN for CA key: ",
+			    RP_ALLOW_STDIN)) == NULL)
+				fatal("%s: couldn't read PIN", __func__);
+		}
 	}
 	free(tmp);
 
@@ -1844,7 +1851,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 
 		if (agent_fd != -1 && (ca->flags & SSHKEY_FLAG_EXT) != 0) {
 			if ((r = sshkey_certify_custom(public, ca,
-			    key_type_name, sk_provider, agent_signer,
+			    key_type_name, sk_provider, NULL, agent_signer,
 			    &agent_fd)) != 0)
 				fatal("Couldn't certify key %s via agent: %s",
 				    tmp, ssh_err(r));
@@ -1856,7 +1863,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 				    sshkey_type(ca), ca_fp);
 			}
 			r = sshkey_certify(public, ca, key_type_name,
-			    sk_provider);
+			    sk_provider, pin);
 			notify_complete(notifier);
 			if (r != 0)
 				fatal("Couldn't certify key %s: %s",
@@ -1890,6 +1897,8 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		if (cert_serial_autoinc)
 			cert_serial++;
 	}
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 	free(ca_fp);
 #ifdef ENABLE_PKCS11
 	pkcs11_terminate();
@@ -2526,6 +2535,7 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 	struct sshbuf *sigbuf = NULL, *abuf = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR, wfd = -1, oerrno;
 	char *wfile = NULL, *asig = NULL, *fp = NULL;
+	char *pin = NULL, *prompt = NULL;
 
 	if (!quiet) {
 		if (fd == STDIN_FILENO)
@@ -2533,17 +2543,25 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 		else
 			fprintf(stderr, "Signing file %s\n", filename);
 	}
-	if (signer == NULL && sshkey_is_sk(signkey) &&
-	    (signkey->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
-		if ((fp = sshkey_fingerprint(signkey, fingerprint_hash,
-		    SSH_FP_DEFAULT)) == NULL)
-			fatal("%s: sshkey_fingerprint failed", __func__);
-		fprintf(stderr, "Confirm user presence for key %s %s\n",
-		    sshkey_type(signkey), fp);
-		free(fp);
+	if (signer == NULL && sshkey_is_sk(signkey)) {
+		if ((signkey->sk_flags & SSH_SK_USER_VERIFICATION_REQD)) {
+			xasprintf(&prompt, "Enter PIN for %s key: ",
+			    sshkey_type(signkey));
+			if ((pin = read_passphrase(prompt,
+			    RP_ALLOW_STDIN)) == NULL)
+				fatal("%s: couldn't read PIN", __func__);
+		}
+		if ((signkey->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
+			if ((fp = sshkey_fingerprint(signkey, fingerprint_hash,
+			    SSH_FP_DEFAULT)) == NULL)
+				fatal("%s: fingerprint failed", __func__);
+			fprintf(stderr, "Confirm user presence for key %s %s\n",
+			    sshkey_type(signkey), fp);
+			free(fp);
+		}
 	}
-	if ((r = sshsig_sign_fd(signkey, NULL, sk_provider, fd, sig_namespace,
-	    &sigbuf, signer, signer_ctx)) != 0) {
+	if ((r = sshsig_sign_fd(signkey, NULL, sk_provider, pin,
+	    fd, sig_namespace, &sigbuf, signer, signer_ctx)) != 0) {
 		error("Signing %s failed: %s", filename, ssh_err(r));
 		goto out;
 	}
@@ -2591,7 +2609,10 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 	r = 0;
  out:
 	free(wfile);
+	free(prompt);
 	free(asig);
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 	sshbuf_free(abuf);
 	sshbuf_free(sigbuf);
 	if (wfd != -1)
@@ -3554,6 +3575,8 @@ main(int argc, char **argv)
 		for (i = 0; i < nopts; i++) {
 			if (strcasecmp(opts[i], "no-touch-required") == 0) {
 				sk_flags &= ~SSH_SK_USER_PRESENCE_REQD;
+			} else if (strcasecmp(opts[i], "verify-required") == 0) {
+				sk_flags |= SSH_SK_USER_VERIFICATION_REQD;
 			} else if (strcasecmp(opts[i], "resident") == 0) {
 				sk_flags |= SSH_SK_RESIDENT_KEY;
 			} else if (strncasecmp(opts[i], "device=", 7) == 0) {

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.20 2020/07/01 16:28:31 markus Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.21 2020/08/27 01:06:18 djm Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -54,7 +54,7 @@ int	_ssh_host_key_sign(struct ssh *, struct sshkey *, struct sshkey *,
  */
 int	use_privsep = 0;
 int	mm_sshkey_sign(struct sshkey *, u_char **, u_int *,
-    const u_char *, u_int, const char *, const char *, u_int);
+    const u_char *, u_int, const char *, const char *, const char *, u_int);
 
 #ifdef WITH_OPENSSL
 DH	*mm_choose_dh(int, int, int);
@@ -66,8 +66,8 @@ u_int session_id2_len = 0;
 
 int
 mm_sshkey_sign(struct sshkey *key, u_char **sigp, u_int *lenp,
-    const u_char *data, u_int datalen, const char *alg, const char *sk_provider,
-    u_int compat)
+    const u_char *data, u_int datalen, const char *alg,
+    const char *sk_provider, const char *sk_pin, u_int compat)
 {
 	return (-1);
 }
@@ -567,5 +567,5 @@ _ssh_host_key_sign(struct ssh *ssh, struct sshkey *privkey,
     const u_char *data, size_t dlen, const char *alg)
 {
 	return sshkey_sign(privkey, signature, slen, data, dlen,
-	    alg, NULL, ssh->compat);
+	    alg, NULL, NULL, ssh->compat);
 }
