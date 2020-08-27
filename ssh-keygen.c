@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.418 2020/08/27 01:08:45 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.419 2020/08/27 09:46:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -815,10 +815,14 @@ do_print_public(struct passwd *pw)
 	prv = load_identity(identity_file, &comment);
 	if ((r = sshkey_write(prv, stdout)) != 0)
 		error("sshkey_write failed: %s", ssh_err(r));
-	sshkey_free(prv);
 	if (comment != NULL && *comment != '\0')
 		fprintf(stdout, " %s", comment);
 	fprintf(stdout, "\n");
+	if (sshkey_is_sk(prv)) {
+		debug("sk_application: \"%s\", sk_flags 0x%02x",
+			prv->sk_application, prv->sk_flags);
+	}
+	sshkey_free(prv);
 	free(comment);
 	exit(0);
 }
