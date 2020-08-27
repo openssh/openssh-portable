@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.213 2020/08/27 01:06:18 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.214 2020/08/27 01:07:09 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1387,7 +1387,8 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 	const u_char *signature, *data, *blob;
 	char *sigalg = NULL, *fp = NULL;
 	size_t signaturelen, datalen, bloblen;
-	int r, ret, req_presence = 0, valid_data = 0, encoded_ret;
+	int r, ret, req_presence = 0, req_verify = 0, valid_data = 0;
+	int encoded_ret;
 	struct sshkey_sig_details *sig_details = NULL;
 
 	if ((r = sshbuf_get_string_direct(m, &blob, &bloblen)) != 0 ||
@@ -1447,6 +1448,18 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 			    "port %d rejected: user presence "
 			    "(authenticator touch) requirement not met ",
 			    sshkey_type(key), fp,
+			    authctxt->valid ? "" : "invalid user ",
+			    authctxt->user, ssh_remote_ipaddr(ssh),
+			    ssh_remote_port(ssh));
+			ret = SSH_ERR_SIGNATURE_INVALID;
+		}
+		req_verify = (options.pubkey_auth_options &
+		    PUBKEYAUTH_VERIFY_REQUIRED) || key_opts->require_verify;
+		if (req_verify &&
+		    (sig_details->sk_flags & SSH_SK_USER_VERIFICATION_REQD) == 0) {
+			error("public key %s %s signature for %s%s from %.128s "
+			    "port %d rejected: user verification requirement "
+			    "not met ", sshkey_type(key), fp,
 			    authctxt->valid ? "" : "invalid user ",
 			    authctxt->user, ssh_remote_ipaddr(ssh),
 			    ssh_remote_port(ssh));
