@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.30 2020/04/28 04:02:29 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.31 2020/08/27 01:08:19 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -769,8 +769,9 @@ sshsk_load_resident(const char *provider_path, const char *device,
 		default:
 			continue;
 		}
-		/* XXX where to get flags? */
 		flags = SSH_SK_USER_PRESENCE_REQD|SSH_SK_RESIDENT_KEY;
+		if ((rks[i]->flags & SSH_SK_USER_VERIFICATION_REQD))
+			flags |= SSH_SK_USER_VERIFICATION_REQD;
 		if ((r = sshsk_key_from_response(rks[i]->alg,
 		    rks[i]->application, flags, &rks[i]->key, &key)) != 0)
 			goto out;

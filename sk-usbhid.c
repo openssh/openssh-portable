@@ -1104,8 +1104,7 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 			}
 
 			srk->key.key_handle_len = fido_cred_id_len(cred);
-			memcpy(srk->key.key_handle,
-			    fido_cred_id_ptr(cred),
+			memcpy(srk->key.key_handle, fido_cred_id_ptr(cred),
 			    srk->key.key_handle_len);
 
 			switch (fido_cred_type(cred)) {
@@ -1120,6 +1119,9 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 				    fido_cred_type(cred));
 				goto out; /* XXX free rk and continue */
 			}
+
+			if (fido_cred_prot(cred) == FIDO_CRED_PROT_UV_REQUIRED)
+				srk->flags |=  SSH_SK_USER_VERIFICATION_REQD;
 
 			if ((r = pack_public_key(srk->alg, cred,
 			    &srk->key)) != 0) {
