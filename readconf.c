@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.334 2020/08/11 09:49:57 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.335 2020/08/27 02:11:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1831,18 +1831,6 @@ parse_keytypes:
 			options->add_keys_to_agent_lifespan = value2;
 		}
 		break;
-
-		arg = strdelim(&s);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing time value.",
-			    filename, linenum);
-		if (strcmp(arg, "none") == 0)
-			value = -1;
-		else if ((value = convtime(arg)) == -1 || value > INT_MAX)
-			fatal("%s line %d: invalid time value.",
-			    filename, linenum);
-		if (*activep && *intptr == -1)
-			*intptr = value;
 
 	case oIdentityAgent:
 		charptr = &options->identity_agent;
