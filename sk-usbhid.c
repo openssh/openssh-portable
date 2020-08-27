@@ -367,8 +367,13 @@ sk_select_by_cred(const fido_dev_info_t *devlist, size_t ndevs,
 		skdebug(__func__, "sk_openv failed");
 		return NULL;
 	}
+	if (skvcnt == 1) {
+		sk = skv[0];
+		skv[0] = NULL;
+		goto out;
+	}
 	sk = NULL;
-	for (i = 0; i < skvcnt; i++)
+	for (i = 0; i < skvcnt; i++) {
 		if (sk_try(skv[i], application, key_handle,
 		    key_handle_len) == 0) {
 			sk = skv[i];
@@ -376,6 +381,8 @@ sk_select_by_cred(const fido_dev_info_t *devlist, size_t ndevs,
 			skdebug(__func__, "found key in %s", sk->path);
 			break;
 		}
+	}
+ out:
 	sk_closev(skv, skvcnt);
 	return sk;
 }
