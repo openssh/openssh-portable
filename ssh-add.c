@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.156 2020/06/26 05:04:07 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.157 2020/08/31 04:33:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -67,6 +67,7 @@
 #include "ssherr.h"
 #include "digest.h"
 #include "ssh-sk.h"
+#include "sk-api.h"
 
 /* argv0 */
 extern char *__progname;
@@ -348,12 +349,20 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 		ssh_free_identitylist(idlist);
 	}
 
-	if (!sshkey_is_sk(private))
-		skprovider = NULL; /* Don't send constraint for other keys */
-	else if (skprovider == NULL) {
-		fprintf(stderr, "Cannot load authenticator-hosted key %s "
-		    "without provider\n", filename);
-		goto out;
+	if (sshkey_is_sk(private)) {
+		if (skprovider == NULL) {
+			fprintf(stderr, "Cannot load FIDO key %s "
+			    "without provider\n", filename);
+			goto out;
+		}
+		if ((private->sk_flags & SSH_SK_USER_VERIFICATION_REQD) != 0) {
+			fprintf(stderr, "FIDO verify-required key %s is not "
+			    "currently supported by ssh-agent\n", filename);
+			goto out;
+		}
+	} else {
+		/* Don't send provider constraint for other keys */
+		skprovider = NULL;
 	}
 
 	if ((r = ssh_add_identity_constrained(agent_fd, private, comment,
