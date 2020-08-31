@@ -1,3 +1,4 @@
+/* $OpenBSD: sk-usbhid.c,v 1.25 2020/08/31 00:17:41 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto

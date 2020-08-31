@@ -97,3 +97,4 @@ the reserved field if it is not empty.
 The data is concatenated and passed to the SSH signing
 function.
 
+$OpenBSD: PROTOCOL.sshsig,v 1.4 2020/08/31 00:17:41 djm Exp $

@@ -1,3 +1,4 @@
+/* $OpenBSD: sshsig.h,v 1.9 2020/08/31 00:17:41 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
