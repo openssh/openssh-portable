@@ -43,7 +43,7 @@
 #include <fido/credman.h>
 
 /* backwards compat for libfido2 */
-#ifndef HAVE_FIDO_CRED_PROD
+#ifndef HAVE_FIDO_CRED_PROT
 #define fido_cred_prot(x) (0)
 #endif
 #ifndef HAVE_FIDO_CRED_SET_PROT
