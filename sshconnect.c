@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.331 2020/08/11 09:49:57 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.332 2020/09/09 21:57:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -597,7 +597,7 @@ confirm(const char *prompt, const char *fingerprint)
 		if (p[0] == '\0' || strcasecmp(p, "no") == 0)
 			ret = 0;
 		else if (strcasecmp(p, "yes") == 0 || (fingerprint != NULL &&
-		    strcasecmp(p, fingerprint) == 0))
+		    strcmp(p, fingerprint) == 0))
 			ret = 1;
 		free(cp);
 		if (ret != -1)
