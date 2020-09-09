@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.419 2020/08/27 09:46:04 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.420 2020/09/09 03:08:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3072,6 +3072,27 @@ do_download_sk(const char *skprovider, const char *device)
 }
 
 static void
+save_attestation(struct sshbuf *attest, const char *path)
+{
+	mode_t omask;
+	int r;
+
+	if (path == NULL)
+		return; /* nothing to do */
+	if (attest == NULL || sshbuf_len(attest) == 0)
+		fatal("Enrollment did not return attestation data");
+	omask = umask(077);
+	r = sshbuf_write_file(path, attest);
+	umask(omask);
+	if (r != 0)
+		fatal("Unable to write attestation data \"%s\": %s", path,
+		    ssh_err(r));
+	if (!quiet)
+		printf("Your FIDO attestation certificate has been saved in "
+		    "%s\n", path);
+}
+
+static void
 usage(void)
 {
 	fprintf(stderr,
@@ -3137,7 +3158,7 @@ main(int argc, char **argv)
 	unsigned long long cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL, **opts = NULL;
 	char *sk_application = NULL, *sk_device = NULL, *sk_user = NULL;
-	char *sk_attestaion_path = NULL;
+	char *sk_attestation_path = NULL;
 	struct sshbuf *challenge = NULL, *attest = NULL;
 	size_t i, nopts = 0;
 	u_int32_t bits = 0;
@@ -3593,7 +3614,7 @@ main(int argc, char **argv)
 				}
 			} else if (strncasecmp(opts[i],
 			    "write-attestation=", 18) == 0) {
-				sk_attestaion_path = opts[i] + 18;
+				sk_attestation_path = opts[i] + 18;
 			} else if (strncasecmp(opts[i],
 			    "application=", 12) == 0) {
 				sk_application = xstrdup(opts[i] + 12);
@@ -3715,20 +3736,9 @@ main(int argc, char **argv)
 		free(fp);
 	}
 
-	if (sk_attestaion_path != NULL) {
-		if (attest == NULL || sshbuf_len(attest) == 0) {
-			fatal("Enrollment did not return attestation "
-			    "certificate");
-		}
-		if ((r = sshbuf_write_file(sk_attestaion_path, attest)) != 0) {
-			fatal("Unable to write attestation certificate "
-			    "\"%s\": %s", sk_attestaion_path, ssh_err(r));
-		}
-		if (!quiet) {
-			printf("Your FIDO attestation certificate has been "
-			    "saved in %s\n", sk_attestaion_path);
-		}
-	}
+	if (sk_attestation_path != NULL)
+		save_attestation(attest, sk_attestation_path);
+
 	sshbuf_free(attest);
 	sshkey_free(public);
 

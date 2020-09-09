@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.25 2020/08/31 00:17:41 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.26 2020/09/09 03:08:01 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -822,6 +822,16 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 		memcpy(response->attestation_cert, ptr, len);
 		response->attestation_cert_len = len;
 	}
+	if ((ptr = fido_cred_authdata_ptr(cred)) != NULL) {
+		len = fido_cred_authdata_len(cred);
+		debug3("%s: authdata len=%zu", __func__, len);
+		if ((response->authdata = calloc(1, len)) == NULL) {
+			skdebug(__func__, "calloc authdata failed");
+			goto out;
+		}
+		memcpy(response->authdata, ptr, len);
+		response->authdata_len = len;
+	}
 	*enroll_response = response;
 	response = NULL;
 	ret = 0;
@@ -832,6 +842,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 		free(response->key_handle);
 		free(response->signature);
 		free(response->attestation_cert);
+		free(response->authdata);
 		free(response);
 	}
 	sk_close(sk);
