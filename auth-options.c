@@ -249,11 +249,12 @@ sshauthopt_new_with_keys_defaults(void)
  * Return 0 on success. Return -1 on failure and sets *errstrp to error reason.
  */
 static int
-handle_permit(const char **optsp, int allow_bare_port,
+handle_permit(const char **optsp, int listen,
     char ***permitsp, size_t *npermitsp, const char **errstrp)
 {
 	char *opt, *tmp, *cp, *host, **permits = *permitsp;
 	size_t npermits = *npermitsp;
+	int port;
 	const char *errstr = "unknown error";
 
 	if (npermits > SSH_AUTHOPT_PERMIT_MAX) {
@@ -263,7 +264,7 @@ handle_permit(const char **optsp, int allow_bare_port,
 	if ((opt = opt_dequote(optsp, &errstr)) == NULL) {
 		return -1;
 	}
-	if (allow_bare_port && strchr(opt, ':') == NULL) {
+	if (listen && strchr(opt, ':') == NULL) {
 		/*
 		 * Allow a bare port number in permitlisten to indicate a
 		 * listen_host wildcard.
@@ -293,9 +294,10 @@ handle_permit(const char **optsp, int allow_bare_port,
 	/*
 	 * don't want to use permitopen_port to avoid
 	 * dependency on channels.[ch] here.
+	 * permitlisten is allowed on port 0.
 	 */
 	if (cp == NULL ||
-	    (strcmp(cp, "*") != 0 && a2port(cp) <= 0)) {
+	    (strcmp(cp, "*") != 0 && !(((port = a2port(cp)) >= 0) && (listen || (port != 0))))) {
 		free(tmp);
 		free(opt);
 		*errstrp = "invalid permission port";

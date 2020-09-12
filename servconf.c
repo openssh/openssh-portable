@@ -930,7 +930,7 @@ process_permitopen_list(struct ssh *ssh, ServerOpCodes opcode,
 		if (host == NULL || ch == '/')
 			fatal("%s: missing host in %s", __func__, what);
 		host = cleanhostname(host);
-		if (arg == NULL || ((port = permitopen_port(arg)) < 0))
+		if (arg == NULL || ((port = permitopen_port(arg, where)) < 0))
 			fatal("%s: bad port number in %s", __func__, what);
 		/* Send it to channels layer */
 		channel_add_permission(ssh, FORWARD_ADM,
@@ -2127,7 +2127,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				p = cleanhostname(p);
 			}
 			if (arg == NULL ||
-			    ((port = permitopen_port(arg)) < 0)) {
+			    ((port = permitopen_port(arg, opcode == sPermitListen ? FORWARD_REMOTE : FORWARD_LOCAL)) < 0)) {
 				fatal("%s line %d: bad port number in %s",
 				    filename, linenum,
 				    lookup_opcode_name(opcode));

@@ -4171,15 +4171,21 @@ channel_update_permission(struct ssh *ssh, int idx, int newport)
 	}
 }
 
-/* returns port number, FWD_PERMIT_ANY_PORT or -1 on error */
+/* 
+ * returns port number, FWD_PERMIT_ANY_PORT or -1 on error.
+ * permitopen allows ports bigger than 0, permitlisten allows ports bigger or equal to 0
+ */
 int
-permitopen_port(const char *p)
+permitopen_port(const char *p, int where)
 {
 	int port;
 
 	if (strcmp(p, "*") == 0)
 		return FWD_PERMIT_ANY_PORT;
-	if ((port = a2port(p)) > 0)
+	
+	port = a2port(p);
+	// FORWARD_REMOTE can be permitted on port 0
+	if ((port >= 0) && ((where == FORWARD_REMOTE) || (port != 0)))
 		return port;
 	return -1;
 }
