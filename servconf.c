@@ -1945,12 +1945,11 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		break;
 
 	case sSetEnv:
-		uvalue = options->num_setenv;
 		while ((arg = strdelimw(&cp)) && *arg != '\0') {
 			if (strchr(arg, '=') == NULL)
 				fatal("%s line %d: Invalid environment.",
 				    filename, linenum);
-			if (!*activep || uvalue != 0)
+			if (!*activep)
 				continue;
 			array_append(filename, linenum, "SetEnv",
 			    &options->setenv, &options->num_setenv, arg);
