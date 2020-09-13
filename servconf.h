@@ -277,6 +277,7 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STRARRAYOPT(allow_groups, num_allow_groups); \
 		M_CP_STRARRAYOPT(deny_groups, num_deny_groups); \
 		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
+		M_CP_STRARRAYOPT(setenv, num_setenv); \
 		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
 		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens); \
 		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens); \
