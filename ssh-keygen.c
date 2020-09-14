@@ -184,7 +184,7 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		fatal("unknown key type %s", key_type_name);
 	if (*bitsp == 0) {
 #ifdef WITH_OPENSSL
-		u_int nid;
+		int nid;
 
 		switch(type) {
 		case KEY_DSA:
