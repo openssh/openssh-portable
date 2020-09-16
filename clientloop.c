@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.345 2020/07/03 05:09:06 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.346 2020/09/16 03:07:31 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1238,7 +1238,6 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	int r, max_fd = 0, max_fd2 = 0, len;
 	u_int64_t ibytes, obytes;
 	u_int nalloc = 0;
-	char buf[100];
 
 	debug("Entering interactive session.");
 
@@ -1467,7 +1466,6 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	}
 
 	/* Clear and free any buffers. */
-	explicit_bzero(buf, sizeof(buf));
 	sshbuf_free(stderr_buffer);
 
 	/* Report bytes transferred, and transfer rates. */
