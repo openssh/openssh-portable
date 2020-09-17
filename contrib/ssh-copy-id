@@ -60,9 +60,10 @@ most_recent_id="$(cd "$HOME" ; ls -t .ssh/id*.pub 2>/dev/null | grep -v -- '-cer
 DEFAULT_PUB_ID_FILE="${most_recent_id:+$HOME/}$most_recent_id"
 
 usage () {
-  printf 'Usage: %s [-h|-?|-f|-n] [-i [identity_file]] [-p port] [[-o <ssh -o options>] ...] [user@]hostname\n' "$0" >&2
+  printf 'Usage: %s [-h|-?|-f|-n|-s] [-i [identity_file]] [-p port] [[-o <ssh -o options>] ...] [user@]hostname\n' "$0" >&2
   printf '\t-f: force mode -- copy keys without trying to check if they are already installed\n' >&2
   printf '\t-n: dry run    -- no keys are actually copied\n' >&2
+  printf '\t-s: use sftp   -- use sftp instead of executing remote-commands. Can be useful if the remote only allows sftp\n' >&2
   printf '\t-h|-?: print this help\n' >&2
   exit 1
 }
@@ -133,7 +134,7 @@ do
       }
       shift
       ;;
-    -f|-n|-h|-\?)
+    -f|-n|-s|-h|-\?)
       OPT="$1"
       OPTARG=
       shift
@@ -171,6 +172,9 @@ do
       ;;
     -n)
       DRY_RUN=1
+      ;;
+    -s)
+      USE_SFTP=1
       ;;
     -h|-\?)
       usage
@@ -293,11 +297,29 @@ case "$REMOTE_VERSION" in
   *)
     # Assuming that the remote host treats ~/.ssh/authorized_keys as one might expect
     populate_new_ids 0
-    # in ssh below - to defend against quirky remote shells: use 'exec sh -c' to get POSIX;
-    #     'cd' to be at $HOME; add a newline if it's missing; and all on one line, because tcsh.
-    [ "$DRY_RUN" ] || printf '%s\n' "$NEW_IDS" | \
+
+    if ! [ "$DRY_RUN" ] && ! [ "$USE_SFTP" ]; then
+      # in ssh below - to defend against quirky remote shells: use 'exec sh -c' to get POSIX;
+      #     'cd' to be at $HOME; add a newline if it's missing; and all on one line, because tcsh.
+      printf '%s\n' "$NEW_IDS" | \
       ssh "$@" "exec sh -c 'cd ; umask 077 ; mkdir -p .ssh && { [ -z "'`tail -1c .ssh/authorized_keys 2>/dev/null`'" ] || echo >> .ssh/authorized_keys ; } && cat >> .ssh/authorized_keys || exit 1 ; if type restorecon >/dev/null 2>&1 ; then restorecon -F .ssh .ssh/authorized_keys ; fi'" \
       || exit 1
+    fi
+    if ! [ "$DRY_RUN" ] && [ "$USE_SFTP" ] ; then
+      KEYS_TMPFILE=$(mktemp authorized_keys.XXXXXXXXXXXX)
+      trap "rm -f $KEYS_TMPFILE" EXIT
+      SHARED_CON_TMPFILE=$(mktemp -u ssh-copy-id-shared-connection.XXXXXXXXXXXX)
+      ssh -f -N -M -S $SHARED_CON_TMPFILE "$@"
+      trap "ssh -S $SHARED_CON_TMPFILE -O exit 'notnecessary' >/dev/null 2>&1" EXIT
+      echo "mkdir .ssh" | sftp -b - -o "ControlPath=${SHARED_CON_TMPFILE}" "notnecessary" >/dev/null 2>&1
+      echo "chmod 700 .ssh" | sftp -b - -o "ControlPath=${SHARED_CON_TMPFILE}" "notnecessary" >/dev/null 2>&1
+      echo "get .ssh/authorized_keys $KEYS_TMPFILE" | sftp -b - -o "ControlPath=$SHARED_CON_TMPFILE" "notnecessary" >/dev/null 2>&1
+      # add a newline if it's missing, same like above
+      [ -z "$(tail -1c $KEYS_TMPFILE 2>/dev/null)" ] || echo >> $KEYS_TMPFILE
+      printf '%s\n' "$NEW_IDS" >> $KEYS_TMPFILE
+      echo "put $KEYS_TMPFILE .ssh/authorized_keys" | sftp -b - -o "ControlPath=$SHARED_CON_TMPFILE" "notnecessary" >/dev/null 2>&1 || exit 1
+      echo "chmod 600 .ssh/authorized_keys" | sftp -b - -o "ControlPath=${SHARED_CON_TMPFILE}" "notnecessary" >/dev/null 2>&1
+    fi
     ADDED=$(printf '%s\n' "$NEW_IDS" | wc -l)
     ;;
 esac
