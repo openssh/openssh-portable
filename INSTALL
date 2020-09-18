@@ -120,7 +120,8 @@ the dependency (.depend) file using "make depend", which requires the
 libfido2:
 
 libfido2 allows the use of hardware security keys over USB.  libfido2
-in turn depends on libcbor.  libfido2 >= 1.4.0 is needed.
+in turn depends on libcbor.  libfido2 >= 1.5.0 is strongly recommended.
+Limited functionality is possible with earlier libfido2 versions.
 
 https://github.com/Yubico/libfido2
 https://github.com/pjk/libcbor
