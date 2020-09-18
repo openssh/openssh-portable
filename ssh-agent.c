@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.263 2020/08/27 01:06:18 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.264 2020/09/18 08:16:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -852,8 +852,10 @@ send:
 }
 #endif /* ENABLE_PKCS11 */
 
-/* dispatch incoming messages */
-
+/*
+ * dispatch incoming message.
+ * returns 1 on success, 0 for incomplete messages or -1 on error.
+ */
 static int
 process_message(u_int socknum)
 {
@@ -907,7 +909,7 @@ process_message(u_int socknum)
 			/* send a fail message for all other request types */
 			send_status(e, 0);
 		}
-		return 0;
+		return 1;
 	}
 
 	switch (type) {
@@ -951,7 +953,7 @@ process_message(u_int socknum)
 		send_status(e, 0);
 		break;
 	}
-	return 0;
+	return 1;
 }
 
 static void
@@ -1042,7 +1044,12 @@ handle_conn_read(u_int socknum)
 	if ((r = sshbuf_put(sockets[socknum].input, buf, len)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	explicit_bzero(buf, sizeof(buf));
-	process_message(socknum);
+	for (;;) {
+		if ((r = process_message(socknum)) == -1)
+			return -1;
+		else if (r == 0)
+			break;
+	}
 	return 0;
 }
 
