@@ -653,7 +653,9 @@ case "$host" in
 *-*-darwin*)
 	use_pie=auto
 	AC_MSG_CHECKING([if we have working getaddrinfo])
-	AC_RUN_IFELSE([AC_LANG_SOURCE([[ #include <mach-o/dyld.h>
+	AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#include <mach-o/dyld.h>
+#include <stdlib.h>
 main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		exit(0);
 	else
@@ -1241,7 +1243,7 @@ EOD
 esac
 
 AC_MSG_CHECKING([compiler and flags for sanity])
-AC_RUN_IFELSE([AC_LANG_PROGRAM([[ #include <stdio.h> ]], [[ exit(0); ]])],
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[ #include <stdlib.h> ]], [[ exit(0); ]])],
 	[	AC_MSG_RESULT([yes]) ],
 	[
 		AC_MSG_RESULT([no])
@@ -1265,6 +1267,7 @@ AC_CHECK_FUNCS([dirname], [AC_CHECK_HEADERS([libgen.h])] , [
 				[AC_LANG_SOURCE([[
 #include <libgen.h>
 #include <string.h>
+#include <stdlib.h>
 
 int main(int argc, char **argv) {
     char *s, buf[32];
@@ -1516,7 +1519,9 @@ AC_MSG_CHECKING([whether struct dirent allocates space for d_name])
 AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <sys/types.h>
-#include <dirent.h>]],
+#include <dirent.h>
+#include <stdlib.h>
+	]],
 	[[
 	struct dirent d;
 	exit(sizeof(d.d_name)<=sizeof(char));
@@ -1630,7 +1635,10 @@ AC_ARG_WITH([libedit],
 		)
 		AC_MSG_CHECKING([if libedit version is compatible])
 		AC_COMPILE_IFELSE(
-		    [AC_LANG_PROGRAM([[ #include <histedit.h> ]],
+		    [AC_LANG_PROGRAM([[
+#include <histedit.h>
+#include <stdlib.h>
+		    ]],
 		    [[
 	int i = H_SETSIZE;
 	el_init("", NULL, NULL, NULL);
@@ -2120,7 +2128,11 @@ AC_CHECK_FUNCS([setresgid], [
 
 AC_MSG_CHECKING([for working fflush(NULL)])
 AC_RUN_IFELSE(
-	[AC_LANG_PROGRAM([[#include <stdio.h>]], [[fflush(NULL); exit(0);]])],
+	[AC_LANG_PROGRAM([[
+#include <stdio.h>
+#include <stdlib.h>
+	]],
+	[[fflush(NULL); exit(0);]])],
 	AC_MSG_RESULT([yes]),
 	[AC_MSG_RESULT([no])
 	 AC_DEFINE([FFLUSH_NULL_BUG], [1],
@@ -2156,7 +2168,10 @@ AC_CHECK_FUNC([getpagesize],
 if test "x$ac_cv_func_snprintf" = "xyes" ; then
 	AC_MSG_CHECKING([whether snprintf correctly terminates long strings])
 	AC_RUN_IFELSE(
-		[AC_LANG_PROGRAM([[ #include <stdio.h> ]],
+		[AC_LANG_PROGRAM([[
+#include <stdio.h>
+#include <stdlib.h>
+		]],
 		[[
 	char b[5];
 	snprintf(b,5,"123456789");
@@ -2179,6 +2194,8 @@ if test "x$ac_cv_func_snprintf" = "xyes" ; then
 		[AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 		]],
 		[[
 	size_t a = 1, b = 2;
@@ -2271,6 +2288,7 @@ AC_MSG_CHECKING([for (overly) strict mkstemp])
 AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <stdlib.h>
+#include <unistd.h>
 	]], [[
 	char template[]="conftest.mkstemp-test";
 	if (mkstemp(template) == -1)
@@ -2298,6 +2316,8 @@ if test ! -z "$check_for_openpty_ctty_bug"; then
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -2344,6 +2364,7 @@ if test "x$ac_cv_func_getaddrinfo" = "xyes" && \
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <errno.h>
@@ -2412,6 +2433,7 @@ if test "x$ac_cv_func_getaddrinfo" = "xyes" && \
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <errno.h>
@@ -2474,7 +2496,10 @@ fi
 
 if test "x$check_for_conflicting_getspnam" = "x1"; then
 	AC_MSG_CHECKING([for conflicting getspnam in shadow.h])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <shadow.h> ]],
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <shadow.h>
+#include <stdlib.h>
+		]],
 		[[ exit(0); ]])],
 		[
 			AC_MSG_RESULT([no])
@@ -2504,6 +2529,7 @@ if test "x$ac_cv_func_strnvis" = "xyes"; then
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <vis.h>
 static void sighandler(int sig) { _exit(1); }
 		]], [[
@@ -2532,6 +2558,7 @@ AC_RUN_IFELSE(
 #include <sys/time.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <unistd.h>
 static void sighandler(int sig) { }
 		]], [[
 	int r;
@@ -2688,6 +2715,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
 	#include <stdio.h>
+	#include <stdlib.h>
 	#include <string.h>
 	#include <openssl/opensslv.h>
 	#include <openssl/crypto.h>
@@ -2749,6 +2777,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_MSG_CHECKING([whether OpenSSL's headers match the library])
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
 	#include <string.h>
 	#include <openssl/opensslv.h>
 	#include <openssl/crypto.h>
@@ -2888,6 +2917,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_MSG_CHECKING([whether OpenSSL has crippled AES support])
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
 	#include <string.h>
 	#include <openssl/evp.h>
 		]], [[
@@ -2907,6 +2937,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_MSG_CHECKING([whether OpenSSL has AES CTR via EVP])
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
 	#include <string.h>
 	#include <openssl/evp.h>
 		]], [[
@@ -2928,6 +2959,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_MSG_CHECKING([whether OpenSSL has AES GCM via EVP])
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
 	#include <string.h>
 	#include <openssl/evp.h>
 		]], [[
@@ -2955,6 +2987,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_MSG_CHECKING([if EVP_DigestUpdate returns an int])
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
 	#include <string.h>
 	#include <openssl/evp.h>
 		]], [[
@@ -3041,6 +3074,7 @@ if test "x$openssl" = "xyes" ; then
 		  AC_MSG_CHECKING([if OpenSSL's NID_secp521r1 is functional])
 		  AC_RUN_IFELSE(
 			[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
 	#include <openssl/ec.h>
 	#include <openssl/ecdh.h>
 	#include <openssl/ecdsa.h>
@@ -3223,6 +3257,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_MSG_CHECKING([whether OpenSSL's PRNG is internally seeded])
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
 	#include <string.h>
 	#include <openssl/rand.h>
 		]], [[
@@ -3654,6 +3689,7 @@ if test -z "$have_llong_max" && test -z "$have_long_long_max"; then
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
 #include <stdio.h>
+#include <stdlib.h>
 /* Why is this so damn hard? */
 #ifdef __GNUC__
 # undef __GNUC__
@@ -4169,6 +4205,7 @@ dnl test snprintf (broken on SCO w/gcc)
 	AC_RUN_IFELSE(
 		[AC_LANG_SOURCE([[
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_SNPRINTF
 main()
@@ -4272,6 +4309,7 @@ AC_CACHE_CHECK([for msg_accrights field in struct msghdr],
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
+#include <stdlib.h>
 		]], [[
 #ifdef msg_accrights
 #error "msg_accrights is a macro"
@@ -4333,6 +4371,7 @@ AC_CACHE_CHECK([for msg_control field in struct msghdr],
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
+#include <stdlib.h>
 		]], [[
 #ifdef msg_control
 #error "msg_control is a macro"
@@ -4353,7 +4392,7 @@ if test "x$ac_cv_have_control_in_msghdr" = "xyes" ; then
 fi
 
 AC_CACHE_CHECK([if libc defines __progname], ac_cv_libc_defines___progname, [
-	AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[ #include <stdio.h> ]],
 		[[ extern char *__progname; printf("%s", __progname); ]])],
 	[ ac_cv_libc_defines___progname="yes" ],
 	[ ac_cv_libc_defines___progname="no"
@@ -4425,7 +4464,7 @@ if test "x$ac_cv_have_getopt_optreset" = "xyes" ; then
 fi
 
 AC_CACHE_CHECK([if libc defines sys_errlist], ac_cv_libc_defines_sys_errlist, [
-	AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[ #include <stdio.h> ]],
 [[ extern const char *const sys_errlist[]; printf("%s", sys_errlist[0]);]])],
 	[ ac_cv_libc_defines_sys_errlist="yes" ],
 	[ ac_cv_libc_defines_sys_errlist="no"
@@ -4438,7 +4477,7 @@ fi
 
 
 AC_CACHE_CHECK([if libc defines sys_nerr], ac_cv_libc_defines_sys_nerr, [
-	AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[ #include <stdio.h> ]],
 [[ extern int sys_nerr; printf("%i", sys_nerr);]])],
 	[ ac_cv_libc_defines_sys_nerr="yes" ],
 	[ ac_cv_libc_defines_sys_nerr="no"
@@ -4747,6 +4786,7 @@ AC_ARG_WITH([maildir],
 	    AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_PATHS_H
 #include <paths.h>
@@ -4991,6 +5031,7 @@ otherwise scp will not work.])
 			[AC_LANG_PROGRAM([[
 /* find out what STDPATH is */
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif
