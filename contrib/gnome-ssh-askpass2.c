@@ -59,6 +59,7 @@
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
+#include <gdk/gdkkeysyms.h>
 
 static void
 report_failed_grab (GtkWidget *parent_window, const char *what)
@@ -83,6 +84,25 @@ ok_dialog(GtkWidget *entry, gpointer dialog)
 {
 	g_return_if_fail(GTK_IS_DIALOG(dialog));
 	gtk_dialog_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+}
+
+static gboolean
+check_none(GtkWidget *widget, GdkEventKey *event, gpointer dialog)
+{
+	switch (event->keyval) {
+	case GDK_KEY_Escape:
+		/* esc -> close dialog */
+		gtk_dialog_response(GTK_DIALOG(dialog), GTK_RESPONSE_CLOSE);
+		return TRUE;
+	case GDK_KEY_Tab:
+		/* tab -> focus close button */
+		gtk_widget_grab_focus(gtk_dialog_get_widget_for_response(
+		    dialog, GTK_RESPONSE_CLOSE));
+		return TRUE;
+	default:
+		/* eat all other key events */
+		return TRUE;
+	}
 }
 
 static int
@@ -127,17 +147,29 @@ passphrase_dialog(char *message, int prompt_type)
 	gtk_dialog_set_default_response(GTK_DIALOG(dialog), default_response);
 	gtk_window_set_keep_above(GTK_WINDOW(dialog), TRUE);
 
-	if (prompt_type == PROMPT_ENTRY) {
+	if (prompt_type == PROMPT_ENTRY || prompt_type == PROMPT_NONE) {
 		entry = gtk_entry_new();
 		gtk_box_pack_start(
 		    GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))),
 		    entry, FALSE, FALSE, 0);
 		gtk_entry_set_visibility(GTK_ENTRY(entry), FALSE);
 		gtk_widget_grab_focus(entry);
-		gtk_widget_show(entry);
-		/* Make <enter> close dialog */
-		g_signal_connect(G_OBJECT(entry), "activate",
-				 G_CALLBACK(ok_dialog), dialog);
+		if (prompt_type == PROMPT_ENTRY) {
+			gtk_widget_show(entry);
+			/* Make <enter> close dialog */
+			g_signal_connect(G_OBJECT(entry), "activate",
+					 G_CALLBACK(ok_dialog), dialog);
+		} else {
+			/*
+			 * Ensure the 'close' button is not focused by default
+			 * but is still reachable via tab. This is a bit of a
+			 * hack - it uses a hidden entry that responds to a
+			 * couple of keypress events (escape and tab only).
+			 */
+			gtk_widget_realize(entry);
+			g_signal_connect(G_OBJECT(entry), "key_press_event",
+			                 G_CALLBACK(check_none), dialog);
+		}
 	}
 
 	/* Grab focus */
