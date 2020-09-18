@@ -56,6 +56,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
@@ -106,6 +107,48 @@ check_none(GtkWidget *widget, GdkEventKey *event, gpointer dialog)
 }
 
 static int
+parse_env_hex_color(const char *env, GdkColor *c)
+{
+	const char *s;
+	unsigned long ul;
+	char *ep;
+	size_t n;
+
+	if ((s = getenv(env)) == NULL)
+		return 0;
+
+	memset(c, 0, sizeof(*c));
+
+	/* Permit hex rgb or rrggbb optionally prefixed by '#' or '0x' */
+	if (*s == '#')
+		s++;
+	else if (strncmp(s, "0x", 2) == 0)
+		s += 2;
+	n = strlen(s);
+	if (n != 3 && n != 6)
+		goto bad;
+	ul = strtoul(s, &ep, 16);
+	if (*ep != '\0' || ul > 0xffffff) {
+ bad:
+		fprintf(stderr, "Invalid $%s - invalid hex color code\n", env);
+		return 0;
+	}
+	/* Valid hex sequence; expand into a GdkColor */
+	if (n == 3) {
+		/* 4-bit RGB */
+		c->red = ((ul >> 8) & 0xf) << 12;
+		c->green = ((ul >> 4) & 0xf) << 12;
+		c->blue = (ul & 0xf) << 12;
+	} else {
+		/* 8-bit RGB */
+		c->red = ((ul >> 16) & 0xff) << 8;
+		c->green = ((ul >> 8) & 0xff) << 8;
+		c->blue = (ul & 0xff) << 8;
+	}
+	return 1;
+}
+
+static int
 passphrase_dialog(char *message, int prompt_type)
 {
 	const char *failed;
@@ -114,10 +157,15 @@ passphrase_dialog(char *message, int prompt_type)
 	int buttons, default_response;
 	GtkWidget *parent_window, *dialog, *entry;
 	GdkGrabStatus status;
+	GdkColor fg, bg;
+	int fg_set = 0, bg_set = 0;
 
 	grab_server = (getenv("GNOME_SSH_ASKPASS_GRAB_SERVER") != NULL);
 	grab_pointer = (getenv("GNOME_SSH_ASKPASS_GRAB_POINTER") != NULL);
 	grab_tries = 0;
+
+	fg_set = parse_env_hex_color("GNOME_SSH_ASKPASS_FG_COLOR", &fg);
+	bg_set = parse_env_hex_color("GNOME_SSH_ASKPASS_BG_COLOR", &bg);
 
 	/* Create an invisible parent window so that GtkDialog doesn't
 	 * complain.  */
@@ -147,8 +195,17 @@ passphrase_dialog(char *message, int prompt_type)
 	gtk_dialog_set_default_response(GTK_DIALOG(dialog), default_response);
 	gtk_window_set_keep_above(GTK_WINDOW(dialog), TRUE);
 
+	if (fg_set)
+		gtk_widget_modify_fg(dialog, GTK_STATE_NORMAL, &fg);
+	if (bg_set)
+		gtk_widget_modify_bg(dialog, GTK_STATE_NORMAL, &bg);
+
 	if (prompt_type == PROMPT_ENTRY || prompt_type == PROMPT_NONE) {
 		entry = gtk_entry_new();
+		if (fg_set)
+			gtk_widget_modify_fg(entry, GTK_STATE_NORMAL, &fg);
+		if (bg_set)
+			gtk_widget_modify_bg(entry, GTK_STATE_NORMAL, &bg);
 		gtk_box_pack_start(
 		    GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))),
 		    entry, FALSE, FALSE, 0);
