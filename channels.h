@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.134 2020/07/05 23:59:45 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.135 2020/09/20 05:47:25 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -222,6 +222,9 @@ struct Channel {
 
 /* Read buffer size */
 #define CHAN_RBUF	(16*1024)
+
+/* Maximum channel input buffer size */
+#define CHAN_INPUT_MAX	(16*1024*1024)
 
 /* Hard limit on number of channels */
 #define CHANNELS_MAX_CHANNELS	(16*1024)
