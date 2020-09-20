@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.534 2020/07/31 04:19:37 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.535 2020/09/20 23:31:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1745,12 +1745,25 @@ control_persist_detach(void)
 static void
 fork_postauth(void)
 {
+	int devnull, keep_stderr;
+
 	if (need_controlpersist_detach)
 		control_persist_detach();
 	debug("forking to background");
 	fork_after_authentication_flag = 0;
 	if (daemon(1, 1) == -1)
 		fatal("daemon() failed: %.200s", strerror(errno));
+	if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1)
+		error("%s: open %s: %s", __func__,
+		    _PATH_DEVNULL, strerror(errno));
+	else {
+		keep_stderr = log_is_on_stderr() && debug_flag;
+		if (dup2(devnull, STDOUT_FILENO) == -1 ||
+		    (!keep_stderr && dup2(devnull, STDOUT_FILENO) == -1))
+			fatal("%s: dup2() stdio failed", __func__);
+		if (devnull > STDERR_FILENO)
+			close(devnull);
+	}
 }
 
 static void
@@ -2149,13 +2162,15 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	 * as it may want to write to stdout.
 	 */
 	if (!need_controlpersist_detach) {
-		if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1)
+		if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1) {
 			error("%s: open %s: %s", __func__,
 			    _PATH_DEVNULL, strerror(errno));
-		if (dup2(devnull, STDOUT_FILENO) == -1)
-			fatal("%s: dup2() stdout failed", __func__);
-		if (devnull > STDERR_FILENO)
-			close(devnull);
+		} else {
+			if (dup2(devnull, STDOUT_FILENO) == -1)
+				fatal("%s: dup2() stdout failed", __func__);
+			if (devnull > STDERR_FILENO)
+				close(devnull);
+		}
 	}
 
 	/*
