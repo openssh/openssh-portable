@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.535 2020/09/20 23:31:46 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.536 2020/09/21 07:29:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1758,7 +1758,8 @@ fork_postauth(void)
 		    _PATH_DEVNULL, strerror(errno));
 	else {
 		keep_stderr = log_is_on_stderr() && debug_flag;
-		if (dup2(devnull, STDOUT_FILENO) == -1 ||
+		if (dup2(devnull, STDIN_FILENO) == -1 ||
+		    dup2(devnull, STDOUT_FILENO) == -1 ||
 		    (!keep_stderr && dup2(devnull, STDOUT_FILENO) == -1))
 			fatal("%s: dup2() stdio failed", __func__);
 		if (devnull > STDERR_FILENO)
