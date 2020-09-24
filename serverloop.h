@@ -20,9 +20,6 @@
  */
 #ifndef SERVERLOOP_H
 #define SERVERLOOP_H
-u_long stdin_bytes;
-u_long fdout_bytes;
-double start_time; 
 
 struct ssh;
 

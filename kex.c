@@ -1354,9 +1354,12 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 		goto out;
 	}
 
-	logit("SSH: Server;Ltype: Version;Remote: %s-%d;Protocol: %d.%d;Client: %.100s",
-	      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
-	      remote_major, remote_minor, remote_version);
+	/* report the version information to syslog if this is the server */
+        if (timeout_ms == -1) { /* only the server uses this value */
+		logit("SSH: Server;Ltype: Version;Remote: %s-%d;Protocol: %d.%d;Client: %.100s",
+		      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+		      remote_major, remote_minor, remote_version);
+	}
 	
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	    remote_major, remote_minor, remote_version);
