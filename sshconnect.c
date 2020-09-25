@@ -830,7 +830,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 				logit("Warning: Permanently added the %s host "
 				    "key for IP address '%.128s' to the list "
 				    "of known hosts.", type, ip);
-		} else if (options.visual_host_key) {
+		} else if (options.visual_host_key == SSH_VISUAL_HOSTKEY_YES) {
 			fp = sshkey_fingerprint(host_key,
 			    options.fingerprint_hash, SSH_FP_DEFAULT);
 			ra = sshkey_fingerprint(host_key,
