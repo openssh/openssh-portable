@@ -256,7 +256,7 @@ installkeys_sh() {
 	  cat >> ${AUTH_KEY_FILE} ||
 	  exit 1;
 	if type restorecon >/dev/null 2>&1; then
-	  restorecon -F .ssh ${AUTH_KEY_FILE};
+	  restorecon -F $(dirname "${AUTH_KEY_FILE}") ${AUTH_KEY_FILE};
 	fi
 EOF
   )
