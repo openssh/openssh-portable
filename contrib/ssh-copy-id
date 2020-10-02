@@ -237,6 +237,7 @@ populate_new_ids() {
 #    optionally takes an alternative path for authorized_keys
 installkeys_sh() {
   AUTH_KEY_FILE=${1:-.ssh/authorized_keys}
+  AUTH_KEY_DIR=$(dirname "${AUTH_KEY_FILE}")
 
   # In setting INSTALLKEYS_SH:
   #    the tr puts it all on one line (to placate tcsh)
@@ -249,7 +250,7 @@ installkeys_sh() {
   INSTALLKEYS_SH=$(tr '\t\n' ' ' <<-EOF
 	cd;
 	umask 077;
-	mkdir -p $(dirname "${AUTH_KEY_FILE}") &&
+	mkdir -p "${AUTH_KEY_DIR}" &&
 	  { [ -z \`tail -1c ${AUTH_KEY_FILE} 2>/dev/null\` ] || echo >> ${AUTH_KEY_FILE}; } &&
 	  cat >> ${AUTH_KEY_FILE} ||
 	  exit 1;
