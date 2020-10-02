@@ -76,7 +76,7 @@ quote() {
 }
 
 use_id_file() {
-  local L_ID_FILE="$1"
+  L_ID_FILE="$1"
 
   if [ -z "$L_ID_FILE" ] ; then
     printf '%s: ERROR: no ID file found\n' "$0"
@@ -94,7 +94,7 @@ use_id_file() {
   # check that the files are readable
   for f in "$PUB_ID_FILE" ${PRIV_ID_FILE:+"$PRIV_ID_FILE"} ; do
     ErrMSG=$( { : < "$f" ; } 2>&1 ) || {
-      local L_PRIVMSG=""
+      L_PRIVMSG=""
       [ "$f" = "$PRIV_ID_FILE" ] && L_PRIVMSG="	(to install the contents of '$PUB_ID_FILE' anyway, look at the -f option)"
       printf "\\n%s: ERROR: failed to open ID file '%s': %s\\n" "$0" "$f" "$(printf '%s\n%s\n' "$ErrMSG" "$L_PRIVMSG" | sed -e 's/.*: *//')"
       exit 1
@@ -169,7 +169,7 @@ fi
 # populate_new_ids() uses several global variables ($USER_HOST, $SSH_OPTS ...)
 # and has the side effect of setting $NEW_IDS
 populate_new_ids() {
-  local L_SUCCESS="$1"
+  L_SUCCESS="$1"
 
   # shellcheck disable=SC2086
   if [ "$FORCED" ] ; then
@@ -181,13 +181,12 @@ populate_new_ids() {
   eval set -- "$SSH_OPTS"
 
   umask 0177
-  local L_TMP_ID_FILE
   L_TMP_ID_FILE=$(mktemp ~/.ssh/ssh-copy-id_id.XXXXXXXXXX)
   if test $? -ne 0 || test "x$L_TMP_ID_FILE" = "x" ; then
     printf '%s: ERROR: mktemp failed\n' "$0" >&2
     exit 1
   fi
-  local L_CLEANUP="rm -f \"$L_TMP_ID_FILE\" \"${L_TMP_ID_FILE}.stderr\""
+  L_CLEANUP="rm -f \"$L_TMP_ID_FILE\" \"${L_TMP_ID_FILE}.stderr\""
   # shellcheck disable=SC2064
   trap "$L_CLEANUP" EXIT TERM INT QUIT
   printf '%s: INFO: attempting to log in with the new key(s), to filter out any that are already installed\n' "$0" >&2
@@ -237,7 +236,7 @@ populate_new_ids() {
 #    produce a one-liner to add the keys to remote authorized_keys file
 #    optionally takes an alternative path for authorized_keys
 installkeys_sh() {
-  local AUTH_KEY_FILE=${1:-.ssh/authorized_keys}
+  AUTH_KEY_FILE=${1:-.ssh/authorized_keys}
 
   # In setting INSTALLKEYS_SH:
   #    the tr puts it all on one line (to placate tcsh)
