@@ -262,6 +262,7 @@ EOF
   printf "exec sh -c '%s'" "${INSTALLKEYS_SH}"
 }
 
+#shellcheck disable=SC2120 # the 'eval set' confuses this
 installkeys_via_sftp() {
 
   # repopulate "$@" inside this function
@@ -269,22 +270,24 @@ installkeys_via_sftp() {
 
   L_KEYS=$SCRATCH_DIR/authorized_keys
   L_SHARED_CON=$SCRATCH_DIR/master-conn
-  $SSH -f -N -M -S $L_SHARED_CON "$@"
+  $SSH -f -N -M -S "$L_SHARED_CON" "$@"
   L_CLEANUP="$SSH -S $L_SHARED_CON -O exit 'ignored' >/dev/null 2>&1 ; $SCRATCH_CLEANUP"
+  #shellcheck disable=SC2064
   trap "$L_CLEANUP" EXIT TERM INT QUIT
   sftp -b - -o "ControlPath=$L_SHARED_CON" "ignored" <<-EOF || return 1
 	-get .ssh/authorized_keys $L_KEYS
 	EOF
   # add a newline or create file if it's missing, same like above
-  [ -z "$(tail -1c $L_KEYS 2>/dev/null)" ] || echo >> $L_KEYS
+  [ -z "$(tail -1c "$L_KEYS" 2>/dev/null)" ] || echo >> "$L_KEYS"
   # append the keys being piped in here
-  cat >> $L_KEYS
+  cat >> "$L_KEYS"
   sftp -b - -o "ControlPath=$L_SHARED_CON" "ignored" <<-EOF || return 1
 	-mkdir .ssh
 	chmod 700 .ssh
 	put $L_KEYS .ssh/authorized_keys
 	chmod 600 .ssh/authorized_keys
 	EOF
+  #shellcheck disable=SC2064
   eval "$L_CLEANUP" && trap "$SCRATCH_CLEANUP" EXIT TERM INT QUIT
 }
 
@@ -339,6 +342,7 @@ case "$REMOTE_VERSION" in
     if ! [ "$DRY_RUN" ] ; then
       printf '%s\n' "$NEW_IDS" | \
         if [ "$SFTP" ] ; then
+          #shellcheck disable=SC2119
           installkeys_via_sftp
         else
           $SSH "$@" "$(installkeys_sh)"
