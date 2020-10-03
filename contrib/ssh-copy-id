@@ -201,10 +201,11 @@ populate_new_ids() {
             -o LogLevel=INFO \
             -o PreferredAuthentications=publickey \
             -o IdentitiesOnly=yes "$@" exit >"$L_OUTPUT_FILE" 2>&1 </dev/null
-        if [ "$?" = "$L_SUCCESS" ] ; then
-          : > "$L_TMP_ID_FILE"
-        elif [ "$SFTP" ] && grep 'allows sftp connections only' "$L_OUTPUT_FILE" >/dev/null ; then
-          # this error counts as a success when we're setting up an sftp connection
+        if [ "$?" = "$L_SUCCESS" ] || {
+             [ "$SFTP" ] && grep 'allows sftp connections only' "$L_OUTPUT_FILE" >/dev/null
+             # this error counts as a success if we're setting up an sftp connection
+           }
+        then
           : > "$L_TMP_ID_FILE"
         else
           grep 'Permission denied' "$L_OUTPUT_FILE" >/dev/null || {
