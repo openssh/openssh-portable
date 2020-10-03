@@ -169,55 +169,57 @@ if [ -z "$(eval $GET_ID)" ] ; then
   exit 1
 fi
 
-# populate_new_ids() uses several global variables ($USER_HOST, $SSH_OPTS ...)
-# and has the side effect of setting $NEW_IDS
-populate_new_ids() {
+# filter_ids()
+# tries to log in using the keys piped to it, and filters out any that work
+filter_ids() {
   L_SUCCESS="$1"
   L_TMP_ID_FILE="$SCRATCH_DIR"/popids_tmp_id
   L_OUTPUT_FILE="$SCRATCH_DIR"/popids_output
 
-  # shellcheck disable=SC2086
+  # repopulate "$@" inside this function
+  eval set -- "$SSH_OPTS"
+
+  while read -r ID || [ "$ID" ] ; do
+    printf '%s\n' "$ID" > "$L_TMP_ID_FILE"
+
+    # the next line assumes $PRIV_ID_FILE only set if using a single id file - this
+    # assumption will break if we implement the possibility of multiple -i options.
+    # The point being that if file based, ssh needs the private key, which it cannot
+    # find if only given the contents of the .pub file in an unrelated tmpfile
+    $SSH -i "${PRIV_ID_FILE:-$L_TMP_ID_FILE}" \
+      -o ControlPath=none \
+      -o LogLevel=INFO \
+      -o PreferredAuthentications=publickey \
+      -o IdentitiesOnly=yes "$@" exit >"$L_OUTPUT_FILE" 2>&1 </dev/null
+    if [ "$?" = "$L_SUCCESS" ] || {
+         [ "$SFTP" ] && grep 'allows sftp connections only' "$L_OUTPUT_FILE" >/dev/null
+         # this error counts as a success if we're setting up an sftp connection
+       }
+    then
+      : > "$L_TMP_ID_FILE"
+    else
+      grep 'Permission denied' "$L_OUTPUT_FILE" >/dev/null || {
+        sed -e 's/^/ERROR: /' <"$L_OUTPUT_FILE" >"$L_TMP_ID_FILE"
+        cat >/dev/null #consume the other keys, causing loop to end
+      }
+    fi
+
+    cat "$L_TMP_ID_FILE"
+  done
+}
+
+# populate_new_ids() uses several global variables ($USER_HOST, $SSH_OPTS ...)
+# and has the side effect of setting $NEW_IDS
+populate_new_ids() {
   if [ "$FORCED" ] ; then
+    # shellcheck disable=SC2086
     NEW_IDS=$(eval $GET_ID)
     return
   fi
 
-  # repopulate "$@" inside this function 
-  eval set -- "$SSH_OPTS"
-
   printf '%s: INFO: attempting to log in with the new key(s), to filter out any that are already installed\n' "$0" >&2
   # shellcheck disable=SC2086
-  NEW_IDS=$(
-    eval $GET_ID | {
-      while read -r ID || [ "$ID" ] ; do
-        printf '%s\n' "$ID" > "$L_TMP_ID_FILE"
-
-        # the next line assumes $PRIV_ID_FILE only set if using a single id file - this
-        # assumption will break if we implement the possibility of multiple -i options.
-        # The point being that if file based, ssh needs the private key, which it cannot
-        # find if only given the contents of the .pub file in an unrelated tmpfile
-        $SSH -i "${PRIV_ID_FILE:-$L_TMP_ID_FILE}" \
-            -o ControlPath=none \
-            -o LogLevel=INFO \
-            -o PreferredAuthentications=publickey \
-            -o IdentitiesOnly=yes "$@" exit >"$L_OUTPUT_FILE" 2>&1 </dev/null
-        if [ "$?" = "$L_SUCCESS" ] || {
-             [ "$SFTP" ] && grep 'allows sftp connections only' "$L_OUTPUT_FILE" >/dev/null
-             # this error counts as a success if we're setting up an sftp connection
-           }
-        then
-          : > "$L_TMP_ID_FILE"
-        else
-          grep 'Permission denied' "$L_OUTPUT_FILE" >/dev/null || {
-            sed -e 's/^/ERROR: /' <"$L_OUTPUT_FILE" >"$L_TMP_ID_FILE"
-            cat >/dev/null #consume the other keys, causing loop to end
-          }
-        fi
-
-        cat "$L_TMP_ID_FILE"
-      done
-    }
-  )
+  NEW_IDS=$(eval $GET_ID | filter_ids $1)
 
   if expr "$NEW_IDS" : "^ERROR: " >/dev/null ; then
     printf '\n%s: %s\n\n' "$0" "$NEW_IDS" >&2
