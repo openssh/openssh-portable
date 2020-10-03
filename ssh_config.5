@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.333 2020/10/03 04:15:06 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.334 2020/10/03 08:30:47 djm Exp $
 .Dd $Mdocdate: October 3 2020 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1726,7 +1726,7 @@ is enabled by default if the user has not overridden the default
 setting, otherwise
 .Cm UpdateHostKeys
 will be set to
-.Cm ask .
+.Cm no .
 .Pp
 If
 .Cm UpdateHostKeys
