@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.561 2020/08/27 01:06:19 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.562 2020/10/03 09:22:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1024,8 +1024,6 @@ recv_rexec_state(int fd, struct sshbuf *conf)
 static void
 server_accept_inetd(int *sock_in, int *sock_out)
 {
-	int fd;
-
 	if (rexeced_flag) {
 		close(REEXEC_CONFIG_PASS_FD);
 		*sock_in = *sock_out = dup(STDIN_FILENO);
@@ -1038,14 +1036,8 @@ server_accept_inetd(int *sock_in, int *sock_out)
 	 * as our code for setting the descriptors won't work if
 	 * ttyfd happens to be one of those.
 	 */
-	if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
-		dup2(fd, STDIN_FILENO);
-		dup2(fd, STDOUT_FILENO);
-		if (!log_stderr)
-			dup2(fd, STDERR_FILENO);
-		if (fd > (log_stderr ? STDERR_FILENO : STDOUT_FILENO))
-			close(fd);
-	}
+	if (stdfd_devnull(1, 1, !log_stderr) == -1)
+		error("%s: stdfd_devnull failed", __func__);
 	debug("inetd sockets after dupping: %d, %d", *sock_in, *sock_out);
 }
 
@@ -2092,8 +2084,6 @@ main(int ac, char **av)
 #endif
 
 	if (rexec_flag) {
-		int fd;
-
 		debug("rexec start in %d out %d newsock %d pipe %d sock %d",
 		    sock_in, sock_out, newsock, startup_pipe, config_s[0]);
 		dup2(newsock, STDIN_FILENO);
@@ -2121,12 +2111,8 @@ main(int ac, char **av)
 		/* Clean up fds */
 		close(REEXEC_CONFIG_PASS_FD);
 		newsock = sock_out = sock_in = dup(STDIN_FILENO);
-		if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
-			dup2(fd, STDIN_FILENO);
-			dup2(fd, STDOUT_FILENO);
-			if (fd > STDERR_FILENO)
-				close(fd);
-		}
+		if (stdfd_devnull(1, 1, 0) == -1)
+			error("%s: stdfd_devnull failed", __func__);
 		debug("rexec cleanup in %d out %d newsock %d pipe %d sock %d",
 		    sock_in, sock_out, newsock, startup_pipe, config_s[0]);
 	}

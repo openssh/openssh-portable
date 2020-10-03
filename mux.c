@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.83 2020/07/05 23:59:45 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.84 2020/10/03 09:22:26 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1902,7 +1902,7 @@ mux_client_request_session(int fd)
 	const char *term;
 	u_int echar, rid, sid, esid, exitval, type, exitval_seen;
 	extern char **environ;
-	int r, i, devnull, rawmode;
+	int r, i, rawmode;
 
 	debug3("%s: entering", __func__);
 
@@ -1913,14 +1913,8 @@ mux_client_request_session(int fd)
 
 	ssh_signal(SIGPIPE, SIG_IGN);
 
-	if (stdin_null_flag) {
-		if ((devnull = open(_PATH_DEVNULL, O_RDONLY)) == -1)
-			fatal("open(/dev/null): %s", strerror(errno));
-		if (dup2(devnull, STDIN_FILENO) == -1)
-			fatal("dup2: %s", strerror(errno));
-		if (devnull > STDERR_FILENO)
-			close(devnull);
-	}
+	if (stdin_null_flag && stdfd_devnull(1, 0, 0) == -1)
+		fatal("%s: stdfd_devnull failed", __func__);
 
 	if ((term = getenv("TERM")) == NULL)
 		term = "";
@@ -2137,7 +2131,7 @@ mux_client_request_stdio_fwd(int fd)
 	struct sshbuf *m;
 	char *e;
 	u_int type, rid, sid;
-	int r, devnull;
+	int r;
 
 	debug3("%s: entering", __func__);
 
@@ -2148,14 +2142,8 @@ mux_client_request_stdio_fwd(int fd)
 
 	ssh_signal(SIGPIPE, SIG_IGN);
 
-	if (stdin_null_flag) {
-		if ((devnull = open(_PATH_DEVNULL, O_RDONLY)) == -1)
-			fatal("open(/dev/null): %s", strerror(errno));
-		if (dup2(devnull, STDIN_FILENO) == -1)
-			fatal("dup2: %s", strerror(errno));
-		if (devnull > STDERR_FILENO)
-			close(devnull);
-	}
+	if (stdin_null_flag && stdfd_devnull(1, 0, 0) == -1)
+		fatal("%s: stdfd_devnull failed", __func__);
 
 	if ((m = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new", __func__);

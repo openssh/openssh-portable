@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.153 2020/06/26 05:16:38 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.154 2020/10/03 09:22:26 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2414,4 +2414,25 @@ ssh_signal(int signum, sshsig_t handler)
 		return SIG_ERR;
 	}
 	return osa.sa_handler;
+}
+
+int
+stdfd_devnull(int do_stdin, int do_stdout, int do_stderr)
+{
+	int devnull, ret = 0;
+
+	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
+		error("%s: open %s: %s", __func__, _PATH_DEVNULL,
+		    strerror(errno));
+		return -1;
+	}
+	if ((do_stdin && dup2(devnull, STDIN_FILENO) == -1) ||
+	    (do_stdout && dup2(devnull, STDOUT_FILENO) == -1) ||
+	    (do_stderr && dup2(devnull, STDERR_FILENO) == -1)) {
+		error("%s: dup2: %s", __func__, strerror(errno));
+		ret = -1;
+	}
+	if (devnull > STDERR_FILENO)
+		close(devnull);
+	return ret;
 }

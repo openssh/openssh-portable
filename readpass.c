@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.63 2020/08/11 09:45:54 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.64 2020/10/03 09:22:26 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -232,7 +232,6 @@ notify_start(int force_askpass, const char *fmt, ...)
 {
 	va_list args;
 	char *prompt = NULL;
-	int devnull;
 	pid_t pid;
 	void (*osigchld)(int);
 	const char *askpass, *s;
@@ -270,11 +269,8 @@ notify_start(int force_askpass, const char *fmt, ...)
 		return NULL;
 	}
 	if (pid == 0) {
-		if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1)
-			fatal("%s: open %s", __func__, strerror(errno));
-		if (dup2(devnull, STDIN_FILENO) == -1 ||
-		    dup2(devnull, STDOUT_FILENO) == -1)
-			fatal("%s: dup2: %s", __func__, strerror(errno));
+		if (stdfd_devnull(1, 1, 0) == -1)
+			fatal("%s: stdfd_devnull failed", __func__);
 		closefrom(STDERR_FILENO + 1);
 		setenv("SSH_ASKPASS_PROMPT", "none", 1); /* hint to UI */
 		execlp(askpass, askpass, prompt, (char *)NULL);

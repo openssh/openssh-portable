@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.333 2020/10/03 08:11:28 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.334 2020/10/03 09:22:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -105,24 +105,6 @@ expand_proxy_command(const char *proxy_command, const char *user,
 	return ret;
 }
 
-static void
-stderr_null(void)
-{
-	int devnull;
-
-	if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1) {
-		error("Can't open %s for stderr redirection: %s",
-		    _PATH_DEVNULL, strerror(errno));
-		return;
-	}
-	if (devnull == STDERR_FILENO)
-		return;
-	if (dup2(devnull, STDERR_FILENO) == -1)
-		error("Cannot redirect stderr to %s", _PATH_DEVNULL);
-	if (devnull > STDERR_FILENO)
-		close(devnull);
-}
-
 /*
  * Connect to the given ssh server using a proxy command that passes a
  * a connected fd back to us.
@@ -169,8 +151,8 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host,
 		 * error messages may be printed on the user's terminal.
 		 */
 		if (!debug_flag && options.control_path != NULL &&
-		    options.control_persist)
-			stderr_null();
+		    options.control_persist && stdfd_devnull(0, 0, 1) == -1)
+			error("%s: stdfd_devnull failed", __func__);
 
 		argv[0] = shell;
 		argv[1] = "-c";
@@ -252,8 +234,8 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, const char *host_arg,
 		 * error messages may be printed on the user's terminal.
 		 */
 		if (!debug_flag && options.control_path != NULL &&
-		    options.control_persist)
-			stderr_null();
+		    options.control_persist && stdfd_devnull(0, 0, 1) == -1)
+			error("%s: stdfd_devnull failed", __func__);
 
 		argv[0] = shell;
 		argv[1] = "-c";
