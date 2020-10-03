@@ -290,17 +290,15 @@ installkeys_via_sftp() {
 
 
 # create a scratch dir for any temporary files needed
-SCRATCH_DIR=$(mktemp -d ~/.ssh/ssh-copy-id.XXXXXXXXXX)
-if test $? -ne 0 || test "x$SCRATCH_DIR" = "x" ; then
-  printf '%s: ERROR: mktemp failed\n' "$0" >&2
-  exit 1
-fi
-chmod 0700 $SCRATCH_DIR
-if [ -d "$SCRATCH_DIR" ] ; then
+if SCRATCH_DIR=$(mktemp -d ~/.ssh/ssh-copy-id.XXXXXXXXXX) &&
+    [ "$SCRATCH_DIR" ] && [ -d "$SCRATCH_DIR" ]
+then
+  chmod 0700 "$SCRATCH_DIR"
   SCRATCH_CLEANUP="rm -rf \"$SCRATCH_DIR\""
+  #shellcheck disable=SC2064
   trap "$SCRATCH_CLEANUP" EXIT TERM INT QUIT
 else
-  printf '%s: ERROR: Required scratch directory (%s) was not created\n' "$0" "$SCRATCH_DIR" >&2
+  printf '%s: ERROR: failed to create required temporary directory under ~/.ssh\n' "$0" >&2
   exit 1
 fi
 
