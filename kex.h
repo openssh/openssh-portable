@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.109 2019/09/06 05:23:55 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.110 2020/10/03 08:11:28 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -105,8 +105,10 @@ enum kex_exchange {
 	KEX_MAX
 };
 
-#define KEX_INIT_SENT	0x0001
-#define KEX_INITIAL	0x0002
+/* kex->flags values */
+#define KEX_INIT_SENT		0x0001 /* KEXINIT sent */
+#define KEX_INITIAL		0x0002 /* Initial KEX, not rekey */
+#define KEX_HOSTCERT_CONVERT	0x0004 /* Client downgraded hostcert->plain */
 
 struct sshenc {
 	char	*name;

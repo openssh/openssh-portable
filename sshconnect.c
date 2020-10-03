@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.332 2020/09/09 21:57:27 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.333 2020/10/03 08:11:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -707,6 +707,10 @@ get_hostfile_hostname_ipaddr(char *hostname, struct sockaddr *hostaddr,
 /*
  * check whether the supplied host key is valid, return -1 if the key
  * is not valid. user_hostfile[0] will not be updated if 'readonly' is true.
+ *
+ * If cert_fallbackp is not NULL then will attempt to convert certificate host
+ * keys to plain keys if no certificate match was found and will return
+ * non-zero via *cert_fallbackp if this fall-back was used.
  */
 #define RDRW	0
 #define RDONLY	1
@@ -715,7 +719,7 @@ static int
 check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
     struct sshkey *host_key, int readonly,
     char **user_hostfiles, u_int num_user_hostfiles,
-    char **system_hostfiles, u_int num_system_hostfiles)
+    char **system_hostfiles, u_int num_system_hostfiles, int *cert_fallbackp)
 {
 	HostStatus host_status;
 	HostStatus ip_status;
@@ -726,11 +730,14 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	const char *type;
 	const struct hostkey_entry *host_found, *ip_found;
 	int len, cancelled_forwarding = 0, confirmed;
-	int local = sockaddr_is_local(hostaddr);
+	int local = sockaddr_is_local(hostaddr), cert_fallback = 0;
 	int r, want_cert = sshkey_is_cert(host_key), host_ip_differ = 0;
 	int hostkey_trusted = 0; /* Known or explicitly accepted by user */
 	struct hostkeys *host_hostkeys, *ip_hostkeys;
 	u_int i;
+
+	if (cert_fallbackp != NULL)
+		*cert_fallbackp = 0;
 
 	/*
 	 * Force accepting of the host key for loopback/localhost. The
@@ -847,9 +854,15 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		if (options.host_key_alias == NULL && port != 0 &&
 		    port != SSH_DEFAULT_PORT) {
 			debug("checking without port identifier");
+			/*
+			 * NB. do not perform cert->key fallback in this
+			 * recursive call. Fallback will only be performed in
+			 * the top-level call.
+			 */
 			if (check_host_key(hostname, hostaddr, 0, host_key,
 			    ROQUIET, user_hostfiles, num_user_hostfiles,
-			    system_hostfiles, num_system_hostfiles) == 0) {
+			    system_hostfiles, num_system_hostfiles,
+			    NULL) == 0) {
 				debug("found matching key w/out port");
 				break;
 			}
@@ -1126,10 +1139,13 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		free_hostkeys(host_hostkeys);
 	if (ip_hostkeys != NULL)
 		free_hostkeys(ip_hostkeys);
+	if (cert_fallbackp != NULL)
+		*cert_fallbackp = cert_fallback;
 	return 0;
 
 fail:
-	if (want_cert && host_status != HOST_REVOKED) {
+	if (cert_fallbackp != NULL && want_cert &&
+	    host_status != HOST_REVOKED) {
 		/*
 		 * No matching certificate. Downgrade cert to raw key and
 		 * search normally.
@@ -1141,6 +1157,7 @@ fail:
 		if ((r = sshkey_drop_cert(raw_key)) != 0)
 			fatal("Couldn't drop certificate: %s", ssh_err(r));
 		host_key = raw_key;
+		cert_fallback = 1;
 		goto retry;
 	}
 	sshkey_free(raw_key);
@@ -1153,14 +1170,23 @@ fail:
 	return -1;
 }
 
-/* returns 0 if key verifies or -1 if key does NOT verify */
+/*
+ * returns 0 if key verifies or -1 if key does NOT verify.
+ *
+ * If the host key was a certificate that was downgraded to a plain key in
+ * the process of matching, then cert_fallbackp will be non-zero.
+ */
 int
-verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key)
+verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key,
+    int *cert_fallbackp)
 {
 	u_int i;
-	int r = -1, flags = 0;
+	int r = -1, flags = 0, cert_fallback = 0;
 	char valid[64], *fp = NULL, *cafp = NULL;
 	struct sshkey *plain = NULL;
+
+	if (cert_fallbackp != NULL)
+		*cert_fallbackp = 0;
 
 	if ((fp = sshkey_fingerprint(host_key,
 	    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL) {
@@ -1252,15 +1278,20 @@ verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key)
 	}
 	r = check_host_key(host, hostaddr, options.port, host_key, RDRW,
 	    options.user_hostfiles, options.num_user_hostfiles,
-	    options.system_hostfiles, options.num_system_hostfiles);
+	    options.system_hostfiles, options.num_system_hostfiles,
+	    &cert_fallback);
 
 out:
 	sshkey_free(plain);
 	free(fp);
 	free(cafp);
-	if (r == 0 && host_key != NULL) {
-		sshkey_free(previous_host_key);
-		r = sshkey_from_private(host_key, &previous_host_key);
+	if (r == 0) {
+		if (host_key != NULL) {
+			sshkey_free(previous_host_key);
+			r = sshkey_from_private(host_key, &previous_host_key);
+		}
+		if (r == 0 && cert_fallbackp != NULL)
+			*cert_fallbackp = cert_fallback;
 	}
 
 	return r;

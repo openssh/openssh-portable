@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.326 2020/09/18 05:23:03 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.327 2020/10/03 08:11:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -97,8 +97,13 @@ struct sockaddr *xxx_hostaddr;
 static int
 verify_host_key_callback(struct sshkey *hostkey, struct ssh *ssh)
 {
-	if (verify_host_key(xxx_host, xxx_hostaddr, hostkey) == -1)
+	int cert_downgraded = 0;
+
+	if (verify_host_key(xxx_host, xxx_hostaddr, hostkey,
+	    &cert_downgraded) == -1)
 		fatal("Host key verification failed.");
+	if (cert_downgraded)
+		ssh->kex->flags |= KEX_HOSTCERT_CONVERT;
 	return 0;
 }
 
