@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.334 2020/10/03 09:22:26 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.335 2020/10/04 09:45:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1336,7 +1336,8 @@ show_other_keys(struct hostkeys *hostkeys, struct sshkey *key)
 	for (i = 0; type[i] != -1; i++) {
 		if (type[i] == key->type)
 			continue;
-		if (!lookup_key_in_hostkeys_by_type(hostkeys, type[i], &found))
+		if (!lookup_key_in_hostkeys_by_type(hostkeys, type[i],
+		    -1, &found))
 			continue;
 		fp = sshkey_fingerprint(found->key,
 		    options.fingerprint_hash, SSH_FP_DEFAULT);

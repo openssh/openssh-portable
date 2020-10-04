@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.h,v 1.26 2020/06/26 05:02:03 dtucker Exp $ */
+/* $OpenBSD: hostfile.h,v 1.27 2020/10/04 09:45:01 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@ void	 free_hostkeys(struct hostkeys *);
 
 HostStatus check_key_in_hostkeys(struct hostkeys *, struct sshkey *,
     const struct hostkey_entry **);
-int	 lookup_key_in_hostkeys_by_type(struct hostkeys *, int,
+int	 lookup_key_in_hostkeys_by_type(struct hostkeys *, int, int,
     const struct hostkey_entry **);
 int	 lookup_marker_in_hostkeys(struct hostkeys *, int);
 
