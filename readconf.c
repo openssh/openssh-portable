@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.337 2020/10/03 09:22:26 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.338 2020/10/07 02:18:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2168,9 +2168,10 @@ fill_default_options(Options * options)
 		    xstrdup(_PATH_SSH_SYSTEM_HOSTFILE2);
 	}
 	if (options->update_hostkeys == -1) {
-		if (options->num_user_hostfiles == 0 ||
+		if (options->verify_host_key_dns <= 0 &&
+		    (options->num_user_hostfiles == 0 ||
 		    (options->num_user_hostfiles == 1 && strcmp(options->
-		    user_hostfiles[0], _PATH_SSH_USER_HOSTFILE) == 0))
+		    user_hostfiles[0], _PATH_SSH_USER_HOSTFILE) == 0)))
 			options->update_hostkeys = SSH_UPDATE_HOSTKEYS_YES;
 		else
 			options->update_hostkeys = SSH_UPDATE_HOSTKEYS_NO;
