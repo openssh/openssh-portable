@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.338 2020/10/07 02:24:51 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.339 2020/10/07 02:26:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1078,6 +1078,11 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			    "man-in-the-middle attacks.");
 			options.tun_open = SSH_TUNMODE_NO;
 			cancelled_forwarding = 1;
+		}
+		if (options.update_hostkeys != 0) {
+			error("UpdateHostkeys is disabled because the host "
+			    "key is not trusted.");
+			options.update_hostkeys = 0;
 		}
 		if (options.exit_on_forward_failure && cancelled_forwarding)
 			fatal("Error: forwarding disabled due to host key "
