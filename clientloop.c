@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.347 2020/10/03 08:12:59 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.348 2020/10/07 02:22:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2225,12 +2225,6 @@ client_input_hostkeys(struct ssh *ssh)
 
 	if (ctx->wildcard_hostspec && (ctx->nnew != 0 || ctx->nold != 0)) {
 		debug("%s: wildcard known hosts name found, "
-		    "skipping UserKnownHostsFile update", __func__);
-		goto out;
-	} else if (sshkey_type_is_cert(ssh->kex->hostkey_type) &&
-	    ctx->ca_available &&
-	    (ssh->kex->flags & KEX_HOSTCERT_CONVERT) == 0) {
-		debug("%s: server offered certificate host key, "
 		    "skipping UserKnownHostsFile update", __func__);
 		goto out;
 	} else if (ctx->nnew == 0 && ctx->nold != 0) {

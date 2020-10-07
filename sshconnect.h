@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.h,v 1.41 2020/10/03 08:11:28 djm Exp $ */
+/* $OpenBSD: sshconnect.h,v 1.42 2020/10/07 02:22:23 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -41,7 +41,7 @@ void	 ssh_kill_proxy_command(void);
 void	 ssh_login(struct ssh *, Sensitive *, const char *,
     struct sockaddr *, u_short, struct passwd *, int);
 
-int	 verify_host_key(char *, struct sockaddr *, struct sshkey *, int *);
+int	 verify_host_key(char *, struct sockaddr *, struct sshkey *);
 
 void	 get_hostfile_hostname_ipaddr(char *, struct sockaddr *, u_short,
     char **, char **);
