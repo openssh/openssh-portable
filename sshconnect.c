@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.335 2020/10/04 09:45:01 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.336 2020/10/07 02:20:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -609,7 +609,12 @@ check_host_cert(const char *host, const struct sshkey *key)
 		    "(null)" : key->cert->signature_type, ssh_err(r));
 		return 0;
 	}
-
+	/* Do not attempt hostkey update if a certificate was successful */
+	if (options.update_hostkeys != 0) {
+		options.update_hostkeys = 0;
+		debug3("%s: certificate host key in use; disabling "
+		    "UpdateHostkeys", __func__);
+	}
 	return 1;
 }
 
