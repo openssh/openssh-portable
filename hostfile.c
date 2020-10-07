@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.83 2020/10/04 09:45:01 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.84 2020/10/07 02:25:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -451,6 +451,9 @@ write_host_entry(FILE *f, const char *host, const char *ip,
 	else
 		error("%s: sshkey_write failed: %s", __func__, ssh_err(r));
 	fputc('\n', f);
+	/* If hashing is enabled, the IP address needs to go on its own line */
+	if (success && store_hash && ip != NULL)
+		success = write_host_entry(f, ip, NULL, key, 1);
 	return success;
 }
 
