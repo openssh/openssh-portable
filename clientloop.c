@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.348 2020/10/07 02:22:23 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.349 2020/10/08 01:15:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1872,9 +1872,9 @@ hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 
 	/* UpdateHostkeys is skipped for wildcard host names */
 	if (strchr(l->hosts, '*') != NULL ||
-	    strchr(l->hosts, ',') != NULL) {
-		debug3("%s: hostkeys file %s:%ld contains wildcard or pattern",
-		     __func__, l->path, l->linenum);
+	    strchr(l->hosts, '?') != NULL) {
+		debug3("%s: hostkeys file %s:%ld contains wildcard", __func__,
+		    l->path, l->linenum);
 		ctx->wildcard_hostspec = 1;
 	}
 
