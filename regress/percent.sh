@@ -10,8 +10,8 @@ fi
 
 USER=`id -u -n`
 USERID=`id -u`
-HOST=`hostname | cut -f1 -d.`
-HOSTNAME=`hostname`
+HOST=`uname -n | cut -f1 -d.`
+HOSTNAME=`uname -n`
 
 # Localcommand is evaluated after connection because %T is not available
 # until then.  Because of this we use a different method of exercising it,
