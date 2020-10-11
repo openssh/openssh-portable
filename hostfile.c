@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.84 2020/10/07 02:25:43 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.85 2020/10/11 22:13:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -520,8 +520,8 @@ add_host_to_hostfile(const char *filename, const char *host,
 struct host_delete_ctx {
 	FILE *out;
 	int quiet;
-	const char *host;
-	int *skip_keys; /* XXX split for host/ip? might want to ensure both */
+	const char *host, *ip;
+	u_int *match_keys;	/* mask of HKF_MATCH_* for this key */
 	struct sshkey * const *keys;
 	size_t nkeys;
 	int modified;
@@ -534,26 +534,21 @@ host_delete(struct hostkey_foreach_line *l, void *_ctx)
 	int loglevel = ctx->quiet ? SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_VERBOSE;
 	size_t i;
 
-	if (l->status == HKF_STATUS_MATCHED) {
-		if (l->marker != MRK_NONE) {
-			/* Don't remove CA and revocation lines */
-			fprintf(ctx->out, "%s\n", l->line);
-			return 0;
-		}
-
+	/* Don't remove CA and revocation lines */
+	if (l->status == HKF_STATUS_MATCHED && l->marker == MRK_NONE) {
 		/*
 		 * If this line contains one of the keys that we will be
 		 * adding later, then don't change it and mark the key for
 		 * skipping.
 		 */
 		for (i = 0; i < ctx->nkeys; i++) {
-			if (sshkey_equal(ctx->keys[i], l->key)) {
-				ctx->skip_keys[i] = 1;
-				fprintf(ctx->out, "%s\n", l->line);
-				debug3("%s: %s key already at %s:%ld", __func__,
-				    sshkey_type(l->key), l->path, l->linenum);
-				return 0;
-			}
+			if (!sshkey_equal(ctx->keys[i], l->key))
+				continue;
+			ctx->match_keys[i] |= l->match;
+			fprintf(ctx->out, "%s\n", l->line);
+			debug3("%s: %s key already at %s:%ld", __func__,
+			    sshkey_type(l->key), l->path, l->linenum);
+			return 0;
 		}
 
 		/*
@@ -584,15 +579,19 @@ hostfile_replace_entries(const char *filename, const char *host, const char *ip,
 	int loglevel = quiet ? SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_VERBOSE;
 	struct host_delete_ctx ctx;
 	char *fp, *temp = NULL, *back = NULL;
+	const char *what;
 	mode_t omask;
 	size_t i;
+	u_int want;
 
 	omask = umask(077);
 
 	memset(&ctx, 0, sizeof(ctx));
 	ctx.host = host;
+	ctx.ip = ip;
 	ctx.quiet = quiet;
-	if ((ctx.skip_keys = calloc(nkeys, sizeof(*ctx.skip_keys))) == NULL)
+
+	if ((ctx.match_keys = calloc(nkeys, sizeof(*ctx.match_keys))) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	ctx.keys = keys;
 	ctx.nkeys = nkeys;
@@ -621,7 +620,7 @@ hostfile_replace_entries(const char *filename, const char *host, const char *ip,
 		goto fail;
 	}
 
-	/* Remove all entries for the specified host from the file */
+	/* Remove stale/mismatching entries for the specified host */
 	if ((r = hostkeys_foreach(filename, host_delete, &ctx, host, ip,
 	    HKF_WANT_PARSE_KEY)) != 0) {
 		oerrno = errno;
@@ -629,23 +628,45 @@ hostfile_replace_entries(const char *filename, const char *host, const char *ip,
 		goto fail;
 	}
 
-	/* Add the requested keys */
+	/* Re-add the requested keys */
+	want = HKF_MATCH_HOST | (ip == NULL ? 0 : HKF_MATCH_IP);
 	for (i = 0; i < nkeys; i++) {
-		if (ctx.skip_keys[i])
+		if ((want & ctx.match_keys[i]) == want)
 			continue;
 		if ((fp = sshkey_fingerprint(keys[i], hash_alg,
 		    SSH_FP_DEFAULT)) == NULL) {
 			r = SSH_ERR_ALLOC_FAIL;
 			goto fail;
 		}
-		do_log2(loglevel, "%s%sAdding new key for %s to %s: %s %s",
-		    quiet ? __func__ : "", quiet ? ": " : "", host, filename,
+		/* write host/ip */
+		what = "";
+		if (ctx.match_keys[i] == 0) {
+			what = "Adding new key";
+			if (!write_host_entry(ctx.out, host, ip,
+			    keys[i], store_hash)) {
+				r = SSH_ERR_INTERNAL_ERROR;
+				goto fail;
+			}
+		} else if ((want & ~ctx.match_keys[i]) == HKF_MATCH_HOST) {
+			what = "Fixing match (hostname)";
+			if (!write_host_entry(ctx.out, host, NULL,
+			    keys[i], store_hash)) {
+				r = SSH_ERR_INTERNAL_ERROR;
+				goto fail;
+			}
+		} else if ((want & ~ctx.match_keys[i]) == HKF_MATCH_IP) {
+			what = "Fixing match (address)";
+			if (!write_host_entry(ctx.out, ip, NULL,
+			    keys[i], store_hash)) {
+				r = SSH_ERR_INTERNAL_ERROR;
+				goto fail;
+			}
+		}
+		do_log2(loglevel, "%s%s%s for %s%s%s to %s: %s %s",
+		    quiet ? __func__ : "", quiet ? ": " : "", what,
+		    host, ip == NULL ? "" : ",", ip == NULL ? "" : ip, filename,
 		    sshkey_ssh_name(keys[i]), fp);
 		free(fp);
-		if (!write_host_entry(ctx.out, host, ip, keys[i], store_hash)) {
-			r = SSH_ERR_INTERNAL_ERROR;
-			goto fail;
-		}
 		ctx.modified = 1;
 	}
 	fclose(ctx.out);
@@ -690,7 +711,7 @@ hostfile_replace_entries(const char *filename, const char *host, const char *ip,
 	free(back);
 	if (ctx.out != NULL)
 		fclose(ctx.out);
-	free(ctx.skip_keys);
+	free(ctx.match_keys);
 	umask(omask);
 	if (r == SSH_ERR_SYSTEM_ERROR)
 		errno = oerrno;
