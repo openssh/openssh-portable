@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.349 2020/10/08 01:15:16 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.350 2020/10/11 22:12:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1830,7 +1830,7 @@ struct hostkeys_update_ctx {
 	size_t nold;
 
 	/* Various special cases. */
-	int wildcard_hostspec;	/* saw wildcard or pattern-list host name */
+	int complex_hostspec;	/* wildcard or manual pattern-list host name */
 	int ca_available;	/* saw CA key for this host */
 };
 
@@ -1853,6 +1853,29 @@ hostkeys_update_ctx_free(struct hostkeys_update_ctx *ctx)
 	free(ctx);
 }
 
+/*
+ * Returns non-zero if a known_hosts hostname list is not of a form that
+ * can be handled by UpdateHostkeys. These include wildcard hostnames and
+ * hostnames lists that do not follow the form host[,ip].
+ */
+static int
+hostspec_is_complex(const char *hosts)
+{
+	char *cp;
+
+	/* wildcard */
+	if (strchr(hosts, '*') != NULL || strchr(hosts, '?') != NULL)
+		return 1;
+	/* single host/ip = ok */
+	if ((cp = strchr(hosts, ',')) == NULL)
+		return 0;
+	/* more than two entries on the line */
+	if (strchr(cp + 1, ',') != NULL)
+		return 1;
+	/* XXX maybe parse cp+1 and ensure it is an IP? */
+	return 0;
+}
+
 static int
 hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 {
@@ -1860,22 +1883,19 @@ hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 	size_t i;
 	struct sshkey **tmp;
 
-	if (l->status != HKF_STATUS_MATCHED || l->key == NULL)
+	if (l->status != HKF_STATUS_MATCHED || l->key == NULL ||
+	    l->marker != MRK_NONE)
 		return 0;
 
-	if (l->marker == MRK_REVOKE)
+	/*
+	 * UpdateHostkeys is skipped for wildcard host names and hostnames
+	 * that contain more than two entries (ssh never writes these).
+	 */
+	if (hostspec_is_complex(l->hosts)) {
+		debug3("%s: hostkeys file %s:%ld complex host specification",
+		    __func__, l->path, l->linenum);
+		ctx->complex_hostspec = 1;
 		return 0;
-	if (l->marker == MRK_CA) {
-		ctx->ca_available = 1;
-		return 0;
-	}
-
-	/* UpdateHostkeys is skipped for wildcard host names */
-	if (strchr(l->hosts, '*') != NULL ||
-	    strchr(l->hosts, '?') != NULL) {
-		debug3("%s: hostkeys file %s:%ld contains wildcard", __func__,
-		    l->path, l->linenum);
-		ctx->wildcard_hostspec = 1;
 	}
 
 	/* Mark off keys we've already seen for this host */
@@ -2223,8 +2243,8 @@ client_input_hostkeys(struct ssh *ssh)
 	debug3("%s: %zu keys from server: %zu new, %zu retained. %zu to remove",
 	    __func__, ctx->nkeys, ctx->nnew, ctx->nkeys - ctx->nnew, ctx->nold);
 
-	if (ctx->wildcard_hostspec && (ctx->nnew != 0 || ctx->nold != 0)) {
-		debug("%s: wildcard known hosts name found, "
+	if (ctx->complex_hostspec && (ctx->nnew != 0 || ctx->nold != 0)) {
+		debug("%s: manual list or wildcard host pattern found, "
 		    "skipping UserKnownHostsFile update", __func__);
 		goto out;
 	} else if (ctx->nnew == 0 && ctx->nold != 0) {
