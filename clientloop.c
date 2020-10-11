@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.351 2020/10/11 22:13:37 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.352 2020/10/11 22:14:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1833,6 +1833,7 @@ struct hostkeys_update_ctx {
 	/* Various special cases. */
 	int complex_hostspec;	/* wildcard or manual pattern-list host name */
 	int ca_available;	/* saw CA key for this host */
+	int old_key_seen;	/* saw old key with other name/addr */
 };
 
 static void
@@ -1878,6 +1879,7 @@ hostspec_is_complex(const char *hosts)
 	return 0;
 }
 
+/* callback to search for ctx->keys in known_hosts */
 static int
 hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 {
@@ -1920,6 +1922,63 @@ hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 	ctx->old_keys[ctx->nold++] = l->key;
 	l->key = NULL;
 
+	return 0;
+}
+
+/* callback to search for ctx->old_keys in known_hosts under other names */
+static int
+hostkeys_check_old(struct hostkey_foreach_line *l, void *_ctx)
+{
+	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
+	size_t i;
+	int hashed;
+
+	/* only care about lines that *don't* match the active host spec */
+	if (l->status == HKF_STATUS_MATCHED || l->key == NULL)
+		return 0;
+
+	hashed = l->match & (HKF_MATCH_HOST_HASHED|HKF_MATCH_IP_HASHED);
+	for (i = 0; i < ctx->nold; i++) {
+		if (!sshkey_equal(l->key, ctx->old_keys[i]))
+			continue;
+		debug3("%s: found deprecated %s key at %s:%ld as %s", __func__,
+		    sshkey_ssh_name(ctx->keys[i]), l->path, l->linenum,
+		    hashed ? "[HASHED]" : l->hosts);
+		ctx->old_key_seen = 1;
+		break;
+	}
+	return 0;
+}
+
+/*
+ * Check known_hosts files for deprecated keys under other names. Returns 0
+ * on success or -1 on failure. Updates ctx->old_key_seen if deprecated keys
+ * exist under names other than the active hostname/IP.
+ */
+static int
+check_old_keys_othernames(struct hostkeys_update_ctx *ctx)
+{
+	size_t i;
+	int r;
+
+	debug2("%s: checking for %zu deprecated keys", __func__, ctx->nold);
+	for (i = 0; i < options.num_user_hostfiles; i++) {
+		debug3("%s: searching %s for %s / %s", __func__,
+		    options.user_hostfiles[i], ctx->host_str,
+		    ctx->ip_str ? ctx->ip_str : "(none)");
+		if ((r = hostkeys_foreach(options.user_hostfiles[i],
+		    hostkeys_check_old, ctx, ctx->host_str, ctx->ip_str,
+		    HKF_WANT_PARSE_KEY)) != 0) {
+			if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT) {
+				debug("%s: hostkeys file %s does not exist",
+				    __func__, options.user_hostfiles[i]);
+				continue;
+			}
+			error("%s: hostkeys_foreach failed for %s: %s",
+			    __func__, options.user_hostfiles[i], ssh_err(r));
+			return -1;
+		}
+	}
 	return 0;
 }
 
@@ -2248,10 +2307,6 @@ client_input_hostkeys(struct ssh *ssh)
 			ctx->nincomplete++;
 	}
 
-	/*
-	 * XXX if removing keys, check whether they appear under different
-	 * names/addresses and refuse to proceed if they do.
-	 */
 
 	debug3("%s: %zu server keys: %zu new, %zu retained, "
 	    "%zu incomplete match. %zu to remove", __func__, ctx->nkeys,
@@ -2263,8 +2318,28 @@ client_input_hostkeys(struct ssh *ssh)
 		debug("%s: manual list or wildcard host pattern found, "
 		    "skipping UserKnownHostsFile update", __func__);
 		goto out;
-	} else if (ctx->nnew == 0 &&
-	    (ctx->nold != 0 || ctx->nincomplete != 0)) {
+	}
+
+	/*
+	 * If removing keys, check whether they appear under different
+	 * names/addresses and refuse to proceed if they do. This avoids
+	 * cases such as hosts with multiple names becoming inconsistent
+	 * with regards to CheckHostIP entries.
+	 * XXX UpdateHostkeys=force to override this (and other) checks?
+	 */
+	if (ctx->nold != 0) {
+		if (check_old_keys_othernames(ctx) != 0)
+			goto out; /* error already logged */
+		if (ctx->old_key_seen) {
+			debug("%s: key(s) for %s%s%s exist under other names; "
+			    "skipping UserKnownHostsFile update", __func__,
+			    ctx->host_str, ctx->ip_str == NULL ? "" : ",",
+			    ctx->ip_str == NULL ? "" : ctx->ip_str);
+			goto out;
+		}
+	}
+
+	if (ctx->nnew == 0 && (ctx->nold != 0 || ctx->nincomplete != 0)) {
 		/*
 		 * We have some keys to remove or fix matching for.
 		 * We can proceed to do this without requiring a fresh proof
