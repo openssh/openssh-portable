@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.339 2020/10/07 02:26:28 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.340 2020/10/12 08:36:37 kn Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -442,8 +442,8 @@ fail:
  */
 static int
 ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
-    struct sockaddr_storage *hostaddr, u_short port, int family,
-    int connection_attempts, int *timeout_ms, int want_keepalive)
+    struct sockaddr_storage *hostaddr, u_short port, int connection_attempts,
+    int *timeout_ms, int want_keepalive)
 {
 	int on = 1, saved_timeout_ms = *timeout_ms;
 	int oerrno, sock = -1, attempt;
@@ -533,13 +533,13 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 int
 ssh_connect(struct ssh *ssh, const char *host, const char *host_arg,
     struct addrinfo *addrs, struct sockaddr_storage *hostaddr, u_short port,
-    int family, int connection_attempts, int *timeout_ms, int want_keepalive)
+    int connection_attempts, int *timeout_ms, int want_keepalive)
 {
 	int in, out;
 
 	if (options.proxy_command == NULL) {
 		return ssh_connect_direct(ssh, host, addrs, hostaddr, port,
-		    family, connection_attempts, timeout_ms, want_keepalive);
+		    connection_attempts, timeout_ms, want_keepalive);
 	} else if (strcmp(options.proxy_command, "-") == 0) {
 		if ((in = dup(STDIN_FILENO)) == -1 ||
 		    (out = dup(STDOUT_FILENO)) == -1) {

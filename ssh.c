@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.537 2020/10/03 09:22:26 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.538 2020/10/12 08:36:36 kn Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1542,7 +1542,7 @@ main(int ac, char **av)
 
 	/* Open a connection to the remote host. */
 	if (ssh_connect(ssh, host, host_arg, addrs, &hostaddr, options.port,
-	    options.address_family, options.connection_attempts,
+	    options.connection_attempts,
 	    &timeout_ms, options.tcp_keep_alive) != 0)
  		exit(255);
 
