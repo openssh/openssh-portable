@@ -195,6 +195,7 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	struct rdatainfo *rdata;
 	int length;
 	unsigned int index_ans, index_sig;
+	int rri_flags = 0;
 	u_char answer[ANSWER_BUFFER_SIZE];
 
 	/* check for invalid class and type */
@@ -229,6 +230,8 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	/* turn on DNSSEC if EDNS0 is configured */
 	if (_resp->options & RES_USE_EDNS0)
 		_resp->options |= RES_USE_DNSSEC;
+	else
+		rri_flags |= RRSET_SECURE_UNSUPPORTED;
 #endif /* RES_USE_DNSEC */
 
 	/* make query */
@@ -270,11 +273,14 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	rrset->rri_rdtype = response->query->type;
 	rrset->rri_ttl = response->answer->ttl;
 	rrset->rri_nrdatas = response->header.ancount;
+	rrset->rri_flags = rri_flags;
 
 #ifdef HAVE_HEADER_AD
 	/* check for authenticated data */
 	if (response->header.ad == 1)
 		rrset->rri_flags |= RRSET_VALIDATED;
+#else
+	rrset->rri_flags |= RRSET_SECURE_UNSUPPORTED;
 #endif
 
 	/* copy name from answer section */

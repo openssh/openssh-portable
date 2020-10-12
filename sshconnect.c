@@ -1243,6 +1243,7 @@ verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key)
 		 * XXX certs are not yet supported for DNS, so downgrade
 		 * them and try the plain key.
 		 */
+		flags = options.verify_host_key_dns;
 		if ((r = sshkey_from_private(host_key, &plain)) != 0)
 			goto out;
 		if (sshkey_is_cert(plain))
