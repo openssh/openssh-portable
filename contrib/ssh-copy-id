@@ -252,11 +252,11 @@ installkeys_sh() {
 	cd;
 	umask 077;
 	mkdir -p "${AUTH_KEY_DIR}" &&
-	  { [ -z \`tail -1c ${AUTH_KEY_FILE} 2>/dev/null\` ] || echo >> ${AUTH_KEY_FILE}; } &&
-	  cat >> ${AUTH_KEY_FILE} ||
+	  { [ -z \`tail -1c ${AUTH_KEY_FILE} 2>/dev/null\` ] || echo >> "${AUTH_KEY_FILE}"; } &&
+	  cat >> "${AUTH_KEY_FILE}" ||
 	  exit 1;
 	if type restorecon >/dev/null 2>&1; then
-	  restorecon -F $(dirname "${AUTH_KEY_FILE}") ${AUTH_KEY_FILE};
+	  restorecon -F "${AUTH_KEY_DIR}" "${AUTH_KEY_FILE}";
 	fi
 EOF
   )
