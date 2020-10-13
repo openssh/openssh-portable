@@ -322,7 +322,7 @@ static int
 process_input(struct ssh *ssh, fd_set *readset, int connection_in)
 {
 	int r, len;
-	char buf[16384];
+	char buf[SSH_IOBUFSZ];
 
 	/* Read and buffer any input data from the client. */
 	if (FD_ISSET(connection_in, readset)) {
@@ -972,6 +972,29 @@ server_input_channel_req(int type, u_int32_t seq, struct ssh *ssh)
 	return 0;
 }
 
+/* The client has requested we set our receive buffer */
+int
+server_set_rcvbuf(int type, u_int32_t seq, struct ssh *ssh)
+{
+	u_int32_t req_rcvbuf, rcvbuf;
+	socklen_t optsz = sizeof(req_rcvbuf);
+	
+	sshpkt_get_u32(ssh, &req_rcvbuf);
+	if (req_rcvbuf > (u_int32_t)options.max_rcv_buf)
+		req_rcvbuf = options.max_rcv_buf;
+	debug("client requesting recv sockbuf of %u", req_rcvbuf);
+	setsockopt(ssh_packet_get_connection_in(ssh), SOL_SOCKET, SO_RCVBUF,
+		   &req_rcvbuf, optsz);
+	getsockopt(ssh_packet_get_connection_in(ssh), SOL_SOCKET, SO_RCVBUF,
+		   &rcvbuf, &optsz);
+	debug("set recv sockbuf to %u", rcvbuf);
+	
+	if (rcvbuf != req_rcvbuf)
+		return 1;
+
+	return 0;
+}
+
 static void
 server_init_dispatch(struct ssh *ssh)
 {
@@ -994,4 +1017,6 @@ server_init_dispatch(struct ssh *ssh)
 	ssh_dispatch_set(ssh, SSH2_MSG_REQUEST_FAILURE, &server_input_keep_alive);
 	/* rekeying */
 	ssh_dispatch_set(ssh, SSH2_MSG_KEXINIT, &kex_input_kexinit);
+	/*local buffer set */
+	ssh_dispatch_set(ssh, SSH2_MSG_LOCAL_SO_RCVBUF, &server_set_rcvbuf);
 }

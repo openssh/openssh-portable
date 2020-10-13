@@ -167,8 +167,9 @@ typedef enum {
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
 	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
-	oNoneEnabled, oNoneSwitch,
+	oNoneEnabled, oNoneMacEnabled, oNoneSwitch,
 	oDisableMTAES,
+	oRemoteRcvBuf,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
@@ -299,8 +300,10 @@ static struct {
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
 	{ "noneenabled", oNoneEnabled },
+	{ "nonemacenabled", oNoneMacEnabled },
 	{ "noneswitch", oNoneSwitch },
         { "disablemtaes", oDisableMTAES },
+	{ "remotercvbuf", oRemoteRcvBuf },
 	{ "proxyusefdpass", oProxyUseFdpass },
 	{ "canonicaldomains", oCanonicalDomains },
 	{ "canonicalizefallbacklocal", oCanonicalizeFallbackLocal },
@@ -1113,6 +1116,10 @@ parse_time:
 		intptr = &options->none_enabled;
 		goto parse_flag;
 
+	case oNoneMacEnabled:
+		intptr = &options->nonemac_enabled;
+		goto parse_flag;
+		
         case oDisableMTAES:
 		intptr = &options->disable_multithreaded;
 		goto parse_flag;
@@ -1337,6 +1344,10 @@ parse_int:
 		intptr = &options->tcp_rcv_buf;
 		goto parse_int;
 
+	case oRemoteRcvBuf:
+		intptr = &options->remote_rcv_buf;
+		goto parse_int;
+		
 	case oCiphers:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
@@ -2109,11 +2120,13 @@ initialize_options(Options * options)
 	options->request_tty = -1;
 	options->none_switch = -1;
 	options->none_enabled = -1;
+	options->nonemac_enabled = -1;
         options->disable_multithreaded = -1;
 	options->hpn_disabled = -1;
 	options->hpn_buffer_size = -1;
 	options->tcp_rcv_buf_poll = -1;
 	options->tcp_rcv_buf = -1;
+	options->remote_rcv_buf = -1;
 	options->proxy_use_fdpass = -1;
 	options->ignored_unknown = NULL;
 	options->num_canonical_domains = 0;
@@ -2288,12 +2301,18 @@ fill_default_options(Options * options)
 		options->tcp_rcv_buf = 1;
 	if (options->tcp_rcv_buf > -1)
 		options->tcp_rcv_buf *=1024;
+	if (options->remote_rcv_buf == 0)
+		options->remote_rcv_buf = 1;
+	if (options->remote_rcv_buf > -1)
+		options->remote_rcv_buf *=1024;
 	if (options->tcp_rcv_buf_poll == -1)
 		options->tcp_rcv_buf_poll = 1;
 	if (options->none_switch == -1)
 		options->none_switch = 0;
 	if (options->none_enabled == -1)
 		options->none_enabled = 0;
+	if (options->nonemac_enabled == -1)
+		options->nonemac_enabled = 0;
         if (options->disable_multithreaded == -1)
 		options->disable_multithreaded = 0;
 	if (options->control_master == -1)

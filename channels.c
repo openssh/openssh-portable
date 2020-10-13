@@ -2205,8 +2205,8 @@ channel_check_window(struct ssh *ssh, Channel *c)
 
 	if (c->type == SSH_CHANNEL_OPEN &&
 	    !(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
-	    ((c->local_window_max - c->local_window >
-	    c->local_maxpacket*3) ||
+	    ((ssh_packet_is_interactive(ssh) &&
+	    c->local_window_max - c->local_window > c->local_maxpacket*3) ||
 	    c->local_window < c->local_window_max/2) &&
 	    c->local_consumed > 0) {
 		u_int addition = 0;
@@ -4575,6 +4575,11 @@ channel_send_window_changes(struct ssh *ssh)
 			fatal("%s: channel %u: send window-change: %s",
 			    __func__, i, ssh_err(r));
 	}
+}
+
+void
+channel_set_remote_rcvbuf(u_int32_t bufreq) {
+	/*empty for now. place holder only*/
 }
 
 /* Return RDYNAMIC_OPEN channel: channel allows SOCKS, but is not connected */

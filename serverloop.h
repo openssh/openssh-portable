@@ -24,5 +24,6 @@
 struct ssh;
 
 void    server_loop2(struct ssh *, Authctxt *);
+int     server_set_rcvbuf(int, u_int32_t, struct ssh *);
 
 #endif

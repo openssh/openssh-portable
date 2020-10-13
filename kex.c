@@ -889,7 +889,7 @@ kex_choose_conf(struct ssh *ssh)
 	int nenc, nmac, ncomp;
 	u_int mode, ctos, need, dh_need, authlen;
 	int r, first_kex_follows;
-	int auth_flag;
+	int auth_flag = 0;
 	int log_flag = 0;
 	
 	auth_flag = packet_authentication_state(ssh);
@@ -971,6 +971,14 @@ kex_choose_conf(struct ssh *ssh)
 				debug("None requested post authentication.");
 			else
 				fatal("Pre-authentication none cipher requests are not allowed.");
+		}
+		debug("REQUESTED MAC.NAME is '%s'", newkeys->mac.name);
+		if (newkeys->mac.name != NULL && strcmp(newkeys->mac.name, "none") == 0) {
+			debug("Requesting: NONEMAC. Authflag is %d", auth_flag);
+			if (auth_flag == 1)
+				debug("NoneMAC requested post authentication.");
+			else
+				fatal("Pre-authentication none MAC requests are not allowed.");
 		}
 		debug("kex: %s cipher: %s MAC: %s compression: %s",
 		    ctos ? "client->server" : "server->client",
