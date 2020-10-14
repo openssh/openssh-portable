@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.352 2020/10/11 22:14:38 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.353 2020/10/14 00:55:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1834,6 +1834,7 @@ struct hostkeys_update_ctx {
 	int complex_hostspec;	/* wildcard or manual pattern-list host name */
 	int ca_available;	/* saw CA key for this host */
 	int old_key_seen;	/* saw old key with other name/addr */
+	int other_name_seen;	/* saw key with other name/addr */
 };
 
 static void
@@ -1887,9 +1888,39 @@ hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 	size_t i;
 	struct sshkey **tmp;
 
-	if (l->status != HKF_STATUS_MATCHED || l->key == NULL ||
-	    l->marker != MRK_NONE)
+	if (l->key == NULL)
 		return 0;
+	if (l->status != HKF_STATUS_MATCHED) {
+		/* Record if one of the keys appears on a non-matching line */
+		for (i = 0; i < ctx->nkeys; i++) {
+			if (sshkey_equal(l->key, ctx->keys[i])) {
+				ctx->other_name_seen = 1;
+				debug3("%s: found %s key under different "
+				    "name/addr at %s:%ld", __func__,
+				    sshkey_ssh_name(ctx->keys[i]),
+				    l->path, l->linenum);
+				return 0;
+			}
+		}
+		return 0;
+	}
+	/* Don't proceed if revocation or CA markers are present */
+	/* XXX relax this */
+	if (l->marker != MRK_NONE) {
+		debug3("%s: hostkeys file %s:%ld has CA/revocation marker",
+		    __func__, l->path, l->linenum);
+		ctx->complex_hostspec = 1;
+		return 0;
+	}
+
+	/* Record if address matched against a different hostname. */
+	if (ctx->ip_str != NULL && (l->match & HKF_MATCH_HOST) == 0 &&
+	    strchr(l->hosts, ',') != NULL) {
+		ctx->other_name_seen = 1;
+		debug3("%s: found address %s against different hostname at "
+		    "%s:%ld", __func__, ctx->ip_str, l->path, l->linenum);
+		return 0;
+	}
 
 	/*
 	 * UpdateHostkeys is skipped for wildcard host names and hostnames
@@ -2307,19 +2338,28 @@ client_input_hostkeys(struct ssh *ssh)
 			ctx->nincomplete++;
 	}
 
-
 	debug3("%s: %zu server keys: %zu new, %zu retained, "
 	    "%zu incomplete match. %zu to remove", __func__, ctx->nkeys,
 	    ctx->nnew, ctx->nkeys - ctx->nnew - ctx->nincomplete,
 	    ctx->nincomplete, ctx->nold);
 
-	if (ctx->complex_hostspec &&
-	    (ctx->nnew != 0 || ctx->nold != 0 || ctx->nincomplete != 0)) {
-		debug("%s: manual list or wildcard host pattern found, "
-		    "skipping UserKnownHostsFile update", __func__);
+	if (ctx->nnew == 0 && ctx->nold == 0) {
+		debug("%s: no new or deprecated keys from server", __func__);
 		goto out;
 	}
 
+	/* Various reasons why we cannot proceed with the update */
+	if (ctx->complex_hostspec) {
+		debug("%s: CA/revocation marker, manual host list or wildcard "
+		    "host pattern found, skipping UserKnownHostsFile update",
+		    __func__);
+		goto out;
+	}
+	if (ctx->other_name_seen) {
+		debug("%s: host key found matching a different name/address, "
+		    "skipping UserKnownHostsFile update", __func__);
+		goto out;
+	}
 	/*
 	 * If removing keys, check whether they appear under different
 	 * names/addresses and refuse to proceed if they do. This avoids
@@ -2339,45 +2379,43 @@ client_input_hostkeys(struct ssh *ssh)
 		}
 	}
 
-	if (ctx->nnew == 0 && (ctx->nold != 0 || ctx->nincomplete != 0)) {
+	if (ctx->nnew == 0) {
 		/*
 		 * We have some keys to remove or fix matching for.
 		 * We can proceed to do this without requiring a fresh proof
 		 * from the server.
 		 */
 		update_known_hosts(ctx);
-	} else if (ctx->nnew != 0) {
-		/*
-		 * We have received hitherto-unseen keys from the server.
-		 * Ask the server to confirm ownership of the private halves.
-		 */
-		debug3("%s: asking server to prove ownership for %zu keys",
-		    __func__, ctx->nnew);
-		if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
-		    (r = sshpkt_put_cstring(ssh,
-		    "hostkeys-prove-00@openssh.com")) != 0 ||
-		    (r = sshpkt_put_u8(ssh, 1)) != 0) /* bool: want reply */
-			fatal("%s: cannot prepare packet: %s",
-			    __func__, ssh_err(r));
-		if ((buf = sshbuf_new()) == NULL)
-			fatal("%s: sshbuf_new", __func__);
-		for (i = 0; i < ctx->nkeys; i++) {
-			if (ctx->keys_match[i])
-				continue;
-			sshbuf_reset(buf);
-			if ((r = sshkey_putb(ctx->keys[i], buf)) != 0)
-				fatal("%s: sshkey_putb: %s",
-				    __func__, ssh_err(r));
-			if ((r = sshpkt_put_stringb(ssh, buf)) != 0)
-				fatal("%s: sshpkt_put_string: %s",
-				    __func__, ssh_err(r));
-		}
-		if ((r = sshpkt_send(ssh)) != 0)
-			fatal("%s: sshpkt_send: %s", __func__, ssh_err(r));
-		client_register_global_confirm(
-		    client_global_hostkeys_private_confirm, ctx);
-		ctx = NULL;  /* will be freed in callback */
+		goto out;
 	}
+	/*
+	 * We have received previously-unseen keys from the server.
+	 * Ask the server to confirm ownership of the private halves.
+	 */
+	debug3("%s: asking server to prove ownership for %zu keys",
+	    __func__, ctx->nnew);
+	if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
+	    (r = sshpkt_put_cstring(ssh,
+	    "hostkeys-prove-00@openssh.com")) != 0 ||
+	    (r = sshpkt_put_u8(ssh, 1)) != 0) /* bool: want reply */
+		fatal("%s: prepare hostkeys-prove: %s", __func__, ssh_err(r));
+	if ((buf = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new", __func__);
+	for (i = 0; i < ctx->nkeys; i++) {
+		if (ctx->keys_match[i])
+			continue;
+		sshbuf_reset(buf);
+		if ((r = sshkey_putb(ctx->keys[i], buf)) != 0 ||
+		    (r = sshpkt_put_stringb(ssh, buf)) != 0) {
+			fatal("%s: assemble hostkeys-prove: %s",
+			    __func__, ssh_err(r));
+		}
+	}
+	if ((r = sshpkt_send(ssh)) != 0)
+		fatal("%s: sshpkt_send: %s", __func__, ssh_err(r));
+	client_register_global_confirm(
+	    client_global_hostkeys_private_confirm, ctx);
+	ctx = NULL;  /* will be freed in callback */
 
 	/* Success */
  out:
