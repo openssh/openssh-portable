@@ -1,4 +1,4 @@
-/* $OpenBSD: fatal.c,v 1.7 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: fatal.c,v 1.8 2020/10/16 13:24:45 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -34,12 +34,12 @@
 /* Fatal messages.  This function never returns. */
 
 void
-fatal(const char *fmt,...)
+sshfatal(const char *file, const char *func, int line, const char *fmt, ...)
 {
 	va_list args;
 
 	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_FATAL, fmt, args);
+	ssh_log(file, func, line, SYSLOG_LEVEL_FATAL, fmt, args);
 	va_end(args);
 	cleanup_exit(255);
 }

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.118 2020/08/27 01:06:18 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.119 2020/10/16 13:24:45 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -82,7 +82,8 @@ extern struct sshbuf *loginmsg;
 extern ServerOptions options;
 
 void
-mm_log_handler(LogLevel level, const char *msg, void *ctx)
+mm_log_handler(const char *file, const char *func, int line,
+    LogLevel level, const char *msg, void *ctx)
 {
 	struct sshbuf *log_msg;
 	struct monitor *mon = (struct monitor *)ctx;
@@ -96,6 +97,9 @@ mm_log_handler(LogLevel level, const char *msg, void *ctx)
 		fatal("%s: sshbuf_new failed", __func__);
 
 	if ((r = sshbuf_put_u32(log_msg, 0)) != 0 || /* length; filled below */
+	    (r = sshbuf_put_cstring(log_msg, file)) != 0 ||
+	    (r = sshbuf_put_cstring(log_msg, func)) != 0 ||
+	    (r = sshbuf_put_u32(log_msg, (u_int)line)) != 0 ||
 	    (r = sshbuf_put_u32(log_msg, level)) != 0 ||
 	    (r = sshbuf_put_cstring(log_msg, msg)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
