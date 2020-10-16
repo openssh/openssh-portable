@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.329 2020/10/07 02:22:23 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.330 2020/10/16 02:37:12 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1515,8 +1515,9 @@ load_identity_file(Identity *id)
 	struct stat st;
 
 	if (stat(id->filename, &st) == -1) {
-		(id->userprovided ? logit : debug3)("no such identity: %s: %s",
-		    id->filename, strerror(errno));
+		do_log2(id->userprovided ?
+		    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_DEBUG3,
+		    "no such identity: %s: %s", id->filename, strerror(errno));
 		return NULL;
 	}
 	snprintf(prompt, sizeof prompt,
