@@ -954,15 +954,25 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	 * so enforce a 1GB limit for small blocksizes.
 	 * See RFC4344 section 3.2.
 	 */
-	if (enc->block_size >= 16)
-		*max_blocks = (u_int64_t)1 << (enc->block_size*2);
-	else
-		*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
+
+	/* we really don't need to rekey if we are using the none cipher
+	 * but there isn't a good way to disable it entirely that I can find
+	 * and using a blocksize larger that 16 doesn't work (dunno why)
+	 * so this seems to be a good limit for now - CJR 10/16/2020*/
+	if (ssh->none == 1) {
+		debug("Hit the ssh none fun");
+		*max_blocks = (u_int64_t)1 << (16*2);
+	} else {
+		if (enc->block_size >= 16)
+			*max_blocks = (u_int64_t)1 << (enc->block_size*2);
+		else
+			*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
+	}
 	if (state->rekey_limit)
 		*max_blocks = MINIMUM(*max_blocks,
 		    state->rekey_limit / enc->block_size);
 	debug("rekey %s after %llu blocks", dir,
-	    (unsigned long long)*max_blocks);
+	      (unsigned long long)*max_blocks);
 	return 0;
 }
 
