@@ -91,6 +91,9 @@ struct ssh {
 	double start_time;
 	u_long fdout_bytes;
 	u_long stdin_bytes;
+
+	/* track that we are in a none cipher/mac state */
+	int none;
 };
 
 typedef int (ssh_packet_hook_fn)(struct ssh *, struct sshbuf *,

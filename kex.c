@@ -967,8 +967,10 @@ kex_choose_conf(struct ssh *ssh)
 		debug("REQUESTED ENC.NAME is '%s'", newkeys->enc.name);
 		if (strcmp(newkeys->enc.name, "none") == 0) {
 			debug("Requesting NONE. Authflag is %d", auth_flag);
-			if (auth_flag == 1)
+			if (auth_flag == 1) {
 				debug("None requested post authentication.");
+				ssh->none = 1;
+			}
 			else
 				fatal("Pre-authentication none cipher requests are not allowed.");
 		}
