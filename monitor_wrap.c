@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.119 2020/10/16 13:24:45 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.120 2020/10/16 13:26:13 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -332,6 +332,9 @@ out:
 
 	copy_set_server_options(&options, newopts, 1);
 	log_change_level(options.log_level);
+	log_verbose_reset();
+	for (i = 0; i < options.num_log_verbose; i++)
+		log_verbose_add(options.log_verbose[i]);
 	process_permitopen(ssh, &options);
 	free(newopts);
 

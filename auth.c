@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.147 2020/08/27 01:07:09 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.148 2020/10/16 13:26:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -569,11 +569,15 @@ getpwnamallow(struct ssh *ssh, const char *user)
 #endif
 	struct passwd *pw;
 	struct connection_info *ci;
+	u_int i;
 
 	ci = get_connection_info(ssh, 1, options.use_dns);
 	ci->user = user;
 	parse_server_match_config(&options, &includes, ci);
 	log_change_level(options.log_level);
+	log_verbose_reset();
+	for (i = 0; i < options.num_log_verbose; i++)
+		log_verbose_add(options.log_verbose[i]);
 	process_permitopen(ssh, &options);
 
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)

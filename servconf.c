@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.369 2020/08/28 03:15:52 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.370 2020/10/16 13:26:13 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -122,6 +122,8 @@ initialize_server_options(ServerOptions *options)
 	options->tcp_keep_alive = -1;
 	options->log_facility = SYSLOG_FACILITY_NOT_SET;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
+	options->num_log_verbose = 0;
+	options->log_verbose = NULL;
 	options->hostbased_authentication = -1;
 	options->hostbased_uses_name_from_packet_only = -1;
 	options->hostbased_key_types = NULL;
@@ -504,7 +506,7 @@ typedef enum {
 	sUsePAM,
 	/* Standard Options */
 	sPort, sHostKeyFile, sLoginGraceTime,
-	sPermitRootLogin, sLogFacility, sLogLevel,
+	sPermitRootLogin, sLogFacility, sLogLevel, sLogVerbose,
 	sRhostsRSAAuthentication, sRSAAuthentication,
 	sKerberosAuthentication, sKerberosOrLocalPasswd, sKerberosTicketCleanup,
 	sKerberosGetAFSToken, sChallengeResponseAuthentication,
@@ -569,6 +571,7 @@ static struct {
 	{ "permitrootlogin", sPermitRootLogin, SSHCFG_ALL },
 	{ "syslogfacility", sLogFacility, SSHCFG_GLOBAL },
 	{ "loglevel", sLogLevel, SSHCFG_ALL },
+	{ "logverbose", sLogVerbose, SSHCFG_ALL },
 	{ "rhostsauthentication", sDeprecated, SSHCFG_GLOBAL },
 	{ "rhostsrsaauthentication", sDeprecated, SSHCFG_ALL },
 	{ "hostbasedauthentication", sHostbasedAuthentication, SSHCFG_ALL },
@@ -1715,6 +1718,16 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *log_level_ptr == -1)
 			*log_level_ptr = (LogLevel) value;
+		break;
+
+	case sLogVerbose:
+		while ((arg = strdelim(&cp)) && *arg != '\0') {
+			if (!*activep)
+				continue;
+			array_append(filename, linenum, "oLogVerbose",
+			    &options->log_verbose, &options->num_log_verbose,
+			    arg);
+		}
 		break;
 
 	case sAllowTcpForwarding:
@@ -2884,6 +2897,8 @@ dump_config(ServerOptions *o)
 	dump_cfg_strarray(sSetEnv, o->num_setenv, o->setenv);
 	dump_cfg_strarray_oneline(sAuthenticationMethods,
 	    o->num_auth_methods, o->auth_methods);
+	dump_cfg_strarray_oneline(sLogVerbose,
+	    o->num_log_verbose, o->log_verbose);
 
 	/* other arguments */
 	for (i = 0; i < o->num_subsystems; i++)

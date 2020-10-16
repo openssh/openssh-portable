@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.134 2020/08/11 09:49:57 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.135 2020/10/16 13:26:13 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -55,7 +55,8 @@ typedef struct {
 	int	ip_qos_bulk;		/* IP ToS/DSCP/class for bulk traffic */
 	SyslogFacility log_facility;	/* Facility for system logging. */
 	LogLevel log_level;	/* Level for logging. */
-
+	u_int	num_log_verbose;	/* Verbose log overrides */
+	char   **log_verbose;
 	int     port;		/* Port to connect. */
 	int     address_family;
 	int     connection_attempts;	/* Max attempts (seconds) before

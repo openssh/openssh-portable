@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.538 2020/10/12 08:36:36 kn Exp $ */
+/* $OpenBSD: ssh.c,v 1.539 2020/10/16 13:26:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1355,6 +1355,8 @@ main(int ac, char **av)
 
 	/* reinit */
 	log_init(argv0, options.log_level, options.log_facility, !use_syslog);
+	for (j = 0; j < options.num_log_verbose; j++)
+		log_verbose_add(options.log_verbose[j]);
 
 	if (options.request_tty == REQUEST_TTY_YES ||
 	    options.request_tty == REQUEST_TTY_FORCE)

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.562 2020/10/03 09:22:26 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.563 2020/10/16 13:26:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2006,7 +2006,10 @@ main(int ac, char **av)
 	/* Initialize the log (it is reinitialized below in case we forked). */
 	if (debug_flag && (!inetd_flag || rexeced_flag))
 		log_stderr = 1;
-	log_init(__progname, options.log_level, options.log_facility, log_stderr);
+	log_init(__progname, options.log_level,
+	    options.log_facility, log_stderr);
+	for (i = 0; i < options.num_log_verbose; i++)
+		log_verbose_add(options.log_verbose[i]);
 
 	/*
 	 * If not in debugging mode, not started from inetd and not already
