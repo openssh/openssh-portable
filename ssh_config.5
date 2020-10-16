@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.337 2020/10/16 13:26:13 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.338 2020/10/16 14:34:33 jmc Exp $
 .Dd $Mdocdate: October 16 2020 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1193,7 +1193,7 @@ kex.c:*:1000,*:kex_exchange_identification():*,packet.c:*
 .Ed
 .Pp
 would enable detailed logging for line 1000 of
-.Pa kex.c,
+.Pa kex.c ,
 everything in the
 .Fn kex_exchange_identification
 function, and all code in the
