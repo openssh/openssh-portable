@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.2 2019/08/22 21:47:27 bluhm Exp $
+#	$OpenBSD: Makefile,v 1.3 2020/10/16 14:02:24 djm Exp $
 
 PROG=test_misc
 SRCS=tests.c
@@ -11,6 +11,8 @@ SRCS+=	ssherr.c
 SRCS+=	log.c
 SRCS+=	xmalloc.c
 SRCS+=	misc.c
+SRCS+=	match.c
+SRCS+=	addrmatch.c
 
 # From usr.bin/ssh/sshd/Makefile
 SRCS+=	atomicio.c cleanup.c fatal.c

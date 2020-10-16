@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.8 2020/01/26 00:09:50 djm Exp $
+#	$OpenBSD: Makefile,v 1.9 2020/10/16 14:02:24 djm Exp $
 
 #	$OpenBSD: Makefile,v 1.8 2020/01/26 00:09:50 djm Exp $
 
@@ -15,6 +15,7 @@ SRCS+=test_sshbuf_fixed.c
 # From usr.bin/ssh
 SRCS+=sshbuf-getput-basic.c sshbuf-getput-crypto.c sshbuf-misc.c sshbuf.c
 SRCS+=sshbuf-io.c atomicio.c misc.c xmalloc.c log.c fatal.c ssherr.c cleanup.c
+SRCS+=match.c addrmatch.c
 
 run-regress-${PROG}: ${PROG}
 	env ${TEST_ENV} ./${PROG} ${UNITTEST_ARGS}
