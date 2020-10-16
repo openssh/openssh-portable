@@ -32,7 +32,7 @@ http://www.psc.edu/networking/projects/hpn-ssh
 BUFFER SIZES:
 
 If HPN is disabled the receive buffer size will be set to the
-OpenSSH default of 64K.
+OpenSSH default of 2MB (for OpenSSH versions before 4.7: 64KB).
 
 If an HPN system connects to a nonHPN system the receive buffer will
 be set to the HPNBufferSize value. The default is 2MB but user adjustable.

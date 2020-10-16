@@ -15,12 +15,23 @@ AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
 #include <stdlib.h>
 #include <stdio.h>
 int main(int argc, char **argv) {
+	(void)argv;
 	/* Some math to catch -ftrapv problems in the toolchain */
 	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
 	float l = i * 2.1;
 	double m = l / 0.5;
 	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
 	printf("%d %d %d %f %f %lld %lld\n", i, j, k, l, m, n, o);
+	/*
+	 * Test fallthrough behaviour.  clang 10's -Wimplicit-fallthrough does
+	 * not understand comments and we don't use the "fallthrough" attribute
+	 * that it's looking for.
+	 */
+	switch(i){
+	case 0: j += i;
+		/* FALLTHROUGH */
+	default: j += k;
+	}
 	exit(0);
 }
 	]])],
@@ -52,6 +63,7 @@ AC_DEFUN([OSSH_CHECK_CFLAG_LINK], [{
 #include <stdlib.h>
 #include <stdio.h>
 int main(int argc, char **argv) {
+	(void)argv;
 	/* Some math to catch -ftrapv problems in the toolchain */
 	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
 	float l = i * 2.1;
@@ -90,6 +102,7 @@ AC_DEFUN([OSSH_CHECK_LDFLAG_LINK], [{
 #include <stdlib.h>
 #include <stdio.h>
 int main(int argc, char **argv) {
+	(void)argv;
 	/* Some math to catch -ftrapv problems in the toolchain */
 	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
 	float l = i * 2.1;
@@ -118,7 +131,7 @@ dnl OSSH_CHECK_HEADER_FOR_FIELD(field, header, symbol)
 dnl Does AC_EGREP_HEADER on 'header' for the string 'field'
 dnl If found, set 'symbol' to be defined. Cache the result.
 dnl TODO: This is not foolproof, better to compile and read from there
-AC_DEFUN(OSSH_CHECK_HEADER_FOR_FIELD, [
+AC_DEFUN([OSSH_CHECK_HEADER_FOR_FIELD], [
 # look for field '$1' in header '$2'
 	dnl This strips characters illegal to m4 from the header filename
 	ossh_safe=`echo "$2" | sed 'y%./+-%__p_%'`
