@@ -1,14 +1,17 @@
 /* public domain */
 
+#include "includes.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
 
-void fatal(char *fmt, ...);
+void
+sshfatal(const char *file, const char *func, int line, const char *fmt, ...);
 
 void
-fatal(char *fmt, ...)
+sshfatal(const char *file, const char *func, int line, const char *fmt, ...)
 {
 	va_list ap;
 
