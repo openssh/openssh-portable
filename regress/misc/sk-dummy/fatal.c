@@ -7,6 +7,8 @@
 #include <stdarg.h>
 #include <unistd.h>
 
+#include "log.h"
+
 void sshfatal(const char *file, const char *func, int line, int showfunc,
     LogLevel level, const char *fmt, ...);
 
