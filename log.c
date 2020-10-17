@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.53 2020/10/16 13:24:45 djm Exp $ */
+/* $OpenBSD: log.c,v 1.54 2020/10/17 01:28:20 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -427,23 +427,25 @@ sshlog(const char *file, const char *func, int line, int showfunc,
 }
 
 void
-sshlogdie(const char *file, const char *func, int line, const char *fmt, ...)
+sshlogdie(const char *file, const char *func, int line, int showfunc,
+    LogLevel level, const char *fmt, ...)
 {
 	va_list args;
 
 	va_start(args, fmt);
-	sshlogv(file, func, line, 0, SYSLOG_LEVEL_INFO, fmt, args);
+	sshlogv(file, func, line, showfunc, SYSLOG_LEVEL_INFO, fmt, args);
 	va_end(args);
 	cleanup_exit(255);
 }
 
 void
-sshsigdie(const char *file, const char *func, int line, const char *fmt, ...)
+sshsigdie(const char *file, const char *func, int line, int showfunc,
+    LogLevel level, const char *fmt, ...)
 {
 	va_list args;
 
 	va_start(args, fmt);
-	sshlogv(file, func, line, 0, SYSLOG_LEVEL_FATAL, fmt, args);
+	sshlogv(file, func, line, showfunc, SYSLOG_LEVEL_FATAL, fmt, args);
 	va_end(args);
 	_exit(1);
 }
