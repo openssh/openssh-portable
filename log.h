@@ -1,4 +1,4 @@
-/* $OpenBSD: log.h,v 1.27 2020/10/18 11:13:45 djm Exp $ */
+/* $OpenBSD: log.h,v 1.28 2020/10/18 11:14:27 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -81,39 +81,15 @@ void	 sshfatal(const char *, const char *, int, int,
     LogLevel, const char *, ...) __attribute__((noreturn))
     __attribute__((format(printf, 6, 7)));
 
-#define ssh_nlog(level, ...)	sshlog(__FILE__, __func__, __LINE__, 0, level, __VA_ARGS__)
-#define ssh_debug3(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_DEBUG3, __VA_ARGS__)
-#define ssh_debug2(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_DEBUG2, __VA_ARGS__)
-#define ssh_debug(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_DEBUG1, __VA_ARGS__)
-#define ssh_verbose(...)	sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_VERBOSE, __VA_ARGS__)
-#define ssh_log(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_INFO, __VA_ARGS__)
-#define ssh_error(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_ERROR, __VA_ARGS__)
-#define ssh_fatal(...)		sshfatal(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_FATAL, __VA_ARGS__)
-#define ssh_logdie(...)		sshlogdie(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_ERROR, __VA_ARGS__)
-#define ssh_sigdie(...)		sshsigdie(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_ERROR, __VA_ARGS__)
-
-/* Variants that prepend the caller's function */
-#define ssh_nlog_f(level, ...)	sshlog(__FILE__, __func__, __LINE__, 1, level, __VA_ARGS__)
-#define ssh_debug3_f(...)	sshlog(__FILE__, __func__, __LINE__, 1, SYSLOG_LEVEL_DEBUG3, __VA_ARGS__)
-#define ssh_debug2_f(...)	sshlog(__FILE__, __func__, __LINE__, 1, SYSLOG_LEVEL_DEBUG2, __VA_ARGS__)
-#define ssh_debug_f(...)	sshlog(__FILE__, __func__, __LINE__, 1, SYSLOG_LEVEL_DEBUG1, __VA_ARGS__)
-#define ssh_verbose_f(...)	sshlog(__FILE__, __func__, __LINE__, 1, SYSLOG_LEVEL_VERBOSE, __VA_ARGS__)
-#define ssh_log_f(...)		sshlog(__FILE__, __func__, __LINE__, 1, SYSLOG_LEVEL_INFO, __VA_ARGS__)
-#define ssh_error_f(...)	sshlog(__FILE__, __func__, __LINE__, 1, SYSLOG_LEVEL_ERROR, __VA_ARGS__)
-#define ssh_fatal_f(...)	sshfatal(__FILE__, __func__, __LINE__, 1, SYSLOG_LEVEL_FATAL, __VA_ARGS__)
-#define ssh_logdie_f(...)	sshlogdie(__FILE__, __func__, __LINE__, 1, SYSLOG_LEVEL_ERROR, __VA_ARGS__)
-#define ssh_sigdie_f(...)	sshsigdie(__FILE__, __func__, __LINE__, 1, SYSLOG_LEVEL_ERROR, __VA_ARGS__)
-
-#define debug	ssh_debug
-#define debug1	ssh_debug1
-#define debug2	ssh_debug2
-#define debug3	ssh_debug3
-#define error	ssh_error
-#define logit	ssh_log
-#define verbose	ssh_verbose
-#define fatal	ssh_fatal
-#define logdie	ssh_logdie
-#define sigdie	ssh_sigdie
-#define do_log2	ssh_nlog
+#define do_log2(level, ...)	sshlog(__FILE__, __func__, __LINE__, 0, level, __VA_ARGS__)
+#define debug3(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_DEBUG3, __VA_ARGS__)
+#define debug2(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_DEBUG2, __VA_ARGS__)
+#define debug(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_DEBUG1, __VA_ARGS__)
+#define verbose(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_VERBOSE, __VA_ARGS__)
+#define logit(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_INFO, __VA_ARGS__)
+#define error(...)		sshlog(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_ERROR, __VA_ARGS__)
+#define fatal(...)		sshfatal(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_FATAL, __VA_ARGS__)
+#define logdie(...)		sshlogdie(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_ERROR, __VA_ARGS__)
+#define sigdie(...)		sshsigdie(__FILE__, __func__, __LINE__, 0, SYSLOG_LEVEL_ERROR, __VA_ARGS__)
 
 #endif
