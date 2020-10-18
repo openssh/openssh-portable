@@ -415,7 +415,7 @@ mm_auth_password(struct ssh *ssh, char *password)
 	if ((r = sshbuf_get_u32(m, &maxtries)) != 0)
 		fatal_fr(r, "parse PAM");
 	if (maxtries > INT_MAX)
-		fatal_f(r, "bad maxtries");
+		fatal_fr(r, "bad maxtries");
 	sshpam_set_maxtries_reached(maxtries);
 #endif
 
