@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.265 2020/10/03 09:22:26 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.266 2020/10/18 11:32:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -238,7 +238,7 @@ send_status(SocketEntry *e, int success)
 	if ((r = sshbuf_put_u32(e->output, 1)) != 0 ||
 	    (r = sshbuf_put_u8(e->output, success ?
 	    SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "compose");
 }
 
 /* send list of supported public keys to 'client' */
@@ -250,21 +250,20 @@ process_request_identities(SocketEntry *e)
 	int r;
 
 	if ((msg = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	if ((r = sshbuf_put_u8(msg, SSH2_AGENT_IDENTITIES_ANSWER)) != 0 ||
 	    (r = sshbuf_put_u32(msg, idtab->nentries)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "compose");
 	TAILQ_FOREACH(id, &idtab->idlist, next) {
 		if ((r = sshkey_puts_opts(id->key, msg, SSHKEY_SERIALIZE_INFO))
 		     != 0 ||
 		    (r = sshbuf_put_cstring(msg, id->comment)) != 0) {
-			error("%s: put key/comment: %s", __func__,
-			    ssh_err(r));
+			error_fr(r, "compose key/comment");
 			continue;
 		}
 	}
 	if ((r = sshbuf_put_stringb(e->output, msg)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "enqueue");
 	sshbuf_free(msg);
 }
 
@@ -305,7 +304,7 @@ check_websafe_message_contents(struct sshkey *key,
 	struct sshkey *mkey = NULL;
 
 	if ((b = sshbuf_from(msg, len)) == NULL)
-		fatal("%s: sshbuf_new", __func__);
+		fatal_f("sshbuf_new");
 
 	/* SSH userauth request */
 	if ((r = sshbuf_get_string_direct(b, NULL, NULL)) == 0 && /* sess_id */
@@ -317,12 +316,12 @@ check_websafe_message_contents(struct sshkey *key,
 	    (r = sshbuf_get_cstring(b, NULL, NULL)) == 0 && /* alg */
 	    (r = sshkey_froms(b, &mkey)) == 0 && /* key */
 	    sshbuf_len(b) == 0) {
-		debug("%s: parsed userauth", __func__);
+		debug_f("parsed userauth");
 		if (m == SSH2_MSG_USERAUTH_REQUEST && n == 1 &&
 		    strcmp(cp1, "ssh-connection") == 0 &&
 		    strcmp(cp2, "publickey") == 0 &&
 		    sshkey_equal(key, mkey)) {
-			debug("%s: well formed userauth", __func__);
+			debug_f("well formed userauth");
 			matched = 1;
 		}
 	}
@@ -334,7 +333,7 @@ check_websafe_message_contents(struct sshkey *key,
 		return 1;
 
 	if ((b = sshbuf_from(msg, len)) == NULL)
-		fatal("%s: sshbuf_new", __func__);
+		fatal_f("sshbuf_new");
 	cp1 = cp2 = NULL;
 	mkey = NULL;
 
@@ -346,7 +345,7 @@ check_websafe_message_contents(struct sshkey *key,
 	    (r = sshbuf_get_cstring(b, NULL, NULL)) == 0 && /* hashalg */
 	    (r = sshbuf_get_string_direct(b, NULL, NULL)) == 0 && /* H(msg) */
 	    sshbuf_len(b) == 0) {
-		debug("%s: parsed sshsig", __func__);
+		debug_f("parsed sshsig");
 		matched = 1;
 	}
 
@@ -376,20 +375,20 @@ process_sign_request2(SocketEntry *e)
 	struct notifier_ctx *notifier = NULL;
 
 	if ((msg = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	if ((r = sshkey_froms(e->request, &key)) != 0 ||
 	    (r = sshbuf_get_string_direct(e->request, &data, &dlen)) != 0 ||
 	    (r = sshbuf_get_u32(e->request, &flags)) != 0) {
-		error("%s: couldn't parse request: %s", __func__, ssh_err(r));
+		error_fr(r, "parse");
 		goto send;
 	}
 
 	if ((id = lookup_identity(key)) == NULL) {
-		verbose("%s: %s key not found", __func__, sshkey_type(key));
+		verbose_f("%s key not found", sshkey_type(key));
 		goto send;
 	}
 	if (id->confirm && confirm_key(id) != 0) {
-		verbose("%s: user refused key", __func__);
+		verbose_f("user refused key");
 		goto send;
 	}
 	if (sshkey_is_sk(id->key)) {
@@ -401,7 +400,7 @@ process_sign_request2(SocketEntry *e)
 		if ((id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
 			if ((fp = sshkey_fingerprint(key, SSH_FP_HASH_DEFAULT,
 			    SSH_FP_DEFAULT)) == NULL)
-				fatal("%s: fingerprint failed", __func__);
+				fatal_f("fingerprint failed");
 			notifier = notify_start(0,
 			    "Confirm user presence for key %s %s",
 			    sshkey_type(id->key), fp);
@@ -411,7 +410,7 @@ process_sign_request2(SocketEntry *e)
 	if ((r = sshkey_sign(id->key, &signature, &slen,
 	    data, dlen, agent_decode_alg(key, flags),
 	    id->sk_provider, NULL, compat)) != 0) {
-		error("%s: sshkey_sign: %s", __func__, ssh_err(r));
+		error_fr(r, "sshkey_sign");
 		goto send;
 	}
 	/* Success */
@@ -423,12 +422,12 @@ process_sign_request2(SocketEntry *e)
 	if (ok == 0) {
 		if ((r = sshbuf_put_u8(msg, SSH2_AGENT_SIGN_RESPONSE)) != 0 ||
 		    (r = sshbuf_put_string(msg, signature, slen)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "compose");
 	} else if ((r = sshbuf_put_u8(msg, SSH_AGENT_FAILURE)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "compose failure");
 
 	if ((r = sshbuf_put_stringb(e->output, msg)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "enqueue");
 
 	sshbuf_free(msg);
 	free(signature);
@@ -443,17 +442,16 @@ process_remove_identity(SocketEntry *e)
 	Identity *id;
 
 	if ((r = sshkey_froms(e->request, &key)) != 0) {
-		error("%s: get key: %s", __func__, ssh_err(r));
+		error_fr(r, "parse key");
 		goto done;
 	}
 	if ((id = lookup_identity(key)) == NULL) {
-		debug("%s: key not found", __func__);
+		debug_f("key not found");
 		goto done;
 	}
 	/* We have this key, free it. */
 	if (idtab->nentries < 1)
-		fatal("%s: internal error: nentries %d",
-		    __func__, idtab->nentries);
+		fatal_f("internal error: nentries %d", idtab->nentries);
 	TAILQ_REMOVE(&idtab->idlist, id, next);
 	free_identity(id);
 	idtab->nentries--;
@@ -524,19 +522,18 @@ process_add_identity(SocketEntry *e)
 	if ((r = sshkey_private_deserialize(e->request, &k)) != 0 ||
 	    k == NULL ||
 	    (r = sshbuf_get_cstring(e->request, &comment, NULL)) != 0) {
-		error("%s: decode private key: %s", __func__, ssh_err(r));
+		error_fr(r, "parse");
 		goto err;
 	}
 	while (sshbuf_len(e->request)) {
 		if ((r = sshbuf_get_u8(e->request, &ctype)) != 0) {
-			error("%s: buffer error: %s", __func__, ssh_err(r));
+			error_fr(r, "parse constraint type");
 			goto err;
 		}
 		switch (ctype) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
 			if ((r = sshbuf_get_u32(e->request, &seconds)) != 0) {
-				error("%s: bad lifetime constraint: %s",
-				    __func__, ssh_err(r));
+				error_fr(r, "parse lifetime constraint");
 				goto err;
 			}
 			death = monotime() + seconds;
@@ -546,24 +543,21 @@ process_add_identity(SocketEntry *e)
 			break;
 		case SSH_AGENT_CONSTRAIN_MAXSIGN:
 			if ((r = sshbuf_get_u32(e->request, &maxsign)) != 0) {
-				error("%s: bad maxsign constraint: %s",
-				    __func__, ssh_err(r));
+				error_fr(r, "parse maxsign constraint");
 				goto err;
 			}
 			if ((r = sshkey_enable_maxsign(k, maxsign)) != 0) {
-				error("%s: cannot enable maxsign: %s",
-				    __func__, ssh_err(r));
+				error_fr(r, "enable maxsign");
 				goto err;
 			}
 			break;
 		case SSH_AGENT_CONSTRAIN_EXTENSION:
 			if ((r = sshbuf_get_cstring(e->request,
 			    &ext_name, NULL)) != 0) {
-				error("%s: cannot parse extension: %s",
-				    __func__, ssh_err(r));
+				error_fr(r, "parse constraint extension");
 				goto err;
 			}
-			debug("%s: constraint ext %s", __func__, ext_name);
+			debug_f("constraint ext %s", ext_name);
 			if (strcmp(ext_name, "sk-provider@openssh.com") == 0) {
 				if (sk_provider != NULL) {
 					error("%s already set", ext_name);
@@ -571,19 +565,18 @@ process_add_identity(SocketEntry *e)
 				}
 				if ((r = sshbuf_get_cstring(e->request,
 				    &sk_provider, NULL)) != 0) {
-					error("%s: cannot parse %s: %s",
-					    __func__, ext_name, ssh_err(r));
+					error_fr(r, "parse %s", ext_name);
 					goto err;
 				}
 			} else {
-				error("%s: unsupported constraint \"%s\"",
-				    __func__, ext_name);
+				error_f("unsupported constraint \"%s\"",
+				    ext_name);
 				goto err;
 			}
 			free(ext_name);
 			break;
 		default:
-			error("%s: Unknown constraint %d", __func__, ctype);
+			error_f("Unknown constraint %d", ctype);
  err:
 			free(sk_provider);
 			free(ext_name);
@@ -601,7 +594,7 @@ process_add_identity(SocketEntry *e)
 			goto send;
 		}
 		if (strcasecmp(sk_provider, "internal") == 0) {
-			debug("%s: internal provider", __func__);
+			debug_f("internal provider");
 		} else {
 			if (realpath(sk_provider, canonical_provider) == NULL) {
 				verbose("failed provider \"%.100s\": "
@@ -622,7 +615,7 @@ process_add_identity(SocketEntry *e)
 		}
 	}
 	if ((r = sshkey_shield_private(k)) != 0) {
-		error("%s: shield private key: %s", __func__, ssh_err(r));
+		error_fr(r, "shield private");
 		goto err;
 	}
 
@@ -648,9 +641,9 @@ process_add_identity(SocketEntry *e)
 
 	if ((fp = sshkey_fingerprint(k, SSH_FP_HASH_DEFAULT,
 	    SSH_FP_DEFAULT)) == NULL)
-		fatal("%s: sshkey_fingerprint failed", __func__);
-	debug("%s: add %s %s \"%.100s\" (life: %u) (confirm: %u) "
-	    "(provider: %s)", __func__, sshkey_ssh_name(k), fp, comment,
+		fatal_f("sshkey_fingerprint failed");
+	debug_f("add %s %s \"%.100s\" (life: %u) (confirm: %u) "
+	    "(provider: %s)", sshkey_ssh_name(k), fp, comment,
 	    seconds, confirm, sk_provider == NULL ? "none" : sk_provider);
 	free(fp);
 send:
@@ -673,7 +666,7 @@ process_lock_agent(SocketEntry *e, int lock)
 	 * do is abort.
 	 */
 	if ((r = sshbuf_get_cstring(e->request, &passwd, &pwlen)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse");
 	if (pwlen == 0) {
 		debug("empty password not supported");
 	} else if (locked && !lock) {
@@ -716,11 +709,11 @@ no_identities(SocketEntry *e)
 	int r;
 
 	if ((msg = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	if ((r = sshbuf_put_u8(msg, SSH2_AGENT_IDENTITIES_ANSWER)) != 0 ||
 	    (r = sshbuf_put_u32(msg, 0)) != 0 ||
 	    (r = sshbuf_put_stringb(e->output, msg)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "compose");
 	sshbuf_free(msg);
 }
 
@@ -739,20 +732,19 @@ process_add_smartcard_key(SocketEntry *e)
 
 	if ((r = sshbuf_get_cstring(e->request, &provider, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0) {
-		error("%s: buffer error: %s", __func__, ssh_err(r));
+		error_fr(r, "parse");
 		goto send;
 	}
 
 	while (sshbuf_len(e->request)) {
 		if ((r = sshbuf_get_u8(e->request, &type)) != 0) {
-			error("%s: buffer error: %s", __func__, ssh_err(r));
+			error_fr(r, "parse type");
 			goto send;
 		}
 		switch (type) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
 			if ((r = sshbuf_get_u32(e->request, &seconds)) != 0) {
-				error("%s: buffer error: %s",
-				    __func__, ssh_err(r));
+				error_fr(r, "parse lifetime");
 				goto send;
 			}
 			death = monotime() + seconds;
@@ -761,7 +753,7 @@ process_add_smartcard_key(SocketEntry *e)
 			confirm = 1;
 			break;
 		default:
-			error("%s: Unknown constraint type %d", __func__, type);
+			error_f("Unknown constraint type %d", type);
 			goto send;
 		}
 	}
@@ -775,7 +767,7 @@ process_add_smartcard_key(SocketEntry *e)
 		    "provider not allowed", canonical_provider);
 		goto send;
 	}
-	debug("%s: add %.100s", __func__, canonical_provider);
+	debug_f("add %.100s", canonical_provider);
 	if (lifetime && !death)
 		death = monotime() + lifetime;
 
@@ -819,7 +811,7 @@ process_remove_smartcard_key(SocketEntry *e)
 
 	if ((r = sshbuf_get_cstring(e->request, &provider, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0) {
-		error("%s: buffer error: %s", __func__, ssh_err(r));
+		error_fr(r, "parse");
 		goto send;
 	}
 	free(pin);
@@ -830,7 +822,7 @@ process_remove_smartcard_key(SocketEntry *e)
 		goto send;
 	}
 
-	debug("%s: remove %.100s", __func__, canonical_provider);
+	debug_f("remove %.100s", canonical_provider);
 	for (id = TAILQ_FIRST(&idtab->idlist); id; id = nxt) {
 		nxt = TAILQ_NEXT(id, next);
 		/* Skip file--based keys */
@@ -845,7 +837,7 @@ process_remove_smartcard_key(SocketEntry *e)
 	if (pkcs11_del_provider(canonical_provider) == 0)
 		success = 1;
 	else
-		error("%s: pkcs11_del_provider failed", __func__);
+		error_f("pkcs11_del_provider failed");
 send:
 	free(provider);
 	send_status(e, success);
@@ -865,10 +857,8 @@ process_message(u_int socknum)
 	int r;
 	SocketEntry *e;
 
-	if (socknum >= sockets_alloc) {
-		fatal("%s: socket number %u >= allocated %u",
-		    __func__, socknum, sockets_alloc);
-	}
+	if (socknum >= sockets_alloc)
+		fatal_f("sock %u >= allocated %u", socknum, sockets_alloc);
 	e = &sockets[socknum];
 
 	if (sshbuf_len(e->input) < 5)
@@ -876,8 +866,8 @@ process_message(u_int socknum)
 	cp = sshbuf_ptr(e->input);
 	msg_len = PEEK_U32(cp);
 	if (msg_len > AGENT_MAX_LEN) {
-		debug("%s: socket %u (fd=%d) message too long %u > %u",
-		    __func__, socknum, e->fd, msg_len, AGENT_MAX_LEN);
+		debug_f("socket %u (fd=%d) message too long %u > %u",
+		    socknum, e->fd, msg_len, AGENT_MAX_LEN);
 		return -1;
 	}
 	if (sshbuf_len(e->input) < msg_len + 4)
@@ -889,13 +879,13 @@ process_message(u_int socknum)
 	    (r = sshbuf_get_u8(e->request, &type)) != 0) {
 		if (r == SSH_ERR_MESSAGE_INCOMPLETE ||
 		    r == SSH_ERR_STRING_TOO_LARGE) {
-			debug("%s: buffer error: %s", __func__, ssh_err(r));
+			error_fr(r, "parse");
 			return -1;
 		}
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse");
 	}
 
-	debug("%s: socket %u (fd=%d) type %d", __func__, socknum, e->fd, type);
+	debug_f("socket %u (fd=%d) type %d", socknum, e->fd, type);
 
 	/* check whether agent is locked */
 	if (locked && type != SSH_AGENTC_UNLOCK) {
@@ -969,12 +959,10 @@ new_socket(sock_type type, int fd)
 	for (i = 0; i < sockets_alloc; i++)
 		if (sockets[i].type == AUTH_UNUSED) {
 			sockets[i].fd = fd;
-			if ((sockets[i].input = sshbuf_new()) == NULL)
-				fatal("%s: sshbuf_new failed", __func__);
-			if ((sockets[i].output = sshbuf_new()) == NULL)
-				fatal("%s: sshbuf_new failed", __func__);
-			if ((sockets[i].request = sshbuf_new()) == NULL)
-				fatal("%s: sshbuf_new failed", __func__);
+			if ((sockets[i].input = sshbuf_new()) == NULL ||
+			    (sockets[i].output = sshbuf_new()) == NULL ||
+			    (sockets[i].request = sshbuf_new()) == NULL)
+				fatal_f("sshbuf_new failed");
 			sockets[i].type = type;
 			return;
 		}
@@ -985,12 +973,10 @@ new_socket(sock_type type, int fd)
 		sockets[i].type = AUTH_UNUSED;
 	sockets_alloc = new_alloc;
 	sockets[old_alloc].fd = fd;
-	if ((sockets[old_alloc].input = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
-	if ((sockets[old_alloc].output = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
-	if ((sockets[old_alloc].request = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+	if ((sockets[old_alloc].input = sshbuf_new()) == NULL ||
+	    (sockets[old_alloc].output = sshbuf_new()) == NULL ||
+	    (sockets[old_alloc].request = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
 	sockets[old_alloc].type = type;
 }
 
@@ -1035,14 +1021,13 @@ handle_conn_read(u_int socknum)
 		if (len == -1) {
 			if (errno == EAGAIN || errno == EINTR)
 				return 0;
-			error("%s: read error on socket %u (fd %d): %s",
-			    __func__, socknum, sockets[socknum].fd,
-			    strerror(errno));
+			error_f("read error on socket %u (fd %d): %s",
+			    socknum, sockets[socknum].fd, strerror(errno));
 		}
 		return -1;
 	}
 	if ((r = sshbuf_put(sockets[socknum].input, buf, len)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "compose");
 	explicit_bzero(buf, sizeof(buf));
 	for (;;) {
 		if ((r = process_message(socknum)) == -1)
@@ -1067,14 +1052,13 @@ handle_conn_write(u_int socknum)
 		if (len == -1) {
 			if (errno == EAGAIN || errno == EINTR)
 				return 0;
-			error("%s: read error on socket %u (fd %d): %s",
-			    __func__, socknum, sockets[socknum].fd,
-			    strerror(errno));
+			error_f("read error on socket %u (fd %d): %s",
+			    socknum, sockets[socknum].fd, strerror(errno));
 		}
 		return -1;
 	}
 	if ((r = sshbuf_consume(sockets[socknum].output, len)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "consume");
 	return 0;
 }
 
@@ -1096,7 +1080,7 @@ after_poll(struct pollfd *pfd, size_t npfd, u_int maxfds)
 				break;
 		}
 		if (socknum >= sockets_alloc) {
-			error("%s: no socket for fd %d", __func__, pfd[i].fd);
+			error_f("no socket for fd %d", pfd[i].fd);
 			continue;
 		}
 		/* Process events */
@@ -1157,7 +1141,7 @@ prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
 	}
 	if (npfd != *npfdp &&
 	    (pfd = recallocarray(pfd, *npfdp, npfd, sizeof(*pfd))) == NULL)
-		fatal("%s: recallocarray failed", __func__);
+		fatal_f("recallocarray failed");
 	*pfdp = pfd;
 	*npfdp = npfd;
 
@@ -1186,10 +1170,8 @@ prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
 			    (r = sshbuf_check_reserve(sockets[i].output,
 			     AGENT_MAX_LEN)) == 0)
 				pfd[j].events = POLLIN;
-			else if (r != SSH_ERR_NO_BUFFER_SPACE) {
-				fatal("%s: buffer error: %s",
-				    __func__, ssh_err(r));
-			}
+			else if (r != SSH_ERR_NO_BUFFER_SPACE)
+				fatal_fr(r, "reserve");
 			if (sshbuf_len(sockets[i].output) > 0)
 				pfd[j].events |= POLLOUT;
 			j++;
@@ -1218,7 +1200,7 @@ cleanup_socket(void)
 {
 	if (cleanup_pid != 0 && getpid() != cleanup_pid)
 		return;
-	debug("%s: cleanup", __func__);
+	debug_f("cleanup");
 	if (socket_name[0])
 		unlink(socket_name);
 	if (socket_dir[0])
@@ -1494,7 +1476,7 @@ main(int ac, char **av)
 
 	(void)chdir("/");
 	if (stdfd_devnull(1, 1, 1) == -1)
-		error("%s: stdfd_devnull failed", __func__);
+		error_f("stdfd_devnull failed");
 
 #ifdef HAVE_SETRLIMIT
 	/* deny core dumps, since memory contains unencrypted private keys */

@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.370 2020/10/16 13:26:13 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.371 2020/10/18 11:32:02 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -223,7 +223,7 @@ assemble_algorithms(ServerOptions *o)
 #define ASSEMBLE(what, defaults, all) \
 	do { \
 		if ((r = kex_assemble_names(&o->what, defaults, all)) != 0) \
-			fatal("%s: %s: %s", __func__, #what, ssh_err(r)); \
+			fatal_fr(r, "%s", #what); \
 	} while (0)
 	ASSEMBLE(ciphers, def_cipher, all_cipher);
 	ASSEMBLE(macs, def_mac, all_mac);
@@ -751,7 +751,7 @@ derelativise_path(const char *path)
 	if (path_absolute(expanded))
 		return expanded;
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
-		fatal("%s: getcwd: %s", __func__, strerror(errno));
+		fatal_f("getcwd: %s", strerror(errno));
 	xasprintf(&ret, "%s/%s", cwd, expanded);
 	free(expanded);
 	return ret;
@@ -794,7 +794,7 @@ add_one_listen_addr(ServerOptions *options, const char *addr,
 	if (i >= options->num_listen_addrs) {
 		/* No entry for this rdomain; allocate one */
 		if (i >= INT_MAX)
-			fatal("%s: too many listen addresses", __func__);
+			fatal_f("too many listen addresses");
 		options->listen_addrs = xrecallocarray(options->listen_addrs,
 		    options->num_listen_addrs, options->num_listen_addrs + 1,
 		    sizeof(*options->listen_addrs));
@@ -931,10 +931,10 @@ process_permitopen_list(struct ssh *ssh, ServerOpCodes opcode,
 		ch = '\0';
 		host = hpdelim2(&arg, &ch);
 		if (host == NULL || ch == '/')
-			fatal("%s: missing host in %s", __func__, what);
+			fatal_f("missing host in %s", what);
 		host = cleanhostname(host);
 		if (arg == NULL || ((port = permitopen_port(arg)) < 0))
-			fatal("%s: bad port number in %s", __func__, what);
+			fatal_f("bad port number in %s", what);
 		/* Send it to channels layer */
 		channel_add_permission(ssh, FORWARD_ADM,
 		    where, host, port);
@@ -2051,17 +2051,15 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				    item, entry);
 			}
 			if (gbuf.gl_pathc > INT_MAX)
-				fatal("%s: too many glob results", __func__);
+				fatal_f("too many glob results");
 			for (n = 0; n < (int)gbuf.gl_pathc; n++) {
 				debug2("%s line %d: including %s",
 				    filename, linenum, gbuf.gl_pathv[n]);
 				item = xcalloc(1, sizeof(*item));
 				item->selector = strdup(arg);
 				item->filename = strdup(gbuf.gl_pathv[n]);
-				if ((item->contents = sshbuf_new()) == NULL) {
-					fatal("%s: sshbuf_new failed",
-					    __func__);
-				}
+				if ((item->contents = sshbuf_new()) == NULL)
+					fatal_f("sshbuf_new failed");
 				load_server_config(item->filename,
 				    item->contents);
 				parse_server_config_depth(options,
@@ -2415,7 +2413,7 @@ load_server_config(const char *filename, struct sshbuf *conf)
 	FILE *f;
 	int r, lineno = 0;
 
-	debug2("%s: filename %s", __func__, filename);
+	debug2_f("filename %s", filename);
 	if ((f = fopen(filename, "r")) == NULL) {
 		perror(filename);
 		exit(1);
@@ -2424,7 +2422,7 @@ load_server_config(const char *filename, struct sshbuf *conf)
 	/* grow buffer, so realloc is avoided for large config files */
 	if (fstat(fileno(f), &st) == 0 && st.st_size > 0 &&
             (r = sshbuf_allocate(conf, st.st_size)) != 0)
-		fatal("%s: allocate failed: %s", __func__, ssh_err(r));
+		fatal_fr(r, "allocate");
 	while (getline(&line, &linesize, f) != -1) {
 		lineno++;
 		/*
@@ -2436,13 +2434,13 @@ load_server_config(const char *filename, struct sshbuf *conf)
 			memcpy(cp, "\n", 2);
 		cp = line + strspn(line, " \t\r");
 		if ((r = sshbuf_put(conf, cp, strlen(cp))) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "sshbuf_put");
 	}
 	free(line);
 	if ((r = sshbuf_put_u8(conf, 0)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "sshbuf_put_u8");
 	fclose(f);
-	debug2("%s: done config len = %zu", __func__, sshbuf_len(conf));
+	debug2_f("done config len = %zu", sshbuf_len(conf));
 }
 
 void
@@ -2610,11 +2608,11 @@ parse_server_config_depth(ServerOptions *options, const char *filename,
 	if (depth < 0 || depth > SERVCONF_MAX_DEPTH)
 		fatal("Too many recursive configuration includes");
 
-	debug2("%s: config %s len %zu%s", __func__, filename, sshbuf_len(conf),
+	debug2_f("config %s len %zu%s", filename, sshbuf_len(conf),
 	    (flags & SSHCFG_NEVERMATCH ? " [checking syntax only]" : ""));
 
 	if ((obuf = cbuf = sshbuf_dup_string(conf)) == NULL)
-		fatal("%s: sshbuf_dup_string failed", __func__);
+		fatal_f("sshbuf_dup_string failed");
 	linenum = 1;
 	while ((cp = strsep(&cbuf, "\n")) != NULL) {
 		if (process_server_config_line_depth(options, cp,

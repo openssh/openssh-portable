@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.339 2020/10/16 13:26:13 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.340 2020/10/18 11:32:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -338,7 +338,7 @@ ssh_connection_hash(const char *thishost, const char *host, const char *portstr,
 	    ssh_digest_update(md, portstr, strlen(portstr)) < 0 ||
 	    ssh_digest_update(md, user, strlen(user)) < 0 ||
 	    ssh_digest_final(md, conn_hash, sizeof(conn_hash)) < 0)
-		fatal("%s: mux digest failed", __func__);
+		fatal_f("mux digest failed");
 	ssh_digest_free(md);
 	return tohex(conn_hash, ssh_digest_bytes(SSH_DIGEST_SHA1));
 }
@@ -446,7 +446,7 @@ add_certificate_file(Options *options, const char *path, int userprovided)
 	for (i = 0; i < options->num_certificate_files; i++) {
 		if (options->certificate_file_userprovided[i] == userprovided &&
 		    strcmp(options->certificate_files[i], path) == 0) {
-			debug2("%s: ignoring duplicate key %s", __func__, path);
+			debug2_f("ignoring duplicate key %s", path);
 			return;
 		}
 	}
@@ -477,7 +477,7 @@ add_identity_file(Options *options, const char *dir, const char *filename,
 	for (i = 0; i < options->num_identity_files; i++) {
 		if (options->identity_file_userprovided[i] == userprovided &&
 		    strcmp(options->identity_files[i], path) == 0) {
-			debug2("%s: ignoring duplicate key %s", __func__, path);
+			debug2_f("ignoring duplicate key %s", path);
 			free(path);
 			return;
 		}
@@ -527,7 +527,7 @@ execute_in_shell(const char *cmd)
 		char *argv[4];
 
 		if (stdfd_devnull(1, 1, 0) == -1)
-			fatal("%s: stdfd_devnull failed", __func__);
+			fatal_f("stdfd_devnull failed");
 		closefrom(STDERR_FILENO + 1);
 
 		argv[0] = shell;
@@ -544,11 +544,11 @@ execute_in_shell(const char *cmd)
 	}
 	/* Parent. */
 	if (pid == -1)
-		fatal("%s: fork: %.100s", __func__, strerror(errno));
+		fatal_f("fork: %.100s", strerror(errno));
 
 	while (waitpid(pid, &status, 0) == -1) {
 		if (errno != EINTR && errno != EAGAIN)
-			fatal("%s: waitpid: %s", __func__, strerror(errno));
+			fatal_f("waitpid: %s", strerror(errno));
 	}
 	if (!WIFEXITED(status)) {
 		error("command '%.100s' exited abnormally", cmd);
@@ -1465,10 +1465,9 @@ parse_keytypes:
 		    (u_char) arg[1] >= 64 && (u_char) arg[1] < 128)
 			value = (u_char) arg[1] & 31;
 		else {
+			value = 0;	/* Avoid compiler warning. */
 			fatal("%.200s line %d: Bad escape character.",
 			    filename, linenum);
-			/* NOTREACHED */
-			value = 0;	/* Avoid compiler warning. */
 		}
 		if (*activep && *intptr == -1)
 			*intptr = value;
@@ -1866,7 +1865,7 @@ parse_keytypes:
 		return 0;
 
 	default:
-		fatal("%s: Unimplemented opcode %d", __func__, opcode);
+		fatal_f("Unimplemented opcode %d", opcode);
 	}
 
 	/* Check that there is no garbage at end of line. */
@@ -2275,7 +2274,7 @@ fill_default_options(Options * options)
 	do { \
 		if ((r = kex_assemble_names(&options->what, \
 		    defaults, all)) != 0) \
-			fatal("%s: %s: %s", __func__, #what, ssh_err(r)); \
+			fatal_fr(r, "%s", #what); \
 	} while (0)
 	ASSEMBLE(ciphers, def_cipher, all_cipher);
 	ASSEMBLE(macs, def_mac, all_mac);
@@ -2761,7 +2760,7 @@ dump_client_config(Options *o, const char *host)
 	all_key = sshkey_alg_list(0, 0, 1, ',');
 	if ((r = kex_assemble_names(&o->hostkeyalgorithms, kex_default_pk_alg(),
 	    all_key)) != 0)
-		fatal("%s: expand HostKeyAlgorithms: %s", __func__, ssh_err(r));
+		fatal_fr(r, "expand HostKeyAlgorithms");
 	free(all_key);
 
 	/* Most interesting options first: user, host, port */

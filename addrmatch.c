@@ -1,4 +1,4 @@
-/*	$OpenBSD: addrmatch.c,v 1.14 2018/07/31 03:07:24 djm Exp $ */
+/*	$OpenBSD: addrmatch.c,v 1.15 2020/10/18 11:32:01 djm Exp $ */
 
 /*
  * Copyright (c) 2004-2008 Damien Miller <djm@mindrot.org>
@@ -381,7 +381,7 @@ addr_match_list(const char *addr, const char *_list)
 	int ret = 0, r;
 
 	if (addr != NULL && addr_pton(addr, &try_addr) != 0) {
-		debug2("%s: couldn't parse address %.100s", __func__, addr);
+		debug2_f("couldn't parse address %.100s", addr);
 		return 0;
 	}
 	if ((o = list = strdup(_list)) == NULL)
@@ -397,8 +397,8 @@ addr_match_list(const char *addr, const char *_list)
 		/* Prefer CIDR address matching */
 		r = addr_pton_cidr(cp, &match_addr, &masklen);
 		if (r == -2) {
-			debug2("%s: inconsistent mask length for "
-			    "match network \"%.100s\"", __func__, cp);
+			debug2_f("inconsistent mask length for "
+			    "match network \"%.100s\"", cp);
 			ret = -2;
 			break;
 		} else if (r == 0) {
@@ -441,15 +441,14 @@ addr_match_cidr_list(const char *addr, const char *_list)
 	int ret = 0, r;
 
 	if (addr != NULL && addr_pton(addr, &try_addr) != 0) {
-		debug2("%s: couldn't parse address %.100s", __func__, addr);
+		debug2_f("couldn't parse address %.100s", addr);
 		return 0;
 	}
 	if ((o = list = strdup(_list)) == NULL)
 		return -1;
 	while ((cp = strsep(&list, ",")) != NULL) {
 		if (*cp == '\0') {
-			error("%s: empty entry in list \"%.100s\"",
-			    __func__, o);
+			error_f("empty entry in list \"%.100s\"", o);
 			ret = -1;
 			break;
 		}
@@ -462,15 +461,14 @@ addr_match_cidr_list(const char *addr, const char *_list)
 
 		/* Stop junk from reaching getaddrinfo. +3 is for masklen */
 		if (strlen(cp) > INET6_ADDRSTRLEN + 3) {
-			error("%s: list entry \"%.100s\" too long",
-			    __func__, cp);
+			error_f("list entry \"%.100s\" too long", cp);
 			ret = -1;
 			break;
 		}
 #define VALID_CIDR_CHARS "0123456789abcdefABCDEF.:/"
 		if (strspn(cp, VALID_CIDR_CHARS) != strlen(cp)) {
-			error("%s: list entry \"%.100s\" contains invalid "
-			    "characters", __func__, cp);
+			error_f("list entry \"%.100s\" contains invalid "
+			    "characters", cp);
 			ret = -1;
 		}
 

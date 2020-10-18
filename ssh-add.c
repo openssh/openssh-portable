@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.157 2020/08/31 04:33:17 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.158 2020/10/18 11:32:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -146,9 +146,9 @@ delete_stdin(int agent_fd, int qflag)
 		if (*cp == '#' || *cp == '\0')
 			continue;
 		if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
-			fatal("%s: sshkey_new", __func__);
+			fatal_f("sshkey_new");
 		if ((r = sshkey_read(key, &cp)) != 0) {
-			error("(stdin):%d: invalid key: %s", lnum, ssh_err(r));
+			error_r(r, "(stdin):%d: invalid key", lnum);
 			continue;
 		}
 		if (delete_one(agent_fd, key, cp, "(stdin)", qflag) == 0)
@@ -185,8 +185,7 @@ delete_file(int agent_fd, const char *filename, int key_only, int qflag)
 	xasprintf(&certpath, "%s-cert.pub", filename);
 	if ((r = sshkey_load_public(certpath, &cert, &comment)) != 0) {
 		if (r != SSH_ERR_SYSTEM_ERROR || errno != ENOENT)
-			error("Failed to load certificate \"%s\": %s",
-			    certpath, ssh_err(r));
+			error_r(r, "Failed to load certificate \"%s\"", certpath);
 		goto out;
 	}
 
@@ -393,8 +392,7 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 	xasprintf(&certpath, "%s-cert.pub", filename);
 	if ((r = sshkey_load_public(certpath, &cert, NULL)) != 0) {
 		if (r != SSH_ERR_SYSTEM_ERROR || errno != ENOENT)
-			error("Failed to load certificate \"%s\": %s",
-			    certpath, ssh_err(r));
+			error_r(r, "Failed to load certificate \"%s\"", certpath);
 		goto out;
 	}
 
@@ -407,12 +405,12 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 
 	/* Graft with private bits */
 	if ((r = sshkey_to_certified(private)) != 0) {
-		error("%s: sshkey_to_certified: %s", __func__, ssh_err(r));
+		error_fr(r, "sshkey_to_certified");
 		sshkey_free(cert);
 		goto out;
 	}
 	if ((r = sshkey_cert_copy(cert, private)) != 0) {
-		error("%s: sshkey_cert_copy: %s", __func__, ssh_err(r));
+		error_fr(r, "sshkey_cert_copy");
 		sshkey_free(cert);
 		goto out;
 	}
@@ -420,8 +418,8 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 
 	if ((r = ssh_add_identity_constrained(agent_fd, private, comment,
 	    lifetime, confirm, maxsign, skprovider)) != 0) {
-		error("Certificate %s (%s) add failed: %s", certpath,
-		    private->cert->key_id, ssh_err(r));
+		error_r(r, "Certificate %s (%s) add failed", certpath,
+		    private->cert->key_id);
 		goto out;
 	}
 	/* success */
@@ -484,20 +482,18 @@ test_key(int agent_fd, const char *filename)
 	char data[1024];
 
 	if ((r = sshkey_load_public(filename, &key, NULL)) != 0) {
-		error("Couldn't read public key %s: %s", filename, ssh_err(r));
+		error_r(r, "Couldn't read public key %s", filename);
 		return -1;
 	}
 	arc4random_buf(data, sizeof(data));
 	if ((r = ssh_agent_sign(agent_fd, key, &sig, &slen, data, sizeof(data),
 	    NULL, 0)) != 0) {
-		error("Agent signature failed for %s: %s",
-		    filename, ssh_err(r));
+		error_r(r, "Agent signature failed for %s", filename);
 		goto done;
 	}
 	if ((r = sshkey_verify(key, sig, slen, data, sizeof(data),
 	    NULL, 0, NULL)) != 0) {
-		error("Signature verification failed for %s: %s",
-		    filename, ssh_err(r));
+		error_r(r, "Signature verification failed for %s", filename);
 		goto done;
 	}
 	/* success */
@@ -592,13 +588,13 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag)
 	pass = read_passphrase("Enter PIN for authenticator: ", RP_ALLOW_STDIN);
 	if ((r = sshsk_load_resident(skprovider, NULL, pass,
 	    &keys, &nkeys)) != 0) {
-		error("Unable to load resident keys: %s", ssh_err(r));
+		error_r(r, "Unable to load resident keys");
 		return r;
 	}
 	for (i = 0; i < nkeys; i++) {
 		if ((fp = sshkey_fingerprint(keys[i],
 		    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
-			fatal("%s: sshkey_fingerprint failed", __func__);
+			fatal_f("sshkey_fingerprint failed");
 		if ((r = ssh_add_identity_constrained(agent_fd, keys[i], "",
 		    lifetime, confirm, maxsign, skprovider)) != 0) {
 			error("Unable to add key %s %s",
