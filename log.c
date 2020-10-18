@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.54 2020/10/17 01:28:20 djm Exp $ */
+/* $OpenBSD: log.c,v 1.55 2020/10/18 11:21:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -334,7 +334,7 @@ set_log_handler(log_handler_fn *handler, void *ctx)
 
 static void
 do_log(const char *file, const char *func, int line, LogLevel level,
-    int force, const char *fmt, va_list args)
+    int force, const char *suffix, const char *fmt, va_list args)
 {
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
 	struct syslog_data sdata = SYSLOG_DATA_INIT;
@@ -389,6 +389,10 @@ do_log(const char *file, const char *func, int line, LogLevel level,
 	} else {
 		vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
 	}
+	if (suffix != NULL) {
+		snprintf(fmtbuf, sizeof(fmtbuf), "%s: %s", msgbuf, suffix);
+		strlcpy(msgbuf, fmtbuf, sizeof(msgbuf));
+	}
 	strnvis(fmtbuf, msgbuf, sizeof(fmtbuf),
 	    log_on_stderr ? LOG_STDERR_VIS : LOG_SYSLOG_VIS);
 	if (log_handler != NULL) {
@@ -417,42 +421,44 @@ do_log(const char *file, const char *func, int line, LogLevel level,
 
 void
 sshlog(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *fmt, ...)
+    LogLevel level, const char *suffix, const char *fmt, ...)
 {
 	va_list args;
 
 	va_start(args, fmt);
-	sshlogv(file, func, line, showfunc, level, fmt, args);
+	sshlogv(file, func, line, showfunc, level, suffix, fmt, args);
 	va_end(args);
 }
 
 void
 sshlogdie(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *fmt, ...)
+    LogLevel level, const char *suffix, const char *fmt, ...)
 {
 	va_list args;
 
 	va_start(args, fmt);
-	sshlogv(file, func, line, showfunc, SYSLOG_LEVEL_INFO, fmt, args);
+	sshlogv(file, func, line, showfunc, SYSLOG_LEVEL_INFO,
+	    suffix, fmt, args);
 	va_end(args);
 	cleanup_exit(255);
 }
 
 void
 sshsigdie(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *fmt, ...)
+    LogLevel level, const char *suffix, const char *fmt, ...)
 {
 	va_list args;
 
 	va_start(args, fmt);
-	sshlogv(file, func, line, showfunc, SYSLOG_LEVEL_FATAL, fmt, args);
+	sshlogv(file, func, line, showfunc, SYSLOG_LEVEL_FATAL,
+	    suffix, fmt, args);
 	va_end(args);
 	_exit(1);
 }
 
 void
 sshlogv(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *fmt, va_list args)
+    LogLevel level, const char *suffix, const char *fmt, va_list args)
 {
 	char tag[128], fmt2[MSGBUFSIZ + 128];
 	int forced = 0;
@@ -475,5 +481,5 @@ sshlogv(const char *file, const char *func, int line, int showfunc,
 	else
 		strlcpy(fmt2, fmt, sizeof(fmt2));
 
-	do_log(file, func, line, level, forced, fmt2, args);
+	do_log(file, func, line, level, forced, suffix, fmt2, args);
 }

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.215 2020/10/16 13:24:45 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.216 2020/10/18 11:21:59 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -461,9 +461,8 @@ monitor_read_log(struct monitor *pmonitor)
 
 	/* Log it */
 	if (log_level_name(level) == NULL)
-		fatal("%s: invalid log level %u (corrupted message?)",
-		    __func__, level);
-	sshlog(file, func, line, 0, level, "%s [preauth]", msg);
+		fatal_f("invalid log level %u (corrupted message?)", level);
+	sshlog(file, func, line, 0, level, NULL, "%s [preauth]", msg);
 
 	sshbuf_free(logmsg);
 	free(file);
