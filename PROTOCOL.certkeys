@@ -280,12 +280,15 @@ their data fields are:
 
 Name                    Format        Description
 -----------------------------------------------------------------------------
-no-presence-required    empty         Flag indicating that signatures made
+no-touch-required       empty         Flag indicating that signatures made
                                       with this certificate need not assert
                                       user presence. This option only make
                                       sense for the U2F/FIDO security key
                                       types that support this feature in
-                                      their signature formats.
+                                      their signature formats. Note that the
+                                      CA must also have been marked with the
+                                      no-touch-required option for this to
+                                      be respected.
 
 permit-X11-forwarding   empty         Flag indicating that X11 forwarding
                                       should be permitted. X11 forwarding will
