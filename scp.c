@@ -399,6 +399,7 @@ int Tflag, pflag, iamremote, iamrecursive, targetshouldbedirectory;
 char cmd[CMDNEEDS];		/* must hold "rcp -r -p -d\0" */
 
 enum scp_mode_e {
+	MODE_DEFAULT,
 	MODE_SCP,
 	MODE_SFTP
 };
@@ -423,7 +424,7 @@ main(int argc, char **argv)
 	extern char *optarg;
 	extern int optind;
 	/* For now, keep SCP as default */
-	enum scp_mode_e mode = MODE_SCP;
+	enum scp_mode_e mode = MODE_DEFAULT;
 	char *sftp_direct = NULL;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -559,6 +560,10 @@ main(int argc, char **argv)
 	/* Do this last because we want the user to be able to override it */
 	addargs(&args, "-oForwardAgent=no");
 
+	/* The server can not work in SFTP mode so keep default SCP there */
+	if (mode == MODE_DEFAULT) {
+		mode = iamremote ? MODE_SCP : MODE_SFTP;
+	}
 	if (mode != MODE_SFTP && sftp_direct != NULL) {
 		fatal("SFTP direct can be used only in SFTP mode");
 	}
