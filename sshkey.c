@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.111 2020/08/27 01:06:19 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.112 2020/10/19 22:49:23 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -4700,7 +4700,7 @@ sshkey_parse_pubkey_from_private_fileblob_type(struct sshbuf *blob, int type,
  */
 int
 sshkey_private_serialize_maxsign(struct sshkey *k, struct sshbuf *b,
-    u_int32_t maxsign, sshkey_printfn *pr)
+    u_int32_t maxsign, int printerror)
 {
 	int r, rupdate;
 
@@ -4708,14 +4708,14 @@ sshkey_private_serialize_maxsign(struct sshkey *k, struct sshbuf *b,
 	    sshkey_type_plain(k->type) != KEY_XMSS)
 		return sshkey_private_serialize_opt(k, b,
 		    SSHKEY_SERIALIZE_DEFAULT);
-	if ((r = sshkey_xmss_get_state(k, pr)) != 0 ||
+	if ((r = sshkey_xmss_get_state(k, printerror)) != 0 ||
 	    (r = sshkey_private_serialize_opt(k, b,
 	    SSHKEY_SERIALIZE_STATE)) != 0 ||
 	    (r = sshkey_xmss_forward_state(k, maxsign)) != 0)
 		goto out;
 	r = 0;
 out:
-	if ((rupdate = sshkey_xmss_update_state(k, pr)) != 0) {
+	if ((rupdate = sshkey_xmss_update_state(k, printerror)) != 0) {
 		if (r == 0)
 			r = rupdate;
 	}
@@ -4754,7 +4754,7 @@ sshkey_set_filename(struct sshkey *k, const char *filename)
 #else
 int
 sshkey_private_serialize_maxsign(struct sshkey *k, struct sshbuf *b,
-    u_int32_t maxsign, sshkey_printfn *pr)
+    u_int32_t maxsign, int printerror)
 {
 	return sshkey_private_serialize_opt(k, b, SSHKEY_SERIALIZE_DEFAULT);
 }

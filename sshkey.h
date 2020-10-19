@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.46 2020/08/27 01:06:19 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.47 2020/10/19 22:49:23 dtucker Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -267,17 +267,12 @@ int	sshkey_parse_pubkey_from_private_fileblob_type(struct sshbuf *blob,
 int ssh_rsa_complete_crt_parameters(struct sshkey *, const BIGNUM *);
 
 /* stateful keys (e.g. XMSS) */
-#ifdef NO_ATTRIBUTE_ON_PROTOTYPE_ARGS
-typedef void sshkey_printfn(const char *, ...);
-#else
-typedef void sshkey_printfn(const char *, ...) __attribute__((format(printf, 1, 2)));
-#endif
 int	 sshkey_set_filename(struct sshkey *, const char *);
 int	 sshkey_enable_maxsign(struct sshkey *, u_int32_t);
 u_int32_t sshkey_signatures_left(const struct sshkey *);
-int	 sshkey_forward_state(const struct sshkey *, u_int32_t, sshkey_printfn *);
-int	 sshkey_private_serialize_maxsign(struct sshkey *key, struct sshbuf *buf,
-    u_int32_t maxsign, sshkey_printfn *pr);
+int	 sshkey_forward_state(const struct sshkey *, u_int32_t, int);
+int	 sshkey_private_serialize_maxsign(struct sshkey *key,
+    struct sshbuf *buf, u_int32_t maxsign, int);
 
 void	 sshkey_sig_details_free(struct sshkey_sig_details *);
 

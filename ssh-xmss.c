@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-xmss.c,v 1.3 2020/10/18 11:32:02 djm Exp $*/
+/* $OpenBSD: ssh-xmss.c,v 1.4 2020/10/19 22:49:23 dtucker Exp $*/
 /*
  * Copyright (c) 2017 Stefan-Lukas Gazdag.
  * Copyright (c) 2017 Markus Friedl.
@@ -62,7 +62,7 @@ ssh_xmss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	smlen = slen = datalen + required_siglen;
 	if ((sig = malloc(slen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshkey_xmss_get_state(key, error)) != 0)
+	if ((r = sshkey_xmss_get_state(key, 1)) != 0)
 		goto out;
 	if ((ret = xmss_sign(key->xmss_sk, sshkey_xmss_bds_state(key), sig, &smlen,
 	    data, datalen, sshkey_xmss_params(key))) != 0 || smlen <= datalen) {
@@ -90,7 +90,7 @@ ssh_xmss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	/* success */
 	r = 0;
  out:
-	if ((ret = sshkey_xmss_update_state(key, error)) != 0) {
+	if ((ret = sshkey_xmss_update_state(key, 1)) != 0) {
 		/* discard signature since we cannot update the state */
 		if (r == 0 && sigp != NULL && *sigp != NULL) {
 			explicit_bzero(*sigp, len);
