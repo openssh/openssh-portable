@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.136 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.137 2020/10/19 08:07:08 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -641,7 +641,7 @@ sshfatal(const char *file, const char *func, int line, int showfunc,
 	va_list args;
 
 	va_start(args, fmt);
-	sshlog(file, func, line, showfunc, level, suffix, fmt, args);
+	sshlogv(file, func, line, showfunc, level, suffix, fmt, args);
 	va_end(args);
 	cleanup_exit(255);
 }

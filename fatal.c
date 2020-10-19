@@ -1,4 +1,4 @@
-/* $OpenBSD: fatal.c,v 1.10 2020/10/18 11:21:59 djm Exp $ */
+/* $OpenBSD: fatal.c,v 1.11 2020/10/19 08:07:08 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -40,7 +40,7 @@ sshfatal(const char *file, const char *func, int line, int showfunc,
 	va_list args;
 
 	va_start(args, fmt);
-	sshlog(file, func, line, showfunc, level, suffix, fmt, args);
+	sshlogv(file, func, line, showfunc, level, suffix, fmt, args);
 	va_end(args);
 	cleanup_exit(255);
 }
