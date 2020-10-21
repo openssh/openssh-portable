@@ -944,8 +944,8 @@ read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 
 #if defined(USE_PAM) || defined(HAVE_CYGWIN)
 static void
-copy_environment_blacklist(char **source, char ***env, u_int *envsize,
-    const char *blacklist)
+copy_environment_denylist(char **source, char ***env, u_int *envsize,
+    const char *denylist)
 {
 	char *var_name, *var_val;
 	int i;
@@ -961,8 +961,8 @@ copy_environment_blacklist(char **source, char ***env, u_int *envsize,
 		}
 		*var_val++ = '\0';
 
-		if (blacklist == NULL ||
-		    match_pattern_list(var_name, blacklist, 0) != 1) {
+		if (denylist == NULL ||
+		    match_pattern_list(var_name, denylist, 0) != 1) {
 			debug3("Copy environment: %s=%s", var_name, var_val);
 			child_set_env(env, envsize, var_name, var_val);
 		}
@@ -976,7 +976,7 @@ copy_environment_blacklist(char **source, char ***env, u_int *envsize,
 static void
 copy_environment(char **source, char ***env, u_int *envsize)
 {
-	copy_environment_blacklist(source, env, envsize, NULL);
+	copy_environment_denylist(source, env, envsize, NULL);
 }
 #endif
 
@@ -1138,15 +1138,15 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		 * Don't allow PAM-internal env vars to leak
 		 * back into the session environment.
 		 */
-#define PAM_ENV_BLACKLIST  "SSH_AUTH_INFO*,SSH_CONNECTION*"
+#define PAM_ENV_DENYLIST  "SSH_AUTH_INFO*,SSH_CONNECTION*"
 		p = fetch_pam_child_environment();
-		copy_environment_blacklist(p, &env, &envsize,
-		    PAM_ENV_BLACKLIST);
+		copy_environment_denylist(p, &env, &envsize,
+		    PAM_ENV_DENYLIST);
 		free_pam_environment(p);
 
 		p = fetch_pam_environment();
-		copy_environment_blacklist(p, &env, &envsize,
-		    PAM_ENV_BLACKLIST);
+		copy_environment_denylist(p, &env, &envsize,
+		    PAM_ENV_DENYLIST);
 		free_pam_environment(p);
 	}
 #endif /* USE_PAM */
