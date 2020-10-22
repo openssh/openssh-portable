@@ -55,7 +55,6 @@ typedef struct {
 	int     tcp_rcv_buf_poll; /* Option to poll recv buf every window transfer */
 	int     hpn_disabled;    /* Switch to disable HPN buffer management */
 	int     hpn_buffer_size; /* User definable size for HPN buffer window */
-	int     remote_rcv_buf; /* user switch to set remote tcp recv buffer */
 	int	ip_qos_interactive;	/* IP ToS/DSCP/class for interactive */
 	int	ip_qos_bulk;		/* IP ToS/DSCP/class for bulk traffic */
 	SyslogFacility log_facility;	/* Facility for system logging. */

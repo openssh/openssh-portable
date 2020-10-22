@@ -169,7 +169,6 @@ typedef enum {
 	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
 	oNoneEnabled, oNoneMacEnabled, oNoneSwitch,
 	oDisableMTAES,
-	oRemoteRcvBuf,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
@@ -303,7 +302,6 @@ static struct {
 	{ "nonemacenabled", oNoneMacEnabled },
 	{ "noneswitch", oNoneSwitch },
         { "disablemtaes", oDisableMTAES },
-	{ "remotercvbuf", oRemoteRcvBuf },
 	{ "proxyusefdpass", oProxyUseFdpass },
 	{ "canonicaldomains", oCanonicalDomains },
 	{ "canonicalizefallbacklocal", oCanonicalizeFallbackLocal },
@@ -320,17 +318,10 @@ static struct {
 	{ "ignoreunknown", oIgnoreUnknown },
 	{ "proxyjump", oProxyJump },
 	{ "securitykeyprovider", oSecurityKeyProvider },
-
 	{ "tcprcvbufpoll", oTcpRcvBufPoll },
 	{ "tcprcvbuf", oTcpRcvBuf },
 	{ "hpndisabled", oHPNDisabled },
 	{ "hpnbuffersize", oHPNBufferSize },
-
-	{ "tcprcvbufpoll", oTcpRcvBufPoll },
-	{ "tcprcvbuf", oTcpRcvBuf },
-	{ "hpndisabled", oHPNDisabled },
-	{ "hpnbuffersize", oHPNBufferSize },
-
 	{ NULL, oBadOption }
 };
 
@@ -1344,10 +1335,6 @@ parse_int:
 		intptr = &options->tcp_rcv_buf;
 		goto parse_int;
 
-	case oRemoteRcvBuf:
-		intptr = &options->remote_rcv_buf;
-		goto parse_int;
-		
 	case oCiphers:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
@@ -2126,7 +2113,6 @@ initialize_options(Options * options)
 	options->hpn_buffer_size = -1;
 	options->tcp_rcv_buf_poll = -1;
 	options->tcp_rcv_buf = -1;
-	options->remote_rcv_buf = -1;
 	options->proxy_use_fdpass = -1;
 	options->ignored_unknown = NULL;
 	options->num_canonical_domains = 0;
@@ -2301,10 +2287,6 @@ fill_default_options(Options * options)
 		options->tcp_rcv_buf = 1;
 	if (options->tcp_rcv_buf > -1)
 		options->tcp_rcv_buf *=1024;
-	if (options->remote_rcv_buf == 0)
-		options->remote_rcv_buf = 1;
-	if (options->remote_rcv_buf > -1)
-		options->remote_rcv_buf *=1024;
 	if (options->tcp_rcv_buf_poll == -1)
 		options->tcp_rcv_buf_poll = 1;
 	if (options->none_switch == -1)

@@ -140,7 +140,6 @@
 #define SSH2_MSG_CHANNEL_REQUEST			98
 #define SSH2_MSG_CHANNEL_SUCCESS			99
 #define SSH2_MSG_CHANNEL_FAILURE			100
-#define SSH2_MSG_LOCAL_SO_RCVBUF                        192
 
 /* disconnect reason code */
 

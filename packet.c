@@ -245,7 +245,7 @@ ssh_alloc_session_state(void)
 	TAILQ_INIT(&ssh->public_keys);
 	state->connection_in = -1;
 	state->connection_out = -1;
-	state->max_packet_size = CHAN_SES_PACKET_DEFAULT;
+	state->max_packet_size = 32768;
 	state->packet_timeout_ms = -1;
 	state->p_send.packets = state->p_read.packets = 0;
 	state->initialized = 1;
@@ -960,7 +960,6 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	 * and using a blocksize larger that 16 doesn't work (dunno why)
 	 * so this seems to be a good limit for now - CJR 10/16/2020*/
 	if (ssh->none == 1) {
-		debug("Hit the ssh none fun");
 		*max_blocks = (u_int64_t)1 << (16*2);
 	} else {
 		if (enc->block_size >= 16)
@@ -1365,7 +1364,7 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	struct session_state *state = ssh->state;
 	int len, r, ms_remain;
 	fd_set *setp;
-	char buf[SSH_IOBUFSZ];
+	char buf[8192];
 	struct timeval timeout, start, *timeoutp = NULL;
 
 	DBG(debug("packet_read()"));
@@ -1721,7 +1720,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		goto out;
 	if (ssh_packet_log_type(*typep))
 		debug3("receive packet: type %u", *typep);
-	if (*typep < SSH2_MSG_MIN || *typep >= SSH2_MSG_LOCAL_MAX) {
+	if (*typep < SSH2_MSG_MIN || *typep >= SSH2_MSG_LOCAL_MIN) {
 		if ((r = sshpkt_disconnect(ssh,
 		    "Invalid ssh2 packet type: %d", *typep)) != 0 ||
 		    (r = ssh_packet_write_wait(ssh)) != 0)
