@@ -2288,34 +2288,6 @@ if test "x$ac_cv_func_getpeereid" != "xyes" -a "x$ac_cv_func_getpeerucred" != "x
         ])
 fi
 
-dnl see whether mkstemp() requires XXXXXX
-if test "x$ac_cv_func_mkdtemp" = "xyes" ; then
-AC_MSG_CHECKING([for (overly) strict mkstemp])
-AC_RUN_IFELSE(
-	[AC_LANG_PROGRAM([[
-#include <stdlib.h>
-#include <unistd.h>
-	]], [[
-	char template[]="conftest.mkstemp-test";
-	if (mkstemp(template) == -1)
-		exit(1);
-	unlink(template);
-	exit(0);
-	]])],
-	[
-		AC_MSG_RESULT([no])
-	],
-	[
-		AC_MSG_RESULT([yes])
-		AC_DEFINE([HAVE_STRICT_MKSTEMP], [1], [Silly mkstemp()])
-	],
-	[
-		AC_MSG_RESULT([yes])
-		AC_DEFINE([HAVE_STRICT_MKSTEMP])
-	]
-)
-fi
-
 dnl make sure that openpty does not reacquire controlling terminal
 if test ! -z "$check_for_openpty_ctty_bug"; then
 	AC_MSG_CHECKING([if openpty correctly handles controlling tty])

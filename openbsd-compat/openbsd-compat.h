@@ -122,7 +122,7 @@ void strmode(int mode, char *p);
 char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
 
-#if !defined(HAVE_MKDTEMP) || defined(HAVE_STRICT_MKSTEMP)
+#if !defined(HAVE_MKDTEMP)
 int mkstemps(char *path, int slen);
 int mkstemp(char *path);
 char *mkdtemp(char *path);
