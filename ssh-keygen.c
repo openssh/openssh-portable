@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.421 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.422 2020/10/29 02:52:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3101,7 +3101,7 @@ usage(void)
 	    "       ssh-keygen -Y check-novalidate -n namespace -s signature_file\n"
 	    "       ssh-keygen -Y sign -f key_file -n namespace file ...\n"
 	    "       ssh-keygen -Y verify -f allowed_signers_file -I signer_identity\n"
-	    "       		-n namespace -s signature_file [-r revocation_file]\n");
+	    "                  -n namespace -s signature_file [-r revocation_file]\n");
 	exit(1);
 }
 

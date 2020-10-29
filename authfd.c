@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.125 2020/10/19 22:49:23 dtucker Exp $ */
+/* $OpenBSD: authfd.c,v 1.126 2020/10/29 02:52:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -62,7 +62,7 @@
 #include "ssherr.h"
 
 #define MAX_AGENT_IDENTITIES	2048		/* Max keys in agent reply */
-#define MAX_AGENT_REPLY_LEN	(256 * 1024) 	/* Max bytes in agent reply */
+#define MAX_AGENT_REPLY_LEN	(256 * 1024)	/* Max bytes in agent reply */
 
 /* macro to check for "agent failure" message */
 #define agent_failed(x) \

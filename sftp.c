@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.203 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.204 2020/10/29 02:52:43 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1172,7 +1172,7 @@ undo_glob_escape(char *s)
  * last argument's quote has been properly terminated or 0 otherwise.
  * This parameter is only of use if "sloppy" is set.
  */
-#define MAXARGS 	128
+#define MAXARGS		128
 #define MAXARGLEN	8192
 static char **
 makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
