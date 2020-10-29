@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.354 2020/10/18 11:32:01 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.355 2020/10/29 02:47:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1892,13 +1892,20 @@ hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 		return 0;
 	}
 
-	/* Record if address matched against a different hostname. */
-	if (ctx->ip_str != NULL && (l->match & HKF_MATCH_HOST) == 0 &&
-	    strchr(l->hosts, ',') != NULL) {
-		ctx->other_name_seen = 1;
-		debug3_f("found address %s against different hostname at "
-		    "%s:%ld", ctx->ip_str, l->path, l->linenum);
-		return 0;
+	/* If CheckHostIP is enabled, then check for mismatched hostname/addr */
+	if (ctx->ip_str != NULL && strchr(l->hosts, ',') != NULL) {
+		if ((l->match & HKF_MATCH_HOST) == 0) {
+			/* Record if address matched a different hostname. */
+			ctx->other_name_seen = 1;
+			debug3_f("found address %s against different hostname "
+			    "at %s:%ld", ctx->ip_str, l->path, l->linenum);
+			return 0;
+		} else if ((l->match & HKF_MATCH_IP) == 0) {
+			/* Record if hostname matched a different address. */
+			ctx->other_name_seen = 1;
+			debug3_f("found hostname %s against different address "
+			    "at %s:%ld", ctx->host_str, l->path, l->linenum);
+		}
 	}
 
 	/*
@@ -2291,7 +2298,7 @@ client_input_hostkeys(struct ssh *ssh)
 		    ctx->ip_str ? ctx->ip_str : "(none)");
 		if ((r = hostkeys_foreach(options.user_hostfiles[i],
 		    hostkeys_find, ctx, ctx->host_str, ctx->ip_str,
-		    HKF_WANT_PARSE_KEY|HKF_WANT_MATCH)) != 0) {
+		    HKF_WANT_PARSE_KEY)) != 0) {
 			if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT) {
 				debug_f("hostkeys file %s does not exist",
 				    options.user_hostfiles[i]);
