@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.147 2020/10/16 13:26:13 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.148 2020/10/29 03:13:06 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -279,6 +279,7 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STRARRAYOPT(allow_groups, num_allow_groups); \
 		M_CP_STRARRAYOPT(deny_groups, num_deny_groups); \
 		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
+		M_CP_STRARRAYOPT(setenv, num_setenv); \
 		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
 		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens); \
 		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens); \
