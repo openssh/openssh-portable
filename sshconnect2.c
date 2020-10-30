@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.332 2020/10/29 02:52:43 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.333 2020/10/30 01:50:07 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -227,9 +227,9 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port)
 
 	/* Expand or fill in HostkeyAlgorithms */
 	all_key = sshkey_alg_list(0, 0, 1, ',');
-	if (kex_assemble_names(&options.hostkeyalgorithms,
-	    kex_default_pk_alg(), all_key) != 0)
-		fatal_f("kex_assemble_namelist");
+	if ((r = kex_assemble_names(&options.hostkeyalgorithms,
+	    kex_default_pk_alg(), all_key)) != 0)
+		fatal_fr(r, "kex_assemble_namelist");
 	free(all_key);
 
 	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
