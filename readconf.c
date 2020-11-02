@@ -2293,8 +2293,17 @@ fill_default_options(Options * options)
 		options->none_switch = 0;
 	if (options->none_enabled == -1)
 		options->none_enabled = 0;
+	if (options->none_enabled == 0 && options->none_switch > 0) {
+		fprintf(stderr, "NoneEnabled must be enabled to use the None Switch option. None cipher disabled.\n");
+		options->none_enabled = 0;
+	}
 	if (options->nonemac_enabled == -1)
 		options->nonemac_enabled = 0;
+	if (options->nonemac_enabled > 0 && (options->none_enabled == 0 ||
+					     options->none_switch == 0)) {
+		fprintf(stderr, "None MAC can only be used with the None cipher. None MAC disabled.\n");
+		options->nonemac_enabled = 0;
+	}
         if (options->disable_multithreaded == -1)
 		options->disable_multithreaded = 0;
 	if (options->control_master == -1)

@@ -1757,18 +1757,17 @@ main(int ac, char **av)
 
 	if (options.none_enabled == 1) {
 		char *old_ciphers = options.ciphers;
-
 		xasprintf(&options.ciphers, "%s,none", old_ciphers);
 		free(old_ciphers);
+
+		/* only enable the none MAC in context of the none cipher -cjr */
+		if (options.nonemac_enabled == 1) {
+		  char *old_macs = options.macs;
+		  xasprintf(&options.macs, "%s,none", old_macs);
+		  free(old_macs);
+		}
 	}
 
-	if (options.nonemac_enabled == 1) {
-		char *old_macs = options.macs;
-		
-		xasprintf(&options.macs, "%s,none", old_macs);
-		free(old_macs);
-	}
-	
 	/* challenge-response is implemented via keyboard interactive */
 	if (options.challenge_response_authentication)
 		options.kbd_interactive_authentication = 1;

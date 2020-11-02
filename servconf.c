@@ -454,6 +454,10 @@ fill_default_server_options(ServerOptions *options)
 		options->none_enabled = 0;
 	if (options->nonemac_enabled == -1)
 		options->nonemac_enabled = 0;
+	if (options->nonemac_enabled > 0 && options->none_enabled == 0) {
+		debug ("Attempted to enabled None MAC without setting None Enabled to true. None MAC disabled.");
+		options->nonemac_enabled = 0;
+	}
 	if (options->disable_multithreaded == -1)
 		options->disable_multithreaded = 0;
 	if (options->hpn_disabled == -1)

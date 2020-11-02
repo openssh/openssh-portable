@@ -497,25 +497,18 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 		fatal("Authentication failed.");
 
 	/*
-	 * If the user wants to use the none cipher, do it post authentication
+	 * If the user wants to use the none cipher and/or none mac, do it post authentication
 	 * and only if the right conditions are met -- both of the NONE commands
 	 * must be true and there must be no tty allocated.
 	 */
-	if ((options.none_switch == 1) &&
-	    (options.none_enabled == 1 || options.nonemac_enabled == 1)) {
+	if (options.none_switch == 1 && options.none_enabled == 1) {
 		if (!tty_flag) { /* no null on tty sessions */
 			debug("Requesting none rekeying...");
 			memcpy(&myproposal, &myproposal_default, sizeof(myproposal));
-			if (options.none_enabled == 1) {
-				myproposal[PROPOSAL_ENC_ALGS_STOC] = "none";
-				myproposal[PROPOSAL_ENC_ALGS_CTOS] = "none";
-				fprintf(stderr, "WARNING: ENABLED NONE CIPHER\n");
-			} else {
-				myproposal[PROPOSAL_ENC_ALGS_STOC] =
-					compat_cipher_proposal(options.ciphers);
-				myproposal[PROPOSAL_ENC_ALGS_CTOS] = 
-					compat_cipher_proposal(options.ciphers);
-			}
+			myproposal[PROPOSAL_ENC_ALGS_STOC] = "none";
+			myproposal[PROPOSAL_ENC_ALGS_CTOS] = "none";
+			fprintf(stderr, "WARNING: ENABLED NONE CIPHER!!!\n");
+			/* NONEMAC can only be used in context of the NONE CIPHER */
 			if (options.nonemac_enabled == 1) {
 				myproposal[PROPOSAL_MAC_ALGS_STOC] = "none";
 				myproposal[PROPOSAL_MAC_ALGS_CTOS] = "none";
