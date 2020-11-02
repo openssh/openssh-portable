@@ -167,7 +167,7 @@ typedef enum {
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
 	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
-	oNoneEnabled, oNoneSwitch,
+	oNoneEnabled, oNoneMacEnabled, oNoneSwitch,
 	oDisableMTAES,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
@@ -299,6 +299,7 @@ static struct {
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
 	{ "noneenabled", oNoneEnabled },
+	{ "nonemacenabled", oNoneMacEnabled },
 	{ "noneswitch", oNoneSwitch },
         { "disablemtaes", oDisableMTAES },
 	{ "proxyusefdpass", oProxyUseFdpass },
@@ -317,17 +318,10 @@ static struct {
 	{ "ignoreunknown", oIgnoreUnknown },
 	{ "proxyjump", oProxyJump },
 	{ "securitykeyprovider", oSecurityKeyProvider },
-
 	{ "tcprcvbufpoll", oTcpRcvBufPoll },
 	{ "tcprcvbuf", oTcpRcvBuf },
 	{ "hpndisabled", oHPNDisabled },
 	{ "hpnbuffersize", oHPNBufferSize },
-
-	{ "tcprcvbufpoll", oTcpRcvBufPoll },
-	{ "tcprcvbuf", oTcpRcvBuf },
-	{ "hpndisabled", oHPNDisabled },
-	{ "hpnbuffersize", oHPNBufferSize },
-
 	{ NULL, oBadOption }
 };
 
@@ -1113,6 +1107,10 @@ parse_time:
 		intptr = &options->none_enabled;
 		goto parse_flag;
 
+	case oNoneMacEnabled:
+		intptr = &options->nonemac_enabled;
+		goto parse_flag;
+		
         case oDisableMTAES:
 		intptr = &options->disable_multithreaded;
 		goto parse_flag;
@@ -2109,6 +2107,7 @@ initialize_options(Options * options)
 	options->request_tty = -1;
 	options->none_switch = -1;
 	options->none_enabled = -1;
+	options->nonemac_enabled = -1;
         options->disable_multithreaded = -1;
 	options->hpn_disabled = -1;
 	options->hpn_buffer_size = -1;
@@ -2294,6 +2293,17 @@ fill_default_options(Options * options)
 		options->none_switch = 0;
 	if (options->none_enabled == -1)
 		options->none_enabled = 0;
+	if (options->none_enabled == 0 && options->none_switch > 0) {
+		fprintf(stderr, "NoneEnabled must be enabled to use the None Switch option. None cipher disabled.\n");
+		options->none_enabled = 0;
+	}
+	if (options->nonemac_enabled == -1)
+		options->nonemac_enabled = 0;
+	if (options->nonemac_enabled > 0 && (options->none_enabled == 0 ||
+					     options->none_switch == 0)) {
+		fprintf(stderr, "None MAC can only be used with the None cipher. None MAC disabled.\n");
+		options->nonemac_enabled = 0;
+	}
         if (options->disable_multithreaded == -1)
 		options->disable_multithreaded = 0;
 	if (options->control_master == -1)
