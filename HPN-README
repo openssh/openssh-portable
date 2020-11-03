@@ -108,10 +108,11 @@ it is important to note that authentication information remains encrypted
 even if this option is enabled. Set to no by default.
 
 NoneMacEnabled=[yes/no] client/server
-      Enabled or disabled the use of the None MAC. When this is enabled ssh
+      Enable or disable the use of the None MAC. When this is enabled ssh
 will *not* provide data integrity of any data being transmitted between hosts. Use
-with extreme caution. As with NoneEnabled all authentication remains encrypted and
-integrity is ensured. 
+with caution as it, unlike just using NoneEnabled, doesn't provide data integrity and
+protection against man-in-the-middle attacks. As with NoneEnabled all authentication 
+remains encrypted and integrity is ensured. Default is no.
 
 NoneSwitch=[yes/no] client
      Switch the encryption cipher being used to the None cipher after
