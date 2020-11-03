@@ -3,5 +3,5 @@
 #define SSH_VERSION	"OpenSSH_8.4"
 
 #define SSH_PORTABLE	"p1"
-#define SSH_HPN         "-hpn14v23-aj-ext"
+#define SSH_HPN         "-hpn15v1"
 #define SSH_RELEASE	SSH_VERSION SSH_PORTABLE SSH_HPN

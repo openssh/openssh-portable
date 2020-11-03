@@ -223,7 +223,7 @@ struct Channel {
 #define CHAN_LOCAL			0x10
 
 /* Read buffer size */
-#define CHAN_RBUF      (16*1024)
+#define CHAN_RBUF       CHAN_SES_PACKET_DEFAULT
 
 /* Maximum channel input buffer size */
 #define CHAN_INPUT_MAX	(16*1024*1024)

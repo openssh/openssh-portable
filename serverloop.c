@@ -322,7 +322,7 @@ static int
 process_input(struct ssh *ssh, fd_set *readset, int connection_in)
 {
 	int r, len;
-	char buf[16384];
+	char buf[SSH_IOBUFSZ];
 
 	/* Read and buffer any input data from the client. */
 	if (FD_ISSET(connection_in, readset)) {
