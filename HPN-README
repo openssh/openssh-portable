@@ -139,6 +139,12 @@ option as applied to the internal SSH flow control. This value can range from
 problems depending on the length of the network path. The default size of this buffer
 is 2MB.
 
+DisableMTAES=[yes/no] client/server
+     Switch the encryption cipher being used from the multithreaded MT-AES-CTR cipher
+back to the stock single-threaded AES-CTR cipher. Useful on modern processors with
+AES-NI instructions which make the stock single-threaded AES-CTR cipher faster than
+the multithreaded MT-AES-CTR cipher. Set to no by default.
+
 
 Credits: This patch was conceived, designed, and led by Chris Rapier (rapier@psc.edu)
          The majority of the actual coding for versions up to HPN12v1 was performed
