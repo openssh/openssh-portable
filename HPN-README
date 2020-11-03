@@ -85,10 +85,6 @@ value.
 
 
 HPN Specific Configuration options
-DisableMTAES=[yes/no] client
-      Disable the use of the multithreaded AES CTR cipher. For systems that have
-on die AES-NI (most modern CPUs from Intel, AMD, and ARM) the MTAES cipher can actually
-be slower as it does not take advantage of the on die instruction set. Default is no.
 
 TcpRcvBuf=[int]KB client
       Set the TCP socket receive buffer to n Kilobytes. It can be set up to the
