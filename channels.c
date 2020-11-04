@@ -2205,8 +2205,8 @@ channel_check_window(struct ssh *ssh, Channel *c)
 
 	if (c->type == SSH_CHANNEL_OPEN &&
 	    !(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
-	    ((c->local_window_max - c->local_window >
-	    c->local_maxpacket*3) ||
+	    ((ssh_packet_is_interactive(ssh) &&
+	    c->local_window_max - c->local_window > c->local_maxpacket*3) ||
 	    c->local_window < c->local_window_max/2) &&
 	    c->local_consumed > 0) {
 		u_int addition = 0;
