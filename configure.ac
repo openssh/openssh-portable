@@ -20,11 +20,16 @@ AC_LANG([C])
 
 AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC([cc gcc])
-AC_PROG_CC_C99
+
 # XXX relax this after reimplementing logit() etc.
-if test "x$ac_cv_prog_cc_c99" = "xno" ; then
-	AC_MSG_ERROR([*** OpenSSH requires a C99 capable compiler ***])
-fi
+AC_MSG_CHECKING([if $CC supports C99-style variadic macros])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+int f(int a, int b, int c) { return a + b + c; }
+#define F(a, ...) f(a, __VA_ARGS__)
+]], [[int main(void) { return F(1, 2, -3); }]])],
+	[ AC_MSG_RESULT([yes]) ],
+	[ AC_MSG_ERROR([*** OpenSSH requires support for C99-style variadic macros]) ]
+)
 
 AC_CANONICAL_HOST
 AC_C_BIGENDIAN
