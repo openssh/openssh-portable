@@ -20,14 +20,14 @@ AC_LANG([C])
 
 AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC([cc gcc])
-AC_CANONICAL_HOST
-AC_C_BIGENDIAN
 AC_PROG_CC_C99
-
 # XXX relax this after reimplementing logit() etc.
 if test "x$ac_cv_prog_cc_c99" = "xno" ; then
 	AC_MSG_ERROR([*** OpenSSH requires a C99 capable compiler ***])
 fi
+
+AC_CANONICAL_HOST
+AC_C_BIGENDIAN
 
 # Checks for programs.
 AC_PROG_AWK
