@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.88 2020/10/03 09:22:26 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.89 2020/11/08 22:37:24 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -191,7 +191,8 @@ char	*read_passphrase(const char *, int);
 int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
 struct notifier_ctx *notify_start(int, const char *, ...)
 	__attribute__((format(printf, 2, 3)));
-void	notify_complete(struct notifier_ctx *);
+void	notify_complete(struct notifier_ctx *, const char *, ...)
+	__attribute__((format(printf, 2, 3)));
 
 #define MINIMUM(a, b)	(((a) < (b)) ? (a) : (b))
 #define MAXIMUM(a, b)	(((a) > (b)) ? (a) : (b))

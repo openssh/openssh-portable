@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.333 2020/10/30 01:50:07 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.334 2020/11/08 22:37:24 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1279,7 +1279,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	free(prompt);
 	if (pin != NULL)
 		freezero(pin, strlen(pin));
-	notify_complete(notifier);
+	notify_complete(notifier, "User presence confirmed");
 	sshkey_free(prv);
 	return r;
 }

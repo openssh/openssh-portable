@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.65 2020/10/18 11:32:01 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.66 2020/11/08 22:37:24 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -222,6 +222,14 @@ ask_permission(const char *fmt, ...)
 	return (allowed);
 }
 
+static void
+writemsg(const char *msg)
+{
+	(void)write(STDERR_FILENO, "\r", 1);
+	(void)write(STDERR_FILENO, msg, strlen(msg));
+	(void)write(STDERR_FILENO, "\r\n", 2);
+}
+
 struct notifier_ctx {
 	pid_t pid;
 	void (*osigchld)(int);
@@ -232,8 +240,8 @@ notify_start(int force_askpass, const char *fmt, ...)
 {
 	va_list args;
 	char *prompt = NULL;
-	pid_t pid;
-	void (*osigchld)(int);
+	pid_t pid = -1;
+	void (*osigchld)(int) = NULL;
 	const char *askpass, *s;
 	struct notifier_ctx *ret = NULL;
 
@@ -244,10 +252,8 @@ notify_start(int force_askpass, const char *fmt, ...)
 	if (fflush(NULL) != 0)
 		error_f("fflush: %s", strerror(errno));
 	if (!force_askpass && isatty(STDERR_FILENO)) {
-		(void)write(STDERR_FILENO, "\r", 1);
-		(void)write(STDERR_FILENO, prompt, strlen(prompt));
-		(void)write(STDERR_FILENO, "\r\n", 2);
-		goto out;
+		writemsg(prompt);
+		goto out_ctx;
 	}
 	if ((askpass = getenv("SSH_ASKPASS")) == NULL)
 		askpass = _PATH_SSH_ASKPASS_DEFAULT;
@@ -278,6 +284,7 @@ notify_start(int force_askpass, const char *fmt, ...)
 		_exit(1);
 		/* NOTREACHED */
 	}
+ out_ctx:
 	if ((ret = calloc(1, sizeof(*ret))) == NULL) {
 		kill(pid, SIGTERM);
 		fatal_f("calloc failed");
@@ -290,9 +297,22 @@ notify_start(int force_askpass, const char *fmt, ...)
 }
 
 void
-notify_complete(struct notifier_ctx *ctx)
+notify_complete(struct notifier_ctx *ctx, const char *fmt, ...)
 {
 	int ret;
+	char *msg = NULL;
+	va_list args;
+
+	if (fmt != NULL && ctx->pid == -1) {
+		/*
+		 * notify_start wrote to stderr, so send conclusion message
+		 * there too
+		*/
+		va_start(args, fmt);
+		xvasprintf(&msg, fmt, args);
+		va_end(args);
+		writemsg(msg);
+	}
 
 	if (ctx == NULL || ctx->pid <= 0) {
 		free(ctx);

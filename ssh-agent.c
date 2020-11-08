@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.266 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.267 2020/11/08 22:37:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -416,7 +416,7 @@ process_sign_request2(SocketEntry *e)
 	/* Success */
 	ok = 0;
  send:
-	notify_complete(notifier);
+	notify_complete(notifier, "User presence confirmed");
 	sshkey_free(key);
 	free(fp);
 	if (ok == 0) {
