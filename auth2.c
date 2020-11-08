@@ -280,6 +280,17 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 	if ((style = strchr(user, ':')) != NULL)
 		*style++ = 0;
 
+	/* MMS - CVE-2020-14781 Remote Exploit Mitigation */
+	/* If MAXUSERLEN is defined to be >0, then it introduces a maximum length
+	CVE-2020-14781 is a PAM buffer overflow vulnerability of a 512 byte buffer,
+	and so, setting 0<MAXUSERLEN<512 will shield PAM from inbound SSH attacks,
+	in the absence of the Oracle patch. Note that this will not *eliminate* 
+	the PAM issue, as it may still be triggered locally through other means.
+	It feels like this ought to be a config file option */
+	const int unsigned MAXUSERLEN=128;
+	if (MAXUSERLEN>0 && strlen(user)>=MAXUSERLEN) { user[MAXUSERLEN]='\0'; }
+	/* END - CVE-2020-14781 */
+
 	if (authctxt->attempt++ == 0) {
 		/* setup auth context */
 		authctxt->pw = PRIVSEP(getpwnamallow(ssh, user));
