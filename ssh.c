@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.540 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.541 2020/11/08 11:46:12 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -893,13 +893,7 @@ main(int ac, char **av)
 			break;
 		case 'V':
 			fprintf(stderr, "%s, %s\n",
-			    SSH_RELEASE,
-#ifdef WITH_OPENSSL
-			    OpenSSL_version(OPENSSL_VERSION)
-#else
-			    "without OpenSSL"
-#endif
-			);
+			    SSH_RELEASE, SSH_OPENSSL_VERSION);
 			if (opt == 'V')
 				exit(0);
 			break;
@@ -1160,13 +1154,7 @@ main(int ac, char **av)
 	    !use_syslog);
 
 	if (debug_flag)
-		logit("%s, %s", SSH_RELEASE,
-#ifdef WITH_OPENSSL
-		    OpenSSL_version(OPENSSL_VERSION)
-#else
-		    "without OpenSSL"
-#endif
-		);
+		logit("%s, %s", SSH_RELEASE, SSH_OPENSSL_VERSION);
 
 	/* Parse the configuration files */
 	process_config_files(host_arg, pw, 0, &want_final_pass);
