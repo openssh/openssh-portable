@@ -219,10 +219,11 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		break;
 	case KEY_ECDSA:
 		if (sshkey_ecdsa_bits_to_nid(*bitsp) == -1)
-			fatal("Invalid ECDSA key length: valid lengths are "
 #ifdef OPENSSL_HAS_NISTP521
+			fatal("Invalid ECDSA key length: valid lengths are "
 			    "256, 384 or 521 bits");
 #else
+			fatal("Invalid ECDSA key length: valid lengths are "
 			    "256 or 384 bits");
 #endif
 	}
