@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.67 2020/11/08 23:19:03 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.68 2020/11/10 07:46:20 claudio Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -312,6 +312,7 @@ notify_complete(struct notifier_ctx *ctx, const char *fmt, ...)
 		xvasprintf(&msg, fmt, args);
 		va_end(args);
 		writemsg(msg);
+		free(msg);
 	}
 
 	if (ctx == NULL || ctx->pid <= 0) {
