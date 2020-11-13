@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.335 2020/11/13 04:53:12 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.336 2020/11/13 07:30:44 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -33,6 +33,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <signal.h>
@@ -1924,9 +1925,10 @@ input_userauth_info_req(int type, u_int32_t seq, struct ssh *ssh)
 		if ((r = sshpkt_get_cstring(ssh, &prompt, NULL)) != 0 ||
 		    (r = sshpkt_get_u8(ssh, &echo)) != 0)
 			goto out;
-		xasprintf(&display_prompt, "(%s@%s) %s",
+		if (asmprintf(&display_prompt, INT_MAX, NULL, "(%s@%s) %s",
 		    authctxt->server_user, options.host_key_alias ?
-		    options.host_key_alias : authctxt->host, prompt);
+		    options.host_key_alias : authctxt->host, prompt) == -1)
+			fatal_f("asmprintf failed");
 		response = read_passphrase(display_prompt, echo ? RP_ECHO : 0);
 		if ((r = sshpkt_put_cstring(ssh, response)) != 0)
 			goto out;
