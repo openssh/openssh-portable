@@ -4146,15 +4146,11 @@ fi
 
 AC_CACHE_CHECK([for struct timespec], ac_cv_have_struct_timespec, [
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-    #ifdef TIME_WITH_SYS_TIME
+    #ifdef HAVE_SYS_TIME_H
     # include <sys/time.h>
+    #endif
+    #ifdef HAVE_TIME_H
     # include <time.h>
-    #else
-    # ifdef HAVE_SYS_TIME_H
-    #  include <sys/time.h>
-    # else
-    #  include <time.h>
-    # endif
     #endif
 	]],
 	[[ struct timespec ts; ts.tv_sec = 1;]])],
