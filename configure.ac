@@ -4138,8 +4138,6 @@ if test "x$ac_cv_have_struct_addrinfo" = "xyes" ; then
 		[define if you have struct addrinfo data type])
 fi
 
-AC_HEADER_TIME
-
 AC_CACHE_CHECK([for struct timeval], ac_cv_have_struct_timeval, [
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <sys/time.h> ]],
 	[[ struct timeval tv; tv.tv_sec = 1;]])],
