@@ -532,8 +532,6 @@ SPP_MSG="no"
 # the --with-solaris-privs option and --with-sandbox=solaris).
 SOLARIS_PRIVS="no"
 
-AC_CHECK_SIZEOF([size_t])
-
 # Check for some target-specific stuff
 case "$host" in
 *-*-aix*)
@@ -878,10 +876,6 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	case "$host" in
 	x86_64-*)
 		seccomp_audit_arch=AUDIT_ARCH_X86_64
-		# X32: AMD64 instructions in 32bit address space.
-		if test "x$ac_cv_sizeof_size_t" = "x4" ; then
-			seccomp_audit_arch=AUDIT_ARCH_I386
-		fi
 		;;
 	i*86-*)
 		seccomp_audit_arch=AUDIT_ARCH_I386
