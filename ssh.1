@@ -297,6 +297,12 @@ It is possible to have multiple
 .Fl i
 options (and multiple identities specified in
 configuration files).
+If the private key is in
+.Xr ssh-agent 1
+rather than in a local file, specify the corresponding public key
+file instead, which must be present locally, to
+.Nm
+load the private key from the agent.
 If no certificates have been explicitly specified by the
 .Cm CertificateFile
 directive,
