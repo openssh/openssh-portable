@@ -277,7 +277,7 @@ When saving a private key, this option specifies the number of KDF
 (key derivation function) rounds used.
 Higher numbers result in slower passphrase verification and increased
 resistance to brute-force password cracking (should the keys be stolen).
-The default is 16 rounds.
+The default is 16 rounds. The KDF algorithm is bcrypt.
 .It Fl B
 Show the bubblebabble digest of specified private or public key file.
 .It Fl b Ar bits
