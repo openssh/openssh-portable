@@ -1992,7 +1992,7 @@ AC_SEARCH_LIBS([clock_gettime], [rt],
 
 dnl check if we need -D_REENTRANT for localtime_r declaration.
 AC_CHECK_DECL([localtime_r], [],
-	[ saved_CPPFLAGS="$CFLAGS"
+	[ saved_CPPFLAGS="$CPPFLAGS"
 	  CPPFLAGS="$CPPFLAGS -D_REENTRANT"
 	  unset ac_cv_have_decl_localtime_r
 	  AC_CHECK_DECL([localtime_r], [],
