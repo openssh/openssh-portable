@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.137 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.138 2020/11/20 03:16:56 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1496,7 +1496,7 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	int i, ret = 0;
 	SFTP_DIRENT **dir_entries;
 	char *filename, *new_src = NULL, *new_dst = NULL;
-	mode_t mode = 0777;
+	mode_t mode = 0777, tmpmode = mode;
 
 	if (depth >= MAX_DIR_DEPTH) {
 		error("Maximum directory depth exceeded: %d levels", depth);
@@ -1515,14 +1515,15 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	if (print_flag)
 		mprintf("Retrieving %s\n", src);
 
-	if (dirattrib->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)
+	if (dirattrib->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
 		mode = dirattrib->perm & 01777;
-	else {
+		tmpmode = mode | (S_IWUSR|S_IXUSR);
+	} else {
 		debug("Server did not send permissions for "
 		    "directory \"%s\"", dst);
 	}
 
-	if (mkdir(dst, mode) == -1 && errno != EEXIST) {
+	if (mkdir(dst, tmpmode) == -1 && errno != EEXIST) {
 		error("mkdir %s: %s", dst, strerror(errno));
 		return -1;
 	}
@@ -1576,6 +1577,10 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 			debug("Server did not send times for directory "
 			    "\"%s\"", dst);
 	}
+
+	if (mode != tmpmode && chmod(dst, mode) == -1)
+		error("Can't set final mode on \"%s\": %s", dst,
+		    strerror(errno));
 
 	free_sftp_dirents(dir_entries);
 
@@ -1829,6 +1834,7 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	char *filename, *new_src = NULL, *new_dst = NULL;
 	struct stat sb;
 	Attrib a, *dirattrib;
+	u_int32_t saved_perm;
 
 	if (depth >= MAX_DIR_DEPTH) {
 		error("Maximum directory depth exceeded: %d levels", depth);
@@ -1858,8 +1864,11 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	/*
 	 * sftp lacks a portable status value to match errno EEXIST,
 	 * so if we get a failure back then we must check whether
-	 * the path already existed and is a directory.
+	 * the path already existed and is a directory.  Ensure we can
+	 * write to the directory we create for the duration of the transfer.
 	 */
+	saved_perm = a.perm;
+	a.perm |= (S_IWUSR|S_IXUSR);
 	if (do_mkdir(conn, dst, &a, 0) != 0) {
 		if ((dirattrib = do_stat(conn, dst, 0)) == NULL)
 			return -1;
@@ -1868,6 +1877,7 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 			return -1;
 		}
 	}
+	a.perm = saved_perm;
 
 	if ((dirp = opendir(src)) == NULL) {
 		error("Failed to open dir \"%s\": %s", src, strerror(errno));
