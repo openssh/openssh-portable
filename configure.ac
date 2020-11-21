@@ -1795,6 +1795,7 @@ AC_CHECK_FUNCS([ \
 	err \
 	errx \
 	explicit_bzero \
+	explicit_memset \
 	fchmod \
 	fchmodat \
 	fchown \
