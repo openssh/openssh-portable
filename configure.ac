@@ -4227,7 +4227,7 @@ AC_CHECK_MEMBERS([struct stat.st_blksize])
 AC_CHECK_MEMBERS([struct stat.st_mtim])
 AC_CHECK_MEMBERS([struct stat.st_mtime])
 AC_CHECK_MEMBERS([struct passwd.pw_gecos, struct passwd.pw_class,
-struct passwd.pw_change, struct passwd.pw_expire],
+struct passwd.pw_change, struct passwd.pw_expire, struct passwd.pw_fields],
 [], [], [[
 #include <sys/types.h>
 #include <pwd.h>

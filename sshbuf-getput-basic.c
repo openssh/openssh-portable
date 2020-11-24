@@ -673,6 +673,9 @@ static inline int sshbuf_n_passwd_members() {
 #ifdef HAVE_STRUCT_PASSWD_PW_EXPIRE
 	n++;
 #endif
+#ifdef HAVE_STRUCT_PASSWD_PW_FIELDS
+	n++;
+#endif
 	return n;
 }
 
@@ -707,6 +710,9 @@ sshbuf_put_passwd(struct sshbuf *buf, const struct passwd *pwent)
 	    (r = sshbuf_put_cstring(buf, pwent->pw_shell)) != 0 ||
 #ifdef HAVE_STRUCT_PASSWD_PW_EXPIRE
 	    (r = sshbuf_put_time(buf, pwent->pw_expire)) != 0 ||
+#endif
+#ifdef HAVE_STRUCT_PASSWD_PW_FIELDS
+	    (r = sshbuf_put_u32(buf, pwent->pw_fields)) != 0 ||
 #endif
 	    0) {
 		return r;
@@ -747,6 +753,9 @@ sshbuf_get_passwd(struct sshbuf *buf)
 	    sshbuf_get_cstring(buf, &pw->pw_shell, NULL) != 0 ||
 #ifdef HAVE_STRUCT_PASSWD_PW_EXPIRE
 	    sshbuf_get_time(buf, &pw->pw_expire) != 0 ||
+#endif
+#ifdef HAVE_STRUCT_PASSWD_PW_FIELDS
+	    sshbuf_get_u32(buf, &pw->pw_fields) != 0 ||
 #endif
 	    0) {
 		sshbuf_free_passwd(pw);
