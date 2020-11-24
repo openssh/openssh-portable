@@ -744,17 +744,7 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	/* XXX don't sent pwent to unpriv; send fake class/dir/shell too */
 	if ((r = sshbuf_put_u8(m, 1)) != 0 ||
-	    (r = sshbuf_put_string(m, pwent, sizeof(*pwent))) != 0 ||
-	    (r = sshbuf_put_cstring(m, pwent->pw_name)) != 0 ||
-	    (r = sshbuf_put_cstring(m, "*")) != 0 ||
-#ifdef HAVE_STRUCT_PASSWD_PW_GECOS
-	    (r = sshbuf_put_cstring(m, pwent->pw_gecos)) != 0 ||
-#endif
-#ifdef HAVE_STRUCT_PASSWD_PW_CLASS
-	    (r = sshbuf_put_cstring(m, pwent->pw_class)) != 0 ||
-#endif
-	    (r = sshbuf_put_cstring(m, pwent->pw_dir)) != 0 ||
-	    (r = sshbuf_put_cstring(m, pwent->pw_shell)) != 0)
+	    sshbuf_put_passwd(m, pwent))
 		fatal_fr(r, "assemble pw");
 
  out:

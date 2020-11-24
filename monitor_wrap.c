@@ -277,24 +277,8 @@ mm_getpwnamallow(struct ssh *ssh, const char *username)
 		goto out;
 	}
 
-	/* XXX don't like passing struct passwd like this */
-	pw = xcalloc(sizeof(*pw), 1);
-	if ((r = sshbuf_get_string_direct(m, &p, &len)) != 0)
-		fatal_fr(r, "parse");
-	if (len != sizeof(*pw))
-		fatal_f("struct passwd size mismatch");
-	memcpy(pw, p, sizeof(*pw));
-
-	if ((r = sshbuf_get_cstring(m, &pw->pw_name, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(m, &pw->pw_passwd, NULL)) != 0 ||
-#ifdef HAVE_STRUCT_PASSWD_PW_GECOS
-	    (r = sshbuf_get_cstring(m, &pw->pw_gecos, NULL)) != 0 ||
-#endif
-#ifdef HAVE_STRUCT_PASSWD_PW_CLASS
-	    (r = sshbuf_get_cstring(m, &pw->pw_class, NULL)) != 0 ||
-#endif
-	    (r = sshbuf_get_cstring(m, &pw->pw_dir, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(m, &pw->pw_shell, NULL)) != 0)
+	pw = sshbuf_get_passwd(m);
+	if (pw == NULL)
 		fatal_fr(r, "parse pw");
 
 out:
