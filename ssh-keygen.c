@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.424 2020/11/08 22:37:24 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.425 2020/11/27 10:12:30 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3067,9 +3067,9 @@ usage(void)
 	    "usage: ssh-keygen [-q] [-a rounds] [-b bits] [-C comment] [-f output_keyfile]\n"
 	    "                  [-m format] [-N new_passphrase] [-O option]\n"
 	    "                  [-t dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
-	    "                  [-w provider]\n"
+	    "                  [-w provider] [-Z cipher]\n"
 	    "       ssh-keygen -p [-a rounds] [-f keyfile] [-m format] [-N new_passphrase]\n"
-	    "                   [-P old_passphrase]\n"
+	    "                   [-P old_passphrase] [-Z cipher]\n"
 	    "       ssh-keygen -i [-f input_keyfile] [-m key_format]\n"
 	    "       ssh-keygen -e [-f input_keyfile] [-m key_format]\n"
 	    "       ssh-keygen -y [-f input_keyfile]\n"
@@ -3258,6 +3258,9 @@ main(int argc, char **argv)
 			break;
 		case 'Z':
 			openssh_format_cipher = optarg;
+			if (cipher_by_name(openssh_format_cipher) == NULL)
+				fatal("Invalid OpenSSH-format cipher '%s'",
+				    openssh_format_cipher);
 			break;
 		case 'C':
 			identity_comment = optarg;
