@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.344 2020/11/22 22:37:11 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.345 2020/11/27 00:49:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -30,6 +30,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <netdb.h>
 #ifdef HAVE_PATHS_H
 #include <paths.h>
@@ -362,6 +363,10 @@ ssh_create_socket(struct addrinfo *ai)
 		return -1;
 	}
 	fcntl(sock, F_SETFD, FD_CLOEXEC);
+
+	/* Use interactive QOS (if specified) until authentication completed */
+	if (options.ip_qos_interactive != INT_MAX)
+		set_sock_tos(sock, options.ip_qos_interactive);
 
 	/* Bind the socket to an alternative local IP address */
 	if (options.bind_address == NULL && options.bind_interface == NULL)

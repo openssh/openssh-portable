@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.89 2020/11/08 22:37:24 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.90 2020/11/27 00:49:58 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -53,6 +53,8 @@ void	 set_nodelay(int);
 int	 set_reuseaddr(int);
 char	*get_rdomain(int);
 int	 set_rdomain(int, const char *);
+int	 get_sock_af(int);
+void	 set_sock_tos(int, int);
 int	 waitrfd(int, int *);
 int	 timeout_connect(int, const struct sockaddr *, socklen_t, int *);
 int	 a2port(const char *);

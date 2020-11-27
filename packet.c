@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.297 2020/10/18 11:32:01 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.298 2020/11/27 00:49:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -475,19 +475,7 @@ ssh_packet_get_bytes(struct ssh *ssh, u_int64_t *ibytes, u_int64_t *obytes)
 int
 ssh_packet_connection_af(struct ssh *ssh)
 {
-	struct sockaddr_storage to;
-	socklen_t tolen = sizeof(to);
-
-	memset(&to, 0, sizeof(to));
-	if (getsockname(ssh->state->connection_out, (struct sockaddr *)&to,
-	    &tolen) == -1)
-		return 0;
-#ifdef IPV4_IN_IPV6
-	if (to.ss_family == AF_INET6 &&
-	    IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)&to)->sin6_addr))
-		return AF_INET;
-#endif
-	return to.ss_family;
+	return get_sock_af(ssh->state->connection_out);
 }
 
 /* Sets the connection into non-blocking mode. */
@@ -2069,30 +2057,9 @@ ssh_packet_not_very_much_data_to_write(struct ssh *ssh)
 void
 ssh_packet_set_tos(struct ssh *ssh, int tos)
 {
-#ifndef IP_TOS_IS_BROKEN
 	if (!ssh_packet_connection_is_on_socket(ssh) || tos == INT_MAX)
 		return;
-	switch (ssh_packet_connection_af(ssh)) {
-# ifdef IP_TOS
-	case AF_INET:
-		debug3_f("set IP_TOS 0x%02x", tos);
-		if (setsockopt(ssh->state->connection_in,
-		    IPPROTO_IP, IP_TOS, &tos, sizeof(tos)) == -1)
-			error("setsockopt IP_TOS %d: %.100s:",
-			    tos, strerror(errno));
-		break;
-# endif /* IP_TOS */
-# ifdef IPV6_TCLASS
-	case AF_INET6:
-		debug3_f("set IPV6_TCLASS 0x%02x", tos);
-		if (setsockopt(ssh->state->connection_in,
-		    IPPROTO_IPV6, IPV6_TCLASS, &tos, sizeof(tos)) == -1)
-			error("setsockopt IPV6_TCLASS %d: %.100s:",
-			    tos, strerror(errno));
-		break;
-# endif /* IPV6_TCLASS */
-	}
-#endif /* IP_TOS_IS_BROKEN */
+	set_sock_tos(ssh->state->connection_in, tos);
 }
 
 /* Informs that the current session is interactive.  Sets IP flags for that. */
@@ -2113,8 +2080,7 @@ ssh_packet_set_interactive(struct ssh *ssh, int interactive, int qos_interactive
 	if (!ssh_packet_connection_is_on_socket(ssh))
 		return;
 	set_nodelay(state->connection_in);
-	ssh_packet_set_tos(ssh, interactive ? qos_interactive :
-	    qos_bulk);
+	ssh_packet_set_tos(ssh, interactive ? qos_interactive : qos_bulk);
 }
 
 /* Returns true if the current connection is interactive. */
