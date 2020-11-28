@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.325 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: session.c,v 1.326 2020/11/28 03:27:59 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1105,7 +1105,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		for (n = 0 ; n < auth_opts->nenv; n++) {
 			ocp = xstrdup(auth_opts->env[n]);
 			cp = strchr(ocp, '=');
-			if (*cp == '=') {
+			if (cp != NULL) {
 				*cp = '\0';
 				/* Apply PermitUserEnvironment allowlist */
 				if (options.permit_user_env_allowlist == NULL ||
