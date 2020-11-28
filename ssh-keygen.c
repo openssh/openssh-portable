@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.425 2020/11/27 10:12:30 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.426 2020/11/28 12:52:32 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -65,6 +65,7 @@
 #include "sshsig.h"
 #include "ssh-sk.h"
 #include "sk-api.h" /* XXX for SSH_SK_USER_PRESENCE_REQD; remove */
+#include "cipher.h"
 
 #ifdef WITH_OPENSSL
 # define DEFAULT_KEY_TYPE_NAME "rsa"
