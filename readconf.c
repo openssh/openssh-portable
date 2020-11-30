@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.342 2020/11/15 22:34:58 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.343 2020/11/30 05:36:39 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1899,7 +1899,7 @@ read_config_file_depth(const char *filename, struct passwd *pw,
     int flags, int *activep, int *want_final_pass, int depth)
 {
 	FILE *f;
-	char *line = NULL;
+	char *cp, *line = NULL;
 	size_t linesize = 0;
 	int linenum;
 	int bad_options = 0;
@@ -1930,6 +1930,13 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 	while (getline(&line, &linesize, f) != -1) {
 		/* Update line number counter. */
 		linenum++;
+		/*
+		 * Trim out comments and strip whitespace.
+		 * NB - preserve newlines, they are needed to reproduce
+		 * line numbers later for error messages.
+		 */
+		if ((cp = strchr(line, '#')) != NULL)
+			*cp = '\0';
 		if (process_config_line_depth(options, pw, host, original_host,
 		    line, filename, linenum, activep, flags, want_final_pass,
 		    depth) != 0)
