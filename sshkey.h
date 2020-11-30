@@ -50,7 +50,10 @@
 #define SSH_OPENSSL_VERSION "without OpenSSL"
 #endif /* WITH_OPENSSL */
 
-#define SSH_RSA_MINIMUM_MODULUS_SIZE	1024
+extern int	SSH_RSA_MINIMUM_MODULUS_SIZE;
+
+#define SSH_RSA_MINIMUM_MODULUS_SIZE_DEFAULT	1024
+#define SSH_RSA_MINIMUM_MODULUS_SIZE_HARD	512 /* This is the hard limit for -o RSAMinimumModulusSize */
 #define SSH_KEY_MAX_SIGN_DATA_SIZE	(1 << 20)
 
 struct sshbuf;
