@@ -1,4 +1,4 @@
-/* $OpenBSD: log.h,v 1.29 2020/10/18 11:21:59 djm Exp $ */
+/* $OpenBSD: log.h,v 1.30 2020/12/04 02:25:13 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -52,7 +52,7 @@ typedef enum {
 typedef void (log_handler_fn)(const char *, const char *, int, LogLevel,
     const char *, void *);
 
-void     log_init(char *, LogLevel, SyslogFacility, int);
+void     log_init(const char *, LogLevel, SyslogFacility, int);
 LogLevel log_level_get(void);
 int      log_change_level(LogLevel);
 int      log_is_on_stderr(void);

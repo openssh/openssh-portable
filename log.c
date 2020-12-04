@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.55 2020/10/18 11:21:59 djm Exp $ */
+/* $OpenBSD: log.c,v 1.56 2020/12/04 02:25:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -57,7 +57,7 @@ static LogLevel log_level = SYSLOG_LEVEL_INFO;
 static int log_on_stderr = 1;
 static int log_stderr_fd = STDERR_FILENO;
 static int log_facility = LOG_AUTH;
-static char *argv0;
+static const char *argv0;
 static log_handler_fn *log_handler;
 static void *log_handler_ctx;
 static char **log_verbose;
@@ -191,7 +191,8 @@ log_verbose_reset(void)
  */
 
 void
-log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
+log_init(const char *av0, LogLevel level, SyslogFacility facility,
+    int on_stderr)
 {
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
 	struct syslog_data sdata = SYSLOG_DATA_INIT;
