@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.161 2020/12/04 02:27:08 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.162 2020/12/04 02:27:57 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -837,6 +837,7 @@ choose_kex(struct kex *k, char *client, char *server)
 static int
 choose_hostkeyalg(struct kex *k, char *client, char *server)
 {
+	free(k->hostkey_alg);
 	k->hostkey_alg = match_list(client, server, NULL);
 
 	debug("kex: host key algorithm: %s",
