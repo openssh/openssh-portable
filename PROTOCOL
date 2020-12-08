@@ -292,6 +292,7 @@ has completed.
 
 	byte		SSH_MSG_GLOBAL_REQUEST
 	string		"hostkeys-00@openssh.com"
+	char		0 /* want-reply */
 	string[]	hostkeys
 
 Upon receiving this message, a client should check which of the
