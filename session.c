@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.326 2020/11/28 03:27:59 djm Exp $ */
+/* $OpenBSD: session.c,v 1.327 2020/12/14 03:13:12 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1120,8 +1120,8 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 
 	/* read $HOME/.ssh/environment. */
 	if (options.permit_user_env) {
-		snprintf(buf, sizeof buf, "%.200s/.ssh/environment",
-		    pw->pw_dir);
+		snprintf(buf, sizeof buf, "%.200s/%s/environment",
+		    pw->pw_dir, _PATH_SSH_USER_DIR);
 		read_environment_file(&env, &envsize, buf,
 		    options.permit_user_env_allowlist);
 	}
