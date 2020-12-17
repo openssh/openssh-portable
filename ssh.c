@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.542 2020/11/12 22:38:57 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.543 2020/12/17 23:10:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1237,7 +1237,8 @@ main(int ac, char **av)
 	}
 
 	/* Fill configuration defaults. */
-	fill_default_options(&options);
+	if (fill_default_options(&options) != 0)
+		cleanup_exit(255);
 
 	if (options.user == NULL)
 		options.user = xstrdup(pw->pw_name);
