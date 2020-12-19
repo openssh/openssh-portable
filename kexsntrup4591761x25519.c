@@ -1,4 +1,4 @@
-/* $OpenBSD: kexsntrup4591761x25519.c,v 1.3 2019/01/21 10:40:11 djm Exp $ */
+/* $OpenBSD: kexsntrup4591761x25519.c,v 1.4 2020/12/19 22:09:21 tobhe Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -195,7 +195,7 @@ kex_kem_sntrup4591761x25519_dec(struct kex *kex,
 	if ((r = ssh_digest_buffer(kex->hash_alg, buf, hash, sizeof(hash))) != 0)
 		goto out;
 #ifdef DEBUG_KEXECDH
-	dump_digest("client kem key:", kem_key, sizeof(kem_key));
+	dump_digest("client kem key:", kem_key, crypto_kem_sntrup4591761_BYTES);
 	dump_digest("concatenation of KEM key and ECDH shared key:",
 	    sshbuf_ptr(buf), sshbuf_len(buf));
 #endif
