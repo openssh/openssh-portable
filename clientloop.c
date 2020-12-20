@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.355 2020/10/29 02:47:23 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.356 2020/12/20 23:36:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1984,7 +1984,7 @@ check_old_keys_othernames(struct hostkeys_update_ctx *ctx)
 		    ctx->ip_str ? ctx->ip_str : "(none)");
 		if ((r = hostkeys_foreach(options.user_hostfiles[i],
 		    hostkeys_check_old, ctx, ctx->host_str, ctx->ip_str,
-		    HKF_WANT_PARSE_KEY)) != 0) {
+		    HKF_WANT_PARSE_KEY, 0)) != 0) {
 			if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT) {
 				debug_f("hostkeys file %s does not exist",
 				    options.user_hostfiles[i]);
@@ -2298,7 +2298,7 @@ client_input_hostkeys(struct ssh *ssh)
 		    ctx->ip_str ? ctx->ip_str : "(none)");
 		if ((r = hostkeys_foreach(options.user_hostfiles[i],
 		    hostkeys_find, ctx, ctx->host_str, ctx->ip_str,
-		    HKF_WANT_PARSE_KEY)) != 0) {
+		    HKF_WANT_PARSE_KEY, 0)) != 0) {
 			if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT) {
 				debug_f("hostkeys file %s does not exist",
 				    options.user_hostfiles[i]);

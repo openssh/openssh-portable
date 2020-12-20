@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.345 2020/11/27 00:49:58 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.346 2020/12/20 23:36:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -773,7 +773,7 @@ hostkeys_find_by_key_hostfile(const char *file, const char *which,
 
 	debug3_f("trying %s hostfile \"%s\"", which, file);
 	if ((r = hostkeys_foreach(file, hostkeys_find_by_key_cb, ctx,
-	    ctx->host, ctx->ip, HKF_WANT_PARSE_KEY)) != 0) {
+	    ctx->host, ctx->ip, HKF_WANT_PARSE_KEY, 0)) != 0) {
 		if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT) {
 			debug_f("hostkeys file %s does not exist", file);
 			return 0;
@@ -924,17 +924,17 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 
 	host_hostkeys = init_hostkeys();
 	for (i = 0; i < num_user_hostfiles; i++)
-		load_hostkeys(host_hostkeys, host, user_hostfiles[i]);
+		load_hostkeys(host_hostkeys, host, user_hostfiles[i], 0);
 	for (i = 0; i < num_system_hostfiles; i++)
-		load_hostkeys(host_hostkeys, host, system_hostfiles[i]);
+		load_hostkeys(host_hostkeys, host, system_hostfiles[i], 0);
 
 	ip_hostkeys = NULL;
 	if (!want_cert && options.check_host_ip) {
 		ip_hostkeys = init_hostkeys();
 		for (i = 0; i < num_user_hostfiles; i++)
-			load_hostkeys(ip_hostkeys, ip, user_hostfiles[i]);
+			load_hostkeys(ip_hostkeys, ip, user_hostfiles[i], 0);
 		for (i = 0; i < num_system_hostfiles; i++)
-			load_hostkeys(ip_hostkeys, ip, system_hostfiles[i]);
+			load_hostkeys(ip_hostkeys, ip, system_hostfiles[i], 0);
 	}
 
  retry:
