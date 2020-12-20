@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.545 2020/12/20 23:38:00 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.546 2020/12/20 23:40:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -227,15 +227,6 @@ tilde_expand_paths(char **paths, u_int num_paths)
 	}
 }
 
-#define DEFAULT_CLIENT_PERCENT_EXPAND_ARGS \
-    "C", cinfo->conn_hash_hex, \
-    "L", cinfo->shorthost, \
-    "i", cinfo->uidstr, \
-    "k", cinfo->keyalias, \
-    "l", cinfo->thishost, \
-    "n", cinfo->host_arg, \
-    "p", cinfo->portstr
-
 /*
  * Expands the set of percent_expand options used by the majority of keywords
  * in the client that support percent expansion.
@@ -246,13 +237,7 @@ default_client_percent_expand(const char *str,
     const struct ssh_conn_info *cinfo)
 {
 	return percent_expand(str,
-	    /* values from statics above */
-	    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
-	    /* values from arguments */
-	    "d", cinfo->homedir,
-	    "h", cinfo->remhost,
-	    "r", cinfo->remuser,
-	    "u", cinfo->locuser,
+	    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS(cinfo),
 	    (char *)NULL);
 }
 
@@ -268,13 +253,7 @@ default_client_percent_dollar_expand(const char *str,
 	char *ret;
 
 	ret = percent_dollar_expand(str,
-	    /* values from statics above */
-	    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
-	    /* values from arguments */
-	    "d", cinfo->homedir,
-	    "h", cinfo->remhost,
-	    "r", cinfo->remuser,
-	    "u", cinfo->locuser,
+	    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS(cinfo),
 	    (char *)NULL);
 	if (ret == NULL)
 		fatal("invalid environment variable expansion");
@@ -1670,7 +1649,7 @@ main(int ac, char **av)
 
 	/* Log into the remote system.  Never returns if the login fails. */
 	ssh_login(ssh, &sensitive_data, host, (struct sockaddr *)&hostaddr,
-	    options.port, pw, timeout_ms);
+	    options.port, pw, timeout_ms, cinfo);
 
 	if (ssh_packet_connection_is_on_socket(ssh)) {
 		verbose("Authenticated to %s ([%s]:%d).", host,
@@ -2088,11 +2067,7 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 		debug3("expanding LocalCommand: %s", options.local_command);
 		cp = options.local_command;
 		options.local_command = percent_expand(cp,
-		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
-		    "d", cinfo->homedir,
-		    "h", cinfo->remhost,
-		    "r", cinfo->remuser,
-		    "u", cinfo->locuser,
+		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS(cinfo),
 		    "T", tun_fwd_ifname == NULL ? "NONE" : tun_fwd_ifname,
 		    (char *)NULL);
 		debug3("expanded LocalCommand: %s", options.local_command);

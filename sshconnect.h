@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.h,v 1.44 2020/12/17 23:26:11 djm Exp $ */
+/* $OpenBSD: sshconnect.h,v 1.45 2020/12/20 23:40:19 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -46,6 +46,22 @@ struct ssh_conn_info {
 
 struct addrinfo;
 struct ssh;
+struct hostkeys;
+struct ssh_conn_info;
+
+/* default argument for client percent expansions */
+#define DEFAULT_CLIENT_PERCENT_EXPAND_ARGS(conn_info) \
+	"C", conn_info->conn_hash_hex, \
+	"L", conn_info->shorthost, \
+	"i", conn_info->uidstr, \
+	"k", conn_info->keyalias, \
+	"l", conn_info->thishost, \
+	"n", conn_info->host_arg, \
+	"p", conn_info->portstr, \
+	"d", conn_info->homedir, \
+	"h", conn_info->remhost, \
+	"r", conn_info->remuser, \
+	"u", conn_info->locuser
 
 int	 ssh_connect(struct ssh *, const char *, const char *,
 	    struct addrinfo *, struct sockaddr_storage *, u_short,
@@ -53,14 +69,17 @@ int	 ssh_connect(struct ssh *, const char *, const char *,
 void	 ssh_kill_proxy_command(void);
 
 void	 ssh_login(struct ssh *, Sensitive *, const char *,
-    struct sockaddr *, u_short, struct passwd *, int);
+    struct sockaddr *, u_short, struct passwd *, int,
+    const struct ssh_conn_info *);
 
-int	 verify_host_key(char *, struct sockaddr *, struct sshkey *);
+int	 verify_host_key(char *, struct sockaddr *, struct sshkey *,
+    const struct ssh_conn_info *);
 
 void	 get_hostfile_hostname_ipaddr(char *, struct sockaddr *, u_short,
     char **, char **);
 
-void	 ssh_kex2(struct ssh *ssh, char *, struct sockaddr *, u_short);
+void	 ssh_kex2(struct ssh *ssh, char *, struct sockaddr *, u_short,
+    const struct ssh_conn_info *);
 
 void	 ssh_userauth2(struct ssh *ssh, const char *, const char *,
     char *, Sensitive *);
