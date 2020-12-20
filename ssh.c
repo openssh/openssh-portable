@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.544 2020/12/17 23:26:11 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.545 2020/12/20 23:38:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1441,18 +1441,36 @@ main(int ac, char **av)
 		options.forward_agent_sock_path = cp;
 	}
 
+	if (options.num_system_hostfiles > 0 &&
+	    strcasecmp(options.system_hostfiles[0], "none") == 0) {
+		if (options.num_system_hostfiles > 1)
+			fatal("Invalid GlobalKnownHostsFiles: \"none\" "
+			    "appears with other entries");
+		free(options.system_hostfiles[0]);
+		options.system_hostfiles[0] = NULL;
+		options.num_system_hostfiles = 0;
+	}
+
+	if (options.num_user_hostfiles > 0 &&
+	    strcasecmp(options.user_hostfiles[0], "none") == 0) {
+		if (options.num_user_hostfiles > 1)
+			fatal("Invalid UserKnownHostsFiles: \"none\" "
+			    "appears with other entries");
+		free(options.user_hostfiles[0]);
+		options.user_hostfiles[0] = NULL;
+		options.num_user_hostfiles = 0;
+	}
 	for (j = 0; j < options.num_user_hostfiles; j++) {
-		if (options.user_hostfiles[j] != NULL) {
-			cp = tilde_expand_filename(options.user_hostfiles[j],
-			    getuid());
-			p = default_client_percent_dollar_expand(cp, cinfo);
-			if (strcmp(options.user_hostfiles[j], p) != 0)
-				debug3("expanded UserKnownHostsFile '%s' -> "
-				    "'%s'", options.user_hostfiles[j], p);
-			free(options.user_hostfiles[j]);
-			free(cp);
-			options.user_hostfiles[j] = p;
-		}
+		if (options.user_hostfiles[j] == NULL)
+			continue;
+		cp = tilde_expand_filename(options.user_hostfiles[j], getuid());
+		p = default_client_percent_dollar_expand(cp, cinfo);
+		if (strcmp(options.user_hostfiles[j], p) != 0)
+			debug3("expanded UserKnownHostsFile '%s' -> "
+			    "'%s'", options.user_hostfiles[j], p);
+		free(options.user_hostfiles[j]);
+		free(cp);
+		options.user_hostfiles[j] = p;
 	}
 
 	for (i = 0; i < options.num_local_forwards; i++) {

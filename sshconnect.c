@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.346 2020/12/20 23:36:51 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.347 2020/12/20 23:38:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -948,6 +948,10 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	 */
 	host_status = check_key_in_hostkeys(host_hostkeys, host_key,
 	    &host_found);
+
+	/* If no host files were specified, then don't try to touch them */
+	if (!readonly && num_user_hostfiles == 0)
+		readonly = RDONLY;
 
 	/*
 	 * Also perform check for the ip address, skip the check if we are
