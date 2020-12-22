@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.346 2020/12/22 00:15:22 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.347 2020/12/22 03:05:31 tb Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2812,9 +2812,6 @@ parse_jump(const char *s, Options *o, int active)
 				goto out;
 		} else {
 			/* Subsequent argument or inactive configuration */
-			if (parse_ssh_uri(cp, NULL, NULL, NULL) == -1 &&
-			    parse_user_host_port(cp, NULL, NULL, NULL) != 0)
-				goto out;
 			r = parse_ssh_uri(cp, NULL, NULL, NULL);
 			if (r == -1 || (r == 1 &&
 			    parse_user_host_port(cp, NULL, NULL, NULL) != 0))
