@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.338 2020/12/20 23:40:19 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.339 2020/12/22 00:15:23 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -137,6 +137,10 @@ order_hostkeyalgs(char *host, struct sockaddr *hostaddr, u_short port,
 		load_hostkeys(hostkeys, hostname,
 		    options.system_hostfiles[i], 0);
 	}
+	if (options.known_hosts_command != NULL) {
+		load_hostkeys_command(hostkeys, options.known_hosts_command,
+		    "ORDER", cinfo, NULL, host);
+	}
 	/*
 	 * If a plain public key exists that matches the type of the best
 	 * preference HostkeyAlgorithms, then use the whole list as is.
@@ -198,7 +202,8 @@ order_hostkeyalgs(char *host, struct sockaddr *hostaddr, u_short port,
 	    (*first == '\0' || *last == '\0') ? "" : ",", last);
 	if (*first != '\0')
 		debug3_f("prefer hostkeyalgs: %s", first);
-
+	else
+		debug3_f("no algorithms matched; accept original");
  out:
 	free(best);
 	free(first);

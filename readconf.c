@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.345 2020/12/21 09:19:53 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.346 2020/12/22 00:15:22 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -172,7 +172,7 @@ typedef enum {
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oFingerprintHash, oUpdateHostkeys, oHostbasedKeyTypes,
 	oPubkeyAcceptedKeyTypes, oCASignatureAlgorithms, oProxyJump,
-	oSecurityKeyProvider,
+	oSecurityKeyProvider, oKnownHostsCommand,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -311,6 +311,7 @@ static struct {
 	{ "ignoreunknown", oIgnoreUnknown },
 	{ "proxyjump", oProxyJump },
 	{ "securitykeyprovider", oSecurityKeyProvider },
+	{ "knownhostscommand", oKnownHostsCommand },
 
 	{ NULL, oBadOption }
 };
@@ -1253,6 +1254,10 @@ parse_char_array:
 	case oSecurityKeyProvider:
 		charptr = &options->sk_provider;
 		goto parse_string;
+
+	case oKnownHostsCommand:
+		charptr = &options->known_hosts_command;
+		goto parse_command;
 
 	case oProxyCommand:
 		charptr = &options->proxy_command;
@@ -2217,6 +2222,7 @@ initialize_options(Options * options)
 	options->update_hostkeys = -1;
 	options->hostbased_key_types = NULL;
 	options->pubkey_key_types = NULL;
+	options->known_hosts_command = NULL;
 }
 
 /*
@@ -2452,6 +2458,7 @@ fill_default_options(Options * options)
 	CLEAR_ON_NONE(options->revoked_host_keys);
 	CLEAR_ON_NONE(options->pkcs11_provider);
 	CLEAR_ON_NONE(options->sk_provider);
+	CLEAR_ON_NONE(options->known_hosts_command);
 	if (options->jump_host != NULL &&
 	    strcmp(options->jump_host, "none") == 0 &&
 	    options->jump_port == 0 && options->jump_user == NULL) {
@@ -3100,6 +3107,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oPubkeyAcceptedKeyTypes, o->pubkey_key_types);
 	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
 	dump_cfg_string(oXAuthLocation, o->xauth_location);
+	dump_cfg_string(oKnownHostsCommand, o->known_hosts_command);
 
 	/* Forwards */
 	dump_cfg_forwards(oDynamicForward, o->num_local_forwards, o->local_forwards);

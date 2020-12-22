@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.h,v 1.45 2020/12/20 23:40:19 djm Exp $ */
+/* $OpenBSD: sshconnect.h,v 1.46 2020/12/22 00:15:23 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -88,3 +88,7 @@ int	 ssh_local_cmd(const char *);
 
 void	 maybe_add_key_to_agent(const char *, struct sshkey *,
     const char *, const char *);
+
+void	 load_hostkeys_command(struct hostkeys *, const char *,
+    const char *, const struct ssh_conn_info *,
+    const struct sshkey *, const char *);

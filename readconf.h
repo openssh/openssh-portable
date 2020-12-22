@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.136 2020/12/17 23:10:27 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.137 2020/12/22 00:15:23 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -168,6 +168,8 @@ typedef struct {
 	char   *jump_host;
 	int	jump_port;
 	char   *jump_extra;
+
+	char   *known_hosts_command;
 
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;

@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.338 2020/10/16 14:34:33 jmc Exp $
-.Dd $Mdocdate: October 16 2020 $
+.\" $OpenBSD: ssh_config.5,v 1.339 2020/12/22 00:15:23 djm Exp $
+.Dd $Mdocdate: December 22 2020 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1120,6 +1120,31 @@ diffie-hellman-group14-sha256
 .Pp
 The list of available key exchange algorithms may also be obtained using
 .Qq ssh -Q kex .
+.It Cm KnownHostsCommand
+Specifies a command to use to obtain a list of host keys, additional to
+those listed in
+.Cm UserKnownHostsFile
+and
+.Cm GlobalKnownHostsFile .
+This command is executed after the files have been read.
+It may write host keys lines to standard output in identical format to the
+usual files (described in the
+.Sx VERIFYING HOST KEYS
+section in
+.Xr ssh 1 ) .
+Arguments to
+.Cm KnownHostsCommand
+accept the tokens described in the
+.Sx TOKENS
+section.
+The command may be invoked multiple times per connection: when preparing
+the preference list of host key algorithms to use, again to obtain the
+host key for the requested host name and, if
+.Cm CheckHostIP
+is enabled, one more time to obtain the host key matching the server's
+address.
+If the command exits abnormally or returns a non-zero exit status then the
+connection is terminated.
 .It Cm LocalCommand
 Specifies a command to execute on the local machine after successfully
 connecting to the server.
@@ -1883,10 +1908,31 @@ A literal
 Hash of %l%h%p%r.
 .It %d
 Local user's home directory.
+.It %f
+The fingerprint of the server's host key.
+.It %H
+The
+.Pa known_hosts
+hostname or address that is being searched for.
 .It %h
 The remote hostname.
+.It %I
+A string describing the reason for a
+.Cm KnownHostsCommand
+execution; either
+.Cm "ADDRESS"
+when looking up a host by address (only when
+.Cm CheckHostIP
+is enabled),
+.Cm "HOSTNAME"
+when searching by hostname or
+.Cm "ORDER"
+when preparing the host key algorithm preference list to use for the
+destination host.
 .It %i
 The local user ID.
+.It %K
+The base64 encoded host key.
 .It %k
 The host key alias if specified, otherwise the orignal remote hostname given
 on the command line.
@@ -1909,6 +1955,9 @@ network interface assigned if
 tunnel forwarding was requested, or
 .Qq NONE
 otherwise.
+.It %t
+The type of the server host key, e.g.
+.Cm ssh-ed25519
 .It %u
 The local username.
 .El
@@ -1917,6 +1966,7 @@ The local username.
 .Cm ControlPath ,
 .Cm IdentityAgent ,
 .Cm IdentityFile ,
+.Cm KnownHostsCommand ,
 .Cm LocalForward ,
 .Cm Match exec ,
 .Cm RemoteCommand ,
@@ -1924,6 +1974,9 @@ The local username.
 and
 .Cm UserKnownHostsFile
 accept the tokens %%, %C, %d, %h, %i, %L, %l, %n, %p, %r, and %u.
+.Pp
+.Cm KnownHostsCommand
+additionally accepts the tokens %f, %H, %I, %K and %t.
 .Pp
 .Cm Hostname
 accepts the tokens %% and %h.
@@ -1948,6 +2001,7 @@ The keywords
 .Cm ControlPath ,
 .Cm IdentityAgent ,
 .Cm IdentityFile
+.Cm KnownHostsCommand ,
 and
 .Cm UserKnownHostsFile
 support environment variables.
