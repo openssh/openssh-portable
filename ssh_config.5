@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.339 2020/12/22 00:15:23 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.340 2020/12/22 07:40:26 jmc Exp $
 .Dd $Mdocdate: December 22 2020 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1121,13 +1121,13 @@ diffie-hellman-group14-sha256
 The list of available key exchange algorithms may also be obtained using
 .Qq ssh -Q kex .
 .It Cm KnownHostsCommand
-Specifies a command to use to obtain a list of host keys, additional to
+Specifies a command to use to obtain a list of host keys, in addition to
 those listed in
 .Cm UserKnownHostsFile
 and
 .Cm GlobalKnownHostsFile .
 This command is executed after the files have been read.
-It may write host keys lines to standard output in identical format to the
+It may write host key lines to standard output in identical format to the
 usual files (described in the
 .Sx VERIFYING HOST KEYS
 section in
@@ -1137,7 +1137,7 @@ Arguments to
 accept the tokens described in the
 .Sx TOKENS
 section.
-The command may be invoked multiple times per connection: when preparing
+The command may be invoked multiple times per connection: once when preparing
 the preference list of host key algorithms to use, again to obtain the
 host key for the requested host name and, if
 .Cm CheckHostIP
@@ -1916,17 +1916,17 @@ The
 hostname or address that is being searched for.
 .It %h
 The remote hostname.
-.It %I
+.It \%%I
 A string describing the reason for a
 .Cm KnownHostsCommand
-execution; either
-.Cm "ADDRESS"
+execution: either
+.Cm ADDRESS
 when looking up a host by address (only when
 .Cm CheckHostIP
 is enabled),
-.Cm "HOSTNAME"
-when searching by hostname or
-.Cm "ORDER"
+.Cm HOSTNAME
+when searching by hostname, or
+.Cm ORDER
 when preparing the host key algorithm preference list to use for the
 destination host.
 .It %i
