@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.102 2020/12/17 23:28:50 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.103 2020/12/22 00:12:22 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -530,9 +530,10 @@ match_principals_command(struct ssh *ssh, struct passwd *user_pw,
 	/* Prepare a printable command for logs, etc. */
 	command = argv_assemble(ac, av);
 
-	if ((pid = subprocess("AuthorizedPrincipalsCommand", runas_pw, command,
+	if ((pid = subprocess("AuthorizedPrincipalsCommand", command,
 	    ac, av, &f,
-	    SSH_SUBPROCESS_STDOUT_CAPTURE|SSH_SUBPROCESS_STDERR_DISCARD)) == 0)
+	    SSH_SUBPROCESS_STDOUT_CAPTURE|SSH_SUBPROCESS_STDERR_DISCARD,
+	    runas_pw, temporarily_use_uid, restore_uid)) == 0)
 		goto out;
 
 	uid_swapped = 1;
@@ -968,9 +969,10 @@ user_key_command_allowed2(struct ssh *ssh, struct passwd *user_pw,
 		xasprintf(&command, "%s %s", av[0], av[1]);
 	}
 
-	if ((pid = subprocess("AuthorizedKeysCommand", runas_pw, command,
+	if ((pid = subprocess("AuthorizedKeysCommand", command,
 	    ac, av, &f,
-	    SSH_SUBPROCESS_STDOUT_CAPTURE|SSH_SUBPROCESS_STDERR_DISCARD)) == 0)
+	    SSH_SUBPROCESS_STDOUT_CAPTURE|SSH_SUBPROCESS_STDERR_DISCARD,
+	    runas_pw, temporarily_use_uid, restore_uid)) == 0)
 		goto out;
 
 	uid_swapped = 1;
