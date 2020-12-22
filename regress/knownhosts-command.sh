@@ -1,4 +1,4 @@
-#	$OpenBSD: knownhosts-command.sh,v 1.1 2020/12/22 06:03:36 djm Exp $
+#	$OpenBSD: knownhosts-command.sh,v 1.2 2020/12/22 06:47:24 djm Exp $
 #	Placed in the Public Domain.
 
 tid="known hosts command "
@@ -44,8 +44,8 @@ for keytype in ${SSH_HOSTKEY_TYPES} ; do
 	cat > $OBJ/knownhosts_command << _EOF
 #!/bin/sh
 die() { echo "\$@" 1>&2 ; exit 1; }
-test "x\$1" = "x$keytype" || die "wrong keytype \$1"
-test "x\$3" = "x$LOGNAME" || die "wrong username \$3"
+test "x\$1" = "x$keytype" || die "wrong keytype \$1 (expected $keytype)"
+test "x\$3" = "x$LOGNAME" || die "wrong username \$3 (expected $LOGNAME)"
 grep -- "\$1.*\$2" $OBJ/known_hosts
 _EOF
 	${SSH} -F $OBJ/ssh_proxy -oHostKeyAlgorithms=$keytype x true ||
