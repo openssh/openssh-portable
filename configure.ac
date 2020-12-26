@@ -4580,6 +4580,44 @@ AC_ARG_WITH([kerberos5],
 		AC_DEFINE([KRB5], [1], [Define if you want Kerberos 5 support])
 		KRB5_MSG="yes"
 
+		AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
+		use_pkgconfig_for_krb5=
+		if test "x$PKGCONFIG" != "xno"; then
+			AC_MSG_CHECKING([if $PKGCONFIG knows about kerberos5])
+			if "$PKGCONFIG" krb5; then
+				AC_MSG_RESULT([yes])
+				use_pkgconfig_for_krb5=yes
+			else
+				AC_MSG_RESULT([no])
+			fi
+		fi
+		if test "x$use_pkgconfig_for_krb5" = "xyes"; then
+			K5CFLAGS=`$PKGCONFIG --cflags krb5`
+			K5LIBS=`$PKGCONFIG --libs krb5`
+			CPPFLAGS="$CPPFLAGS $K5CFLAGS"
+
+			AC_MSG_CHECKING([for gssapi support])
+			if "$PKGCONFIG" krb5-gssapi; then
+				AC_MSG_RESULT([yes])
+				AC_DEFINE([GSSAPI], [1],
+					[Define this if you want GSSAPI
+					support in the version 2 protocol])
+				GSSCFLAGS="`$PKGCONFIG --cflags krb5-gssapi`"
+				GSSLIBS="`$PKGCONFIG --libs krb5-gssapi`"
+				CPPFLAGS="$CPPFLAGS $GSSCFLAGS"
+			else
+				AC_MSG_RESULT([no])
+			fi
+			AC_MSG_CHECKING([whether we are using Heimdal])
+			AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <krb5.h>
+				]], [[ char *tmp = heimdal_version; ]])],
+				[ AC_MSG_RESULT([yes])
+				AC_DEFINE([HEIMDAL], [1],
+				[Define this if you are using the Heimdal
+				version of Kerberos V5]) ],
+				[AC_MSG_RESULT([no])
+			])
+		else
 			AC_PATH_TOOL([KRB5CONF], [krb5-config],
 				     [$KRB5ROOT/bin/krb5-config],
 				     [$KRB5ROOT/bin:$PATH])
@@ -4656,6 +4694,7 @@ AC_ARG_WITH([kerberos5],
 						[ CPPFLAGS="$oldCPP" ])
 
 			fi
+		fi
 		if test -n "${rpath_opt}" ; then
 			LDFLAGS="$LDFLAGS ${rpath_opt}${KRB5ROOT}/lib"
 		fi
