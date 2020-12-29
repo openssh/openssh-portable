@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.218 2020/11/27 00:37:10 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.219 2020/12/29 00:59:15 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1732,7 +1732,7 @@ monitor_apply_keystate(struct ssh *ssh, struct monitor *pmonitor)
 # endif
 #endif /* WITH_OPENSSL */
 		kex->kex[KEX_C25519_SHA256] = kex_gen_server;
-		kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_gen_server;
+		kex->kex[KEX_KEM_SNTRUP761X25519_SHA512] = kex_gen_server;
 		kex->load_host_public_key=&get_hostkey_public_by_type;
 		kex->load_host_private_key=&get_hostkey_private_by_type;
 		kex->host_key_index=&get_hostkey_index;
