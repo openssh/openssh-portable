@@ -1,4 +1,4 @@
-/* $OpenBSD: kexsntrup4591761x25519.c,v 1.4 2020/12/19 22:09:21 tobhe Exp $ */
+/* $OpenBSD: kexsntrup761x25519.c,v 1.1 2020/12/29 00:59:15 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -38,7 +38,7 @@
 #include "ssherr.h"
 
 int
-kex_kem_sntrup4591761x25519_keypair(struct kex *kex)
+kex_kem_sntrup761x25519_keypair(struct kex *kex)
 {
 	struct sshbuf *buf = NULL;
 	u_char *cp = NULL;
@@ -47,15 +47,15 @@ kex_kem_sntrup4591761x25519_keypair(struct kex *kex)
 
 	if ((buf = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	need = crypto_kem_sntrup4591761_PUBLICKEYBYTES + CURVE25519_SIZE;
+	need = crypto_kem_sntrup761_PUBLICKEYBYTES + CURVE25519_SIZE;
 	if ((r = sshbuf_reserve(buf, need, &cp)) != 0)
 		goto out;
-	crypto_kem_sntrup4591761_keypair(cp, kex->sntrup4591761_client_key);
+	crypto_kem_sntrup761_keypair(cp, kex->sntrup761_client_key);
 #ifdef DEBUG_KEXECDH
-	dump_digest("client public key sntrup4591761:", cp,
-	    crypto_kem_sntrup4591761_PUBLICKEYBYTES);
+	dump_digest("client public key sntrup761:", cp,
+	    crypto_kem_sntrup761_PUBLICKEYBYTES);
 #endif
-	cp += crypto_kem_sntrup4591761_PUBLICKEYBYTES;
+	cp += crypto_kem_sntrup761_PUBLICKEYBYTES;
 	kexc25519_keygen(kex->c25519_client_key, cp);
 #ifdef DEBUG_KEXECDH
 	dump_digest("client public key c25519:", cp, CURVE25519_SIZE);
@@ -68,7 +68,7 @@ kex_kem_sntrup4591761x25519_keypair(struct kex *kex)
 }
 
 int
-kex_kem_sntrup4591761x25519_enc(struct kex *kex,
+kex_kem_sntrup761x25519_enc(struct kex *kex,
    const struct sshbuf *client_blob, struct sshbuf **server_blobp,
    struct sshbuf **shared_secretp)
 {
@@ -85,17 +85,17 @@ kex_kem_sntrup4591761x25519_enc(struct kex *kex,
 	*shared_secretp = NULL;
 
 	/* client_blob contains both KEM and ECDH client pubkeys */
-	need = crypto_kem_sntrup4591761_PUBLICKEYBYTES + CURVE25519_SIZE;
+	need = crypto_kem_sntrup761_PUBLICKEYBYTES + CURVE25519_SIZE;
 	if (sshbuf_len(client_blob) != need) {
 		r = SSH_ERR_SIGNATURE_INVALID;
 		goto out;
 	}
 	client_pub = sshbuf_ptr(client_blob);
 #ifdef DEBUG_KEXECDH
-	dump_digest("client public key sntrup4591761:", client_pub,
-	    crypto_kem_sntrup4591761_PUBLICKEYBYTES);
+	dump_digest("client public key sntrup761:", client_pub,
+	    crypto_kem_sntrup761_PUBLICKEYBYTES);
 	dump_digest("client public key 25519:",
-	    client_pub + crypto_kem_sntrup4591761_PUBLICKEYBYTES,
+	    client_pub + crypto_kem_sntrup761_PUBLICKEYBYTES,
 	    CURVE25519_SIZE);
 #endif
 	/* allocate buffer for concatenation of KEM key and ECDH shared key */
@@ -104,7 +104,7 @@ kex_kem_sntrup4591761x25519_enc(struct kex *kex,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = sshbuf_reserve(buf, crypto_kem_sntrup4591761_BYTES,
+	if ((r = sshbuf_reserve(buf, crypto_kem_sntrup761_BYTES,
 	    &kem_key)) != 0)
 		goto out;
 	/* allocate space for encrypted KEM key and ECDH pub key */
@@ -112,16 +112,16 @@ kex_kem_sntrup4591761x25519_enc(struct kex *kex,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	need = crypto_kem_sntrup4591761_CIPHERTEXTBYTES + CURVE25519_SIZE;
+	need = crypto_kem_sntrup761_CIPHERTEXTBYTES + CURVE25519_SIZE;
 	if ((r = sshbuf_reserve(server_blob, need, &ciphertext)) != 0)
 		goto out;
 	/* generate and encrypt KEM key with client key */
-	crypto_kem_sntrup4591761_enc(ciphertext, kem_key, client_pub);
+	crypto_kem_sntrup761_enc(ciphertext, kem_key, client_pub);
 	/* generate ECDH key pair, store server pubkey after ciphertext */
-	server_pub = ciphertext + crypto_kem_sntrup4591761_CIPHERTEXTBYTES;
+	server_pub = ciphertext + crypto_kem_sntrup761_CIPHERTEXTBYTES;
 	kexc25519_keygen(server_key, server_pub);
 	/* append ECDH shared key */
-	client_pub += crypto_kem_sntrup4591761_PUBLICKEYBYTES;
+	client_pub += crypto_kem_sntrup761_PUBLICKEYBYTES;
 	if ((r = kexc25519_shared_key_ext(server_key, client_pub, buf, 1)) < 0)
 		goto out;
 	if ((r = ssh_digest_buffer(kex->hash_alg, buf, hash, sizeof(hash))) != 0)
@@ -129,7 +129,7 @@ kex_kem_sntrup4591761x25519_enc(struct kex *kex,
 #ifdef DEBUG_KEXECDH
 	dump_digest("server public key 25519:", server_pub, CURVE25519_SIZE);
 	dump_digest("server cipher text:", ciphertext,
-	    crypto_kem_sntrup4591761_CIPHERTEXTBYTES);
+	    crypto_kem_sntrup761_CIPHERTEXTBYTES);
 	dump_digest("server kem key:", kem_key, sizeof(kem_key));
 	dump_digest("concatenation of KEM key and ECDH shared key:",
 	    sshbuf_ptr(buf), sshbuf_len(buf));
@@ -155,7 +155,7 @@ kex_kem_sntrup4591761x25519_enc(struct kex *kex,
 }
 
 int
-kex_kem_sntrup4591761x25519_dec(struct kex *kex,
+kex_kem_sntrup761x25519_dec(struct kex *kex,
     const struct sshbuf *server_blob, struct sshbuf **shared_secretp)
 {
 	struct sshbuf *buf = NULL;
@@ -167,16 +167,16 @@ kex_kem_sntrup4591761x25519_dec(struct kex *kex,
 
 	*shared_secretp = NULL;
 
-	need = crypto_kem_sntrup4591761_CIPHERTEXTBYTES + CURVE25519_SIZE;
+	need = crypto_kem_sntrup761_CIPHERTEXTBYTES + CURVE25519_SIZE;
 	if (sshbuf_len(server_blob) != need) {
 		r = SSH_ERR_SIGNATURE_INVALID;
 		goto out;
 	}
 	ciphertext = sshbuf_ptr(server_blob);
-	server_pub = ciphertext + crypto_kem_sntrup4591761_CIPHERTEXTBYTES;
+	server_pub = ciphertext + crypto_kem_sntrup761_CIPHERTEXTBYTES;
 #ifdef DEBUG_KEXECDH
 	dump_digest("server cipher text:", ciphertext,
-	    crypto_kem_sntrup4591761_CIPHERTEXTBYTES);
+	    crypto_kem_sntrup761_CIPHERTEXTBYTES);
 	dump_digest("server public key c25519:", server_pub, CURVE25519_SIZE);
 #endif
 	/* hash concatenation of KEM key and ECDH shared key */
@@ -184,18 +184,18 @@ kex_kem_sntrup4591761x25519_dec(struct kex *kex,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = sshbuf_reserve(buf, crypto_kem_sntrup4591761_BYTES,
+	if ((r = sshbuf_reserve(buf, crypto_kem_sntrup761_BYTES,
 	    &kem_key)) != 0)
 		goto out;
-	decoded = crypto_kem_sntrup4591761_dec(kem_key, ciphertext,
-	    kex->sntrup4591761_client_key);
+	decoded = crypto_kem_sntrup761_dec(kem_key, ciphertext,
+	    kex->sntrup761_client_key);
 	if ((r = kexc25519_shared_key_ext(kex->c25519_client_key, server_pub,
 	    buf, 1)) < 0)
 		goto out;
 	if ((r = ssh_digest_buffer(kex->hash_alg, buf, hash, sizeof(hash))) != 0)
 		goto out;
 #ifdef DEBUG_KEXECDH
-	dump_digest("client kem key:", kem_key, crypto_kem_sntrup4591761_BYTES);
+	dump_digest("client kem key:", kem_key, crypto_kem_sntrup761_BYTES);
 	dump_digest("concatenation of KEM key and ECDH shared key:",
 	    sshbuf_ptr(buf), sshbuf_len(buf));
 #endif

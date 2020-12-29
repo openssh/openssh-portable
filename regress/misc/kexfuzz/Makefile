@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.8 2020/04/03 04:07:48 djm Exp $
+#	$OpenBSD: Makefile,v 1.9 2020/12/29 01:02:15 djm Exp $
 
 .include <bsd.own.mk>
 .include <bsd.obj.mk>
@@ -32,8 +32,8 @@ SRCS+=	kexgexs.c
 SRCS+=	kexc25519.c
 SRCS+=	smult_curve25519_ref.c
 SRCS+=	kexgen.c
-SRCS+=	kexsntrup4591761x25519.c
-SRCS+=	sntrup4591761.c
+SRCS+=	kexsntrup761x25519.c
+SRCS+=	sntrup761.c
 
 SRCS+=digest-openssl.c
 #SRCS+=digest-libc.c
