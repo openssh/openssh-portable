@@ -1853,7 +1853,6 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	if (print_flag)
 		mprintf("Entering %s\n", src);
 
-	attrib_clear(&a);
 	stat_to_attrib(&sb, &a);
 	a.flags &= ~SSH2_FILEXFER_ATTR_SIZE;
 	a.flags &= ~SSH2_FILEXFER_ATTR_UIDGID;
