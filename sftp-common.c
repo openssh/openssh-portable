@@ -81,11 +81,18 @@ stat_to_attrib(const struct stat *st, Attrib *a)
 	a->mtime = st->st_mtime;
 }
 
+/* Clear contents of stat structure */
+void
+stat_clear(struct stat *st)
+{
+	memset(st, 0, sizeof(*st));
+}
+
 /* Convert from filexfer attribs to struct stat */
 void
 attrib_to_stat(const Attrib *a, struct stat *st)
 {
-	memset(st, 0, sizeof(*st));
+	stat_clear(st);
 
 	if (a->flags & SSH2_FILEXFER_ATTR_SIZE)
 		st->st_size = a->size;
