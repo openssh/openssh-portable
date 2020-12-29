@@ -54,13 +54,7 @@
 void
 attrib_clear(Attrib *a)
 {
-	a->flags = 0;
-	a->size = 0;
-	a->uid = 0;
-	a->gid = 0;
-	a->perm = 0;
-	a->atime = 0;
-	a->mtime = 0;
+	memset(a, 0, sizeof(*a));
 }
 
 /* Convert from struct stat to filexfer attribs */
