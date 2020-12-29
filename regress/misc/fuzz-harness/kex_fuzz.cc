@@ -469,7 +469,7 @@ do_kex(struct shared_state *st, struct test_state *ts, const char *kex)
 static void
 kex_tests(struct shared_state *st, struct test_state *ts)
 {
-	do_kex(st, ts, "sntrup4591761x25519-sha512@tinyssh.org");
+	do_kex(st, ts, "sntrup761x25519-sha512@openssh.com");
 	do_kex(st, ts, "curve25519-sha256@libssh.org");
 	do_kex(st, ts, "ecdh-sha2-nistp256");
 	do_kex(st, ts, "diffie-hellman-group1-sha1");
