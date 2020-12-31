@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: sntrup761.sh,v 1.1 2020/12/29 00:59:15 djm Exp $
+#       $OpenBSD: sntrup761.sh,v 1.2 2020/12/30 14:13:28 tobhe Exp $
 #       Placed in the Public Domain.
 #
 AUTHOR="supercop-20201130/crypto_kem/sntrup761/ref/implementors"
@@ -21,7 +21,6 @@ FILES="
 	supercop-20201130/crypto_kem/sntrup761/ref/kem.c
 "
 SORT_I32="
-	supercop-20201130/crypto_sort/int32/portable4/int32_minmax.inc
 	supercop-20201130/crypto_sort/int32/portable4/sort.c
 "
 SORT_U32="supercop-20201130/crypto_sort/uint32/useint32/sort.c"
@@ -39,6 +38,7 @@ echo ' */'
 echo
 echo '#include <string.h>'
 echo '#include "crypto_api.h"'
+echo '#include "int32_minmax.inc"'
 echo
 echo '#define CRYPTO_NAMESPACE(s) s'
 echo
