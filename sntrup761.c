@@ -92,6 +92,8 @@ static void crypto_sort_uint32(void *array,long long n)
   for (j = 0;j < n;++j) x[j] ^= 0x80000000;
 }
 
+#undef int32
+
 /* from supercop-20201130/crypto_kem/sntrup761/ref/uint64.h */
 #ifndef UINT64_H
 #define UINT64_H
