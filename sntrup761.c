@@ -1,4 +1,4 @@
-/*  $OpenBSD: sntrup761.c,v 1.2 2020/12/30 14:13:28 tobhe Exp $ */
+/*  $OpenBSD: sntrup761.c,v 1.3 2021/01/03 18:05:21 tobhe Exp $ */
 
 /*
  * Public Domain, Authors:
@@ -160,7 +160,6 @@ typedef int16_t int16;
 #define int32_divmod_uint14 CRYPTO_NAMESPACE(int32_divmod_uint14)
 
 
-typedef int32_t int32;
 
 /*
 assuming 1 <= m < 16384:

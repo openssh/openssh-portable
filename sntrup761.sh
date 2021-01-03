@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: sntrup761.sh,v 1.2 2020/12/30 14:13:28 tobhe Exp $
+#       $OpenBSD: sntrup761.sh,v 1.3 2021/01/03 18:05:21 tobhe Exp $
 #       Placed in the Public Domain.
 #
 AUTHOR="supercop-20201130/crypto_kem/sntrup761/ref/implementors"
@@ -60,6 +60,7 @@ for i in $FILES; do
 	   -v '#include' $i | \
 	   sed -e "s/crypto_kem_/crypto_kem_sntrup761_/g" \
 		-e "s/^extern void /static void /" \
-		-e "s/^void /static void /"
+		-e "s/^void /static void /" \
+		-e "/^typedef int32_t int32;$/d"
 	echo
 done
