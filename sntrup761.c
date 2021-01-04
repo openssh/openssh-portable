@@ -1,4 +1,4 @@
-/*  $OpenBSD: sntrup761.c,v 1.3 2021/01/03 18:05:21 tobhe Exp $ */
+/*  $OpenBSD: sntrup761.c,v 1.4 2021/01/04 21:58:58 dtucker Exp $ */
 
 /*
  * Public Domain, Authors:
@@ -12,9 +12,20 @@
 
 #include <string.h>
 #include "crypto_api.h"
-#include "int32_minmax.inc"
 
 #define CRYPTO_NAMESPACE(s) s
+
+/* from supercop-20201130/crypto_sort/int32/portable4/int32_minmax.inc */
+#define int32_MINMAX(a,b) \
+do { \
+  int64_t ab = (int64_t)b ^ (int64_t)a; \
+  int64_t c = (int64_t)b - (int64_t)a; \
+  c ^= ab & (c ^ b); \
+  c >>= 31; \
+  c &= ab; \
+  a ^= c; \
+  b ^= c; \
+} while(0)
 
 /* from supercop-20201130/crypto_sort/int32/portable4/sort.c */
 #define int32 crypto_int32
