@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.340 2020/12/22 07:40:26 jmc Exp $
-.Dd $Mdocdate: December 22 2020 $
+.\" $OpenBSD: ssh_config.5,v 1.341 2021/01/08 04:49:13 djm Exp $
+.Dd $Mdocdate: January 8 2021 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -421,7 +421,6 @@ or
 .It Cm CheckHostIP
 If set to
 .Cm yes
-(the default),
 .Xr ssh 1
 will additionally check the host IP address in the
 .Pa known_hosts
@@ -432,7 +431,8 @@ and will add addresses of destination hosts to
 in the process, regardless of the setting of
 .Cm StrictHostKeyChecking .
 If the option is set to
-.Cm no ,
+.Cm no
+(the default),
 the check will not be executed.
 .It Cm Ciphers
 Specifies the ciphers allowed and their order of preference.
