@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+case $(./config.guess) in
+*-darwin*)
+	# no setup needed for Mac OS X
+	exit 0
+	;;
+esac
+
 TARGETS=$@
 
 PACKAGES=""

@@ -7,9 +7,35 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  ubuntu-20_04:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        configs:
+        - ""
+        - "--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin --with-selinux"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup CI system
+      run: ./.github/setup_ci.sh ${{ matrix.configs }}
+    - name: autoreconf
+      run: autoreconf
+    - name: configure
+      run: ./configure ${{ matrix.configs }}
+    - name: make
+      run: make
+    - name: make tests
+      run: ./.github/run_test.sh ${{ matrix.configs }}
+      env:
+        TEST_SSH_UNSAFE_PERMISSIONS: 1
+
+
+  ubuntu-18_04:
+
+    runs-on: ubuntu-18.04
 
     strategy:
       matrix:
@@ -22,6 +48,32 @@ jobs:
         - "--with-selinux"
         - "--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin --with-selinux"
         - "--without-openssl --without-zlib"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup CI system
+      run: ./.github/setup_ci.sh ${{ matrix.configs }}
+    - name: autoreconf
+      run: autoreconf
+    - name: configure
+      run: ./configure ${{ matrix.configs }}
+    - name: make
+      run: make
+    - name: make tests
+      run: ./.github/run_test.sh ${{ matrix.configs }}
+      env:
+        TEST_SSH_UNSAFE_PERMISSIONS: 1
+
+
+  ubuntu-16_04:
+
+    runs-on: ubuntu-16.04
+
+    strategy:
+      matrix:
+        configs:
+        - ""
+        - "--with-pam --with-selinux --with-libedit --with-kerberos5 "
 
     steps:
     - uses: actions/checkout@v2
