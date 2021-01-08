@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.340 2020/12/29 00:59:15 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.341 2021/01/08 02:57:24 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1221,7 +1221,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat, const char *alg)
 {
 	struct sshkey *sign_key = NULL, *prv = NULL;
-	int r = SSH_ERR_INTERNAL_ERROR;
+	int retried = 0, r = SSH_ERR_INTERNAL_ERROR;
 	struct notifier_ctx *notifier = NULL;
 	char *fp = NULL, *pin = NULL, *prompt = NULL;
 
@@ -1255,6 +1255,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 		if (sshkey_is_sk(sign_key)) {
 			if ((sign_key->sk_flags &
 			    SSH_SK_USER_VERIFICATION_REQD)) {
+ retry_pin:
 				xasprintf(&prompt, "Enter PIN for %s key %s: ",
 				    sshkey_type(sign_key), id->filename);
 				pin = read_passphrase(prompt, 0);
@@ -1275,8 +1276,16 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	if ((r = sshkey_sign(sign_key, sigp, lenp, data, datalen,
 	    alg, options.sk_provider, pin, compat)) != 0) {
 		debug_fr(r, "sshkey_sign");
+		if (pin == NULL && !retried && sshkey_is_sk(sign_key) &&
+		    r == SSH_ERR_KEY_WRONG_PASSPHRASE) {
+			notify_complete(notifier, NULL);
+			notifier = NULL;
+			retried = 1;
+			goto retry_pin;
+		}
 		goto out;
 	}
+
 	/*
 	 * PKCS#11 tokens may not support all signature algorithms,
 	 * so check what we get back.
@@ -1291,7 +1300,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	free(prompt);
 	if (pin != NULL)
 		freezero(pin, strlen(pin));
-	notify_complete(notifier, "User presence confirmed");
+	notify_complete(notifier, r == 0 ? "User presence confirmed" : NULL);
 	sshkey_free(prv);
 	return r;
 }
