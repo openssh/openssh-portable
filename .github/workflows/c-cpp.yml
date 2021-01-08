@@ -16,6 +16,7 @@ jobs:
         configs:
         - ""
         - "--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin --with-selinux"
+        - "--with-ldflags=-lhardened_malloc"
 
     steps:
     - uses: actions/checkout@v2

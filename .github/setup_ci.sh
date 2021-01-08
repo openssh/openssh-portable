@@ -40,7 +40,10 @@ for TARGET in $TARGETS; do
     "--with-selinux")
         PACKAGES="$PACKAGES libselinux1-dev selinux-policy-dev"
         ;;
-    *) echo "Invalid option"
+    "--with-ldflags=-lhardened_malloc")
+        INSTALL_HARDENED_MALLOC=yes
+       ;;
+    *) echo "Invalid option '${TARGET}'"
         exit 1
         ;;
     esac
@@ -55,4 +58,11 @@ fi
 if [ "x" != "x$PACKAGES" ]; then 
     sudo apt update -qq
     sudo apt install -qy $PACKAGES
+fi
+
+if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
+    (cd ${HOME} &&
+     git clone https://github.com/GrapheneOS/hardened_malloc.git &&
+     cd ${HOME}/hardened_malloc &&
+     make && sudo cp libhardened_malloc.so /usr/lib/)
 fi
