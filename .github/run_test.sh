@@ -5,6 +5,8 @@ TARGETS=$@
 TEST_TARGET="tests"
 LTESTS=""  # all tests by default
 
+[ -z "${SUDO}" ] || ${SUDO} mkdir -p /var/empty
+
 set -ex
 
 for TARGET in $TARGETS; do
