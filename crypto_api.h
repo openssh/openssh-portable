@@ -1,4 +1,4 @@
-/* $OpenBSD: crypto_api.h,v 1.6 2020/12/29 00:59:15 djm Exp $ */
+/* $OpenBSD: crypto_api.h,v 1.7 2021/01/08 02:33:13 dtucker Exp $ */
 
 /*
  * Assembled from generated headers and source files by Markus Friedl.
@@ -21,6 +21,8 @@ typedef int16_t crypto_int16;
 typedef uint16_t crypto_uint16;
 typedef int32_t crypto_int32;
 typedef uint32_t crypto_uint32;
+typedef int64_t crypto_int64;
+typedef uint64_t crypto_uint64;
 
 #define randombytes(buf, buf_len) arc4random_buf((buf), (buf_len))
 #define small_random32() arc4random()

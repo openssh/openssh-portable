@@ -1,4 +1,4 @@
-/*  $OpenBSD: sntrup761.c,v 1.4 2021/01/04 21:58:58 dtucker Exp $ */
+/*  $OpenBSD: sntrup761.c,v 1.5 2021/01/08 02:33:13 dtucker Exp $ */
 
 /*
  * Public Domain, Authors:
@@ -13,7 +13,14 @@
 #include <string.h>
 #include "crypto_api.h"
 
-#define CRYPTO_NAMESPACE(s) s
+#define int8 crypto_int8
+#define uint8 crypto_uint8
+#define int16 crypto_int16
+#define uint16 crypto_uint16
+#define int32 crypto_int32
+#define uint32 crypto_uint32
+#define int64 crypto_int64
+#define uint64 crypto_uint64
 
 /* from supercop-20201130/crypto_sort/int32/portable4/int32_minmax.inc */
 #define int32_MINMAX(a,b) \
@@ -28,7 +35,6 @@ do { \
 } while(0)
 
 /* from supercop-20201130/crypto_sort/int32/portable4/sort.c */
-#define int32 crypto_int32
 
 
 static void crypto_sort_int32(void *array,long long n)
@@ -103,88 +109,6 @@ static void crypto_sort_uint32(void *array,long long n)
   for (j = 0;j < n;++j) x[j] ^= 0x80000000;
 }
 
-#undef int32
-
-/* from supercop-20201130/crypto_kem/sntrup761/ref/uint64.h */
-#ifndef UINT64_H
-#define UINT64_H
-
-
-typedef uint64_t uint64;
-
-#endif
-
-/* from supercop-20201130/crypto_kem/sntrup761/ref/uint16.h */
-#ifndef UINT16_H
-#define UINT16_H
-
-typedef uint16_t uint16;
-
-#endif
-
-/* from supercop-20201130/crypto_kem/sntrup761/ref/uint32.h */
-#ifndef UINT32_H
-#define UINT32_H
-
-#define uint32_div_uint14 CRYPTO_NAMESPACE(uint32_div_uint14)
-#define uint32_mod_uint14 CRYPTO_NAMESPACE(uint32_mod_uint14)
-#define uint32_divmod_uint14 CRYPTO_NAMESPACE(uint32_divmod_uint14)
-
-
-typedef uint32_t uint32;
-
-/*
-assuming 1 <= m < 16384:
-q = uint32_div_uint14(x,m) means q = x/m
-r = uint32_mod_uint14(x,m) means r = x/m
-uint32_moddiv_uint14(&q,&r,x,m) means q = x/m, r = x%m
-*/
-
-extern uint32 uint32_div_uint14(uint32,uint16);
-extern uint16 uint32_mod_uint14(uint32,uint16);
-static void uint32_divmod_uint14(uint32 *,uint16 *,uint32,uint16);
-
-#endif
-
-/* from supercop-20201130/crypto_kem/sntrup761/ref/int8.h */
-#ifndef INT8_H
-#define INT8_H
-
-typedef int8_t int8;
-
-#endif
-
-/* from supercop-20201130/crypto_kem/sntrup761/ref/int16.h */
-#ifndef INT16_H
-#define INT16_H
-
-typedef int16_t int16;
-
-#endif
-
-/* from supercop-20201130/crypto_kem/sntrup761/ref/int32.h */
-#ifndef INT32_H
-#define INT32_H
-
-#define int32_div_uint14 CRYPTO_NAMESPACE(int32_div_uint14)
-#define int32_mod_uint14 CRYPTO_NAMESPACE(int32_mod_uint14)
-#define int32_divmod_uint14 CRYPTO_NAMESPACE(int32_divmod_uint14)
-
-
-
-/*
-assuming 1 <= m < 16384:
-q = int32_div_uint14(x,m) means q = x/m
-r = int32_mod_uint14(x,m) means r = x/m
-int32_moddiv_uint14(&q,&r,x,m) means q = x/m, r = x%m
-*/
-
-extern int32 int32_div_uint14(int32,uint16);
-extern uint16 int32_mod_uint14(int32,uint16);
-static void int32_divmod_uint14(int32 *,uint16 *,int32,uint16);
-
-#endif
-
 /* from supercop-20201130/crypto_kem/sntrup761/ref/uint32.c */
 
 /*
@@ -239,15 +163,8 @@ static void uint32_divmod_uint14(uint32 *q,uint16 *r,uint32 x,uint16 m)
   *r = x;
 }
 
-uint32 uint32_div_uint14(uint32 x,uint16 m)
-{
-  uint32 q;
-  uint16 r;
-  uint32_divmod_uint14(&q,&r,x,m);
-  return q;
-}
 
-uint16 uint32_mod_uint14(uint32 x,uint16 m)
+static uint16 uint32_mod_uint14(uint32 x,uint16 m)
 {
   uint32 q;
   uint16 r;
@@ -271,15 +188,8 @@ static void int32_divmod_uint14(int32 *q,uint16 *r,int32 x,uint16 m)
   *r = ur; *q = uq;
 }
 
-int32 int32_div_uint14(int32 x,uint16 m)
-{
-  int32 q;
-  uint16 r;
-  int32_divmod_uint14(&q,&r,x,m);
-  return q;
-}
 
-uint16 int32_mod_uint14(int32 x,uint16 m)
+static uint16 int32_mod_uint14(int32 x,uint16 m)
 {
   int32 q;
   uint16 r;
@@ -365,12 +275,10 @@ uint16 int32_mod_uint14(int32 x,uint16 m)
 #ifndef Decode_H
 #define Decode_H
 
-#define Decode CRYPTO_NAMESPACE(Decode)
 
 /* Decode(R,s,M,len) */
 /* assumes 0 < M[i] < 16384 */
 /* produces 0 <= R[i] < M[i] */
-static void Decode(uint16 *,const unsigned char *,const uint16 *,long long);
 
 #endif
 
@@ -432,11 +340,9 @@ static void Decode(uint16 *out,const unsigned char *S,const uint16 *M,long long 
 #ifndef Encode_H
 #define Encode_H
 
-#define Encode CRYPTO_NAMESPACE(Encode)
 
 /* Encode(s,R,M,len) */
 /* assumes 0 <= R[i] < M[i] < 16384 */
-static void Encode(unsigned char *,const uint16 *,const uint16 *,long long);
 
 #endif
 
