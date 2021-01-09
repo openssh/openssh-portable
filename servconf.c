@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.371 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.372 2021/01/09 12:10:02 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -165,6 +165,9 @@ initialize_server_options(ServerOptions *options)
 	options->max_startups_begin = -1;
 	options->max_startups_rate = -1;
 	options->max_startups = -1;
+	options->per_source_max_startups = -1;
+	options->per_source_masklen_ipv4 = -1;
+	options->per_source_masklen_ipv6 = -1;
 	options->max_authtries = -1;
 	options->max_sessions = -1;
 	options->banner = NULL;
@@ -419,6 +422,12 @@ fill_default_server_options(ServerOptions *options)
 		options->max_startups_rate = 30;		/* 30% */
 	if (options->max_startups_begin == -1)
 		options->max_startups_begin = 10;
+	if (options->per_source_max_startups == -1)
+		options->per_source_max_startups = INT_MAX;
+	if (options->per_source_masklen_ipv4 == -1)
+		options->per_source_masklen_ipv4 = 32;
+	if (options->per_source_masklen_ipv6 == -1)
+		options->per_source_masklen_ipv6 = 128;
 	if (options->max_authtries == -1)
 		options->max_authtries = DEFAULT_AUTH_FAIL_MAX;
 	if (options->max_sessions == -1)
@@ -522,7 +531,7 @@ typedef enum {
 	sXAuthLocation, sSubsystem, sMaxStartups, sMaxAuthTries, sMaxSessions,
 	sBanner, sUseDNS, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sHostbasedAcceptedKeyTypes,
-	sHostKeyAlgorithms,
+	sHostKeyAlgorithms, sPerSourceMaxStartups, sPerSourceNetBlockSize,
 	sClientAliveInterval, sClientAliveCountMax, sAuthorizedKeysFile,
 	sGssAuthentication, sGssCleanupCreds, sGssStrictAcceptor,
 	sAcceptEnv, sSetEnv, sPermitTunnel,
@@ -648,6 +657,8 @@ static struct {
 	{ "gatewayports", sGatewayPorts, SSHCFG_ALL },
 	{ "subsystem", sSubsystem, SSHCFG_GLOBAL },
 	{ "maxstartups", sMaxStartups, SSHCFG_GLOBAL },
+	{ "persourcemaxstartups", sPerSourceMaxStartups, SSHCFG_GLOBAL },
+	{ "persourcenetblocksize", sPerSourceNetBlockSize, SSHCFG_GLOBAL },
 	{ "maxauthtries", sMaxAuthTries, SSHCFG_ALL },
 	{ "maxsessions", sMaxSessions, SSHCFG_ALL },
 	{ "banner", sBanner, SSHCFG_ALL },
@@ -1891,6 +1902,45 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			options->max_startups = options->max_startups_begin;
 		break;
 
+	case sPerSourceNetBlockSize:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing PerSourceNetBlockSize spec.",
+			    filename, linenum);
+		switch (n = sscanf(arg, "%d:%d", &value, &value2)) {
+		case 2:
+			if (value2 < 0 || value2 > 128)
+				n = -1;
+			/* FALLTHROUGH */
+		case 1:
+			if (value < 0 || value > 32)
+				n = -1;
+		}
+		if (n != 1 && n != 2)
+			fatal("%s line %d: Invalid PerSourceNetBlockSize"
+			    " spec.", filename, linenum);
+		if (*activep) {
+			options->per_source_masklen_ipv4 = value;
+			options->per_source_masklen_ipv6 = value2;
+		}
+		break;
+
+	case sPerSourceMaxStartups:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing PerSourceMaxStartups spec.",
+			    filename, linenum);
+		if (strcmp(arg, "none") == 0) { /* no limit */
+			value = INT_MAX;
+		} else {
+			if ((errstr = atoi_err(arg, &value)) != NULL)
+				fatal("%s line %d: integer value %s.",
+				    filename, linenum, errstr);
+		}
+		if (*activep)
+			options->per_source_max_startups = value;
+		break;
+
 	case sMaxAuthTries:
 		intptr = &options->max_authtries;
 		goto parse_int;
@@ -2905,6 +2955,13 @@ dump_config(ServerOptions *o)
 
 	printf("maxstartups %d:%d:%d\n", o->max_startups_begin,
 	    o->max_startups_rate, o->max_startups);
+	printf("persourcemaxstartups ");
+	if (o->per_source_max_startups == INT_MAX)
+		printf("none\n");
+	else
+		printf("%d\n", o->per_source_max_startups);
+	printf("persourcnetblocksize %d:%d\n", o->per_source_masklen_ipv4,
+	    o->per_source_masklen_ipv6);
 
 	s = NULL;
 	for (i = 0; tunmode_desc[i].val != -1; i++) {
