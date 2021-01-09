@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.321 2021/01/09 12:10:02 dtucker Exp $
+.\" $OpenBSD: sshd_config.5,v 1.322 2021/01/09 12:51:12 jmc Exp $
 .Dd $Mdocdate: January 9 2021 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -1449,7 +1449,7 @@ Specifies the number of bits of source address that are grouped together
 for the purposes of applying PerSourceMaxStartups limits.
 Values for IPv4 and optionally IPv6 may be specified, separated by a colon.
 The default is
-.Cm 32:128
+.Cm 32:128 ,
 which means each address is considered individually.
 .It Cm Port
 Specifies the port number that
