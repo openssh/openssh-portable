@@ -95,7 +95,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	cipher-ctr.o cleanup.o \
 	compat.o fatal.o hostfile.o \
 	log.o match.o moduli.o nchan.o packet.o \
-	readpass.o ttymodes.o xmalloc.o addrmatch.o \
+	readpass.o ttymodes.o xmalloc.o addr.o addrmatch.o \
 	atomicio.o dispatch.o mac.o misc.o utf8.o \
 	monitor_fdpass.o rijndael.o ssh-dss.o ssh-ecdsa.o ssh-ecdsa-sk.o \
 	ssh-ed25519-sk.o ssh-rsa.o dh.o \
