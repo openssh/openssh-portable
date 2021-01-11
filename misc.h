@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.91 2020/12/22 00:12:22 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.92 2021/01/11 02:12:57 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -67,7 +67,7 @@ char	*colon(char *);
 int	 parse_user_host_path(const char *, char **, char **, char **);
 int	 parse_user_host_port(const char *, char **, char **, int *);
 int	 parse_uri(const char *, const char *, char **, char **, int *, char **);
-long	 convtime(const char *);
+int	 convtime(const char *);
 const char *fmt_timeframe(time_t t);
 char	*tilde_expand_filename(const char *, uid_t);
 

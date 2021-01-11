@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.267 2020/11/08 22:37:24 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.268 2021/01/11 02:12:58 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -164,7 +164,7 @@ u_char lock_salt[LOCK_SALT_SIZE];
 extern char *__progname;
 
 /* Default lifetime in seconds (0 == forever) */
-static long lifetime = 0;
+static int lifetime = 0;
 
 static int fingerprint_hash = SSH_FP_HASH_DEFAULT;
 
