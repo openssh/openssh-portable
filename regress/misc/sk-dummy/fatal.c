@@ -9,9 +9,6 @@
 
 #include "log.h"
 
-void sshfatal(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *suffix, const char *fmt, ...);
-
 void
 sshfatal(const char *file, const char *func, int line, int showfunc,
     LogLevel level, const char *suffix, const char *fmt, ...)
