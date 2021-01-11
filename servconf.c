@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.372 2021/01/09 12:10:02 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.373 2021/01/11 04:48:22 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2960,7 +2960,7 @@ dump_config(ServerOptions *o)
 		printf("none\n");
 	else
 		printf("%d\n", o->per_source_max_startups);
-	printf("persourcnetblocksize %d:%d\n", o->per_source_masklen_ipv4,
+	printf("persourcenetblocksize %d:%d\n", o->per_source_masklen_ipv4,
 	    o->per_source_masklen_ipv6);
 
 	s = NULL;
