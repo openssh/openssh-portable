@@ -2,7 +2,7 @@
 
 case $(./config.guess) in
 *-darwin*)
-	# no setup needed for Mac OS X
+	brew install automake
 	exit 0
 	;;
 esac

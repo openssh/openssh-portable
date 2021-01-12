@@ -93,3 +93,56 @@ jobs:
       env:
         SUDO: sudo
         TEST_SSH_UNSAFE_PERMISSIONS: 1
+
+
+  macos-10_15:
+
+    runs-on: macos-10.15
+
+    strategy:
+      matrix:
+        configs:
+        - ""
+        - "--with-pam"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup CI system
+      run: ./.github/setup_ci.sh ${{ matrix.configs }}
+    - name: autoreconf
+      run: autoreconf
+    - name: configure
+      run: ./configure --with-ssl-dir=/usr/local/opt/openssl ${{ matrix.configs }}
+    - name: make
+      run: make
+    - name: make tests
+      run: ./.github/run_test.sh ${{ matrix.configs }}
+      env:
+        SUDO: sudo
+        TEST_SSH_UNSAFE_PERMISSIONS: 1
+
+  macos-11_0:
+
+    runs-on: macos-11.0
+
+    strategy:
+      matrix:
+        configs:
+        - ""
+        - "--with-pam"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup CI system
+      run: ./.github/setup_ci.sh ${{ matrix.configs }}
+    - name: autoreconf
+      run: autoreconf
+    - name: configure
+      run: ./configure --with-ssl-dir=/usr/local/opt/openssl ${{ matrix.configs }}
+    - name: make
+      run: make
+    - name: make tests
+      run: ./.github/run_test.sh ${{ matrix.configs }}
+      env:
+        SUDO: sudo
+        TEST_SSH_UNSAFE_PERMISSIONS: 1
