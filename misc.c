@@ -1935,10 +1935,7 @@ argv_split(const char *s, int *argcp, char ***argvp)
 
 		/* Start of a token */
 		quote = 0;
-		if (s[i] == '\\' &&
-		    (s[i + 1] == '\'' || s[i + 1] == '\"' || s[i + 1] == '\\'))
-			i++;
-		else if (s[i] == '\'' || s[i] == '"')
+		if (s[i] == '\'' || s[i] == '"')
 			quote = s[i++];
 
 		argv = xreallocarray(argv, (argc + 2), sizeof(*argv));
