@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.158 2021/01/11 02:12:57 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.159 2021/01/15 02:32:41 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -297,10 +297,10 @@ waitfd(int fd, int *timeoutp, short events)
 	struct timeval t_start;
 	int oerrno, r;
 
-	monotime_tv(&t_start);
 	pfd.fd = fd;
 	pfd.events = events;
 	for (; *timeoutp >= 0;) {
+		monotime_tv(&t_start);
 		r = poll(&pfd, 1, *timeoutp);
 		oerrno = errno;
 		ms_subtract_diff(&t_start, timeoutp);
