@@ -1,0 +1,67 @@
+name: C/C++ CI self-hosted
+
+on:
+  push:
+    branches: [ master, ci ]
+
+jobs:
+  selfhosted:
+    runs-on: ${{ matrix.vm }}
+    env:
+      TARGET_HOST: ${{ matrix.vm }}
+      SUDO: sudo
+    strategy:
+      fail-fast: false
+      # We use a matrix in two parts: firstly all of the VMs are tested with the
+      # default config.  "vm" corresponds to a label associated with the worker.
+      matrix:
+        vm: [dfly30, dfly48, dfly58, sol10, sol11]
+        configs:
+          - default
+        # Then we include any extra configs we want to test for specific VMs.
+        include:
+         - vm: dfly30
+           configs: without-openssl
+         - vm: dfly48
+           configs: pam
+         - vm: dfly58
+           configs: pam
+         - vm: sol10
+           configs: pam
+         - vm: sol11
+           configs: pam
+         - vm: sol11
+           configs: sol64
+         - vm: sol11
+           configs: sol64-pam
+    steps:
+    - uses: actions/checkout@v2
+    - name: autoreconf
+      run: autoreconf
+    - name: shutdown VM if running
+      run: vmshutdown
+    - name: startup VM
+      run: vmstartup
+    - name: configure
+      run: vmrun ./.github/configure.sh ${{ matrix.configs }}
+    - name: save config files
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.vm }}-${{ matrix.configs }}-config-files
+        path: |
+          config.h
+          config.log
+    - name: make
+      run: vmrun make
+    - name: make tests
+      run: vmrun ./.github/run_test.sh ${{ matrix.configs }}
+    - name: save regress logs
+      if: failure()
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.vm }}-${{ matrix.configs }}-regress-logs
+        path: regress/*.log
+    - name: shutdown VM
+      if: always()
+      run: vmshutdown

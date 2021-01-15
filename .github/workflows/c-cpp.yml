@@ -8,6 +8,7 @@ on:
 
 jobs:
   ubuntu-20_04:
+    if: github.repository != 'openssh/openssh-portable-selfhosted'
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -37,6 +38,7 @@ jobs:
 
 
   ubuntu-18_04:
+    if: github.repository != 'openssh/openssh-portable-selfhosted'
     runs-on: ubuntu-18.04
     strategy:
       matrix:
@@ -69,6 +71,7 @@ jobs:
 
 
   ubuntu-16_04:
+    if: github.repository != 'openssh/openssh-portable-selfhosted'
     runs-on: ubuntu-16.04
     strategy:
       matrix:
@@ -95,6 +98,7 @@ jobs:
 
 
   macos:
+    if: github.repository != 'openssh/openssh-portable-selfhosted'
     strategy:
       matrix:
         os: [ macos-10.15, macos-11.0 ]

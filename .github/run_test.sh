@@ -1,22 +1,10 @@
 #!/usr/bin/env bash
 
-TARGETS=$@
-
-TEST_TARGET="tests"
-LTESTS=""  # all tests by default
+. .github/configs $1 $2
 
 [ -z "${SUDO}" ] || ${SUDO} mkdir -p /var/empty
 
 set -ex
-
-for TARGET in $TARGETS; do
-    case $TARGET in
-    --without-openssl)
-        # When built without OpenSSL we can't do the file-based RSA key tests.
-        TEST_TARGET=t-exec
-        ;;
-    esac
-done
 
 if [ -z "$LTESTS" ]; then
     make $TEST_TARGET
@@ -24,6 +12,15 @@ if [ -z "$LTESTS" ]; then
 else
     make $TEST_TARGET LTESTS="$LTESTS"
     result=$?
+fi
+
+if [ ! -z ${SSHD_CONFOPTS} ]; then
+    echo "rerunning tests with TEST_SSH_SSHD_CONFOPTS='${SSHD_CONFOPTS}'"
+    make t-exec TEST_SSH_SSHD_CONFOPTS="${SSHD_CONFOPTS}"
+    result2=$?
+    if [ "${result2}" -ne 0 ]; then
+        result="${result2}"
+    fi
 fi
 
 if [ "$result" -ne "0" ]; then

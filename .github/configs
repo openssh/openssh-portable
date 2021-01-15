@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# usage: configs vmname test_config (or '' for default)
+#
+# Sets the following variables:
+# CONFIGFLAGS           options to ./configure
+# SSHD_CONFOPTS         sshd_config options
+# TEST_TARGET           make target used when testing.  defaults to "tests".
+# LTESTS
+
+config=$1
+
+TEST_TARGET="tests"
+LTESTS=""
+SUDO=sudo	# run with sudo by default
+TEST_SSH_UNSAFE_PERMISSIONS=1
+
+CONFIGFLAGS=""
+LIBCRYPTOFLAGS=""
+
+case "$config" in
+    default|sol64)
+	;;
+    *pam)
+	CONFIGFLAGS="--with-pam"
+	SSHD_CONFOPTS="UsePam yes"
+	;;
+    without-openssl)
+	LIBCRYPTOFLAGS="--without-openssl"
+        TEST_TARGET=t-exec
+	;;
+    *)
+	echo "Unknown configuration $config"
+	exit 1
+	;;
+esac
+
+# The Solaris 64bit targets are special since they need a non-flag arg.
+case "$config" in
+    sol64*)
+	CONFIGFLAGS="x86_64 --with-cflags=-m64 --with-ldflags=-m64 ${CONFIGFLAGS}"
+	LIBCRYPTOFLAGS="--with-ssl-dir=/usr/local/ssl64"
+	;;
+esac
+
+case "${TARGET_HOST}" in
+    sol10)
+	# This VM is 32bit and the unit tests are slow.
+	TEST_TARGET="tests SKIP_UNIT=1"
+	;;
+esac
+
+# If we have a local openssl/libressl, use that.
+if [ -z "${LIBCRYPTOFLAGS}" ]; then
+	# last-match
+	for i in /usr/local /usr/local/ssl; do
+		if [ -x ${i}/bin/openssl ]; then
+			LIBCRYPTOFLAGS="--with-ssl-dir=${i}"
+		fi
+	done
+fi
+
+CONFIGFLAGS="${CONFIGFLAGS} ${LIBCRYPTOFLAGS}"
+
+export LTESTS SUDO TEST_TARGET TEST_SSH_UNSAFE_PERMISSIONS

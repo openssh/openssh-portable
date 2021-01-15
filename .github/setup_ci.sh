@@ -20,7 +20,7 @@ lsb_release -a
 
 for TARGET in $TARGETS; do
     case $TARGET in
-    ""|--without-openssl|--without-zlib|--with-Werror|--with-rpath*)
+    ""|--without-openssl|--without-zlib|--with-Werror|--with-rpath*|--with-ssl-dir=*|--with-zlib=*)
         # nothing to do
         ;;
     "--with-kerberos5")
