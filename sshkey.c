@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.112 2020/10/19 22:49:23 dtucker Exp $ */
+/* $OpenBSD: sshkey.c,v 1.113 2021/01/15 04:31:25 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3134,7 +3134,7 @@ sshkey_cert_check_authority(const struct sshkey *k,
 size_t
 sshkey_format_cert_validity(const struct sshkey_cert *cert, char *s, size_t l)
 {
-	char from[32], to[32], ret[64];
+	char from[32], to[32], ret[128];
 	time_t tt;
 	struct tm *tm;
 
