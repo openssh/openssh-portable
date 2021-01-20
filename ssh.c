@@ -2000,7 +2000,7 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 	ssh_packet_set_interactive(ssh, interactive,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 
-	client_session2_setup(ssh, id, tty_flag, subsystem_flag, getenv("TERM"),
+	client_session2_setup(ssh, id, tty_flag, subsystem_flag, get_term(&options),
 	    NULL, fileno(stdin), command, environ);
 }
 

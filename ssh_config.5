@@ -1559,6 +1559,13 @@ Note that the
 .Ev TERM
 environment variable is always sent whenever a
 pseudo-terminal is requested as it is required by the protocol.
+The value of
+.Ev TERM
+sent to the server can be overridden using the
+.Cm SetEnv
+directive, replacing the value found in the environment of
+.Xr ssh 1
+with the value specified.
 Refer to
 .Cm AcceptEnv
 in

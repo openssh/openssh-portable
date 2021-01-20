@@ -509,6 +509,22 @@ default_ssh_port(void)
 }
 
 /*
+ * Gets the value of the TERM environment variable as set in the options,
+ * defaulting to using that of the calling environment.
+ */
+const char *
+get_term(const Options *options) {
+    const char *term = NULL;
+    for (int idx = 0; idx < options->num_setenv; idx++) {
+        if (!strncmp("TERM=", options->setenv[idx], 5)) {
+            // skip the =
+            term = options->setenv[idx] + 5;
+        }
+    }
+    return term ? term : getenv("TERM");
+}
+
+/*
  * Execute a command in a shell.
  * Return its exit status or -1 on abnormal exit.
  */

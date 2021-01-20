@@ -1896,7 +1896,7 @@ mux_client_request_session(int fd)
 	if (stdin_null_flag && stdfd_devnull(1, 0, 0) == -1)
 		fatal_f("stdfd_devnull failed");
 
-	if ((term = getenv("TERM")) == NULL)
+	if ((term = get_term(&options)) == NULL)
 		term = "";
 	echar = 0xffffffff;
 	if (options.escape_char != SSH_ESCAPECHAR_NONE)

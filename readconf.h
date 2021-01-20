@@ -226,4 +226,6 @@ void	 add_remote_forward(Options *, const struct Forward *);
 void	 add_identity_file(Options *, const char *, const char *, int);
 void	 add_certificate_file(Options *, const char *, int);
 
+const char *get_term(const Options *options);
+
 #endif				/* READCONF_H */
