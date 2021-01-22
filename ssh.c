@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.546 2020/12/20 23:40:19 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.547 2021/01/22 02:44:58 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -799,7 +799,8 @@ main(int ac, char **av)
 			else if (strcmp(optarg, "key-plain") == 0)
 				cp = sshkey_alg_list(0, 1, 0, '\n');
 			else if (strcmp(optarg, "key-sig") == 0 ||
-			    strcasecmp(optarg, "PubkeyAcceptedKeyTypes") == 0 ||
+			    strcasecmp(optarg, "PubkeyAcceptedKeyTypes") == 0 || /* deprecated name */
+			    strcasecmp(optarg, "PubkeyAcceptedAlgorithms") == 0 ||
 			    strcasecmp(optarg, "HostKeyAlgorithms") == 0 ||
 			    strcasecmp(optarg, "HostbasedKeyTypes") == 0 ||
 			    strcasecmp(optarg, "HostbasedAcceptedKeyTypes") == 0)

@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.323 2021/01/14 19:45:06 rob Exp $
-.Dd $Mdocdate: January 14 2021 $
+.\" $OpenBSD: sshd_config.5,v 1.324 2021/01/22 02:44:58 dtucker Exp $
+.Dd $Mdocdate: January 22 2021 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1209,7 +1209,7 @@ Available keywords are
 .Cm PermitTTY ,
 .Cm PermitTunnel ,
 .Cm PermitUserRC ,
-.Cm PubkeyAcceptedKeyTypes ,
+.Cm PubkeyAcceptedAlgorithms ,
 .Cm PubkeyAuthentication ,
 .Cm RekeyLimit ,
 .Cm RevokedKeys ,
@@ -1477,20 +1477,20 @@ when a user logs in interactively.
 or equivalent.)
 The default is
 .Cm yes .
-.It Cm PubkeyAcceptedKeyTypes
-Specifies the key types that will be accepted for public key authentication
-as a list of comma-separated patterns.
+.It Cm PubkeyAcceptedAlgorithms
+Specifies the signature algorithms that will be accepted for public key
+authentication as a list of comma-separated patterns.
 Alternately if the specified list begins with a
 .Sq +
-character, then the specified key types will be appended to the default set
+character, then the specified algorithms will be appended to the default set
 instead of replacing them.
 If the specified list begins with a
 .Sq -
-character, then the specified key types (including wildcards) will be removed
+character, then the specified algorithms (including wildcards) will be removed
 from the default set instead of replacing them.
 If the specified list begins with a
 .Sq ^
-character, then the specified key types will be placed at the head of the
+character, then the specified algorithms will be placed at the head of the
 default set.
 The default for this option is:
 .Bd -literal -offset 3n
@@ -1511,7 +1511,7 @@ rsa-sha2-512,rsa-sha2-256,ssh-rsa
 .Ed
 .Pp
 The list of available key types may also be obtained using
-.Qq ssh -Q PubkeyAcceptedKeyTypes .
+.Qq ssh -Q PubkeyAcceptedAlgorithms .
 .It Cm PubkeyAuthOptions
 Sets one or more public key authentication options.
 The supported keywords are:

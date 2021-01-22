@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.348 2021/01/08 04:49:13 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.349 2021/01/22 02:44:58 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -171,7 +171,7 @@ typedef enum {
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oFingerprintHash, oUpdateHostkeys, oHostbasedKeyTypes,
-	oPubkeyAcceptedKeyTypes, oCASignatureAlgorithms, oProxyJump,
+	oPubkeyAcceptedAlgorithms, oCASignatureAlgorithms, oProxyJump,
 	oSecurityKeyProvider, oKnownHostsCommand,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
@@ -307,7 +307,8 @@ static struct {
 	{ "fingerprinthash", oFingerprintHash },
 	{ "updatehostkeys", oUpdateHostkeys },
 	{ "hostbasedkeytypes", oHostbasedKeyTypes },
-	{ "pubkeyacceptedkeytypes", oPubkeyAcceptedKeyTypes },
+	{ "pubkeyacceptedkeytypes", oPubkeyAcceptedAlgorithms }, /* obsolete */
+	{ "pubkeyacceptedalgorithms", oPubkeyAcceptedAlgorithms },
 	{ "ignoreunknown", oIgnoreUnknown },
 	{ "proxyjump", oProxyJump },
 	{ "securitykeyprovider", oSecurityKeyProvider },
@@ -1373,7 +1374,7 @@ parse_int:
 
 	case oHostKeyAlgorithms:
 		charptr = &options->hostkeyalgorithms;
-parse_keytypes:
+parse_pubkey_algos:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0') {
 			error("%.200s line %d: Missing argument.",
@@ -1393,7 +1394,7 @@ parse_keytypes:
 
 	case oCASignatureAlgorithms:
 		charptr = &options->ca_sign_algorithms;
-		goto parse_keytypes;
+		goto parse_pubkey_algos;
 
 	case oLogLevel:
 		log_level_ptr = &options->log_level;
@@ -1934,11 +1935,11 @@ parse_keytypes:
 
 	case oHostbasedKeyTypes:
 		charptr = &options->hostbased_key_types;
-		goto parse_keytypes;
+		goto parse_pubkey_algos;
 
-	case oPubkeyAcceptedKeyTypes:
-		charptr = &options->pubkey_key_types;
-		goto parse_keytypes;
+	case oPubkeyAcceptedAlgorithms:
+		charptr = &options->pubkey_accepted_algos;
+		goto parse_pubkey_algos;
 
 	case oAddKeysToAgent:
 		arg = strdelim(&s);
@@ -2221,7 +2222,7 @@ initialize_options(Options * options)
 	options->fingerprint_hash = -1;
 	options->update_hostkeys = -1;
 	options->hostbased_key_types = NULL;
-	options->pubkey_key_types = NULL;
+	options->pubkey_accepted_algos = NULL;
 	options->known_hosts_command = NULL;
 }
 
@@ -2440,7 +2441,7 @@ fill_default_options(Options * options)
 	ASSEMBLE(macs, def_mac, all_mac);
 	ASSEMBLE(kex_algorithms, def_kex, all_kex);
 	ASSEMBLE(hostbased_key_types, def_key, all_key);
-	ASSEMBLE(pubkey_key_types, def_key, all_key);
+	ASSEMBLE(pubkey_accepted_algos, def_key, all_key);
 	ASSEMBLE(ca_sign_algorithms, def_sig, all_sig);
 #undef ASSEMBLE
 
@@ -2560,7 +2561,7 @@ free_options(Options *o)
 	}
 	free(o->revoked_host_keys);
 	free(o->hostbased_key_types);
-	free(o->pubkey_key_types);
+	free(o->pubkey_accepted_algos);
 	free(o->jump_user);
 	free(o->jump_host);
 	free(o->jump_extra);
@@ -3101,7 +3102,7 @@ dump_client_config(Options *o, const char *host)
 #endif
 	dump_cfg_string(oSecurityKeyProvider, o->sk_provider);
 	dump_cfg_string(oPreferredAuthentications, o->preferred_authentications);
-	dump_cfg_string(oPubkeyAcceptedKeyTypes, o->pubkey_key_types);
+	dump_cfg_string(oPubkeyAcceptedAlgorithms, o->pubkey_accepted_algos);
 	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
 	dump_cfg_string(oXAuthLocation, o->xauth_location);
 	dump_cfg_string(oKnownHostsCommand, o->known_hosts_command);

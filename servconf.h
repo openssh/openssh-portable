@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.149 2021/01/09 12:10:02 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.150 2021/01/22 02:44:58 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -126,7 +126,7 @@ typedef struct {
 	char   *hostkeyalgorithms;	/* SSH2 server key types */
 	char   *ca_sign_algorithms;	/* Allowed CA signature algorithms */
 	int     pubkey_authentication;	/* If true, permit ssh2 pubkey authentication. */
-	char   *pubkey_key_types;	/* Key types allowed for public key */
+	char   *pubkey_accepted_algos;	/* Signature algos allowed for pubkey */
 	int	pubkey_auth_options;	/* -1 or mask of PUBKEYAUTH_* flags */
 	int     kerberos_authentication;	/* If true, permit Kerberos
 						 * authentication. */
@@ -272,7 +272,7 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STROPT(authorized_principals_command); \
 		M_CP_STROPT(authorized_principals_command_user); \
 		M_CP_STROPT(hostbased_key_types); \
-		M_CP_STROPT(pubkey_key_types); \
+		M_CP_STROPT(pubkey_accepted_algos); \
 		M_CP_STROPT(ca_sign_algorithms); \
 		M_CP_STROPT(routing_domain); \
 		M_CP_STROPT(permit_user_env_allowlist); \

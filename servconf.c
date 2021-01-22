@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.373 2021/01/11 04:48:22 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.374 2021/01/22 02:44:58 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -130,7 +130,7 @@ initialize_server_options(ServerOptions *options)
 	options->hostkeyalgorithms = NULL;
 	options->pubkey_authentication = -1;
 	options->pubkey_auth_options = -1;
-	options->pubkey_key_types = NULL;
+	options->pubkey_accepted_algos = NULL;
 	options->kerberos_authentication = -1;
 	options->kerberos_or_local_passwd = -1;
 	options->kerberos_ticket_cleanup = -1;
@@ -233,7 +233,7 @@ assemble_algorithms(ServerOptions *o)
 	ASSEMBLE(kex_algorithms, def_kex, all_kex);
 	ASSEMBLE(hostkeyalgorithms, def_key, all_key);
 	ASSEMBLE(hostbased_key_types, def_key, all_key);
-	ASSEMBLE(pubkey_key_types, def_key, all_key);
+	ASSEMBLE(pubkey_accepted_algos, def_key, all_key);
 	ASSEMBLE(ca_sign_algorithms, def_sig, all_sig);
 #undef ASSEMBLE
 	free(all_cipher);
@@ -527,7 +527,7 @@ typedef enum {
 	sPermitUserEnvironment, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sPidFile,
-	sGatewayPorts, sPubkeyAuthentication, sPubkeyAcceptedKeyTypes,
+	sGatewayPorts, sPubkeyAuthentication, sPubkeyAcceptedAlgorithms,
 	sXAuthLocation, sSubsystem, sMaxStartups, sMaxAuthTries, sMaxSessions,
 	sBanner, sUseDNS, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sHostbasedAcceptedKeyTypes,
@@ -589,7 +589,8 @@ static struct {
 	{ "hostkeyalgorithms", sHostKeyAlgorithms, SSHCFG_GLOBAL },
 	{ "rsaauthentication", sDeprecated, SSHCFG_ALL },
 	{ "pubkeyauthentication", sPubkeyAuthentication, SSHCFG_ALL },
-	{ "pubkeyacceptedkeytypes", sPubkeyAcceptedKeyTypes, SSHCFG_ALL },
+	{ "pubkeyacceptedkeytypes", sPubkeyAcceptedAlgorithms, SSHCFG_ALL }, /* obsolete */
+	{ "pubkeyacceptedalgorithms", sPubkeyAcceptedAlgorithms, SSHCFG_ALL },
 	{ "pubkeyauthoptions", sPubkeyAuthOptions, SSHCFG_ALL },
 	{ "dsaauthentication", sPubkeyAuthentication, SSHCFG_GLOBAL }, /* alias */
 #ifdef KRB5
@@ -1501,7 +1502,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 
 	case sHostbasedAcceptedKeyTypes:
 		charptr = &options->hostbased_key_types;
- parse_keytypes:
+ parse_pubkey_algos:
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: Missing argument.",
@@ -1517,19 +1518,19 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 
 	case sHostKeyAlgorithms:
 		charptr = &options->hostkeyalgorithms;
-		goto parse_keytypes;
+		goto parse_pubkey_algos;
 
 	case sCASignatureAlgorithms:
 		charptr = &options->ca_sign_algorithms;
-		goto parse_keytypes;
+		goto parse_pubkey_algos;
 
 	case sPubkeyAuthentication:
 		intptr = &options->pubkey_authentication;
 		goto parse_flag;
 
-	case sPubkeyAcceptedKeyTypes:
-		charptr = &options->pubkey_key_types;
-		goto parse_keytypes;
+	case sPubkeyAcceptedAlgorithms:
+		charptr = &options->pubkey_accepted_algos;
+		goto parse_pubkey_algos;
 
 	case sPubkeyAuthOptions:
 		intptr = &options->pubkey_auth_options;
@@ -2921,7 +2922,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sCASignatureAlgorithms, o->ca_sign_algorithms);
 	dump_cfg_string(sHostbasedAcceptedKeyTypes, o->hostbased_key_types);
 	dump_cfg_string(sHostKeyAlgorithms, o->hostkeyalgorithms);
-	dump_cfg_string(sPubkeyAcceptedKeyTypes, o->pubkey_key_types);
+	dump_cfg_string(sPubkeyAcceptedAlgorithms, o->pubkey_accepted_algos);
 #if defined(__OpenBSD__) || defined(HAVE_SYS_SET_PROCESS_RDOMAIN)
 	dump_cfg_string(sRDomain, o->routing_domain);
 #endif

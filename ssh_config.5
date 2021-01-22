@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.342 2021/01/14 19:45:06 rob Exp $
-.Dd $Mdocdate: January 14 2021 $
+.\" $OpenBSD: ssh_config.5,v 1.343 2021/01/22 02:44:58 dtucker Exp $
+.Dd $Mdocdate: January 22 2021 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1388,20 +1388,20 @@ will pass a connected file descriptor back to
 instead of continuing to execute and pass data.
 The default is
 .Cm no .
-.It Cm PubkeyAcceptedKeyTypes
-Specifies the key types that will be used for public key authentication
-as a comma-separated list of patterns.
+.It Cm PubkeyAcceptedAlgorithms
+Specifies the signature algorithms that will be used for public key
+authentication as a comma-separated list of patterns.
 If the specified list begins with a
 .Sq +
-character, then the key types after it will be appended to the default
+character, then the algorithms after it will be appended to the default
 instead of replacing it.
 If the specified list begins with a
 .Sq -
-character, then the specified key types (including wildcards) will be removed
+character, then the specified algorithms (including wildcards) will be removed
 from the default set instead of replacing them.
 If the specified list begins with a
 .Sq ^
-character, then the specified key types will be placed at the head of the
+character, then the specified algorithms will be placed at the head of the
 default set.
 The default for this option is:
 .Bd -literal -offset 3n
@@ -1422,7 +1422,7 @@ rsa-sha2-512,rsa-sha2-256,ssh-rsa
 .Ed
 .Pp
 The list of available key types may also be obtained using
-.Qq ssh -Q PubkeyAcceptedKeyTypes .
+.Qq ssh -Q PubkeyAcceptedAlgorithms .
 .It Cm PubkeyAuthentication
 Specifies whether to try public key authentication.
 The argument to this keyword must be
