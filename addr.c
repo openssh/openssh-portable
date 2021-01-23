@@ -92,7 +92,9 @@ addr_xaddr_to_sa(const struct xaddr *xa, struct sockaddr *sa, socklen_t *len,
 		in6->sin6_family = AF_INET6;
 		in6->sin6_port = htons(port);
 		memcpy(&in6->sin6_addr, &xa->v6, sizeof(in6->sin6_addr));
+#ifdef HAVE_STRUCT_SOCKADDR_IN6_SIN6_SCOPE_ID
 		in6->sin6_scope_id = xa->scope_id;
+#endif
 		break;
 	default:
 		return -1;
