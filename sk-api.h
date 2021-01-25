@@ -86,7 +86,7 @@ int sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     struct sk_option **options, struct sk_enroll_response **enroll_response);
 
 /* Sign a challenge */
-int sk_sign(uint32_t alg, const uint8_t *message, size_t message_len,
+int sk_sign(uint32_t alg, const uint8_t *data, size_t data_len,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, const char *pin, struct sk_option **options,
     struct sk_sign_response **sign_response);

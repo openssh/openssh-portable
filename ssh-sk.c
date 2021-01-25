@@ -59,7 +59,7 @@ struct sshsk_provider {
 	    struct sk_enroll_response **enroll_response);
 
 	/* Sign a challenge */
-	int (*sk_sign)(int alg, const uint8_t *message, size_t message_len,
+	int (*sk_sign)(int alg, const uint8_t *data, size_t data_len,
 	    const char *application,
 	    const uint8_t *key_handle, size_t key_handle_len,
 	    uint8_t flags, const char *pin, struct sk_option **opts,
@@ -75,7 +75,7 @@ int ssh_sk_enroll(int alg, const uint8_t *challenge,
     size_t challenge_len, const char *application, uint8_t flags,
     const char *pin, struct sk_option **opts,
     struct sk_enroll_response **enroll_response);
-int ssh_sk_sign(int alg, const uint8_t *message, size_t message_len,
+int ssh_sk_sign(int alg, const uint8_t *data, size_t data_len,
     const char *application,
     const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, const char *pin, struct sk_option **opts,
@@ -694,8 +694,6 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 #ifdef DEBUG_SK
 	fprintf(stderr, "%s: sig_flags = 0x%02x, sig_counter = %u\n",
 	    __func__, resp->flags, resp->counter);
-	fprintf(stderr, "%s: hashed message:\n", __func__);
-	sshbuf_dump_data(message, sizeof(message), stderr);
 	fprintf(stderr, "%s: sigbuf:\n", __func__);
 	sshbuf_dump(sig, stderr);
 #endif
