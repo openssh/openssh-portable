@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.344 2021/01/26 05:32:22 dtucker Exp $
+.\" $OpenBSD: ssh_config.5,v 1.345 2021/01/26 15:40:17 naddy Exp $
 .Dd $Mdocdate: January 26 2021 $
 .Dt SSH_CONFIG 5
 .Os
@@ -800,14 +800,6 @@ Note that existing names and addresses in known hosts files
 will not be converted automatically,
 but may be manually hashed using
 .Xr ssh-keygen 1 .
-.It Cm HostbasedAuthentication
-Specifies whether to try rhosts based authentication with public key
-authentication.
-The argument must be
-.Cm yes
-or
-.Cm no
-(the default).
 .It Cm HostbasedAcceptedAlgorithms
 Specifies the key types that will be used for hostbased authentication
 as a comma-separated list of patterns.
@@ -847,6 +839,14 @@ option of
 .Xr ssh 1
 may be used to list supported key types.
 This was formerly named HostbasedKeyTypes.
+.It Cm HostbasedAuthentication
+Specifies whether to try rhosts based authentication with public key
+authentication.
+The argument must be
+.Cm yes
+or
+.Cm no
+(the default).
 .It Cm HostKeyAlgorithms
 Specifies the host key algorithms
 that the client wants to use in order of preference.
