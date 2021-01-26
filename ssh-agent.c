@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.269 2021/01/26 00:47:47 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.270 2021/01/26 00:53:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -216,15 +216,16 @@ lookup_identity(struct sshkey *key)
 
 /* Check confirmation of keysign request */
 static int
-confirm_key(Identity *id)
+confirm_key(Identity *id, const char *extra)
 {
 	char *p;
 	int ret = -1;
 
 	p = sshkey_fingerprint(id->key, fingerprint_hash, SSH_FP_DEFAULT);
 	if (p != NULL &&
-	    ask_permission("Allow use of key %s?\nKey fingerprint %s.",
-	    id->comment, p))
+	    ask_permission("Allow use of key %s?\nKey fingerprint %s.%s%s",
+	    id->comment, p,
+	    extra == NULL ? "" : "\n", extra == NULL ? "" : extra))
 		ret = 0;
 	free(p);
 
@@ -289,6 +290,114 @@ agent_decode_alg(struct sshkey *key, u_int flags)
 }
 
 /*
+ * Attempt to parse the contents of a buffer as a SSH publickey userauth
+ * request, checking its contents for consistency and matching the embedded
+ * key against the one that is being used for signing.
+ * Note: does not modify msg buffer.
+ * Optionally extract the username and session ID from the request.
+ */
+static int
+parse_userauth_request(struct sshbuf *msg, const struct sshkey *expected_key,
+    char **userp, struct sshbuf **sess_idp)
+{
+	struct sshbuf *b = NULL, *sess_id = NULL;
+	char *user = NULL, *service = NULL, *method = NULL, *pkalg = NULL;
+	int r;
+	u_char t, sig_follows;
+	struct sshkey *mkey = NULL;
+
+	if (userp != NULL)
+		*userp = NULL;
+	if (sess_idp != NULL)
+		*sess_idp = NULL;
+	if ((b = sshbuf_fromb(msg)) == NULL)
+		fatal_f("sshbuf_fromb");
+
+	/* SSH userauth request */
+	if ((r = sshbuf_froms(b, &sess_id)) != 0)
+		goto out;
+	if (sshbuf_len(sess_id) == 0) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if ((r = sshbuf_get_u8(b, &t)) != 0 || /* SSH2_MSG_USERAUTH_REQUEST */
+	    (r = sshbuf_get_cstring(b, &user, NULL)) != 0 || /* server user */
+	    (r = sshbuf_get_cstring(b, &service, NULL)) != 0 || /* service */
+	    (r = sshbuf_get_cstring(b, &method, NULL)) != 0 || /* method */
+	    (r = sshbuf_get_u8(b, &sig_follows)) != 0 || /* sig-follows */
+	    (r = sshbuf_get_cstring(b, &pkalg, NULL)) != 0 || /* alg */
+	    (r = sshkey_froms(b, &mkey)) != 0) /* key */
+		goto out;
+	if (t != SSH2_MSG_USERAUTH_REQUEST ||
+	    sig_follows != 1 ||
+	    strcmp(service, "ssh-connection") != 0 ||
+	    !sshkey_equal(expected_key, mkey) ||
+	    sshkey_type_from_name(pkalg) != expected_key->type) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if (strcmp(method, "publickey") != 0) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if (sshbuf_len(b) != 0) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	/* success */
+	r = 0;
+	debug3_f("well formed userauth");
+	if (userp != NULL) {
+		*userp = user;
+		user = NULL;
+	}
+	if (sess_idp != NULL) {
+		*sess_idp = sess_id;
+		sess_id = NULL;
+	}
+ out:
+	sshbuf_free(b);
+	sshbuf_free(sess_id);
+	free(user);
+	free(service);
+	free(method);
+	free(pkalg);
+	sshkey_free(mkey);
+	return r;
+}
+
+/*
+ * Attempt to parse the contents of a buffer as a SSHSIG signature request.
+ * Note: does not modify buffer.
+ */
+static int
+parse_sshsig_request(struct sshbuf *msg)
+{
+	int r;
+	struct sshbuf *b;
+
+	if ((b = sshbuf_fromb(msg)) == NULL)
+		fatal_f("sshbuf_fromb");
+
+	if ((r = sshbuf_cmp(b, 0, "SSHSIG", 6)) != 0 ||
+	    (r = sshbuf_consume(b, 6)) != 0 ||
+	    (r = sshbuf_get_cstring(b, NULL, NULL)) != 0 || /* namespace */
+	    (r = sshbuf_get_string_direct(b, NULL, NULL)) != 0 || /* reserved */
+	    (r = sshbuf_get_cstring(b, NULL, NULL)) != 0 || /* hashalg */
+	    (r = sshbuf_get_string_direct(b, NULL, NULL)) != 0) /* H(msg) */
+		goto out;
+	if (sshbuf_len(b) != 0) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	/* success */
+	r = 0;
+ out:
+	sshbuf_free(b);
+	return r;
+}
+
+/*
  * This function inspects a message to be signed by a FIDO key that has a
  * web-like application string (i.e. one that does not begin with "ssh:".
  * It checks that the message is one of those expected for SSH operations
@@ -296,67 +405,18 @@ agent_decode_alg(struct sshkey *key, u_int flags)
  * for the web.
  */
 static int
-check_websafe_message_contents(struct sshkey *key,
-    const u_char *msg, size_t len)
+check_websafe_message_contents(struct sshkey *key, struct sshbuf *data)
 {
-	int matched = 0;
-	struct sshbuf *b;
-	u_char m, n;
-	char *cp1 = NULL, *cp2 = NULL;
-	int r;
-	struct sshkey *mkey = NULL;
-
-	if ((b = sshbuf_from(msg, len)) == NULL)
-		fatal_f("sshbuf_new");
-
-	/* SSH userauth request */
-	if ((r = sshbuf_get_string_direct(b, NULL, NULL)) == 0 && /* sess_id */
-	    (r = sshbuf_get_u8(b, &m)) == 0 && /* SSH2_MSG_USERAUTH_REQUEST */
-	    (r = sshbuf_get_cstring(b, NULL, NULL)) == 0 && /* server user */
-	    (r = sshbuf_get_cstring(b, &cp1, NULL)) == 0 && /* service */
-	    (r = sshbuf_get_cstring(b, &cp2, NULL)) == 0 && /* method */
-	    (r = sshbuf_get_u8(b, &n)) == 0 && /* sig-follows */
-	    (r = sshbuf_get_cstring(b, NULL, NULL)) == 0 && /* alg */
-	    (r = sshkey_froms(b, &mkey)) == 0 && /* key */
-	    sshbuf_len(b) == 0) {
-		debug_f("parsed userauth");
-		if (m == SSH2_MSG_USERAUTH_REQUEST && n == 1 &&
-		    strcmp(cp1, "ssh-connection") == 0 &&
-		    strcmp(cp2, "publickey") == 0 &&
-		    sshkey_equal(key, mkey)) {
-			debug_f("well formed userauth");
-			matched = 1;
-		}
-	}
-	free(cp1);
-	free(cp2);
-	sshkey_free(mkey);
-	sshbuf_free(b);
-	if (matched)
+	if (parse_userauth_request(data, key, NULL, NULL) == 0) {
+		debug_f("signed data matches public key userauth request");
 		return 1;
-
-	if ((b = sshbuf_from(msg, len)) == NULL)
-		fatal_f("sshbuf_new");
-	cp1 = cp2 = NULL;
-	mkey = NULL;
-
-	/* SSHSIG */
-	if ((r = sshbuf_cmp(b, 0, "SSHSIG", 6)) == 0 &&
-	    (r = sshbuf_consume(b, 6)) == 0 &&
-	    (r = sshbuf_get_cstring(b, NULL, NULL)) == 0 && /* namespace */
-	    (r = sshbuf_get_string_direct(b, NULL, NULL)) == 0 && /* reserved */
-	    (r = sshbuf_get_cstring(b, NULL, NULL)) == 0 && /* hashalg */
-	    (r = sshbuf_get_string_direct(b, NULL, NULL)) == 0 && /* H(msg) */
-	    sshbuf_len(b) == 0) {
-		debug_f("parsed sshsig");
-		matched = 1;
+	}
+	if (parse_sshsig_request(data) == 0) {
+		debug_f("signed data matches SSHSIG signature request");
+		return 1;
 	}
 
-	sshbuf_free(b);
-	if (matched)
-		return 1;
-
-	/* XXX CA signature operation */
+	/* XXX check CA signature operation */
 
 	error("web-origin key attempting to sign non-SSH message");
 	return 0;
@@ -366,21 +426,22 @@ check_websafe_message_contents(struct sshkey *key,
 static void
 process_sign_request2(SocketEntry *e)
 {
-	const u_char *data;
 	u_char *signature = NULL;
-	size_t dlen, slen = 0;
+	size_t i, slen = 0;
 	u_int compat = 0, flags;
 	int r, ok = -1;
 	char *fp = NULL;
-	struct sshbuf *msg;
+	struct sshbuf *msg = NULL, *data = NULL;
 	struct sshkey *key = NULL;
 	struct identity *id;
 	struct notifier_ctx *notifier = NULL;
 
-	if ((msg = sshbuf_new()) == NULL)
+	debug_f("entering");
+
+	if ((msg = sshbuf_new()) == NULL | (data = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	if ((r = sshkey_froms(e->request, &key)) != 0 ||
-	    (r = sshbuf_get_string_direct(e->request, &data, &dlen)) != 0 ||
+	    (r = sshbuf_get_stringb(e->request, data)) != 0 ||
 	    (r = sshbuf_get_u32(e->request, &flags)) != 0) {
 		error_fr(r, "parse");
 		goto send;
@@ -390,13 +451,13 @@ process_sign_request2(SocketEntry *e)
 		verbose_f("%s key not found", sshkey_type(key));
 		goto send;
 	}
-	if (id->confirm && confirm_key(id) != 0) {
+	if (id->confirm && confirm_key(id, NULL) != 0) {
 		verbose_f("user refused key");
 		goto send;
 	}
 	if (sshkey_is_sk(id->key)) {
 		if (strncmp(id->key->sk_application, "ssh:", 4) != 0 &&
-		    !check_websafe_message_contents(key, data, dlen)) {
+		    !check_websafe_message_contents(key, data)) {
 			/* error already logged */
 			goto send;
 		}
@@ -411,7 +472,7 @@ process_sign_request2(SocketEntry *e)
 	}
 	/* XXX support PIN required FIDO keys */
 	if ((r = sshkey_sign(id->key, &signature, &slen,
-	    data, dlen, agent_decode_alg(key, flags),
+	    sshbuf_ptr(data), sshbuf_len(data), agent_decode_alg(key, flags),
 	    id->sk_provider, NULL, compat)) != 0) {
 		error_fr(r, "sshkey_sign");
 		goto send;
@@ -420,8 +481,7 @@ process_sign_request2(SocketEntry *e)
 	ok = 0;
  send:
 	notify_complete(notifier, "User presence confirmed");
-	sshkey_free(key);
-	free(fp);
+
 	if (ok == 0) {
 		if ((r = sshbuf_put_u8(msg, SSH2_AGENT_SIGN_RESPONSE)) != 0 ||
 		    (r = sshbuf_put_string(msg, signature, slen)) != 0)
@@ -432,7 +492,10 @@ process_sign_request2(SocketEntry *e)
 	if ((r = sshbuf_put_stringb(e->output, msg)) != 0)
 		fatal_fr(r, "enqueue");
 
+	sshbuf_free(data);
 	sshbuf_free(msg);
+	sshkey_free(key);
+	free(fp);
 	free(signature);
 }
 
