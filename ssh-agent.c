@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.268 2021/01/11 02:12:58 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.269 2021/01/26 00:47:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -175,11 +175,12 @@ static void
 close_socket(SocketEntry *e)
 {
 	close(e->fd);
-	e->fd = -1;
-	e->type = AUTH_UNUSED;
 	sshbuf_free(e->input);
 	sshbuf_free(e->output);
 	sshbuf_free(e->request);
+	memset(e, '\0', sizeof(*e));
+	e->fd = -1;
+	e->type = AUTH_UNUSED;
 }
 
 static void
@@ -248,6 +249,8 @@ process_request_identities(SocketEntry *e)
 	Identity *id;
 	struct sshbuf *msg;
 	int r;
+
+	debug2_f("entering");
 
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
@@ -441,6 +444,7 @@ process_remove_identity(SocketEntry *e)
 	struct sshkey *key = NULL;
 	Identity *id;
 
+	debug2_f("entering");
 	if ((r = sshkey_froms(e->request, &key)) != 0) {
 		error_fr(r, "parse key");
 		goto done;
@@ -466,6 +470,7 @@ process_remove_all_identities(SocketEntry *e)
 {
 	Identity *id;
 
+	debug2_f("entering");
 	/* Loop over all identities and clear the keys. */
 	for (id = TAILQ_FIRST(&idtab->idlist); id;
 	    id = TAILQ_FIRST(&idtab->idlist)) {
@@ -519,6 +524,7 @@ process_add_identity(SocketEntry *e)
 	u_char ctype;
 	int r = SSH_ERR_INTERNAL_ERROR;
 
+	debug2_f("entering");
 	if ((r = sshkey_private_deserialize(e->request, &k)) != 0 ||
 	    k == NULL ||
 	    (r = sshbuf_get_cstring(e->request, &comment, NULL)) != 0) {
@@ -660,6 +666,7 @@ process_lock_agent(SocketEntry *e, int lock)
 	static u_int fail_count = 0;
 	size_t pwlen;
 
+	debug2_f("entering");
 	/*
 	 * This is deliberately fatal: the user has requested that we lock,
 	 * but we can't parse their request properly. The only safe thing to
@@ -730,6 +737,7 @@ process_add_smartcard_key(SocketEntry *e)
 	struct sshkey **keys = NULL, *k;
 	Identity *id;
 
+	debug2_f("entering");
 	if ((r = sshbuf_get_cstring(e->request, &provider, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0) {
 		error_fr(r, "parse");
@@ -809,6 +817,7 @@ process_remove_smartcard_key(SocketEntry *e)
 	int r, success = 0;
 	Identity *id, *nxt;
 
+	debug2_f("entering");
 	if ((r = sshbuf_get_cstring(e->request, &provider, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0) {
 		error_fr(r, "parse");
@@ -951,6 +960,8 @@ new_socket(sock_type type, int fd)
 {
 	u_int i, old_alloc, new_alloc;
 
+	debug_f("type = %s", type == AUTH_CONNECTION ? "CONNECTION" :
+	    (type == AUTH_SOCKET ? "SOCKET" : "UNKNOWN"));
 	set_nonblock(fd);
 
 	if (fd > max_fd)
@@ -968,7 +979,8 @@ new_socket(sock_type type, int fd)
 		}
 	old_alloc = sockets_alloc;
 	new_alloc = sockets_alloc + 10;
-	sockets = xreallocarray(sockets, new_alloc, sizeof(sockets[0]));
+	sockets = xrecallocarray(sockets, old_alloc, new_alloc,
+	    sizeof(sockets[0]));
 	for (i = old_alloc; i < new_alloc; i++)
 		sockets[i].type = AUTH_UNUSED;
 	sockets_alloc = new_alloc;
