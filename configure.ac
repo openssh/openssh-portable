@@ -297,6 +297,16 @@ typedef void foo(const char *, ...) __attribute__((format(printf, 1, 2)));]],
 	 [compiler does not accept __attribute__ on prototype args]) ]
 )
 
+AC_MSG_CHECKING([if compiler supports variable length arrays])
+AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([[#include <stdlib.h>]],
+    [[ int i; for (i=0; i<3; i++){int a[i]; a[i-1]=0;} exit(0); ]])],
+    [ AC_MSG_RESULT([yes])
+      AC_DEFINE(VARIABLE_LENGTH_ARRAYS, [1],
+	 [compiler supports variable length arrays]) ],
+    [ AC_MSG_RESULT([no]) ]
+)
+
 if test "x$no_attrib_nonnull" != "x1" ; then
 	AC_DEFINE([HAVE_ATTRIBUTE__NONNULL__], [1], [Have attribute nonnull])
 fi
