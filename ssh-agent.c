@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.270 2021/01/26 00:53:31 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.271 2021/01/26 00:54:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -574,44 +574,52 @@ reaper(void)
 		return (deadline - now);
 }
 
-static void
-process_add_identity(SocketEntry *e)
+static int
+parse_key_constraints(struct sshbuf *m, struct sshkey *k, time_t *deathp,
+    u_int *secondsp, int *confirmp, char **sk_providerp)
 {
-	Identity *id;
-	int success = 0, confirm = 0;
-	u_int seconds = 0, maxsign;
-	char *fp, *comment = NULL, *ext_name = NULL, *sk_provider = NULL;
-	char canonical_provider[PATH_MAX];
-	time_t death = 0;
-	struct sshkey *k = NULL;
 	u_char ctype;
-	int r = SSH_ERR_INTERNAL_ERROR;
+	int r;
+	u_int seconds, maxsign = 0;
+	char *ext_name = NULL, *sk_provider = NULL;
+	size_t pos;
+	struct sshbuf *b = NULL;
 
-	debug2_f("entering");
-	if ((r = sshkey_private_deserialize(e->request, &k)) != 0 ||
-	    k == NULL ||
-	    (r = sshbuf_get_cstring(e->request, &comment, NULL)) != 0) {
-		error_fr(r, "parse");
-		goto err;
-	}
-	while (sshbuf_len(e->request)) {
-		if ((r = sshbuf_get_u8(e->request, &ctype)) != 0) {
+	while (sshbuf_len(m)) {
+		if ((r = sshbuf_get_u8(m, &ctype)) != 0) {
 			error_fr(r, "parse constraint type");
 			goto err;
 		}
 		switch (ctype) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
-			if ((r = sshbuf_get_u32(e->request, &seconds)) != 0) {
+			if (*deathp != 0) {
+				error_f("lifetime already set");
+				goto err;
+			}
+			if ((r = sshbuf_get_u32(m, &seconds)) != 0) {
 				error_fr(r, "parse lifetime constraint");
 				goto err;
 			}
-			death = monotime() + seconds;
+			*deathp = monotime() + seconds;
+			*secondsp = seconds;
 			break;
 		case SSH_AGENT_CONSTRAIN_CONFIRM:
-			confirm = 1;
+			if (*confirmp != 0) {
+				error_f("confirm already set");
+				goto err;
+			}
+			*confirmp = 1;
 			break;
 		case SSH_AGENT_CONSTRAIN_MAXSIGN:
-			if ((r = sshbuf_get_u32(e->request, &maxsign)) != 0) {
+			if (k == NULL) {
+				error_f("maxsign not valid here");
+				goto err;
+			}
+			if (maxsign != 0) {
+				error_f("maxsign already set");
+				goto err;
+			}
+			if ((r = sshbuf_get_u32(m, &maxsign)) != 0) {
 				error_fr(r, "parse maxsign constraint");
 				goto err;
 			}
@@ -621,19 +629,22 @@ process_add_identity(SocketEntry *e)
 			}
 			break;
 		case SSH_AGENT_CONSTRAIN_EXTENSION:
-			if ((r = sshbuf_get_cstring(e->request,
-			    &ext_name, NULL)) != 0) {
+			if ((r = sshbuf_get_cstring(m, &ext_name, NULL)) != 0) {
 				error_fr(r, "parse constraint extension");
 				goto err;
 			}
 			debug_f("constraint ext %s", ext_name);
 			if (strcmp(ext_name, "sk-provider@openssh.com") == 0) {
-				if (sk_provider != NULL) {
-					error("%s already set", ext_name);
+				if (sk_providerp == NULL) {
+					error_f("%s not valid here", ext_name);
 					goto err;
 				}
-				if ((r = sshbuf_get_cstring(e->request,
-				    &sk_provider, NULL)) != 0) {
+				if (*sk_providerp != NULL) {
+					error_f("%s already set", ext_name);
+					goto err;
+				}
+				if ((r = sshbuf_get_cstring(m,
+				    sk_providerp, NULL)) != 0) {
 					error_fr(r, "parse %s", ext_name);
 					goto err;
 				}
@@ -647,20 +658,46 @@ process_add_identity(SocketEntry *e)
 		default:
 			error_f("Unknown constraint %d", ctype);
  err:
-			free(sk_provider);
 			free(ext_name);
-			sshbuf_reset(e->request);
-			free(comment);
-			sshkey_free(k);
-			goto send;
+			sshbuf_free(b);
+			return -1;
 		}
 	}
+	/* success */
+	return 0;
+}
+
+static void
+process_add_identity(SocketEntry *e)
+{
+	Identity *id;
+	int success = 0, confirm = 0;
+	char *fp, *comment = NULL, *ext_name = NULL, *sk_provider = NULL;
+	char canonical_provider[PATH_MAX];
+	time_t death = 0;
+	u_int seconds = 0;
+	struct sshkey *k = NULL;
+	int r = SSH_ERR_INTERNAL_ERROR;
+
+	debug2_f("entering");
+	if ((r = sshkey_private_deserialize(e->request, &k)) != 0 ||
+	    k == NULL ||
+	    (r = sshbuf_get_cstring(e->request, &comment, NULL)) != 0) {
+		error_fr(r, "parse");
+		goto out;
+	}
+	if (parse_key_constraints(e->request, k, &death, &seconds, &confirm,
+	    &sk_provider) != 0) {
+		error_f("failed to parse constraints");
+		sshbuf_reset(e->request);
+		goto out;
+	}
+
 	if (sk_provider != NULL) {
 		if (!sshkey_is_sk(k)) {
 			error("Cannot add provider: %s is not an "
 			    "authenticator-hosted key", sshkey_type(k));
-			free(sk_provider);
-			goto send;
+			goto out;
 		}
 		if (strcasecmp(sk_provider, "internal") == 0) {
 			debug_f("internal provider");
@@ -669,8 +706,7 @@ process_add_identity(SocketEntry *e)
 				verbose("failed provider \"%.100s\": "
 				    "realpath: %s", sk_provider,
 				    strerror(errno));
-				free(sk_provider);
-				goto send;
+				goto out;
 			}
 			free(sk_provider);
 			sk_provider = xstrdup(canonical_provider);
@@ -678,17 +714,14 @@ process_add_identity(SocketEntry *e)
 			    allowed_providers, 0) != 1) {
 				error("Refusing add key: "
 				    "provider %s not allowed", sk_provider);
-				free(sk_provider);
-				goto send;
+				goto out;
 			}
 		}
 	}
 	if ((r = sshkey_shield_private(k)) != 0) {
 		error_fr(r, "shield private");
-		goto err;
+		goto out;
 	}
-
-	success = 1;
 	if (lifetime && !death)
 		death = monotime() + lifetime;
 	if ((id = lookup_identity(k)) == NULL) {
@@ -702,6 +735,7 @@ process_add_identity(SocketEntry *e)
 		free(id->comment);
 		free(id->sk_provider);
 	}
+	/* success */
 	id->key = k;
 	id->comment = comment;
 	id->death = death;
@@ -712,10 +746,18 @@ process_add_identity(SocketEntry *e)
 	    SSH_FP_DEFAULT)) == NULL)
 		fatal_f("sshkey_fingerprint failed");
 	debug_f("add %s %s \"%.100s\" (life: %u) (confirm: %u) "
-	    "(provider: %s)", sshkey_ssh_name(k), fp, comment,
-	    seconds, confirm, sk_provider == NULL ? "none" : sk_provider);
+	    "(provider: %s)", sshkey_ssh_name(k), fp, comment, seconds,
+	    confirm, sk_provider == NULL ? "none" : sk_provider);
 	free(fp);
-send:
+	/* transferred */
+	k = NULL;
+	comment = NULL;
+	sk_provider = NULL;
+	success = 1;
+ out:
+	free(sk_provider);
+	free(comment);
+	sshkey_free(k);
 	send_status(e, success);
 }
 
@@ -794,7 +836,7 @@ process_add_smartcard_key(SocketEntry *e)
 	char *provider = NULL, *pin = NULL, canonical_provider[PATH_MAX];
 	char **comments = NULL;
 	int r, i, count = 0, success = 0, confirm = 0;
-	u_int seconds;
+	u_int seconds = 0;
 	time_t death = 0;
 	u_char type;
 	struct sshkey **keys = NULL, *k;
@@ -806,27 +848,10 @@ process_add_smartcard_key(SocketEntry *e)
 		error_fr(r, "parse");
 		goto send;
 	}
-
-	while (sshbuf_len(e->request)) {
-		if ((r = sshbuf_get_u8(e->request, &type)) != 0) {
-			error_fr(r, "parse type");
-			goto send;
-		}
-		switch (type) {
-		case SSH_AGENT_CONSTRAIN_LIFETIME:
-			if ((r = sshbuf_get_u32(e->request, &seconds)) != 0) {
-				error_fr(r, "parse lifetime");
-				goto send;
-			}
-			death = monotime() + seconds;
-			break;
-		case SSH_AGENT_CONSTRAIN_CONFIRM:
-			confirm = 1;
-			break;
-		default:
-			error_f("Unknown constraint type %d", type);
-			goto send;
-		}
+	if (parse_key_constraints(e->request, NULL, &death, &seconds, &confirm,
+	    NULL) != 0) {
+		error_f("failed to parse constraints");
+		goto send;
 	}
 	if (realpath(provider, canonical_provider) == NULL) {
 		verbose("failed PKCS#11 add of \"%.100s\": realpath: %s",
@@ -862,6 +887,7 @@ process_add_smartcard_key(SocketEntry *e)
 			idtab->nentries++;
 			success = 1;
 		}
+		/* XXX update constraints for existing keys */
 		sshkey_free(keys[i]);
 		free(comments[i]);
 	}
