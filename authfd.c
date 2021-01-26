@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.126 2020/10/29 02:52:43 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.127 2021/01/26 00:46:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -177,6 +177,27 @@ ssh_request_reply(int sock, struct sshbuf *request, struct sshbuf *reply)
 	return 0;
 }
 
+/* Communicate with agent: sent request, read and decode status reply */
+static int
+ssh_request_reply_decode(int sock, struct sshbuf *request)
+{
+	struct sshbuf *reply;
+	int r;
+	u_char type;
+
+	if ((reply = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = ssh_request_reply(sock, request, reply)) != 0 ||
+	    (r = sshbuf_get_u8(reply, &type)) != 0 ||
+	    (r = decode_reply(type)) != 0)
+		goto out;
+	/* success */
+	r = 0;
+ out:
+	sshbuf_free(reply);
+	return r;
+}
+
 /*
  * Closes the agent socket if it should be closed (depends on how it was
  * obtained).  The argument must have been returned by
@@ -200,13 +221,11 @@ ssh_lock_agent(int sock, int lock, const char *password)
 	if ((msg = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshbuf_put_u8(msg, type)) != 0 ||
-	    (r = sshbuf_put_cstring(msg, password)) != 0)
+	    (r = sshbuf_put_cstring(msg, password)) != 0 ||
+	    (r = ssh_request_reply_decode(sock, msg)) != 0)
 		goto out;
-	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
-		goto out;
-	if ((r = sshbuf_get_u8(msg, &type)) != 0)
-		goto out;
-	r = decode_reply(type);
+	/* success */
+	r = 0;
  out:
 	sshbuf_free(msg);
 	return r;
@@ -519,11 +538,10 @@ ssh_add_identity_constrained(int sock, struct sshkey *key,
 	    (r = encode_constraints(msg, life, confirm, maxsign,
 	    provider)) != 0)
 		goto out;
-	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
+	if ((r = ssh_request_reply_decode(sock, msg)) != 0)
 		goto out;
-	if ((r = sshbuf_get_u8(msg, &type)) != 0)
-		goto out;
-	r = decode_reply(type);
+	/* success */
+	r = 0;
  out:
 	sshbuf_free(msg);
 	return r;
@@ -538,7 +556,7 @@ ssh_remove_identity(int sock, const struct sshkey *key)
 {
 	struct sshbuf *msg;
 	int r;
-	u_char type, *blob = NULL;
+	u_char *blob = NULL;
 	size_t blen;
 
 	if ((msg = sshbuf_new()) == NULL)
@@ -555,11 +573,10 @@ ssh_remove_identity(int sock, const struct sshkey *key)
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
-	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
+	if ((r = ssh_request_reply_decode(sock, msg)) != 0)
 		goto out;
-	if ((r = sshbuf_get_u8(msg, &type)) != 0)
-		goto out;
-	r = decode_reply(type);
+	/* success */
+	r = 0;
  out:
 	if (blob != NULL)
 		freezero(blob, blen);
@@ -595,11 +612,10 @@ ssh_update_card(int sock, int add, const char *reader_id, const char *pin,
 	if (constrained &&
 	    (r = encode_constraints(msg, life, confirm, 0, NULL)) != 0)
 		goto out;
-	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
+	if ((r = ssh_request_reply_decode(sock, msg)) != 0)
 		goto out;
-	if ((r = sshbuf_get_u8(msg, &type)) != 0)
-		goto out;
-	r = decode_reply(type);
+	/* success */
+	r = 0;
  out:
 	sshbuf_free(msg);
 	return r;
@@ -626,11 +642,10 @@ ssh_remove_all_identities(int sock, int version)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshbuf_put_u8(msg, type)) != 0)
 		goto out;
-	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
+	if ((r = ssh_request_reply_decode(sock, msg)) != 0)
 		goto out;
-	if ((r = sshbuf_get_u8(msg, &type)) != 0)
-		goto out;
-	r = decode_reply(type);
+	/* success */
+	r = 0;
  out:
 	sshbuf_free(msg);
 	return r;
