@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.271 2021/01/26 00:54:49 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.272 2021/01/26 11:25:01 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -427,7 +427,7 @@ static void
 process_sign_request2(SocketEntry *e)
 {
 	u_char *signature = NULL;
-	size_t i, slen = 0;
+	size_t slen = 0;
 	u_int compat = 0, flags;
 	int r, ok = -1;
 	char *fp = NULL;
@@ -581,8 +581,7 @@ parse_key_constraints(struct sshbuf *m, struct sshkey *k, time_t *deathp,
 	u_char ctype;
 	int r;
 	u_int seconds, maxsign = 0;
-	char *ext_name = NULL, *sk_provider = NULL;
-	size_t pos;
+	char *ext_name = NULL;
 	struct sshbuf *b = NULL;
 
 	while (sshbuf_len(m)) {
@@ -672,7 +671,7 @@ process_add_identity(SocketEntry *e)
 {
 	Identity *id;
 	int success = 0, confirm = 0;
-	char *fp, *comment = NULL, *ext_name = NULL, *sk_provider = NULL;
+	char *fp, *comment = NULL, *sk_provider = NULL;
 	char canonical_provider[PATH_MAX];
 	time_t death = 0;
 	u_int seconds = 0;
@@ -838,7 +837,6 @@ process_add_smartcard_key(SocketEntry *e)
 	int r, i, count = 0, success = 0, confirm = 0;
 	u_int seconds = 0;
 	time_t death = 0;
-	u_char type;
 	struct sshkey **keys = NULL, *k;
 	Identity *id;
 
