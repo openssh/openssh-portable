@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.h,v 1.28 2020/12/20 23:36:51 djm Exp $ */
+/* $OpenBSD: hostfile.h,v 1.29 2021/01/26 00:51:30 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -30,7 +30,10 @@ struct hostkey_entry {
 	HostkeyMarker marker;
 	u_int note; /* caller-specific note/flag */
 };
-struct hostkeys;
+struct hostkeys {
+	struct hostkey_entry *entries;
+	u_int num_entries;
+};
 
 struct hostkeys *init_hostkeys(void);
 void	 load_hostkeys(struct hostkeys *, const char *,

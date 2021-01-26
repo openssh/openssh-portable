@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.88 2021/01/26 00:49:30 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.89 2021/01/26 00:51:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -62,11 +62,6 @@
 #include "digest.h"
 #include "hmac.h"
 #include "sshbuf.h"
-
-struct hostkeys {
-	struct hostkey_entry *entries;
-	u_int num_entries;
-};
 
 /* XXX hmac is too easy to dictionary attack; use bcrypt? */
 
