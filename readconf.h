@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.138 2021/01/22 02:44:58 dtucker Exp $ */
+/* $OpenBSD: readconf.h,v 1.139 2021/01/26 05:32:21 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -161,7 +161,7 @@ typedef struct {
 
 	int	 update_hostkeys; /* one of SSH_UPDATE_HOSTKEYS_* */
 
-	char   *hostbased_key_types;
+	char   *hostbased_accepted_algos;
 	char   *pubkey_accepted_algos;
 
 	char   *jump_user;

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.44 2021/01/26 00:49:30 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.45 2021/01/26 05:32:21 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -108,8 +108,8 @@ userauth_hostbased(struct ssh *ssh)
 		    "signature format");
 		goto done;
 	}
-	if (match_pattern_list(pkalg, options.hostbased_key_types, 0) != 1) {
-		logit_f("key type %s not in HostbasedAcceptedKeyTypes",
+	if (match_pattern_list(pkalg, options.hostbased_accepted_algos, 0) != 1) {
+		logit_f("key type %s not in HostbasedAcceptedAlgorithms",
 		    sshkey_type(key));
 		goto done;
 	}

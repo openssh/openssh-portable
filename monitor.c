@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.220 2021/01/22 02:44:58 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.221 2021/01/26 05:32:21 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1198,7 +1198,7 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 			if (auth2_key_already_used(authctxt, key))
 				break;
 			if (!key_base_type_match(auth_method, key,
-			    options.hostbased_key_types))
+			    options.hostbased_accepted_algos))
 				break;
 			allowed = hostbased_key_allowed(ssh, authctxt->pw,
 			    cuser, chost, key);
