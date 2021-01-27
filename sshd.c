@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.568 2021/01/27 09:26:54 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.569 2021/01/27 10:05:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -204,13 +204,6 @@ struct {
 /* This is set to true when a signal is received. */
 static volatile sig_atomic_t received_sighup = 0;
 static volatile sig_atomic_t received_sigterm = 0;
-
-/* session identifier, used by RSA-auth */
-u_char session_id[16];
-
-/* same for ssh2 */
-u_char *session_id2 = NULL;
-u_int session_id2_len = 0;
 
 /* record remote hostname or ip */
 u_int utmp_len = HOST_NAME_MAX+1;
@@ -2397,9 +2390,6 @@ do_ssh2_kex(struct ssh *ssh)
 	kex->sign = sshd_hostkey_sign;
 
 	ssh_dispatch_run_fatal(ssh, DISPATCH_BLOCK, &kex->done);
-
-	session_id2 = kex->session_id;
-	session_id2_len = kex->session_id_len;
 
 #ifdef DEBUG_KEXDH
 	/* send 1st encrypted/maced/compressed message */

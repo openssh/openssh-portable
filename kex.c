@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.164 2021/01/27 09:26:54 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.165 2021/01/27 10:05:28 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -637,7 +637,8 @@ kex_new(void)
 	    (kex->peer = sshbuf_new()) == NULL ||
 	    (kex->my = sshbuf_new()) == NULL ||
 	    (kex->client_version = sshbuf_new()) == NULL ||
-	    (kex->server_version = sshbuf_new()) == NULL) {
+	    (kex->server_version = sshbuf_new()) == NULL ||
+	    (kex->session_id = sshbuf_new()) == NULL) {
 		kex_free(kex);
 		return NULL;
 	}
@@ -697,7 +698,7 @@ kex_free(struct kex *kex)
 	sshbuf_free(kex->client_version);
 	sshbuf_free(kex->server_version);
 	sshbuf_free(kex->client_pub);
-	free(kex->session_id);
+	sshbuf_free(kex->session_id);
 	free(kex->failed_choice);
 	free(kex->hostkey_alg);
 	free(kex->name);
@@ -1015,8 +1016,7 @@ derive_key(struct ssh *ssh, int id, u_int need, u_char *hash, u_int hashlen,
 	    ssh_digest_update_buffer(hashctx, shared_secret) != 0 ||
 	    ssh_digest_update(hashctx, hash, hashlen) != 0 ||
 	    ssh_digest_update(hashctx, &c, 1) != 0 ||
-	    ssh_digest_update(hashctx, kex->session_id,
-	    kex->session_id_len) != 0 ||
+	    ssh_digest_update_buffer(hashctx, kex->session_id) != 0 ||
 	    ssh_digest_final(hashctx, digest, mdsz) != 0) {
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		error_f("KEX hash failed");
@@ -1067,12 +1067,14 @@ kex_derive_keys(struct ssh *ssh, u_char *hash, u_int hashlen,
 	int r;
 
 	/* save initial hash as session id */
-	if (kex->session_id == NULL) {
-		kex->session_id_len = hashlen;
-		kex->session_id = malloc(kex->session_id_len);
-		if (kex->session_id == NULL)
+	if ((kex->flags & KEX_INITIAL) != 0) {
+		if ((kex->session_id = sshbuf_new()) == NULL)
 			return SSH_ERR_ALLOC_FAIL;
-		memcpy(kex->session_id, hash, kex->session_id_len);
+		if ((r = sshbuf_put(kex->session_id, hash, hashlen)) != 0)
+			return r;
+	} else if (sshbuf_len(kex->session_id) == 0) {
+		error_f("no session ID in rekex");
+			return SSH_ERR_INTERNAL_ERROR;
 	}
 	for (i = 0; i < NKEYS; i++) {
 		if ((r = derive_key(ssh, 'A'+i, kex->we_need, hash, hashlen,

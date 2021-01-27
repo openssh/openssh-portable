@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.298 2020/11/27 00:49:58 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.299 2021/01/27 10:05:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2196,9 +2196,7 @@ kex_to_blob(struct sshbuf *m, struct kex *kex)
 {
 	int r;
 
-	if ((r = sshbuf_put_string(m, kex->session_id,
-	    kex->session_id_len)) != 0 ||
-	    (r = sshbuf_put_u32(m, kex->we_need)) != 0 ||
+	if ((r = sshbuf_put_u32(m, kex->we_need)) != 0 ||
 	    (r = sshbuf_put_cstring(m, kex->hostkey_alg)) != 0 ||
 	    (r = sshbuf_put_u32(m, kex->hostkey_type)) != 0 ||
 	    (r = sshbuf_put_u32(m, kex->hostkey_nid)) != 0 ||
@@ -2207,6 +2205,7 @@ kex_to_blob(struct sshbuf *m, struct kex *kex)
 	    (r = sshbuf_put_stringb(m, kex->peer)) != 0 ||
 	    (r = sshbuf_put_stringb(m, kex->client_version)) != 0 ||
 	    (r = sshbuf_put_stringb(m, kex->server_version)) != 0 ||
+	    (r = sshbuf_put_stringb(m, kex->session_id)) != 0 ||
 	    (r = sshbuf_put_u32(m, kex->flags)) != 0)
 		return r;
 	return 0;
@@ -2359,8 +2358,7 @@ kex_from_blob(struct sshbuf *m, struct kex **kexp)
 
 	if ((kex = kex_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshbuf_get_string(m, &kex->session_id, &kex->session_id_len)) != 0 ||
-	    (r = sshbuf_get_u32(m, &kex->we_need)) != 0 ||
+	if ((r = sshbuf_get_u32(m, &kex->we_need)) != 0 ||
 	    (r = sshbuf_get_cstring(m, &kex->hostkey_alg, NULL)) != 0 ||
 	    (r = sshbuf_get_u32(m, (u_int *)&kex->hostkey_type)) != 0 ||
 	    (r = sshbuf_get_u32(m, (u_int *)&kex->hostkey_nid)) != 0 ||
@@ -2369,6 +2367,7 @@ kex_from_blob(struct sshbuf *m, struct kex **kexp)
 	    (r = sshbuf_get_stringb(m, kex->peer)) != 0 ||
 	    (r = sshbuf_get_stringb(m, kex->client_version)) != 0 ||
 	    (r = sshbuf_get_stringb(m, kex->server_version)) != 0 ||
+	    (r = sshbuf_get_stringb(m, kex->session_id)) != 0 ||
 	    (r = sshbuf_get_u32(m, &kex->flags)) != 0)
 		goto out;
 	kex->server = 1;

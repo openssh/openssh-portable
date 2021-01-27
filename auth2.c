@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.159 2020/10/18 11:32:01 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.160 2021/01/27 10:05:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -61,8 +61,6 @@
 
 /* import */
 extern ServerOptions options;
-extern u_char *session_id2;
-extern u_int session_id2_len;
 extern struct sshbuf *loginmsg;
 
 /* methods */

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.105 2021/01/26 00:49:30 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.106 2021/01/27 10:05:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -47,6 +47,7 @@
 #include "ssh.h"
 #include "ssh2.h"
 #include "packet.h"
+#include "kex.h"
 #include "sshbuf.h"
 #include "log.h"
 #include "misc.h"
@@ -72,8 +73,6 @@
 
 /* import */
 extern ServerOptions options;
-extern u_char *session_id2;
-extern u_int session_id2_len;
 
 static char *
 format_key(const struct sshkey *key)
@@ -175,11 +174,11 @@ userauth_pubkey(struct ssh *ssh)
 		if ((b = sshbuf_new()) == NULL)
 			fatal_f("sshbuf_new failed");
 		if (ssh->compat & SSH_OLD_SESSIONID) {
-			if ((r = sshbuf_put(b, session_id2, session_id2_len)) != 0)
+			if ((r = sshbuf_putb(b, ssh->kex->session_id)) != 0)
 				fatal_fr(r, "put old session id");
 		} else {
-			if ((r = sshbuf_put_string(b, session_id2,
-			    session_id2_len)) != 0)
+			if ((r = sshbuf_put_stringb(b,
+			    ssh->kex->session_id)) != 0)
 				fatal_fr(r, "put session id");
 		}
 		if (!authctxt->valid || authctxt->user == NULL) {

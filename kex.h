@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.112 2020/12/29 00:59:15 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.113 2021/01/27 10:05:28 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -132,8 +132,6 @@ struct newkeys {
 struct ssh;
 
 struct kex {
-	u_char	*session_id;
-	size_t	session_id_len;
 	struct newkeys	*newkeys[MODE_MAX];
 	u_int	we_need;
 	u_int	dh_need;
@@ -149,6 +147,7 @@ struct kex {
 	struct sshbuf *peer;
 	struct sshbuf *client_version;
 	struct sshbuf *server_version;
+	struct sshbuf *session_id;
 	sig_atomic_t done;
 	u_int	flags;
 	int	hash_alg;

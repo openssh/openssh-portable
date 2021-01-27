@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.30 2020/10/18 11:32:01 djm Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.31 2021/01/27 10:05:28 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -299,7 +299,7 @@ input_gssapi_mic(int type, u_int32_t plen, struct ssh *ssh)
 	mic.value = p;
 	mic.length = len;
 	ssh_gssapi_buildmic(b, authctxt->user, authctxt->service,
-	    "gssapi-with-mic");
+	    "gssapi-with-mic", ssh->kex->session_id);
 
 	if ((gssbuf.value = sshbuf_mutable_ptr(b)) == NULL)
 		fatal_f("sshbuf_mutable_ptr failed");

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.357 2021/01/27 09:26:54 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.358 2021/01/27 10:05:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2125,9 +2125,6 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 
 	if ((signdata = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
-	/* Don't want to accidentally accept an unbound signature */
-	if (ssh->kex->session_id_len == 0)
-		fatal_f("ssh->kex->session_id_len == 0");
 	/*
 	 * Expect a signature for each of the ctx->nnew private keys we
 	 * haven't seen before. They will be in the same order as the
@@ -2140,8 +2137,8 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 		sshbuf_reset(signdata);
 		if ( (r = sshbuf_put_cstring(signdata,
 		    "hostkeys-prove-00@openssh.com")) != 0 ||
-		    (r = sshbuf_put_string(signdata, ssh->kex->session_id,
-		    ssh->kex->session_id_len)) != 0 ||
+		    (r = sshbuf_put_stringb(signdata,
+		    ssh->kex->session_id)) != 0 ||
 		    (r = sshkey_puts(ctx->keys[i], signdata)) != 0)
 			fatal_fr(r, "compose signdata");
 		/* Extract and verify signature */

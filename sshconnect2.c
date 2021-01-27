@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.345 2021/01/27 09:26:54 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.346 2021/01/27 10:05:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -88,9 +88,6 @@ extern Options options;
 /*
  * SSH2 key exchange
  */
-
-u_char *session_id2 = NULL;
-u_int session_id2_len = 0;
 
 static char *xxx_host;
 static struct sockaddr *xxx_hostaddr;
@@ -297,9 +294,6 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    compat_kex_proposal(ssh, options.kex_algorithms);
 	if ((r = kex_prop2buf(ssh->kex->my, myproposal)) != 0)
 		fatal_r(r, "kex_prop2buf");
-
-	session_id2 = ssh->kex->session_id;
-	session_id2_len = ssh->kex->session_id_len;
 
 #ifdef DEBUG_KEXDH
 	/* send 1st encrypted/maced/compressed message */
@@ -878,7 +872,8 @@ process_gssapi_token(struct ssh *ssh, gss_buffer_t recv_tok)
 			if ((b = sshbuf_new()) == NULL)
 				fatal_f("sshbuf_new failed");
 			ssh_gssapi_buildmic(b, authctxt->server_user,
-			    authctxt->service, "gssapi-with-mic");
+			    authctxt->service, "gssapi-with-mic",
+			    ssh->kex->session_id);
 
 			if ((gssbuf.value = sshbuf_mutable_ptr(b)) == NULL)
 				fatal_f("sshbuf_mutable_ptr failed");
@@ -1409,13 +1404,12 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 		if ((b = sshbuf_new()) == NULL)
 			fatal_f("sshbuf_new failed");
 		if (ssh->compat & SSH_OLD_SESSIONID) {
-			if ((r = sshbuf_put(b, session_id2,
-			    session_id2_len)) != 0)
-				fatal_fr(r, "sshbuf_put");
+			if ((r = sshbuf_putb(b, ssh->kex->session_id)) != 0)
+				fatal_fr(r, "sshbuf_putb");
 		} else {
-			if ((r = sshbuf_put_string(b, session_id2,
-			    session_id2_len)) != 0)
-				fatal_fr(r, "sshbuf_put_string");
+			if ((r = sshbuf_put_stringb(b,
+			    ssh->kex->session_id)) != 0)
+				fatal_fr(r, "sshbuf_put_stringb");
 		}
 		skip = sshbuf_len(b);
 		if ((r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
@@ -2172,7 +2166,7 @@ userauth_hostbased(struct ssh *ssh)
 		error_fr(r, "sshkey_to_blob");
 		goto out;
 	}
-	if ((r = sshbuf_put_string(b, session_id2, session_id2_len)) != 0 ||
+	if ((r = sshbuf_put_stringb(b, ssh->kex->session_id)) != 0 ||
 	    (r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
 	    (r = sshbuf_put_cstring(b, authctxt->server_user)) != 0 ||
 	    (r = sshbuf_put_cstring(b, authctxt->service)) != 0 ||

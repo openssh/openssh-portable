@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.25 2021/01/27 09:26:54 djm Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.26 2021/01/27 10:05:28 djm Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -59,10 +59,6 @@ int	mm_sshkey_sign(struct sshkey *, u_char **, u_int *,
 #ifdef WITH_OPENSSL
 DH	*mm_choose_dh(int, int, int);
 #endif
-
-/* Define these two variables here so that they are part of the library */
-u_char *session_id2 = NULL;
-u_int session_id2_len = 0;
 
 int
 mm_sshkey_sign(struct sshkey *key, u_char **sigp, u_int *lenp,
