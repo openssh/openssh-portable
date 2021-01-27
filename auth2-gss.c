@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.31 2021/01/27 10:05:28 djm Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.32 2021/01/27 10:15:08 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -44,6 +44,7 @@
 #include "misc.h"
 #include "servconf.h"
 #include "packet.h"
+#include "kex.h"
 #include "ssh-gss.h"
 #include "monitor_wrap.h"
 
