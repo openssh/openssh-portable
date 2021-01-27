@@ -392,7 +392,7 @@ int main(void)
 	struct test_state *ts;
 	const int keytypes[] = { KEY_RSA, KEY_DSA, KEY_ECDSA, KEY_ED25519, -1 };
 	const char *kextypes[] = {
-		"sntrup4591761x25519-sha512@tinyssh.org",
+		"sntrup761x25519-sha512@openssh.com",
 		"curve25519-sha256@libssh.org",
 		"ecdh-sha2-nistp256",
 		"diffie-hellman-group1-sha1",
