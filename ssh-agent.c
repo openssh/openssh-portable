@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.272 2021/01/26 11:25:01 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.273 2021/01/27 00:37:26 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -438,7 +438,7 @@ process_sign_request2(SocketEntry *e)
 
 	debug_f("entering");
 
-	if ((msg = sshbuf_new()) == NULL | (data = sshbuf_new()) == NULL)
+	if ((msg = sshbuf_new()) == NULL || (data = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	if ((r = sshkey_froms(e->request, &key)) != 0 ||
 	    (r = sshbuf_get_stringb(e->request, data)) != 0 ||
