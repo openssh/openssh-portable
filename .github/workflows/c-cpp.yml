@@ -28,6 +28,8 @@ jobs:
       run: ./configure ${{ matrix.configs }}
     - name: make
       run: make
+    - name: copy moduli
+      run: sudo cp moduli /usr/local/etc/
     - name: make tests
       run: ./.github/run_test.sh ${{ matrix.configs }}
       env:
@@ -61,6 +63,8 @@ jobs:
       run: ./configure ${{ matrix.configs }}
     - name: make
       run: make
+    - name: copy moduli
+      run: sudo cp moduli /usr/local/etc/
     - name: make tests
       run: ./.github/run_test.sh ${{ matrix.configs }}
       env:
@@ -88,6 +92,8 @@ jobs:
       run: ./configure ${{ matrix.configs }}
     - name: make
       run: make
+    - name: copy moduli
+      run: sudo cp moduli /usr/local/etc/
     - name: make tests
       run: ./.github/run_test.sh ${{ matrix.configs }}
       env:
@@ -113,6 +119,8 @@ jobs:
       run: ./configure --with-ssl-dir=/usr/local/opt/openssl ${{ matrix.configs }}
     - name: make
       run: make
+    - name: copy moduli
+      run: sudo cp moduli /usr/local/etc/
     - name: make tests
       run: ./.github/run_test.sh ${{ matrix.configs }}
       env:
