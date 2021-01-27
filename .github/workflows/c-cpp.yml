@@ -15,7 +15,7 @@ jobs:
       matrix:
         configs:
         - ""
-        - "--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin --with-selinux"
+        - "--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin --with-selinux --with-Werror"
         - "--with-ldflags=-lhardened_malloc"
 
     steps:
