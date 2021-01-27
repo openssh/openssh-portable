@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.165 2021/01/27 10:05:28 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.166 2021/01/27 23:49:46 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -1068,13 +1068,15 @@ kex_derive_keys(struct ssh *ssh, u_char *hash, u_int hashlen,
 
 	/* save initial hash as session id */
 	if ((kex->flags & KEX_INITIAL) != 0) {
-		if ((kex->session_id = sshbuf_new()) == NULL)
-			return SSH_ERR_ALLOC_FAIL;
+		if (sshbuf_len(kex->session_id) != 0) {
+			error_f("already have session ID at kex");
+			return SSH_ERR_INTERNAL_ERROR;
+		}
 		if ((r = sshbuf_put(kex->session_id, hash, hashlen)) != 0)
 			return r;
 	} else if (sshbuf_len(kex->session_id) == 0) {
 		error_f("no session ID in rekex");
-			return SSH_ERR_INTERNAL_ERROR;
+		return SSH_ERR_INTERNAL_ERROR;
 	}
 	for (i = 0; i < NKEYS; i++) {
 		if ((r = derive_key(ssh, 'A'+i, kex->we_need, hash, hashlen,
