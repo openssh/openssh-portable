@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.221 2021/01/26 05:32:21 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.222 2021/01/27 09:26:54 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1175,7 +1175,7 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 	if (key != NULL && authctxt->valid) {
 		/* These should not make it past the privsep child */
 		if (sshkey_type_plain(key->type) == KEY_RSA &&
-		    (datafellows & SSH_BUG_RSASIGMD5) != 0)
+		    (ssh->compat & SSH_BUG_RSASIGMD5) != 0)
 			fatal_f("passed a SSH_BUG_RSASIGMD5 key");
 
 		switch (type) {
@@ -1252,7 +1252,7 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 }
 
 static int
-monitor_valid_userblob(const u_char *data, u_int datalen)
+monitor_valid_userblob(struct ssh *ssh, const u_char *data, u_int datalen)
 {
 	struct sshbuf *b;
 	const u_char *p;
@@ -1264,7 +1264,7 @@ monitor_valid_userblob(const u_char *data, u_int datalen)
 	if ((b = sshbuf_from(data, datalen)) == NULL)
 		fatal_f("sshbuf_from");
 
-	if (datafellows & SSH_OLD_SESSIONID) {
+	if (ssh->compat & SSH_OLD_SESSIONID) {
 		p = sshbuf_ptr(b);
 		len = sshbuf_len(b);
 		if ((session_id2 == NULL) ||
@@ -1418,7 +1418,7 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	switch (key_blobtype) {
 	case MM_USERKEY:
-		valid_data = monitor_valid_userblob(data, datalen);
+		valid_data = monitor_valid_userblob(ssh, data, datalen);
 		auth_method = "publickey";
 		break;
 	case MM_HOSTKEY:

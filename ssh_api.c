@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.24 2020/12/29 00:59:15 djm Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.25 2021/01/27 09:26:54 djm Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -392,7 +392,7 @@ _ssh_read_banner(struct ssh *ssh, struct sshbuf *banner)
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	    remote_major, remote_minor, remote_version);
 
-	ssh->compat = compat_datafellows(remote_version);
+	compat_banner(ssh, remote_version);
 	if  (remote_major == 1 && remote_minor == 99) {
 		remote_major = 2;
 		remote_minor = 0;

@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.163 2020/12/29 00:59:15 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.164 2021/01/27 09:26:54 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -1322,7 +1322,7 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 	}
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	    remote_major, remote_minor, remote_version);
-	ssh->compat = compat_datafellows(remote_version);
+	compat_banner(ssh, remote_version);
 
 	mismatch = 0;
 	switch (remote_major) {

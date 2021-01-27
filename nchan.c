@@ -1,4 +1,4 @@
-/* $OpenBSD: nchan.c,v 1.71 2020/10/18 11:32:01 djm Exp $ */
+/* $OpenBSD: nchan.c,v 1.72 2021/01/27 09:26:54 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -233,7 +233,7 @@ chan_send_eow2(struct ssh *ssh, Channel *c)
 		    c->self);
 		return;
 	}
-	if (!(datafellows & SSH_NEW_OPENSSH))
+	if (!(ssh->compat & SSH_NEW_OPENSSH))
 		return;
 	if (!c->have_remote_id)
 		fatal_f("channel %d: no remote_id", c->self);
@@ -334,7 +334,7 @@ chan_is_dead(struct ssh *ssh, Channel *c, int do_send)
 	}
 	if (c->istate != CHAN_INPUT_CLOSED || c->ostate != CHAN_OUTPUT_CLOSED)
 		return 0;
-	if ((datafellows & SSH_BUG_EXTEOF) &&
+	if ((ssh->compat & SSH_BUG_EXTEOF) &&
 	    c->extended_usage == CHAN_EXTENDED_WRITE &&
 	    c->efd != -1 &&
 	    sshbuf_len(c->extended) > 0) {

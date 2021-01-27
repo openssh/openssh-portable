@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexc.c,v 1.35 2019/11/25 00:51:37 djm Exp $ */
+/* $OpenBSD: kexgexc.c,v 1.36 2021/01/27 09:26:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -68,7 +68,7 @@ kexgex_client(struct ssh *ssh)
 	kex->min = DH_GRP_MIN;
 	kex->max = DH_GRP_MAX;
 	kex->nbits = nbits;
-	if (datafellows & SSH_BUG_DHGEX_LARGE)
+	if (ssh->compat & SSH_BUG_DHGEX_LARGE)
 		kex->nbits = MINIMUM(kex->nbits, 4096);
 	/* New GEX request */
 	if ((r = sshpkt_start(ssh, SSH2_MSG_KEX_DH_GEX_REQUEST)) != 0 ||

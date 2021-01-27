@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.344 2021/01/26 05:32:22 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.345 2021/01/27 09:26:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -246,11 +246,11 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 
 	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
 		fatal_f("kex_names_cat");
-	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(s);
+	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(ssh, s);
 	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-	    compat_cipher_proposal(options.ciphers);
+	    compat_cipher_proposal(ssh, options.ciphers);
 	myproposal[PROPOSAL_ENC_ALGS_STOC] =
-	    compat_cipher_proposal(options.ciphers);
+	    compat_cipher_proposal(ssh, options.ciphers);
 	myproposal[PROPOSAL_COMP_ALGS_CTOS] =
 	    myproposal[PROPOSAL_COMP_ALGS_STOC] =
 	    (char *)compression_alg_list(options.compression);
@@ -259,12 +259,12 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	if (use_known_hosts_order) {
 		/* Query known_hosts and prefer algorithms that appear there */
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(
+		    compat_pkalg_proposal(ssh,
 		    order_hostkeyalgs(host, hostaddr, port, cinfo));
 	} else {
 		/* Use specified HostkeyAlgorithms exactly */
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(options.hostkeyalgorithms);
+		    compat_pkalg_proposal(ssh, options.hostkeyalgorithms);
 	}
 
 	if (options.rekey_limit || options.rekey_interval)
@@ -294,7 +294,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 
 	/* remove ext-info from the KEX proposals for rekeying */
 	myproposal[PROPOSAL_KEX_ALGS] =
-	    compat_kex_proposal(options.kex_algorithms);
+	    compat_kex_proposal(ssh, options.kex_algorithms);
 	if ((r = kex_prop2buf(ssh->kex->my, myproposal)) != 0)
 		fatal_r(r, "kex_prop2buf");
 
@@ -1188,7 +1188,7 @@ key_sig_algorithm(struct ssh *ssh, const struct sshkey *key)
 	 */
 	if (ssh == NULL || ssh->kex->server_sig_algs == NULL ||
 	    (key->type != KEY_RSA && key->type != KEY_RSA_CERT) ||
-	    (key->type == KEY_RSA_CERT && (datafellows & SSH_BUG_SIGTYPE))) {
+	    (key->type == KEY_RSA_CERT && (ssh->compat & SSH_BUG_SIGTYPE))) {
 		/* Filter base key signature alg against our configuration */
 		return match_list(sshkey_ssh_name(key),
 		    options.pubkey_accepted_algos, NULL);
@@ -1408,7 +1408,7 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 		sshbuf_free(b);
 		if ((b = sshbuf_new()) == NULL)
 			fatal_f("sshbuf_new failed");
-		if (datafellows & SSH_OLD_SESSIONID) {
+		if (ssh->compat & SSH_OLD_SESSIONID) {
 			if ((r = sshbuf_put(b, session_id2,
 			    session_id2_len)) != 0)
 				fatal_fr(r, "sshbuf_put");
@@ -1430,7 +1430,7 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 
 		/* generate signature */
 		r = identity_sign(sign_id, &signature, &slen,
-		    sshbuf_ptr(b), sshbuf_len(b), datafellows, alg);
+		    sshbuf_ptr(b), sshbuf_len(b), ssh->compat, alg);
 		if (r == 0)
 			break;
 		else if (r == SSH_ERR_KEY_NOT_FOUND)
@@ -1808,12 +1808,12 @@ pubkey_reset(Authctxt *authctxt)
 }
 
 static int
-try_identity(Identity *id)
+try_identity(struct ssh *ssh, Identity *id)
 {
 	if (!id->key)
 		return (0);
 	if (sshkey_type_plain(id->key->type) == KEY_RSA &&
-	    (datafellows & SSH_BUG_RSASIGMD5) != 0) {
+	    (ssh->compat & SSH_BUG_RSASIGMD5) != 0) {
 		debug("Skipped %s key %s for RSA/MD5 server",
 		    sshkey_type(id->key), id->filename);
 		return (0);
@@ -1841,7 +1841,7 @@ userauth_pubkey(struct ssh *ssh)
 		 * private key instead
 		 */
 		if (id->key != NULL) {
-			if (try_identity(id)) {
+			if (try_identity(ssh, id)) {
 				ident = format_identity(id);
 				debug("Offering public key: %s", ident);
 				free(ident);
@@ -1851,7 +1851,7 @@ userauth_pubkey(struct ssh *ssh)
 			debug("Trying private key: %s", id->filename);
 			id->key = load_identity_file(id);
 			if (id->key != NULL) {
-				if (try_identity(id)) {
+				if (try_identity(ssh, id)) {
 					id->isprivate = 1;
 					sent = sign_and_send_pubkey(ssh, id);
 				}
