@@ -8,16 +8,15 @@ on:
 
 jobs:
   ubuntu-20_04:
-
     runs-on: ubuntu-20.04
-
     strategy:
       matrix:
         configs:
         - ""
         - "--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin --with-selinux --with-Werror"
         - "--with-ldflags=-lhardened_malloc"
-
+        - "--with-ssl-dir=/opt/openssl/head --with-rpath=-Wl,-rpath,"
+        - "--with-ssl-dir=/opt/libressl/head --with-rpath=-Wl,-rpath,"
     steps:
     - uses: actions/checkout@v2
     - name: setup CI system

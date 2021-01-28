@@ -20,7 +20,7 @@ lsb_release -a
 
 for TARGET in $TARGETS; do
     case $TARGET in
-    ""|--without-openssl|--without-zlib|--with-Werror)
+    ""|--without-openssl|--without-zlib|--with-Werror|--with-rpath*)
         # nothing to do
         ;;
     "--with-kerberos5")
@@ -42,6 +42,12 @@ for TARGET in $TARGETS; do
         ;;
     "--with-ldflags=-lhardened_malloc")
         INSTALL_HARDENED_MALLOC=yes
+       ;;
+    "--with-ssl-dir=/opt/openssl/head")
+        INSTALL_OPENSSL_HEAD=yes
+       ;;
+    "--with-ssl-dir=/opt/libressl/head")
+        INSTALL_LIBRESSL_HEAD=yes
        ;;
     *) echo "Invalid option '${TARGET}'"
         exit 1
@@ -65,4 +71,20 @@ if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
      git clone https://github.com/GrapheneOS/hardened_malloc.git &&
      cd ${HOME}/hardened_malloc &&
      make && sudo cp libhardened_malloc.so /usr/lib/)
+fi
+
+if [ "${INSTALL_OPENSSL_HEAD}" = "yes" ];then
+    (cd ${HOME} &&
+     git clone https://github.com/openssl/openssl.git &&
+     cd ${HOME}/openssl &&
+     ./config no-threads no-engine no-fips no-shared --prefix=/opt/openssl/head &&
+     make && sudo make install_sw)
+fi
+
+if [ "${INSTALL_LIBRESSL_HEAD}" = "yes" ];then
+    (mkdir -p ${HOME}/libressl && cd ${HOME}/libressl &&
+     git clone https://github.com/libressl-portable/portable.git &&
+     cd ${HOME}/libressl/portable && sh update.sh && sh autogen.sh &&
+     ./configure --prefix=/opt/libressl/head &&
+     make && sudo make install_sw)
 fi
