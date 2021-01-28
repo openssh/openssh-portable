@@ -26,7 +26,7 @@ jobs:
     - name: configure
       run: ./configure ${{ matrix.configs }}
     - name: make
-      run: make
+      run: make -j2
     - name: copy moduli
       run: sudo cp moduli /usr/local/etc/
     - name: make tests
@@ -58,7 +58,7 @@ jobs:
     - name: configure
       run: ./configure ${{ matrix.configs }}
     - name: make
-      run: make
+      run: make -j2
     - name: copy moduli
       run: sudo cp moduli /usr/local/etc/
     - name: make tests
@@ -84,7 +84,7 @@ jobs:
     - name: configure
       run: ./configure ${{ matrix.configs }}
     - name: make
-      run: make
+      run: make -j2
     - name: copy moduli
       run: sudo cp moduli /usr/local/etc/
     - name: make tests
@@ -111,7 +111,7 @@ jobs:
     - name: configure
       run: ./configure --with-ssl-dir=/usr/local/opt/openssl ${{ matrix.configs }}
     - name: make
-      run: make
+      run: make -j2
     - name: copy moduli
       run: sudo cp moduli /usr/local/etc/
     - name: make tests

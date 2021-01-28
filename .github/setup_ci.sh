@@ -70,7 +70,7 @@ if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
     (cd ${HOME} &&
      git clone https://github.com/GrapheneOS/hardened_malloc.git &&
      cd ${HOME}/hardened_malloc &&
-     make && sudo cp libhardened_malloc.so /usr/lib/)
+     make -j2 && sudo cp libhardened_malloc.so /usr/lib/)
 fi
 
 if [ "${INSTALL_OPENSSL_HEAD}" = "yes" ];then
@@ -78,7 +78,7 @@ if [ "${INSTALL_OPENSSL_HEAD}" = "yes" ];then
      git clone https://github.com/openssl/openssl.git &&
      cd ${HOME}/openssl &&
      ./config no-threads no-engine no-fips no-shared --prefix=/opt/openssl/head &&
-     make && sudo make install_sw)
+     make -j2 && sudo make install_sw)
 fi
 
 if [ "${INSTALL_LIBRESSL_HEAD}" = "yes" ];then
@@ -86,5 +86,5 @@ if [ "${INSTALL_LIBRESSL_HEAD}" = "yes" ];then
      git clone https://github.com/libressl-portable/portable.git &&
      cd ${HOME}/libressl/portable && sh update.sh && sh autogen.sh &&
      ./configure --prefix=/opt/libressl/head &&
-     make && sudo make install_sw)
+     make -j2 && sudo make install_sw)
 fi
