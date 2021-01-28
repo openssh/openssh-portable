@@ -38,9 +38,7 @@ jobs:
 
 
   ubuntu-18_04:
-
     runs-on: ubuntu-18.04
-
     strategy:
       matrix:
         configs:
@@ -52,7 +50,6 @@ jobs:
         - "--with-selinux"
         - "--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin --with-selinux"
         - "--without-openssl --without-zlib"
-
     steps:
     - uses: actions/checkout@v2
     - name: setup CI system
@@ -73,15 +70,12 @@ jobs:
 
 
   ubuntu-16_04:
-
     runs-on: ubuntu-16.04
-
     strategy:
       matrix:
         configs:
         - ""
         - "--with-pam --with-selinux --with-libedit --with-kerberos5 "
-
     steps:
     - uses: actions/checkout@v2
     - name: setup CI system
