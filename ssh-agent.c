@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.274 2021/01/29 06:28:10 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.275 2021/01/29 06:29:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -103,9 +103,9 @@
 #define AGENT_RBUF_LEN	(4096)
 
 typedef enum {
-	AUTH_UNUSED,
-	AUTH_SOCKET,
-	AUTH_CONNECTION
+	AUTH_UNUSED = 0,
+	AUTH_SOCKET = 1,
+	AUTH_CONNECTION = 2,
 } sock_type;
 
 typedef struct socket_entry {
