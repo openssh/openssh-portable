@@ -486,6 +486,7 @@ kex_tests(struct shared_state *st, struct test_state *ts)
 	do_kex(st, ts, "curve25519-sha256@libssh.org");
 	do_kex(st, ts, "ecdh-sha2-nistp256");
 	do_kex(st, ts, "diffie-hellman-group1-sha1");
+	do_kex(st, ts, "diffie-hellman-group-exchange-sha1");
 }
 
 int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
