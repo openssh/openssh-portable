@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.273 2021/01/27 00:37:26 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.274 2021/01/29 06:28:10 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -108,7 +108,7 @@ typedef enum {
 	AUTH_CONNECTION
 } sock_type;
 
-typedef struct {
+typedef struct socket_entry {
 	int fd;
 	sock_type type;
 	struct sshbuf *input;
