@@ -21,7 +21,7 @@ extern "C" {
 #include "log.h"
 
 // Define if you want to generate traces.
-// #define STANDALONE 1
+/* #define STANDALONE 1 */
 
 #define PRIV_RSA \
 "-----BEGIN OPENSSH PRIVATE KEY-----\n"\
@@ -269,11 +269,21 @@ do_kex_with_key(struct shared_state *st, struct test_state *ts,
 	pubkey = get_pubkey(st, keytype);
 	privkey = get_privkey(st, keytype);
 	keyname = xstrdup(sshkey_ssh_name(privkey));
-	debug_f("%s %s clobber %s %zu", kex, keyname,
-	    ts->cin == NULL ? "server" : "client",
-	    ts->cin == NULL ? sshbuf_len(ts->sin) : sshbuf_len(ts->cin));
+	if (ts->cin != NULL) {
+		debug_f("%s %s clobber client %zu", kex, keyname,
+		    sshbuf_len(ts->cin));
+	} else if (ts->sin != NULL) {
+		debug_f("%s %s clobber server %zu", kex, keyname,
+		    sshbuf_len(ts->sin));
+	} else
+		debug_f("%s %s noclobber", kex, keyname);
+
 	for (i = 0; i < PROPOSAL_MAX; i++) {
 		ccp = proposal[i];
+#ifdef CIPHER_NONE_AVAIL
+		if (i == PROPOSAL_ENC_ALGS_CTOS || i == PROPOSAL_ENC_ALGS_STOC)
+			ccp = "none";
+#endif
 		if (i == PROPOSAL_SERVER_HOST_KEY_ALGS)
 			ccp = keyname;
 		else if (i == PROPOSAL_KEX_ALGS && kex != NULL)
@@ -396,11 +406,14 @@ int main(void)
 		"curve25519-sha256@libssh.org",
 		"ecdh-sha2-nistp256",
 		"diffie-hellman-group1-sha1",
+		"diffie-hellman-group-exchange-sha1",
 		NULL,
 	};
 	int i, j;
 	char *path;
 	FILE *f;
+
+	log_init("kex_fuzz", SYSLOG_LEVEL_DEBUG3, SYSLOG_FACILITY_AUTH, 1);
 
 	if (st == NULL) {
 		st = (struct shared_state *)xcalloc(1, sizeof(*st));
