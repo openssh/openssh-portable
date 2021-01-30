@@ -147,10 +147,12 @@ reset_sockettab(int devnull)
 	assert(sockets[0].fd == fd);
 }
 
+#define MAX_MESSAGES 256
 void
 test_one(const uint8_t* s, size_t slen)
 {
 	static int devnull = -1;
+	size_t i, olen, nlen;
 
 	if (devnull == -1) {
 		log_init(__progname, SYSLOG_LEVEL_DEBUG3,
@@ -163,7 +165,13 @@ test_one(const uint8_t* s, size_t slen)
 	reset_idtab();
 	reset_sockettab(devnull);
 	(void)sshbuf_put(sockets[0].input, s, slen);
-	process_message(0);
+	for (i = 0; i < MAX_MESSAGES; i++) {
+		olen = sshbuf_len(sockets[0].input);
+		process_message(0);
+		nlen = sshbuf_len(sockets[0].input);
+		if (nlen == 0 || nlen == olen)
+			break;
+	}
 	cleanup_idtab();
 	cleanup_sockettab();
 }
