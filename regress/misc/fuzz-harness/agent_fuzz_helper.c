@@ -162,7 +162,7 @@ test_one(const uint8_t* s, size_t slen)
 
 	reset_idtab();
 	reset_sockettab(devnull);
-	(void)sshbuf_put_string(sockets[0].input, s, slen);
+	(void)sshbuf_put(sockets[0].input, s, slen);
 	process_message(0);
 	cleanup_idtab();
 	cleanup_sockettab();
