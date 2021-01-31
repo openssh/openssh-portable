@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.166 2021/01/27 23:49:46 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.167 2021/01/31 22:55:29 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -405,7 +405,7 @@ kex_prop_free(char **proposal)
 }
 
 /* ARGSUSED */
-static int
+int
 kex_protocol_error(int type, u_int32_t seq, struct ssh *ssh)
 {
 	int r;
