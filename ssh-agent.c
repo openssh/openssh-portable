@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.275 2021/01/29 06:29:46 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.276 2021/02/02 22:35:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -522,9 +522,9 @@ process_remove_identity(SocketEntry *e)
 	TAILQ_REMOVE(&idtab->idlist, id, next);
 	free_identity(id);
 	idtab->nentries--;
-	sshkey_free(key);
 	success = 1;
  done:
+	sshkey_free(key);
 	send_status(e, success);
 }
 
