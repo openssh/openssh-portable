@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.549 2021/01/27 09:26:54 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.550 2021/02/02 22:36:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -647,7 +647,6 @@ main(int ac, char **av)
 	size_t n, len;
 	u_int j;
 	struct ssh_conn_info *cinfo = NULL;
-
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
