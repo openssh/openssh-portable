@@ -339,9 +339,7 @@ main_sigchld_handler(int sig)
 	int save_errno = errno;
 	pid_t pid;
 	int status;
-
-	debug("main_sigchld_handler: %s", strsignal(sig));
-
+	
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
 	    (pid == -1 && errno == EINTR))
 		;
