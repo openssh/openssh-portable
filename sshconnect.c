@@ -390,6 +390,12 @@ ssh_create_socket(struct addrinfo *ai)
 		}
 		memcpy(&bindaddr, res->ai_addr, res->ai_addrlen);
 		bindaddrlen = res->ai_addrlen;
+
+		/*'-B' option*/
+		if (options.bind_interface != NULL) {
+			if (setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, options.bind_interface, strlen(options.bind_interface) + 1))
+				debug("error: setsockopt SO_BINDTODEVICE");
+		}
 	} else if (options.bind_interface != NULL) {
 #ifdef HAVE_IFADDRS_H
 		if ((r = getifaddrs(&ifaddrs)) != 0) {
