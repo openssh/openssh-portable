@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.569 2021/01/27 10:05:28 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.570 2021/02/05 02:20:23 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -339,8 +339,6 @@ main_sigchld_handler(int sig)
 	int save_errno = errno;
 	pid_t pid;
 	int status;
-
-	debug("main_sigchld_handler: %s", strsignal(sig));
 
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
 	    (pid == -1 && errno == EINTR))
