@@ -323,6 +323,15 @@ md5 () {
 		wc -c
 	fi
 }
+
+# Some platforms don't have hostname at all, but on others uname -n doesn't
+# provide the fully qualified name we need, so in the former case we create
+# our own hostname function.
+if ! have_prog hostname; then
+	hostname() {
+		uname -n
+	}
+fi
 # End of portable specific functions
 
 stop_sshd ()
