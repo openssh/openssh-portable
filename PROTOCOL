@@ -465,6 +465,22 @@ respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
+3.7. sftp: Extension request "lsetstat@openssh.com"
+
+This request is like the "setstat" command, but sets file attributes on
+symlinks.  It is implemented as a SSH_FXP_EXTENDED request with the
+following format:
+
+	uint32		id
+	string		"lsetstat@openssh.com"
+	string		path
+	ATTRS		attrs
+
+See the "setstat" command for more details.
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
 4. Miscellaneous changes
 
 4.1 Public key format
@@ -496,4 +512,4 @@ OpenSSH's connection multiplexing uses messages as described in
 PROTOCOL.mux over a Unix domain socket for communications between a
 master instance and later clients.
 
-$OpenBSD: PROTOCOL,v 1.38 2020/07/05 23:59:45 djm Exp $
+$OpenBSD: PROTOCOL,v 1.39 2021/02/12 03:49:09 djm Exp $

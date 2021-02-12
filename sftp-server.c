@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.120 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.121 2021/02/12 03:49:09 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -671,6 +671,7 @@ process_init(void)
 	    /* fsync extension */
 	    (r = sshbuf_put_cstring(msg, "fsync@openssh.com")) != 0 ||
 	    (r = sshbuf_put_cstring(msg, "1")) != 0 || /* version */
+	    /* lsetstat extension */
 	    (r = sshbuf_put_cstring(msg, "lsetstat@openssh.com")) != 0 ||
 	    (r = sshbuf_put_cstring(msg, "1")) != 0) /* version */
 		fatal_fr(r, "compose");
