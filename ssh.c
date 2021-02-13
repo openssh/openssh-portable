@@ -301,43 +301,11 @@ resolve_srv(const char* orig_name, int *port) {
             uint16_t prio   = ntohs(*(uint16_t*)srv.rdi_data);
             uint16_t weight = ntohs(*(uint16_t*)(srv.rdi_data + 2));
             uint16_t port   = ntohs(*(uint16_t*)(srv.rdi_data + 4));
+            char* target    = dns_decode_name(srv.rdi_data + 6, srv.rdi_length - 6);
+
+            debug2_f("Found SRV record pointing at %s:%u (weight %u, prio %u)", target, port, weight, prio);
 
             if(prio < cur_prio || (prio == cur_prio && weight > cur_weight)) {
-                const char* target_labels = srv.rdi_data + 6;
-                size_t      target_index  = 0;
-
-                char*  target = NULL;
-                size_t target_size = 0;
-
-                uint8_t next_label_len;
-                do {
-                    next_label_len = target_labels[target_index];
-
-                    char* old_target = target;
-
-                    if(old_target) {
-                        target = malloc(target_size + next_label_len + 2);
-                        memcpy(target, old_target, target_size);
-                        target[target_size] = '.';
-                        memcpy(target + target_size + 1, target_labels + target_index + 1, next_label_len);
-                        target[target_size + next_label_len + 1] = 0;
-
-                        target_size += 1;
-
-                        free(old_target);
-                    }
-                    else {
-                        target = malloc(next_label_len + 1);
-                        memcpy(target, target_labels + target_index + 1, next_label_len);
-                        target[next_label_len] = 0;
-                    }
-
-                    target_size  += next_label_len;
-                    target_index += next_label_len + 1;
-                } while(next_label_len > 0 && target_index + next_label_len <= srv.rdi_length - 6);
-
-                debug2_f("Found SRV record pointing at %s:%u (weight %u, prio %u)", target, port, weight, prio);
-
                 cur_port   = port;
                 cur_target = target;
                 cur_weight = weight;

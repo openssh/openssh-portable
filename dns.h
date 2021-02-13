@@ -58,4 +58,6 @@ int	export_dns_rr(const char *, struct sshkey *, FILE *, int);
 
 const char* dns_result_totext(unsigned int res);
 
+char* dns_decode_name(const char* data, size_t len);
+
 #endif /* DNS_H */

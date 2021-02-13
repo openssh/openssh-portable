@@ -352,3 +352,46 @@ export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic)
 
 	return success;
 }
+
+/*
+ * Decoded a DNS wire-format name to the commonly
+ * used, dot-separated format of labels.
+ * Returns a dynamically allocated string on success
+ * and NULL on error.
+ */
+char*
+dns_decode_name(const char* data, size_t len) {
+    size_t      index  = 0;
+
+    char*  decoded = NULL;
+    size_t size    = 0;
+
+    uint8_t next_label_len;
+    do {
+        next_label_len = data[index];
+
+        char* old_decoded = decoded;
+
+        if(old_decoded) {
+            decoded = malloc(size + next_label_len + 2);
+            memcpy(decoded, old_decoded, size);
+            decoded[size] = '.';
+            memcpy(decoded + size + 1, data + index + 1, next_label_len);
+            decoded[size + next_label_len + 1] = 0;
+
+            size += 1;
+
+            free(old_decoded);
+        }
+        else {
+            decoded = malloc(next_label_len + 1);
+            memcpy(decoded, data + index + 1, next_label_len);
+            decoded[next_label_len] = 0;
+        }
+
+        size  += next_label_len;
+        index += next_label_len + 1;
+    } while(next_label_len > 0 && index + next_label_len <= len);
+
+    return decoded;
+}
