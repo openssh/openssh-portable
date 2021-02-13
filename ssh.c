@@ -269,6 +269,9 @@ default_client_percent_dollar_expand(const char *str,
  */
 static char *
 resolve_srv(const char* orig_name, int *port) {
+    uint16_t cur_port   = 0;
+    char*    cur_target = NULL;
+
     const size_t prefix_len = 10;
     const size_t orig_len = strlen(orig_name);
     char* name = malloc(prefix_len + orig_len + 1);
@@ -291,8 +294,6 @@ resolve_srv(const char* orig_name, int *port) {
 
     uint16_t cur_prio = UINT16_MAX;
     uint16_t cur_weight = 0;
-    uint16_t cur_port   = 0;
-    char*    cur_target = NULL;
 
     for(unsigned i = 0; i < srvs->rri_nrdatas; ++i) {
         struct rdatainfo srv = srvs->rri_rdatas[i];
