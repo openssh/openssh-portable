@@ -108,6 +108,7 @@
 #include "ssherr.h"
 #include "myproposal.h"
 #include "utf8.h"
+#include "dns.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
@@ -261,25 +262,137 @@ default_client_percent_dollar_expand(const char *str,
 }
 
 /*
+ * Attempt to resolve _ssh._tcp.$orig_name SRV record to the highest-priority
+ * host and port.
+ * Returns the port of the target service via out-argument
+ * Returns NULL on failure and when no SRV record is found.
+ */
+static char *
+resolve_srv(const char* orig_name, int *port) {
+    const size_t prefix_len = 10;
+    const size_t orig_len = strlen(orig_name);
+    char* name = malloc(prefix_len + orig_len + 1);
+    snprintf(name, prefix_len + orig_len + 1, "_ssh._tcp.%s", orig_name);
+
+    debug3_f("Trying to lookup SRV for: %s (%s)", orig_name, name);
+
+    struct rrsetinfo *srvs = NULL;
+    int result = getrrsetbyname(name, DNS_RDATACLASS_IN, DNS_RDATATYPE_SRV, 0, &srvs);
+
+    if(result) {
+        debug2_f("SRV lookup error: %s", dns_result_totext(result));
+        goto fail;
+    }
+
+    if(!srvs->rri_nrdatas) {
+        debug2_f("No SRV records found for %s", name);
+        goto fail;
+    }
+
+    uint16_t cur_prio = UINT16_MAX;
+    uint16_t cur_weight = 0;
+    uint16_t cur_port   = 0;
+    char*    cur_target = NULL;
+
+    for(unsigned i = 0; i < srvs->rri_nrdatas; ++i) {
+        struct rdatainfo srv = srvs->rri_rdatas[i];
+
+        if(srv.rdi_length >= 9) {
+            uint16_t prio   = ntohs(*(uint16_t*)srv.rdi_data);
+            uint16_t weight = ntohs(*(uint16_t*)(srv.rdi_data + 2));
+            uint16_t port   = ntohs(*(uint16_t*)(srv.rdi_data + 4));
+
+            if(prio < cur_prio || (prio == cur_prio && weight > cur_weight)) {
+                const char* target_labels = srv.rdi_data + 6;
+                size_t      target_index  = 0;
+
+                char*  target = NULL;
+                size_t target_size = 0;
+
+                uint8_t next_label_len;
+                do {
+                    next_label_len = target_labels[target_index];
+
+                    char* old_target = target;
+
+                    if(old_target) {
+                        target = malloc(target_size + next_label_len + 2);
+                        memcpy(target, old_target, target_size);
+                        target[target_size] = '.';
+                        memcpy(target + target_size + 1, target_labels + target_index + 1, next_label_len);
+                        target[target_size + next_label_len + 1] = 0;
+
+                        target_size += 1;
+
+                        free(old_target);
+                    }
+                    else {
+                        target = malloc(next_label_len + 1);
+                        memcpy(target, target_labels + target_index + 1, next_label_len);
+                        target[next_label_len] = 0;
+                    }
+
+                    target_size  += next_label_len;
+                    target_index += next_label_len + 1;
+                } while(next_label_len > 0 && target_index + next_label_len <= srv.rdi_length - 6);
+
+                debug2_f("Found SRV record pointing at %s:%u (weight %u, prio %u)", target, port, weight, prio);
+
+                cur_port   = port;
+                cur_target = target;
+                cur_weight = weight;
+                cur_prio   = prio;
+            }
+        }
+    }
+
+fail:
+    freerrset(srvs);
+    free(name);
+
+    if(cur_target) {
+        debug_f("Connecting via SRV record to %s:%u", cur_target, cur_port);
+
+        *port = cur_port;
+        return cur_target;
+    }
+
+    return NULL;
+}
+
+/*
  * Attempt to resolve a host name / port to a set of addresses and
  * optionally return any CNAMEs encountered along the way.
  * Returns NULL on failure.
  * NB. this function must operate with a options having undefined members.
  */
 static struct addrinfo *
-resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
+resolve_host(const char *orig_name, int *port, int logerr, char *cname, size_t clen)
 {
+    char* name = NULL;
+
+    if(*port <= 0) {
+        name = resolve_srv(orig_name, port);
+    }
+
+    if(!name) {
+        name = malloc(strlen(orig_name) + 1);
+        strcpy(name, orig_name);
+    }
+
 	char strport[NI_MAXSERV];
 	struct addrinfo hints, *res;
 	int gaierr;
 	LogLevel loglevel = SYSLOG_LEVEL_DEBUG1;
 
-	if (port <= 0)
-		port = default_ssh_port();
-	if (cname != NULL)
+	if (*port <= 0) {
+		*port = default_ssh_port();
+    }
+	if (cname != NULL) {
 		*cname = '\0';
+    }
 
-	snprintf(strport, sizeof strport, "%d", port);
+	snprintf(strport, sizeof strport, "%d", *port);
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = options.address_family == -1 ?
 	    AF_UNSPEC : options.address_family;
@@ -291,6 +404,7 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 			loglevel = SYSLOG_LEVEL_ERROR;
 		do_log2(loglevel, "%s: Could not resolve hostname %.100s: %s",
 		    __progname, name, ssh_gai_strerror(gaierr));
+        free(name);
 		return NULL;
 	}
 	if (cname != NULL && res->ai_canonname != NULL) {
@@ -301,6 +415,8 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 				*cname = '\0';
 		}
 	}
+
+    free(name);
 	return res;
 }
 
@@ -435,7 +551,7 @@ check_follow_cname(int direct, char **namep, const char *cname)
  * NB. this function must operate with a options having undefined members.
  */
 static struct addrinfo *
-resolve_canonicalize(char **hostp, int port)
+resolve_canonicalize(char **hostp, int *port)
 {
 	int i, direct, ndots;
 	char *cp, *fullhost, newname[NI_MAXHOST];
@@ -445,7 +561,7 @@ resolve_canonicalize(char **hostp, int port)
 	 * Attempt to canonicalise addresses, regardless of
 	 * whether hostname canonicalisation was requested
 	 */
-	if ((addrs = resolve_addr(*hostp, port,
+	if ((addrs = resolve_addr(*hostp, *port,
 	    newname, sizeof(newname))) != NULL) {
 		debug2_f("hostname %.100s is address", *hostp);
 		if (strcasecmp(*hostp, newname) != 0) {
@@ -1175,12 +1291,14 @@ main(int ac, char **av)
 	if ((was_addr = is_addr(host)) == 0)
 		lowercase(host);
 
+    int port = options.port;
+
 	/*
 	 * Try to canonicalize if requested by configuration or the
 	 * hostname is an address.
 	 */
 	if (options.canonicalize_hostname != SSH_CANONICALISE_NO || was_addr)
-		addrs = resolve_canonicalize(&host, options.port);
+		addrs = resolve_canonicalize(&host, &port);
 
 	/*
 	 * If CanonicalizePermittedCNAMEs have been specified but
@@ -1199,7 +1317,7 @@ main(int ac, char **av)
 	    options.jump_host == NULL;
 	if (addrs == NULL && options.num_permitted_cnames != 0 && (direct ||
 	    options.canonicalize_hostname == SSH_CANONICALISE_ALWAYS)) {
-		if ((addrs = resolve_host(host, options.port,
+		if ((addrs = resolve_host(host, &port,
 		    direct, cname, sizeof(cname))) == NULL) {
 			/* Don't fatal proxied host names not in the DNS */
 			if (direct)
@@ -1228,8 +1346,8 @@ main(int ac, char **av)
 		 * enabled and the port number may have changed since, so
 		 * reset it in address list
 		 */
-		if (addrs != NULL && options.port > 0)
-			set_addrinfo_port(addrs, options.port);
+		if (addrs != NULL && port > 0)
+			set_addrinfo_port(addrs, port);
 	}
 
 	/* Fill configuration defaults. */
@@ -1533,7 +1651,7 @@ main(int ac, char **av)
 	 */
 	if (addrs == NULL && options.proxy_command == NULL) {
 		debug2("resolving \"%s\" port %d", host, options.port);
-		if ((addrs = resolve_host(host, options.port, 1,
+		if ((addrs = resolve_host(host, &port, 1,
 		    cname, sizeof(cname))) == NULL)
 			cleanup_exit(255); /* resolve_host logs the error */
 	}

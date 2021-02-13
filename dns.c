@@ -52,7 +52,7 @@ static const char *errset_text[] = {
 	"data does not exist",	/* 5 ERRSET_NODATA */
 };
 
-static const char *
+const char *
 dns_result_totext(unsigned int res)
 {
 	switch (res) {
