@@ -361,23 +361,34 @@ export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic)
  */
 char*
 dns_decode_name(const char* data, size_t len) {
-    size_t      index  = 0;
+    if(len < 1) {
+        return NULL;
+    }
 
     char*  decoded = NULL;
     size_t size    = 0;
 
-    uint8_t next_label_len;
-    do {
-        next_label_len = data[index];
+    size_t index  = 0;
+    uint8_t next_label_len = data[index++];
+
+    while(1) {
+        if(index + next_label_len > len) {
+            return NULL;
+        }
+
+        if(!next_label_len) {
+            return decoded;
+        }
 
         char* old_decoded = decoded;
 
         if(old_decoded) {
             decoded = malloc(size + next_label_len + 2);
+            decoded[size + next_label_len + 1] = 0;
+
             memcpy(decoded, old_decoded, size);
             decoded[size] = '.';
-            memcpy(decoded + size + 1, data + index + 1, next_label_len);
-            decoded[size + next_label_len + 1] = 0;
+            memcpy(decoded + size + 1, data + index, next_label_len);
 
             size += 1;
 
@@ -385,13 +396,16 @@ dns_decode_name(const char* data, size_t len) {
         }
         else {
             decoded = malloc(next_label_len + 1);
-            memcpy(decoded, data + index + 1, next_label_len);
             decoded[next_label_len] = 0;
+
+            memcpy(decoded, data + index, next_label_len);
         }
 
         size  += next_label_len;
-        index += next_label_len + 1;
-    } while(next_label_len > 0 && index + next_label_len <= len);
+        index += next_label_len;
+
+        next_label_len = data[index++];
+    }
 
     return decoded;
 }
