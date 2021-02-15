@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.346 2021/02/15 11:09:22 dlg Exp $
+.\" $OpenBSD: ssh_config.5,v 1.347 2021/02/15 20:43:15 markus Exp $
 .Dd $Mdocdate: February 15 2021 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1290,6 +1290,42 @@ The argument must be
 or
 .Cm no
 (the default).
+.It Cm PermitRemoteOpen
+Specifies the destinations to which remote TCP port forwarding is permitted when
+.Cm RemoteForward
+is used as a SOCKS proxy.
+The forwarding specification must be one of the following forms:
+.Pp
+.Bl -item -offset indent -compact
+.It
+.Cm PermitRemoteOpen
+.Sm off
+.Ar host : port
+.Sm on
+.It
+.Cm PermitRemoteOpen
+.Sm off
+.Ar IPv4_addr : port
+.Sm on
+.It
+.Cm PermitRemoteOpen
+.Sm off
+.Ar \&[ IPv6_addr \&] : port
+.Sm on
+.El
+.Pp
+Multiple forwards may be specified by separating them with whitespace.
+An argument of
+.Cm any
+can be used to remove all restrictions and permit any forwarding requests.
+An argument of
+.Cm none
+can be used to prohibit all forwarding requests.
+The wildcard
+.Sq *
+can be used for host or port to allow all hosts or ports respectively.
+Otherwise, no pattern matching or address lookups are performed on supplied
+names.
 .It Cm PKCS11Provider
 Specifies which PKCS#11 provider to use or
 .Cm none
@@ -1484,6 +1520,9 @@ If forwarding to a specific destination then the second argument must be
 or a Unix domain socket path,
 otherwise if no destination argument is specified then the remote forwarding
 will be established as a SOCKS proxy.
+When acting as a SOCKS proxy the destination of the connection can be
+restricted by
+.Cm PermitRemoteOpen .
 .Pp
 IPv6 addresses can be specified by enclosing addresses in square brackets.
 Multiple forwardings may be specified, and additional

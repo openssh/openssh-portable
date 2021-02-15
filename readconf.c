@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.350 2021/01/26 05:32:21 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.351 2021/02/15 20:43:15 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -147,6 +147,7 @@ typedef enum {
 	oPasswordAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 	oIdentityFile, oHostname, oPort, oRemoteForward, oLocalForward,
+	oPermitRemoteOpen,
 	oCertificateFile, oAddKeysToAgent, oIdentityAgent,
 	oUser, oEscapeChar, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
@@ -247,6 +248,7 @@ static struct {
 	{ "macs", oMacs },
 	{ "remoteforward", oRemoteForward },
 	{ "localforward", oLocalForward },
+	{ "permitremoteopen", oPermitRemoteOpen },
 	{ "user", oUser },
 	{ "host", oHost },
 	{ "match", oMatch },
@@ -318,6 +320,7 @@ static struct {
 	{ NULL, oBadOption }
 };
 
+static const char *lookup_opcode_name(OpCodes code);
 
 const char *
 kex_default_pk_alg(void)
@@ -912,9 +915,9 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
     const char *original_host, char *line, const char *filename,
     int linenum, int *activep, int flags, int *want_final_pass, int depth)
 {
-	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2;
+	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2, *p, ch;
 	char **cpptr, ***cppptr, fwdarg[256];
-	u_int i, *uintptr, max_entries = 0;
+	u_int i, *uintptr, uvalue, max_entries = 0;
 	int r, oactive, negated, opcode, *intptr, value, value2, cmdline = 0;
 	int remotefwd, dynamicfwd;
 	LogLevel *log_level_ptr;
@@ -1479,6 +1482,51 @@ parse_pubkey_algos:
 			} else {
 				add_local_forward(options, &fwd);
 			}
+		}
+		break;
+
+	case oPermitRemoteOpen:
+		uintptr = &options->num_permitted_remote_opens;
+		cppptr = &options->permitted_remote_opens;
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing %s specification",
+			    filename, linenum, lookup_opcode_name(opcode));
+		uvalue = *uintptr;	/* modified later */
+		if (strcmp(arg, "any") == 0 || strcmp(arg, "none") == 0) {
+			if (*activep && uvalue == 0) {
+				*uintptr = 1;
+				*cppptr = xcalloc(1, sizeof(**cppptr));
+				(*cppptr)[0] = xstrdup(arg);
+			}
+			break;
+		}
+		for (; arg != NULL && *arg != '\0'; arg = strdelim(&s)) {
+			arg2 = xstrdup(arg);
+			ch = '\0';
+			p = hpdelim2(&arg, &ch);
+			if (p == NULL || ch == '/') {
+				fatal("%s line %d: missing host in %s",
+				    filename, linenum,
+				    lookup_opcode_name(opcode));
+			}
+			p = cleanhostname(p);
+			/*
+			 * don't want to use permitopen_port to avoid
+			 * dependency on channels.[ch] here.
+			 */
+			if (arg == NULL ||
+			    (strcmp(arg, "*") != 0 && a2port(arg) <= 0)) {
+				fatal("%s line %d: bad port number in %s",
+				    filename, linenum,
+				    lookup_opcode_name(opcode));
+			}
+			if (*activep && uvalue == 0) {
+				opt_array_append(filename, linenum,
+				    lookup_opcode_name(opcode),
+				    cppptr, uintptr, arg2);
+			}
+			free(arg2);
 		}
 		break;
 
@@ -2173,6 +2221,8 @@ initialize_options(Options * options)
 	options->num_local_forwards = 0;
 	options->remote_forwards = NULL;
 	options->num_remote_forwards = 0;
+	options->permitted_remote_opens = NULL;
+	options->num_permitted_remote_opens = 0;
 	options->log_facility = SYSLOG_FACILITY_NOT_SET;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
 	options->num_log_verbose = 0;
@@ -3125,6 +3175,13 @@ dump_client_config(Options *o, const char *host)
 	    o->num_log_verbose, o->log_verbose);
 
 	/* Special cases */
+
+	/* PermitRemoteOpen */
+	if (o->num_permitted_remote_opens == 0)
+		printf("%s any\n", lookup_opcode_name(oPermitRemoteOpen));
+	else
+		dump_cfg_strarray_oneline(oPermitRemoteOpen,
+		    o->num_permitted_remote_opens, o->permitted_remote_opens);
 
 	/* AddKeysToAgent */
 	if (o->add_keys_to_agent_lifespan <= 0)

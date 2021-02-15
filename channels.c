@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.404 2021/01/27 09:26:53 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.405 2021/02/15 20:43:15 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -4478,8 +4478,27 @@ rdynamic_connect_prepare(struct ssh *ssh, char *ctype, char *rname)
 static int
 rdynamic_connect_finish(struct ssh *ssh, Channel *c)
 {
+	struct ssh_channels *sc = ssh->chanctxt;
+	struct permission_set *pset = &sc->local_perms;
+	struct permission *perm;
 	struct channel_connect cctx;
+	u_int i, permit_adm = 1;
 	int sock;
+
+	if (pset->num_permitted_admin > 0) {
+		permit_adm = 0;
+		for (i = 0; i < pset->num_permitted_admin; i++) {
+			perm = &pset->permitted_admin[i];
+			if (open_match(perm, c->path, c->host_port)) {
+				permit_adm = 1;
+				break;
+			}
+		}
+	}
+	if (!permit_adm) {
+		debug_f("requested forward not permitted");
+		return -1;
+	}
 
 	memset(&cctx, 0, sizeof(cctx));
 	sock = connect_to_helper(ssh, c->path, c->host_port, SOCK_STREAM, NULL,
