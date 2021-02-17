@@ -18,35 +18,39 @@ set -ex
 
 lsb_release -a
 
+if [ "${TARGETS}" = "kitchensink" ]; then
+	TARGETS="kerberos5 libedit pam sk selinux"
+fi
+
 for TARGET in $TARGETS; do
     case $TARGET in
-    ""|--without-openssl|--without-zlib|--with-Werror|--with-rpath*|--with-ssl-dir=*|--with-zlib=*)
+    default|without-openssl|without-zlib)
         # nothing to do
         ;;
-    "--with-kerberos5")
+    kerberos5)
         PACKAGES="$PACKAGES heimdal-dev"
         #PACKAGES="$PACKAGES libkrb5-dev"
         ;;
-    "--with-libedit")
+    libedit)
         PACKAGES="$PACKAGES libedit-dev"
         ;;
-    "--with-pam")
+    *pam)
         PACKAGES="$PACKAGES libpam0g-dev"
         ;;
-    "--with-security-key-builtin")
+    sk)
         INSTALL_FIDO_PPA="yes"
         PACKAGES="$PACKAGES libfido2-dev libu2f-host-dev"
         ;;
-    "--with-selinux")
+    selinux)
         PACKAGES="$PACKAGES libselinux1-dev selinux-policy-dev"
         ;;
-    "--with-ldflags=-lhardened_malloc")
+    hardenedmalloc)
         INSTALL_HARDENED_MALLOC=yes
        ;;
-    "--with-ssl-dir=/opt/openssl/head")
+    openssl-head)
         INSTALL_OPENSSL_HEAD=yes
        ;;
-    "--with-ssl-dir=/opt/libressl/head")
+    libressl-head)
         INSTALL_LIBRESSL_HEAD=yes
        ;;
     *) echo "Invalid option '${TARGET}'"

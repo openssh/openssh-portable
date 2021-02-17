@@ -21,13 +21,38 @@ LIBCRYPTOFLAGS=""
 case "$config" in
     default|sol64)
 	;;
+    kitchensink)
+	CONFIGFLAGS="--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin"
+	CONFIGFLAGS="${CONFIGFLAGS} --with-selinux"
+	;;
+    hardenedmalloc)
+	CONFIGFLAGS="--with-ldflags=-lhardened_malloc"
+	;;
+    kerberos5)
+	CONFIGFLAGS="--with-kerberos5"
+	;;
+    libedit)
+	CONFIGFLAGS="--with-libedit"
+	;;
     *pam)
 	CONFIGFLAGS="--with-pam"
 	SSHD_CONFOPTS="UsePam yes"
 	;;
+    libressl-head)
+	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/libressl/head --with-rpath=-Wl,-rpath,"
+	;;
+    openssl-head)
+	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/openssl/head --with-rpath=-Wl,-rpath,"
+	;;
+    selinux)
+	CONFIGFLAGS="--with-selinux"
+	;;
+    sk)
+	CONFIGFLAGS="--with-security-key-builtin"
+        ;;
     without-openssl)
 	LIBCRYPTOFLAGS="--without-openssl"
-        TEST_TARGET=t-exec
+	TEST_TARGET=t-exec
 	;;
     *)
 	echo "Unknown configuration $config"
@@ -53,8 +78,8 @@ esac
 # If we have a local openssl/libressl, use that.
 if [ -z "${LIBCRYPTOFLAGS}" ]; then
 	# last-match
-	for i in /usr/local /usr/local/ssl; do
-		if [ -x ${i}/bin/openssl ]; then
+	for i in /usr/local /usr/local/ssl /usr/local/opt/openssl; do
+		if [ -d ${i}/bin/openssl ]; then
 			LIBCRYPTOFLAGS="--with-ssl-dir=${i}"
 		fi
 	done
