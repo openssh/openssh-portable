@@ -79,7 +79,7 @@ esac
 if [ -z "${LIBCRYPTOFLAGS}" ]; then
 	# last-match
 	for i in /usr/local /usr/local/ssl /usr/local/opt/openssl; do
-		if [ -d ${i}/bin/openssl ]; then
+		if [ -x ${i}/bin/openssl ]; then
 			LIBCRYPTOFLAGS="--with-ssl-dir=${i}"
 		fi
 	done

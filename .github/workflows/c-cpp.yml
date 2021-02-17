@@ -7,12 +7,12 @@ on:
     branches: [ master ]
 
 jobs:
-  linux:
+  ci:
     if: github.repository != 'openssh/openssh-portable-selfhosted'
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-16_04, ubuntu-18_04, ubuntu-20.04]
+        os: [ubuntu-16_04, ubuntu-18_04, ubuntu-20.04, macos-10.15, macos-11.0]
         configs: [default, pam]
         # Then we include any extra configs we want to test for specific VMs.
         include:
@@ -36,31 +36,6 @@ jobs:
       run: autoreconf
     - name: configure
       run: ./.github/configure.sh ${{ matrix.configs }}
-    - name: make
-      run: make -j2
-    - name: copy moduli
-      run: sudo cp moduli /usr/local/etc/
-    - name: make tests
-      run: ./.github/run_test.sh ${{ matrix.configs }}
-      env:
-        SUDO: sudo
-        TEST_SSH_UNSAFE_PERMISSIONS: 1
-
-  macos:
-    if: github.repository != 'openssh/openssh-portable-selfhosted'
-    strategy:
-      matrix:
-        os: [ macos-10.15, macos-11.0 ]
-        configs: [default, pam]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v2
-    - name: setup CI system
-      run: ./.github/setup_ci.sh ${{ matrix.configs }}
-    - name: autoreconf
-      run: autoreconf
-    - name: configure
-      run: ./configure --with-ssl-dir=/usr/local/opt/openssl ${{ matrix.configs }}
     - name: make
       run: make -j2
     - name: copy moduli
