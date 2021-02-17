@@ -11,6 +11,7 @@ jobs:
     env:
       TARGET_HOST: ${{ matrix.vm }}
       SUDO: sudo
+      SKIP_UNIT: 1
     strategy:
       fail-fast: false
       # We use a matrix in two parts: firstly all of the VMs are tested with the
