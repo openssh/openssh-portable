@@ -69,8 +69,9 @@ case "$config" in
 esac
 
 case "${TARGET_HOST}" in
-    sol10)
-	# This VM is 32bit and the unit tests are slow.
+    sol10|sol11)
+	# sol10 VM is 32bit and the unit tests are slow.
+	# sol11 has 4 test configs so skip unit tests to speed up.
 	TEST_TARGET="tests SKIP_UNIT=1"
 	;;
 esac
