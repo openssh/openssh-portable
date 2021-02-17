@@ -14,7 +14,7 @@ else
     result=$?
 fi
 
-if [ ! -z ${SSHD_CONFOPTS} ]; then
+if [ ! -z "${SSHD_CONFOPTS}" ]; then
     echo "rerunning tests with TEST_SSH_SSHD_CONFOPTS='${SSHD_CONFOPTS}'"
     make t-exec TEST_SSH_SSHD_CONFOPTS="${SSHD_CONFOPTS}"
     result2=$?
