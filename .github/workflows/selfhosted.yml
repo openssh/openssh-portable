@@ -22,20 +22,13 @@ jobs:
           - default
         # Then we include any extra configs we want to test for specific VMs.
         include:
-         - vm: dfly30
-           configs: without-openssl
-         - vm: dfly48
-           configs: pam
-         - vm: dfly58
-           configs: pam
-         - vm: sol10
-           configs: pam
-         - vm: sol11
-           configs: pam
-         - vm: sol11
-           configs: sol64
-         - vm: sol11
-           configs: sol64-pam
+         - { vm: dfly30, configs: without-openssl}
+         - { vm: dfly48, configs: pam }
+         - { vm: dfly58, configs: pam }
+         - { vm: sol10,  configs: pam }
+         - { vm: sol11,  configs: pam }
+         - { vm: sol11,  configs: sol64 }
+         - { vm: sol11,  configs: sol64-pam }
     steps:
     - uses: actions/checkout@v2
     - name: autoreconf
