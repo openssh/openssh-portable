@@ -49,7 +49,7 @@ jobs:
     - name: make
       run: vmrun make
     - name: install moduli
-      run: sudo sh -c "mkdir -p /usr/local/etc/; cp moduli /usr/local/etc/"
+      run: vmrun sudo mkdir -p /usr/local/etc/; sudo cp moduli /usr/local/etc/
     - name: make tests
       run: vmrun ./.github/run_test.sh ${{ matrix.configs }}
     - name: save regress logs
