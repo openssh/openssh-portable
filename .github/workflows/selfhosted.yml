@@ -16,7 +16,7 @@ jobs:
       # We use a matrix in two parts: firstly all of the VMs are tested with the
       # default config.  "vm" corresponds to a label associated with the worker.
       matrix:
-        vm: [dfly30, dfly48, dfly58, sol10, sol11, bbone]
+        vm: [dfly30, dfly48, dfly58, sol10, sol11, bbone, fbsd12]
         configs:
           - default
         # Then we include any extra configs we want to test for specific VMs.
@@ -24,6 +24,7 @@ jobs:
          - { vm: dfly30, configs: without-openssl}
          - { vm: dfly48, configs: pam }
          - { vm: dfly58, configs: pam }
+         - { vm: fbsd12, configs: pam }
          - { vm: sol10,  configs: pam }
          - { vm: sol11,  configs: pam }
          - { vm: sol11,  configs: sol64 }
