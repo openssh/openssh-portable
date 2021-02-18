@@ -56,7 +56,7 @@ case "$config" in
 	TEST_TARGET=t-exec
 	;;
     valgrind)
-	TEST_TARGET=USE_VALGRIND=1
+	TEST_TARGET="tests USE_VALGRIND=1"
 	;;
     *)
 	echo "Unknown configuration $config"
