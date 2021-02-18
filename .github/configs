@@ -22,8 +22,9 @@ case "$config" in
     default|sol64)
 	;;
     kitchensink)
-	CONFIGFLAGS="--with-kerberos5 --with-libedit --with-pam --with-security-key-builtin"
-	CONFIGFLAGS="${CONFIGFLAGS} --with-selinux"
+	CONFIGFLAGS="--with-kerberos5 --with-libedit --with-pam"
+	CONFIGFLAGS="${CONFIGFLAGS} --with-security-key-builtin --with-selinux"
+	CONFIGFLAGS="${CONFIGFLAGS} --with-cflags=-DSK_DEBUG"
 	;;
     hardenedmalloc)
 	CONFIGFLAGS="--with-ldflags=-lhardened_malloc"
