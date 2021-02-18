@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.121 2021/02/12 03:49:09 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.122 2021/02/18 00:30:17 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -19,6 +19,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
@@ -52,6 +53,9 @@
 #include "sftp-common.h"
 
 char *sftp_realpath(const char *, char *); /* sftp-realpath.c */
+
+/* Maximum data read that we are willing to accept */
+#define SFTP_MAX_READ_LENGTH (64 * 1024)
 
 /* Our verbosity */
 static LogLevel log_level = SYSLOG_LEVEL_ERROR;
@@ -110,6 +114,7 @@ static void process_extended_fstatvfs(u_int32_t id);
 static void process_extended_hardlink(u_int32_t id);
 static void process_extended_fsync(u_int32_t id);
 static void process_extended_lsetstat(u_int32_t id);
+static void process_extended_limits(u_int32_t id);
 static void process_extended(u_int32_t id);
 
 struct sftp_handler {
@@ -152,6 +157,7 @@ static const struct sftp_handler extended_handlers[] = {
 	{ "hardlink", "hardlink@openssh.com", 0, process_extended_hardlink, 1 },
 	{ "fsync", "fsync@openssh.com", 0, process_extended_fsync, 1 },
 	{ "lsetstat", "lsetstat@openssh.com", 0, process_extended_lsetstat, 1 },
+	{ "limits", "limits@openssh.com", 0, process_extended_limits, 1 },
 	{ NULL, NULL, 0, NULL, 0 }
 };
 
@@ -673,6 +679,9 @@ process_init(void)
 	    (r = sshbuf_put_cstring(msg, "1")) != 0 || /* version */
 	    /* lsetstat extension */
 	    (r = sshbuf_put_cstring(msg, "lsetstat@openssh.com")) != 0 ||
+	    (r = sshbuf_put_cstring(msg, "1")) != 0 || /* version */
+	    /* limits extension */
+	    (r = sshbuf_put_cstring(msg, "limits@openssh.com")) != 0 ||
 	    (r = sshbuf_put_cstring(msg, "1")) != 0) /* version */
 		fatal_fr(r, "compose");
 	send_msg(msg);
@@ -739,7 +748,7 @@ process_close(u_int32_t id)
 static void
 process_read(u_int32_t id)
 {
-	u_char buf[64*1024];
+	u_char buf[SFTP_MAX_READ_LENGTH];
 	u_int32_t len;
 	int r, handle, fd, ret, status = SSH2_FX_FAILURE;
 	u_int64_t off;
@@ -1435,6 +1444,36 @@ process_extended_lsetstat(u_int32_t id)
  out:
 	send_status(id, status);
 	free(name);
+}
+
+static void
+process_extended_limits(u_int32_t id)
+{
+	struct sshbuf *msg;
+	int r;
+	uint64_t nfiles = 0;
+	struct rlimit rlim;
+
+	debug("request %u: limits", id);
+
+	if (getrlimit(RLIMIT_NOFILE, &rlim) != -1 && rlim.rlim_cur > 5)
+		nfiles = rlim.rlim_cur - 5; /* stdio(3) + syslog + spare */
+
+	if ((msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	if ((r = sshbuf_put_u8(msg, SSH2_FXP_EXTENDED_REPLY)) != 0 ||
+	    (r = sshbuf_put_u32(msg, id)) != 0 ||
+	    /* max-packet-length */
+	    (r = sshbuf_put_u64(msg, SFTP_MAX_MSG_LENGTH)) != 0 ||
+	    /* max-read-length */
+	    (r = sshbuf_put_u64(msg, SFTP_MAX_READ_LENGTH)) != 0 ||
+	    /* max-write-length */
+	    (r = sshbuf_put_u64(msg, SFTP_MAX_MSG_LENGTH - 1024)) != 0 ||
+	    /* max-open-handles */
+	    (r = sshbuf_put_u64(msg, nfiles)) != 0)
+		fatal_fr(r, "compose");
+	send_msg(msg);
+	sshbuf_free(msg);
 }
 
 static void
