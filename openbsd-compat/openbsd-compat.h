@@ -48,6 +48,10 @@
 #include "blf.h"
 #include "fnmatch.h"
 
+#if defined(HAVE_LOGIN_CAP) && !defined(HAVE_LOGIN_GETPWCLASS)
+# define login_getpwclass(pw) login_getclass(pw->pw_class)
+#endif
+
 #ifndef HAVE_BASENAME
 char *basename(const char *path);
 #endif
