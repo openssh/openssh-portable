@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.33 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.34 2021/02/18 02:13:58 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -694,8 +694,8 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 #ifdef DEBUG_SK
 	fprintf(stderr, "%s: sig_flags = 0x%02x, sig_counter = %u\n",
 	    __func__, resp->flags, resp->counter);
-	fprintf(stderr, "%s: hashed message:\n", __func__);
-	sshbuf_dump_data(message, sizeof(message), stderr);
+	fprintf(stderr, "%s: data to sign:\n", __func__);
+	sshbuf_dump_data(data, datalen, stderr);
 	fprintf(stderr, "%s: sigbuf:\n", __func__);
 	sshbuf_dump(sig, stderr);
 #endif
