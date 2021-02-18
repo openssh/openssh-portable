@@ -20,6 +20,7 @@ jobs:
           - { os: ubuntu-20.04, configs: hardenedmalloc }
           - { os: ubuntu-20.04, configs: libressl-head }
           - { os: ubuntu-20.04, configs: openssl-head }
+          - { os: ubuntu-20.04, configs: valgrind }
           - { os: ubuntu-18.04, configs: kerberos5 }
           - { os: ubuntu-18.04, configs: libedit }
           - { os: ubuntu-18.04, configs: sk }

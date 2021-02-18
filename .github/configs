@@ -55,6 +55,9 @@ case "$config" in
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
 	;;
+    valgrind)
+	TEST_TARGET=USE_VALGRIND=1
+	;;
     *)
 	echo "Unknown configuration $config"
 	exit 1
