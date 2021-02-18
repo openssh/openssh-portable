@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.28 2020/10/18 11:32:02 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.29 2021/02/18 02:15:07 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -118,7 +118,7 @@ int sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     struct sk_option **options, struct sk_enroll_response **enroll_response);
 
 /* Sign a challenge */
-int sk_sign(uint32_t alg, const uint8_t *message, size_t message_len,
+int sk_sign(uint32_t alg, const uint8_t *data, size_t data_len,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, const char *pin, struct sk_option **options,
     struct sk_sign_response **sign_response);
