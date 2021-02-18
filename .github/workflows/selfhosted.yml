@@ -16,7 +16,7 @@ jobs:
       # We use a matrix in two parts: firstly all of the VMs are tested with the
       # default config.  "vm" corresponds to a label associated with the worker.
       matrix:
-        vm: [dfly30, dfly48, dfly58, sol10, sol11]
+        vm: [dfly30, dfly48, dfly58, sol10, sol11, bbone]
         configs:
           - default
         # Then we include any extra configs we want to test for specific VMs.
