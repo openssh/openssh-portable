@@ -2867,6 +2867,7 @@ if test "x$openssl" = "xyes" ; then
 		EVP_CIPHER_CTX_iv \
 		EVP_CIPHER_CTX_iv_noconst \
 		EVP_CIPHER_CTX_get_iv \
+		EVP_CIPHER_CTX_get_updated_iv \
 		EVP_CIPHER_CTX_set_iv \
 		RSA_get0_crt_params \
 		RSA_get0_factors \
