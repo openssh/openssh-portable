@@ -292,6 +292,7 @@ has completed.
 
 	byte		SSH_MSG_GLOBAL_REQUEST
 	string		"hostkeys-00@openssh.com"
+	char		0 /* want-reply */
 	string[]	hostkeys
 
 Upon receiving this message, a client should check which of the
@@ -555,4 +556,4 @@ OpenSSH's connection multiplexing uses messages as described in
 PROTOCOL.mux over a Unix domain socket for communications between a
 master instance and later clients.
 
-$OpenBSD: PROTOCOL,v 1.40 2021/02/18 00:30:17 djm Exp $
+$OpenBSD: PROTOCOL,v 1.41 2021/02/18 02:49:35 djm Exp $
