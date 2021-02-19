@@ -46,3 +46,9 @@ jobs:
       env:
         SUDO: sudo
         TEST_SSH_UNSAFE_PERMISSIONS: 1
+    - name: save regress logs
+      if: failure()
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}-${{ matrix.configs }}-regress-logs
+        path: regress/*.log
