@@ -7,28 +7,28 @@ on:
 jobs:
   selfhosted:
     if: github.repository == 'openssh/openssh-portable-selfhosted'
-    runs-on: ${{ matrix.vm }}
+    runs-on: ${{ matrix.os }}
     env:
-      TARGET_HOST: ${{ matrix.vm }}
+      TARGET_HOST: ${{ matrix.os }}
       SUDO: sudo
     strategy:
       fail-fast: false
       # We use a matrix in two parts: firstly all of the VMs are tested with the
       # default config.  "vm" corresponds to a label associated with the worker.
       matrix:
-        vm: [dfly30, dfly48, dfly58, sol10, sol11, bbone, fbsd12]
+        os: [dfly30, dfly48, dfly58, sol10, sol11, bbone, fbsd12]
         configs:
           - default
         # Then we include any extra configs we want to test for specific VMs.
         include:
-         - { vm: dfly30, configs: without-openssl}
-         - { vm: dfly48, configs: pam }
-         - { vm: dfly58, configs: pam }
-         - { vm: fbsd12, configs: pam }
-         - { vm: sol10,  configs: pam }
-         - { vm: sol11,  configs: pam }
-         - { vm: sol11,  configs: sol64 }
-         # - { vm: sol11,  configs: sol64-pam }
+         - { os: dfly30, configs: without-openssl}
+         - { os: dfly48, configs: pam }
+         - { os: dfly58, configs: pam }
+         - { os: fbsd12, configs: pam }
+         - { os: sol10,  configs: pam }
+         - { os: sol11,  configs: pam }
+         - { os: sol11,  configs: sol64 }
+         # - { os: sol11,  configs: sol64-pam }
     steps:
     - uses: actions/checkout@v2
     - name: autoreconf
@@ -43,7 +43,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.vm }}-${{ matrix.configs }}-config-files
+        name: ${{ matrix.os }}-${{ matrix.configs }}-config-files
         path: |
           config.h
           config.log
@@ -57,7 +57,7 @@ jobs:
       if: failure()
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.vm }}-${{ matrix.configs }}-regress-logs
+        name: ${{ matrix.os }}-${{ matrix.configs }}-regress-logs
         path: regress/*.log
     - name: shutdown VM
       if: always()
