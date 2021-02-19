@@ -28,7 +28,7 @@ jobs:
          - { vm: sol10,  configs: pam }
          - { vm: sol11,  configs: pam }
          - { vm: sol11,  configs: sol64 }
-         - { vm: sol11,  configs: sol64-pam }
+         # - { vm: sol11,  configs: sol64-pam }
     steps:
     - uses: actions/checkout@v2
     - name: autoreconf
