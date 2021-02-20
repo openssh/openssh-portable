@@ -56,7 +56,13 @@ case "$config" in
 	TEST_TARGET=t-exec
 	;;
     valgrind)
-	TEST_TARGET="tests USE_VALGRIND=1"
+	# rlimit sandbox and FORTIFY_SOURCE confuse Valgrind.
+	CONFIGFLAGS="--without-sandbox --without-hardening"
+	CONFIGFLAGS="$CONFIGFLAGS --with-cppflags=-D_FORTIFY_SOURCE=0"
+	# Valgrind slows things down enough that the agent timeout test
+	# won't reliably pass, and the unit tests run longer than allowed
+	# by github.
+	TEST_TARGET="t-exec USE_VALGRIND=1 SKIP_LTESTS=agent-timeout"
 	;;
     *)
 	echo "Unknown configuration $config"
