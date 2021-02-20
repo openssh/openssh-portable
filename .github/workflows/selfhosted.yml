@@ -58,7 +58,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.os }}-${{ matrix.configs }}-regress-logs
-        path: regress/*.log
+        path: |
+          regress/*.log
+          regress/valgrind-out/
     - name: shutdown VM
       if: always()
       run: vmshutdown
