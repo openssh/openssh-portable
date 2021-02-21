@@ -6,11 +6,11 @@
 
 set -ex
 
-if [ -z "$LTESTS" ]; then
-    make $TEST_TARGET
+if [ -z "${LTESTS}" ]; then
+    make ${TEST_TARGET} SKIP_LTESTS="${SKIP_LTESTS}"
     result=$?
 else
-    make $TEST_TARGET LTESTS="$LTESTS"
+    make ${TEST_TARGET} SKIP_LTESTS="${SKIP_LTESTS}" LTESTS="${LTESTS}"
     result=$?
 fi
 

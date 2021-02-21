@@ -12,6 +12,7 @@ config=$1
 
 TEST_TARGET="tests"
 LTESTS=""
+SKIP_LTESTS=""
 SUDO=sudo	# run with sudo by default
 TEST_SSH_UNSAFE_PERMISSIONS=1
 
@@ -55,14 +56,22 @@ case "$config" in
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
 	;;
-    valgrind)
+    valgrind-1)
 	# rlimit sandbox and FORTIFY_SOURCE confuse Valgrind.
 	CONFIGFLAGS="--without-sandbox --without-hardening"
 	CONFIGFLAGS="$CONFIGFLAGS --with-cppflags=-D_FORTIFY_SOURCE=0"
 	# Valgrind slows things down enough that the agent timeout test
 	# won't reliably pass, and the unit tests run longer than allowed
 	# by github.
-	TEST_TARGET="t-exec USE_VALGRIND=1 SKIP_LTESTS=agent-timeout"
+	TEST_TARGET="t-exec USE_VALGRIND=1"
+	SKIP_LTESTS="agent-timeout rekey try-ciphers cert-userkey integrity"
+	;;
+    valgrind-2)
+	CONFIGFLAGS="--without-sandbox --without-hardening"
+	CONFIGFLAGS="$CONFIGFLAGS --with-cppflags=-D_FORTIFY_SOURCE=0"
+	# The rekey test takes >30 min so run separately.
+	TEST_TARGET="t-exec USE_VALGRIND=1"
+	LTESTS="rekey try-ciphers cert-userkey integrity"
 	;;
     *)
 	echo "Unknown configuration $config"

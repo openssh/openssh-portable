@@ -53,7 +53,7 @@ for TARGET in $TARGETS; do
     libressl-head)
         INSTALL_LIBRESSL_HEAD=yes
        ;;
-    valgrind)
+    valgrind*)
        PACKAGES="$PACKAGES valgrind"
        ;;
     *) echo "Invalid option '${TARGET}'"

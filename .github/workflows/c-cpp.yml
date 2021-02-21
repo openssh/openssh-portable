@@ -12,22 +12,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-10.15, macos-11.0]
-        configs: [default, pam]
+        # First we test all OSes in the default configuration.
+        os: [ubuntu-20.04, ubuntu-18.04, ubuntu-16.04, macos-10.15, macos-11.0]
+        configs: [default]
         # Then we include any extra configs we want to test for specific VMs.
+        # Valgrind slows things down quite a bit, so start them first.
         include:
+          - { os: ubuntu-20.04, configs: valgrind-1 }
+          - { os: ubuntu-20.04, configs: valgrind-2 }
+          - { os: ubuntu-20.04, configs: pam }
           - { os: ubuntu-20.04, configs: kitchensink }
           - { os: ubuntu-20.04, configs: hardenedmalloc }
           - { os: ubuntu-20.04, configs: libressl-head }
           - { os: ubuntu-20.04, configs: openssl-head }
-          - { os: ubuntu-20.04, configs: valgrind }
+          - { os: ubuntu-18.04, configs: pam }
           - { os: ubuntu-18.04, configs: kerberos5 }
           - { os: ubuntu-18.04, configs: libedit }
           - { os: ubuntu-18.04, configs: sk }
           - { os: ubuntu-18.04, configs: selinux }
           - { os: ubuntu-18.04, configs: kitchensink }
           - { os: ubuntu-18.04, configs: without-openssl }
+          - { os: ubuntu-16.04, configs: pam }
           - { os: ubuntu-16.04, configs: kitchensink }
+          - { os: macos-10.15,  configs: pam }
+          - { os: macos-11.0,   configs: pam }
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
