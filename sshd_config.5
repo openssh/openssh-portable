@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.326 2021/02/23 21:50:18 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.327 2021/02/23 21:55:08 djm Exp $
 .Dd $Mdocdate: February 23 2021 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -659,20 +659,20 @@ This facility is provided to assist with operation on multi homed machines.
 The default is
 .Cm yes .
 .It Cm HostbasedAcceptedAlgorithms
-Specifies the key types that will be accepted for hostbased authentication
-as a list of comma-separated patterns.
+Specifies the signature algorithms that will be accepted for hostbased
+authentication as a list of comma-separated patterns.
 Alternately if the specified list begins with a
 .Sq +
-character, then the specified key types will be appended to the default set
-instead of replacing them.
+character, then the specified signature algorithms will be appended to
+the default set instead of replacing them.
 If the specified list begins with a
 .Sq -
-character, then the specified key types (including wildcards) will be removed
-from the default set instead of replacing them.
+character, then the specified signature algorithms (including wildcards)
+will be removed from the default set instead of replacing them.
 If the specified list begins with a
 .Sq ^
-character, then the specified key types will be placed at the head of the
-default set.
+character, then the specified signature algorithms will be placed at
+the head of the default set.
 The default for this option is:
 .Bd -literal -offset 3n
 ssh-ed25519-cert-v01@openssh.com,
@@ -691,7 +691,7 @@ sk-ecdsa-sha2-nistp256@openssh.com,
 rsa-sha2-512,rsa-sha2-256,ssh-rsa
 .Ed
 .Pp
-The list of available key types may also be obtained using
+The list of available signature algorithms may also be obtained using
 .Qq ssh -Q HostbasedAcceptedAlgorithms .
 This was formerly named HostbasedAcceptedKeyTypes.
 .It Cm HostbasedAuthentication
@@ -756,7 +756,7 @@ is specified, the location of the socket will be read from the
 .Ev SSH_AUTH_SOCK
 environment variable.
 .It Cm HostKeyAlgorithms
-Specifies the host key algorithms
+Specifies the host key signature algorithms
 that the server offers.
 The default for this option is:
 .Bd -literal -offset 3n
@@ -776,7 +776,7 @@ sk-ecdsa-sha2-nistp256@openssh.com,
 rsa-sha2-512,rsa-sha2-256,ssh-rsa
 .Ed
 .Pp
-The list of available key types may also be obtained using
+The list of available signature algorithms may also be obtained using
 .Qq ssh -Q HostKeyAlgorithms .
 .It Cm IgnoreRhosts
 Specifies whether to ignore per-user
