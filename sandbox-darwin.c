@@ -56,6 +56,9 @@ ssh_sandbox_init(struct monitor *monitor)
 	return box;
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 void
 ssh_sandbox_child(struct ssh_sandbox *box)
 {
@@ -82,6 +85,8 @@ ssh_sandbox_child(struct ssh_sandbox *box)
 		fatal("%s: setrlimit(RLIMIT_NPROC, { 0, 0 }): %s",
 			__func__, strerror(errno));
 }
+
+#pragma clang diagnostic pop
 
 void
 ssh_sandbox_parent_finish(struct ssh_sandbox *box)
