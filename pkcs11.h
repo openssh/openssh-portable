@@ -357,6 +357,7 @@ typedef unsigned long ck_key_type_t;
 #define CKK_AES			(0x1f)
 #define CKK_BLOWFISH		(0x20)
 #define CKK_TWOFISH		(0x21)
+#define CKK_EC_EDWARDS		(0x40)
 #define CKK_VENDOR_DEFINED	(1U << 31)
 
 typedef unsigned long ck_certificate_type_t;
@@ -673,6 +674,8 @@ typedef unsigned long ck_mechanism_type_t;
 #define CKM_DH_PKCS_PARAMETER_GEN	(0x2001)
 #define CKM_X9_42_DH_PARAMETER_GEN	(0x2002)
 #define CKM_VENDOR_DEFINED		(1U << 31)
+/* From version 3.0 */
+#define CKM_EDDSA			(0x1057UL)
 
 
 struct ck_mechanism
