@@ -222,6 +222,76 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 }
 #endif /* HAVE_EC_KEY_METHOD_NEW */
 
+int
+sshkey_sign_pkcs11(struct sshkey *key,
+    u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen,
+    const char *alg, const char *sk_provider, const char *sk_pin, u_int compat)
+{
+	struct sshbuf *msg = NULL, *sig = NULL;
+	u_char *blob = NULL, *signature = NULL;
+	size_t blen = 0, slen = 0, len;
+	int r = -1;
+
+	if (key->type != KEY_ED25519) {
+		return SSH_ERR_FEATURE_UNSUPPORTED;
+	}
+
+	if ((r = sshkey_to_blob(key, &blob, &blen)) != 0) {
+		error_fr(r, "encode key");
+		goto fail;
+	}
+	if ((msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	if ((r = sshbuf_put_u8(msg, SSH2_AGENTC_SIGN_REQUEST)) != 0 ||
+	    (r = sshbuf_put_string(msg, blob, blen)) != 0 ||
+	    (r = sshbuf_put_string(msg, data, datalen)) != 0 ||
+	    (r = sshbuf_put_u32(msg, 0)) != 0)
+		fatal_fr(r, "compose");
+	send_msg(msg);
+	sshbuf_reset(msg);
+
+	if (recv_msg(msg) == SSH2_AGENT_SIGN_RESPONSE) {
+		if ((r = sshbuf_get_string(msg, &signature, &slen)) != 0)
+			fatal_fr(r, "parse");
+	}
+
+	if ((sig = sshbuf_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		error_fr(r, "encode signature");
+		goto fail;
+	}
+
+	/* encode signature */
+	if ((r = sshbuf_put_cstring(sig, "ssh-ed25519")) != 0 ||
+		(r = sshbuf_put_string(sig, signature, slen)) != 0) {
+			r = SSH_ERR_ALLOC_FAIL;
+			error_fr(r, "encode signature");
+			goto fail;
+	}
+
+	len = sshbuf_len(sig);
+
+	if (sigp != NULL) {
+		if ((*sigp = malloc(len)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			error_fr(r, "encode signature");
+			goto fail;
+		}
+		memcpy(*sigp, sshbuf_ptr(sig), len);
+	}
+	if (lenp != NULL)
+		*lenp = len;
+	/* success */
+	r = 0;
+ fail:
+	free(blob);
+	free(signature);
+	sshbuf_free(msg);
+	sshbuf_free(sig);
+	return (r);
+}
+
 static RSA_METHOD	*helper_rsa;
 #ifdef HAVE_EC_KEY_METHOD_NEW
 static EC_KEY_METHOD	*helper_ecdsa;
@@ -237,6 +307,9 @@ wrap_key(struct sshkey *k)
 	else if (k->type == KEY_ECDSA)
 		EC_KEY_set_method(k->ecdsa, helper_ecdsa);
 #endif /* HAVE_EC_KEY_METHOD_NEW */
+	else if (k->type == KEY_ED25519) {
+		/* Do nothing */
+	}
 	else
 		fatal_f("unknown key type");
 }
@@ -350,6 +423,7 @@ pkcs11_add_provider(char *name, char *pin, struct sshkey ***keysp,
 			if ((r = sshkey_from_blob(blob, blen, &k)) != 0)
 				fatal_fr(r, "decode key");
 			wrap_key(k);
+			k->flags |= SSHKEY_FLAG_EXT;
 			(*keysp)[i] = k;
 			if (labelsp)
 				(*labelsp)[i] = label;
@@ -386,6 +460,20 @@ pkcs11_del_provider(char *name)
 		ret = 0;
 	sshbuf_free(msg);
 	return (ret);
+}
+
+#else
+
+#include "sshkey.h"
+#include "ssherr.h"
+
+int
+sshkey_sign_pkcs11(struct sshkey *key,
+    u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen,
+    const char *alg, const char *sk_provider, const char *sk_pin, u_int compat)
+{
+	return SSH_ERR_FEATURE_UNSUPPORTED;
 }
 
 #endif /* ENABLE_PKCS11 */
