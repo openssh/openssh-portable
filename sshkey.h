@@ -133,8 +133,8 @@ struct sshkey {
 	int	 ecdsa_nid;	/* NID of curve */
 	EC_KEY	*ecdsa;
 	/* KEY_ED25519 and KEY_ED25519_SK */
-	u_char	*ed25519_sk;
-	u_char	*ed25519_pk;
+	u_char	*ed25519_sk; /* secret key */
+	u_char	*ed25519_pk; /* public key */
 	/* KEY_XMSS */
 	char	*xmss_name;
 	char	*xmss_filename;	/* for state file updates */
@@ -239,6 +239,8 @@ int	 sshkey_plain_to_blob(const struct sshkey *, u_char **, size_t *);
 int	 sshkey_putb_plain(const struct sshkey *, struct sshbuf *);
 
 int	 sshkey_sign(struct sshkey *, u_char **, size_t *,
+    const u_char *, size_t, const char *, const char *, const char *, u_int);
+int	 sshkey_sign_pkcs11(struct sshkey *, u_char **, size_t *,
     const u_char *, size_t, const char *, const char *, const char *, u_int);
 int	 sshkey_verify(const struct sshkey *, const u_char *, size_t,
     const u_char *, size_t, const char *, u_int, struct sshkey_sig_details **);
