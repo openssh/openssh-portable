@@ -1446,6 +1446,10 @@ AC_CHECK_FUNCS([fmt_scaled scan_scaled login logout openpty updwtmp logwtmp])
 AC_SEARCH_LIBS([inet_ntop], [resolv nsl])
 AC_SEARCH_LIBS([gethostbyname], [resolv nsl])
 
+# Some Linux distribtions ship the BSD libc hashing functions in
+# separate libraries.
+AC_SEARCH_LIBS([SHA256Update], [md bsd])
+
 # "Particular Function Checks"
 # see https://www.gnu.org/software/autoconf/manual/autoconf-2.69/html_node/Particular-Functions.html
 AC_FUNC_STRFTIME
