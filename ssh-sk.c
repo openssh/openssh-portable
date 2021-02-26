@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.34 2021/02/18 02:13:58 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.35 2021/02/26 00:16:58 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -662,7 +662,12 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 		r = SSH_ERR_INVALID_FORMAT; /* XXX sshsk_open return code? */
 		goto out;
 	}
-
+#ifdef DEBUG_SK
+	fprintf(stderr, "%s: sk_flags = 0x%02x, sk_application = \"%s\"\n",
+	    __func__, key->sk_flags, key->sk_application);
+	fprintf(stderr, "%s: sk_key_handle:\n", __func__);
+	sshbuf_dump(key->sk_key_handle, stderr);
+#endif
 	if ((r = skp->sk_sign(alg, data, datalen, key->sk_application,
 	    sshbuf_ptr(key->sk_key_handle), sshbuf_len(key->sk_key_handle),
 	    key->sk_flags, pin, opts, &resp)) != 0) {
