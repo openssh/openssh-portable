@@ -289,8 +289,6 @@ clean:	regressclean
 	rm -f regress/unittests/match/test_match$(EXEEXT)
 	rm -f regress/unittests/utf8/*.o
 	rm -f regress/unittests/utf8/test_utf8$(EXEEXT)
-	rm -f regress/misc/kexfuzz/*.o
-	rm -f regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 	rm -f regress/misc/sk-dummy/*.o
 	rm -f regress/misc/sk-dummy/*.lo
 	rm -f regress/misc/sk-dummy/sk-dummy.so
@@ -324,8 +322,6 @@ distclean:	regressclean
 	rm -f regress/unittests/match/test_match
 	rm -f regress/unittests/utf8/*.o
 	rm -f regress/unittests/utf8/test_utf8
-	rm -f regress/misc/kexfuzz/*.o
-	rm -f regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 	(cd openbsd-compat && $(MAKE) distclean)
 	if test -d pkg ; then \
 		rm -fr pkg ; \
@@ -497,7 +493,6 @@ regress-prep:
 	$(MKDIR_P) `pwd`/regress/unittests/kex
 	$(MKDIR_P) `pwd`/regress/unittests/match
 	$(MKDIR_P) `pwd`/regress/unittests/utf8
-	$(MKDIR_P) `pwd`/regress/misc/kexfuzz
 	$(MKDIR_P) `pwd`/regress/misc/sk-dummy
 	[ -f `pwd`/regress/Makefile ] || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
@@ -635,14 +630,6 @@ regress/unittests/utf8/test_utf8$(EXEEXT): \
 	    regress/unittests/test_helper/libtest_helper.a \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-MISC_KEX_FUZZ_OBJS=\
-	regress/misc/kexfuzz/kexfuzz.o \
-	$(SKOBJS)
-
-regress/misc/kexfuzz/kexfuzz$(EXEEXT): ${MISC_KEX_FUZZ_OBJS} libssh.a
-	$(LD) -o $@ $(LDFLAGS) $(MISC_KEX_FUZZ_OBJS) \
-	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
-
 # These all need to be compiled -fPIC, so they are treated differently.
 SK_DUMMY_OBJS=\
 	regress/misc/sk-dummy/sk-dummy.lo \
@@ -676,7 +663,6 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/kex/test_kex$(EXEEXT) \
 	regress/unittests/match/test_match$(EXEEXT) \
 	regress/unittests/utf8/test_utf8$(EXEEXT) \
-	regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 
 tests:	file-tests t-exec interop-tests unit
 	echo all tests passed
