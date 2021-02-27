@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.327 2021/02/23 21:55:08 djm Exp $
-.Dd $Mdocdate: February 23 2021 $
+.\" $OpenBSD: sshd_config.5,v 1.328 2021/02/27 23:42:37 djm Exp $
+.Dd $Mdocdate: February 27 2021 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1428,13 +1428,6 @@ Specifies whether any
 file is executed.
 The default is
 .Cm yes .
-.It Cm PidFile
-Specifies the file that contains the process ID of the
-SSH daemon, or
-.Cm none
-to not write one.
-The default is
-.Pa /var/run/sshd.pid .
 .It Cm PerSourceMaxStartups
 Specifies the number of unauthenticated connections allowed from a
 given source address, or
@@ -1452,6 +1445,13 @@ Values for IPv4 and optionally IPv6 may be specified, separated by a colon.
 The default is
 .Cm 32:128 ,
 which means each address is considered individually.
+.It Cm PidFile
+Specifies the file that contains the process ID of the
+SSH daemon, or
+.Cm none
+to not write one.
+The default is
+.Pa /var/run/sshd.pid .
 .It Cm Port
 Specifies the port number that
 .Xr sshd 8
