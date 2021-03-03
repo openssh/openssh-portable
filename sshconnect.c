@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.350 2021/01/26 00:49:30 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.351 2021/03/03 21:40:16 sthen Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -826,7 +826,7 @@ other_hostkeys_message(const char *host, const char *ip,
 		xextendf(&ret, "\n", "    %s", othernames[i]);
 	}
 	if (n < num_othernames) {
-		xextendf(&ret, "\n", "    (%d additional names ommitted)",
+		xextendf(&ret, "\n", "    (%d additional names omitted)",
 		    num_othernames - n);
 	}
 	for (i = 0; i < num_othernames; i++)
