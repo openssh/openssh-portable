@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.223 2021/01/27 10:05:28 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.224 2021/03/03 22:41:49 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -159,7 +159,7 @@ static Authctxt *authctxt;
 /* local state for key verify */
 static u_char *key_blob = NULL;
 static size_t key_bloblen = 0;
-static int key_blobtype = MM_NOKEY;
+static u_int key_blobtype = MM_NOKEY;
 static struct sshauthopt *key_opts = NULL;
 static char *hostbased_cuser = NULL;
 static char *hostbased_chost = NULL;
@@ -1157,7 +1157,7 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 	struct sshkey *key = NULL;
 	char *cuser, *chost;
 	u_int pubkey_auth_attempt;
-	enum mm_keytype type = 0;
+	u_int type = 0;
 	int r, allowed = 0;
 	struct sshauthopt *opts = NULL;
 
@@ -1206,7 +1206,7 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 			    cuser, chost);
 			break;
 		default:
-			fatal_f("unknown key type %d", type);
+			fatal_f("unknown key type %u", type);
 			break;
 		}
 	}
