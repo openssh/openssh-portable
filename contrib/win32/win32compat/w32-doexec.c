@@ -241,6 +241,7 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	char *exec_command = NULL, *posix_cmd_input = NULL, *shell = NULL;
 	HANDLE job = NULL, process_handle;
 	extern char* shell_command_option;
+	extern char* shell_arguments;
 	extern BOOLEAN arg_escape;
 
 	/* Create three pipes for stdin, stdout and stderr */
@@ -282,7 +283,7 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info;
 	HANDLE job_dup;
 	pid_t pid = -1;
-	char * shell_option = NULL;
+	char * shell_command_option_local = NULL;
 	int shell_len = 0;
 	/*account for the quotes and null*/
 	shell_len = strlen(s->pw->pw_shell) + 2 + 1;
@@ -308,27 +309,36 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 		shell_type = SH_CYGWIN;
 
 	if (shell_command_option)
-		shell_option = shell_command_option;
+		shell_command_option_local = shell_command_option;
 	else if (shell_type == SH_CMD)
-		shell_option = "/c";
+		shell_command_option_local = "/c";
 	else
-		shell_option = "-c";
-	debug3("shell_option: %s", shell_option);
+		shell_command_option_local = "-c";
+	debug3("shell_option: %s", shell_command_option_local);
 
 	if (pty) {
 		fcntl(s->ptyfd, F_SETFD, FD_CLOEXEC);
 		char *pty_cmd = NULL;
 		if (command) {
-			size_t len = strlen(shell) + 1 + strlen(shell_option) + 1 + strlen(command) + 1;
+			size_t len = strlen(shell) + 1 + strlen(shell_command_option_local) + 1 + strlen(command) + 1;
 			pty_cmd = calloc(1, len);
 
 			strcpy_s(pty_cmd, len, shell);
 			strcat_s(pty_cmd, len, " ");
-			strcat_s(pty_cmd, len, shell_option);
+			strcat_s(pty_cmd, len, shell_command_option_local);
 			strcat_s(pty_cmd, len, " ");
 			strcat_s(pty_cmd, len, command);
 		} else {
-			pty_cmd = shell;
+			if (shell_arguments) {
+				size_t len = strlen(shell) + 1 + strlen(shell_arguments) + 1;
+				pty_cmd = calloc(1, len);
+
+				strcpy_s(pty_cmd, len, shell);
+				strcat_s(pty_cmd, len, " ");
+				strcat_s(pty_cmd, len, shell_arguments);
+			}
+			else
+				pty_cmd = shell;
 		}
 
 		if (exec_command_with_pty(&pid, pty_cmd, pipein[0], pipeout[1], pipeerr[1], s->col, s->row, s->ttyfd) == -1)
@@ -347,7 +357,7 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 			spawn_argv[0] = shell;
 
 			if (exec_command) {
-				spawn_argv[1] = shell_option;
+				spawn_argv[1] = shell_command_option_local;
 				spawn_argv[2] = exec_command;
 			}
 		}
@@ -361,7 +371,7 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 
 			/* account for " around and null */
 			if (exec_command) {
-				posix_cmd_input_len += strlen(shell_option) + 1;
+				posix_cmd_input_len += strlen(shell_command_option_local) + 1;
 				posix_cmd_input_len += strlen(exec_command) + 2 + 1;
 			}
 
@@ -372,7 +382,7 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 
 			if (exec_command) {
 				sprintf_s(posix_cmd_input, posix_cmd_input_len, "%s %s \"%s\"",
-					shell, shell_option, exec_command);
+					shell, shell_command_option_local, exec_command);
 			} else {
 				sprintf_s(posix_cmd_input, posix_cmd_input_len, "%s",
 					shell); 

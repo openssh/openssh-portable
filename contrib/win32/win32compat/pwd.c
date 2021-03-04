@@ -50,6 +50,7 @@
 static struct passwd pw;
 static char* pw_shellpath = NULL;
 char* shell_command_option = NULL;
+char* shell_arguments = NULL;
 BOOLEAN arg_escape = TRUE;
 
 /* returns 0 on success, and -1 with errno set on failure */
@@ -59,8 +60,8 @@ set_defaultshell()
 	HKEY reg_key = 0;
 	int tmp_len, ret = -1;
 	REGSAM mask = STANDARD_RIGHTS_READ | KEY_QUERY_VALUE | KEY_WOW64_64KEY;
-	wchar_t path_buf[PATH_MAX], option_buf[32];
-	char *pw_shellpath_local = NULL, *command_option_local = NULL;
+	wchar_t path_buf[PATH_MAX], option_buf[32], arg_buf[PATH_MAX];
+	char *pw_shellpath_local = NULL, *command_option_local = NULL, *shell_arguments_local = NULL;
 
 	errno = 0;
 
@@ -70,6 +71,7 @@ set_defaultshell()
 
 	path_buf[0] = L'\0';
 	option_buf[0] = L'\0';
+	arg_buf[0] = L'\0';
 
 	tmp_len = _countof(path_buf);
 	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OpenSSH", 0, mask, &reg_key) == ERROR_SUCCESS) &&
@@ -81,6 +83,11 @@ set_defaultshell()
 		DWORD escape_option = 1;
 		if (RegQueryValueExW(reg_key, L"DefaultShellCommandOption", 0, NULL, (LPBYTE)option_buf, &tmp_len) != ERROR_SUCCESS)
 			option_buf[0] = L'\0';
+
+		tmp_len = _countof(arg_buf);
+		if (RegQueryValueExW(reg_key, L"DefaultShellArguments", 0, NULL, (LPBYTE)arg_buf, &tmp_len) != ERROR_SUCCESS)
+			arg_buf[0] = L'\0';
+
 		if (RegQueryValueExW(reg_key, L"DefaultShellEscapeArguments", 0, NULL, (LPBYTE)&escape_option, &size) == ERROR_SUCCESS)
 			arg_escape = (escape_option != 0) ? TRUE : FALSE;
 	} else {
@@ -99,12 +106,18 @@ set_defaultshell()
 		if ((command_option_local = utf16_to_utf8(option_buf)) == NULL)
 			goto cleanup;
 
+	if (arg_buf[0] != L'\0')
+		if ((shell_arguments_local = utf16_to_utf8(arg_buf)) == NULL)
+			goto cleanup;
+
 	convertToBackslash(pw_shellpath_local);
 	to_lower_case(pw_shellpath_local);
 	pw_shellpath = pw_shellpath_local;
 	pw_shellpath_local = NULL;
 	shell_command_option = command_option_local;
+	shell_arguments = shell_arguments_local;
 	command_option_local = NULL;
+	shell_arguments_local = NULL;
 
 	ret = 0;
 cleanup:
@@ -113,6 +126,9 @@ cleanup:
 
 	if (command_option_local)
 		free(command_option_local);
+
+	if (shell_arguments_local)
+		free(shell_arguments_local);
 
 	return ret;
 }
