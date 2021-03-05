@@ -1,12 +1,22 @@
-#	$OpenBSD: Makefile,v 1.1 2019/04/28 22:53:26 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.4 2021/01/09 12:24:31 dtucker Exp $
 
 PROG=test_misc
 SRCS=tests.c
 
 # From usr.bin/ssh/Makefile.inc
-SRCS+=sshbuf.c sshbuf-getput-basic.c ssherr.c log.c xmalloc.c misc.c
-# From usr/bin/ssh/sshd/Makefile
-SRCS+=atomicio.c cleanup.c fatal.c
+SRCS+=	sshbuf.c
+SRCS+=	sshbuf-getput-basic.c
+SRCS+=	sshbuf-misc.c
+SRCS+=	ssherr.c
+SRCS+=	log.c
+SRCS+=	xmalloc.c
+SRCS+=	misc.c
+SRCS+=	match.c
+SRCS+=	addr.c
+SRCS+=	addrmatch.c
+
+# From usr.bin/ssh/sshd/Makefile
+SRCS+=	atomicio.c cleanup.c fatal.c
 
 REGRESS_TARGETS=run-regress-${PROG}
 

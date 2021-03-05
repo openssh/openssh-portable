@@ -1,4 +1,4 @@
-/* $OpenBSD: digest-openssl.c,v 1.7 2017/05/08 22:57:38 djm Exp $ */
+/* $OpenBSD: digest-openssl.c,v 1.9 2020/10/29 02:52:43 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *
@@ -56,13 +56,13 @@ struct ssh_digest {
 
 /* NB. Indexed directly by algorithm number */
 const struct ssh_digest digests[] = {
-	{ SSH_DIGEST_MD5,	"MD5",	 	16,	EVP_md5 },
-	{ SSH_DIGEST_SHA1,	"SHA1",	 	20,	EVP_sha1 },
-	{ SSH_DIGEST_SHA256,	"SHA256", 	32,	EVP_sha256 },
+	{ SSH_DIGEST_MD5,	"MD5",		16,	EVP_md5 },
+	{ SSH_DIGEST_SHA1,	"SHA1",		20,	EVP_sha1 },
+	{ SSH_DIGEST_SHA256,	"SHA256",	32,	EVP_sha256 },
 	{ SSH_DIGEST_SHA384,	"SHA384",	48,	EVP_sha384 },
-	{ SSH_DIGEST_SHA512,	"SHA512", 	64,	EVP_sha512 },
+	{ SSH_DIGEST_SHA512,	"SHA512",	64,	EVP_sha512 },
 	{ SSH_DIGEST_NULL,      "NONEMAC",       0,     EVP_md_null},
-	{ -1,			NULL,		 0,	NULL },
+	{ -1,			NULL,		0,	NULL },
 };
 
 static const struct ssh_digest *
