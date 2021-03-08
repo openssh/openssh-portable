@@ -24,7 +24,7 @@ cmd="$SUDO env SSH_SK_HELPER="$SSH_SK_HELPER" sh ${SRC}/sshd-log-wrapper.sh ${TE
 for m in $macs; do
 	# the none mac is now valid but tests against it will succeed when we expect it to
 	# fail. so we need to explicity remove it from the list of macs returned.
-	if [ $m == "none" ]; then
+	if [ "$m" = "none" ]; then
 		continue
 	fi
 
