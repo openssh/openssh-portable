@@ -141,6 +141,21 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             $o | Should Be "1234"          
         }
 
+        It "$tC.$tI-authorized_keys-positive(other account can read authorized_keys file)"  -skip:$skip {
+            #setup to have current user as owner and grant it full control
+            Repair-FilePermission -Filepath $authorizedkeyPath -Owner $objUserSid -FullAccessNeeded $adminsSid,$systemSid,$objUserSid -confirm:$false
+
+            #add $PwdUser to access the file authorized_keys
+            $objPwdUserSid = Get-UserSid -User $PwdUser
+            Set-FilePermission -FilePath $authorizedkeyPath -User $objPwdUserSid -Perm "Read"
+
+            #Run
+            Start-SSHDTestDaemon -workDir $opensshbinpath -Arguments "-d -f $sshdconfig -o `"AuthorizedKeysFile .testssh/authorized_keys`" -E $sshdlog" -Port $port
+            $o = ssh -p $port -E $sshlog $ssouser@$server echo 1234
+            Stop-SSHDTestDaemon -Port $port
+            $o | Should Be "1234"
+        }
+
         It "$tC.$tI-authorized_keys-negative(authorized_keys is owned by other admin user)"  -skip:$skip {
             #setup to have current user (admin user) as owner and grant it full control
             Repair-FilePermission -Filepath $authorizedkeyPath -Owner $currentUserSid -FullAccessNeeded $adminsSid,$systemSid -confirm:$false
@@ -154,13 +169,13 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             $sshdlog | Should Contain "Authentication refused."            
         }
 
-        It "$tC.$tI-authorized_keys-negative(other account can access private key file)"  -skip:$skip {
+        It "$tC.$tI-authorized_keys-negative(other account has modify permissions to authorized_keys file)"  -skip:$skip {
             #setup to have current user as owner and grant it full control            
             Repair-FilePermission -Filepath $authorizedkeyPath -Owner $objUserSid -FullAccessNeeded $adminsSid,$systemSid,$objUserSid -confirm:$false
 
             #add $PwdUser to access the file authorized_keys
             $objPwdUserSid = Get-UserSid -User $PwdUser
-            Set-FilePermission -FilePath $authorizedkeyPath -User $objPwdUserSid -Perm "Read"
+            Set-FilePermission -FilePath $authorizedkeyPath -User $objPwdUserSid -Perm "Modify"
 
             #Run
             Start-SSHDTestDaemon -workDir $opensshbinpath -Arguments "-d -f $sshdconfig -o `"AuthorizedKeysFile .testssh/authorized_keys`" -E $sshdlog" -Port $port

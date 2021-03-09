@@ -521,13 +521,16 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 	FILE *f;
 
 #ifdef WINDOWS
-        /* Windows POSIX adapter does not support fdopen() on open(file)*/
-        if ((f = fopen(file, "r")) == NULL) {
-                debug("Could not open %s '%s': %s", file_type, file,
-                        strerror(errno));
-                return NULL;
-        }
-	if (strict_modes && check_secure_file_permission(file, pw, 0) != 0) {
+	/* Windows POSIX adapter does not support fdopen() on open(file)*/
+	if ((f = fopen(file, "r")) == NULL) {
+		debug("Could not open %s '%s': %s", file_type, file,
+			strerror(errno));
+		return NULL;
+	}
+
+	// read permissions for non-admin/non-system accounts are allowed.
+	// Unix does safe_path_fd() which allows 022 file permissions i.e., allowing read for other users.
+	if (strict_modes && check_secure_file_permission(file, pw, 1) != 0) {
 		fclose(f);
 		logit("Authentication refused.");
 		auth_debug_add("Ignored %s", file_type);
