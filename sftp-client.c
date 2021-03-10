@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.139 2020/12/04 02:41:10 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.140 2021/03/10 04:58:45 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -417,8 +417,6 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 		fatal_fr(r, "parse");
 
 	send_msg(ret, msg);
-
-	sshbuf_reset(msg);
 
 	get_msg_extended(ret, msg, 1);
 
