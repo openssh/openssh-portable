@@ -154,6 +154,9 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_fstat64
 	SC_DENY(__NR_fstat64, EACCES),
 #endif
+#ifdef __NR_fstatat64
+	SC_DENY(__NR_fstatat64, EACCES),
+#endif
 #ifdef __NR_open
 	SC_DENY(__NR_open, EACCES),
 #endif
