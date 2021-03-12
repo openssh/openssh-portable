@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.427 2020/12/20 23:36:51 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.428 2021/03/12 03:43:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3154,6 +3154,7 @@ main(int argc, char **argv)
 	pw = getpwuid(getuid());
 	if (!pw)
 		fatal("No user exists for uid %lu", (u_long)getuid());
+	pw = pwcopy(pw);
 	if (gethostname(hostname, sizeof(hostname)) == -1)
 		fatal("gethostname: %s", strerror(errno));
 
