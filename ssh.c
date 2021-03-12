@@ -550,9 +550,20 @@ process_config_files(const char *host_name, struct passwd *pw, int final_pass,
 			    (final_pass ? SSHCONF_FINAL : 0), want_final_pass);
 
 		/* Read systemwide configuration file after user config. */
+#ifdef WINDOWS
+		/*
+		 *	Windows doesn't have systemwide configuration folder created by default.
+		 *	If a non-admin user creates the systemwide folder then systemwide ssh_config inherits parent folder permissions i.e., non-admin user have write permissions.
+		 *	This is not desirable. For windows, We make sure the systemwide sshd_config file is not editable by non-admin users.
+		 */
+		(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw,
+			host, host_name, &options, SSHCONF_CHECKPERM |
+			(final_pass ? SSHCONF_FINAL : 0), want_final_pass);
+#else
 		(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw,
 		    host, host_name, &options,
 		    final_pass ? SSHCONF_FINAL : 0, want_final_pass);
+#endif
 	}
 }
 
