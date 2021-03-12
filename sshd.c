@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.570 2021/02/05 02:20:23 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.571 2021/03/12 04:08:19 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -124,6 +124,7 @@
 #include "ssherr.h"
 #include "sk-api.h"
 #include "srclimit.h"
+#include "dh.h"
 
 /* Re-exec fds */
 #define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
@@ -1723,6 +1724,9 @@ main(int ac, char **av)
 
 	parse_server_config(&options, rexeced_flag ? "rexec" : config_file_name,
 	    cfg, &includes, NULL);
+
+	if (options.moduli_file != NULL)
+		dh_set_moduli_file(options.moduli_file);
 
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);
