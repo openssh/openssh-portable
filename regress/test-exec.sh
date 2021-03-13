@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.77 2021/02/17 03:59:00 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.78 2021/03/13 01:52:16 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -470,7 +470,7 @@ EOF
 # but if you aren't careful with permissions then the unit tests could
 # be abused to locally escalate privileges.
 if [ ! -z "$TEST_SSH_UNSAFE_PERMISSIONS" ]; then
-	echo "StrictModes no" >> $OBJ/sshd_config
+	echo "	StrictModes no" >> $OBJ/sshd_config
 else
 	# check and warn if excessive permissions are likely to cause failures.
 	unsafe=""
@@ -496,6 +496,11 @@ bypass this check by setting TEST_SSH_UNSAFE_PERMISSIONS=1
 
 EOD
 	fi
+fi
+
+if [ ! -z "$TEST_SSH_MODULI_FILE" ]; then
+	trace "adding modulifile='$TEST_SSH_MODULI_FILE' to sshd_config"
+	echo "	ModuliFile '$TEST_SSH_MODULI_FILE'" >> $OBJ/sshd_config
 fi
 
 if [ ! -z "$TEST_SSH_SSHD_CONFOPTS" ]; then
