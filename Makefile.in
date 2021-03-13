@@ -16,6 +16,7 @@ sysconfdir=@sysconfdir@
 piddir=@piddir@
 srcdir=@srcdir@
 top_srcdir=@top_srcdir@
+abs_top_srcdir=@abs_top_srcdir@
 
 DESTDIR=
 VPATH=@srcdir@
@@ -699,6 +700,7 @@ interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 		TEST_SSH_PKCS11_HELPER="$${BUILDDIR}/ssh-pkcs11-helper" \
 		TEST_SSH_SK_HELPER="$${BUILDDIR}/ssh-sk-helper" \
 		TEST_SSH_SFTPSERVER="$${BUILDDIR}/sftp-server" \
+		TEST_SSH_MODULI_FILE="$(abs_top_srcdir)/moduli" \
 		TEST_SSH_PLINK="plink" \
 		TEST_SSH_PUTTYGEN="puttygen" \
 		TEST_SSH_CONCH="conch" \
