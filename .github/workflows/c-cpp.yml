@@ -46,8 +46,6 @@ jobs:
       run: ./.github/configure.sh ${{ matrix.configs }}
     - name: make
       run: make -j2
-    - name: install moduli
-      run: sudo sh -c "mkdir -p /usr/local/etc/; cp moduli /usr/local/etc/"
     - name: make tests
       run: ./.github/run_test.sh ${{ matrix.configs }}
       env:
