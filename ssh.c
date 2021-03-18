@@ -1690,6 +1690,10 @@ main(int ac, char **av)
 		options.certificate_files[i] = NULL;
 	}
 
+#ifdef ENABLE_PKCS11
+	(void)pkcs11_del_provider(options.pkcs11_provider);
+#endif
+
  skip_connect:
 	exit_status = ssh_session2(ssh, cinfo);
 	ssh_conn_info_free(cinfo);
