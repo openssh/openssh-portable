@@ -94,7 +94,8 @@ LTESTS= 	connect \
 		authinfo \
 		sshsig \
 		keygen-comment \
-		knownhosts-command
+		knownhosts-command \
+		exit-status-on-signal
 
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
