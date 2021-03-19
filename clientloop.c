@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.358 2021/01/27 10:05:28 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.359 2021/03/19 02:22:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1423,7 +1423,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 
 	if (received_signal) {
 		verbose("Killed by signal %d.", (int) received_signal);
-		cleanup_exit(0);
+		cleanup_exit(255);
 	}
 
 	/*
