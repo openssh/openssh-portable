@@ -74,7 +74,7 @@ set_defaultshell()
 	arg_buf[0] = L'\0';
 
 	tmp_len = _countof(path_buf);
-	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OpenSSH", 0, mask, &reg_key) == ERROR_SUCCESS) &&
+	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, SSH_REGISTRY_ROOT, 0, mask, &reg_key) == ERROR_SUCCESS) &&
 	    (RegQueryValueExW(reg_key, L"DefaultShell", 0, NULL, (LPBYTE)path_buf, &tmp_len) == ERROR_SUCCESS) &&
 	    (path_buf[0] != L'\0')) {
 		/* fetched default shell path from registry */

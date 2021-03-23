@@ -142,7 +142,7 @@ Describe "Uninstall Tests" -Tags "Uninstall" {
                 @{
                     Identity=$authenticatedUserSid
                     IsInherited = $false
-                    RegistryRights = $RegReadKeyPerm -bor ([System.UInt32] [System.Security.AccessControl.RegistryRights]::SetValue.value__)
+                    RegistryRights = $RegReadKeyPerm
                     PropagationFlags = "None"
                 }
             )

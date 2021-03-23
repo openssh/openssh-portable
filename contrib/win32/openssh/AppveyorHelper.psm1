@@ -289,6 +289,8 @@ function Publish-Artifact
         Write-Host "Publishing $artifact as Appveyor artifact"
         Push-AppveyorArtifact $artifact -ErrorAction Continue
     }
+
+    Write-Host -ForegroundColor Yellow "End of publishing project artifacts"
 }
 
 <#

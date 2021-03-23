@@ -86,6 +86,20 @@ agent_listen_loop()
 	wait_events[0] = event_stop_agent;
 	wait_events[1] = ol.hEvent;
 
+	wchar_t* sddl_str;
+	memset(&sa, 0, sizeof(SECURITY_ATTRIBUTES));
+	sa.nLength = sizeof(sa);
+	/*
+	 * SDDL - GA to System and Builtin/Admins and restricted access to Authenticated users
+	 * 0x12019b - FILE_GENERIC_READ/WRITE minus FILE_CREATE_PIPE_INSTANCE
+	 */
+	sddl_str = L"D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;0x12019b;;;AU)";
+	if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl_str, SDDL_REVISION_1,
+		&sa.lpSecurityDescriptor, &sa.nLength))
+		fatal("cannot convert sddl ERROR:%d", GetLastError());
+
+	sa.bInheritHandle = FALSE;
+
 	while (1) {
 		pipe = CreateNamedPipeW(
 			AGENT_PIPE_ID,		  // pipe name 
@@ -196,11 +210,9 @@ agent_start(BOOL dbg_mode)
 
 	memset(&sa, 0, sizeof(SECURITY_ATTRIBUTES));
 	sa.nLength = sizeof(sa);
-	/* 
-	 * SDDL - GA to System and Builtin/Admins and restricted access to Authenticated users
-	 * 0x12019b - FILE_GENERIC_READ/WRITE minus FILE_CREATE_PIPE_INSTANCE
-	 */
-	sddl_str = L"D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;0x12019b;;;AU)";
+
+	// SDDL - FullAcess to System and Builtin/Admins
+	sddl_str = L"D:PAI(A;OICI;KA;;;SY)(A;OICI;KA;;;BA)";
 	if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl_str, SDDL_REVISION_1,
 	    &sa.lpSecurityDescriptor, &sa.nLength))
 		fatal("cannot convert sddl ERROR:%d", GetLastError());

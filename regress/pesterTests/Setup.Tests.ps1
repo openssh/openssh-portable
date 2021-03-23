@@ -275,7 +275,22 @@ Describe "Setup Tests" -Tags "Setup" {
                 @{
                     Identity=$authenticatedUserSid
                     IsInherited = $false
-                    RegistryRights = $RegReadKeyPerm -bor ([System.UInt32] [System.Security.AccessControl.RegistryRights]::SetValue.value__)
+                    RegistryRights = $RegReadKeyPerm
+                    PropagationFlags = "None"
+                }
+            )
+
+            $opensshAgentACLs = @(
+                @{
+                    Identity=$systemSid
+                    IsInherited = $false
+                    RegistryRights = $RegFullControlPerm
+                    PropagationFlags = "None"
+                },
+                @{
+                    Identity=$adminsSid
+                    IsInherited = $false
+                    RegistryRights = $RegFullControlPerm
                     PropagationFlags = "None"
                 }
             )
@@ -362,12 +377,12 @@ Describe "Setup Tests" -Tags "Setup" {
             $agentPath = Join-Path $opensshRegPath "Agent"
             if(Test-Path $agentPath -PathType Container)
             {
-                ValidateRegistryACL -RegPath $agentPath -IdAcls $opensshACLs
+                ValidateRegistryACL -RegPath $agentPath -IdAcls $opensshAgentACLs
             }
             elseif((-not $windowsInBox) -or ((Get-Service ssh-agent).StartType -ne ([System.ServiceProcess.ServiceStartMode]::Disabled)))
             {
                 Start-Service ssh-agent
-                ValidateRegistryACL -RegPath $agentPath -IdAcls $opensshACLs
+                ValidateRegistryACL -RegPath $agentPath -IdAcls $opensshAgentACLs
             }                            
         }
     }

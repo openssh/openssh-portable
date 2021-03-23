@@ -203,7 +203,7 @@ WARNING: Following changes will be made to OpenSSH configuration
         {
             #only add the local user when it does not exists on the machine        
             net user $user $Script:OpenSSHTestAccountsPassword /ADD 2>&1 >> $Script:TestSetupLogFile
-        }        
+        }
     }
 
     #setup single sign on for ssouser

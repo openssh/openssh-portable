@@ -174,11 +174,8 @@ create_openssh_registry_key()
 	memset(&sa, 0, sizeof(SECURITY_ATTRIBUTES));
 	sa.nLength = sizeof(sa);
 
-	/*
-	* SDDL - FullAcess to System and Builtin/Admins and restricted access to Authenticated users
-	* 0x12019b - FILE_GENERIC_READ/WRITE minus FILE_CREATE_PIPE_INSTANCE
-	*/
-	sddl_str = L"D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;0x12019b;;;AU)";
+	// SDDL - FullAcess to System and Builtin/Admins and read only access to Authenticated users
+	sddl_str = L"D:PAI(A;OICI;KA;;;SY)(A;OICI;KA;;;BA)(A;OICI;KR;;;AU)";
 	if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl_str, SDDL_REVISION_1, &sa.lpSecurityDescriptor, &sa.nLength)) {
 		printf("cannot convert sddl ERROR:%d", GetLastError());
 		return;

@@ -688,7 +688,7 @@ get_custom_lsa_package()
 	if (s_processed)
 		return s_lsa_auth_pkg;
 
-	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OpenSSH", 0, mask, &reg_key) == ERROR_SUCCESS) &&
+	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, SSH_REGISTRY_ROOT, 0, mask, &reg_key) == ERROR_SUCCESS) &&
 	    (RegQueryValueExW(reg_key, L"LSAAuthenticationPackage", 0, NULL, NULL, &lsa_auth_pkg_len) == ERROR_SUCCESS)) {
 		lsa_auth_pkg_w = (wchar_t *)malloc(lsa_auth_pkg_len); // lsa_auth_pkg_len includes the null terminating character.
 		if (!lsa_auth_pkg_w)

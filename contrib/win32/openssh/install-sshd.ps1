@@ -47,6 +47,28 @@ finally {
     }
 }
 
+# Fix the registry permissions
+Import-Module $PSScriptRoot\OpenSSHUtils -Force
+Enable-Privilege SeRestorePrivilege | out-null
+
+$sshRootRegPath="HKLM:SOFTWARE/Openssh"
+if (Test-Path $sshRootRegPath)
+{
+    $sshRootAcl=Get-Acl $sshRootRegPath
+    # SDDL - FullAcess to System and Builtin/Admins and read only access to Authenticated users
+    $sshRootAcl.SetSecurityDescriptorSddlForm("O:BAG:SYD:P(A;OICI;KR;;;AU)(A;OICI;KA;;;SY)(A;OICI;KA;;;BA)")
+    Set-Acl $sshRootRegPath $sshRootAcl
+}
+
+$sshAgentRegPath="HKLM:SOFTWARE/Openssh/agent"
+if (Test-Path $sshAgentRegPath)
+{
+    $sshAgentAcl=Get-Acl $sshAgentRegPath
+    # SDDL - FullAcess to System and Builtin/Admins.
+    $sshAgentAcl.SetSecurityDescriptorSddlForm("O:BAG:SYD:P(A;OICI;KA;;;SY)(A;OICI;KA;;;BA)")
+    Set-Acl $sshAgentRegPath  $sshAgentAcl
+}
+
 #register etw provider
 wevtutil im `"$etwman`"
 
