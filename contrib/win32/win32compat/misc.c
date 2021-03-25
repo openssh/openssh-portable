@@ -1605,11 +1605,17 @@ get_sid(const char* name)
 		SID_NAME_USE n_use;
 		WCHAR dom[DNLEN + 1] = L"";
 		DWORD dom_len = DNLEN + 1;
+		BOOL resolveAsAdminsSid = 0, r;
 
 		if ((name_utf16 = utf8_to_utf16(name)) == NULL)
 			goto cleanup;
 
 		LookupAccountNameW(NULL, name_utf16, NULL, &sid_len, dom, &dom_len, &n_use);
+
+		if (sid_len == 0 && _stricmp(name, "administrators") == 0) {
+			CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, NULL, &sid_len);
+			resolveAsAdminsSid = 1;
+		}
 
 		if (sid_len == 0) {
 			errno = errno_from_Win32LastError();
@@ -1621,7 +1627,12 @@ get_sid(const char* name)
 			goto cleanup;
 		}
 
-		if (!LookupAccountNameW(NULL, name_utf16, psid, &sid_len, dom, &dom_len, &n_use)) {
+		if (resolveAsAdminsSid)
+			r = CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, psid, &sid_len);
+		else
+			r = LookupAccountNameW(NULL, name_utf16, psid, &sid_len, dom, &dom_len, &n_use);
+
+		if (!r) {
 			errno = errno_from_Win32LastError();
 			goto cleanup;
 		}
@@ -1669,6 +1680,7 @@ cleanup:
 
 	return ret;
 }
+
 /* Interpret scp and sftp executables*/
 char *
 build_exec_command(const char * command)
