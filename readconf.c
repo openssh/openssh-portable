@@ -2133,8 +2133,14 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 		 * NB - preserve newlines, they are needed to reproduce
 		 * line numbers later for error messages.
 		 */
-		if ((cp = strchr(line, '#')) != NULL)
-			*cp = '\0';
+		for (cp = line; (cp - line) < linesize && *cp; cp++) {
+			if (!isspace(*cp)) {
+				if (*cp == '#') {
+					*cp = '\0';
+				}
+				break;
+			}
+		}
 		if (process_config_line_depth(options, pw, host, original_host,
 		    line, filename, linenum, activep, flags, want_final_pass,
 		    depth) != 0)
