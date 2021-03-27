@@ -132,7 +132,7 @@ Describe "Tests for ssh config" -Tags "CI" {
             #Run
             cmd /c "ssh test_target echo 1234 2> $logPath"
             $LASTEXITCODE | Should Not Be 0
-            Get-Content $logPath | Should Match "^Bad owner or permissions on [a-fA-F]:[/\\]{1,}Users[/\\]{1,}\w+[/\\]{1,}.ssh[/\\]{1,}config$"
+            $logPath | Should Contain "^Bad owner or permissions on [a-fA-F]:[/\\]{1,}Users[/\\]{1,}\w+[/\\]{1,}.ssh[/\\]{1,}config$"
         }
     }
 }

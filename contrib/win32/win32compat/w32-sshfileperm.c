@@ -152,7 +152,7 @@ check_secure_file_permission(const char *input_path, struct passwd * pw, int rea
 				debug3("ConvertSidToSidString failed with %d. ", GetLastError());
 				break;
 			}
-			debug3("Bad permissions. Try removing permissions for user: %S\\%S (%s) on file %S.", 
+			logit("Bad permissions. Try removing permissions for user: %S\\%S (%s) on file %S.",
 				resolved_trustee_domain, resolved_trustee, bad_user, path_utf16);
 			break;
 		}
