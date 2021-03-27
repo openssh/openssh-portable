@@ -252,9 +252,13 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 		goto cleanup;
 	}
 
-	/* If standard local user name, just use name without decoration */
-	if ((_wcsicmp(domain_name, computer_name) == 0) && (_wcsicmp(computer_name, user_name) != 0))
+	/* if standard local user name or system account, just use name without decoration */
+	const SID_IDENTIFIER_AUTHORITY nt_authority = SECURITY_NT_AUTHORITY;
+	if (((_wcsicmp(domain_name, computer_name) == 0) && (_wcsicmp(computer_name, user_name) != 0)) ||
+		((memcmp(&nt_authority, GetSidIdentifierAuthority((PSID)binary_sid), sizeof(SID_IDENTIFIER_AUTHORITY)) == 0) &&
+		 (((SID*)binary_sid)->SubAuthority[0] == SECURITY_LOCAL_SYSTEM_RID))) {
 		wcscpy_s(user_resolved, ARRAYSIZE(user_resolved), user_name);
+	}	
 
 	/* put any other format in sam compatible format */
 	else
