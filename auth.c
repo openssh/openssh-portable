@@ -77,6 +77,10 @@
 #include "compat.h"
 #include "channels.h"
 #include "sshfileperm.h"
+#ifdef WINDOWS
+#include <Windows.h>
+#include "misc_internal.h"
+#endif // WINDOWS
 
 /* import */
 extern ServerOptions options;
@@ -958,8 +962,21 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 		if (posix_spawn_file_actions_init(&actions) != 0 ||
 			posix_spawn_file_actions_adddup2(&actions, p[1], STDOUT_FILENO) != 0)
 			fatal("posix_spawn initialization failed");
-		else if (__posix_spawn_asuser((pid_t*)&pid, av[0], &actions, NULL, av, NULL, pw->pw_name) != 0)
-			fatal("posix_spawn: %s", strerror(errno));
+		else {
+			/* If the user's SID is the System SID and sshd is running as system,
+			 * launch as a child process.
+			 */
+			if (IsWellKnownSid(get_sid(pw->pw_name), WinLocalSystemSid) && am_system()) {
+				debug("starting subprocess using posix_spawnp");
+				if (posix_spawnp((pid_t*)&pid, av[0], &actions, NULL, av, NULL) != 0)
+					fatal("posix_spawnp: %s", strerror(errno));
+			}
+			else {
+				debug("starting subprocess as user using __posix_spawn_asuser");
+				if (__posix_spawn_asuser((pid_t*)&pid, av[0], &actions, NULL, av, NULL, pw->pw_name) != 0)
+					fatal("posix_spawn_user: %s", strerror(errno));
+			}
+		}
 
 		posix_spawn_file_actions_destroy(&actions);
 	}
