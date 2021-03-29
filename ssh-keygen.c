@@ -3065,9 +3065,6 @@ do_moduli_screen(const char *out_file, char **opts, size_t nopts)
 #else /* WITH_OPENSSL */
 	fatal("Moduli screening is not supported");
 #endif /* WITH_OPENSSL */
-	free(checkpoint);
-	if (in != stdin)
-		fclose(in);
 }
 
 /* Read and confirm a passphrase */
