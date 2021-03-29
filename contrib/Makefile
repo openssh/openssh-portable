@@ -1,7 +1,7 @@
 PKG_CONFIG = pkg-config
 
 all:
-	@echo "Valid targets: gnome-ssh-askpass1 gnome-ssh-askpass2"
+	@echo "Valid targets: gnome-ssh-askpass1 gnome-ssh-askpass2 gnome-ssk-askpass3"
 
 gnome-ssh-askpass1: gnome-ssh-askpass1.c
 	$(CC) $(CFLAGS) `gnome-config --cflags gnome gnomeui` \
