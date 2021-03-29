@@ -525,8 +525,10 @@ privsep_preauth(struct ssh *ssh)
 
 		privsep_preauth_child();
 		setproctitle("%s", "[net]");
-		if (box != NULL)
+		if (box != NULL) {
 			ssh_sandbox_child(box);
+			free(box);
+		}
 
 		return 0;
 	}

@@ -1262,6 +1262,7 @@ is_key_revoked(struct ssh_krl *krl, const struct sshkey *key)
 		return r;
 	erb = RB_FIND(revoked_blob_tree, &krl->revoked_sha1s, &rb);
 	free(rb.blob);
+	rb.blob = NULL; /* make coverity happy */
 	if (erb != NULL) {
 		KRL_DBG(("revoked by key SHA1"));
 		return SSH_ERR_KEY_REVOKED;
@@ -1272,6 +1273,7 @@ is_key_revoked(struct ssh_krl *krl, const struct sshkey *key)
 		return r;
 	erb = RB_FIND(revoked_blob_tree, &krl->revoked_sha256s, &rb);
 	free(rb.blob);
+	rb.blob = NULL; /* make coverity happy */
 	if (erb != NULL) {
 		KRL_DBG(("revoked by key SHA256"));
 		return SSH_ERR_KEY_REVOKED;
@@ -1283,6 +1285,7 @@ is_key_revoked(struct ssh_krl *krl, const struct sshkey *key)
 		return r;
 	erb = RB_FIND(revoked_blob_tree, &krl->revoked_keys, &rb);
 	free(rb.blob);
+	rb.blob = NULL; /* make coverity happy */
 	if (erb != NULL) {
 		KRL_DBG(("revoked by explicit key"));
 		return SSH_ERR_KEY_REVOKED;

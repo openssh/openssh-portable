@@ -359,7 +359,7 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 	mm_get_keystate(ssh, pmonitor);
 
 	/* Drain any buffered messages from the child */
-	while (pmonitor->m_log_recvfd != -1 && monitor_read_log(pmonitor) == 0)
+	while (pmonitor->m_log_recvfd >= 0 && monitor_read_log(pmonitor) == 0)
 		;
 
 	if (pmonitor->m_recvfd >= 0)

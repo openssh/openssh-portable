@@ -2359,6 +2359,9 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 			r = ssh_krl_revoke_key_sha256(krl, blob, blen);
 			if (r != 0)
 				fatal_fr(r, "revoke key failed");
+			freezero(blob, blen);
+			blob = NULL;
+			blen = 0;
 		} else {
 			if (strncasecmp(cp, "key:", 4) == 0) {
 				cp += 4;
@@ -3062,6 +3065,9 @@ do_moduli_screen(const char *out_file, char **opts, size_t nopts)
 #else /* WITH_OPENSSL */
 	fatal("Moduli screening is not supported");
 #endif /* WITH_OPENSSL */
+	free(checkpoint);
+	if (in != stdin)
+		fclose(in);
 }
 
 /* Read and confirm a passphrase */
