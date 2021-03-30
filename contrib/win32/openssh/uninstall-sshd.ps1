@@ -1,4 +1,9 @@
-﻿$scriptpath = $MyInvocation.MyCommand.Path
+﻿if (!([bool]([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")))
+{
+    throw "You must be running as an administrator, please restart as administrator"
+}
+
+$scriptpath = $MyInvocation.MyCommand.Path
 $scriptdir = Split-Path $scriptpath
 $etwman = Join-Path $scriptdir "openssh-events.man"
 
