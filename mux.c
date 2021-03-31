@@ -1349,6 +1349,10 @@ muxserver_listen(struct ssh *ssh)
 	mux_listener_channel->mux_rcb = mux_master_read_cb;
 	debug3_f("mux listener channel %d fd %d",
 	    mux_listener_channel->self, mux_listener_channel->sock);
+
+	/* Now chdir / so as not to hamper umounts */
+	if (chdir("/") == -1)
+	    error("Control socket listener unable to chdir to path \"/\": %s", strerror(errno));
 }
 
 /* Callback on open confirmation in mux master for a mux client session. */
