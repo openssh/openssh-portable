@@ -56,8 +56,10 @@ int LastCursorX;
 int LastCursorY;
 BOOL isAnsiParsingRequired = FALSE;
 BOOL isConsoleVTSeqAvailable = FALSE;
-/* 1 - We track the viewport (visible window) and restore it back because console renders badly when user scroll up/down */
-int track_view_port = 0; 
+/* 1 - We track the viewport (visible window) and restore it back because
+ * console renders badly when user scroll up/down. Only used if ConPTY not
+ * available. */
+int track_view_port_no_pty_hack= 0; 
 char *pSavedScreen = NULL;
 static COORD ZeroCoord = { 0,0 };
 COORD SavedScreenSize = { 0,0 };
@@ -75,8 +77,6 @@ typedef struct _SCREEN_RECORD {
 
 PSCREEN_RECORD pSavedScreenRec = NULL;
 int in_raw_mode = 0;
-char *consoleTitle = "OpenSSH SSH client";
-
 
 HANDLE
 GetConsoleOutputHandle()
@@ -140,8 +140,6 @@ ConEnterRawMode()
 		return;
 	}
 
-	SetConsoleTitle(consoleTitle);
-
 	dwAttributes = stdin_dwSavedAttributes;
 	dwAttributes &= ~(ENABLE_LINE_INPUT |
 		ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_MOUSE_INPUT);
@@ -188,7 +186,7 @@ ConEnterRawMode()
 	
 	/* We track the view port, if conpty is not supported */
 	if (!is_conpty_supported())
-		track_view_port = 1;
+		track_view_port_no_pty_hack= 1;
 
 	/* if we are passing rawbuffer to console then we need to move the cursor to top 
 	 *  so that the clearscreen will not erase any lines.
@@ -210,8 +208,8 @@ ConEnterRawMode()
 		else
 			error("Failed to set console input code page from:%d to %d error:%d", console_in_cp_saved, CP_UTF8, GetLastError());
 
-		if (track_view_port) {
-			ConSaveViewRect();
+		if (track_view_port_no_pty_hack) {
+			ConSaveViewRect_NoPtyHack();
 		}
 	}
 
@@ -325,8 +323,8 @@ ConSetScreenRect(int xSize, int ySize)
 			bSuccess = SetConsoleScreenBufferSize(GetConsoleOutputHandle(), coordScreen);
 	}
 
-	if (bSuccess && track_view_port)
-		ConSaveViewRect();
+	if (bSuccess && track_view_port_no_pty_hack)
+		ConSaveViewRect_NoPtyHack();
 
 	/* if the current buffer *is* the size we want, don't do anything! */
 	return bSuccess;
@@ -372,8 +370,8 @@ ConSetScreenSize(int xSize, int ySize)
 			bSuccess = SetConsoleWindowInfo(GetConsoleOutputHandle(), TRUE, &srWindowRect);
 	}
 
-	if (bSuccess && track_view_port)
-		ConSaveViewRect();
+	if (bSuccess && track_view_port_no_pty_hack)
+		ConSaveViewRect_NoPtyHack();
 
 	/* if the current buffer *is* the size we want, don't do anything! */
 	return bSuccess;
@@ -1589,7 +1587,7 @@ ConSaveScreen()
 }
 
 void
-ConSaveViewRect()
+ConSaveViewRect_NoPtyHack()
 {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	if (GetConsoleScreenBufferInfo(GetConsoleOutputHandle(), &csbi))
@@ -1597,10 +1595,10 @@ ConSaveViewRect()
 }
 
 void
-ConRestoreViewRect()
+ConRestoreViewRect_NoPtyHack()
 {
 	CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
-	HWND hwnd = FindWindow(NULL, consoleTitle);
+	HWND hwnd = GetConsoleWindow();
 
 	WINDOWPLACEMENT wp;
 	wp.length = sizeof(WINDOWPLACEMENT);
@@ -1646,8 +1644,8 @@ ConMoveCursorTopOfVisibleWindow()
 		offset = csbi.dwCursorPosition.Y - csbi.srWindow.Top;
 		ConMoveVisibleWindow(offset);
 
-		if(track_view_port)
-			ConSaveViewRect();
+		if(track_view_port_no_pty_hack)
+			ConSaveViewRect_NoPtyHack();
 	}
 }
 

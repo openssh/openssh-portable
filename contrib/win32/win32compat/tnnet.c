@@ -44,7 +44,7 @@
 
 extern BOOL isAnsiParsingRequired;
 extern BOOL isConsoleVTSeqAvailable;
-extern int track_view_port;
+extern int track_view_port_no_pty_hack;
 extern bool gbVTAppMode;
 BOOL isFirstPacket = TRUE;
 
@@ -99,14 +99,14 @@ processBuffer(HANDLE handle, char *buf, DWORD len, unsigned char **respbuf, size
 		/* WriteFile() gets messy when user does scroll up/down so we need to restore the visible window. 
 		 * It's a conhost bug but we need to live with it as they are not going to back port the fix.
 		 */
-		if(track_view_port)
-			ConRestoreViewRect();
+		if(track_view_port_no_pty_hack)
+			ConRestoreViewRect_NoPtyHack();
 				
 		/* Console has the capability to parse so pass the raw buffer to console directly */
 		WriteFile(handle, buf, len, 0, 0);
 
-		if (track_view_port)
-			ConSaveViewRect();
+		if (track_view_port_no_pty_hack)
+			ConSaveViewRect_NoPtyHack();
 
 		return;
 	}
