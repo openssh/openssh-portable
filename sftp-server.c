@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.124 2021/03/19 02:18:28 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.125 2021/03/31 21:58:07 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -160,6 +160,18 @@ static const struct sftp_handler extended_handlers[] = {
 	{ "limits", "limits@openssh.com", 0, process_extended_limits, 1 },
 	{ NULL, NULL, 0, NULL, 0 }
 };
+
+static const struct sftp_handler *
+extended_handler_byname(const char *name)
+{
+	int i;
+
+	for (i = 0; extended_handlers[i].handler != NULL; i++) {
+		if (strcmp(name, extended_handlers[i].ext_name) == 0)
+			return &extended_handlers[i];
+	}
+	return NULL;
+}
 
 static int
 request_permitted(const struct sftp_handler *h)
@@ -647,6 +659,28 @@ send_statvfs(u_int32_t id, struct statvfs *st)
 	sshbuf_free(msg);
 }
 
+/*
+ * Prepare SSH2_FXP_VERSION extension advertisement for a single extension.
+ * The extension is checked for permission prior to advertisment.
+ */
+static int
+compose_extension(struct sshbuf *msg, const char *name, const char *ver)
+{
+	int r;
+	const struct sftp_handler *exthnd;
+
+	if ((exthnd = extended_handler_byname(name)) == NULL)
+		fatal_f("internal error: no handler for %s", name);
+	if (!request_permitted(exthnd)) {
+		debug2_f("refusing to advertise disallowed extension %s", name);
+		return 0;
+	}
+	if ((r = sshbuf_put_cstring(msg, name)) != 0 ||
+	    (r = sshbuf_put_cstring(msg, ver)) != 0)
+		fatal_fr(r, "compose %s", name);
+	return 0;
+}
+
 /* parse incoming */
 
 static void
@@ -661,29 +695,18 @@ process_init(void)
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	if ((r = sshbuf_put_u8(msg, SSH2_FXP_VERSION)) != 0 ||
-	    (r = sshbuf_put_u32(msg, SSH2_FILEXFER_VERSION)) != 0 ||
-	    /* POSIX rename extension */
-	    (r = sshbuf_put_cstring(msg, "posix-rename@openssh.com")) != 0 ||
-	    (r = sshbuf_put_cstring(msg, "1")) != 0 || /* version */
-	    /* statvfs extension */
-	    (r = sshbuf_put_cstring(msg, "statvfs@openssh.com")) != 0 ||
-	    (r = sshbuf_put_cstring(msg, "2")) != 0 || /* version */
-	    /* fstatvfs extension */
-	    (r = sshbuf_put_cstring(msg, "fstatvfs@openssh.com")) != 0 ||
-	    (r = sshbuf_put_cstring(msg, "2")) != 0 || /* version */
-	    /* hardlink extension */
-	    (r = sshbuf_put_cstring(msg, "hardlink@openssh.com")) != 0 ||
-	    (r = sshbuf_put_cstring(msg, "1")) != 0 || /* version */
-	    /* fsync extension */
-	    (r = sshbuf_put_cstring(msg, "fsync@openssh.com")) != 0 ||
-	    (r = sshbuf_put_cstring(msg, "1")) != 0 || /* version */
-	    /* lsetstat extension */
-	    (r = sshbuf_put_cstring(msg, "lsetstat@openssh.com")) != 0 ||
-	    (r = sshbuf_put_cstring(msg, "1")) != 0 || /* version */
-	    /* limits extension */
-	    (r = sshbuf_put_cstring(msg, "limits@openssh.com")) != 0 ||
-	    (r = sshbuf_put_cstring(msg, "1")) != 0) /* version */
+	    (r = sshbuf_put_u32(msg, SSH2_FILEXFER_VERSION)) != 0)
 		fatal_fr(r, "compose");
+
+	 /* extension advertisments */
+	compose_extension(msg, "posix-rename@openssh.com", "1");
+	compose_extension(msg, "statvfs@openssh.com", "2");
+	compose_extension(msg, "fstatvfs@openssh.com", "2");
+	compose_extension(msg, "hardlink@openssh.com", "1");
+	compose_extension(msg, "fsync@openssh.com", "1");
+	compose_extension(msg, "lsetstat@openssh.com", "1");
+	compose_extension(msg, "limits@openssh.com", "1");
+
 	send_msg(msg);
 	sshbuf_free(msg);
 }
@@ -1497,21 +1520,18 @@ process_extended(u_int32_t id)
 {
 	char *request;
 	int i, r;
+	const struct sftp_handler *exthand;
 
 	if ((r = sshbuf_get_cstring(iqueue, &request, NULL)) != 0)
 		fatal_fr(r, "parse");
-	for (i = 0; extended_handlers[i].handler != NULL; i++) {
-		if (strcmp(request, extended_handlers[i].ext_name) == 0) {
-			if (!request_permitted(&extended_handlers[i]))
-				send_status(id, SSH2_FX_PERMISSION_DENIED);
-			else
-				extended_handlers[i].handler(id);
-			break;
-		}
-	}
-	if (extended_handlers[i].handler == NULL) {
+	if ((exthand = extended_handler_byname(request)) == NULL) {
 		error("Unknown extended request \"%.100s\"", request);
 		send_status(id, SSH2_FX_OP_UNSUPPORTED);	/* MUST */
+	} else {
+		if (!request_permitted(exthand))
+			send_status(id, SSH2_FX_PERMISSION_DENIED);
+		else
+			exthand->handler(id);
 	}
 	free(request);
 }
