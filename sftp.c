@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.206 2021/01/08 02:44:14 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.207 2021/03/31 22:16:34 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -69,9 +69,6 @@ typedef void EditLine;
 #include "sshbuf.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
-
-#define DEFAULT_COPY_BUFLEN	32768	/* Size of buffer for up/download */
-#define DEFAULT_NUM_REQUESTS	64	/* # concurrent outstanding requests */
 
 /* File to read commands from */
 FILE* infile;
@@ -2341,8 +2338,8 @@ main(int argc, char **argv)
 	extern int optind;
 	extern char *optarg;
 	struct sftp_conn *conn;
-	size_t copy_buffer_len = DEFAULT_COPY_BUFLEN;
-	size_t num_requests = DEFAULT_NUM_REQUESTS;
+	size_t copy_buffer_len = 0;
+	size_t num_requests = 0;
 	long long limit_kbps = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
