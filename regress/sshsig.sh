@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.2 2019/10/04 03:39:19 djm Exp $
+#	$OpenBSD: sshsig.sh,v 1.4 2020/03/13 03:18:45 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -23,7 +23,7 @@ CA_PRIV=$OBJ/sigca-key
 CA_PUB=$OBJ/sigca-key.pub
 
 trace "start agent"
-eval `${SSHAGENT} -s` > /dev/null
+eval `${SSHAGENT} ${EXTRA_AGENT_ARGS} -s` > /dev/null
 r=$?
 if [ $r -ne 0 ]; then
 	fatal "could not start ssh-agent: exit code $r"
@@ -133,7 +133,7 @@ for t in $SIGNKEYS; do
 	# check-novalidate with invalid data
 	${SSHKEYGEN} -vvv -Y check-novalidate -s $sigfile -n $sig_namespace \
 		< $DATA2 >/dev/null 2>&1 && \
-		fail "sucessfully checked signature for $t key with invalid data"
+		fail "succeeded checking signature for $t key with invalid data"
 
 	# Check signing keys using ssh-agent.
 	${SSHADD} -D >/dev/null 2>&1 # Remove all previously-loaded keys.

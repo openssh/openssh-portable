@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.21 2019/07/25 08:28:15 dtucker Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.26 2021/02/25 03:27:34 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -8,10 +8,11 @@ cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 if [ "$os" == "windows" ]; then
 	# remove CR (carriage return)
-	PLAIN_TYPES=`$SSH -Q key-plain | sed 's/\r$//' | sed 's/^ssh-dss/ssh-dsa/;s/^ssh-//'`
+	PLAIN_TYPES=`$SSH -Q key-plain | sed 's/\r$//' | maybe_filter_sk | sed 's/^ssh-dss/ssh-dsa/;s/^ssh-//'`
 else
-	PLAIN_TYPES=`$SSH -Q key-plain | sed 's/^ssh-dss/ssh-dsa/;s/^ssh-//'`
+	PLAIN_TYPES=`$SSH -Q key-plain | maybe_filter_sk | sed 's/^ssh-dss/ssh-dsa/;s/^ssh-//'`
 fi
+
 EXTRA_TYPES=""
 rsa=""
 
@@ -21,8 +22,10 @@ if echo "$PLAIN_TYPES" | grep '^rsa$' >/dev/null 2>&1 ; then
 fi
 
 kname() {
-	case $ktype in
-	rsa-sha2-*) n="$ktype" ;;
+	case $1 in
+	rsa-sha2-*) n="$1" ;;
+	sk-ecdsa-*) n="sk-ecdsa" ;;
+	sk-ssh-ed25519*) n="sk-ssh-ed25519" ;;
 	# subshell because some seds will add a newline
 	*) n=$(echo $1 | sed 's/^dsa/ssh-dss/;s/^rsa/ssh-rsa/;s/^ed/ssh-ed/') ;;
 	esac
@@ -62,7 +65,7 @@ done
 # Test explicitly-specified principals
 for ktype in $EXTRA_TYPES $PLAIN_TYPES ; do
 	t=$(kname $ktype)
-	for privsep in yes sandbox ; do
+	for privsep in yes ; do
 		_prefix="${ktype} privsep $privsep"
 
 		# Setup for AuthorizedPrincipalsFile
@@ -73,11 +76,11 @@ for ktype in $EXTRA_TYPES $PLAIN_TYPES ; do
 			echo "AuthorizedPrincipalsFile " \
 			    "$OBJ/authorized_principals_%u"
 			echo "TrustedUserCAKeys $OBJ/user_ca_key.pub"
-			echo "PubkeyAcceptedKeyTypes ${t}"
+			echo "PubkeyAcceptedAlgorithms ${t}"
 		) > $OBJ/sshd_proxy
 		(
 			cat $OBJ/ssh_proxy_bak
-			echo "PubkeyAcceptedKeyTypes ${t}"
+			echo "PubkeyAcceptedAlgorithms ${t}"
 		) > $OBJ/ssh_proxy
 
 		# Missing authorized_principals
@@ -151,11 +154,11 @@ for ktype in $EXTRA_TYPES $PLAIN_TYPES ; do
 		(
 			cat $OBJ/sshd_proxy_bak
 			echo "UsePrivilegeSeparation $privsep"
-			echo "PubkeyAcceptedKeyTypes ${t}"
+			echo "PubkeyAcceptedAlgorithms ${t}"
 		) > $OBJ/sshd_proxy
 		(
 			cat $OBJ/ssh_proxy_bak
-			echo "PubkeyAcceptedKeyTypes ${t}"
+			echo "PubkeyAcceptedAlgorithms ${t}"
 		) > $OBJ/ssh_proxy
 
 		# Wrong principals list
@@ -199,19 +202,19 @@ basic_tests() {
 
 	for ktype in $PLAIN_TYPES ; do
 		t=$(kname $ktype)
-		for privsep in yes no ; do
+		for privsep in yes ; do
 			_prefix="${ktype} privsep $privsep $auth"
 			# Simple connect
 			verbose "$tid: ${_prefix} connect"
 			(
 				cat $OBJ/sshd_proxy_bak
 				echo "UsePrivilegeSeparation $privsep"
-				echo "PubkeyAcceptedKeyTypes ${t}"
+				echo "PubkeyAcceptedAlgorithms ${t}"
 				echo "$extra_sshd"
 			) > $OBJ/sshd_proxy
 			(
 				cat $OBJ/ssh_proxy_bak
-				echo "PubkeyAcceptedKeyTypes ${t}"
+				echo "PubkeyAcceptedAlgorithms ${t}"
 			) > $OBJ/ssh_proxy
 
 			${SSH} -i $OBJ/cert_user_key_${ktype} \
@@ -226,7 +229,7 @@ basic_tests() {
 				cat $OBJ/sshd_proxy_bak
 				echo "UsePrivilegeSeparation $privsep"
 				echo "RevokedKeys $OBJ/cert_user_key_revoked"
-				echo "PubkeyAcceptedKeyTypes ${t}"
+				echo "PubkeyAcceptedAlgorithms ${t}"
 				echo "$extra_sshd"
 			) > $OBJ/sshd_proxy
 			cp $OBJ/cert_user_key_${ktype}.pub \
@@ -259,7 +262,7 @@ basic_tests() {
 		(
 			cat $OBJ/sshd_proxy_bak
 			echo "RevokedKeys $OBJ/user_ca_key.pub"
-			echo "PubkeyAcceptedKeyTypes ${t}"
+			echo "PubkeyAcceptedAlgorithms ${t}"
 			echo "$extra_sshd"
 		) > $OBJ/sshd_proxy
 		${SSH} -i $OBJ/cert_user_key_${ktype} -F $OBJ/ssh_proxy \
@@ -272,7 +275,7 @@ basic_tests() {
 	verbose "$tid: $auth CA does not authenticate"
 	(
 		cat $OBJ/sshd_proxy_bak
-		echo "PubkeyAcceptedKeyTypes ${t}"
+		echo "PubkeyAcceptedAlgorithms ${t}"
 		echo "$extra_sshd"
 	) > $OBJ/sshd_proxy
 	verbose "$tid: ensure CA key does not authenticate user"
@@ -310,7 +313,7 @@ test_one() {
 				echo > $OBJ/authorized_keys_$USER
 				echo "TrustedUserCAKeys $OBJ/user_ca_key.pub" \
 				    >> $OBJ/sshd_proxy
-				echo "PubkeyAcceptedKeyTypes ${t}*" \
+				echo "PubkeyAcceptedAlgorithms ${t}*" \
 				    >> $OBJ/sshd_proxy
 				if test "x$auth_opt" != "x" ; then
 					echo $auth_opt >> $OBJ/sshd_proxy
@@ -342,7 +345,7 @@ test_one() {
 test_one "correct principal"	success "-n ${USER}"
 test_one "host-certificate"	failure "-n ${USER} -h"
 test_one "wrong principals"	failure "-n foo"
-test_one "cert not yet valid"	failure "-n ${USER} -V20200101:20300101"
+test_one "cert not yet valid"	failure "-n ${USER} -V20300101:20320101"
 test_one "cert expired"		failure "-n ${USER} -V19800101:19900101"
 test_one "cert valid interval"	success "-n ${USER} -V-1w:+2w"
 test_one "wrong source-address"	failure "-n ${USER} -Osource-address=10.0.0.0/8"

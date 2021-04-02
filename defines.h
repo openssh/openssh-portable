@@ -96,6 +96,9 @@ enum
 #ifndef IPTOS_DSCP_EF
 # define	IPTOS_DSCP_EF		0xb8
 #endif /* IPTOS_DSCP_EF */
+#ifndef IPTOS_DSCP_LE
+# define	IPTOS_DSCP_LE		0x01
+#endif /* IPTOS_DSCP_LE */
 #ifndef IPTOS_PREC_CRITIC_ECP
 # define IPTOS_PREC_CRITIC_ECP		0xa0
 #endif
@@ -251,6 +254,21 @@ typedef unsigned int u_int32_t;
 #define __BIT_TYPES_DEFINED__
 #endif
 
+#if !defined(LLONG_MIN) && defined(LONG_LONG_MIN)
+#define LLONG_MIN LONG_LONG_MIN
+#endif
+#if !defined(LLONG_MAX) && defined(LONG_LONG_MAX)
+#define LLONG_MAX LONG_LONG_MAX
+#endif
+
+#ifndef UINT32_MAX
+# if defined(HAVE_DECL_UINT32_MAX) && (HAVE_DECL_UINT32_MAX == 0)
+#  if (SIZEOF_INT == 4)
+#    define UINT32_MAX	UINT_MAX
+#  endif
+# endif
+#endif
+
 /* 64-bit types */
 #ifndef HAVE_INT64_T
 # if (SIZEOF_LONG_INT == 8)
@@ -333,6 +351,7 @@ typedef unsigned int size_t;
 
 #ifndef HAVE_SSIZE_T
 typedef int ssize_t;
+#define SSIZE_MAX INT_MAX
 # define HAVE_SSIZE_T
 #endif /* HAVE_SSIZE_T */
 
@@ -810,10 +829,6 @@ struct winsize {
 # define getgroups(a,b) ((a)==0 && (b)==NULL ? NGROUPS_MAX : getgroups((a),(b)))
 #endif
 
-#if defined(HAVE_MMAP) && defined(BROKEN_MMAP)
-# undef HAVE_MMAP
-#endif
-
 #ifndef IOV_MAX
 # if defined(_XOPEN_IOV_MAX)
 #  define	IOV_MAX		_XOPEN_IOV_MAX
@@ -879,4 +894,11 @@ struct winsize {
 # define USE_SYSTEM_GLOB
 #endif
 
+/*
+ * sntrup761 uses variable length arrays, only enable if the compiler
+ * supports them.
+ */
+#ifdef VARIABLE_LENGTH_ARRAYS
+# define USE_SNTRUP761X25519 1
+#endif
 #endif /* _DEFINES_H */

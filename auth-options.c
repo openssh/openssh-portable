@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.89 2019/09/13 04:36:43 dtucker Exp $ */
+/* $OpenBSD: auth-options.c,v 1.94 2020/10/18 11:32:01 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -79,7 +79,7 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 	int r, ret = -1, found;
 
 	if ((c = sshbuf_fromb(oblob)) == NULL) {
-		error("%s: sshbuf_fromb failed", __func__);
+		error_f("sshbuf_fromb failed");
 		goto out;
 	}
 
@@ -88,15 +88,17 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 		data = NULL;
 		if ((r = sshbuf_get_cstring(c, &name, NULL)) != 0 ||
 		    (r = sshbuf_froms(c, &data)) != 0) {
-			error("Unable to parse certificate options: %s",
-			    ssh_err(r));
+			error_r(r, "Unable to parse certificate options");
 			goto out;
 		}
 		debug3("found certificate option \"%.100s\" len %zu",
 		    name, sshbuf_len(data));
 		found = 0;
 		if ((which & OPTIONS_EXTENSIONS) != 0) {
-			if (strcmp(name, "permit-X11-forwarding") == 0) {
+			if (strcmp(name, "no-touch-required") == 0) {
+				opts->no_require_user_presence = 1;
+				found = 1;
+			} else if (strcmp(name, "permit-X11-forwarding") == 0) {
 				opts->permit_x11_forwarding_flag = 1;
 				found = 1;
 			} else if (strcmp(name,
@@ -116,11 +118,14 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 			}
 		}
 		if (!found && (which & OPTIONS_CRITICAL) != 0) {
-			if (strcmp(name, "force-command") == 0) {
+			if (strcmp(name, "verify-required") == 0) {
+				opts->require_verify = 1;
+				found = 1;
+			} else if (strcmp(name, "force-command") == 0) {
 				if ((r = sshbuf_get_cstring(data, &command,
 				    NULL)) != 0) {
-					error("Unable to parse \"%s\" "
-					    "section: %s", name, ssh_err(r));
+					error_r(r, "Unable to parse \"%s\" "
+					    "section", name);
 					goto out;
 				}
 				if (opts->force_command != NULL) {
@@ -131,12 +136,11 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 				}
 				opts->force_command = command;
 				found = 1;
-			}
-			if (strcmp(name, "source-address") == 0) {
+			} else if (strcmp(name, "source-address") == 0) {
 				if ((r = sshbuf_get_cstring(data, &allowed,
 				    NULL)) != 0) {
-					error("Unable to parse \"%s\" "
-					    "section: %s", name, ssh_err(r));
+					error_r(r, "Unable to parse \"%s\" "
+					    "section", name);
 					goto out;
 				}
 				if (opts->required_from_host_cert != NULL) {
@@ -219,8 +223,7 @@ sshauthopt_free(struct sshauthopt *opts)
 		free(opts->permitlisten[i]);
 	free(opts->permitlisten);
 
-	explicit_bzero(opts, sizeof(*opts));
-	free(opts);
+	freezero(opts, sizeof(*opts));
 }
 
 struct sshauthopt *
@@ -347,6 +350,10 @@ sshauthopt_parse(const char *opts, const char **errstrp)
 			ret->permit_agent_forwarding_flag = r == 1;
 		} else if ((r = opt_flag("x11-forwarding", 1, &opts)) != -1) {
 			ret->permit_x11_forwarding_flag = r == 1;
+		} else if ((r = opt_flag("touch-required", 1, &opts)) != -1) {
+			ret->no_require_user_presence = r != 1; /* NB. flip */
+		} else if ((r = opt_flag("verify-required", 1, &opts)) != -1) {
+			ret->require_verify = r == 1;
 		} else if ((r = opt_flag("pty", 1, &opts)) != -1) {
 			ret->permit_pty_flag = r == 1;
 		} else if ((r = opt_flag("user-rc", 1, &opts)) != -1) {
@@ -567,14 +574,18 @@ sshauthopt_merge(const struct sshauthopt *primary,
 			goto alloc_fail;
 	}
 
-	/* Flags are logical-AND (i.e. must be set in both for permission) */
-#define OPTFLAG(x) ret->x = (primary->x == 1) && (additional->x == 1)
-	OPTFLAG(permit_port_forwarding_flag);
-	OPTFLAG(permit_agent_forwarding_flag);
-	OPTFLAG(permit_x11_forwarding_flag);
-	OPTFLAG(permit_pty_flag);
-	OPTFLAG(permit_user_rc);
-#undef OPTFLAG
+#define OPTFLAG_AND(x) ret->x = (primary->x == 1) && (additional->x == 1)
+#define OPTFLAG_OR(x) ret->x = (primary->x == 1) || (additional->x == 1)
+	/* Permissive flags are logical-AND (i.e. must be set in both) */
+	OPTFLAG_AND(permit_port_forwarding_flag);
+	OPTFLAG_AND(permit_agent_forwarding_flag);
+	OPTFLAG_AND(permit_x11_forwarding_flag);
+	OPTFLAG_AND(permit_pty_flag);
+	OPTFLAG_AND(permit_user_rc);
+	OPTFLAG_AND(no_require_user_presence);
+	/* Restrictive flags are logical-OR (i.e. must be set in either) */
+	OPTFLAG_OR(require_verify);
+#undef OPTFLAG_AND
 
 	/* Earliest expiry time should win */
 	if (primary->valid_before != 0)
@@ -643,6 +654,8 @@ sshauthopt_copy(const struct sshauthopt *orig)
 	OPTSCALAR(cert_authority);
 	OPTSCALAR(force_tun_device);
 	OPTSCALAR(valid_before);
+	OPTSCALAR(no_require_user_presence);
+	OPTSCALAR(require_verify);
 #undef OPTSCALAR
 #define OPTSTRING(x) \
 	do { \
@@ -728,9 +741,11 @@ deserialise_array(struct sshbuf *m, char ***ap, size_t *np)
 	*np = n;
 	n = 0;
  out:
-	for (i = 0; i < n; i++)
-		free(a[i]);
-	free(a);
+	if (a != NULL) {
+		for (i = 0; i < n; i++)
+			free(a[i]);
+		free(a);
+	}
 	sshbuf_free(b);
 	return r;
 }
@@ -765,7 +780,7 @@ sshauthopt_serialise(const struct sshauthopt *opts, struct sshbuf *m,
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
 
-	/* Flag and simple integer options */
+	/* Flag options */
 	if ((r = sshbuf_put_u8(m, opts->permit_port_forwarding_flag)) != 0 ||
 	    (r = sshbuf_put_u8(m, opts->permit_agent_forwarding_flag)) != 0 ||
 	    (r = sshbuf_put_u8(m, opts->permit_x11_forwarding_flag)) != 0 ||
@@ -773,7 +788,12 @@ sshauthopt_serialise(const struct sshauthopt *opts, struct sshbuf *m,
 	    (r = sshbuf_put_u8(m, opts->permit_user_rc)) != 0 ||
 	    (r = sshbuf_put_u8(m, opts->restricted)) != 0 ||
 	    (r = sshbuf_put_u8(m, opts->cert_authority)) != 0 ||
-	    (r = sshbuf_put_u64(m, opts->valid_before)) != 0)
+	    (r = sshbuf_put_u8(m, opts->no_require_user_presence)) != 0 ||
+	    (r = sshbuf_put_u8(m, opts->require_verify)) != 0)
+		return r;
+
+	/* Simple integer options */
+	if ((r = sshbuf_put_u64(m, opts->valid_before)) != 0)
 		return r;
 
 	/* tunnel number can be negative to indicate "unset" */
@@ -817,6 +837,7 @@ sshauthopt_deserialise(struct sshbuf *m, struct sshauthopt **optsp)
 	if ((opts = calloc(1, sizeof(*opts))) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 
+	/* Flag options */
 #define OPT_FLAG(x) \
 	do { \
 		if ((r = sshbuf_get_u8(m, &f)) != 0) \
@@ -830,8 +851,11 @@ sshauthopt_deserialise(struct sshbuf *m, struct sshauthopt **optsp)
 	OPT_FLAG(permit_user_rc);
 	OPT_FLAG(restricted);
 	OPT_FLAG(cert_authority);
+	OPT_FLAG(no_require_user_presence);
+	OPT_FLAG(require_verify);
 #undef OPT_FLAG
 
+	/* Simple integer options */
 	if ((r = sshbuf_get_u64(m, &opts->valid_before)) != 0)
 		goto out;
 

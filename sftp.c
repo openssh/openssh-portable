@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.195 2019/10/02 00:42:30 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.206 2021/01/08 02:44:14 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -223,9 +223,12 @@ static const struct CMD cmds[] = {
 static void
 killchild(int signo)
 {
-	if (sshpid > 1) {
-		kill(sshpid, SIGTERM);
-		waitpid(sshpid, NULL, 0);
+	pid_t pid;
+
+	pid = sshpid;
+	if (pid > 1) {
+		kill(pid, SIGTERM);
+		waitpid(pid, NULL, 0);
 	}
 
 	_exit(1);
@@ -416,46 +419,6 @@ path_strip(const char *path, const char *strip)
 	}
 
 	return (xstrdup(path));
-}
-
-static char *
-make_absolute(char *p, const char *pwd)
-{
-	char *abs_str;
-
-	/* Derelativise */
-#ifdef WINDOWS
-	/*
-	* For Windows - given path is absolute when
-	*   - first character is "/"
-	*   - or second character is ":"
-	* This code is also applicable from a Linux client to Windows target
-	* Need to follow up with community if this makes sense in common code
-	*/
-	char *s1, *s2;
-	if (!is_absolute_path(p)) {
-		abs_str = path_append(pwd, p);
-		free(p);
-		p = abs_str;
-	}
-
-	/* Append "/" if needed to the absolute windows path */	
-	if (p && p[0] != '\0' && p[1] == ':') {
-		s1 = path_append("/", p);
-		free(p);
-		p = s1;
-	}
-
-#else /* !WINDOWS */
-	if (p && !path_absolute(p)) {
-		abs_str = path_append(pwd, p);
-		free(p);
-		return(abs_str);
-	} else
-		return(p);
-#endif /* !WINDOWS */
-	return(p);
-
 }
 
 static int
@@ -667,40 +630,6 @@ parse_no_flags(const char *cmd, char **argv, int argc)
 }
 
 static int
-is_dir(const char *path)
-{
-	struct stat sb;
-
-	/* XXX: report errors? */
-	if (stat(path, &sb) == -1)
-		return(0);
-
-	return(S_ISDIR(sb.st_mode));
-}
-
-static int
-remote_is_dir(struct sftp_conn *conn, const char *path)
-{
-	Attrib *a;
-
-	/* XXX: report errors? */
-	if ((a = do_stat(conn, path, 1)) == NULL)
-		return(0);
-	if (!(a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS))
-		return(0);
-	return(S_ISDIR(a->perm));
-}
-
-/* Check whether path returned from glob(..., GLOB_MARK, ...) is a directory */
-static int
-pathname_is_dir(const char *pathname)
-{
-	size_t l = strlen(pathname);
-
-	return l > 0 && pathname[l - 1] == '/';
-}
-
-static int
 process_get(struct sftp_conn *conn, const char *src, const char *dst,
     const char *pwd, int pflag, int rflag, int resume, int fflag)
 {
@@ -729,7 +658,7 @@ process_get(struct sftp_conn *conn, const char *src, const char *dst,
 	 * If multiple matches then dst must be a directory or
 	 * unspecified.
 	 */
-	if (g.gl_matchc > 1 && dst != NULL && !is_dir(dst)) {
+	if (g.gl_matchc > 1 && dst != NULL && !local_is_dir(dst)) {
 		error("Multiple source paths, but destination "
 		    "\"%s\" is not a directory", dst);
 		err = -1;
@@ -746,7 +675,7 @@ process_get(struct sftp_conn *conn, const char *src, const char *dst,
 		}
 
 		if (g.gl_matchc == 1 && dst) {
-			if (is_dir(dst)) {
+			if (local_is_dir(dst)) {
 				abs_dst = path_append(dst, filename);
 			} else {
 				abs_dst = xstrdup(dst);
@@ -765,7 +694,7 @@ process_get(struct sftp_conn *conn, const char *src, const char *dst,
 		else if (!quiet && !resume)
 			mprintf("Fetching %s to %s\n",
 			    g.gl_pathv[i], abs_dst);
-		if (pathname_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
+		if (globpath_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
 			if (download_dir(conn, g.gl_pathv[i], abs_dst, NULL,
 			    pflag || global_pflag, 1, resume,
 			    fflag || global_fflag) == -1)
@@ -858,7 +787,7 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 		else if (!quiet && !resume)
 			mprintf("Uploading %s to %s\n",
 			    g.gl_pathv[i], abs_dst);
-		if (pathname_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
+		if (globpath_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
 			if (upload_dir(conn, g.gl_pathv[i], abs_dst,
 			    pflag || global_pflag, 1, resume,
 			    fflag || global_fflag) == -1)
@@ -999,7 +928,10 @@ sglob_comp(const void *aa, const void *bb)
 		return (rmul * strcmp(ap, bp));
 	else if (sort_flag & LS_TIME_SORT) {
 #if defined(HAVE_STRUCT_STAT_ST_MTIM)
-		return (rmul * timespeccmp(&as->st_mtim, &bs->st_mtim, <));
+		if (timespeccmp(&as->st_mtim, &bs->st_mtim, ==))
+			return 0;
+		return timespeccmp(&as->st_mtim, &bs->st_mtim, <) ?
+		    rmul : -rmul;
 #elif defined(HAVE_STRUCT_STAT_ST_MTIME)
 		return (rmul * NCMP(as->st_mtime, bs->st_mtime));
 #else
@@ -1232,7 +1164,7 @@ undo_glob_escape(char *s)
  * last argument's quote has been properly terminated or 0 otherwise.
  * This parameter is only of use if "sloppy" is set.
  */
-#define MAXARGS 	128
+#define MAXARGS		128
 #define MAXARGLEN	8192
 static char **
 makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
@@ -1390,7 +1322,7 @@ parse_args(const char **cpp, int *ignore_errors, int *disable_echo, int *aflag,
 	const char *cmd, *cp = *cpp;
 	char *cp2, **argv;
 	int base = 0;
-	long l;
+	long long ll;
 	int path1_mandatory = 0, i, cmdnum, optidx, argc;
 
 	/* Skip leading whitespace */
@@ -1548,16 +1480,16 @@ parse_args(const char **cpp, int *ignore_errors, int *disable_echo, int *aflag,
 		if (argc - optidx < 1)
 			goto need_num_arg;
 		errno = 0;
-		l = strtol(argv[optidx], &cp2, base);
+		ll = strtoll(argv[optidx], &cp2, base);
 		if (cp2 == argv[optidx] || *cp2 != '\0' ||
-		    ((l == LONG_MIN || l == LONG_MAX) && errno == ERANGE) ||
-		    l < 0) {
+		    ((ll == LLONG_MIN || ll == LLONG_MAX) && errno == ERANGE) ||
+		    ll < 0 || ll > UINT32_MAX) {
  need_num_arg:
 			error("You must supply a numeric argument "
 			    "to the %s command.", cmd);
 			return -1;
 		}
-		*n_arg = l;
+		*n_arg = ll;
 		if (cmdnum == I_LUMASK)
 			break;
 		/* Get pathname (mandatory) */
@@ -2168,7 +2100,7 @@ complete(EditLine *el, int ch)
 
 	lf = el_line(el);
 	if (el_get(el, EL_CLIENTDATA, (void**)&complete_ctx) != 0)
-		fatal("%s: el_get failed", __func__);
+		fatal_f("el_get failed");
 
 	/* Figure out which argument the cursor points to */
 	cursor = lf->cursor - lf->buffer;
@@ -2310,7 +2242,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 	interactive = !batchmode && isatty(STDIN_FILENO);
 	err = 0;
 	for (;;) {
-		signal(SIGINT, SIG_IGN);
+		ssh_signal(SIGINT, SIG_IGN);
 
 		if (el == NULL) {
 			if (interactive)
@@ -2342,14 +2274,14 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 
 		/* Handle user interrupts gracefully during commands */
 		interrupted = 0;
-		signal(SIGINT, cmd_interrupt);
+		ssh_signal(SIGINT, cmd_interrupt);
 
 		err = parse_dispatch_command(conn, cmd, &remote_path,
 		    startdir, batchmode, !interactive && el == NULL);
 		if (err != 0)
 			break;
 	}
-	signal(SIGCHLD, SIG_DFL);
+	ssh_signal(SIGCHLD, SIG_DFL);
 	free(remote_path);
 	free(startdir);
 	free(conn);
@@ -2428,20 +2360,20 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		 * kill it too.  Contrawise, since sftp sends SIGTERMs to the
 		 * underlying ssh, it must *not* ignore that signal.
 		 */
-		signal(SIGINT, SIG_IGN);
-		signal(SIGTERM, SIG_DFL);
+		ssh_signal(SIGINT, SIG_IGN);
+		ssh_signal(SIGTERM, SIG_DFL);
 		execvp(path, args);
 		fprintf(stderr, "exec: %s: %s\n", path, strerror(errno));
 		_exit(1);
 	}
-#endif
-	signal(SIGTERM, killchild);
-	signal(SIGINT, killchild);
-	signal(SIGHUP, killchild);
-	signal(SIGTSTP, suspchild);
-	signal(SIGTTIN, suspchild);
-	signal(SIGTTOU, suspchild);
-	signal(SIGCHLD, sigchld_handler);
+
+	ssh_signal(SIGTERM, killchild);
+	ssh_signal(SIGINT, killchild);
+	ssh_signal(SIGHUP, killchild);
+	ssh_signal(SIGTSTP, suspchild);
+	ssh_signal(SIGTTIN, suspchild);
+	ssh_signal(SIGTTOU, suspchild);
+	ssh_signal(SIGCHLD, sigchld_handler);
 	close(c_in);
 	close(c_out);
 }
@@ -2452,7 +2384,7 @@ usage(void)
 	extern char *__progname;
 
 	fprintf(stderr,
-	    "usage: %s [-46aCfpqrv] [-B buffer_size] [-b batchfile] [-c cipher]\n"
+	    "usage: %s [-46AaCfNpqrv] [-B buffer_size] [-b batchfile] [-c cipher]\n"
 	    "          [-D sftp_server_path] [-F ssh_config] [-i identity_file]\n"
 	    "          [-J destination] [-l limit] [-o ssh_option] [-P port]\n"
 	    "          [-R num_requests] [-S program] [-s subsystem | sftp_server]\n"
@@ -2464,9 +2396,9 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	int in, out, ch, err, tmp, port = -1;
+	int in, out, ch, err, tmp, port = -1, noisy = 0;
 	char *host = NULL, *user, *cp, *file2 = NULL;
-	int debug_level = 0, sshver = 2;
+	int debug_level = 0;
 	char *file1 = NULL, *sftp_server = NULL;
 	char *ssh_program = _PATH_SSH_PROGRAM, *sftp_direct = NULL;
 	const char *errstr;
@@ -2490,7 +2422,6 @@ main(int argc, char **argv)
 	args.list = NULL;
 	addargs(&args, "%s", ssh_program);
 	addargs(&args, "-oForwardX11 no");
-	addargs(&args, "-oForwardAgent no");
 	addargs(&args, "-oPermitLocalCommand no");
 	addargs(&args, "-oClearAllForwardings yes");
 
@@ -2498,9 +2429,10 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246afhpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:")) != -1) {
+	    "1246AafhNpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
+		case 'A':
 		case '4':
 		case '6':
 		case 'C':
@@ -2534,12 +2466,10 @@ main(int argc, char **argv)
 			debug_level++;
 			break;
 		case '1':
-			sshver = 1;
-			if (sftp_server == NULL)
-				sftp_server = _PATH_SFTP_SERVER;
+			fatal("SSH protocol v.1 is no longer supported");
 			break;
 		case '2':
-			sshver = 2;
+			/* accept silently */
 			break;
 		case 'a':
 			global_aflag = 1;
@@ -2563,6 +2493,9 @@ main(int argc, char **argv)
 			break;
 		case 'f':
 			global_fflag = 1;
+			break;
+		case 'N':
+			noisy = 1; /* Used to clear quiet mode after getopt */
 			break;
 		case 'p':
 			global_pflag = 1;
@@ -2599,8 +2532,14 @@ main(int argc, char **argv)
 		}
 	}
 
+	/* Do this last because we want the user to be able to override it */
+	addargs(&args, "-oForwardAgent no");
+
 	if (!isatty(STDERR_FILENO))
 		showprogress = 0;
+
+	if (noisy)
+		quiet = 0;
 
 	log_init(argv[0], ll, SYSLOG_FACILITY_USER, 1);
 
@@ -2649,7 +2588,6 @@ main(int argc, char **argv)
 			addargs(&args, "-l");
 			addargs(&args, "%s", user);
 		}
-		addargs(&args, "-oProtocol %d", sshver);
 
 		/* no subsystem if the server-spec contains a '/' */
 		if (sftp_server == NULL || strchr(sftp_server, '/') == NULL)

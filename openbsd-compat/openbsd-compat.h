@@ -44,9 +44,13 @@
 #include "getrrsetbyname.h"
 #include "sha1.h"
 #include "sha2.h"
-#include "rmd160.h"
 #include "md5.h"
 #include "blf.h"
+#include "fnmatch.h"
+
+#if defined(HAVE_LOGIN_CAP) && !defined(HAVE_LOGIN_GETPWCLASS)
+# define login_getpwclass(pw) login_getclass(pw->pw_class)
+#endif
 
 #ifndef HAVE_BASENAME
 char *basename(const char *path);
@@ -73,7 +77,7 @@ int getpagesize(void);
 char *getcwd(char *pt, size_t size);
 #endif
 
-#ifndef HAVE_MEMMEM
+#if defined(HAVE_DECL_MEMMEM) && HAVE_DECL_MEMMEM == 0
 void *memmem(const void *, size_t, const void *, size_t);
 #endif
 
@@ -122,7 +126,7 @@ void strmode(int mode, char *p);
 char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
 
-#if !defined(HAVE_MKDTEMP) || defined(HAVE_STRICT_MKSTEMP)
+#if !defined(HAVE_MKDTEMP)
 int mkstemps(char *path, int slen);
 int mkstemp(char *path);
 char *mkdtemp(char *path);
@@ -197,7 +201,7 @@ int writev(int, struct iovec *, int);
 #include "bsd-waitpid.h"
 #include "bsd-poll.h"
 
-#ifndef HAVE_GETPEEREID
+#if defined(HAVE_DECL_GETPEEREID) && HAVE_DECL_GETPEEREID == 0
 int getpeereid(int , uid_t *, gid_t *);
 #endif
 
@@ -323,6 +327,10 @@ void explicit_bzero(void *p, size_t n);
 
 #ifndef HAVE_FREEZERO
 void freezero(void *, size_t);
+#endif
+
+#ifndef HAVE_LOCALTIME_R
+struct tm *localtime_r(const time_t *, struct tm *);
 #endif
 
 char *xcrypt(const char *password, const char *salt);

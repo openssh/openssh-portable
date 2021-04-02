@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.355 2019/10/03 17:07:50 jmc Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.427 2020/12/20 23:36:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -63,6 +63,9 @@
 #include "utf8.h"
 #include "authfd.h"
 #include "sshsig.h"
+#include "ssh-sk.h"
+#include "sk-api.h" /* XXX for SSH_SK_USER_PRESENCE_REQD; remove */
+#include "cipher.h"
 
 #ifdef WITH_OPENSSL
 # define DEFAULT_KEY_TYPE_NAME "rsa"
@@ -118,11 +121,12 @@ static u_int64_t cert_valid_from = 0;
 static u_int64_t cert_valid_to = ~0ULL;
 
 /* Certificate options */
-#define CERTOPT_X_FWD	(1)
-#define CERTOPT_AGENT_FWD	(1<<1)
-#define CERTOPT_PORT_FWD	(1<<2)
-#define CERTOPT_PTY		(1<<3)
-#define CERTOPT_USER_RC	(1<<4)
+#define CERTOPT_X_FWD				(1)
+#define CERTOPT_AGENT_FWD			(1<<1)
+#define CERTOPT_PORT_FWD			(1<<2)
+#define CERTOPT_PTY				(1<<3)
+#define CERTOPT_USER_RC				(1<<4)
+#define CERTOPT_NO_REQUIRE_USER_PRESENCE	(1<<5)
 #define CERTOPT_DEFAULT	(CERTOPT_X_FWD|CERTOPT_AGENT_FWD| \
 			 CERTOPT_PORT_FWD|CERTOPT_PTY|CERTOPT_USER_RC)
 static u_int32_t certflags_flags = CERTOPT_DEFAULT;
@@ -130,13 +134,13 @@ static char *certflags_command = NULL;
 static char *certflags_src_addr = NULL;
 
 /* Arbitrary extensions specified by user */
-struct cert_userext {
+struct cert_ext {
 	char *key;
 	char *val;
 	int crit;
 };
-static struct cert_userext *cert_userext;
-static size_t ncert_userext;
+static struct cert_ext *cert_ext;
+static size_t ncert_ext;
 
 /* Conversion to/from various formats */
 enum {
@@ -150,16 +154,16 @@ static char *key_type_name = NULL;
 /* Load key from this PKCS#11 provider */
 static char *pkcs11provider = NULL;
 
+/* FIDO/U2F provider to use */
+static char *sk_provider = NULL;
+
 /* Format for writing private keys */
 static int private_key_format = SSHKEY_PRIVATE_OPENSSH;
 
 /* Cipher for new-format private keys */
 static char *openssh_format_cipher = NULL;
 
-/*
- * Number of KDF rounds to derive new format keys /
- * number of primality trials when screening moduli.
- */
+/* Number of KDF rounds to derive new format keys. */
 static int rounds = 0;
 
 /* argv0 */
@@ -181,7 +185,7 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		fatal("unknown key type %s", key_type_name);
 	if (*bitsp == 0) {
 #ifdef WITH_OPENSSL
-		u_int nid;
+		int nid;
 
 		switch(type) {
 		case KEY_DSA:
@@ -216,10 +220,11 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		break;
 	case KEY_ECDSA:
 		if (sshkey_ecdsa_bits_to_nid(*bitsp) == -1)
-			fatal("Invalid ECDSA key length: valid lengths are "
 #ifdef OPENSSL_HAS_NISTP521
+			fatal("Invalid ECDSA key length: valid lengths are "
 			    "256, 384 or 521 bits");
 #else
+			fatal("Invalid ECDSA key length: valid lengths are "
 			    "256 or 384 bits");
 #endif
 	}
@@ -269,6 +274,10 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_ECDSA:
 			name = _PATH_SSH_CLIENT_ID_ECDSA;
 			break;
+		case KEY_ECDSA_SK_CERT:
+		case KEY_ECDSA_SK:
+			name = _PATH_SSH_CLIENT_ID_ECDSA_SK;
+			break;
 #endif
 		case KEY_RSA_CERT:
 		case KEY_RSA:
@@ -277,6 +286,10 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_ED25519:
 		case KEY_ED25519_CERT:
 			name = _PATH_SSH_CLIENT_ID_ED25519;
+			break;
+		case KEY_ED25519_SK:
+		case KEY_ED25519_SK_CERT:
+			name = _PATH_SSH_CLIENT_ID_ED25519_SK;
 			break;
 		case KEY_XMSS:
 		case KEY_XMSS_CERT:
@@ -310,16 +323,15 @@ load_identity(const char *filename, char **commentp)
 	if ((r = sshkey_load_private(filename, "", &prv, commentp)) == 0)
 		return prv;
 	if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
-		fatal("Load key \"%s\": %s", filename, ssh_err(r));
+		fatal_r(r, "Load key \"%s\"", filename);
 	if (identity_passphrase)
 		pass = xstrdup(identity_passphrase);
 	else
 		pass = read_passphrase("Enter passphrase: ", RP_ALLOW_STDIN);
 	r = sshkey_load_private(filename, pass, &prv, commentp);
-	explicit_bzero(pass, strlen(pass));
-	free(pass);
+	freezero(pass, strlen(pass));
 	if (r != 0)
-		fatal("Load key \"%s\": %s", filename, ssh_err(r));
+		fatal_r(r, "Load key \"%s\"", filename);
 	return prv;
 }
 
@@ -337,11 +349,11 @@ do_convert_to_ssh2(struct passwd *pw, struct sshkey *k)
 	int r;
 
 	if ((b = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	if ((r = sshkey_putb(k, b)) != 0)
-		fatal("key_to_blob failed: %s", ssh_err(r));
+		fatal_fr(r, "put key");
 	if ((b64 = sshbuf_dtob64_string(b, 1)) == NULL)
-		fatal("%s: sshbuf_dtob64_string failed", __func__);
+		fatal_f("sshbuf_dtob64_string failed");
 
 	/* Comment + surrounds must fit into 72 chars (RFC 4716 sec 3.3) */
 	snprintf(comment, sizeof(comment),
@@ -378,7 +390,7 @@ do_convert_to_pkcs8(struct sshkey *k)
 		break;
 #endif
 	default:
-		fatal("%s: unsupported key type %s", __func__, sshkey_type(k));
+		fatal_f("unsupported key type %s", sshkey_type(k));
 	}
 	exit(0);
 }
@@ -391,8 +403,18 @@ do_convert_to_pem(struct sshkey *k)
 		if (!PEM_write_RSAPublicKey(stdout, k->rsa))
 			fatal("PEM_write_RSAPublicKey failed");
 		break;
+	case KEY_DSA:
+		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
+			fatal("PEM_write_DSA_PUBKEY failed");
+		break;
+#ifdef OPENSSL_HAS_ECC
+	case KEY_ECDSA:
+		if (!PEM_write_EC_PUBKEY(stdout, k->ecdsa))
+			fatal("PEM_write_EC_PUBKEY failed");
+		break;
+#endif
 	default:
-		fatal("%s: unsupported key type %s", __func__, sshkey_type(k));
+		fatal_f("unsupported key type %s", sshkey_type(k));
 	}
 	exit(0);
 }
@@ -421,7 +443,7 @@ do_convert_to(struct passwd *pw)
 		do_convert_to_pem(k);
 		break;
 	default:
-		fatal("%s: unknown key format %d", __func__, convert_format);
+		fatal_f("unknown key format %d", convert_format);
 	}
 	exit(0);
 }
@@ -437,15 +459,15 @@ buffer_get_bignum_bits(struct sshbuf *b, BIGNUM *value)
 	int r;
 
 	if ((r = sshbuf_get_u32(b, &bignum_bits)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse");
 	bytes = (bignum_bits + 7) / 8;
 	if (sshbuf_len(b) < bytes)
-		fatal("%s: input buffer too small: need %d have %zu",
-		    __func__, bytes, sshbuf_len(b));
+		fatal_f("input buffer too small: need %d have %zu",
+		    bytes, sshbuf_len(b));
 	if (BN_bin2bn(sshbuf_ptr(b), bytes, value) == NULL)
-		fatal("%s: BN_bin2bn failed", __func__);
+		fatal_f("BN_bin2bn failed");
 	if ((r = sshbuf_consume(b, bytes)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "consume");
 }
 
 static struct sshkey *
@@ -464,7 +486,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 	BIGNUM *rsa_p = NULL, *rsa_q = NULL, *rsa_iqmp = NULL;
 
 	if ((r = sshbuf_get_u32(b, &magic)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse magic");
 
 	if (magic != SSH_COM_PRIVATE_KEY_MAGIC) {
 		error("bad magic 0x%x != 0x%x", magic,
@@ -477,7 +499,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 	    (r = sshbuf_get_u32(b, &i2)) != 0 ||
 	    (r = sshbuf_get_u32(b, &i3)) != 0 ||
 	    (r = sshbuf_get_u32(b, &i4)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse");
 	debug("ignore (%d %d %d %d)", i1, i2, i3, i4);
 	if (strcmp(cipher, "none") != 0) {
 		error("unsupported cipher %s", cipher);
@@ -506,24 +528,24 @@ do_convert_private_ssh2(struct sshbuf *b)
 		    (dsa_g = BN_new()) == NULL ||
 		    (dsa_pub_key = BN_new()) == NULL ||
 		    (dsa_priv_key = BN_new()) == NULL)
-			fatal("%s: BN_new", __func__);
+			fatal_f("BN_new");
 		buffer_get_bignum_bits(b, dsa_p);
 		buffer_get_bignum_bits(b, dsa_g);
 		buffer_get_bignum_bits(b, dsa_q);
 		buffer_get_bignum_bits(b, dsa_pub_key);
 		buffer_get_bignum_bits(b, dsa_priv_key);
 		if (!DSA_set0_pqg(key->dsa, dsa_p, dsa_q, dsa_g))
-			fatal("%s: DSA_set0_pqg failed", __func__);
+			fatal_f("DSA_set0_pqg failed");
 		dsa_p = dsa_q = dsa_g = NULL; /* transferred */
 		if (!DSA_set0_key(key->dsa, dsa_pub_key, dsa_priv_key))
-			fatal("%s: DSA_set0_key failed", __func__);
+			fatal_f("DSA_set0_key failed");
 		dsa_pub_key = dsa_priv_key = NULL; /* transferred */
 		break;
 	case KEY_RSA:
 		if ((r = sshbuf_get_u8(b, &e1)) != 0 ||
 		    (e1 < 30 && (r = sshbuf_get_u8(b, &e2)) != 0) ||
 		    (e1 < 30 && (r = sshbuf_get_u8(b, &e3)) != 0))
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "parse RSA");
 		e = e1;
 		debug("e %lx", e);
 		if (e < 30) {
@@ -535,7 +557,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 			debug("e %lx", e);
 		}
 		if ((rsa_e = BN_new()) == NULL)
-			fatal("%s: BN_new", __func__);
+			fatal_f("BN_new");
 		if (!BN_set_word(rsa_e, e)) {
 			BN_clear_free(rsa_e);
 			sshkey_free(key);
@@ -546,30 +568,32 @@ do_convert_private_ssh2(struct sshbuf *b)
 		    (rsa_p = BN_new()) == NULL ||
 		    (rsa_q = BN_new()) == NULL ||
 		    (rsa_iqmp = BN_new()) == NULL)
-			fatal("%s: BN_new", __func__);
+			fatal_f("BN_new");
 		buffer_get_bignum_bits(b, rsa_d);
 		buffer_get_bignum_bits(b, rsa_n);
 		buffer_get_bignum_bits(b, rsa_iqmp);
 		buffer_get_bignum_bits(b, rsa_q);
 		buffer_get_bignum_bits(b, rsa_p);
 		if (!RSA_set0_key(key->rsa, rsa_n, rsa_e, rsa_d))
-			fatal("%s: RSA_set0_key failed", __func__);
+			fatal_f("RSA_set0_key failed");
 		rsa_n = rsa_e = rsa_d = NULL; /* transferred */
 		if (!RSA_set0_factors(key->rsa, rsa_p, rsa_q))
-			fatal("%s: RSA_set0_factors failed", __func__);
+			fatal_f("RSA_set0_factors failed");
 		rsa_p = rsa_q = NULL; /* transferred */
 		if ((r = ssh_rsa_complete_crt_parameters(key, rsa_iqmp)) != 0)
-			fatal("generate RSA parameters failed: %s", ssh_err(r));
+			fatal_fr(r, "generate RSA parameters");
 		BN_clear_free(rsa_iqmp);
 		break;
 	}
 	rlen = sshbuf_len(b);
 	if (rlen != 0)
-		error("%s: remaining bytes in key blob %d", __func__, rlen);
+		error_f("remaining bytes in key blob %d", rlen);
 
 	/* try the key */
-	if (sshkey_sign(key, &sig, &slen, data, sizeof(data), NULL, 0) != 0 ||
-	    sshkey_verify(key, sig, slen, data, sizeof(data), NULL, 0) != 0) {
+	if (sshkey_sign(key, &sig, &slen, data, sizeof(data),
+	    NULL, NULL, NULL, 0) != 0 ||
+	    sshkey_verify(key, sig, slen, data, sizeof(data),
+	    NULL, 0, NULL) != 0) {
 		sshkey_free(key);
 		free(sig);
 		return NULL;
@@ -646,11 +670,13 @@ do_convert_from_ssh2(struct passwd *pw, struct sshkey **k, int *private)
 	    (encoded[len-3] == '='))
 		encoded[len-3] = '\0';
 	if ((r = sshbuf_b64tod(buf, encoded)) != 0)
-		fatal("%s: base64 decoding failed: %s", __func__, ssh_err(r));
-	if (*private)
-		*k = do_convert_private_ssh2(buf);
-	else if ((r = sshkey_fromb(buf, k)) != 0)
-		fatal("decode blob failed: %s", ssh_err(r));
+		fatal_fr(r, "base64 decode");
+	if (*private) {
+		if ((*k = do_convert_private_ssh2(buf)) == NULL)
+			fatal_f("private key conversion failed");
+	} else if ((r = sshkey_fromb(buf, k)) != 0)
+		fatal_fr(r, "parse key");
+	sshbuf_free(buf);
 	fclose(fp);
 }
 
@@ -663,7 +689,7 @@ do_convert_from_pkcs8(struct sshkey **k, int *private)
 	if ((fp = fopen(identity_file, "r")) == NULL)
 		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
 	if ((pubkey = PEM_read_PUBKEY(fp, NULL, NULL, NULL)) == NULL) {
-		fatal("%s: %s is not a recognised public key format", __func__,
+		fatal_f("%s is not a recognised public key format",
 		    identity_file);
 	}
 	fclose(fp);
@@ -690,7 +716,7 @@ do_convert_from_pkcs8(struct sshkey **k, int *private)
 		break;
 #endif
 	default:
-		fatal("%s: unsupported pubkey type %d", __func__,
+		fatal_f("unsupported pubkey type %d",
 		    EVP_PKEY_base_id(pubkey));
 	}
 	EVP_PKEY_free(pubkey);
@@ -713,7 +739,7 @@ do_convert_from_pem(struct sshkey **k, int *private)
 		fclose(fp);
 		return;
 	}
-	fatal("%s: unrecognised raw private key format", __func__);
+	fatal_f("unrecognised raw private key format");
 }
 
 static void
@@ -739,7 +765,7 @@ do_convert_from(struct passwd *pw)
 		do_convert_from_pem(&k, &private);
 		break;
 	default:
-		fatal("%s: unknown key format %d", __func__, convert_format);
+		fatal_f("unknown key format %d", convert_format);
 	}
 
 	if (!private) {
@@ -764,8 +790,7 @@ do_convert_from(struct passwd *pw)
 			    NULL, 0, NULL, NULL);
 			break;
 		default:
-			fatal("%s: unsupported key type %s", __func__,
-			    sshkey_type(k));
+			fatal_f("unsupported key type %s", sshkey_type(k));
 		}
 	}
 
@@ -790,11 +815,15 @@ do_print_public(struct passwd *pw)
 		fatal("%s: %s", identity_file, strerror(errno));
 	prv = load_identity(identity_file, &comment);
 	if ((r = sshkey_write(prv, stdout)) != 0)
-		error("sshkey_write failed: %s", ssh_err(r));
-	sshkey_free(prv);
+		fatal_fr(r, "write key");
 	if (comment != NULL && *comment != '\0')
 		fprintf(stdout, " %s", comment);
 	fprintf(stdout, "\n");
+	if (sshkey_is_sk(prv)) {
+		debug("sk_application: \"%s\", sk_flags 0x%02x",
+			prv->sk_application, prv->sk_flags);
+	}
+	sshkey_free(prv);
 	free(comment);
 	exit(0);
 }
@@ -807,13 +836,13 @@ do_download(struct passwd *pw)
 	int i, nkeys;
 	enum sshkey_fp_rep rep;
 	int fptype;
-	char *fp, *ra;
+	char *fp, *ra, **comments = NULL;
 
 	fptype = print_bubblebabble ? SSH_DIGEST_SHA1 : fingerprint_hash;
 	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_DEFAULT;
 
 	pkcs11_init(1);
-	nkeys = pkcs11_add_provider(pkcs11provider, NULL, &keys);
+	nkeys = pkcs11_add_provider(pkcs11provider, NULL, &keys, &comments);
 	if (nkeys <= 0)
 		fatal("cannot read public key from pkcs11");
 	for (i = 0; i < nkeys; i++) {
@@ -822,7 +851,7 @@ do_download(struct passwd *pw)
 			ra = sshkey_fingerprint(keys[i], fingerprint_hash,
 			    SSH_FP_RANDOMART);
 			if (fp == NULL || ra == NULL)
-				fatal("%s: sshkey_fingerprint fail", __func__);
+				fatal_f("sshkey_fingerprint fail");
 			printf("%u %s %s (PKCS11 key)\n", sshkey_size(keys[i]),
 			    fp, sshkey_type(keys[i]));
 			if (log_level_get() >= SYSLOG_LEVEL_VERBOSE)
@@ -831,10 +860,13 @@ do_download(struct passwd *pw)
 			free(fp);
 		} else {
 			(void) sshkey_write(keys[i], stdout); /* XXX check */
-			fprintf(stdout, "\n");
+			fprintf(stdout, "%s%s\n",
+			    *(comments[i]) == '\0' ? "" : " ", comments[i]);
 		}
+		free(comments[i]);
 		sshkey_free(keys[i]);
 	}
+	free(comments);
 	free(keys);
 	pkcs11_terminate();
 	exit(0);
@@ -870,7 +902,7 @@ fingerprint_one_key(const struct sshkey *public, const char *comment)
 	fp = sshkey_fingerprint(public, fptype, rep);
 	ra = sshkey_fingerprint(public, fingerprint_hash, SSH_FP_RANDOMART);
 	if (fp == NULL || ra == NULL)
-		fatal("%s: sshkey_fingerprint failed", __func__);
+		fatal_f("sshkey_fingerprint failed");
 	mprintf("%u %s %s (%s)\n", sshkey_size(public), fp,
 	    comment ? comment : "no comment", sshkey_type(public));
 	if (log_level_get() >= SYSLOG_LEVEL_VERBOSE)
@@ -884,22 +916,25 @@ fingerprint_private(const char *path)
 {
 	struct stat st;
 	char *comment = NULL;
-	struct sshkey *public = NULL;
+	struct sshkey *privkey = NULL, *pubkey = NULL;
 	int r;
 
 	if (stat(identity_file, &st) == -1)
 		fatal("%s: %s", path, strerror(errno));
-	if ((r = sshkey_load_public(path, &public, &comment)) != 0) {
-		debug("load public \"%s\": %s", path, ssh_err(r));
+	if ((r = sshkey_load_public(path, &pubkey, &comment)) != 0)
+		debug_r(r, "load public \"%s\"", path);
+	if (pubkey == NULL || comment == NULL || *comment == '\0') {
+		free(comment);
 		if ((r = sshkey_load_private(path, NULL,
-		    &public, &comment)) != 0) {
-			debug("load private \"%s\": %s", path, ssh_err(r));
-			fatal("%s is not a key file.", path);
-		}
+		    &privkey, &comment)) != 0)
+			debug_r(r, "load private \"%s\"", path);
 	}
+	if (pubkey == NULL && privkey == NULL)
+		fatal("%s is not a key file.", path);
 
-	fingerprint_one_key(public, comment);
-	sshkey_free(public);
+	fingerprint_one_key(pubkey == NULL ? privkey : pubkey, comment);
+	sshkey_free(pubkey);
+	sshkey_free(privkey);
 	free(comment);
 }
 
@@ -1027,7 +1062,6 @@ do_gen_all_hostkeys(struct passwd *pw)
 	struct sshkey *private, *public;
 	char comment[1024], *prv_tmp, *pub_tmp, *prv_file, *pub_file;
 	int i, type, fd, r;
-	FILE *f;
 
 	for (i = 0; key_types[i].key_type; i++) {
 		public = private = NULL;
@@ -1065,26 +1099,25 @@ do_gen_all_hostkeys(struct passwd *pw)
 		fflush(stdout);
 		type = sshkey_type_from_name(key_types[i].key_type);
 		if ((fd = mkstemp(prv_tmp)) == -1) {
-			error("Could not save your public key in %s: %s",
+			error("Could not save your private key in %s: %s",
 			    prv_tmp, strerror(errno));
 			goto failnext;
 		}
-		close(fd); /* just using mkstemp() to generate/reserve a name */
+		(void)close(fd); /* just using mkstemp() to reserve a name */
 		bits = 0;
 		type_bits_valid(type, NULL, &bits);
 		if ((r = sshkey_generate(type, bits, &private)) != 0) {
-			error("sshkey_generate failed: %s", ssh_err(r));
+			error_r(r, "sshkey_generate failed");
 			goto failnext;
 		}
 		if ((r = sshkey_from_private(private, &public)) != 0)
-			fatal("sshkey_from_private failed: %s", ssh_err(r));
+			fatal_fr(r, "sshkey_from_private");
 		snprintf(comment, sizeof comment, "%s@%s", pw->pw_name,
 		    hostname);
 		if ((r = sshkey_save_private(private, prv_tmp, "",
 		    comment, private_key_format, openssh_format_cipher,
 		    rounds)) != 0) {
-			error("Saving key \"%s\" failed: %s",
-			    prv_tmp, ssh_err(r));
+			error_r(r, "Saving key \"%s\" failed", prv_tmp);
 			goto failnext;
 		}
 		if ((fd = mkstemp(pub_tmp)) == -1) {
@@ -1094,25 +1127,10 @@ do_gen_all_hostkeys(struct passwd *pw)
 		}
 
 		(void)fchmod(fd, 0644);
-		f = fdopen(fd, "w");
-		if (f == NULL) {
-			error("fdopen %s failed: %s", pub_tmp, strerror(errno));
-			close(fd);
-			goto failnext;
-		}
-		if ((r = sshkey_write(public, f)) != 0) {
-			error("write key failed: %s", ssh_err(r));
-			fclose(f);
-			goto failnext;
-		}
-		fprintf(f, " %s\n", comment);
-		if (ferror(f) != 0) {
-			error("write key failed: %s", strerror(errno));
-			fclose(f);
-			goto failnext;
-		}
-		if (fclose(f) != 0) {
-			error("key close failed: %s", strerror(errno));
+		(void)close(fd);
+		if ((r = sshkey_save_public(public, pub_tmp, comment)) != 0) {
+			error_r(r, "Unable to save public key to %s",
+			    identity_file);
 			goto failnext;
 		}
 
@@ -1246,10 +1264,11 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 				ra = sshkey_fingerprint(l->key,
 				    fingerprint_hash, SSH_FP_RANDOMART);
 				if (fp == NULL || ra == NULL)
-					fatal("%s: sshkey_fingerprint failed",
-					    __func__);
-				mprintf("%s %s %s %s\n", ctx->host,
-				    sshkey_type(l->key), fp, l->comment);
+					fatal_f("sshkey_fingerprint failed");
+				mprintf("%s %s %s%s%s\n", ctx->host,
+				    sshkey_type(l->key), fp,
+				    l->comment[0] ? " " : "",
+				    l->comment);
 				if (log_level_get() >= SYSLOG_LEVEL_VERBOSE)
 					printf("%s\n", ra);
 				free(ra);
@@ -1277,6 +1296,7 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 	int r, fd, oerrno, inplace = 0;
 	struct known_hosts_ctx ctx;
 	u_int foreach_options;
+	struct stat sb;
 
 	if (!have_identity) {
 		cp = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE, pw->pw_uid);
@@ -1286,6 +1306,8 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 		free(cp);
 		have_identity = 1;
 	}
+	if (stat(identity_file, &sb) != 0)
+		fatal("Cannot stat %s: %s", identity_file, strerror(errno));
 
 	memset(&ctx, 0, sizeof(ctx));
 	ctx.out = stdout;
@@ -1312,6 +1334,7 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 			unlink(tmp);
 			fatal("fdopen: %s", strerror(oerrno));
 		}
+		fchmod(fd, sb.st_mode & 0644);
 		inplace = 1;
 	}
 	/* XXX support identity_file == "-" for stdin */
@@ -1319,10 +1342,10 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 	foreach_options |= print_fingerprint ? HKF_WANT_PARSE_KEY : 0;
 	if ((r = hostkeys_foreach(identity_file, (find_host || !hash_hosts) ?
 	    known_hosts_find_delete : known_hosts_hash, &ctx, name, NULL,
-	    foreach_options)) != 0) {
+	    foreach_options, 0)) != 0) {
 		if (inplace)
 			unlink(tmp);
-		fatal("%s: hostkeys_foreach failed: %s", __func__, ssh_err(r));
+		fatal_fr(r, "hostkeys_foreach");
 	}
 
 	if (inplace)
@@ -1396,13 +1419,12 @@ do_change_passphrase(struct passwd *pw)
 			    RP_ALLOW_STDIN);
 		r = sshkey_load_private(identity_file, old_passphrase,
 		    &private, &comment);
-		explicit_bzero(old_passphrase, strlen(old_passphrase));
-		free(old_passphrase);
+		freezero(old_passphrase, strlen(old_passphrase));
 		if (r != 0)
 			goto badkey;
 	} else if (r != 0) {
  badkey:
-		fatal("Failed to load key %s: %s", identity_file, ssh_err(r));
+		fatal_r(r, "Failed to load key %s", identity_file);
 	}
 	if (comment)
 		mprintf("Key has comment '%s'\n", comment);
@@ -1428,24 +1450,20 @@ do_change_passphrase(struct passwd *pw)
 			exit(1);
 		}
 		/* Destroy the other copy. */
-		explicit_bzero(passphrase2, strlen(passphrase2));
-		free(passphrase2);
+		freezero(passphrase2, strlen(passphrase2));
 	}
 
 	/* Save the file using the new passphrase. */
 	if ((r = sshkey_save_private(private, identity_file, passphrase1,
 	    comment, private_key_format, openssh_format_cipher, rounds)) != 0) {
-		error("Saving key \"%s\" failed: %s.",
-		    identity_file, ssh_err(r));
-		explicit_bzero(passphrase1, strlen(passphrase1));
-		free(passphrase1);
+		error_r(r, "Saving key \"%s\" failed", identity_file);
+		freezero(passphrase1, strlen(passphrase1));
 		sshkey_free(private);
 		free(comment);
 		exit(1);
 	}
 	/* Destroy the passphrase and the copy of the key in memory. */
-	explicit_bzero(passphrase1, strlen(passphrase1));
-	free(passphrase1);
+	freezero(passphrase1, strlen(passphrase1));
 	sshkey_free(private);		 /* Destroys contents */
 	free(comment);
 
@@ -1466,15 +1484,14 @@ do_print_resource_record(struct passwd *pw, char *fname, char *hname,
 	int r;
 
 	if (fname == NULL)
-		fatal("%s: no filename", __func__);
+		fatal_f("no filename");
 	if (stat(fname, &st) == -1) {
 		if (errno == ENOENT)
 			return 0;
 		fatal("%s: %s", fname, strerror(errno));
 	}
 	if ((r = sshkey_load_public(fname, &public, &comment)) != 0)
-		fatal("Failed to read v2 public key from \"%s\": %s.",
-		    fname, ssh_err(r));
+		fatal_r(r, "Failed to read v2 public key from \"%s\"", fname);
 	export_dns_rr(hname, public, stdout, print_generic);
 	sshkey_free(public);
 	free(comment);
@@ -1491,8 +1508,7 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	struct sshkey *private;
 	struct sshkey *public;
 	struct stat st;
-	FILE *f;
-	int r, fd;
+	int r;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
@@ -1502,8 +1518,7 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	    &private, &comment)) == 0)
 		passphrase = xstrdup("");
 	else if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
-		fatal("Cannot load private key \"%s\": %s.",
-		    identity_file, ssh_err(r));
+		fatal_r(r, "Cannot load private key \"%s\"", identity_file);
 	else {
 		if (identity_passphrase)
 			passphrase = xstrdup(identity_passphrase);
@@ -1515,10 +1530,9 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 		/* Try to load using the passphrase. */
 		if ((r = sshkey_load_private(identity_file, passphrase,
 		    &private, &comment)) != 0) {
-			explicit_bzero(passphrase, strlen(passphrase));
-			free(passphrase);
-			fatal("Cannot load private key \"%s\": %s.",
-			    identity_file, ssh_err(r));
+			freezero(passphrase, strlen(passphrase));
+			fatal_r(r, "Cannot load private key \"%s\"",
+			    identity_file);
 		}
 	}
 
@@ -1559,33 +1573,21 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	if ((r = sshkey_save_private(private, identity_file, passphrase,
 	    new_comment, private_key_format, openssh_format_cipher,
 	    rounds)) != 0) {
-		error("Saving key \"%s\" failed: %s",
-		    identity_file, ssh_err(r));
-		explicit_bzero(passphrase, strlen(passphrase));
-		free(passphrase);
+		error_r(r, "Saving key \"%s\" failed", identity_file);
+		freezero(passphrase, strlen(passphrase));
 		sshkey_free(private);
 		free(comment);
 		exit(1);
 	}
-	explicit_bzero(passphrase, strlen(passphrase));
-	free(passphrase);
+	freezero(passphrase, strlen(passphrase));
 	if ((r = sshkey_from_private(private, &public)) != 0)
-		fatal("sshkey_from_private failed: %s", ssh_err(r));
+		fatal_fr(r, "sshkey_from_private");
 	sshkey_free(private);
 
 	strlcat(identity_file, ".pub", sizeof(identity_file));
-	fd = open(identity_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (fd == -1)
-		fatal("Could not save your public key in %s", identity_file);
-	f = fdopen(fd, "w");
-	if (f == NULL)
-		fatal("fdopen %s failed: %s", identity_file, strerror(errno));
-	if ((r = sshkey_write(public, f)) != 0)
-		fatal("write key failed: %s", ssh_err(r));
+	if ((r = sshkey_save_public(public, identity_file, new_comment)) != 0)
+		fatal_r(r, "Unable to save public key to %s", identity_file);
 	sshkey_free(public);
-	fprintf(f, " %s\n", new_comment);
-	fclose(f);
-
 	free(comment);
 
 	if (strlen(new_comment) > 0)
@@ -1597,31 +1599,32 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 }
 
 static void
-add_flag_option(struct sshbuf *c, const char *name)
+cert_ext_add(const char *key, const char *value, int iscrit)
 {
-	int r;
-
-	debug3("%s: %s", __func__, name);
-	if ((r = sshbuf_put_cstring(c, name)) != 0 ||
-	    (r = sshbuf_put_string(c, NULL, 0)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	cert_ext = xreallocarray(cert_ext, ncert_ext + 1, sizeof(*cert_ext));
+	cert_ext[ncert_ext].key = xstrdup(key);
+	cert_ext[ncert_ext].val = value == NULL ? NULL : xstrdup(value);
+	cert_ext[ncert_ext].crit = iscrit;
+	ncert_ext++;
 }
 
-static void
-add_string_option(struct sshbuf *c, const char *name, const char *value)
+/* qsort(3) comparison function for certificate extensions */
+static int
+cert_ext_cmp(const void *_a, const void *_b)
 {
-	struct sshbuf *b;
+	const struct cert_ext *a = (const struct cert_ext *)_a;
+	const struct cert_ext *b = (const struct cert_ext *)_b;
 	int r;
 
-	debug3("%s: %s=%s", __func__, name, value);
-	if ((b = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
-	if ((r = sshbuf_put_cstring(b, value)) != 0 ||
-	    (r = sshbuf_put_cstring(c, name)) != 0 ||
-	    (r = sshbuf_put_stringb(c, b)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-
-	sshbuf_free(b);
+	if (a->crit != b->crit)
+		return (a->crit < b->crit) ? -1 : 1;
+	if ((r = strcmp(a->key, b->key)) != 0)
+		return r;
+	if ((a->val == NULL) != (b->val == NULL))
+		return (a->val == NULL) ? -1 : 1;
+	if (a->val != NULL && (r = strcmp(a->val, b->val)) != 0)
+		return r;
+	return 0;
 }
 
 #define OPTIONS_CRITICAL	1
@@ -1629,41 +1632,62 @@ add_string_option(struct sshbuf *c, const char *name, const char *value)
 static void
 prepare_options_buf(struct sshbuf *c, int which)
 {
+	struct sshbuf *b;
 	size_t i;
+	int r;
+	const struct cert_ext *ext;
 
+	if ((b = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
 	sshbuf_reset(c);
-	if ((which & OPTIONS_CRITICAL) != 0 &&
-	    certflags_command != NULL)
-		add_string_option(c, "force-command", certflags_command);
-	if ((which & OPTIONS_EXTENSIONS) != 0 &&
-	    (certflags_flags & CERTOPT_X_FWD) != 0)
-		add_flag_option(c, "permit-X11-forwarding");
-	if ((which & OPTIONS_EXTENSIONS) != 0 &&
-	    (certflags_flags & CERTOPT_AGENT_FWD) != 0)
-		add_flag_option(c, "permit-agent-forwarding");
-	if ((which & OPTIONS_EXTENSIONS) != 0 &&
-	    (certflags_flags & CERTOPT_PORT_FWD) != 0)
-		add_flag_option(c, "permit-port-forwarding");
-	if ((which & OPTIONS_EXTENSIONS) != 0 &&
-	    (certflags_flags & CERTOPT_PTY) != 0)
-		add_flag_option(c, "permit-pty");
-	if ((which & OPTIONS_EXTENSIONS) != 0 &&
-	    (certflags_flags & CERTOPT_USER_RC) != 0)
-		add_flag_option(c, "permit-user-rc");
-	if ((which & OPTIONS_CRITICAL) != 0 &&
-	    certflags_src_addr != NULL)
-		add_string_option(c, "source-address", certflags_src_addr);
-	for (i = 0; i < ncert_userext; i++) {
-		if ((cert_userext[i].crit && (which & OPTIONS_EXTENSIONS)) ||
-		    (!cert_userext[i].crit && (which & OPTIONS_CRITICAL)))
+	for (i = 0; i < ncert_ext; i++) {
+		ext = &cert_ext[i];
+		if ((ext->crit && (which & OPTIONS_EXTENSIONS)) ||
+		    (!ext->crit && (which & OPTIONS_CRITICAL)))
 			continue;
-		if (cert_userext[i].val == NULL)
-			add_flag_option(c, cert_userext[i].key);
-		else {
-			add_string_option(c, cert_userext[i].key,
-			    cert_userext[i].val);
+		if (ext->val == NULL) {
+			/* flag option */
+			debug3_f("%s", ext->key);
+			if ((r = sshbuf_put_cstring(c, ext->key)) != 0 ||
+			    (r = sshbuf_put_string(c, NULL, 0)) != 0)
+				fatal_fr(r, "prepare flag");
+		} else {
+			/* key/value option */
+			debug3_f("%s=%s", ext->key, ext->val);
+			sshbuf_reset(b);
+			if ((r = sshbuf_put_cstring(c, ext->key)) != 0 ||
+			    (r = sshbuf_put_cstring(b, ext->val)) != 0 ||
+			    (r = sshbuf_put_stringb(c, b)) != 0)
+				fatal_fr(r, "prepare k/v");
 		}
 	}
+	sshbuf_free(b);
+}
+
+static void
+finalise_cert_exts(void)
+{
+	/* critical options */
+	if (certflags_command != NULL)
+		cert_ext_add("force-command", certflags_command, 1);
+	if (certflags_src_addr != NULL)
+		cert_ext_add("source-address", certflags_src_addr, 1);
+	/* extensions */
+	if ((certflags_flags & CERTOPT_X_FWD) != 0)
+		cert_ext_add("permit-X11-forwarding", NULL, 0);
+	if ((certflags_flags & CERTOPT_AGENT_FWD) != 0)
+		cert_ext_add("permit-agent-forwarding", NULL, 0);
+	if ((certflags_flags & CERTOPT_PORT_FWD) != 0)
+		cert_ext_add("permit-port-forwarding", NULL, 0);
+	if ((certflags_flags & CERTOPT_PTY) != 0)
+		cert_ext_add("permit-pty", NULL, 0);
+	if ((certflags_flags & CERTOPT_USER_RC) != 0)
+		cert_ext_add("permit-user-rc", NULL, 0);
+	if ((certflags_flags & CERTOPT_NO_REQUIRE_USER_PRESENCE) != 0)
+		cert_ext_add("no-touch-required", NULL, 0);
+	/* order lexically by key */
+	if (ncert_ext > 0)
+		qsort(cert_ext, ncert_ext, sizeof(*cert_ext), cert_ext_cmp);
 }
 
 static struct sshkey *
@@ -1674,11 +1698,11 @@ load_pkcs11_key(char *path)
 	int r, i, nkeys;
 
 	if ((r = sshkey_load_public(path, &public, NULL)) != 0)
-		fatal("Couldn't load CA public key \"%s\": %s",
-		    path, ssh_err(r));
+		fatal_r(r, "Couldn't load CA public key \"%s\"", path);
 
-	nkeys = pkcs11_add_provider(pkcs11provider, identity_passphrase, &keys);
-	debug3("%s: %d keys", __func__, nkeys);
+	nkeys = pkcs11_add_provider(pkcs11provider, identity_passphrase,
+	    &keys, NULL);
+	debug3_f("%d keys", nkeys);
 	if (nkeys <= 0)
 		fatal("cannot read public key from pkcs11");
 	for (i = 0; i < nkeys; i++) {
@@ -1700,7 +1724,8 @@ load_pkcs11_key(char *path)
 static int
 agent_signer(struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen,
-    const char *alg, u_int compat, void *ctx)
+    const char *alg, const char *provider, const char *pin,
+    u_int compat, void *ctx)
 {
 	int *agent_fdp = (int *)ctx;
 
@@ -1713,13 +1738,14 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
     unsigned long long cert_serial, int cert_serial_autoinc,
     int argc, char **argv)
 {
-	int r, i, fd, found, agent_fd = -1;
+	int r, i, found, agent_fd = -1;
 	u_int n;
 	struct sshkey *ca, *public;
-	char valid[64], *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
-	FILE *f;
+	char valid[64], *otmp, *tmp, *cp, *out, *comment;
+	char *ca_fp = NULL, **plist = NULL, *pin = NULL;
 	struct ssh_identitylist *agent_ids;
 	size_t j;
+	struct notifier_ctx *notifier = NULL;
 
 #ifdef ENABLE_PKCS11
 	pkcs11_init(1);
@@ -1736,13 +1762,11 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		 * agent.
 		 */
 		if ((r = sshkey_load_public(tmp, &ca, NULL)) != 0)
-			fatal("Cannot load CA public key %s: %s",
-			    tmp, ssh_err(r));
+			fatal_r(r, "Cannot load CA public key %s", tmp);
 		if ((r = ssh_get_authentication_socket(&agent_fd)) != 0)
-			fatal("Cannot use public key for CA signature: %s",
-			    ssh_err(r));
+			fatal_r(r, "Cannot use public key for CA signature");
 		if ((r = ssh_fetch_identitylist(agent_fd, &agent_ids)) != 0)
-			fatal("Retrieve agent key list: %s", ssh_err(r));
+			fatal_r(r, "Retrieve agent key list");
 		found = 0;
 		for (j = 0; j < agent_ids->nkeys; j++) {
 			if (sshkey_equal(ca, agent_ids->keys[j])) {
@@ -1757,15 +1781,27 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 	} else {
 		/* CA key is assumed to be a private key on the filesystem */
 		ca = load_identity(tmp, NULL);
+		if (sshkey_is_sk(ca) &&
+		    (ca->sk_flags & SSH_SK_USER_VERIFICATION_REQD)) {
+			if ((pin = read_passphrase("Enter PIN for CA key: ",
+			    RP_ALLOW_STDIN)) == NULL)
+				fatal_f("couldn't read PIN");
+		}
 	}
 	free(tmp);
 
-	if (key_type_name != NULL &&
-	    sshkey_type_from_name(key_type_name) != ca->type)  {
-		fatal("CA key type %s doesn't match specified %s",
-		    sshkey_ssh_name(ca), key_type_name);
+	if (key_type_name != NULL) {
+		if (sshkey_type_from_name(key_type_name) != ca->type) {
+			fatal("CA key type %s doesn't match specified %s",
+			    sshkey_ssh_name(ca), key_type_name);
+		}
+	} else if (ca->type == KEY_RSA) {
+		/* Default to a good signature algorithm */
+		key_type_name = "rsa-sha2-512";
 	}
+	ca_fp = sshkey_fingerprint(ca, fingerprint_hash, SSH_FP_DEFAULT);
 
+	finalise_cert_exts();
 	for (i = 0; i < argc; i++) {
 		/* Split list of principals */
 		n = 0;
@@ -1784,18 +1820,14 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 
 		tmp = tilde_expand_filename(argv[i], pw->pw_uid);
 		if ((r = sshkey_load_public(tmp, &public, &comment)) != 0)
-			fatal("%s: unable to open \"%s\": %s",
-			    __func__, tmp, ssh_err(r));
-		if (public->type != KEY_RSA && public->type != KEY_DSA &&
-		    public->type != KEY_ECDSA && public->type != KEY_ED25519 &&
-		    public->type != KEY_XMSS)
-			fatal("%s: key \"%s\" type %s cannot be certified",
-			    __func__, tmp, sshkey_type(public));
+			fatal_r(r, "load pubkey \"%s\"", tmp);
+		if (sshkey_is_cert(public))
+			fatal_f("key \"%s\" type %s cannot be certified",
+			    tmp, sshkey_type(public));
 
 		/* Prepare certificate to sign */
 		if ((r = sshkey_to_certified(public)) != 0)
-			fatal("Could not upgrade key %s to certificate: %s",
-			    tmp, ssh_err(r));
+			fatal_r(r, "Could not upgrade key %s to certificate", tmp);
 		public->cert->type = cert_key_type;
 		public->cert->serial = (u_int64_t)cert_serial;
 		public->cert->key_id = xstrdup(cert_key_id);
@@ -1808,17 +1840,25 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		    OPTIONS_EXTENSIONS);
 		if ((r = sshkey_from_private(ca,
 		    &public->cert->signature_key)) != 0)
-			fatal("sshkey_from_private (ca key): %s", ssh_err(r));
+			fatal_r(r, "sshkey_from_private (ca key)");
 
 		if (agent_fd != -1 && (ca->flags & SSHKEY_FLAG_EXT) != 0) {
 			if ((r = sshkey_certify_custom(public, ca,
-			    key_type_name, agent_signer, &agent_fd)) != 0)
-				fatal("Couldn't certify key %s via agent: %s",
-				    tmp, ssh_err(r));
+			    key_type_name, sk_provider, NULL, agent_signer,
+			    &agent_fd)) != 0)
+				fatal_r(r, "Couldn't certify %s via agent", tmp);
 		} else {
-			if ((sshkey_certify(public, ca, key_type_name)) != 0)
-				fatal("Couldn't certify key %s: %s",
-				    tmp, ssh_err(r));
+			if (sshkey_is_sk(ca) &&
+			    (ca->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
+				notifier = notify_start(0,
+				    "Confirm user presence for key %s %s",
+				    sshkey_type(ca), ca_fp);
+			}
+			r = sshkey_certify(public, ca, key_type_name,
+			    sk_provider, pin);
+			notify_complete(notifier, "User presence confirmed");
+			if (r != 0)
+				fatal_r(r, "Couldn't certify key %s", tmp);
 		}
 
 		if ((cp = strrchr(tmp, '.')) != NULL && strcmp(cp, ".pub") == 0)
@@ -1826,16 +1866,10 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		xasprintf(&out, "%s-cert.pub", tmp);
 		free(tmp);
 
-		if ((fd = open(out, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
-			fatal("Could not open \"%s\" for writing: %s", out,
-			    strerror(errno));		
-		if ((f = fdopen(fd, "w")) == NULL)
-			fatal("%s: fdopen: %s", __func__, strerror(errno));
-		if ((r = sshkey_write(public, f)) != 0)
-			fatal("Could not write certified key to %s: %s",
-			    out, ssh_err(r));
-		fprintf(f, " %s\n", comment);
-		fclose(f);
+		if ((r = sshkey_save_public(public, out, comment)) != 0) {
+			fatal_r(r, "Unable to save public key to %s",
+			    identity_file);
+		}
 
 		if (!quiet) {
 			sshkey_format_cert_validity(public->cert,
@@ -1854,6 +1888,9 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		if (cert_serial_autoinc)
 			cert_serial++;
 	}
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
+	free(ca_fp);
 #ifdef ENABLE_PKCS11
 	pkcs11_terminate();
 #endif
@@ -1952,6 +1989,10 @@ add_cert_option(char *opt)
 		certflags_flags &= ~CERTOPT_USER_RC;
 	else if (strcasecmp(opt, "permit-user-rc") == 0)
 		certflags_flags |= CERTOPT_USER_RC;
+	else if (strcasecmp(opt, "touch-required") == 0)
+		certflags_flags &= ~CERTOPT_NO_REQUIRE_USER_PRESENCE;
+	else if (strcasecmp(opt, "no-touch-required") == 0)
+		certflags_flags |= CERTOPT_NO_REQUIRE_USER_PRESENCE;
 	else if (strncasecmp(opt, "force-command=", 14) == 0) {
 		val = opt + 14;
 		if (*val == '\0')
@@ -1973,13 +2014,8 @@ add_cert_option(char *opt)
 		val = xstrdup(strchr(opt, ':') + 1);
 		if ((cp = strchr(val, '=')) != NULL)
 			*cp++ = '\0';
-		cert_userext = xreallocarray(cert_userext, ncert_userext + 1,
-		    sizeof(*cert_userext));
-		cert_userext[ncert_userext].key = val;
-		cert_userext[ncert_userext].val = cp == NULL ?
-		    NULL : xstrdup(cp);
-		cert_userext[ncert_userext].crit = iscrit;
-		ncert_userext++;
+		cert_ext_add(val, cp, iscrit);
+		free(val);
 	} else
 		fatal("Unsupported certificate option \"%s\"", opt);
 }
@@ -1987,39 +2023,42 @@ add_cert_option(char *opt)
 static void
 show_options(struct sshbuf *optbuf, int in_critical)
 {
-	char *name, *arg;
+	char *name, *arg, *hex;
 	struct sshbuf *options, *option = NULL;
 	int r;
 
 	if ((options = sshbuf_fromb(optbuf)) == NULL)
-		fatal("%s: sshbuf_fromb failed", __func__);
+		fatal_f("sshbuf_fromb failed");
 	while (sshbuf_len(options) != 0) {
 		sshbuf_free(option);
 		option = NULL;
 		if ((r = sshbuf_get_cstring(options, &name, NULL)) != 0 ||
 		    (r = sshbuf_froms(options, &option)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "parse option");
 		printf("                %s", name);
 		if (!in_critical &&
 		    (strcmp(name, "permit-X11-forwarding") == 0 ||
 		    strcmp(name, "permit-agent-forwarding") == 0 ||
 		    strcmp(name, "permit-port-forwarding") == 0 ||
 		    strcmp(name, "permit-pty") == 0 ||
-		    strcmp(name, "permit-user-rc") == 0))
+		    strcmp(name, "permit-user-rc") == 0 ||
+		    strcmp(name, "no-touch-required") == 0)) {
 			printf("\n");
-		else if (in_critical &&
+		} else if (in_critical &&
 		    (strcmp(name, "force-command") == 0 ||
 		    strcmp(name, "source-address") == 0)) {
 			if ((r = sshbuf_get_cstring(option, &arg, NULL)) != 0)
-				fatal("%s: buffer error: %s",
-				    __func__, ssh_err(r));
+				fatal_fr(r, "parse critical");
 			printf(" %s\n", arg);
 			free(arg);
-		} else {
-			printf(" UNKNOWN OPTION (len %zu)\n",
-			    sshbuf_len(option));
+		} else if (sshbuf_len(option) > 0) {
+			hex = sshbuf_dtob16(option);
+			printf(" UNKNOWN OPTION: %s (len %zu)\n",
+			    hex, sshbuf_len(option));
 			sshbuf_reset(option);
-		}
+			free(hex);
+		} else
+			printf(" UNKNOWN FLAG OPTION\n");
 		free(name);
 		if (sshbuf_len(option) != 0)
 			fatal("Option corrupt: extra data at end");
@@ -2038,7 +2077,7 @@ print_cert(struct sshkey *key)
 	ca_fp = sshkey_fingerprint(key->cert->signature_key,
 	    fingerprint_hash, SSH_FP_DEFAULT);
 	if (key_fp == NULL || ca_fp == NULL)
-		fatal("%s: sshkey_fingerprint fail", __func__);
+		fatal_f("sshkey_fingerprint fail");
 	sshkey_format_cert_validity(key->cert, valid, sizeof(valid));
 
 	printf("        Type: %s %s certificate\n", sshkey_ssh_name(key),
@@ -2111,8 +2150,7 @@ do_show_cert(struct passwd *pw)
 		if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
 			fatal("sshkey_new");
 		if ((r = sshkey_read(key, &cp)) != 0) {
-			error("%s:%lu: invalid key: %s", path,
-			    lnum, ssh_err(r));
+			error_r(r, "%s:%lu: invalid key", path, lnum);
 			continue;
 		}
 		if (!sshkey_is_cert(key)) {
@@ -2136,19 +2174,14 @@ static void
 load_krl(const char *path, struct ssh_krl **krlp)
 {
 	struct sshbuf *krlbuf;
-	int r, fd;
+	int r;
 
-	if ((krlbuf = sshbuf_new()) == NULL)
-		fatal("sshbuf_new failed");
-	if ((fd = open(path, O_RDONLY)) == -1)
-		fatal("open %s: %s", path, strerror(errno));
-	if ((r = sshkey_load_file(fd, krlbuf)) != 0)
-		fatal("Unable to load KRL: %s", ssh_err(r));
-	close(fd);
+	if ((r = sshbuf_load_file(path, &krlbuf)) != 0)
+		fatal_r(r, "Unable to load KRL %s", path);
 	/* XXX check sigs */
 	if ((r = ssh_krl_from_blob(krlbuf, krlp, NULL, 0)) != 0 ||
 	    *krlp == NULL)
-		fatal("Invalid KRL file: %s", ssh_err(r));
+		fatal_r(r, "Invalid KRL file %s", path);
 	sshbuf_free(krlbuf);
 }
 
@@ -2177,9 +2210,9 @@ hash_to_blob(const char *cp, u_char **blobp, size_t *lenp,
 		tmp[tlen] = '\0';
 	}
 	if ((b = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	if ((r = sshbuf_b64tod(b, tmp)) != 0)
-		fatal("%s:%lu: decode hash failed: %s", file, lnum, ssh_err(r));
+		fatal_r(r, "%s:%lu: decode hash failed", file, lnum);
 	free(tmp);
 	*lenp = sshbuf_len(b);
 	*blobp = xmalloc(*lenp);
@@ -2265,8 +2298,7 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 			}
 			if (ssh_krl_revoke_cert_by_serial_range(krl,
 			    ca, serial, serial2) != 0) {
-				fatal("%s: revoke serial failed",
-				    __func__);
+				fatal_f("revoke serial failed");
 			}
 		} else if (strncasecmp(cp, "id:", 3) == 0) {
 			if (ca == NULL && !wild_ca) {
@@ -2276,12 +2308,14 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 			cp += 3;
 			cp = cp + strspn(cp, " \t");
 			if (ssh_krl_revoke_cert_by_key_id(krl, ca, cp) != 0)
-				fatal("%s: revoke key ID failed", __func__);
+				fatal_f("revoke key ID failed");
 		} else if (strncasecmp(cp, "hash:", 5) == 0) {
 			cp += 5;
 			cp = cp + strspn(cp, " \t");
 			hash_to_blob(cp, &blob, &blen, file, lnum);
 			r = ssh_krl_revoke_key_sha256(krl, blob, blen);
+			if (r != 0)
+				fatal_fr(r, "revoke key failed");
 		} else {
 			if (strncasecmp(cp, "key:", 4) == 0) {
 				cp += 4;
@@ -2303,8 +2337,7 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 			if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
 				fatal("sshkey_new");
 			if ((r = sshkey_read(key, &cp)) != 0)
-				fatal("%s:%lu: invalid key: %s",
-				    path, lnum, ssh_err(r));
+				fatal_r(r, "%s:%lu: invalid key", path, lnum);
 			if (was_explicit_key)
 				r = ssh_krl_revoke_key_explicit(krl, key);
 			else if (was_sha1) {
@@ -2324,8 +2357,7 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 			} else
 				r = ssh_krl_revoke_key(krl, key);
 			if (r != 0)
-				fatal("%s: revoke key failed: %s",
-				    __func__, ssh_err(r));
+				fatal_fr(r, "revoke key failed");
 			freezero(blob, blen);
 			blob = NULL;
 			blen = 0;
@@ -2346,7 +2378,7 @@ do_gen_krl(struct passwd *pw, int updating, const char *ca_key_path,
 	struct ssh_krl *krl;
 	struct stat sb;
 	struct sshkey *ca = NULL;
-	int fd, i, r, wild_ca = 0;
+	int i, r, wild_ca = 0;
 	char *tmp;
 	struct sshbuf *kbuf;
 
@@ -2365,8 +2397,7 @@ do_gen_krl(struct passwd *pw, int updating, const char *ca_key_path,
 		else {
 			tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
 			if ((r = sshkey_load_public(tmp, &ca, NULL)) != 0)
-				fatal("Cannot load CA public key %s: %s",
-				    tmp, ssh_err(r));
+				fatal_r(r, "Cannot load CA public key %s", tmp);
 			free(tmp);
 		}
 	}
@@ -2388,19 +2419,15 @@ do_gen_krl(struct passwd *pw, int updating, const char *ca_key_path,
 		fatal("sshbuf_new failed");
 	if (ssh_krl_to_blob(krl, kbuf, NULL, 0) != 0)
 		fatal("Couldn't generate KRL");
-	if ((fd = open(identity_file, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
-		fatal("open %s: %s", identity_file, strerror(errno));
-	if (atomicio(vwrite, fd, sshbuf_mutable_ptr(kbuf), sshbuf_len(kbuf)) !=
-	    sshbuf_len(kbuf))
+	if ((r = sshbuf_write_file(identity_file, kbuf)) != 0)
 		fatal("write %s: %s", identity_file, strerror(errno));
-	close(fd);
 	sshbuf_free(kbuf);
 	ssh_krl_free(krl);
 	sshkey_free(ca);
 }
 
 static void
-do_check_krl(struct passwd *pw, int argc, char **argv)
+do_check_krl(struct passwd *pw, int print_krl, int argc, char **argv)
 {
 	int i, r, ret = 0;
 	char *comment;
@@ -2410,10 +2437,11 @@ do_check_krl(struct passwd *pw, int argc, char **argv)
 	if (*identity_file == '\0')
 		fatal("KRL checking requires an input file");
 	load_krl(identity_file, &krl);
+	if (print_krl)
+		krl_dump(krl, stdout);
 	for (i = 0; i < argc; i++) {
 		if ((r = sshkey_load_public(argv[i], &k, &comment)) != 0)
-			fatal("Cannot load public key %s: %s",
-			    argv[i], ssh_err(r));
+			fatal_r(r, "Cannot load public key %s", argv[i]);
 		r = ssh_krl_check_key(krl, k);
 		printf("%s%s%s%s: %s\n", argv[i],
 		    *comment ? " (" : "", comment, *comment ? ")" : "",
@@ -2437,7 +2465,7 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 	int r;
 
 	/*
-	 * If passed a public key filename, then try to locate the correponding
+	 * If passed a public key filename, then try to locate the corresponding
 	 * private key. This lets us specify certificates on the command-line
 	 * and have ssh-keygen find the appropriate private key.
 	 */
@@ -2447,8 +2475,8 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 		    strcmp(privpath + plen - slen, suffixes[i]) != 0)
 			continue;
 		privpath[plen - slen] = '\0';
-		debug("%s: %s looks like a public key, using private key "
-		    "path %s instead", __func__, keypath, privpath);
+		debug_f("%s looks like a public key, using private key "
+		    "path %s instead", keypath, privpath);
 	}
 	if ((privkey = load_identity(privpath, NULL)) == NULL) {
 		error("Couldn't load identity %s", keypath);
@@ -2465,12 +2493,11 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 		 * it capable of signing.
 		 */
 		if ((r = sshkey_to_certified(privkey)) != 0) {
-			error("%s: sshkey_to_certified: %s", __func__,
-			    ssh_err(r));
+			error_fr(r, "sshkey_to_certified");
 			goto done;
 		}
 		if ((r = sshkey_cert_copy(pubkey, privkey)) != 0) {
-			error("%s: sshkey_cert_copy: %s", __func__, ssh_err(r));
+			error_fr(r, "sshkey_cert_copy");
 			goto done;
 		}
 	}
@@ -2489,8 +2516,8 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 {
 	struct sshbuf *sigbuf = NULL, *abuf = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR, wfd = -1, oerrno;
-	char *wfile = NULL;
-	char *asig = NULL;
+	char *wfile = NULL, *asig = NULL, *fp = NULL;
+	char *pin = NULL, *prompt = NULL;
 
 	if (!quiet) {
 		if (fd == STDIN_FILENO)
@@ -2498,17 +2525,34 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 		else
 			fprintf(stderr, "Signing file %s\n", filename);
 	}
-	if ((r = sshsig_sign_fd(signkey, NULL, fd, sig_namespace,
-	    &sigbuf, signer, signer_ctx)) != 0) {
-		error("Signing %s failed: %s", filename, ssh_err(r));
+	if (signer == NULL && sshkey_is_sk(signkey)) {
+		if ((signkey->sk_flags & SSH_SK_USER_VERIFICATION_REQD)) {
+			xasprintf(&prompt, "Enter PIN for %s key: ",
+			    sshkey_type(signkey));
+			if ((pin = read_passphrase(prompt,
+			    RP_ALLOW_STDIN)) == NULL)
+				fatal_f("couldn't read PIN");
+		}
+		if ((signkey->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
+			if ((fp = sshkey_fingerprint(signkey, fingerprint_hash,
+			    SSH_FP_DEFAULT)) == NULL)
+				fatal_f("fingerprint failed");
+			fprintf(stderr, "Confirm user presence for key %s %s\n",
+			    sshkey_type(signkey), fp);
+			free(fp);
+		}
+	}
+	if ((r = sshsig_sign_fd(signkey, NULL, sk_provider, pin,
+	    fd, sig_namespace, &sigbuf, signer, signer_ctx)) != 0) {
+		error_r(r, "Signing %s failed", filename);
 		goto out;
 	}
 	if ((r = sshsig_armor(sigbuf, &abuf)) != 0) {
-		error("%s: sshsig_armor: %s", __func__, ssh_err(r));
+		error_fr(r, "sshsig_armor");
 		goto out;
 	}
 	if ((asig = sshbuf_dup_string(abuf)) == NULL) {
-		error("%s: buffer error", __func__);
+		error_f("buffer error");
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
@@ -2547,7 +2591,10 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 	r = 0;
  out:
 	free(wfile);
+	free(prompt);
 	free(asig);
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 	sshbuf_free(abuf);
 	sshbuf_free(sigbuf);
 	if (wfd != -1)
@@ -2556,7 +2603,7 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 }
 
 static int
-sign(const char *keypath, const char *sig_namespace, int argc, char **argv)
+sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv)
 {
 	int i, fd = -1, r, ret = -1;
 	int agent_fd = -1;
@@ -2572,17 +2619,17 @@ sign(const char *keypath, const char *sig_namespace, int argc, char **argv)
 	}
 
 	if ((r = sshkey_load_public(keypath, &pubkey, NULL)) != 0) {
-		error("Couldn't load public key %s: %s", keypath, ssh_err(r));
+		error_r(r, "Couldn't load public key %s", keypath);
 		goto done;
 	}
 
 	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0)
-		debug("Couldn't get agent socket: %s", ssh_err(r));
+		debug_r(r, "Couldn't get agent socket");
 	else {
 		if ((r = ssh_agent_has_key(agent_fd, pubkey)) == 0)
 			signer = agent_signer;
 		else
-			debug("Couldn't find key in agent: %s", ssh_err(r));
+			debug_r(r, "Couldn't find key in agent");
 	}
 
 	if (signer == NULL) {
@@ -2627,52 +2674,50 @@ done:
 }
 
 static int
-verify(const char *signature, const char *sig_namespace, const char *principal,
-    const char *allowed_keys, const char *revoked_keys)
+sig_verify(const char *signature, const char *sig_namespace,
+    const char *principal, const char *allowed_keys, const char *revoked_keys)
 {
-	int r, ret = -1, sigfd = -1;
+	int r, ret = -1;
 	struct sshbuf *sigbuf = NULL, *abuf = NULL;
 	struct sshkey *sign_key = NULL;
 	char *fp = NULL;
+	struct sshkey_sig_details *sig_details = NULL;
 
-	if ((abuf = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new() failed", __func__);
-
-	if ((sigfd = open(signature, O_RDONLY)) < 0) {
-		error("Couldn't open signature file %s", signature);
+	memset(&sig_details, 0, sizeof(sig_details));
+	if ((r = sshbuf_load_file(signature, &abuf)) != 0) {
+		error_r(r, "Couldn't read signature file");
 		goto done;
 	}
 
-	if ((r = sshkey_load_file(sigfd, abuf)) != 0) {
-		error("Couldn't read signature file: %s", ssh_err(r));
-		goto done;
-	}
 	if ((r = sshsig_dearmor(abuf, &sigbuf)) != 0) {
-		error("%s: sshsig_armor: %s", __func__, ssh_err(r));
-		return r;
+		error_fr(r, "sshsig_armor");
+		goto done;
 	}
 	if ((r = sshsig_verify_fd(sigbuf, STDIN_FILENO, sig_namespace,
-	    &sign_key)) != 0)
+	    &sign_key, &sig_details)) != 0)
 		goto done; /* sshsig_verify() prints error */
 
 	if ((fp = sshkey_fingerprint(sign_key, fingerprint_hash,
 	    SSH_FP_DEFAULT)) == NULL)
-		fatal("%s: sshkey_fingerprint failed", __func__);
+		fatal_f("sshkey_fingerprint failed");
 	debug("Valid (unverified) signature from key %s", fp);
+	if (sig_details != NULL) {
+		debug2_f("signature details: counter = %u, flags = 0x%02x",
+		    sig_details->sk_counter, sig_details->sk_flags);
+	}
 	free(fp);
 	fp = NULL;
 
 	if (revoked_keys != NULL) {
 		if ((r = sshkey_check_revoked(sign_key, revoked_keys)) != 0) {
-			debug3("sshkey_check_revoked failed: %s", ssh_err(r));
+			debug3_fr(r, "sshkey_check_revoked");
 			goto done;
 		}
 	}
 
-	if (allowed_keys != NULL &&
-	    (r = sshsig_check_allowed_keys(allowed_keys, sign_key,
-					   principal, sig_namespace)) != 0) {
-		debug3("sshsig_check_allowed_keys failed: %s", ssh_err(r));
+	if (allowed_keys != NULL && (r = sshsig_check_allowed_keys(allowed_keys,
+	    sign_key, principal, sig_namespace)) != 0) {
+		debug3_fr(r, "sshsig_check_allowed_keys");
 		goto done;
 	}
 	/* success */
@@ -2681,10 +2726,8 @@ done:
 	if (!quiet) {
 		if (ret == 0) {
 			if ((fp = sshkey_fingerprint(sign_key, fingerprint_hash,
-			    SSH_FP_DEFAULT)) == NULL) {
-				fatal("%s: sshkey_fingerprint failed",
-				    __func__);
-			}
+			    SSH_FP_DEFAULT)) == NULL)
+				fatal_f("sshkey_fingerprint failed");
 			if (principal == NULL) {
 				printf("Good \"%s\" signature with %s key %s\n",
 				       sig_namespace, sshkey_type(sign_key), fp);
@@ -2698,27 +2741,341 @@ done:
 			printf("Could not verify signature.\n");
 		}
 	}
-	if (sigfd != -1)
-		close(sigfd);
 	sshbuf_free(sigbuf);
 	sshbuf_free(abuf);
 	sshkey_free(sign_key);
+	sshkey_sig_details_free(sig_details);
 	free(fp);
 	return ret;
+}
+
+static int
+sig_find_principals(const char *signature, const char *allowed_keys) {
+	int r, ret = -1;
+	struct sshbuf *sigbuf = NULL, *abuf = NULL;
+	struct sshkey *sign_key = NULL;
+	char *principals = NULL, *cp, *tmp;
+
+	if ((r = sshbuf_load_file(signature, &abuf)) != 0) {
+		error_r(r, "Couldn't read signature file");
+		goto done;
+	}
+	if ((r = sshsig_dearmor(abuf, &sigbuf)) != 0) {
+		error_fr(r, "sshsig_armor");
+		goto done;
+	}
+	if ((r = sshsig_get_pubkey(sigbuf, &sign_key)) != 0) {
+		error_fr(r, "sshsig_get_pubkey");
+		goto done;
+	}
+	if ((r = sshsig_find_principals(allowed_keys, sign_key,
+	    &principals)) != 0) {
+		error_fr(r, "sshsig_get_principal");
+		goto done;
+	}
+	ret = 0;
+done:
+	if (ret == 0 ) {
+		/* Emit matching principals one per line */
+		tmp = principals;
+		while ((cp = strsep(&tmp, ",")) != NULL && *cp != '\0')
+			puts(cp);
+	} else {
+		fprintf(stderr, "No principal matched.\n");
+	}
+	sshbuf_free(sigbuf);
+	sshbuf_free(abuf);
+	sshkey_free(sign_key);
+	free(principals);
+	return ret;
+}
+
+static void
+do_moduli_gen(const char *out_file, char **opts, size_t nopts)
+{
+#ifdef WITH_OPENSSL
+	/* Moduli generation/screening */
+	u_int32_t memory = 0;
+	BIGNUM *start = NULL;
+	int moduli_bits = 0;
+	FILE *out;
+	size_t i;
+	const char *errstr;
+
+	/* Parse options */
+	for (i = 0; i < nopts; i++) {
+		if (strncmp(opts[i], "memory=", 7) == 0) {
+			memory = (u_int32_t)strtonum(opts[i]+7, 1,
+			    UINT_MAX, &errstr);
+			if (errstr) {
+				fatal("Memory limit is %s: %s",
+				    errstr, opts[i]+7);
+			}
+		} else if (strncmp(opts[i], "start=", 6) == 0) {
+			/* XXX - also compare length against bits */
+			if (BN_hex2bn(&start, opts[i]+6) == 0)
+				fatal("Invalid start point.");
+		} else if (strncmp(opts[i], "bits=", 5) == 0) {
+			moduli_bits = (int)strtonum(opts[i]+5, 1,
+			    INT_MAX, &errstr);
+			if (errstr) {
+				fatal("Invalid number: %s (%s)",
+					opts[i]+12, errstr);
+			}
+		} else {
+			fatal("Option \"%s\" is unsupported for moduli "
+			    "generation", opts[i]);
+		}
+	}
+
+	if ((out = fopen(out_file, "w")) == NULL) {
+		fatal("Couldn't open modulus candidate file \"%s\": %s",
+		    out_file, strerror(errno));
+	}
+	setvbuf(out, NULL, _IOLBF, 0);
+
+	if (moduli_bits == 0)
+		moduli_bits = DEFAULT_BITS;
+	if (gen_candidates(out, memory, moduli_bits, start) != 0)
+		fatal("modulus candidate generation failed");
+#else /* WITH_OPENSSL */
+	fatal("Moduli generation is not supported");
+#endif /* WITH_OPENSSL */
+}
+
+static void
+do_moduli_screen(const char *out_file, char **opts, size_t nopts)
+{
+#ifdef WITH_OPENSSL
+	/* Moduli generation/screening */
+	char *checkpoint = NULL;
+	u_int32_t generator_wanted = 0;
+	unsigned long start_lineno = 0, lines_to_process = 0;
+	int prime_tests = 0;
+	FILE *out, *in = stdin;
+	size_t i;
+	const char *errstr;
+
+	/* Parse options */
+	for (i = 0; i < nopts; i++) {
+		if (strncmp(opts[i], "lines=", 6) == 0) {
+			lines_to_process = strtoul(opts[i]+6, NULL, 10);
+		} else if (strncmp(opts[i], "start-line=", 11) == 0) {
+			start_lineno = strtoul(opts[i]+11, NULL, 10);
+		} else if (strncmp(opts[i], "checkpoint=", 11) == 0) {
+			checkpoint = xstrdup(opts[i]+11);
+		} else if (strncmp(opts[i], "generator=", 10) == 0) {
+			generator_wanted = (u_int32_t)strtonum(
+			    opts[i]+10, 1, UINT_MAX, &errstr);
+			if (errstr != NULL) {
+				fatal("Generator invalid: %s (%s)",
+				    opts[i]+10, errstr);
+			}
+		} else if (strncmp(opts[i], "prime-tests=", 12) == 0) {
+			prime_tests = (int)strtonum(opts[i]+12, 1,
+			    INT_MAX, &errstr);
+			if (errstr) {
+				fatal("Invalid number: %s (%s)",
+					opts[i]+12, errstr);
+			}
+		} else {
+			fatal("Option \"%s\" is unsupported for moduli "
+			    "screening", opts[i]);
+		}
+	}
+
+	if (have_identity && strcmp(identity_file, "-") != 0) {
+		if ((in = fopen(identity_file, "r")) == NULL) {
+			fatal("Couldn't open modulus candidate "
+			    "file \"%s\": %s", identity_file,
+			    strerror(errno));
+		}
+	}
+
+	if ((out = fopen(out_file, "a")) == NULL) {
+		fatal("Couldn't open moduli file \"%s\": %s",
+		    out_file, strerror(errno));
+	}
+	setvbuf(out, NULL, _IOLBF, 0);
+	if (prime_test(in, out, prime_tests == 0 ? 100 : prime_tests,
+	    generator_wanted, checkpoint,
+	    start_lineno, lines_to_process) != 0)
+		fatal("modulus screening failed");
+#else /* WITH_OPENSSL */
+	fatal("Moduli screening is not supported");
+#endif /* WITH_OPENSSL */
+}
+
+static char *
+private_key_passphrase(void)
+{
+	char *passphrase1, *passphrase2;
+
+	/* Ask for a passphrase (twice). */
+	if (identity_passphrase)
+		passphrase1 = xstrdup(identity_passphrase);
+	else if (identity_new_passphrase)
+		passphrase1 = xstrdup(identity_new_passphrase);
+	else {
+passphrase_again:
+		passphrase1 =
+			read_passphrase("Enter passphrase (empty for no "
+			    "passphrase): ", RP_ALLOW_STDIN);
+		passphrase2 = read_passphrase("Enter same passphrase again: ",
+		    RP_ALLOW_STDIN);
+		if (strcmp(passphrase1, passphrase2) != 0) {
+			/*
+			 * The passphrases do not match.  Clear them and
+			 * retry.
+			 */
+			freezero(passphrase1, strlen(passphrase1));
+			freezero(passphrase2, strlen(passphrase2));
+			printf("Passphrases do not match.  Try again.\n");
+			goto passphrase_again;
+		}
+		/* Clear the other copy of the passphrase. */
+		freezero(passphrase2, strlen(passphrase2));
+	}
+	return passphrase1;
+}
+
+static const char *
+skip_ssh_url_preamble(const char *s)
+{
+	if (strncmp(s, "ssh://", 6) == 0)
+		return s + 6;
+	else if (strncmp(s, "ssh:", 4) == 0)
+		return s + 4;
+	return s;
+}
+
+static int
+do_download_sk(const char *skprovider, const char *device)
+{
+	struct sshkey **keys;
+	size_t nkeys, i;
+	int r, ret = -1;
+	char *fp, *pin = NULL, *pass = NULL, *path, *pubpath;
+	const char *ext;
+
+	if (skprovider == NULL)
+		fatal("Cannot download keys without provider");
+
+	pin = read_passphrase("Enter PIN for authenticator: ", RP_ALLOW_STDIN);
+	if (!quiet) {
+		printf("You may need to touch your authenticator "
+		    "to authorize key download.\n");
+	}
+	if ((r = sshsk_load_resident(skprovider, device, pin,
+	    &keys, &nkeys)) != 0) {
+		if (pin != NULL)
+			freezero(pin, strlen(pin));
+		error_r(r, "Unable to load resident keys");
+		return -1;
+	}
+	if (nkeys == 0)
+		logit("No keys to download");
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
+
+	for (i = 0; i < nkeys; i++) {
+		if (keys[i]->type != KEY_ECDSA_SK &&
+		    keys[i]->type != KEY_ED25519_SK) {
+			error("Unsupported key type %s (%d)",
+			    sshkey_type(keys[i]), keys[i]->type);
+			continue;
+		}
+		if ((fp = sshkey_fingerprint(keys[i],
+		    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+			fatal_f("sshkey_fingerprint failed");
+		debug_f("key %zu: %s %s %s (flags 0x%02x)", i,
+		    sshkey_type(keys[i]), fp, keys[i]->sk_application,
+		    keys[i]->sk_flags);
+		ext = skip_ssh_url_preamble(keys[i]->sk_application);
+		xasprintf(&path, "id_%s_rk%s%s",
+		    keys[i]->type == KEY_ECDSA_SK ? "ecdsa_sk" : "ed25519_sk",
+		    *ext == '\0' ? "" : "_", ext);
+
+		/* If the file already exists, ask the user to confirm. */
+		if (!confirm_overwrite(path)) {
+			free(path);
+			break;
+		}
+
+		/* Save the key with the application string as the comment */
+		if (pass == NULL)
+			pass = private_key_passphrase();
+		if ((r = sshkey_save_private(keys[i], path, pass,
+		    keys[i]->sk_application, private_key_format,
+		    openssh_format_cipher, rounds)) != 0) {
+			error_r(r, "Saving key \"%s\" failed", path);
+			free(path);
+			break;
+		}
+		if (!quiet) {
+			printf("Saved %s key%s%s to %s\n",
+			    sshkey_type(keys[i]),
+			    *ext != '\0' ? " " : "",
+			    *ext != '\0' ? keys[i]->sk_application : "",
+			    path);
+		}
+
+		/* Save public key too */
+		xasprintf(&pubpath, "%s.pub", path);
+		free(path);
+		if ((r = sshkey_save_public(keys[i], pubpath,
+		    keys[i]->sk_application)) != 0) {
+			error_r(r, "Saving public key \"%s\" failed", pubpath);
+			free(pubpath);
+			break;
+		}
+		free(pubpath);
+	}
+
+	if (i >= nkeys)
+		ret = 0; /* success */
+	if (pass != NULL)
+		freezero(pass, strlen(pass));
+	for (i = 0; i < nkeys; i++)
+		sshkey_free(keys[i]);
+	free(keys);
+	return ret;
+}
+
+static void
+save_attestation(struct sshbuf *attest, const char *path)
+{
+	mode_t omask;
+	int r;
+
+	if (path == NULL)
+		return; /* nothing to do */
+	if (attest == NULL || sshbuf_len(attest) == 0)
+		fatal("Enrollment did not return attestation data");
+	omask = umask(077);
+	r = sshbuf_write_file(path, attest);
+	umask(omask);
+	if (r != 0)
+		fatal_r(r, "Unable to write attestation data \"%s\"", path);
+	if (!quiet)
+		printf("Your FIDO attestation certificate has been saved in "
+		    "%s\n", path);
 }
 
 static void
 usage(void)
 {
 	fprintf(stderr,
-	    "usage: ssh-keygen [-q] [-b bits] [-C comment] [-f output_keyfile] [-m format]\n"
-	    "                  [-N new_passphrase] [-t dsa | ecdsa | ed25519 | rsa]\n"
-	    "       ssh-keygen -p [-f keyfile] [-m format] [-N new_passphrase]\n"
-	    "                   [-P old_passphrase]\n"
+	    "usage: ssh-keygen [-q] [-a rounds] [-b bits] [-C comment] [-f output_keyfile]\n"
+	    "                  [-m format] [-N new_passphrase] [-O option]\n"
+	    "                  [-t dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
+	    "                  [-w provider] [-Z cipher]\n"
+	    "       ssh-keygen -p [-a rounds] [-f keyfile] [-m format] [-N new_passphrase]\n"
+	    "                   [-P old_passphrase] [-Z cipher]\n"
 	    "       ssh-keygen -i [-f input_keyfile] [-m key_format]\n"
 	    "       ssh-keygen -e [-f input_keyfile] [-m key_format]\n"
 	    "       ssh-keygen -y [-f input_keyfile]\n"
-	    "       ssh-keygen -c [-C comment] [-f keyfile] [-P passphrase]\n"
+	    "       ssh-keygen -c [-a rounds] [-C comment] [-f keyfile] [-P passphrase]\n"
 	    "       ssh-keygen -l [-v] [-E fingerprint_hash] [-f input_keyfile]\n"
 	    "       ssh-keygen -B [-f input_keyfile]\n");
 #ifdef ENABLE_PKCS11
@@ -2728,25 +3085,26 @@ usage(void)
 	fprintf(stderr,
 	    "       ssh-keygen -F hostname [-lv] [-f known_hosts_file]\n"
 	    "       ssh-keygen -H [-f known_hosts_file]\n"
+	    "       ssh-keygen -K [-a rounds] [-w provider]\n"
 	    "       ssh-keygen -R hostname [-f known_hosts_file]\n"
 	    "       ssh-keygen -r hostname [-g] [-f input_keyfile]\n"
 #ifdef WITH_OPENSSL
-	    "       ssh-keygen -G output_file [-v] [-b bits] [-M memory] [-S start_point]\n"
-	    "       ssh-keygen -f input_file -T output_file [-v] [-a rounds] [-J num_lines]\n"
-	    "                  [-j start_line] [-K checkpt] [-W generator]\n"
+	    "       ssh-keygen -M generate [-O option] output_file\n"
+	    "       ssh-keygen -M screen [-f input_file] [-O option] output_file\n"
 #endif
 	    "       ssh-keygen -I certificate_identity -s ca_key [-hU] [-D pkcs11_provider]\n"
 	    "                  [-n principals] [-O option] [-V validity_interval]\n"
 	    "                  [-z serial_number] file ...\n"
 	    "       ssh-keygen -L [-f input_keyfile]\n"
-	    "       ssh-keygen -A [-f prefix_path]\n"
+	    "       ssh-keygen -A [-a rounds] [-f prefix_path]\n"
 	    "       ssh-keygen -k -f krl_file [-u] [-s ca_public] [-z version_number]\n"
 	    "                  file ...\n"
-	    "       ssh-keygen -Q -f krl_file file ...\n"
+	    "       ssh-keygen -Q [-l] -f krl_file [file ...]\n"
+	    "       ssh-keygen -Y find-principals -s signature_file -f allowed_signers_file\n"
 	    "       ssh-keygen -Y check-novalidate -n namespace -s signature_file\n"
 	    "       ssh-keygen -Y sign -f key_file -n namespace file ...\n"
 	    "       ssh-keygen -Y verify -f allowed_signers_file -I signer_identity\n"
-	    "       		-n namespace -s signature_file [-r revocation_file]\n");
+	    "                  -n namespace -s signature_file [-r revocation_file]\n");
 	exit(1);
 }
 
@@ -2756,32 +3114,28 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	char dotsshdir[PATH_MAX], comment[1024], *passphrase1, *passphrase2;
+	char comment[1024], *passphrase;
 	char *rr_hostname = NULL, *ep, *fp, *ra;
 	struct sshkey *private, *public;
 	struct passwd *pw;
-	struct stat st;
-	int r, opt, type, fd;
+	int r, opt, type;
 	int change_passphrase = 0, change_comment = 0, show_cert = 0;
 	int find_host = 0, delete_host = 0, hash_hosts = 0;
 	int gen_all_hostkeys = 0, gen_krl = 0, update_krl = 0, check_krl = 0;
 	int prefer_agent = 0, convert_to = 0, convert_from = 0;
 	int print_public = 0, print_generic = 0, cert_serial_autoinc = 0;
+	int do_gen_candidates = 0, do_screen_candidates = 0, download_sk = 0;
 	unsigned long long cert_serial = 0;
-	char *identity_comment = NULL, *ca_key_path = NULL;
+	char *identity_comment = NULL, *ca_key_path = NULL, **opts = NULL;
+	char *sk_application = NULL, *sk_device = NULL, *sk_user = NULL;
+	char *sk_attestation_path = NULL;
+	struct sshbuf *challenge = NULL, *attest = NULL;
+	size_t i, nopts = 0;
 	u_int32_t bits = 0;
-	FILE *f;
+	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
 	const char *errstr;
 	int log_level = SYSLOG_LEVEL_INFO;
 	char *sign_op = NULL;
-#ifdef WITH_OPENSSL
-	/* Moduli generation/screening */
-	char out_file[PATH_MAX], *checkpoint = NULL;
-	u_int32_t memory = 0, generator_wanted = 0;
-	int do_gen_candidates = 0, do_screen_candidates = 0;
-	unsigned long start_lineno = 0, lines_to_process = 0;
-	BIGNUM *start = NULL;
-#endif
 
 	extern int optind;
 	extern char *optarg;
@@ -2804,10 +3158,12 @@ main(int argc, char **argv)
 	if (gethostname(hostname, sizeof(hostname)) == -1)
 		fatal("gethostname: %s", strerror(errno));
 
-	/* Remaining characters: dw */
-	while ((opt = getopt(argc, argv, "ABHLQUXceghiklopquvxy"
-	    "C:D:E:F:G:I:J:K:M:N:O:P:R:S:T:V:W:Y:Z:"
-	    "a:b:f:g:j:m:n:r:s:t:z:")) != -1) {
+	sk_provider = getenv("SSH_SK_PROVIDER");
+
+	/* Remaining characters: dGjJSTWx */
+	while ((opt = getopt(argc, argv, "ABHKLQUXceghiklopquvy"
+	    "C:D:E:F:I:M:N:O:P:R:V:Y:Z:"
+	    "a:b:f:g:m:n:r:s:t:w:z:")) != -1) {
 		switch (opt) {
 		case 'A':
 			gen_all_hostkeys = 1;
@@ -2885,6 +3241,9 @@ main(int argc, char **argv)
 		case 'g':
 			print_generic = 1;
 			break;
+		case 'K':
+			download_sk = 1;
+			break;
 		case 'P':
 			identity_passphrase = optarg;
 			break;
@@ -2895,10 +3254,15 @@ main(int argc, char **argv)
 			check_krl = 1;
 			break;
 		case 'O':
-			add_cert_option(optarg);
+			opts = xrecallocarray(opts, nopts, nopts + 1,
+			    sizeof(*opts));
+			opts[nopts++] = xstrdup(optarg);
 			break;
 		case 'Z':
 			openssh_format_cipher = optarg;
+			if (cipher_by_name(openssh_format_cipher) == NULL)
+				fatal("Invalid OpenSSH-format cipher '%s'",
+				    openssh_format_cipher);
 			break;
 		case 'C':
 			identity_comment = optarg;
@@ -2907,7 +3271,6 @@ main(int argc, char **argv)
 			quiet = 1;
 			break;
 		case 'e':
-		case 'x':
 			/* export key */
 			convert_to = 1;
 			break;
@@ -2965,6 +3328,9 @@ main(int argc, char **argv)
 		case 'Y':
 			sign_op = optarg;
 			break;
+		case 'w':
+			sk_provider = optarg;
+			break;
 		case 'z':
 			errno = 0;
 			if (*optarg == '+') {
@@ -2976,55 +3342,24 @@ main(int argc, char **argv)
 			    (errno == ERANGE && cert_serial == ULLONG_MAX))
 				fatal("Invalid serial number \"%s\"", optarg);
 			break;
-#ifdef WITH_OPENSSL
-		/* Moduli generation/screening */
-		case 'G':
-			do_gen_candidates = 1;
-			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
-			    sizeof(out_file))
-				fatal("Output filename too long");
-			break;
-		case 'J':
-			lines_to_process = strtoul(optarg, NULL, 10);
-			break;
-		case 'j':
-			start_lineno = strtoul(optarg, NULL, 10);
-			break;
-		case 'K':
-			if (strlen(optarg) >= PATH_MAX)
-				fatal("Checkpoint filename too long");
-			checkpoint = xstrdup(optarg);
-			break;
 		case 'M':
-			memory = (u_int32_t)strtonum(optarg, 1, UINT_MAX,
-			    &errstr);
-			if (errstr)
-				fatal("Memory limit is %s: %s", errstr, optarg);
+			if (strcmp(optarg, "generate") == 0)
+				do_gen_candidates = 1;
+			else if (strcmp(optarg, "screen") == 0)
+				do_screen_candidates = 1;
+			else
+				fatal("Unsupported moduli option %s", optarg);
 			break;
-		case 'S':
-			/* XXX - also compare length against bits */
-			if (BN_hex2bn(&start, optarg) == 0)
-				fatal("Invalid start point.");
-			break;
-		case 'T':
-			do_screen_candidates = 1;
-			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
-			    sizeof(out_file))
-				fatal("Output filename too long");
-			break;
-		case 'W':
-			generator_wanted = (u_int32_t)strtonum(optarg, 1,
-			    UINT_MAX, &errstr);
-			if (errstr != NULL)
-				fatal("Desired generator invalid: %s (%s)",
-				    optarg, errstr);
-			break;
-#endif /* WITH_OPENSSL */
 		case '?':
 		default:
 			usage();
 		}
 	}
+
+#ifdef ENABLE_SK_INTERNAL
+	if (sk_provider == NULL)
+		sk_provider = "internal";
+#endif
 
 	/* reinit */
 	log_init(argv[0], log_level, SYSLOG_FACILITY_USER, 1);
@@ -3033,27 +3368,47 @@ main(int argc, char **argv)
 	argc -= optind;
 
 	if (sign_op != NULL) {
-		if (cert_principals == NULL || *cert_principals == '\0') {
-			error("Too few arguments for sign/verify: "
-			    "missing namespace");
-			exit(1);
-		}
-		if (strncmp(sign_op, "sign", 4) == 0) {
+		if (strncmp(sign_op, "find-principals", 15) == 0) {
+			if (ca_key_path == NULL) {
+				error("Too few arguments for find-principals:"
+				      "missing signature file");
+				exit(1);
+			}
+			if (!have_identity) {
+				error("Too few arguments for find-principals:"
+				      "missing allowed keys file");
+				exit(1);
+			}
+			return sig_find_principals(ca_key_path, identity_file);
+		} else if (strncmp(sign_op, "sign", 4) == 0) {
+			if (cert_principals == NULL ||
+			    *cert_principals == '\0') {
+				error("Too few arguments for sign: "
+				    "missing namespace");
+				exit(1);
+			}
 			if (!have_identity) {
 				error("Too few arguments for sign: "
 				    "missing key");
 				exit(1);
 			}
-			return sign(identity_file, cert_principals, argc, argv);
+			return sig_sign(identity_file, cert_principals,
+			    argc, argv);
 		} else if (strncmp(sign_op, "check-novalidate", 16) == 0) {
 			if (ca_key_path == NULL) {
 				error("Too few arguments for check-novalidate: "
 				      "missing signature file");
 				exit(1);
 			}
-			return verify(ca_key_path, cert_principals,
-				      NULL, NULL, NULL);
+			return sig_verify(ca_key_path, cert_principals,
+			    NULL, NULL, NULL);
 		} else if (strncmp(sign_op, "verify", 6) == 0) {
+			if (cert_principals == NULL ||
+			    *cert_principals == '\0') {
+				error("Too few arguments for verify: "
+				    "missing namespace");
+				exit(1);
+			}
 			if (ca_key_path == NULL) {
 				error("Too few arguments for verify: "
 				    "missing signature file");
@@ -3069,9 +3424,10 @@ main(int argc, char **argv)
 				    "missing principal ID");
 				exit(1);
 			}
-			return verify(ca_key_path, cert_principals,
+			return sig_verify(ca_key_path, cert_principals,
 			    cert_key_id, identity_file, rr_hostname);
 		}
+		error("Unsupported operation for -Y: \"%s\"", sign_op);
 		usage();
 		/* NOTREACHED */
 	}
@@ -3081,7 +3437,8 @@ main(int argc, char **argv)
 			error("Too few arguments.");
 			usage();
 		}
-	} else if (argc > 0 && !gen_krl && !check_krl) {
+	} else if (argc > 0 && !gen_krl && !check_krl &&
+	    !do_gen_candidates && !do_screen_candidates) {
 		error("Too many arguments.");
 		usage();
 	}
@@ -3099,12 +3456,14 @@ main(int argc, char **argv)
 		return (0);
 	}
 	if (check_krl) {
-		do_check_krl(pw, argc, argv);
+		do_check_krl(pw, print_fingerprint, argc, argv);
 		return (0);
 	}
 	if (ca_key_path != NULL) {
 		if (cert_key_id == NULL)
 			fatal("Must specify key id (-I) when certifying");
+		for (i = 0; i < nopts; i++)
+			add_cert_option(opts[i]);
 		do_ca_sign(pw, ca_key_path, prefer_agent,
 		    cert_serial, cert_serial_autoinc, argc, argv);
 	}
@@ -3116,6 +3475,17 @@ main(int argc, char **argv)
 	}
 	if (pkcs11provider != NULL)
 		do_download(pw);
+	if (download_sk) {
+		for (i = 0; i < nopts; i++) {
+			if (strncasecmp(opts[i], "device=", 7) == 0) {
+				sk_device = xstrdup(opts[i] + 7);
+			} else {
+				fatal("Option \"%s\" is unsupported for "
+				    "FIDO authenticator download", opts[i]);
+			}
+		}
+		return do_download_sk(sk_provider, sk_device);
+	}
 	if (print_fingerprint || print_bubblebabble)
 		do_fingerprint(pw);
 	if (change_passphrase)
@@ -3165,47 +3535,20 @@ main(int argc, char **argv)
 		}
 	}
 
-#ifdef WITH_OPENSSL
+	if (do_gen_candidates || do_screen_candidates) {
+		if (argc <= 0)
+			fatal("No output file specified");
+		else if (argc > 1)
+			fatal("Too many output files specified");
+	}
 	if (do_gen_candidates) {
-		FILE *out = fopen(out_file, "w");
-
-		if (out == NULL) {
-			error("Couldn't open modulus candidate file \"%s\": %s",
-			    out_file, strerror(errno));
-			return (1);
-		}
-		if (bits == 0)
-			bits = DEFAULT_BITS;
-		if (gen_candidates(out, memory, bits, start) != 0)
-			fatal("modulus candidate generation failed");
-
-		return (0);
+		do_moduli_gen(argv[0], opts, nopts);
+		return 0;
 	}
-
 	if (do_screen_candidates) {
-		FILE *in;
-		FILE *out = fopen(out_file, "a");
-
-		if (have_identity && strcmp(identity_file, "-") != 0) {
-			if ((in = fopen(identity_file, "r")) == NULL) {
-				fatal("Couldn't open modulus candidate "
-				    "file \"%s\": %s", identity_file,
-				    strerror(errno));
-			}
-		} else
-			in = stdin;
-
-		if (out == NULL) {
-			fatal("Couldn't open moduli file \"%s\": %s",
-			    out_file, strerror(errno));
-		}
-		if (prime_test(in, out, rounds == 0 ? 100 : rounds,
-		    generator_wanted, checkpoint,
-		    start_lineno, lines_to_process) != 0)
-			fatal("modulus screening failed");
-		return (0);
+		do_moduli_screen(argv[0], opts, nopts);
+		return 0;
 	}
-#endif
 
 	if (gen_all_hostkeys) {
 		do_gen_all_hostkeys(pw);
@@ -3221,61 +3564,105 @@ main(int argc, char **argv)
 	if (!quiet)
 		printf("Generating public/private %s key pair.\n",
 		    key_type_name);
-	if ((r = sshkey_generate(type, bits, &private)) != 0)
-		fatal("sshkey_generate failed");
+	switch (type) {
+	case KEY_ECDSA_SK:
+	case KEY_ED25519_SK:
+		for (i = 0; i < nopts; i++) {
+			if (strcasecmp(opts[i], "no-touch-required") == 0) {
+				sk_flags &= ~SSH_SK_USER_PRESENCE_REQD;
+			} else if (strcasecmp(opts[i], "verify-required") == 0) {
+				sk_flags |= SSH_SK_USER_VERIFICATION_REQD;
+			} else if (strcasecmp(opts[i], "resident") == 0) {
+				sk_flags |= SSH_SK_RESIDENT_KEY;
+			} else if (strncasecmp(opts[i], "device=", 7) == 0) {
+				sk_device = xstrdup(opts[i] + 7);
+			} else if (strncasecmp(opts[i], "user=", 5) == 0) {
+				sk_user = xstrdup(opts[i] + 5);
+			} else if (strncasecmp(opts[i], "challenge=", 10) == 0) {
+				if ((r = sshbuf_load_file(opts[i] + 10,
+				    &challenge)) != 0) {
+					fatal_r(r, "Unable to load FIDO "
+					    "enrollment challenge \"%s\"",
+					    opts[i] + 10);
+				}
+			} else if (strncasecmp(opts[i],
+			    "write-attestation=", 18) == 0) {
+				sk_attestation_path = opts[i] + 18;
+			} else if (strncasecmp(opts[i],
+			    "application=", 12) == 0) {
+				sk_application = xstrdup(opts[i] + 12);
+				if (strncmp(sk_application, "ssh:", 4) != 0) {
+					fatal("FIDO application string must "
+					    "begin with \"ssh:\"");
+				}
+			} else {
+				fatal("Option \"%s\" is unsupported for "
+				    "FIDO authenticator enrollment", opts[i]);
+			}
+		}
+		if (!quiet) {
+			printf("You may need to touch your authenticator "
+			    "to authorize key generation.\n");
+		}
+		if ((attest = sshbuf_new()) == NULL)
+			fatal("sshbuf_new failed");
+		if ((sk_flags &
+		    (SSH_SK_USER_VERIFICATION_REQD|SSH_SK_RESIDENT_KEY))) {
+			passphrase = read_passphrase("Enter PIN for "
+			    "authenticator: ", RP_ALLOW_STDIN);
+		} else {
+			passphrase = NULL;
+		}
+		for (i = 0 ; ; i++) {
+			fflush(stdout);
+			r = sshsk_enroll(type, sk_provider, sk_device,
+			    sk_application == NULL ? "ssh:" : sk_application,
+			    sk_user, sk_flags, passphrase, challenge,
+			    &private, attest);
+			if (r == 0)
+				break;
+			if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
+				fatal_r(r, "Key enrollment failed");
+			else if (passphrase != NULL) {
+				error("PIN incorrect");
+				freezero(passphrase, strlen(passphrase));
+				passphrase = NULL;
+			}
+			if (i >= 3)
+				fatal("Too many incorrect PINs");
+			passphrase = read_passphrase("Enter PIN for "
+			    "authenticator: ", RP_ALLOW_STDIN);
+			if (!quiet) {
+				printf("You may need to touch your "
+				    "authenticator (again) to authorize "
+				    "key generation.\n");
+			}
+		}
+		if (passphrase != NULL) {
+			freezero(passphrase, strlen(passphrase));
+			passphrase = NULL;
+		}
+		break;
+	default:
+		if ((r = sshkey_generate(type, bits, &private)) != 0)
+			fatal("sshkey_generate failed");
+		break;
+	}
 	if ((r = sshkey_from_private(private, &public)) != 0)
-		fatal("sshkey_from_private failed: %s\n", ssh_err(r));
+		fatal_r(r, "sshkey_from_private");
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which to save the key");
 
 	/* Create ~/.ssh directory if it doesn't already exist. */
-	snprintf(dotsshdir, sizeof dotsshdir, "%s/%s",
-	    pw->pw_dir, _PATH_SSH_USER_DIR);
-	if (strstr(identity_file, dotsshdir) != NULL) {
-		if (stat(dotsshdir, &st) == -1) {
-			if (errno != ENOENT) {
-				error("Could not stat %s: %s", dotsshdir,
-				    strerror(errno));
-			} else if (mkdir(dotsshdir, 0700) == -1) {
-				error("Could not create directory '%s': %s",
-				    dotsshdir, strerror(errno));
-			} else if (!quiet)
-				printf("Created directory '%s'.\n", dotsshdir);
-		}
-	}
+	hostfile_create_user_ssh_dir(identity_file, !quiet);
+
 	/* If the file already exists, ask the user to confirm. */
 	if (!confirm_overwrite(identity_file))
 		exit(1);
-	/* Ask for a passphrase (twice). */
-	if (identity_passphrase)
-		passphrase1 = xstrdup(identity_passphrase);
-	else if (identity_new_passphrase)
-		passphrase1 = xstrdup(identity_new_passphrase);
-	else {
-passphrase_again:
-		passphrase1 =
-			read_passphrase("Enter passphrase (empty for no "
-			    "passphrase): ", RP_ALLOW_STDIN);
-		passphrase2 = read_passphrase("Enter same passphrase again: ",
-		    RP_ALLOW_STDIN);
-		if (strcmp(passphrase1, passphrase2) != 0) {
-			/*
-			 * The passphrases do not match.  Clear them and
-			 * retry.
-			 */
-			explicit_bzero(passphrase1, strlen(passphrase1));
-			explicit_bzero(passphrase2, strlen(passphrase2));
-			free(passphrase1);
-			free(passphrase2);
-			printf("Passphrases do not match.  Try again.\n");
-			goto passphrase_again;
-		}
-		/* Clear the other copy of the passphrase. */
-		explicit_bzero(passphrase2, strlen(passphrase2));
-		free(passphrase2);
-	}
 
+	/* Determine the passphrase for the private key */
+	passphrase = private_key_passphrase();
 	if (identity_comment) {
 		strlcpy(comment, identity_comment, sizeof(comment));
 	} else {
@@ -3284,35 +3671,23 @@ passphrase_again:
 	}
 
 	/* Save the key with the given passphrase and comment. */
-	if ((r = sshkey_save_private(private, identity_file, passphrase1,
+	if ((r = sshkey_save_private(private, identity_file, passphrase,
 	    comment, private_key_format, openssh_format_cipher, rounds)) != 0) {
-		error("Saving key \"%s\" failed: %s",
-		    identity_file, ssh_err(r));
-		explicit_bzero(passphrase1, strlen(passphrase1));
-		free(passphrase1);
+		error_r(r, "Saving key \"%s\" failed", identity_file);
+		freezero(passphrase, strlen(passphrase));
 		exit(1);
 	}
-	/* Clear the passphrase. */
-	explicit_bzero(passphrase1, strlen(passphrase1));
-	free(passphrase1);
-
-	/* Clear the private key and the random number generator. */
+	freezero(passphrase, strlen(passphrase));
 	sshkey_free(private);
 
-	if (!quiet)
-		printf("Your identification has been saved in %s.\n", identity_file);
+	if (!quiet) {
+		printf("Your identification has been saved in %s\n",
+		    identity_file);
+	}
 
 	strlcat(identity_file, ".pub", sizeof(identity_file));
-	if ((fd = open(identity_file, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
-		fatal("Unable to save public key to %s: %s",
-		    identity_file, strerror(errno));
-	if ((f = fdopen(fd, "w")) == NULL)
-		fatal("fdopen %s failed: %s", identity_file, strerror(errno));
-	if ((r = sshkey_write(public, f)) != 0)
-		error("write key failed: %s", ssh_err(r));
-	fprintf(f, " %s\n", comment);
-	if (ferror(f) || fclose(f) != 0)
-		fatal("write public failed: %s", strerror(errno));
+	if ((r = sshkey_save_public(public, identity_file, comment)) != 0)
+		fatal_r(r, "Unable to save public key to %s", identity_file);
 
 	if (!quiet) {
 		fp = sshkey_fingerprint(public, fingerprint_hash,
@@ -3321,7 +3696,7 @@ passphrase_again:
 		    SSH_FP_RANDOMART);
 		if (fp == NULL || ra == NULL)
 			fatal("sshkey_fingerprint failed");
-		printf("Your public key has been saved in %s.\n",
+		printf("Your public key has been saved in %s\n",
 		    identity_file);
 		printf("The key fingerprint is:\n");
 		printf("%s %s\n", fp, comment);
@@ -3331,6 +3706,11 @@ passphrase_again:
 		free(fp);
 	}
 
+	if (sk_attestation_path != NULL)
+		save_attestation(attest, sk_attestation_path);
+
+	sshbuf_free(attest);
 	sshkey_free(public);
+
 	exit(0);
 }

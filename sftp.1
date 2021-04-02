@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.127 2019/06/19 20:12:44 jmc Exp $
+.\" $OpenBSD: sftp.1,v 1.137 2021/02/12 03:49:09 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -22,15 +22,15 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: June 19 2019 $
+.Dd $Mdocdate: February 12 2021 $
 .Dt SFTP 1
 .Os
 .Sh NAME
 .Nm sftp
-.Nd secure file transfer program
+.Nd OpenSSH secure file transfer
 .Sh SYNOPSIS
 .Nm sftp
-.Op Fl 46aCfpqrv
+.Op Fl 46AaCfNpqrv
 .Op Fl B Ar buffer_size
 .Op Fl b Ar batchfile
 .Op Fl c Ar cipher
@@ -104,6 +104,11 @@ to use IPv4 addresses only.
 Forces
 .Nm
 to use IPv6 addresses only.
+.It Fl A
+Allows forwarding of
+.Xr ssh-agent 1
+to the remote system.
+The default is not to forward an authentication agent.
 .It Fl a
 Attempt to continue interrupted transfers rather than overwriting
 existing partial or complete copies of files.
@@ -197,6 +202,10 @@ This option is directly passed to
 .Xr ssh 1 .
 .It Fl l Ar limit
 Limits the used bandwidth, specified in Kbit/s.
+.It Fl N
+Disables quiet mode, e.g. to override the implicit quiet mode set by the
+.Fl b
+flag.
 .It Fl o Ar ssh_option
 Can be used to pass options to
 .Nm ssh
@@ -237,8 +246,8 @@ For full details of the options listed below, and their possible values, see
 .It GSSAPIDelegateCredentials
 .It HashKnownHosts
 .It Host
+.It HostbasedAcceptedAlgorithms
 .It HostbasedAuthentication
-.It HostbasedKeyTypes
 .It HostKeyAlgorithms
 .It HostKeyAlias
 .It Hostname
@@ -249,6 +258,7 @@ For full details of the options listed below, and their possible values, see
 .It KbdInteractiveAuthentication
 .It KbdInteractiveDevices
 .It KexAlgorithms
+.It KnownHostsCommand
 .It LogLevel
 .It MACs
 .It NoHostAuthenticationForLocalhost
@@ -259,7 +269,7 @@ For full details of the options listed below, and their possible values, see
 .It PreferredAuthentications
 .It ProxyCommand
 .It ProxyJump
-.It PubkeyAcceptedKeyTypes
+.It PubkeyAcceptedAlgorithms
 .It PubkeyAuthentication
 .It RekeyLimit
 .It SendEnv
@@ -339,15 +349,18 @@ Change group of file
 .Ar path
 to
 .Ar grp .
-If the
-.Fl h
-flag is specified, then symlinks will not be followed.
 .Ar path
 may contain
 .Xr glob 7
 characters and may match multiple files.
 .Ar grp
 must be a numeric GID.
+.Pp
+If the
+.Fl h
+flag is specified, then symlinks will not be followed.
+Note that this is only supported by servers that implement
+the "lsetstat@openssh.com" extension.
 .It Xo Ic chmod
 .Op Fl h
 .Ar mode
@@ -357,13 +370,16 @@ Change permissions of file
 .Ar path
 to
 .Ar mode .
-If the
-.Fl h
-flag is specified, then symlinks will not be followed.
 .Ar path
 may contain
 .Xr glob 7
 characters and may match multiple files.
+.Pp
+If the
+.Fl h
+flag is specified, then symlinks will not be followed.
+Note that this is only supported by servers that implement
+the "lsetstat@openssh.com" extension.
 .It Xo Ic chown
 .Op Fl h
 .Ar own
@@ -373,15 +389,18 @@ Change owner of file
 .Ar path
 to
 .Ar own .
-If the
-.Fl h
-flag is specified, then symlinks will not be followed.
 .Ar path
 may contain
 .Xr glob 7
 characters and may match multiple files.
 .Ar own
 must be a numeric UID.
+.Pp
+If the
+.Fl h
+flag is specified, then symlinks will not be followed.
+Note that this is only supported by servers that implement
+the "lsetstat@openssh.com" extension.
 .It Xo Ic df
 .Op Fl hi
 .Op Ar path
@@ -631,7 +650,7 @@ Equivalent to
 with the
 .Fl a
 flag set.
-.It Ic rename Ar oldpath Ar newpath
+.It Ic rename Ar oldpath newpath
 Rename remote file from
 .Ar oldpath
 to
@@ -642,7 +661,7 @@ Delete remote file specified by
 .It Ic rmdir Ar path
 Remove remote directory specified by
 .Ar path .
-.It Ic symlink Ar oldpath Ar newpath
+.It Ic symlink Ar oldpath newpath
 Create a symbolic link from
 .Ar oldpath
 to

@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.81 2019/09/03 08:32:11 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.93 2021/02/15 20:36:35 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -53,6 +53,8 @@ void	 set_nodelay(int);
 int	 set_reuseaddr(int);
 char	*get_rdomain(int);
 int	 set_rdomain(int, const char *);
+int	 get_sock_af(int);
+void	 set_sock_tos(int, int);
 int	 waitrfd(int, int *);
 int	 timeout_connect(int, const struct sockaddr *, socklen_t, int *);
 int	 a2port(const char *);
@@ -65,10 +67,16 @@ char	*colon(char *);
 int	 parse_user_host_path(const char *, char **, char **, char **);
 int	 parse_user_host_port(const char *, char **, char **, int *);
 int	 parse_uri(const char *, const char *, char **, char **, int *, char **);
-long	 convtime(const char *);
+int	 convtime(const char *);
+const char *fmt_timeframe(time_t t);
 char	*tilde_expand_filename(const char *, uid_t);
+
+char	*dollar_expand(int *, const char *string, ...);
 char	*percent_expand(const char *, ...) __attribute__((__sentinel__));
+char	*percent_dollar_expand(const char *, ...) __attribute__((__sentinel__));
 char	*tohex(const void *, size_t);
+void	 xextendf(char **s, const char *sep, const char *fmt, ...)
+    __attribute__((__format__ (printf, 3, 4))) __attribute__((__nonnull__ (3)));
 void	 sanitise_stdfd(void);
 void	 ms_subtract_diff(struct timeval *, int *);
 void	 ms_to_timeval(struct timeval *, int);
@@ -84,11 +92,22 @@ const char *atoi_err(const char *, int *);
 int	 parse_absolute_time(const char *, uint64_t *);
 void	 format_absolute_time(uint64_t, char *, size_t);
 int	 path_absolute(const char *);
+int	 stdfd_devnull(int, int, int);
 
 void	 sock_set_v6only(int);
 
 struct passwd *pwcopy(struct passwd *);
 const char *ssh_gai_strerror(int);
+
+typedef void privdrop_fn(struct passwd *);
+typedef void privrestore_fn(void);
+#define	SSH_SUBPROCESS_STDOUT_DISCARD	(1)     /* Discard stdout */
+#define	SSH_SUBPROCESS_STDOUT_CAPTURE	(1<<1)  /* Redirect stdout */
+#define	SSH_SUBPROCESS_STDERR_DISCARD	(1<<2)  /* Discard stderr */
+#define	SSH_SUBPROCESS_UNSAFE_PATH	(1<<3)	/* Don't check for safe cmd */
+#define	SSH_SUBPROCESS_PRESERVE_ENV	(1<<4)	/* Keep parent environment */
+pid_t subprocess(const char *, const char *, int, char **, FILE **, u_int,
+    struct passwd *, privdrop_fn *, privrestore_fn *);
 
 typedef struct arglist arglist;
 struct arglist {
@@ -171,6 +190,13 @@ int	opt_flag(const char *opt, int allow_negate, const char **optsp);
 char	*opt_dequote(const char **sp, const char **errstrp);
 int	opt_match(const char **opts, const char *term);
 
+/* readconf/servconf option lists */
+void	opt_array_append(const char *file, const int line,
+	    const char *directive, char ***array, u_int *lp, const char *s);
+void	opt_array_append2(const char *file, const int line,
+	    const char *directive, char ***array, int **iarray, u_int *lp,
+	    const char *s, int i);
+
 /* readpass.c */
 
 #define RP_ECHO			0x0001
@@ -178,11 +204,20 @@ int	opt_match(const char **opts, const char *term);
 #define RP_ALLOW_EOF		0x0004
 #define RP_USE_ASKPASS		0x0008
 
+struct notifier_ctx;
+
 char	*read_passphrase(const char *, int);
 int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
+struct notifier_ctx *notify_start(int, const char *, ...)
+	__attribute__((format(printf, 2, 3)));
+void	notify_complete(struct notifier_ctx *, const char *, ...)
+	__attribute__((format(printf, 2, 3)));
 
 #define MINIMUM(a, b)	(((a) < (b)) ? (a) : (b))
 #define MAXIMUM(a, b)	(((a) > (b)) ? (a) : (b))
 #define ROUNDUP(x, y)   ((((x)+((y)-1))/(y))*(y))
+
+typedef void (*sshsig_t)(int);
+sshsig_t ssh_signal(int, sshsig_t);
 
 #endif /* _MISC_H */

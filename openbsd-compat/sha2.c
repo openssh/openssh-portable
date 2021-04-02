@@ -42,10 +42,10 @@
     !defined(HAVE_SHA512UPDATE)
 
 /* no-op out, similar to DEF_WEAK but only needed here */
-#define MAKE_CLONE(x, y)	void __ssh_compat_make_clone_##x_##y(void);
+#define MAKE_CLONE(x, y)	void __ssh_compat_make_clone_##x_##y(void)
 
 #include <string.h>
-#include <sha2.h>
+#include "openbsd-compat/sha2.h"
 
 /*
  * UNROLLED TRANSFORM LOOP NOTE:

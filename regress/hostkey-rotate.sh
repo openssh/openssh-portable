@@ -1,19 +1,15 @@
-#	$OpenBSD: hostkey-rotate.sh,v 1.6 2019/08/30 05:08:28 dtucker Exp $
+#	$OpenBSD: hostkey-rotate.sh,v 1.9 2020/10/07 06:38:16 djm Exp $
 #	Placed in the Public Domain.
 
 tid="hostkey rotate"
 
-# Need full names here since they are used in HostKeyAlgorithms
-if [ "$os" == "windows" ]; then
-	HOSTKEY_TYPES=`${SSH} -Q key-plain | sed 's/\r$//'` # remove CR (carriage return)
-else
-	HOSTKEY_TYPES=`${SSH} -Q key-plain`
-fi
-
-rm -f $OBJ/hkr.* $OBJ/ssh_proxy.orig
+rm -f $OBJ/hkr.* $OBJ/ssh_proxy.orig $OBJ/ssh_proxy.orig
 
 grep -vi 'hostkey' $OBJ/sshd_proxy > $OBJ/sshd_proxy.orig
+mv $OBJ/ssh_proxy $OBJ/ssh_proxy.orig
+grep -vi 'globalknownhostsfile' $OBJ/ssh_proxy.orig > $OBJ/ssh_proxy
 echo "UpdateHostkeys=yes" >> $OBJ/ssh_proxy
+echo "GlobalKnownHostsFile=none" >> $OBJ/ssh_proxy
 rm $OBJ/known_hosts
 
 # The "primary" key type is ed25519 since it's supported even when built
@@ -24,7 +20,7 @@ secondary="$primary"
 trace "prepare hostkeys"
 nkeys=0
 all_algs=""
-for k in $HOSTKEY_TYPES; do
+for k in $SSH_HOSTKEY_TYPES; do
 	${SSHKEYGEN} -qt $k -f $OBJ/hkr.$k -N '' || fatal "ssh-keygen $k"
 	echo "Hostkey $OBJ/hkr.${k}" >> $OBJ/sshd_proxy.orig
 	nkeys=`expr $nkeys + 1`
@@ -71,15 +67,12 @@ verbose "learn additional hostkeys"
 dossh -oStrictHostKeyChecking=yes -oHostKeyAlgorithms=$all_algs
 # Check that other keys learned
 expect_nkeys $nkeys "learn hostkeys"
-for k in $HOSTKEY_TYPES; do
+for k in $SSH_HOSTKEY_TYPES; do
 	check_key_present $k || fail "didn't learn keytype $k"
 done
 
 # Check each key type
-for k in $HOSTKEY_TYPES; do
-	if [ "$os" == "windows" ]; then
-		k=`echo $k | sed 's/\r$//'` # remove CR (carriage return)
-	fi
+for k in $SSH_HOSTKEY_TYPES; do
 	verbose "learn additional hostkeys, type=$k"
 	dossh -oStrictHostKeyChecking=yes -oHostKeyAlgorithms=$k,$all_algs
 	expect_nkeys $nkeys "learn hostkeys $k"

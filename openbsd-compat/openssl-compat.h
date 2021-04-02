@@ -62,6 +62,12 @@ void ssh_libcrypto_init(void);
 # define OPENSSL_DSA_MAX_MODULUS_BITS	10000
 #endif
 
+#ifdef LIBRESSL_VERSION_NUMBER
+# if LIBRESSL_VERSION_NUMBER < 0x3010000fL
+#  define HAVE_BROKEN_CHACHA20
+# endif
+#endif
+
 #ifndef OPENSSL_HAVE_EVPCTR
 # define EVP_aes_128_ctr evp_aes_128_ctr
 # define EVP_aes_192_ctr evp_aes_128_ctr
@@ -87,12 +93,6 @@ void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, size_t);
 # endif
 #endif
 
-#if defined(HAVE_EVP_RIPEMD160)
-# if defined(OPENSSL_NO_RIPEMD) || defined(OPENSSL_NO_RMD160)
-#  undef HAVE_EVP_RIPEMD160
-# endif
-#endif
-
 /* LibreSSL/OpenSSL 1.1x API compat */
 #ifndef HAVE_DSA_GET0_PQG
 void DSA_get0_pqg(const DSA *d, const BIGNUM **p, const BIGNUM **q,
@@ -113,8 +113,12 @@ int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key);
 #endif /* HAVE_DSA_SET0_KEY */
 
 #ifndef HAVE_EVP_CIPHER_CTX_GET_IV
+# ifdef HAVE_EVP_CIPHER_CTX_GET_UPDATED_IV
+#  define EVP_CIPHER_CTX_get_iv EVP_CIPHER_CTX_get_updated_iv
+# else /* HAVE_EVP_CIPHER_CTX_GET_UPDATED_IV */
 int EVP_CIPHER_CTX_get_iv(const EVP_CIPHER_CTX *ctx,
     unsigned char *iv, size_t len);
+# endif /* HAVE_EVP_CIPHER_CTX_GET_UPDATED_IV */
 #endif /* HAVE_EVP_CIPHER_CTX_GET_IV */
 
 #ifndef HAVE_EVP_CIPHER_CTX_SET_IV

@@ -129,7 +129,9 @@ utimensat(int fd, const char *path, const struct timespec times[2],
     int flag)
 {
 	struct timeval tv[2];
+# ifdef HAVE_FUTIMES
 	int ret, oflags = O_WRONLY;
+# endif
 
 	tv[0].tv_sec = times[0].tv_sec;
 	tv[0].tv_usec = times[0].tv_nsec / 1000;
@@ -424,5 +426,15 @@ int _ssh_compat_fflush(FILE *f)
 		return 0;
 	}
 	return fflush(f);
+}
+#endif
+
+#ifndef HAVE_LOCALTIME_R
+struct tm *
+localtime_r(const time_t *timep, struct tm *result)
+{
+	struct tm *tm = localtime(timep);
+	*result = *tm;
+	return result;
 }
 #endif

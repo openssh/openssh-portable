@@ -1,0 +1,63 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master, ci ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  ci:
+    if: github.repository != 'openssh/openssh-portable-selfhosted'
+    strategy:
+      fail-fast: false
+      matrix:
+        # First we test all OSes in the default configuration.
+        os: [ubuntu-20.04, ubuntu-18.04, ubuntu-16.04, macos-10.15]
+        configs: [default]
+        # Then we include any extra configs we want to test for specific VMs.
+        # Valgrind slows things down quite a bit, so start them first.
+        include:
+          - { os: ubuntu-20.04, configs: valgrind-1 }
+          - { os: ubuntu-20.04, configs: valgrind-2 }
+          - { os: ubuntu-20.04, configs: pam }
+          - { os: ubuntu-20.04, configs: kitchensink }
+          - { os: ubuntu-20.04, configs: hardenedmalloc }
+          - { os: ubuntu-20.04, configs: libressl-head }
+          - { os: ubuntu-20.04, configs: openssl-head }
+          - { os: ubuntu-18.04, configs: pam }
+          - { os: ubuntu-18.04, configs: kerberos5 }
+          - { os: ubuntu-18.04, configs: libedit }
+          - { os: ubuntu-18.04, configs: sk }
+          - { os: ubuntu-18.04, configs: selinux }
+          - { os: ubuntu-18.04, configs: kitchensink }
+          - { os: ubuntu-18.04, configs: without-openssl }
+          - { os: ubuntu-16.04, configs: pam }
+          - { os: ubuntu-16.04, configs: kitchensink }
+          - { os: macos-10.15,  configs: pam }
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup CI system
+      run: ./.github/setup_ci.sh ${{ matrix.configs }}
+    - name: autoreconf
+      run: autoreconf
+    - name: configure
+      run: ./.github/configure.sh ${{ matrix.configs }}
+    - name: make
+      run: make -j2
+    - name: install moduli
+      run: sudo sh -c "mkdir -p /usr/local/etc/; cp moduli /usr/local/etc/"
+    - name: make tests
+      run: ./.github/run_test.sh ${{ matrix.configs }}
+      env:
+        SUDO: sudo
+        TEST_SSH_UNSAFE_PERMISSIONS: 1
+    - name: save regress logs
+      if: failure()
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}-${{ matrix.configs }}-regress-logs
+        path: |
+          regress/*.log
+          regress/valgrind-out/

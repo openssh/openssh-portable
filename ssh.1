@@ -33,13 +33,13 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.403 2019/06/12 11:31:50 jmc Exp $
-.Dd $Mdocdate: June 12 2019 $
+.\" $OpenBSD: ssh.1,v 1.419 2021/02/15 20:43:15 markus Exp $
+.Dd $Mdocdate: February 15 2021 $
 .Dt SSH 1
 .Os
 .Sh NAME
 .Nm ssh
-.Nd OpenSSH SSH client (remote login program)
+.Nd OpenSSH remote login client
 .Sh SYNOPSIS
 .Nm ssh
 .Op Fl 46AaCfGgKkMNnqsTtVvXxYy
@@ -110,7 +110,8 @@ Forces
 to use IPv6 addresses only.
 .Pp
 .It Fl A
-Enables forwarding of the authentication agent connection.
+Enables forwarding of connections from an authentication agent such as
+.Xr ssh-agent 1 .
 This can also be specified on a per-host basis in a configuration file.
 .Pp
 Agent forwarding should be enabled with caution.
@@ -121,6 +122,9 @@ socket) can access the local agent through the forwarded connection.
 An attacker cannot obtain key material from the agent,
 however they can perform operations on the keys that enable them to
 authenticate using the identities loaded into the agent.
+A safer alternative may be to use a jump host
+(see
+.Fl J ) .
 .Pp
 .It Fl a
 Disables forwarding of the authentication agent connection.
@@ -229,6 +233,9 @@ the system-wide configuration file
 will be ignored.
 The default for the per-user configuration file is
 .Pa ~/.ssh/config .
+If set to
+.Dq none ,
+no configuration files will be read.
 .Pp
 .It Fl f
 Requests
@@ -279,7 +286,9 @@ public key authentication is read.
 The default is
 .Pa ~/.ssh/id_dsa ,
 .Pa ~/.ssh/id_ecdsa ,
-.Pa ~/.ssh/id_ed25519
+.Pa ~/.ssh/id_ecdsa_sk ,
+.Pa ~/.ssh/id_ed25519 ,
+.Pa ~/.ssh/id_ed25519_sk
 and
 .Pa ~/.ssh/id_rsa .
 Identity files may also be specified on
@@ -500,8 +509,8 @@ For full details of the options listed below, and their possible values, see
 .It GSSAPIDelegateCredentials
 .It HashKnownHosts
 .It Host
+.It HostbasedAcceptedAlgorithms
 .It HostbasedAuthentication
-.It HostbasedKeyTypes
 .It HostKeyAlgorithms
 .It HostKeyAlias
 .It Hostname
@@ -512,6 +521,7 @@ For full details of the options listed below, and their possible values, see
 .It KbdInteractiveAuthentication
 .It KbdInteractiveDevices
 .It KexAlgorithms
+.It KnownHostsCommand
 .It LocalCommand
 .It LocalForward
 .It LogLevel
@@ -521,13 +531,14 @@ For full details of the options listed below, and their possible values, see
 .It NumberOfPasswordPrompts
 .It PasswordAuthentication
 .It PermitLocalCommand
+.It PermitRemoteOpen
 .It PKCS11Provider
 .It Port
 .It PreferredAuthentications
 .It ProxyCommand
 .It ProxyJump
 .It ProxyUseFdpass
-.It PubkeyAcceptedKeyTypes
+.It PubkeyAcceptedAlgorithms
 .It PubkeyAuthentication
 .It RekeyLimit
 .It RemoteCommand
@@ -579,10 +590,18 @@ flag),
 (certificate key types),
 .Ar key-plain
 (non-certificate key types),
+.Ar key-sig
+(all key types and signature algorithms),
 .Ar protocol-version
 (supported SSH protocol versions), and
 .Ar sig
 (supported signature algorithms).
+Alternatively, any keyword from
+.Xr ssh_config 5
+or
+.Xr sshd_config 5
+that takes an algorithm list may be used as an alias for the corresponding
+query_option.
 .Pp
 .It Fl q
 Quiet mode.
@@ -826,7 +845,7 @@ If the machine the user logs in from is listed in
 .Pa /etc/hosts.equiv
 or
 .Pa /etc/shosts.equiv
-on the remote machine, and the user names are
+on the remote machine, the user is non-root and the user names are
 the same on both sides, or if the files
 .Pa ~/.rhosts
 or
@@ -896,8 +915,12 @@ This stores the private key in
 (DSA),
 .Pa ~/.ssh/id_ecdsa
 (ECDSA),
+.Pa ~/.ssh/id_ecdsa_sk
+(authenticator-hosted ECDSA),
 .Pa ~/.ssh/id_ed25519
 (Ed25519),
+.Pa ~/.ssh/id_ed25519_sk
+(authenticator-hosted Ed25519),
 or
 .Pa ~/.ssh/id_rsa
 (RSA)
@@ -906,8 +929,12 @@ and stores the public key in
 (DSA),
 .Pa ~/.ssh/id_ecdsa.pub
 (ECDSA),
+.Pa ~/.ssh/id_ecdsa_sk.pub
+(authenticator-hosted ECDSA),
 .Pa ~/.ssh/id_ed25519.pub
 (Ed25519),
+.Pa ~/.ssh/id_ed25519_sk.pub
+(authenticator-hosted Ed25519),
 or
 .Pa ~/.ssh/id_rsa.pub
 (RSA)
@@ -1384,6 +1411,25 @@ or related script.
 may be necessary to redirect the input from
 .Pa /dev/null
 to make this work.)
+.It Ev SSH_ASKPASS_REQUIRE
+Allows further control over the use of an askpass program.
+If this variable is set to
+.Dq never
+then
+.Nm
+will never attempt to use one.
+If it is set to
+.Dq prefer ,
+then
+.Nm
+will prefer to use the askpass program instead of the TTY when requesting
+passwords.
+Finally, if the variable is set to
+.Dq force ,
+then the askpass program will be used for all passphrase input regardless
+of whether
+.Ev DISPLAY
+is set.
 .It Ev SSH_AUTH_SOCK
 Identifies the path of a
 .Ux Ns -domain
@@ -1484,7 +1530,9 @@ above.
 .Pp
 .It Pa ~/.ssh/id_dsa
 .It Pa ~/.ssh/id_ecdsa
+.It Pa ~/.ssh/id_ecdsa_sk
 .It Pa ~/.ssh/id_ed25519
+.It Pa ~/.ssh/id_ed25519_sk
 .It Pa ~/.ssh/id_rsa
 Contains the private key for authentication.
 These files
@@ -1498,7 +1546,9 @@ sensitive part of this file using AES-128.
 .Pp
 .It Pa ~/.ssh/id_dsa.pub
 .It Pa ~/.ssh/id_ecdsa.pub
+.It Pa ~/.ssh/id_ecdsa_sk.pub
 .It Pa ~/.ssh/id_ed25519.pub
+.It Pa ~/.ssh/id_ed25519_sk.pub
 .It Pa ~/.ssh/id_rsa.pub
 Contains the public key for authentication.
 These files are not

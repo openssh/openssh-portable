@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.286 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: packet.c,v 1.299 2021/01/27 10:05:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -58,7 +58,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#ifdef HAVE_POLL_H
 #include <poll.h>
+#endif
 #include <signal.h>
 #include <time.h>
 
@@ -74,7 +76,9 @@
 # endif
 #endif
 
+#ifdef WITH_ZLIB
 #include <zlib.h>
+#endif
 
 #include "xmalloc.h"
 #include "compat.h"
@@ -148,9 +152,11 @@ struct session_state {
 	/* Scratch buffer for packet compression/decompression. */
 	struct sshbuf *compression_buffer;
 
+#ifdef WITH_ZLIB
 	/* Incoming/outgoing compression dictionaries */
 	z_stream compression_in_stream;
 	z_stream compression_out_stream;
+#endif
 	int compression_in_started;
 	int compression_out_started;
 	int compression_in_failures;
@@ -276,7 +282,8 @@ ssh_packet_set_input_hook(struct ssh *ssh, ssh_packet_hook_fn *hook, void *ctx)
 int
 ssh_packet_is_rekeying(struct ssh *ssh)
 {
-	return ssh->state->rekeying || ssh->kex->done == 0;
+	return ssh->state->rekeying ||
+	    (ssh->kex != NULL && ssh->kex->done == 0);
 }
 
 /*
@@ -290,13 +297,13 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	int r;
 
 	if (none == NULL) {
-		error("%s: cannot load cipher 'none'", __func__);
+		error_f("cannot load cipher 'none'");
 		return NULL;
 	}
 	if (ssh == NULL)
 		ssh = ssh_alloc_session_state();
 	if (ssh == NULL) {
-		error("%s: could not allocate state", __func__);
+		error_f("could not allocate state");
 		return NULL;
 	}
 	state = ssh->state;
@@ -306,7 +313,7 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	    (const u_char *)"", 0, NULL, 0, CIPHER_ENCRYPT)) != 0 ||
 	    (r = cipher_init(&state->receive_context, none,
 	    (const u_char *)"", 0, NULL, 0, CIPHER_DECRYPT)) != 0) {
-		error("%s: cipher_init failed: %s", __func__, ssh_err(r));
+		error_fr(r, "cipher_init failed");
 		free(ssh); /* XXX need ssh_free_session_state? */
 		return NULL;
 	}
@@ -339,6 +346,8 @@ ssh_packet_set_mux(struct ssh *ssh)
 {
 	ssh->state->mux = 1;
 	ssh->state->rekeying = 0;
+	kex_free(ssh->kex);
+	ssh->kex = NULL;
 }
 
 int
@@ -466,19 +475,7 @@ ssh_packet_get_bytes(struct ssh *ssh, u_int64_t *ibytes, u_int64_t *obytes)
 int
 ssh_packet_connection_af(struct ssh *ssh)
 {
-	struct sockaddr_storage to;
-	socklen_t tolen = sizeof(to);
-
-	memset(&to, 0, sizeof(to));
-	if (getsockname(ssh->state->connection_out, (struct sockaddr *)&to,
-	    &tolen) == -1)
-		return 0;
-#ifdef IPV4_IN_IPV6
-	if (to.ss_family == AF_INET6 &&
-	    IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)&to)->sin6_addr))
-		return AF_INET;
-#endif
-	return to.ss_family;
+	return get_sock_af(ssh->state->connection_out);
 }
 
 /* Sets the connection into non-blocking mode. */
@@ -528,9 +525,9 @@ ssh_remote_ipaddr(struct ssh *ssh)
 			ssh->local_ipaddr = get_local_ipaddr(sock);
 			ssh->local_port = get_local_port(sock);
 		} else {
-			ssh->remote_ipaddr = strdup("UNKNOWN");
+			ssh->remote_ipaddr = xstrdup("UNKNOWN");
 			ssh->remote_port = 65535;
-			ssh->local_ipaddr = strdup("UNKNOWN");
+			ssh->local_ipaddr = xstrdup("UNKNOWN");
 			ssh->local_port = 65535;
 		}
 	}
@@ -607,6 +604,7 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 		state->newkeys[mode] = NULL;
 		ssh_clear_newkeys(ssh, mode);		/* next keys */
 	}
+#ifdef WITH_ZLIB
 	/* compression state is in shared mem, so we can only release it once */
 	if (do_close && state->compression_buffer) {
 		sshbuf_free(state->compression_buffer);
@@ -633,6 +631,7 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 				inflateEnd(stream);
 		}
 	}
+#endif	/* WITH_ZLIB */
 	cipher_free(state->send_context);
 	cipher_free(state->receive_context);
 	state->send_context = state->receive_context = NULL;
@@ -643,6 +642,8 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 		ssh->remote_ipaddr = NULL;
 		free(ssh->state);
 		ssh->state = NULL;
+		kex_free(ssh->kex);
+		ssh->kex = NULL;
 	}
 }
 
@@ -688,6 +689,7 @@ ssh_packet_init_compression(struct ssh *ssh)
 	return 0;
 }
 
+#ifdef WITH_ZLIB
 static int
 start_compression_out(struct ssh *ssh, int level)
 {
@@ -819,6 +821,33 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 	/* NOTREACHED */
 }
 
+#else	/* WITH_ZLIB */
+
+static int
+start_compression_out(struct ssh *ssh, int level)
+{
+	return SSH_ERR_INTERNAL_ERROR;
+}
+
+static int
+start_compression_in(struct ssh *ssh)
+{
+	return SSH_ERR_INTERNAL_ERROR;
+}
+
+static int
+compress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
+{
+	return SSH_ERR_INTERNAL_ERROR;
+}
+
+static int
+uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
+{
+	return SSH_ERR_INTERNAL_ERROR;
+}
+#endif	/* WITH_ZLIB */
+
 void
 ssh_clear_newkeys(struct ssh *ssh, int mode)
 {
@@ -856,8 +885,8 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		max_blocks = &state->max_blocks_in;
 	}
 	if (state->newkeys[mode] != NULL) {
-		debug("%s: rekeying %s, input %llu bytes %llu blocks, "
-		   "output %llu bytes %llu blocks", __func__, dir,
+		debug_f("rekeying %s, input %llu bytes %llu blocks, "
+		   "output %llu bytes %llu blocks", dir,
 		   (unsigned long long)state->p_read.bytes,
 		   (unsigned long long)state->p_read.blocks,
 		   (unsigned long long)state->p_send.bytes,
@@ -879,7 +908,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 			return r;
 	}
 	mac->enabled = 1;
-	DBG(debug("%s: cipher_init_context: %s", __func__, dir));
+	DBG(debug_f("cipher_init_context: %s", dir));
 	cipher_free(*ccp);
 	*ccp = NULL;
 	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len,
@@ -1102,8 +1131,8 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 		if (tmp > state->extra_pad)
 			return SSH_ERR_INVALID_ARGUMENT;
 		pad = state->extra_pad - tmp;
-		DBG(debug3("%s: adding %d (len %d padlen %d extra_pad %d)",
-		    __func__, pad, len, padlen, state->extra_pad));
+		DBG(debug3_f("adding %d (len %d padlen %d extra_pad %d)",
+		    pad, len, padlen, state->extra_pad));
 		tmp = padlen;
 		padlen += pad;
 		/* Check whether padlen calculation overflowed */
@@ -1218,7 +1247,7 @@ ssh_packet_send2(struct ssh *ssh)
 	 */
 	if ((need_rekey || state->rekeying) && !ssh_packet_type_is_kex(type)) {
 		if (need_rekey)
-			debug3("%s: rekex triggered", __func__);
+			debug3_f("rekex triggered");
 		debug("enqueue packet: %u", type);
 		p = calloc(1, sizeof(*p));
 		if (p == NULL)
@@ -1260,8 +1289,7 @@ ssh_packet_send2(struct ssh *ssh)
 			 */
 			if (ssh_packet_need_rekeying(ssh,
 			    sshbuf_len(p->payload))) {
-				debug3("%s: queued packet triggered rekex",
-				    __func__);
+				debug3_f("queued packet triggered rekex");
 				return kex_start_rekex(ssh);
 			}
 			debug("dequeue packet: %u", type);
@@ -1329,7 +1357,7 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		}
 		/* Wait for some data to arrive. */
 		for (;;) {
-			if (state->packet_timeout_ms != -1) {
+			if (state->packet_timeout_ms > 0) {
 				ms_to_timeval(&timeout, ms_remain);
 				monotime_tv(&start);
 			}
@@ -1341,7 +1369,7 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 				r = SSH_ERR_SYSTEM_ERROR;
 				goto out;
 			}
-			if (state->packet_timeout_ms == -1)
+			if (state->packet_timeout_ms <= 0)
 				continue;
 			ms_subtract_diff(&start, &ms_remain);
 			if (ms_remain <= 0) {
@@ -1380,7 +1408,7 @@ ssh_packet_read(struct ssh *ssh)
 	int r;
 
 	if ((r = ssh_packet_read_seqnr(ssh, &type, NULL)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal_fr(r, "read");
 	return type;
 }
 
@@ -1438,7 +1466,7 @@ ssh_packet_read_poll2_mux(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	    (r = sshbuf_get_u8(state->incoming_packet, typep)) != 0)
 		return r;
 	if (ssh_packet_log_type(*typep))
-		debug3("%s: type %u", __func__, *typep);
+		debug3_f("type %u", *typep);
 	/* sshbuf_dump(state->incoming_packet, stderr); */
 	/* reset for next packet */
 	state->packlen = 0;
@@ -1669,7 +1697,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 
 	/* do we need to rekey? */
 	if (ssh_packet_need_rekeying(ssh, 0)) {
-		debug3("%s: rekex triggered", __func__);
+		debug3_f("rekex triggered");
 		if ((r = kex_start_rekex(ssh)) != 0)
 			return r;
 	}
@@ -1795,7 +1823,7 @@ ssh_packet_send_debug(struct ssh *ssh, const char *fmt,...)
 	    (r = sshpkt_put_cstring(ssh, "")) != 0 ||
 	    (r = sshpkt_send(ssh)) != 0 ||
 	    (r = ssh_packet_write_wait(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal_fr(r, "send DEBUG");
 }
 
 void
@@ -1814,6 +1842,7 @@ static void
 sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 {
 	char *tag = NULL, remote_id[512];
+	int oerrno = errno;
 
 	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 
@@ -1841,6 +1870,7 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 	case SSH_ERR_NO_HOSTKEY_ALG_MATCH:
 		if (ssh && ssh->kex && ssh->kex->failed_choice) {
 			ssh_packet_clear_keys(ssh);
+			errno = oerrno;
 			logdie("Unable to negotiate with %s: %s. "
 			    "Their offer: %s", remote_id, ssh_err(r),
 			    ssh->kex->failed_choice);
@@ -1849,14 +1879,13 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 	default:
 		if (vasprintf(&tag, fmt, ap) == -1) {
 			ssh_packet_clear_keys(ssh);
-			logdie("%s: could not allocate failure message",
-			    __func__);
+			logdie_f("could not allocate failure message");
 		}
 		ssh_packet_clear_keys(ssh);
-		logdie("%s%sConnection %s %s: %s",
+		errno = oerrno;
+		logdie_r(r, "%s%sConnection %s %s",
 		    tag != NULL ? tag : "", tag != NULL ? ": " : "",
-		    ssh->state->server_side ? "from" : "to",
-		    remote_id, ssh_err(r));
+		    ssh->state->server_side ? "from" : "to", remote_id);
 	}
 }
 
@@ -1869,7 +1898,7 @@ sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
 	sshpkt_vfatal(ssh, r, fmt, ap);
 	/* NOTREACHED */
 	va_end(ap);
-	logdie("%s: should have exited", __func__);
+	logdie_f("should have exited");
 }
 
 /*
@@ -1975,7 +2004,7 @@ ssh_packet_write_wait(struct ssh *ssh)
 			timeoutp = &timeout;
 		}
 		for (;;) {
-			if (state->packet_timeout_ms != -1) {
+			if (state->packet_timeout_ms > 0) {
 				ms_to_timeval(&timeout, ms_remain);
 				monotime_tv(&start);
 			}
@@ -1985,7 +2014,7 @@ ssh_packet_write_wait(struct ssh *ssh)
 			if (errno != EAGAIN && errno != EINTR &&
 			    errno != EWOULDBLOCK)
 				break;
-			if (state->packet_timeout_ms == -1)
+			if (state->packet_timeout_ms <= 0)
 				continue;
 			ms_subtract_diff(&start, &ms_remain);
 			if (ms_remain <= 0) {
@@ -2028,30 +2057,9 @@ ssh_packet_not_very_much_data_to_write(struct ssh *ssh)
 void
 ssh_packet_set_tos(struct ssh *ssh, int tos)
 {
-#ifndef IP_TOS_IS_BROKEN
 	if (!ssh_packet_connection_is_on_socket(ssh) || tos == INT_MAX)
 		return;
-	switch (ssh_packet_connection_af(ssh)) {
-# ifdef IP_TOS
-	case AF_INET:
-		debug3("%s: set IP_TOS 0x%02x", __func__, tos);
-		if (setsockopt(ssh->state->connection_in,
-		    IPPROTO_IP, IP_TOS, &tos, sizeof(tos)) == -1)
-			error("setsockopt IP_TOS %d: %.100s:",
-			    tos, strerror(errno));
-		break;
-# endif /* IP_TOS */
-# ifdef IPV6_TCLASS
-	case AF_INET6:
-		debug3("%s: set IPV6_TCLASS 0x%02x", __func__, tos);
-		if (setsockopt(ssh->state->connection_in,
-		    IPPROTO_IPV6, IPV6_TCLASS, &tos, sizeof(tos)) == -1)
-			error("setsockopt IPV6_TCLASS %d: %.100s:",
-			    tos, strerror(errno));
-		break;
-# endif /* IPV6_TCLASS */
-	}
-#endif /* IP_TOS_IS_BROKEN */
+	set_sock_tos(ssh->state->connection_in, tos);
 }
 
 /* Informs that the current session is interactive.  Sets IP flags for that. */
@@ -2072,8 +2080,7 @@ ssh_packet_set_interactive(struct ssh *ssh, int interactive, int qos_interactive
 	if (!ssh_packet_connection_is_on_socket(ssh))
 		return;
 	set_nodelay(state->connection_in);
-	ssh_packet_set_tos(ssh, interactive ? qos_interactive :
-	    qos_bulk);
+	ssh_packet_set_tos(ssh, interactive ? qos_interactive : qos_bulk);
 }
 
 /* Returns true if the current connection is interactive. */
@@ -2172,7 +2179,7 @@ ssh_packet_set_postauth(struct ssh *ssh)
 {
 	int r;
 
-	debug("%s: called", __func__);
+	debug_f("called");
 	/* This was set in net child, but is not visible in user child */
 	ssh->state->after_authentication = 1;
 	ssh->state->rekeying = 0;
@@ -2189,9 +2196,7 @@ kex_to_blob(struct sshbuf *m, struct kex *kex)
 {
 	int r;
 
-	if ((r = sshbuf_put_string(m, kex->session_id,
-	    kex->session_id_len)) != 0 ||
-	    (r = sshbuf_put_u32(m, kex->we_need)) != 0 ||
+	if ((r = sshbuf_put_u32(m, kex->we_need)) != 0 ||
 	    (r = sshbuf_put_cstring(m, kex->hostkey_alg)) != 0 ||
 	    (r = sshbuf_put_u32(m, kex->hostkey_type)) != 0 ||
 	    (r = sshbuf_put_u32(m, kex->hostkey_nid)) != 0 ||
@@ -2200,6 +2205,7 @@ kex_to_blob(struct sshbuf *m, struct kex *kex)
 	    (r = sshbuf_put_stringb(m, kex->peer)) != 0 ||
 	    (r = sshbuf_put_stringb(m, kex->client_version)) != 0 ||
 	    (r = sshbuf_put_stringb(m, kex->server_version)) != 0 ||
+	    (r = sshbuf_put_stringb(m, kex->session_id)) != 0 ||
 	    (r = sshbuf_put_u32(m, kex->flags)) != 0)
 		return r;
 	return 0;
@@ -2352,8 +2358,7 @@ kex_from_blob(struct sshbuf *m, struct kex **kexp)
 
 	if ((kex = kex_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshbuf_get_string(m, &kex->session_id, &kex->session_id_len)) != 0 ||
-	    (r = sshbuf_get_u32(m, &kex->we_need)) != 0 ||
+	if ((r = sshbuf_get_u32(m, &kex->we_need)) != 0 ||
 	    (r = sshbuf_get_cstring(m, &kex->hostkey_alg, NULL)) != 0 ||
 	    (r = sshbuf_get_u32(m, (u_int *)&kex->hostkey_type)) != 0 ||
 	    (r = sshbuf_get_u32(m, (u_int *)&kex->hostkey_nid)) != 0 ||
@@ -2362,6 +2367,7 @@ kex_from_blob(struct sshbuf *m, struct kex **kexp)
 	    (r = sshbuf_get_stringb(m, kex->peer)) != 0 ||
 	    (r = sshbuf_get_stringb(m, kex->client_version)) != 0 ||
 	    (r = sshbuf_get_stringb(m, kex->server_version)) != 0 ||
+	    (r = sshbuf_get_stringb(m, kex->session_id)) != 0 ||
 	    (r = sshbuf_get_u32(m, &kex->flags)) != 0)
 		goto out;
 	kex->server = 1;
@@ -2406,7 +2412,7 @@ ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 	    (r = sshbuf_get_u64(m, &state->p_read.bytes)) != 0)
 		return r;
 	/*
-	 * We set the time here so that in post-auth privsep slave we
+	 * We set the time here so that in post-auth privsep child we
 	 * count from the completion of the authentication.
 	 */
 	state->rekey_time = monotime();
@@ -2428,7 +2434,7 @@ ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 
 	if (sshbuf_len(m))
 		return SSH_ERR_INVALID_FORMAT;
-	debug3("%s: done", __func__);
+	debug3_f("done");
 	return 0;
 }
 
@@ -2619,7 +2625,7 @@ ssh_packet_send_mux(struct ssh *ssh)
 	cp = sshbuf_mutable_ptr(state->outgoing_packet);
 	type = cp[5];
 	if (ssh_packet_log_type(type))
-		debug3("%s: type %u", __func__, type);
+		debug3_f("type %u", type);
 	/* drop everything, but the connection protocol */
 	if (type >= SSH2_MSG_CONNECTION_MIN &&
 	    type <= SSH2_MSG_CONNECTION_MAX) {

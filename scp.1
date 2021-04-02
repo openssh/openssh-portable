@@ -8,17 +8,17 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.86 2019/06/12 11:31:50 jmc Exp $
+.\" $OpenBSD: scp.1,v 1.95 2021/01/26 15:40:17 naddy Exp $
 .\"
-.Dd $Mdocdate: June 12 2019 $
+.Dd $Mdocdate: January 26 2021 $
 .Dt SCP 1
 .Os
 .Sh NAME
 .Nm scp
-.Nd secure copy (remote file copy program)
+.Nd OpenSSH secure file copy
 .Sh SYNOPSIS
 .Nm scp
-.Op Fl 346BCpqrTv
+.Op Fl 346ABCpqrTv
 .Op Fl c Ar cipher
 .Op Fl F Ar ssh_config
 .Op Fl i Ar identity_file
@@ -31,11 +31,15 @@
 .Sh DESCRIPTION
 .Nm
 copies files between hosts on a network.
+.Pp
 It uses
 .Xr ssh 1
 for data transfer, and uses the same authentication and provides the
-same security as
-.Xr ssh 1 .
+same security as a login session.
+The scp protocol requires execution of the remote user's shell to perform
+.Xr glob 3
+pattern matching.
+.Pp
 .Nm
 will ask for passwords or passphrases if they are needed for
 authentication.
@@ -74,7 +78,10 @@ The options are as follows:
 Copies between two remote hosts are transferred through the local host.
 Without this option the data is copied directly between the two remote
 hosts.
-Note that this option disables the progress meter.
+Note that this option disables the progress meter and selects batch mode
+for the second host, since
+.Nm
+cannot ask for passwords or passphrases for both hosts.
 .It Fl 4
 Forces
 .Nm
@@ -83,6 +90,11 @@ to use IPv4 addresses only.
 Forces
 .Nm
 to use IPv6 addresses only.
+.It Fl A
+Allows forwarding of
+.Xr ssh-agent 1
+to the remote system.
+The default is not to forward an authentication agent.
 .It Fl B
 Selects batch mode (prevents asking for passwords or passphrases).
 .It Fl C
@@ -160,8 +172,8 @@ For full details of the options listed below, and their possible values, see
 .It GSSAPIDelegateCredentials
 .It HashKnownHosts
 .It Host
+.It HostbasedAcceptedAlgorithms
 .It HostbasedAuthentication
-.It HostbasedKeyTypes
 .It HostKeyAlgorithms
 .It HostKeyAlias
 .It Hostname
@@ -172,6 +184,7 @@ For full details of the options listed below, and their possible values, see
 .It KbdInteractiveAuthentication
 .It KbdInteractiveDevices
 .It KexAlgorithms
+.It KnownHostsCommand
 .It LogLevel
 .It MACs
 .It NoHostAuthenticationForLocalhost
@@ -182,7 +195,7 @@ For full details of the options listed below, and their possible values, see
 .It PreferredAuthentications
 .It ProxyCommand
 .It ProxyJump
-.It PubkeyAcceptedKeyTypes
+.It PubkeyAcceptedAlgorithms
 .It PubkeyAuthentication
 .It RekeyLimit
 .It SendEnv

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey-xmss.c,v 1.6 2019/10/09 00:02:57 djm Exp $ */
+/* $OpenBSD: sshkey-xmss.c,v 1.9 2020/10/19 22:49:23 dtucker Exp $ */
 /*
  * Copyright (c) 2017 Markus Friedl.  All rights reserved.
  *
@@ -45,6 +45,7 @@
 #include "sshkey.h"
 #include "sshkey-xmss.h"
 #include "atomicio.h"
+#include "log.h"
 
 #include "xmss_fast.h"
 
@@ -69,7 +70,7 @@ struct ssh_xmss_state {
 	u_int32_t	maxidx;		/* restricted # of signatures */
 	int		have_state;	/* .state file exists */
 	int		lockfd;		/* locked in sshkey_xmss_get_state() */
-	int		allow_update;	/* allow sshkey_xmss_update_state() */
+	u_char		allow_update;	/* allow sshkey_xmss_update_state() */
 	char		*enc_ciphername;/* encrypt state with cipher */
 	u_char		*enc_keyiv;	/* encrypt state with key */
 	u_int32_t	enc_keyiv_len;	/* length of enc_keyiv */
@@ -79,7 +80,7 @@ int	 sshkey_xmss_init_bds_state(struct sshkey *);
 int	 sshkey_xmss_init_enc_key(struct sshkey *, const char *);
 void	 sshkey_xmss_free_bds(struct sshkey *);
 int	 sshkey_xmss_get_state_from_file(struct sshkey *, const char *,
-	    int *, sshkey_printfn *);
+	    int *, int);
 int	 sshkey_xmss_encrypt_state(const struct sshkey *, struct sshbuf *,
 	    struct sshbuf **);
 int	 sshkey_xmss_decrypt_state(const struct sshkey *, struct sshbuf *,
@@ -87,7 +88,8 @@ int	 sshkey_xmss_decrypt_state(const struct sshkey *, struct sshbuf *,
 int	 sshkey_xmss_serialize_enc_key(const struct sshkey *, struct sshbuf *);
 int	 sshkey_xmss_deserialize_enc_key(struct sshkey *, struct sshbuf *);
 
-#define PRINT(s...) do { if (pr) pr(s); } while (0)
+#define PRINT(...) do { if (printerror) sshlog(__FILE__, __func__, __LINE__, \
+    0, SYSLOG_LEVEL_ERROR, __VA_ARGS__); } while (0)
 
 int
 sshkey_xmss_init(struct sshkey *key, const char *name)
@@ -392,7 +394,7 @@ sshkey_xmss_generate_private_key(struct sshkey *k, u_int bits)
 
 int
 sshkey_xmss_get_state_from_file(struct sshkey *k, const char *filename,
-    int *have_file, sshkey_printfn *pr)
+    int *have_file, int printerror)
 {
 	struct sshbuf *b = NULL, *enc = NULL;
 	int ret = SSH_ERR_SYSTEM_ERROR, r, fd = -1;
@@ -440,7 +442,7 @@ done:
 }
 
 int
-sshkey_xmss_get_state(const struct sshkey *k, sshkey_printfn *pr)
+sshkey_xmss_get_state(const struct sshkey *k, int printerror)
 {
 	struct ssh_xmss_state *state = k->xmss_state;
 	u_int32_t idx = 0;
@@ -493,9 +495,9 @@ sshkey_xmss_get_state(const struct sshkey *k, sshkey_printfn *pr)
 	}
 	/* XXX no longer const */
 	if ((r = sshkey_xmss_get_state_from_file((struct sshkey *)k,
-	    statefile, &have_state, pr)) != 0) {
+	    statefile, &have_state, printerror)) != 0) {
 		if ((r = sshkey_xmss_get_state_from_file((struct sshkey *)k,
-		    ostatefile, &have_ostate, pr)) == 0) {
+		    ostatefile, &have_ostate, printerror)) == 0) {
 			state->allow_update = 1;
 			r = sshkey_xmss_forward_state(k, 1);
 			state->idx = PEEK_U32(k->xmss_sk);
@@ -563,7 +565,7 @@ sshkey_xmss_forward_state(const struct sshkey *k, u_int32_t reserve)
 }
 
 int
-sshkey_xmss_update_state(const struct sshkey *k, sshkey_printfn *pr)
+sshkey_xmss_update_state(const struct sshkey *k, int printerror)
 {
 	struct ssh_xmss_state *state = k->xmss_state;
 	struct sshbuf *b = NULL, *enc = NULL;
@@ -716,6 +718,7 @@ sshkey_xmss_serialize_state_opt(const struct sshkey *k, struct sshbuf *b,
 {
 	struct ssh_xmss_state *state = k->xmss_state;
 	int r = SSH_ERR_INVALID_ARGUMENT;
+	u_char have_stack, have_filename, have_enc;
 
 	if (state == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -727,8 +730,34 @@ sshkey_xmss_serialize_state_opt(const struct sshkey *k, struct sshbuf *b,
 		break;
 	case SSHKEY_SERIALIZE_FULL:
 		if ((r = sshkey_xmss_serialize_enc_key(k, b)) != 0)
-			break;
+			return r;
 		r = sshkey_xmss_serialize_state(k, b);
+		break;
+	case SSHKEY_SERIALIZE_SHIELD:
+		/* all of stack/filename/enc are optional */
+		have_stack = state->stack != NULL;
+		if ((r = sshbuf_put_u8(b, have_stack)) != 0)
+			return r;
+		if (have_stack) {
+			state->idx = PEEK_U32(k->xmss_sk);	/* update */
+			if ((r = sshkey_xmss_serialize_state(k, b)) != 0)
+				return r;
+		}
+		have_filename = k->xmss_filename != NULL;
+		if ((r = sshbuf_put_u8(b, have_filename)) != 0)
+			return r;
+		if (have_filename &&
+		    (r = sshbuf_put_cstring(b, k->xmss_filename)) != 0)
+			return r;
+		have_enc = state->enc_keyiv != NULL;
+		if ((r = sshbuf_put_u8(b, have_enc)) != 0)
+			return r;
+		if (have_enc &&
+		    (r = sshkey_xmss_serialize_enc_key(k, b)) != 0)
+			return r;
+		if ((r = sshbuf_put_u32(b, state->maxidx)) != 0 ||
+		    (r = sshbuf_put_u8(b, state->allow_update)) != 0)
+			return r;
 		break;
 	case SSHKEY_SERIALIZE_DEFAULT:
 		r = 0;
@@ -748,7 +777,7 @@ sshkey_xmss_deserialize_state(struct sshkey *k, struct sshbuf *b)
 	u_int32_t i, lh, node;
 	size_t ls, lsl, la, lk, ln, lr;
 	char *magic;
-	int r;
+	int r = SSH_ERR_INTERNAL_ERROR;
 
 	if (state == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -767,9 +796,11 @@ sshkey_xmss_deserialize_state(struct sshkey *k, struct sshbuf *b)
 	    (r = sshbuf_get_string(b, &state->th_nodes, &ln)) != 0 ||
 	    (r = sshbuf_get_string(b, &state->retain, &lr)) != 0 ||
 	    (r = sshbuf_get_u32(b, &lh)) != 0)
-		return r;
-	if (strcmp(magic, SSH_XMSS_K2_MAGIC) != 0)
-		return SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	if (strcmp(magic, SSH_XMSS_K2_MAGIC) != 0) {
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
 	/* XXX check stackoffset */
 	if (ls != num_stack(state) ||
 	    lsl != num_stacklevels(state) ||
@@ -777,8 +808,10 @@ sshkey_xmss_deserialize_state(struct sshkey *k, struct sshbuf *b)
 	    lk != num_keep(state) ||
 	    ln != num_th_nodes(state) ||
 	    lr != num_retain(state) ||
-	    lh != num_treehash(state))
-		return SSH_ERR_INVALID_ARGUMENT;
+	    lh != num_treehash(state)) {
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
 	for (i = 0; i < num_treehash(state); i++) {
 		th = &state->treehash[i];
 		if ((r = sshbuf_get_u32(b, &th->h)) != 0 ||
@@ -786,7 +819,7 @@ sshkey_xmss_deserialize_state(struct sshkey *k, struct sshbuf *b)
 		    (r = sshbuf_get_u32(b, &th->stackusage)) != 0 ||
 		    (r = sshbuf_get_u8(b, &th->completed)) != 0 ||
 		    (r = sshbuf_get_u32(b, &node)) != 0)
-			return r;
+			goto out;
 		if (node < num_th_nodes(state))
 			th->node = &state->th_nodes[node];
 	}
@@ -794,14 +827,19 @@ sshkey_xmss_deserialize_state(struct sshkey *k, struct sshbuf *b)
 	xmss_set_bds_state(&state->bds, state->stack, state->stackoffset,
 	    state->stacklevels, state->auth, state->keep, state->treehash,
 	    state->retain, 0);
-	return 0;
+	/* success */
+	r = 0;
+ out:
+	free(magic);
+	return r;
 }
 
 int
 sshkey_xmss_deserialize_state_opt(struct sshkey *k, struct sshbuf *b)
 {
+	struct ssh_xmss_state *state = k->xmss_state;
 	enum sshkey_serialize_rep opts;
-	u_char have_state;
+	u_char have_state, have_stack, have_filename, have_enc;
 	int r;
 
 	if ((r = sshbuf_get_u8(b, &have_state)) != 0)
@@ -811,6 +849,26 @@ sshkey_xmss_deserialize_state_opt(struct sshkey *k, struct sshbuf *b)
 	switch (opts) {
 	case SSHKEY_SERIALIZE_DEFAULT:
 		r = 0;
+		break;
+	case SSHKEY_SERIALIZE_SHIELD:
+		if ((r = sshbuf_get_u8(b, &have_stack)) != 0)
+			return r;
+		if (have_stack &&
+		    (r = sshkey_xmss_deserialize_state(k, b)) != 0)
+			return r;
+		if ((r = sshbuf_get_u8(b, &have_filename)) != 0)
+			return r;
+		if (have_filename &&
+		    (r = sshbuf_get_cstring(b, &k->xmss_filename, NULL)) != 0)
+			return r;
+		if ((r = sshbuf_get_u8(b, &have_enc)) != 0)
+			return r;
+		if (have_enc &&
+		    (r = sshkey_xmss_deserialize_enc_key(k, b)) != 0)
+			return r;
+		if ((r = sshbuf_get_u32(b, &state->maxidx)) != 0 ||
+		    (r = sshbuf_get_u8(b, &state->allow_update)) != 0)
+			return r;
 		break;
 	case SSHKEY_SERIALIZE_STATE:
 		if ((r = sshkey_xmss_deserialize_state(k, b)) != 0)

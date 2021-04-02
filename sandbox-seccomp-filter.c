@@ -43,6 +43,7 @@
 #include <sys/resource.h>
 #include <sys/prctl.h>
 #include <sys/mman.h>
+#include <sys/syscall.h>
 
 #include <linux/net.h>
 #include <linux/audit.h>
@@ -177,6 +178,12 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_shmdt
 	SC_DENY(__NR_shmdt, EACCES),
 #endif
+#ifdef __NR_ipc
+	SC_DENY(__NR_ipc, EACCES),
+#endif
+#ifdef __NR_statx
+	SC_DENY(__NR_statx, EACCES),
+#endif
 
 	/* Syscalls to permit */
 #ifdef __NR_brk
@@ -184,6 +191,9 @@ static const struct sock_filter preauth_insns[] = {
 #endif
 #ifdef __NR_clock_gettime
 	SC_ALLOW(__NR_clock_gettime),
+#endif
+#ifdef __NR_clock_gettime64
+	SC_ALLOW(__NR_clock_gettime64),
 #endif
 #ifdef __NR_close
 	SC_ALLOW(__NR_close),
@@ -196,6 +206,9 @@ static const struct sock_filter preauth_insns[] = {
 #endif
 #ifdef __NR_futex
 	SC_ALLOW(__NR_futex),
+#endif
+#ifdef __NR_futex_time64
+	SC_ALLOW(__NR_futex_time64),
 #endif
 #ifdef __NR_geteuid
 	SC_ALLOW(__NR_geteuid),
@@ -242,6 +255,15 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_nanosleep
 	SC_ALLOW(__NR_nanosleep),
 #endif
+#ifdef __NR_clock_nanosleep
+	SC_ALLOW(__NR_clock_nanosleep),
+#endif
+#ifdef __NR_clock_nanosleep_time64
+	SC_ALLOW(__NR_clock_nanosleep_time64),
+#endif
+#ifdef __NR_clock_gettime64
+	SC_ALLOW(__NR_clock_gettime64),
+#endif
 #ifdef __NR__newselect
 	SC_ALLOW(__NR__newselect),
 #endif
@@ -250,6 +272,9 @@ static const struct sock_filter preauth_insns[] = {
 #endif
 #ifdef __NR_pselect6
 	SC_ALLOW(__NR_pselect6),
+#endif
+#ifdef __NR_pselect6_time64
+	SC_ALLOW(__NR_pselect6_time64),
 #endif
 #ifdef __NR_read
 	SC_ALLOW(__NR_read),
