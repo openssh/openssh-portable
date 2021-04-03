@@ -4385,14 +4385,14 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 		return SSH_ERR_PASSPHRASE_TOO_SHORT;
 	if ((blob = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
- 	if ((bio = BIO_new(BIO_s_mem())) == NULL) {
+	if ((bio = BIO_new(BIO_s_mem())) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
 	if (format == SSHKEY_PRIVATE_PKCS8 && (pkey = EVP_PKEY_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
- 	}
+	}
 	if ((r = sshkey_unshield_private(key)) != 0)
 		goto out;
 

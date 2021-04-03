@@ -2213,7 +2213,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 			if ((line = el_gets(el, &count)) == NULL ||
 			    count <= 0) {
 				printf("\n");
- 				break;
+				break;
 			}
 			history(hl, &hev, H_ENTER, line);
 			if (strlcpy(cmd, line, sizeof(cmd)) >= sizeof(cmd)) {

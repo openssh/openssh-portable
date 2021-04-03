@@ -163,17 +163,18 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 		goto out;
 	}
 
-	problem = ssh_krb5_cc_gen(authctxt->krb5_ctx, &authctxt->krb5_fwd_ccache);
+	problem = ssh_krb5_cc_gen(authctxt->krb5_ctx,
+	    &authctxt->krb5_fwd_ccache);
 	if (problem)
 		goto out;
 
-	problem = krb5_cc_initialize(authctxt->krb5_ctx, authctxt->krb5_fwd_ccache,
-				     authctxt->krb5_user);
+	problem = krb5_cc_initialize(authctxt->krb5_ctx,
+	    authctxt->krb5_fwd_ccache, authctxt->krb5_user);
 	if (problem)
 		goto out;
 
-	problem= krb5_cc_store_cred(authctxt->krb5_ctx, authctxt->krb5_fwd_ccache,
-				 &creds);
+	problem = krb5_cc_store_cred(authctxt->krb5_ctx,
+	    authctxt->krb5_fwd_ccache, &creds);
 	if (problem)
 		goto out;
 #endif
@@ -202,7 +203,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 		if (authctxt->krb5_ctx != NULL && problem!=-1) {
 			errmsg = krb5_get_error_message(authctxt->krb5_ctx,
 			    problem);
- 			debug("Kerberos password authentication failed: %s",
+			debug("Kerberos password authentication failed: %s",
 			    errmsg);
 			krb5_free_error_message(authctxt->krb5_ctx, errmsg);
 		} else

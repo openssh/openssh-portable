@@ -494,7 +494,7 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, size_t len)
 #endif
 	if (cipher_authlen(c)) {
 		if (!EVP_CIPHER_CTX_ctrl(cc->evp, EVP_CTRL_GCM_IV_GEN,
-		   len, iv))
+		    len, iv))
 			return SSH_ERR_LIBCRYPTO_ERROR;
 	} else if (!EVP_CIPHER_CTX_get_iv(cc->evp, iv, len))
 		return SSH_ERR_LIBCRYPTO_ERROR;

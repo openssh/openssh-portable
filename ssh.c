@@ -1553,7 +1553,7 @@ main(int ac, char **av)
 	if (ssh_connect(ssh, host, host_arg, addrs, &hostaddr, options.port,
 	    options.connection_attempts,
 	    &timeout_ms, options.tcp_keep_alive) != 0)
- 		exit(255);
+		exit(255);
 
 	if (addrs != NULL)
 		freeaddrinfo(addrs);

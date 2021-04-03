@@ -68,11 +68,9 @@ report_failed_grab (GtkWidget *parent_window, const char *what)
 	GtkWidget *err;
 
 	err = gtk_message_dialog_new(GTK_WINDOW(parent_window), 0,
-				     GTK_MESSAGE_ERROR,
-				     GTK_BUTTONS_CLOSE,
-				     "Could not grab %s. "
-				     "A malicious client may be eavesdropping "
-				     "on your session.", what);
+	    GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+	    "Could not grab %s. A malicious client may be eavesdropping "
+	    "on your session.", what);
 	gtk_window_set_position(GTK_WINDOW(err), GTK_WIN_POS_CENTER);
 
 	gtk_dialog_run(GTK_DIALOG(err));
@@ -225,7 +223,7 @@ passphrase_dialog(char *message, int prompt_type)
 			 */
 			gtk_widget_realize(entry);
 			g_signal_connect(G_OBJECT(entry), "key_press_event",
-			                 G_CALLBACK(check_none), dialog);
+			    G_CALLBACK(check_none), dialog);
 		}
 	}
 

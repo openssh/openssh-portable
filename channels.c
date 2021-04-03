@@ -1921,7 +1921,7 @@ channel_handle_rfd(struct ssh *ssh, Channel *c,
 	    ((errno == EAGAIN || errno == EWOULDBLOCK) && !force)))
 		return 1;
 #ifndef PTY_ZEROREAD
- 	if (len <= 0) {
+	if (len <= 0) {
 #else
 	if ((!c->isatty && len <= 0) ||
 	    (c->isatty && (len < 0 || (len == 0 && errno != 0)))) {
