@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.162 2021/02/28 01:50:47 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.163 2021/04/03 05:21:46 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -1935,11 +1935,6 @@ argv_split(const char *s, int *argcp, char ***argvp)
 
 		/* Start of a token */
 		quote = 0;
-		if (s[i] == '\\' &&
-		    (s[i + 1] == '\'' || s[i + 1] == '\"' || s[i + 1] == '\\'))
-			i++;
-		else if (s[i] == '\'' || s[i] == '"')
-			quote = s[i++];
 
 		argv = xreallocarray(argv, (argc + 2), sizeof(*argv));
 		arg = argv[argc++] = xcalloc(1, strlen(s + i) + 1);
@@ -1959,8 +1954,10 @@ argv_split(const char *s, int *argcp, char ***argvp)
 				}
 			} else if (quote == 0 && (s[i] == ' ' || s[i] == '\t'))
 				break; /* done */
+			else if (quote == 0 && (s[i] == '\"' || s[i] == '\''))
+				quote = s[i]; /* quote start */
 			else if (quote != 0 && s[i] == quote)
-				break; /* done */
+				quote = 0; /* quote end */
 			else
 				arg[j++] = s[i];
 		}
