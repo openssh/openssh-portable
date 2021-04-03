@@ -1,4 +1,4 @@
-/* $OpenBSD: log.h,v 1.30 2020/12/04 02:25:13 djm Exp $ */
+/* $OpenBSD: log.h,v 1.31 2021/04/03 05:54:14 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -61,7 +61,7 @@ void	 log_verbose_add(const char *);
 void	 log_verbose_reset(void);
 
 SyslogFacility	log_facility_number(char *);
-const char * 	log_facility_name(SyslogFacility);
+const char *	log_facility_name(SyslogFacility);
 LogLevel	log_level_number(char *);
 const char *	log_level_name(LogLevel);
 
