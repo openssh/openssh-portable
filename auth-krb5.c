@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-krb5.c,v 1.23 2018/07/09 21:35:50 markus Exp $ */
+/* $OpenBSD: auth-krb5.c,v 1.24 2021/04/03 06:18:40 djm Exp $ */
 /*
  *    Kerberos v5 authentication and ticket-passing routines.
  *
@@ -99,7 +99,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 #ifdef HEIMDAL
 # ifdef HAVE_KRB5_CC_NEW_UNIQUE
 	problem = krb5_cc_new_unique(authctxt->krb5_ctx,
-	     krb5_mcc_ops.prefix, NULL, &ccache);
+	    krb5_mcc_ops.prefix, NULL, &ccache);
 # else
 	problem = krb5_cc_gen_new(authctxt->krb5_ctx, &krb5_mcc_ops, &ccache);
 # endif
@@ -123,7 +123,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 
 # ifdef HAVE_KRB5_CC_NEW_UNIQUE
 	problem = krb5_cc_new_unique(authctxt->krb5_ctx,
-	     krb5_fcc_ops.prefix, NULL, &authctxt->krb5_fwd_ccache);
+	    krb5_fcc_ops.prefix, NULL, &authctxt->krb5_fwd_ccache);
 # else
 	problem = krb5_cc_gen_new(authctxt->krb5_ctx, &krb5_fcc_ops,
 	    &authctxt->krb5_fwd_ccache);

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.207 2021/03/31 22:16:34 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.208 2021/04/03 06:18:41 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -741,7 +741,7 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 		}
 		free(tmp);
 
-                resume |= global_aflag;
+		resume |= global_aflag;
 		if (!quiet && resume)
 			mprintf("Resuming upload of %s to %s\n",
 			    g.gl_pathv[i], abs_dst);

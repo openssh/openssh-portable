@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.126 2021/04/03 05:28:43 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.127 2021/04/03 06:18:41 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -151,7 +151,7 @@ static const struct sftp_handler handlers[] = {
 /* SSH2_FXP_EXTENDED submessages */
 static const struct sftp_handler extended_handlers[] = {
 	{ "posix-rename", "posix-rename@openssh.com", 0,
-	   process_extended_posix_rename, 1 },
+	    process_extended_posix_rename, 1 },
 	{ "statvfs", "statvfs@openssh.com", 0, process_extended_statvfs, 0 },
 	{ "fstatvfs", "fstatvfs@openssh.com", 0, process_extended_fstatvfs, 0 },
 	{ "hardlink", "hardlink@openssh.com", 0, process_extended_hardlink, 1 },
@@ -1376,7 +1376,7 @@ process_extended_statvfs(u_int32_t id)
 		send_status(id, errno_to_portable(errno));
 	else
 		send_statvfs(id, &st);
-        free(path);
+	free(path);
 }
 
 static void

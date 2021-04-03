@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.56 2020/12/04 02:25:13 djm Exp $ */
+/* $OpenBSD: log.c,v 1.57 2021/04/03 06:18:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -318,7 +318,7 @@ log_redirect_stderr_to(const char *logfile)
 
 	if ((fd = open(logfile, O_WRONLY|O_CREAT|O_APPEND, 0600)) == -1) {
 		fprintf(stderr, "Couldn't open logfile %s: %s\n", logfile,
-		     strerror(errno));
+		    strerror(errno));
 		exit(1);
 	}
 	log_stderr_fd = fd;

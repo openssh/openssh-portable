@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.73 2021/03/12 04:08:19 dtucker Exp $ */
+/* $OpenBSD: dh.c,v 1.74 2021/04/03 06:18:40 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -274,7 +274,7 @@ dh_pub_is_valid(const DH *dh, const BIGNUM *dh_pub)
 	 */
 	if (bits_set < 4) {
 		logit("invalid public DH value (%d/%d)",
-		   bits_set, BN_num_bits(dh_p));
+		    bits_set, BN_num_bits(dh_p));
 		return 0;
 	}
 	return 1;

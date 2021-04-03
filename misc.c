@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.163 2021/04/03 05:21:46 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.164 2021/04/03 06:18:40 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -1195,7 +1195,7 @@ vdollar_percent_expand(int *parseerror, int dollar, int percent,
 			string += 2;  /* skip over '${' */
 			if ((varend = strchr(string, '}')) == NULL) {
 				error_f("environment variable '%s' missing "
-				   "closing '}'", string);
+				    "closing '}'", string);
 				goto out;
 			}
 			len = varend - string;

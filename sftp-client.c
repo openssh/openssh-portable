@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.141 2021/03/31 22:16:34 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.142 2021/04/03 06:18:41 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -515,7 +515,8 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 			ret->num_requests =
 			    MINIMUM(DEFAULT_NUM_REQUESTS, limits.open_handles);
 			debug("Server handle limit %llu; using %u",
-			      (unsigned long long)limits.open_handles, ret->num_requests);
+			    (unsigned long long)limits.open_handles,
+			    ret->num_requests);
 		}
 	}
 
@@ -577,7 +578,7 @@ do_limits(struct sftp_conn *conn, struct sftp_limits *limits)
 		fatal("ID mismatch (%u != %u)", msg_id, id);
 	if (type != SSH2_FXP_EXTENDED_REPLY) {
 		fatal("Expected SSH2_FXP_EXTENDED_REPLY(%u) packet, got %u",
-		      SSH2_FXP_EXTENDED_REPLY, type);
+		    SSH2_FXP_EXTENDED_REPLY, type);
 	}
 
 	memset(limits, 0, sizeof(*limits));
@@ -1036,7 +1037,7 @@ do_hardlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 		fatal_fr(r, "compose");
 	send_msg(conn, msg);
 	debug3("Sent message hardlink@openssh.com \"%s\" -> \"%s\"",
-	       oldpath, newpath);
+	    oldpath, newpath);
 	sshbuf_free(msg);
 
 	status = get_status(conn, id);
@@ -1753,7 +1754,7 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 
 		if ((off_t)c->size >= sb.st_size) {
 			error("destination file bigger or same size as "
-			      "source file");
+			    "source file");
 			close(local_fd);
 			return -1;
 		}
