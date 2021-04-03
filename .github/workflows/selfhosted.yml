@@ -41,24 +41,18 @@ jobs:
       run: vmstartup
     - name: configure
       run: vmrun ./.github/configure.sh ${{ matrix.configs }}
-    - name: save config files
-      if: failure()
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ matrix.os }}-${{ matrix.configs }}-config-files
-        path: |
-          config.h
-          config.log
     - name: make
       run: vmrun make
     - name: make tests
       run: vmrun ./.github/run_test.sh ${{ matrix.configs }}
-    - name: save regress logs
+    - name: save logs
       if: failure()
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.os }}-${{ matrix.configs }}-regress-logs
+        name: ${{ matrix.os }}-${{ matrix.configs }}-logs
         path: |
+          config.h
+          config.log
           regress/*.log
           regress/valgrind-out/
     - name: shutdown VM
