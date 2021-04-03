@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.125 2021/03/31 21:58:07 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.126 2021/04/03 05:28:43 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1519,7 +1519,7 @@ static void
 process_extended(u_int32_t id)
 {
 	char *request;
-	int i, r;
+	int r;
 	const struct sftp_handler *exthand;
 
 	if ((r = sshbuf_get_cstring(iqueue, &request, NULL)) != 0)
