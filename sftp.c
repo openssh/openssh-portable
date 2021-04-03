@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.208 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.209 2021/04/03 06:58:30 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -79,7 +79,7 @@ int batchmode = 0;
 /* PID of ssh transport process */
 static volatile pid_t sshpid = -1;
 
-/* Suppress diagnositic messages */
+/* Suppress diagnostic messages */
 int quiet = 0;
 
 /* This is set to 0 if the progressmeter is not desired. */
