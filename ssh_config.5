@@ -370,6 +370,19 @@ domains.
 .It Cm CASignatureAlgorithms
 Specifies which algorithms are allowed for signing of certificates
 by certificate authorities (CAs).
+Multiple algorithms must be comma-separated.
+If the specified list begins with a
+.Sq +
+character, then the specified algorithms will be appended to the default set
+instead of replacing them. If the specified list begins with a
+.Sq -
+character, then the specified algorithms (including wildcards) will be removed
+from the default set instead of replacing them.
+If the specified list begins with a
+.Sq ^
+character, then the specified algorithms will be placed at the head of the
+default set.
+.Pp
 The default is:
 .Bd -literal -offset indent
 ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
