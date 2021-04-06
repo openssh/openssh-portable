@@ -17,12 +17,6 @@ CYGWIN*)
 	;;
 esac
 
-if [ ! -z "$TEST_SSH_PORT" ]; then
-	PORT="$TEST_SSH_PORT"
-else
-	PORT=4242
-fi
-
 # If configure tells us to use a different egrep, create a wrapper function
 # to call it.  This means we don't need to change all the tests that depend
 # on a good implementation.
@@ -45,6 +39,12 @@ fi
 if test -z "$LOGNAME"; then
 	LOGNAME="${USER}"
 	export LOGNAME
+fi
+
+if [ ! -z "$TEST_SSH_PORT" ]; then
+	PORT="$TEST_SSH_PORT"
+else
+	PORT=4242
 fi
 
 OBJ=$1
