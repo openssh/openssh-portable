@@ -1491,7 +1491,9 @@ process_extended_limits(u_int32_t id)
 	struct sshbuf *msg;
 	int r;
 	uint64_t nfiles = 0;
+#ifdef HAVE_GETRLIMIT
 	struct rlimit rlim;
+#endif
 
 	debug("request %u: limits", id);
 
