@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_expand.c,v 1.1 2021/03/19 03:25:01 djm Exp $ */
+/* 	$OpenBSD: test_expand.c,v 1.2 2021/04/06 09:07:33 dtucker Exp $ */
 /*
  * Regress test for misc string expansion functions.
  *
@@ -30,7 +30,7 @@ test_expand(void)
 	TEST_START("dollar_expand");
 	ASSERT_INT_EQ(setenv("FOO", "bar", 1), 0);
 	ASSERT_INT_EQ(setenv("BAR", "baz", 1), 0);
-	ASSERT_INT_EQ(unsetenv("BAZ"), 0);
+	(void)unsetenv("BAZ");
 #define ASSERT_DOLLAR_EQ(x, y) do { \
 	char *str = dollar_expand(NULL, (x)); \
 	ASSERT_STRING_EQ(str, (y)); \
