@@ -1495,8 +1495,10 @@ process_extended_limits(u_int32_t id)
 
 	debug("request %u: limits", id);
 
+#ifdef HAVE_GETRLIMIT
 	if (getrlimit(RLIMIT_NOFILE, &rlim) != -1 && rlim.rlim_cur > 5)
 		nfiles = rlim.rlim_cur - 5; /* stdio(3) + syslog + spare */
+#endif
 
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
