@@ -1,5 +1,22 @@
 Notes:
 
+SCP with Resume functionality
+This feature allows SCP to resume failed transfers. In the event of a failed transfer
+issues the same scp command with the '-R' option. For example - if you issued:
+'scp myhugefile me@host:~' 
+and it dies halfway through the transfer issuing 
+'scp -R myhugefile me@host:~' 
+will resume the transfer at the point where it left off.
+
+This is implemented by having the source host send a hash (blake2b512) of the file to the
+target host. Teh target host then computes it's own hash of the target file. If the hashes match
+then the file is skipped as this indicates a successful transfer. However, if the hashes do not
+match then the target sends the source its hash along with the size of the file. The source then 
+computes the hash of the file *up to* the size of the target file. If those hashes match then 
+the source only send the necessary bytes to complete the transfer. If the hashes do not match then 
+the entire file is resent. If the target file is larger then the source file then the entire 
+source file is sent and any existing target file is overwritten.
+
 MULTI-THREADED CIPHER:
 The AES cipher in CTR mode has been multithreaded (MTR-AES-CTR). This will allow ssh installations
 on hosts with multiple cores to use more than one processing core during encryption.

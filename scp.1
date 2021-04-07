@@ -8,9 +8,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.95 2021/01/26 15:40:17 naddy Exp $
+.\" $OpenBSD: scp.1,v 1.95 2021/03/31 15:40:17 rapier Exp $
 .\"
-.Dd $Mdocdate: January 26 2021 $
+.Dd $Mdocdate: March 31 2021 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -228,6 +228,8 @@ Recursively copy entire directories.
 Note that
 .Nm
 follows symbolic links encountered in the tree traversal.
+.It Fl R
+Resume failed or interrupted transfer. Identical files will be skipped. Remote must have resume option. 
 .It Fl S Ar program
 Name of
 .Ar program
@@ -235,6 +237,10 @@ to use for the encrypted connection.
 The program must understand
 .Xr ssh 1
 options.
+.It Fl s Ar program
+Path to scp on remote system. Useful if remote has multiple scp installs.
+For example, using the resume option but the default remote scp does not have the resume option.
+Use -s to point the version that does - e.g. -s /opt/hpnssh/bin/scp
 .It Fl T
 Disable strict filename checking.
 By default when copying files from a remote host to a local directory
@@ -273,3 +279,4 @@ source code from the Regents of the University of California.
 .Sh AUTHORS
 .An Timo Rinne Aq Mt tri@iki.fi
 .An Tatu Ylonen Aq Mt ylo@cs.hut.fi
+.An Chris Rapier Aq Mt rapier@psc.edu
