@@ -336,6 +336,12 @@ if ! have_prog hostname; then
 		uname -n
 	}
 fi
+
+make_tmpdir ()
+{
+	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
+	    fatal "failed to create temporary directory"
+}
 # End of portable specific functions
 
 stop_sshd ()
@@ -367,12 +373,6 @@ stop_sshd ()
 			fi
 		fi
 	fi
-}
-
-make_tmpdir ()
-{
-	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
-	    fatal "failed to create temporary directory"
 }
 
 # helper
