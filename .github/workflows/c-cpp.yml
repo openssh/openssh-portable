@@ -20,6 +20,8 @@ jobs:
         include:
           - { os: ubuntu-20.04, configs: valgrind-1 }
           - { os: ubuntu-20.04, configs: valgrind-2 }
+          - { os: ubuntu-20.04, configs: valgrind-3 }
+          - { os: ubuntu-20.04, configs: valgrind-4 }
           - { os: ubuntu-20.04, configs: pam }
           - { os: ubuntu-20.04, configs: kitchensink }
           - { os: ubuntu-20.04, configs: hardenedmalloc }
