@@ -17,6 +17,12 @@ the source only send the necessary bytes to complete the transfer. If the hashes
 the entire file is resent. If the target file is larger then the source file then the entire 
 source file is sent and any existing target file is overwritten.
 
+SCP however, will use the first scp in the user's path. This might not support the resume 
+function and the attempt will fail. In those cases the user can explicitly define the path to the 
+resume enabled scp with the '-s' option. For example:
+
+'scp -R -s /opt/hpnssh/usr/bin/scp myhugefile me@host:~'
+
 MULTI-THREADED CIPHER:
 The AES cipher in CTR mode has been multithreaded (MTR-AES-CTR). This will allow ssh installations
 on hosts with multiple cores to use more than one processing core during encryption.
