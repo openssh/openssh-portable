@@ -1030,7 +1030,6 @@ toremote(int argc, char **argv)
 			if (do_local_cmd(&alist) != 0)
 				errs = 1;
 		} else {	/* local to remote */
-			fprintf (stderr,"Local to remote (toremote)\n");
 			if (remin == -1) {
 				xasprintf(&bp, "%s -t %s%s", cmd,
 				    *targ == '-' ? "-- " : "", targ);

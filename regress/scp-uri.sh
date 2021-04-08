@@ -64,6 +64,37 @@ for i in $(cd ${DIR} && echo *); do
 	cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
 done
 
+# tests file being smaller (copy)
+# a file being larger (copy2)
+# and a file that should be skipped (copy3)
+verbose "$tid: resume function from remote to local"
+scpclean
+rm -rf ${DIR2}
+cp ${DATA} ${DIR}/copy
+cp ${DATA} ${DIR}/copy2
+cp ${DATA} ${DIR}/copy3
+$SCP $scpopts -r "scp://${USER}@somehost:${PORT}/${DIR}" ${DIR2} || fail "copy failed"
+truncate --size=-512 ${DIR2}/copy
+truncate --size=+512 ${DIR2}/copy2
+$SCP $scpopts -R -s $SCP "scp://${USER}@somehost:${PORT}/${DIR}/copy*" ${DIR2} || fail "resume failed"
+for i in $(cd ${DIR} && echo *); do
+        cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted resume copy"
+done
+
+verbose "$tid: resume function from local to remote"
+scpclean
+rm -rf ${DIR2}
+cp ${DATA} ${DIR}/copy
+cp ${DATA} ${DIR}/copy2
+cp ${DATA} ${DIR}/copy3
+$SCP $scpopts -r ${DIR} "scp://${USER}@somehost:${PORT}/${DIR2}" || fail "copy failed"
+truncate --size=-512 ${DIR2}/copy
+truncate --size=+512 ${DIR2}/copy2
+$SCP $scpopts -R -s $SCP ${DIR}/copy* "scp://${USER}@somehost:${PORT}/${DIR2}" || fail "resume failed"
+for i in $(cd ${DIR} && echo *); do
+        cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted resume copy"
+done
+
 # TODO: scp -3
 
 scpclean
