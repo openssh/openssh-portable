@@ -712,6 +712,7 @@ unit: regress-unit-binaries
 	$(MAKE) \
 		.OBJDIR="$${BUILDDIR}/regress" \
 		.CURDIR="`pwd`" \
+		OBJ="$${BUILDDIR}/regress" \
 		$@ && echo $@ tests passed
 
 interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
