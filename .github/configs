@@ -84,6 +84,9 @@ case "$config" in
 	    valgrind-4)
 		LTESTS="${tests4}"
 		;;
+	    valgrind-unit)
+		TEST_TARGET="unit USE_VALGRIND=1"
+		;;
 	esac
 	;;
     *)
