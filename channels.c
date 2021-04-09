@@ -398,9 +398,16 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	c->remote_name = xstrdup(remote_name);
 	c->ctl_chan = -1;
 	c->delayed = 1;		/* prevent call to channel_post handler */
+	c->nb_flags = 0;
 	TAILQ_INIT(&c->status_confirms);
 	debug("channel %d: new [%s]", found, remote_name);
 	return c;
+}
+
+void
+channel_set_nb_flags(Channel *c, int flags)
+{
+	c->nb_flags |= flags;
 }
 
 static void

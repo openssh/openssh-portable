@@ -188,7 +188,13 @@ struct Channel {
 	void			*mux_ctx;
 	int			mux_pause;
 	int			mux_downstream_id;
+
+	/* nonblock should be restored */
+	int     		nb_flags;
 };
+
+/* Bit values for nb_flags */
+#define CHAN_UNSET_NB_OUT 		1
 
 #define CHAN_EXTENDED_IGNORE		0
 #define CHAN_EXTENDED_READ		1
@@ -268,6 +274,7 @@ void	 channel_register_status_confirm(struct ssh *, int,
 void	 channel_cancel_cleanup(struct ssh *, int);
 int	 channel_close_fd(struct ssh *, int *);
 void	 channel_send_window_changes(struct ssh *);
+void	 channel_set_nb_flags(Channel *c, int flags);
 
 /* mux proxy support */
 

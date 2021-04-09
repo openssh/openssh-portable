@@ -40,6 +40,7 @@
 #include "channels.h"
 #include "compat.h"
 #include "log.h"
+#include "misc.h"
 
 /*
  * SSH Protocol 1.5 aka New Channel Protocol
@@ -384,6 +385,8 @@ chan_shutdown_write(struct ssh *ssh, Channel *c)
 			    c->istate, c->ostate, strerror(errno));
 		}
 	} else {
+		if (c->nb_flags & CHAN_UNSET_NB_OUT)
+			unset_nonblock(c->wfd);
 		if (channel_close_fd(ssh, &c->wfd) < 0) {
 			logit_f("channel %d: close() failed for "
 			    "fd %d [i%d o%d]: %.100s", c->self, c->wfd,

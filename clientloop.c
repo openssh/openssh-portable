@@ -1403,14 +1403,6 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	if (have_pty)
 		leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
-	/* restore blocking io */
-	if (!isatty(fileno(stdin)))
-		unset_nonblock(fileno(stdin));
-	if (!isatty(fileno(stdout)))
-		unset_nonblock(fileno(stdout));
-	if (!isatty(fileno(stderr)))
-		unset_nonblock(fileno(stderr));
-
 	/*
 	 * If there was no shell or command requested, there will be no remote
 	 * exit status to be returned.  In that case, clear error code if the

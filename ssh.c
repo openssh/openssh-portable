@@ -2061,7 +2061,7 @@ static int
 ssh_session2_open(struct ssh *ssh)
 {
 	Channel *c;
-	int window, packetmax, in, out, err;
+	int window, packetmax, in, out, err, nb_flags = 0;
 
 	if (stdin_null_flag) {
 		in = open(_PATH_DEVNULL, O_RDONLY);
@@ -2077,8 +2077,12 @@ ssh_session2_open(struct ssh *ssh)
 	/* enable nonblocking unless tty */
 	if (!isatty(in))
 		set_nonblock(in);
-	if (!isatty(out))
-		set_nonblock(out);
+	if (!isatty(out)) {
+		if ((fcntl(out, F_GETFL) & O_NONBLOCK) == 0) {
+			nb_flags |= CHAN_UNSET_NB_OUT;
+			set_nonblock(out);
+		}
+	}
 	if (!isatty(err))
 		set_nonblock(err);
 
@@ -2092,6 +2096,7 @@ ssh_session2_open(struct ssh *ssh)
 	    "session", SSH_CHANNEL_OPENING, in, out, err,
 	    window, packetmax, CHAN_EXTENDED_WRITE,
 	    "client-session", /*nonblock*/0);
+	channel_set_nb_flags(c, nb_flags);
 
 	debug3_f("channel_new: %d", c->self);
 
