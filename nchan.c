@@ -415,6 +415,8 @@ chan_shutdown_read(struct ssh *ssh, Channel *c)
 			    c->istate, c->ostate, strerror(errno));
 		}
 	} else {
+		if (c->nb_flags & CHAN_UNSET_NB_IN)
+			unset_nonblock(c->rfd);
 		if (channel_close_fd(ssh, &c->rfd) < 0) {
 			logit_f("channel %d: close() failed for "
 			    "fd %d [i%d o%d]: %.100s", c->self, c->rfd,
@@ -434,6 +436,8 @@ chan_shutdown_extended_read(struct ssh *ssh, Channel *c)
 	debug_f("channel %d: (i%d o%d sock %d wfd %d efd %d [%s])",
 	    c->self, c->istate, c->ostate, c->sock, c->rfd, c->efd,
 	    channel_format_extended_usage(c));
+	if (c->nb_flags & CHAN_UNSET_NB_ERR)
+		unset_nonblock(c->efd);
 	if (channel_close_fd(ssh, &c->efd) < 0) {
 		logit_f("channel %d: close() failed for "
 		    "extended fd %d [i%d o%d]: %.100s", c->self, c->efd,

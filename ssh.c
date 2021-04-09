@@ -2075,16 +2075,24 @@ ssh_session2_open(struct ssh *ssh)
 		fatal("dup() in/out/err failed");
 
 	/* enable nonblocking unless tty */
-	if (!isatty(in))
-		set_nonblock(in);
+	if (!isatty(in)) {
+		if ((fcntl(in, F_GETFL) & O_NONBLOCK) == 0) {
+			nb_flags |= CHAN_UNSET_NB_IN;
+			set_nonblock(in);
+		}
+	}
 	if (!isatty(out)) {
 		if ((fcntl(out, F_GETFL) & O_NONBLOCK) == 0) {
 			nb_flags |= CHAN_UNSET_NB_OUT;
 			set_nonblock(out);
 		}
 	}
-	if (!isatty(err))
-		set_nonblock(err);
+	if (!isatty(err)) {
+		if ((fcntl(err, F_GETFL) & O_NONBLOCK) == 0) {
+			nb_flags |= CHAN_UNSET_NB_ERR;
+			set_nonblock(err);
+		}
+	}
 
 	window = CHAN_SES_WINDOW_DEFAULT;
 	packetmax = CHAN_SES_PACKET_DEFAULT;
