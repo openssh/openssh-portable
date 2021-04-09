@@ -194,7 +194,9 @@ struct Channel {
 };
 
 /* Bit values for nb_flags */
-#define CHAN_UNSET_NB_OUT 		1
+#define CHAN_UNSET_NB_IN 		1
+#define CHAN_UNSET_NB_OUT 		2
+#define CHAN_UNSET_NB_ERR 		4
 
 #define CHAN_EXTENDED_IGNORE		0
 #define CHAN_EXTENDED_READ		1
