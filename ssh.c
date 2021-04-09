@@ -1736,7 +1736,7 @@ control_persist_detach(void)
 	}
 	if (stdfd_devnull(1, 1, !(log_is_on_stderr() && debug_flag)) == -1)
 		error_f("stdfd_devnull failed");
-	daemon(1, 1);
+	daemon(0, 1);
 	setproctitle("%s [mux]", options.control_path);
 }
 
