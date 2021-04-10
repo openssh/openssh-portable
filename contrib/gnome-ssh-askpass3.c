@@ -63,22 +63,6 @@
 #include <gdk/gdkkeysyms.h>
 
 static void
-report_failed_grab (GtkWidget *parent_window, const char *what)
-{
-	GtkWidget *err;
-
-	err = gtk_message_dialog_new(GTK_WINDOW(parent_window), 0,
-	    GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
-	    "Could not grab %s. A malicious client may be eavesdropping "
-	    "on your session.", what);
-	gtk_window_set_position(GTK_WINDOW(err), GTK_WIN_POS_CENTER);
-
-	gtk_dialog_run(GTK_DIALOG(err));
-
-	gtk_widget_destroy(err);
-}
-
-static void
 ok_dialog(GtkWidget *entry, gpointer dialog)
 {
 	g_return_if_fail(GTK_IS_DIALOG(dialog));
@@ -153,7 +137,7 @@ passphrase_dialog(char *message, int prompt_type)
 	char *passphrase, *local;
 	int result, grab_tries, grab_server, grab_pointer;
 	int buttons, default_response;
-	GtkWidget *parent_window, *dialog, *entry;
+	GtkWidget *parent_window, *dialog, *entry, *err;
 	GdkGrabStatus status;
 	GdkColor fg, bg;
 	GdkSeat *seat;
@@ -282,9 +266,14 @@ passphrase_dialog(char *message, int prompt_type)
 
  nograb:
 	gtk_widget_destroy(dialog);
-	report_failed_grab(parent_window, failed);
-
-	return (-1);
+	err = gtk_message_dialog_new(GTK_WINDOW(parent_window), 0,
+	    GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+	    "Could not grab input. A malicious client may be eavesdropping "
+	    "on your session.");
+	gtk_window_set_position(GTK_WINDOW(err), GTK_WIN_POS_CENTER);
+	gtk_dialog_run(GTK_DIALOG(err));
+	gtk_widget_destroy(err);
+	return -1;
 }
 
 int
