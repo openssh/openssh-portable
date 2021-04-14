@@ -333,7 +333,7 @@ process_input(struct ssh *ssh, fd_set *readset, int connection_in)
 			return -1;
 		} else if (len == -1) {
 			if (errno == EINTR || errno == EAGAIN ||
-			    errno != EWOULDBLOCK)
+			    errno == EWOULDBLOCK)
 				return 0;
 			verbose("Read error from remote host %s port %d: %s",
 			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
