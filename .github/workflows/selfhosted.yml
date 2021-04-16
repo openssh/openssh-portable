@@ -25,6 +25,7 @@ jobs:
           - fbsd7
           - fbsd12
           - fbsd13
+          - obsd51
           - sol10
           - sol11
         configs:
