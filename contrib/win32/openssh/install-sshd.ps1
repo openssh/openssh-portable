@@ -77,6 +77,13 @@ if (Test-Path $sshAgentRegPath)
     Set-Acl $sshAgentRegPath  $sshAgentAcl
 }
 
+#Fix permissions for moduli file
+$moduliPath = Join-Path $PSScriptRoot "moduli"
+if (Test-Path $moduliPath -PathType Leaf)
+{
+    Repair-ModuliFilePermission -FilePath $moduliPath @psBoundParameters
+}
+
 #register etw provider
 wevtutil im `"$etwman`"
 

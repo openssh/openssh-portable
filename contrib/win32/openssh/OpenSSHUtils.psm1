@@ -202,6 +202,24 @@ function Repair-AdministratorsAuthorizedKeysPermission
 
 <#
     .Synopsis
+    Repair-ModuliFilePermission
+    Repair the file owner and Permission of moduli file 
+#>
+
+function Repair-ModuliFilePermission
+{
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact="High")]
+    param (
+        [parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]        
+        [string]$FilePath) 
+
+        Repair-FilePermission -Owners $adminsSid -FullAccessNeeded $adminsSid,$systemSid -ReadAccessOK $everyoneSid @psBoundParameters        
+
+}
+
+<#
+    .Synopsis
     Repair-UserKeyPermission
     Repair the file owner and Permission of user config
     -FilePath: The path of the private user key
@@ -708,4 +726,4 @@ function Enable-Privilege {
     $type[0]::EnablePrivilege($Privilege, $Disable)
 }
 
-Export-ModuleMember -Function Repair-FilePermission, Repair-SshdConfigPermission, Repair-SshdHostKeyPermission, Repair-AuthorizedKeyPermission, Repair-UserKeyPermission, Repair-UserSshConfigPermission, Enable-Privilege, Get-UserAccount, Get-UserSID, Repair-AdministratorsAuthorizedKeysPermission
+Export-ModuleMember -Function Repair-FilePermission, Repair-SshdConfigPermission, Repair-SshdHostKeyPermission, Repair-AuthorizedKeyPermission, Repair-UserKeyPermission, Repair-UserSshConfigPermission, Enable-Privilege, Get-UserAccount, Get-UserSID, Repair-AdministratorsAuthorizedKeysPermission, Repair-ModuliFilePermission

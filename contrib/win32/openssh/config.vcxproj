@@ -199,7 +199,7 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
-copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
+copy /Y "$(OpenSSH-Src-Path)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
       <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
@@ -235,7 +235,7 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
-copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
+copy /Y "$(OpenSSH-Src-Path)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
       <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
@@ -271,7 +271,7 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
-copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
+copy /Y "$(OpenSSH-Src-Path)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
       <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
@@ -307,7 +307,7 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
-copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
+copy /Y "$(OpenSSH-Src-Path)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
       <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
@@ -347,7 +347,7 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
-copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
+copy /Y "$(OpenSSH-Src-Path)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
       <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
@@ -387,7 +387,7 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
-copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
+copy /Y "$(OpenSSH-Src-Path)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
       <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
@@ -427,7 +427,7 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
-copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
+copy /Y "$(OpenSSH-Src-Path)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
       <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
@@ -467,7 +467,7 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
-copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
+copy /Y "$(OpenSSH-Src-Path)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
       <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
