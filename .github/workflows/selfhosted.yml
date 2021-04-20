@@ -29,6 +29,7 @@ jobs:
           - obsd51
           - sol10
           - sol11
+          - win10
         configs:
           - default
         # Then we include any extra configs we want to test for specific VMs.

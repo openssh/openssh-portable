@@ -109,6 +109,10 @@ case "${TARGET_HOST}" in
 	# sol11 has 4 test configs so skip unit tests to speed up.
 	TEST_TARGET="tests SKIP_UNIT=1"
 	;;
+    win10)
+	# No sudo on Windows.
+	SUDO=""
+	;;
 esac
 
 # If we have a local openssl/libressl, use that.
