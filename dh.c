@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.72 2020/10/18 11:32:01 djm Exp $ */
+/* $OpenBSD: dh.c,v 1.74 2021/04/03 06:18:40 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -47,6 +47,18 @@
 #ifdef WINDOWS
 #include "sshfileperm.h"
 #endif
+
+static const char *moduli_filename;
+
+void dh_set_moduli_file(const char *filename)
+{
+	moduli_filename = filename;
+}
+
+static const char * get_moduli_filename(void)
+{
+	return moduli_filename ? moduli_filename : _PATH_DH_MODULI;
+}
 
 static int
 parse_prime(int linenum, char *line, struct dhgroup *dhg)
@@ -156,16 +168,16 @@ choose_dh(int min, int wantbits, int max)
 	struct dhgroup dhg;
 
 #ifndef WINDOWS
-	if ((f = fopen(_PATH_DH_MODULI, "r")) == NULL) {
+	if ((f = fopen(get_moduli_filename(), "r")) == NULL) {
 		logit("WARNING: could not open %s (%s), using fixed modulus",
-		    _PATH_DH_MODULI, strerror(errno));
+		    get_moduli_filename(), strerror(errno));
 		return (dh_new_group_fallback(max));
 	}
 #else
 	/* First check the moduli file in the %programdata%\ssh\ directory.
 	 * If not then search for the moduli file in the current executable directory. This file will be updated in new OpenSSH releases.
 	 */
-	if ((f = fopen(_PATH_DH_MODULI, "r")) == NULL) {
+	if ((f = fopen(get_moduli_filename(), "r")) == NULL) {
 		debug3("Could not open %s (%s)",
 			_PATH_DH_MODULI, strerror(errno));
 
@@ -229,7 +241,8 @@ choose_dh(int min, int wantbits, int max)
 
 	if (bestcount == 0) {
 		fclose(f);
-		logit("WARNING: no suitable primes in %s", _PATH_DH_MODULI);
+		logit("WARNING: no suitable primes in %s",
+		    get_moduli_filename());
 		return (dh_new_group_fallback(max));
 	}
 	which = arc4random_uniform(bestcount);
@@ -254,7 +267,7 @@ choose_dh(int min, int wantbits, int max)
 	fclose(f);
 	if (bestcount != which + 1) {
 		logit("WARNING: selected prime disappeared in %s, giving up",
-		    _PATH_DH_MODULI);
+		    get_moduli_filename());
 		return (dh_new_group_fallback(max));
 	}
 
@@ -305,7 +318,7 @@ dh_pub_is_valid(const DH *dh, const BIGNUM *dh_pub)
 	 */
 	if (bits_set < 4) {
 		logit("invalid public DH value (%d/%d)",
-		   bits_set, BN_num_bits(dh_p));
+		    bits_set, BN_num_bits(dh_p));
 		return 0;
 	}
 	return 1;
