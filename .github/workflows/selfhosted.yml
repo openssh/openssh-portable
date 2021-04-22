@@ -10,7 +10,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       TARGET_HOST: ${{ matrix.os }}
-      SUDO: sudo
     strategy:
       fail-fast: false
       # We use a matrix in two parts: firstly all of the VMs are tested with the

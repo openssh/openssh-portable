@@ -52,7 +52,6 @@ jobs:
     - name: make tests
       run: ./.github/run_test.sh ${{ matrix.configs }}
       env:
-        SUDO: sudo
         TEST_SSH_UNSAFE_PERMISSIONS: 1
     - name: save logs
       if: failure()
