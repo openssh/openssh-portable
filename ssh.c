@@ -2074,14 +2074,6 @@ ssh_session2_open(struct ssh *ssh)
 	if (in == -1 || out == -1 || err == -1)
 		fatal("dup() in/out/err failed");
 
-	/* enable nonblocking unless tty */
-	if (!isatty(in))
-		set_nonblock(in);
-	if (!isatty(out))
-		set_nonblock(out);
-	if (!isatty(err))
-		set_nonblock(err);
-
 	window = CHAN_SES_WINDOW_DEFAULT;
 	packetmax = CHAN_SES_PACKET_DEFAULT;
 	if (tty_flag) {
@@ -2091,7 +2083,7 @@ ssh_session2_open(struct ssh *ssh)
 	c = channel_new(ssh,
 	    "session", SSH_CHANNEL_OPENING, in, out, err,
 	    window, packetmax, CHAN_EXTENDED_WRITE,
-	    "client-session", /*nonblock*/0);
+	    "client-session", /*nonblock*/1);
 
 	debug3_f("channel_new: %d", c->self);
 

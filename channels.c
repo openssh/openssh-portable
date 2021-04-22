@@ -298,6 +298,25 @@ channel_lookup(struct ssh *ssh, int id)
 }
 
 /*
+ * Register a filedescriptor.
+ */
+static void
+channel_register_fd(struct ssh *ssh, int fd, int nonblock)
+{
+	struct ssh_channels *sc = ssh->chanctxt;
+
+	/* Update the maximum file descriptor value. */
+	sc->channel_max_fd = MAXIMUM(sc->channel_max_fd, fd);
+
+	if (fd != -1)
+		fcntl(fd, F_SETFD, FD_CLOEXEC);
+
+	/* enable nonblocking mode */
+	if (nonblock && fd != -1 && !isatty(fd))
+		set_nonblock(fd);
+}
+
+/*
  * Register filedescriptors for a channel, used when allocating a channel or
  * when the channel consumer/producer is ready, e.g. shell exec'd
  */
@@ -305,25 +324,12 @@ static void
 channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
     int extusage, int nonblock, int is_tty)
 {
-	struct ssh_channels *sc = ssh->chanctxt;
-
-	/* Update the maximum file descriptor value. */
-	sc->channel_max_fd = MAXIMUM(sc->channel_max_fd, rfd);
-	sc->channel_max_fd = MAXIMUM(sc->channel_max_fd, wfd);
-	sc->channel_max_fd = MAXIMUM(sc->channel_max_fd, efd);
-
-	if (rfd != -1)
-		fcntl(rfd, F_SETFD, FD_CLOEXEC);
-	if (wfd != -1 && wfd != rfd)
-		fcntl(wfd, F_SETFD, FD_CLOEXEC);
-	if (efd != -1 && efd != rfd && efd != wfd)
-		fcntl(efd, F_SETFD, FD_CLOEXEC);
-
 	c->rfd = rfd;
 	c->wfd = wfd;
 	c->sock = (rfd == wfd) ? rfd : -1;
 	c->efd = efd;
 	c->extended_usage = extusage;
+	c->nonblock = nonblock;
 
 	if ((c->isatty = is_tty) != 0)
 		debug2("channel %d: rfd %d isatty", c->self, c->rfd);
@@ -332,15 +338,12 @@ channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
 	c->wfd_isatty = is_tty || isatty(c->wfd);
 #endif
 
-	/* enable nonblocking mode */
-	if (nonblock) {
-		if (rfd != -1)
-			set_nonblock(rfd);
-		if (wfd != -1)
-			set_nonblock(wfd);
-		if (efd != -1)
-			set_nonblock(efd);
-	}
+	if (rfd != -1)
+		channel_register_fd(ssh, rfd, nonblock);
+	if (wfd != -1 && wfd != rfd)
+		channel_register_fd(ssh, wfd, nonblock);
+	if (efd != -1 && efd != rfd && efd != wfd)
+		channel_register_fd(ssh, efd, nonblock);
 }
 
 /*
@@ -422,11 +425,13 @@ channel_find_maxfd(struct ssh_channels *sc)
 }
 
 int
-channel_close_fd(struct ssh *ssh, int *fdp)
+channel_close_fd(struct ssh *ssh, int *fdp, int nonblock)
 {
 	struct ssh_channels *sc = ssh->chanctxt;
 	int ret = 0, fd = *fdp;
 
+	if (nonblock && fd != -1 && !isatty(fd))
+		unset_nonblock(fd);
 	if (fd != -1) {
 		ret = close(fd);
 		*fdp = -1;
@@ -442,13 +447,13 @@ channel_close_fds(struct ssh *ssh, Channel *c)
 {
 	int sock = c->sock, rfd = c->rfd, wfd = c->wfd, efd = c->efd;
 
-	channel_close_fd(ssh, &c->sock);
+	channel_close_fd(ssh, &c->sock, c->nonblock);
 	if (rfd != sock)
-		channel_close_fd(ssh, &c->rfd);
+		channel_close_fd(ssh, &c->rfd, c->nonblock);
 	if (wfd != sock && wfd != rfd)
-		channel_close_fd(ssh, &c->wfd);
+		channel_close_fd(ssh, &c->wfd, c->nonblock);
 	if (efd != sock && efd != rfd && efd != wfd)
-		channel_close_fd(ssh, &c->efd);
+		channel_close_fd(ssh, &c->efd, c->nonblock);
 }
 
 static void
@@ -702,7 +707,7 @@ channel_stop_listening(struct ssh *ssh)
 			case SSH_CHANNEL_X11_LISTENER:
 			case SSH_CHANNEL_UNIX_LISTENER:
 			case SSH_CHANNEL_RUNIX_LISTENER:
-				channel_close_fd(ssh, &c->sock);
+				channel_close_fd(ssh, &c->sock, c->nonblock);
 				channel_free(ssh, c);
 				break;
 			}
@@ -1649,7 +1654,7 @@ channel_post_x11_listener(struct ssh *ssh, Channel *c,
 	if (c->single_connection) {
 		oerrno = errno;
 		debug2("single_connection: closing X11 listener.");
-		channel_close_fd(ssh, &c->sock);
+		channel_close_fd(ssh, &c->sock, c->nonblock);
 		chan_mark_dead(ssh, c);
 		errno = oerrno;
 	}
@@ -2058,7 +2063,7 @@ channel_handle_efd_write(struct ssh *ssh, Channel *c,
 		return 1;
 	if (len <= 0) {
 		debug2("channel %d: closing write-efd %d", c->self, c->efd);
-		channel_close_fd(ssh, &c->efd);
+		channel_close_fd(ssh, &c->efd, c->nonblock);
 	} else {
 		if ((r = sshbuf_consume(c->extended, len)) != 0)
 			fatal_fr(r, "channel %i: consume", c->self);
@@ -2087,7 +2092,7 @@ channel_handle_efd_read(struct ssh *ssh, Channel *c,
 		return 1;
 	if (len <= 0) {
 		debug2("channel %d: closing read-efd %d", c->self, c->efd);
-		channel_close_fd(ssh, &c->efd);
+		channel_close_fd(ssh, &c->efd, c->nonblock);
 	} else if (c->extended_usage == CHAN_EXTENDED_IGNORE)
 		debug3("channel %d: discard efd", c->self);
 	else if ((r = sshbuf_put(c->extended, buf, len)) != 0)
