@@ -27,6 +27,7 @@ jobs:
           - nbsd8
           - obsd51
           - obsd67
+          - obsd68
           - openindiana
           - sol10
           - sol11
