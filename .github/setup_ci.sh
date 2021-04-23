@@ -62,7 +62,7 @@ for TARGET in $TARGETS; do
     esac
 done
 
-if [ "yes" == "$INSTALL_FIDO_PPA" ]; then
+if [ "yes" = "$INSTALL_FIDO_PPA" ]; then
     sudo apt update -qq
     sudo apt install software-properties-common
     sudo apt-add-repository ppa:yubico/stable
