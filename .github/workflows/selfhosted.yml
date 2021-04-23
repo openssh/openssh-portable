@@ -26,6 +26,7 @@ jobs:
           - fbsd13
           - nbsd8
           - obsd51
+          - openindiana
           - sol10
           - sol11
           - win10
@@ -41,6 +42,7 @@ jobs:
          - { os: fbsd12, configs: pam }
          - { os: fbsd13, configs: pam }
          - { os: nbsd8,  configs: pam }
+         - { os: openindiana, configs: pam }
          - { os: sol10,  configs: pam }
          - { os: sol11,  configs: pam-krb5 }
          - { os: sol11,  configs: sol64 }
