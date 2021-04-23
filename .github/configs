@@ -36,6 +36,10 @@ case "$config" in
     libedit)
 	CONFIGFLAGS="--with-libedit"
 	;;
+    pam-krb5)
+	CONFIGFLAGS="--with-pam --with-kerberos5"
+	SSHD_CONFOPTS="UsePam yes"
+	;;
     *pam)
 	CONFIGFLAGS="--with-pam"
 	SSHD_CONFOPTS="UsePam yes"
