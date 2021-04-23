@@ -114,6 +114,16 @@ vis(char *dst, int c, int flag, int nextc)
 			goto done;
 		}
 	}
+
+#ifdef WINDOWS
+	/*Avoid encoding UTF-16 chatacters so they 
+	  show up correctly in the logs*/
+	if (flag & VIS_LOG_UTF16) {
+		*dst++ = c;
+		goto done;
+	}
+#endif 
+
 	if (((c & 0177) == ' ') || (flag & VIS_OCTAL) ||
 	    ((flag & VIS_GLOB) && (c == '*' || c == '?' || c == '[' || c == '#'))) {
 		*dst++ = '\\';
