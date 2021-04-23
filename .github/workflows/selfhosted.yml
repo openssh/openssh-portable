@@ -24,6 +24,7 @@ jobs:
           - fbsd7
           - fbsd12
           - fbsd13
+          - nbsd2
           - nbsd8
           - obsd51
           - obsd67
