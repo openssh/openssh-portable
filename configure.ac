@@ -3664,6 +3664,78 @@ else
 	AC_MSG_ERROR([unsupported --with-sandbox])
 fi
 
+# Check for LibOQS
+with_liboqs=no
+AC_ARG_WITH([liboqs-dir],
+	[  --with-liboqs-dir=PATH     Specify path to LibOQS installation ],
+	[
+		if test "x$withval" != "xno" ; then
+			with_liboqs=yes
+			case "$withval" in
+				# Relative paths
+				./*|../*)	withval="`pwd`/$withval"
+			esac
+			if test -d "$withval/lib"; then
+				if test -n "${need_dash_r}"; then
+					LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+				else
+					LDFLAGS="-L${withval}/lib ${LDFLAGS}"
+				fi
+			elif test -d "$withval/lib64"; then
+				if test -n "${need_dash_r}"; then
+					LDFLAGS="-L${withval}/lib64 -R${withval}/lib64 ${LDFLAGS}"
+				else
+					LDFLAGS="-L${withval}/lib64 ${LDFLAGS}"
+				fi
+			else
+				if test -n "${need_dash_r}"; then
+					LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
+				else
+					LDFLAGS="-L${withval} ${LDFLAGS}"
+				fi
+			fi
+			if test -d "$withval/include"; then
+				CPPFLAGS="-I${withval}/include ${CPPFLAGS}"
+			else
+				CPPFLAGS="-I${withval} ${CPPFLAGS}"
+			fi
+		fi
+	]
+)
+
+if test "x$with_liboqs" = "xyes" ; then
+	dnl Check for LibOQS library
+	AC_DEFINE_UNQUOTED([WITH_OQS], [1], [use LibOQS for post-quantum and hybrid key exchange and authentication])
+	LIBS="-loqs -lcrypto $LIBS"
+	AC_CHECK_HEADER([oqs/kem.h], ,[AC_MSG_ERROR([*** LibOQS headers missing - please install first or check config.log ***])])
+	AC_TRY_LINK([#include <oqs/kem.h>],
+				[
+					char *alg = OQS_KEM_alg_identifier(0);
+					if (alg == NULL) {
+						return 1;
+					}
+				],
+				,
+				[
+					AC_MSG_ERROR([*** Can't find LibOQS library (see config.log for details) ***])
+				]
+			)
+	AC_CHECK_HEADER([oqs/sig.h], ,[AC_MSG_ERROR([*** LibOQS headers missing - please install first or check config.log ***])])
+	AC_TRY_LINK([#include <oqs/sig.h>],
+				[
+					char *alg = OQS_SIG_alg_identifier(0);
+					if (alg == NULL) {
+						return 1;
+					}
+				],
+				,
+				[
+					AC_MSG_ERROR([*** Can't find LibOQS library (see config.log for details) ***])
+				]
+			)
+	dnl End LibOQS library check
+fi
+
 # Cheap hack to ensure NEWS-OS libraries are arranged right.
 if test ! -z "$SONY" ; then
   LIBS="$LIBS -liberty";

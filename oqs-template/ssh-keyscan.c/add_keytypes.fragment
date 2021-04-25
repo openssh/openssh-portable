@@ -1,0 +1,8 @@
+{%- for sig in config['sigs'] -%}
+    {%- set outer_loop_last = loop.last %}
+                        KT_{{ sig['name']|upper }} {%- if not loop.last or sig['mix_with'] %} | \{%- else -%};{%- endif -%}
+    {%- for alg in sig['mix_with'] %}
+                        KT_{{ alg['name']|upper }}_{{ sig['name']|upper }} {%- if not outer_loop_last or not loop.last %} | \ {%- else -%};{%- endif -%}
+    {%- endfor %}
+{%- endfor %}
+

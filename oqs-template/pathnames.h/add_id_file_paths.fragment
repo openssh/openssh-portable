@@ -1,0 +1,7 @@
+{%- for sig in config['sigs'] %}
+#define _PATH_SSH_CLIENT_ID_{{ sig['name']|upper }} _PATH_SSH_USER_DIR "/id_{{ sig['name']|replace('_', '') }}"
+    {%- for alg in sig['mix_with'] %}
+#define _PATH_SSH_CLIENT_ID_{{ alg['name']|upper }}_{{ sig['name']|upper }} _PATH_SSH_USER_DIR "/id_{{ alg['name'] }}_{{ sig['name']|replace('_', '') }}"
+    {%- endfor %}
+{%- endfor %}
+

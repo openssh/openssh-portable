@@ -1,0 +1,54 @@
+version: 2.1
+
+# This is here just to make CircleCI
+# happy, but might be useful in the future.
+parameters:
+  run_downstream_tests:
+    type: boolean
+    default: false
+
+jobs:
+  ubuntu_build:
+    description: A template for running BoringSSL tests on x64 Ubuntu Bionic Docker VMs
+    parameters:
+      WITH_OPENSSL:
+        description: "Compile OpenSSH with OpenSSL."
+        type: boolean
+        default: true
+    docker:
+      - image: openquantumsafe/ci-ubuntu-focal-x86_64:latest
+        auth:
+          username: $DOCKER_LOGIN
+          password: $DOCKER_PASSWORD
+    steps:
+      - checkout # change this from "checkout" to "*localCheckout" when running CircleCI locally
+      - run:
+          name: Set up SSH environment
+          command: |
+            mkdir -p -m 0755 /var/empty
+            groupadd sshd
+            useradd -g sshd -c 'sshd privsep' -d /var/empty -s /bin/false sshd
+      - run:
+          name: Clone liboqs
+          command: ./oqs-scripts/clone_liboqs.sh
+      - run:
+          name: Build liboqs
+          command: ./oqs-scripts/build_liboqs.sh
+      - run:
+          name: Build OpenSSH
+          command: env WITH_OPENSSL=<< parameters.WITH_OPENSSL >> ./oqs-scripts/build_openssh.sh
+      - run:
+          name: Run unit tests
+          command: env WITH_PQAUTH=<< parameters.WITH_OPENSSL >> WITH_OPENSSL=<< parameters.WITH_OPENSSL >> python3 -m nose --rednose --verbose
+
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - ubuntu_build:
+          name: with-openssl
+          context: openquantumsafe
+      - ubuntu_build:
+          name: without-openssl
+          context: openquantumsafe
+          WITH_OPENSSL: false

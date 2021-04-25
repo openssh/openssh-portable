@@ -1,0 +1,10 @@
+{%- set index = namespace(val=10) -%}
+{%- for sig in config['sigs'] %}
+			L_PUBKEY(_PATH_HOST_{{ sig['name']|upper }}_KEY_FILE, {{ index.val }});
+    {%- set index.val = index.val + 1 -%}
+    {%- for alg in sig['mix_with'] %}
+			L_PUBKEY(_PATH_HOST_{{ alg['name']|upper }}_{{ sig['name']|upper }}_KEY_FILE, {{ index.val }});
+        {%- set index.val = index.val + 1 -%}
+    {%- endfor %}
+{%- endfor %}
+

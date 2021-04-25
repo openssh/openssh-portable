@@ -1,0 +1,11 @@
+{%- set count = namespace(val=6) -%}
+{%- for sig in config['sigs'] -%}
+    {%- set count.val = count.val + 1 %}
+#define KT_{{ sig['name']|upper }} ((uint64_t)1<<{{ count.val }})
+    {%- for alg in sig['mix_with'] -%}
+        {%- set count.val = count.val + 1 %}
+#define KT_{{ alg['name']|upper }}_{{ sig['name']|upper }} ((uint64_t)1<<{{ count.val }})
+    {%- endfor %}
+{%- endfor %}
+#define KT_MAX ((uint64_t)1<<{{ count.val }})
+

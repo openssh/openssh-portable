@@ -124,6 +124,9 @@
 #include "ssherr.h"
 #include "sk-api.h"
 
+#include "oqs/oqs.h"
+#include "oqs-utils.h"
+
 /* Re-exec fds */
 #define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
 #define REEXEC_STARTUP_PIPE_FD		(STDERR_FILENO + 2)
@@ -642,6 +645,8 @@ list_hostkey_types(void)
 		case KEY_ECDSA_SK:
 		case KEY_ED25519_SK:
 		case KEY_XMSS:
+		CASE_KEY_OQS:
+		CASE_KEY_HYBRID:
 			append_hostkey_type(b, sshkey_ssh_name(key));
 			break;
 		}
@@ -1889,6 +1894,8 @@ main(int ac, char **av)
 		case KEY_ECDSA_SK:
 		case KEY_ED25519_SK:
 		case KEY_XMSS:
+		CASE_KEY_OQS:
+		CASE_KEY_HYBRID:
 			if (have_agent || key != NULL)
 				sensitive_data.have_ssh2_key = 1;
 			break;
@@ -2411,6 +2418,22 @@ do_ssh2_kex(struct ssh *ssh)
 #endif
 	kex->kex[KEX_C25519_SHA256] = kex_gen_server;
 	kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_gen_server;
+///// OQS_TEMPLATE_FRAGMENT_POINT_TO_KEX_GEN_START
+		kex->kex[KEX_KEM_OQS_DEFAULT_SHA256] = kex_gen_server;
+		kex->kex[KEX_KEM_FRODOKEM_640_AES_SHA256] = kex_gen_server;
+		kex->kex[KEX_KEM_FRODOKEM_976_AES_SHA384] = kex_gen_server;
+		kex->kex[KEX_KEM_FRODOKEM_1344_AES_SHA512] = kex_gen_server;
+		kex->kex[KEX_KEM_SIKE_P434_SHA256] = kex_gen_server;
+#ifdef WITH_OPENSSL
+#ifdef OPENSSL_HAS_ECC
+		kex->kex[KEX_KEM_OQS_DEFAULT_ECDH_NISTP256_SHA256] = kex_gen_server;
+		kex->kex[KEX_KEM_FRODOKEM_640_AES_ECDH_NISTP256_SHA256] = kex_gen_server;
+		kex->kex[KEX_KEM_FRODOKEM_976_AES_ECDH_NISTP384_SHA384] = kex_gen_server;
+		kex->kex[KEX_KEM_FRODOKEM_1344_AES_ECDH_NISTP521_SHA512] = kex_gen_server;
+		kex->kex[KEX_KEM_SIKE_P434_ECDH_NISTP256_SHA256] = kex_gen_server;
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+///// OQS_TEMPLATE_FRAGMENT_POINT_TO_KEX_GEN_END
 	kex->load_host_public_key=&get_hostkey_public_by_type;
 	kex->load_host_private_key=&get_hostkey_private_by_type;
 	kex->host_key_index=&get_hostkey_index;

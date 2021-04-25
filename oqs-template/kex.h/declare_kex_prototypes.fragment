@@ -1,0 +1,19 @@
+{%- for kex in config['kexs'] %}
+/* {{ kex['name'] }} prototypes */
+int	 kex_kem_{{ kex['name'] }}_keypair(struct kex *);
+int	 kex_kem_{{ kex['name'] }}_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_{{ kex['name'] }}_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+{%- endfor %}
+#ifdef WITH_OPENSSL
+#ifdef OPENSSL_HAS_ECC
+{%- for kex in config['kexs'] -%}
+    {%- for curve in kex['mix_with'] %}
+/* {{ kex['name'] }}_{{ curve['name'] }} prototypes */
+int	 kex_kem_{{ kex['name'] }}_ecdh_{{ curve['name'] }}_keypair(struct kex *);
+int	 kex_kem_{{ kex['name'] }}_ecdh_{{ curve['name'] }}_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_{{ kex['name'] }}_ecdh_{{ curve['name'] }}_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+    {%- endfor %}
+{%- endfor %}
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+

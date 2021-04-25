@@ -1,0 +1,7 @@
+{%- for sig in config['sigs'] if sig['level'] == 1 %}
+    {%- set outer_loop_last = loop.last -%}
+    {%- for alg in sig['mix_with'] if alg['rsa'] %}
+	    strcmp(ident, "ssh-{{ alg['name'] }}-{{ sig['name']|replace('_','') }}") == 0 {%- if outer_loop_last and loop.last -%}){%- else %} || {%- endif -%}
+    {%- endfor %}
+{%- endfor %}
+

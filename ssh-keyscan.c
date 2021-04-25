@@ -49,6 +49,7 @@
 #include "ssherr.h"
 #include "ssh_api.h"
 #include "dns.h"
+#include "oqs/oqs.h"
 
 /* Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
    Default value is AF_UNSPEC means both IPv4 and IPv6. */
@@ -63,12 +64,35 @@ int ssh_port = SSH_DEFAULT_PORT;
 #define KT_XMSS		(1<<4)
 #define KT_ECDSA_SK	(1<<5)
 #define KT_ED25519_SK	(1<<6)
-
+///// OQS_TEMPLATE_FRAGMENT_ASSIGN_KT_MASKS_START
+#define KT_OQS_DEFAULT ((uint64_t)1<<7)
+#define KT_RSA3072_OQS_DEFAULT ((uint64_t)1<<8)
+#define KT_ECDSA_NISTP256_OQS_DEFAULT ((uint64_t)1<<9)
+#define KT_DILITHIUM_2 ((uint64_t)1<<10)
+#define KT_RSA3072_DILITHIUM_2 ((uint64_t)1<<11)
+#define KT_ECDSA_NISTP256_DILITHIUM_2 ((uint64_t)1<<12)
+#define KT_DILITHIUM_3 ((uint64_t)1<<13)
+#define KT_ECDSA_NISTP384_DILITHIUM_3 ((uint64_t)1<<14)
+#define KT_DILITHIUM_5 ((uint64_t)1<<15)
+#define KT_ECDSA_NISTP521_DILITHIUM_5 ((uint64_t)1<<16)
+#define KT_MAX ((uint64_t)1<<16)
+///// OQS_TEMPLATE_FRAGMENT_ASSIGN_KT_MASKS_END
 #define KT_MIN		KT_DSA
-#define KT_MAX		KT_ED25519_SK
 
 int get_cert = 0;
-int get_keytypes = KT_RSA|KT_ECDSA|KT_ED25519|KT_ECDSA_SK|KT_ED25519_SK;
+uint64_t get_keytypes = KT_RSA|KT_ECDSA|KT_ED25519|KT_ECDSA_SK|KT_ED25519_SK|\
+///// OQS_TEMPLATE_FRAGMENT_ADD_KEYTYPES_START
+                        KT_OQS_DEFAULT | \
+                        KT_RSA3072_OQS_DEFAULT | \
+                        KT_ECDSA_NISTP256_OQS_DEFAULT | \
+                        KT_DILITHIUM_2 | \
+                        KT_RSA3072_DILITHIUM_2 | \
+                        KT_ECDSA_NISTP256_DILITHIUM_2 | \
+                        KT_DILITHIUM_3 | \
+                        KT_ECDSA_NISTP384_DILITHIUM_3 | \
+                        KT_DILITHIUM_5 | \
+                        KT_ECDSA_NISTP521_DILITHIUM_5;
+///// OQS_TEMPLATE_FRAGMENT_ADD_KEYTYPES_END
 
 int hash_hosts = 0;		/* Hash hostname on output */
 
@@ -271,6 +295,42 @@ keygrab_ssh2(con *c)
 		    "sk-ssh-ed25519-cert-v01@openssh.com" :
 		    "sk-ssh-ed25519@openssh.com";
 		break;
+///// OQS_TEMPLATE_FRAGMENT_ADD_PROPOSAL_SERVER_HOST_KEY_ALGS_START
+	case KT_OQS_DEFAULT:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-oqsdefault";
+	  break;
+	case KT_DILITHIUM_2:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-dilithium2";
+	  break;
+	case KT_DILITHIUM_3:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-dilithium3";
+	  break;
+	case KT_DILITHIUM_5:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-dilithium5";
+	  break;
+#ifdef WITH_OPENSSL
+	case KT_RSA3072_OQS_DEFAULT:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-rsa3072-oqsdefault";
+	  break;
+	case KT_RSA3072_DILITHIUM_2:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-rsa3072-dilithium2";
+	  break;
+#ifdef OPENSSL_HAS_ECC
+	case KT_ECDSA_NISTP256_OQS_DEFAULT:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-ecdsa-nistp256-oqsdefault";
+	  break;
+	case KT_ECDSA_NISTP256_DILITHIUM_2:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-ecdsa-nistp256-dilithium2";
+	  break;
+	case KT_ECDSA_NISTP384_DILITHIUM_3:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-ecdsa-nistp384-dilithium3";
+	  break;
+	case KT_ECDSA_NISTP521_DILITHIUM_5:
+	  myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = "ssh-ecdsa-nistp521-dilithium5";
+	  break;
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+///// OQS_TEMPLATE_FRAGMENT_ADD_PROPOSAL_SERVER_HOST_KEY_ALGS_END
 	default:
 		fatal("unknown key type %d", c->c_keytype);
 		break;
@@ -294,6 +354,22 @@ keygrab_ssh2(con *c)
 #endif
 	c->c_ssh->kex->kex[KEX_C25519_SHA256] = kex_gen_client;
 	c->c_ssh->kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_gen_client;
+///// OQS_TEMPLATE_FRAGMENT_ASSIGN_KEX_GEN_CLIENT_START
+	c->c_ssh->kex->kex[KEX_KEM_OQS_DEFAULT_SHA256] = kex_gen_client;
+	c->c_ssh->kex->kex[KEX_KEM_FRODOKEM_640_AES_SHA256] = kex_gen_client;
+	c->c_ssh->kex->kex[KEX_KEM_FRODOKEM_976_AES_SHA384] = kex_gen_client;
+	c->c_ssh->kex->kex[KEX_KEM_FRODOKEM_1344_AES_SHA512] = kex_gen_client;
+	c->c_ssh->kex->kex[KEX_KEM_SIKE_P434_SHA256] = kex_gen_client;
+#ifdef WITH_OPENSSL
+#ifdef OPENSSL_HAS_ECC
+	c->c_ssh->kex->kex[KEX_KEM_OQS_DEFAULT_ECDH_NISTP256_SHA256] = kex_gen_client;
+	c->c_ssh->kex->kex[KEX_KEM_FRODOKEM_640_AES_ECDH_NISTP256_SHA256] = kex_gen_client;
+	c->c_ssh->kex->kex[KEX_KEM_FRODOKEM_976_AES_ECDH_NISTP384_SHA384] = kex_gen_client;
+	c->c_ssh->kex->kex[KEX_KEM_FRODOKEM_1344_AES_ECDH_NISTP521_SHA512] = kex_gen_client;
+	c->c_ssh->kex->kex[KEX_KEM_SIKE_P434_ECDH_NISTP256_SHA256] = kex_gen_client;
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+///// OQS_TEMPLATE_FRAGMENT_ASSIGN_KEX_GEN_CLIENT_END
 	ssh_set_verify_host_key_callback(c->c_ssh, key_print_wrapper);
 	/*
 	 * do the key-exchange until an error occurs or until
@@ -621,7 +697,7 @@ static void
 do_host(char *host)
 {
 	char *name = strnnsep(&host, " \t\n");
-	int j;
+	size_t j;
 
 	if (name == NULL)
 		return;
@@ -745,6 +821,38 @@ main(int argc, char **argv)
 				case KEY_ECDSA_SK:
 					get_keytypes |= KT_ECDSA_SK;
 					break;
+///// OQS_TEMPLATE_FRAGMENT_ADD_TO_GET_KEYTYPES_START
+				case KEY_OQS_DEFAULT:
+					get_keytypes |= KT_OQS_DEFAULT;
+					break;
+				case KEY_RSA3072_OQS_DEFAULT:
+					get_keytypes |= KT_RSA3072_OQS_DEFAULT;
+					break;
+				case KEY_ECDSA_NISTP256_OQS_DEFAULT:
+					get_keytypes |= KT_ECDSA_NISTP256_OQS_DEFAULT;
+					break;
+				case KEY_DILITHIUM_2:
+					get_keytypes |= KT_DILITHIUM_2;
+					break;
+				case KEY_RSA3072_DILITHIUM_2:
+					get_keytypes |= KT_RSA3072_DILITHIUM_2;
+					break;
+				case KEY_ECDSA_NISTP256_DILITHIUM_2:
+					get_keytypes |= KT_ECDSA_NISTP256_DILITHIUM_2;
+					break;
+				case KEY_DILITHIUM_3:
+					get_keytypes |= KT_DILITHIUM_3;
+					break;
+				case KEY_ECDSA_NISTP384_DILITHIUM_3:
+					get_keytypes |= KT_ECDSA_NISTP384_DILITHIUM_3;
+					break;
+				case KEY_DILITHIUM_5:
+					get_keytypes |= KT_DILITHIUM_5;
+					break;
+				case KEY_ECDSA_NISTP521_DILITHIUM_5:
+					get_keytypes |= KT_ECDSA_NISTP521_DILITHIUM_5;
+					break;
+///// OQS_TEMPLATE_FRAGMENT_ADD_TO_GET_KEYTYPES_END
 				case KEY_UNSPEC:
 				default:
 					fatal("Unknown key type \"%s\"", tname);

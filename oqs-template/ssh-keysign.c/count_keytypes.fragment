@@ -1,0 +1,6 @@
+{%- set count = namespace(val = config['sigs']|length) -%}
+{%- for sig in config['sigs'] -%}
+    {%- set count.val = count.val + sig['mix_with']|length -%}
+{%- endfor %}
+#define NUM_KEYTYPES 5 + {{ count.val }}
+

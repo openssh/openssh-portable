@@ -1,0 +1,7 @@
+{%- for sig in config['sigs'] %}
+	key_fd[i++] = open(_PATH_HOST_{{ sig['name']|upper }}_KEY_FILE, O_RDONLY);
+    {%- for alg in sig['mix_with'] %}
+	key_fd[i++] = open(_PATH_HOST_{{ alg['name']|upper }}_{{ sig['name']|upper }}_KEY_FILE, O_RDONLY);
+    {%- endfor %}
+{%- endfor %}
+

@@ -1,0 +1,18 @@
+{%- for sig in config['sigs'] %}
+	_PATH_SSH_CLIENT_ID_{{ sig['name']|upper }},
+{%- endfor %}
+#ifdef WITH_OPENSSL
+{%- for sig in config['sigs'] %}
+    {%- for alg in sig['mix_with'] if alg['rsa'] %}
+	_PATH_SSH_CLIENT_ID_{{ alg['name']|upper }}_{{ sig['name']|upper }},
+    {%- endfor %}
+{%- endfor %}
+#ifdef OPENSSL_HAS_ECC
+{%- for sig in config['sigs'] %}
+    {%- for alg in sig['mix_with'] if not alg['rsa'] %}
+	_PATH_SSH_CLIENT_ID_{{ alg['name']|upper }}_{{ sig['name']|upper }},
+    {%- endfor %}
+{%- endfor %}
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+

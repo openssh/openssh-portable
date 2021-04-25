@@ -1,0 +1,7 @@
+{%- for sig in config['sigs'] %}
+    {%- for alg in sig['mix_with'] if alg.rsa %}
+        case KEY_{{ alg['name']|upper }}_{{ sig['name']|upper }}:
+            return 1;
+    {%- endfor -%}
+{%- endfor %}
+

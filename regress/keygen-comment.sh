@@ -30,6 +30,12 @@ for fmt in '' RFC4716 PKCS8 PEM; do
 		# stored in old formats.
 		case "$t" in
 		ssh-ed25519|*openssh.com) test -z "$oldfmt" || continue ;;
+##### OQS_TEMPLATE_FRAGMENT_EXCLUDE_OQS_ALGS_START
+		*oqsdefault*) test -z "$oldfmt" || continue ;;
+		*dilithium2*) test -z "$oldfmt" || continue ;;
+		*dilithium3*) test -z "$oldfmt" || continue ;;
+		*dilithium5*) test -z "$oldfmt" || continue ;;
+##### OQS_TEMPLATE_FRAGMENT_EXCLUDE_OQS_ALGS_END
 		esac
 		comment="foo bar"
 		fmtarg=""

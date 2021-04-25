@@ -1,0 +1,7 @@
+{%- for sig in config['sigs'] %}
+	KEY_{{ sig['name']|upper }},
+    {%- for alg in sig['mix_with'] %}
+	KEY_{{ alg['name']|upper }}_{{ sig['name']|upper }},
+    {%- endfor %}
+{%- endfor %}
+

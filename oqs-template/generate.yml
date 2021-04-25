@@ -1,0 +1,80 @@
+# kexs cannot be empty due to myproposal.h
+kexs:
+  -
+    name: 'oqs_default'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'FrodoKEM'
+    name: 'frodokem_640_aes'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'FrodoKEM'
+    name: 'frodokem_976_aes'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'FrodoKEM'
+    name: 'frodokem_1344_aes'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SIKE'
+    name: 'sike_p434'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+
+sigs:
+  -
+    name: 'oqs_default'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Dilithium'
+    name: 'dilithium_2'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Dilithium'
+    name: 'dilithium_3'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Dilithium'
+    name: 'dilithium_5'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'

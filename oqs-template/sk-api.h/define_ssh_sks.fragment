@@ -1,0 +1,10 @@
+{%- set count = namespace(val=2) -%}
+{%- for sig in config['sigs'] %}
+#define SSH_SK_{{ sig['name']|upper }} {{ '0x%02X' % count.val }}
+    {%- set count.val = count.val + 1 -%}
+    {%- for alg in sig['mix_with'] %}
+#define SSH_SK_{{ alg['name']|upper }}_{{ sig['name']|upper }} {{ '0x%02X' % count.val }}
+        {%- set count.val = count.val + 1 -%}
+    {%- endfor %}
+{%- endfor %}
+

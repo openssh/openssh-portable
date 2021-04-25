@@ -28,6 +28,7 @@
 
 #include "mac.h"
 #include "crypto_api.h"
+#include "oqs/oqs.h"
 
 #ifdef WITH_OPENSSL
 # include <openssl/bn.h>
@@ -63,6 +64,22 @@
 #define	KEX_CURVE25519_SHA256		"curve25519-sha256"
 #define	KEX_CURVE25519_SHA256_OLD	"curve25519-sha256@libssh.org"
 #define	KEX_SNTRUP4591761X25519_SHA512	"sntrup4591761x25519-sha512@tinyssh.org"
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEX_PRETTY_NAMES_START
+#define	KEX_OQS_DEFAULT_SHA256	"oqs-default-sha256"
+#define	KEX_FRODOKEM_640_AES_SHA256	"frodokem-640-aes-sha256"
+#define	KEX_FRODOKEM_976_AES_SHA384	"frodokem-976-aes-sha384"
+#define	KEX_FRODOKEM_1344_AES_SHA512	"frodokem-1344-aes-sha512"
+#define	KEX_SIKE_P434_SHA256	"sike-p434-sha256"
+#ifdef WITH_OPENSSL
+#ifdef OPENSSL_HAS_ECC
+#define	KEX_OQS_DEFAULT_ECDH_NISTP256_SHA256	"ecdh-nistp256-oqs-default-sha256"
+#define	KEX_FRODOKEM_640_AES_ECDH_NISTP256_SHA256	"ecdh-nistp256-frodokem-640-aes-sha256"
+#define	KEX_FRODOKEM_976_AES_ECDH_NISTP384_SHA384	"ecdh-nistp384-frodokem-976-aes-sha384"
+#define	KEX_FRODOKEM_1344_AES_ECDH_NISTP521_SHA512	"ecdh-nistp521-frodokem-1344-aes-sha512"
+#define	KEX_SIKE_P434_ECDH_NISTP256_SHA256	"ecdh-nistp256-sike-p434-sha256"
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEX_PRETTY_NAMES_END
 
 #define COMP_NONE	0
 /* pre-auth compression (COMP_ZLIB) is only supported in the client */
@@ -102,6 +119,22 @@ enum kex_exchange {
 	KEX_ECDH_SHA2,
 	KEX_C25519_SHA256,
 	KEX_KEM_SNTRUP4591761X25519_SHA512,
+///// OQS_TEMPLATE_FRAGMENT_ADD_KEX_ENUMS_START
+	KEX_KEM_OQS_DEFAULT_SHA256,
+	KEX_KEM_FRODOKEM_640_AES_SHA256,
+	KEX_KEM_FRODOKEM_976_AES_SHA384,
+	KEX_KEM_FRODOKEM_1344_AES_SHA512,
+	KEX_KEM_SIKE_P434_SHA256,
+#ifdef WITH_OPENSSL
+#ifdef OPENSSL_HAS_ECC
+	KEX_KEM_OQS_DEFAULT_ECDH_NISTP256_SHA256,
+	KEX_KEM_FRODOKEM_640_AES_ECDH_NISTP256_SHA256,
+	KEX_KEM_FRODOKEM_976_AES_ECDH_NISTP384_SHA384,
+	KEX_KEM_FRODOKEM_1344_AES_ECDH_NISTP521_SHA512,
+	KEX_KEM_SIKE_P434_ECDH_NISTP256_SHA256,
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+///// OQS_TEMPLATE_FRAGMENT_ADD_KEX_ENUMS_END
 	KEX_MAX
 };
 
@@ -169,6 +202,8 @@ struct kex {
 	u_char c25519_client_key[CURVE25519_SIZE]; /* 25519 + KEM */
 	u_char c25519_client_pubkey[CURVE25519_SIZE]; /* 25519 */
 	u_char sntrup4591761_client_key[crypto_kem_sntrup4591761_SECRETKEYBYTES]; /* KEM */
+	u_char* oqs_client_key; /* OQS KEM key */
+	size_t oqs_client_key_size; /* size of OQS KEM key */
 	struct sshbuf *client_pub;
 };
 
@@ -223,6 +258,53 @@ int	 kex_kem_sntrup4591761x25519_enc(struct kex *, const struct sshbuf *,
     struct sshbuf **, struct sshbuf **);
 int	 kex_kem_sntrup4591761x25519_dec(struct kex *, const struct sshbuf *,
     struct sshbuf **);
+
+///// OQS_TEMPLATE_FRAGMENT_DECLARE_KEX_PROTOTYPES_START
+/* oqs_default prototypes */
+int	 kex_kem_oqs_default_keypair(struct kex *);
+int	 kex_kem_oqs_default_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_oqs_default_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* frodokem_640_aes prototypes */
+int	 kex_kem_frodokem_640_aes_keypair(struct kex *);
+int	 kex_kem_frodokem_640_aes_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_frodokem_640_aes_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* frodokem_976_aes prototypes */
+int	 kex_kem_frodokem_976_aes_keypair(struct kex *);
+int	 kex_kem_frodokem_976_aes_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_frodokem_976_aes_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* frodokem_1344_aes prototypes */
+int	 kex_kem_frodokem_1344_aes_keypair(struct kex *);
+int	 kex_kem_frodokem_1344_aes_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_frodokem_1344_aes_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* sike_p434 prototypes */
+int	 kex_kem_sike_p434_keypair(struct kex *);
+int	 kex_kem_sike_p434_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_sike_p434_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+#ifdef WITH_OPENSSL
+#ifdef OPENSSL_HAS_ECC
+/* oqs_default_nistp256 prototypes */
+int	 kex_kem_oqs_default_ecdh_nistp256_keypair(struct kex *);
+int	 kex_kem_oqs_default_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_oqs_default_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* frodokem_640_aes_nistp256 prototypes */
+int	 kex_kem_frodokem_640_aes_ecdh_nistp256_keypair(struct kex *);
+int	 kex_kem_frodokem_640_aes_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_frodokem_640_aes_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* frodokem_976_aes_nistp384 prototypes */
+int	 kex_kem_frodokem_976_aes_ecdh_nistp384_keypair(struct kex *);
+int	 kex_kem_frodokem_976_aes_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_frodokem_976_aes_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* frodokem_1344_aes_nistp521 prototypes */
+int	 kex_kem_frodokem_1344_aes_ecdh_nistp521_keypair(struct kex *);
+int	 kex_kem_frodokem_1344_aes_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_frodokem_1344_aes_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* sike_p434_nistp256 prototypes */
+int	 kex_kem_sike_p434_ecdh_nistp256_keypair(struct kex *);
+int	 kex_kem_sike_p434_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_sike_p434_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+///// OQS_TEMPLATE_FRAGMENT_DECLARE_KEX_PROTOTYPES_END
 
 int	 kex_dh_keygen(struct kex *);
 int	 kex_dh_compute_key(struct kex *, BIGNUM *, struct sshbuf *);

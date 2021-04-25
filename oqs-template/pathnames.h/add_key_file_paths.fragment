@@ -1,0 +1,7 @@
+{%- for sig in config['sigs'] %}
+#define _PATH_HOST_{{ sig['name']|upper }}_KEY_FILE SSHDIR "/ssh_host_{{ sig['name']|replace('_', '') }}_key"
+    {%- for alg in sig['mix_with'] %}
+#define _PATH_HOST_{{ alg['name']|upper }}_{{ sig['name']|upper }}_KEY_FILE SSHDIR "/ssh_host_{{ alg['name'] }}_{{ sig['name']|replace('_', '') }}_key"
+    {%- endfor %}
+{%- endfor %}
+

@@ -1,0 +1,11 @@
+{%- for sig in config['sigs'] %}
+				case KEY_{{ sig['name']|upper }}:
+					get_keytypes |= KT_{{ sig['name']|upper }};
+					break;
+    {%- for alg in sig['mix_with'] %}
+				case KEY_{{ alg['name']|upper }}_{{ sig['name']|upper }}:
+					get_keytypes |= KT_{{ alg['name']|upper }}_{{ sig['name']|upper }};
+					break;
+    {%- endfor %}
+{%- endfor %}
+

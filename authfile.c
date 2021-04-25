@@ -49,6 +49,8 @@
 #include "ssherr.h"
 #include "krl.h"
 
+#include "oqs-utils.h"
+
 #define MAX_KEY_FILE_SIZE	(1024 * 1024)
 
 /* Save a key blob to a file */
@@ -330,9 +332,11 @@ sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
 	case KEY_RSA:
 	case KEY_DSA:
 	case KEY_ECDSA:
+	CASE_KEY_HYBRID:
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 	case KEY_XMSS:
+	CASE_KEY_OQS:
 	case KEY_UNSPEC:
 		break;
 	default:

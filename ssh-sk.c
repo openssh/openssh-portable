@@ -17,6 +17,8 @@
 
 /* #define DEBUG_SK 1 */
 
+// OQS-TODO: add FIDO support?
+
 #include "includes.h"
 
 #ifdef ENABLE_SK

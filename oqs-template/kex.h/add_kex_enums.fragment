@@ -1,0 +1,13 @@
+{%- for kex in config['kexs'] %}
+	KEX_KEM_{{ kex['name']|upper }}_{{ kex['hash']|upper }},
+{%- endfor %}
+#ifdef WITH_OPENSSL
+#ifdef OPENSSL_HAS_ECC
+{%- for kex in config['kexs'] -%}
+    {%- for curve in kex['mix_with'] %}
+	KEX_KEM_{{ kex['name']|upper }}_ECDH_{{ curve['name']|upper }}_{{ kex['hash']|upper }},
+    {%- endfor %}
+{%- endfor %}
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+

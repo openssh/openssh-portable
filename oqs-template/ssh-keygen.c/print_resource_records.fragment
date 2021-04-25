@@ -1,0 +1,11 @@
+{%- for sig in config['sigs'] %}
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_{{ sig['name']|upper }}_KEY_FILE, rr_hostname,
+			    print_generic);
+    {%- for alg in sig['mix_with'] %}
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_{{ alg['name']|upper }}_{{ sig['name']|upper }}_KEY_FILE, rr_hostname,
+			    print_generic);
+    {%- endfor %}
+{%- endfor %}
+

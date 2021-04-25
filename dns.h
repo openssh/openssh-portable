@@ -28,6 +28,8 @@
 #ifndef DNS_H
 #define DNS_H
 
+/* OQS-TODO: enable PQ DNS auth? */
+
 enum sshfp_types {
 	SSHFP_KEY_RESERVED = 0,
 	SSHFP_KEY_RSA = 1,

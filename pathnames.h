@@ -41,6 +41,18 @@
 #define _PATH_HOST_ED25519_KEY_FILE	SSHDIR "/ssh_host_ed25519_key"
 #define _PATH_HOST_XMSS_KEY_FILE	SSHDIR "/ssh_host_xmss_key"
 #define _PATH_HOST_RSA_KEY_FILE		SSHDIR "/ssh_host_rsa_key"
+///// OQS_TEMPLATE_FRAGMENT_ADD_KEY_FILE_PATHS_START
+#define _PATH_HOST_OQS_DEFAULT_KEY_FILE SSHDIR "/ssh_host_oqsdefault_key"
+#define _PATH_HOST_RSA3072_OQS_DEFAULT_KEY_FILE SSHDIR "/ssh_host_rsa3072_oqsdefault_key"
+#define _PATH_HOST_ECDSA_NISTP256_OQS_DEFAULT_KEY_FILE SSHDIR "/ssh_host_ecdsa_nistp256_oqsdefault_key"
+#define _PATH_HOST_DILITHIUM_2_KEY_FILE SSHDIR "/ssh_host_dilithium2_key"
+#define _PATH_HOST_RSA3072_DILITHIUM_2_KEY_FILE SSHDIR "/ssh_host_rsa3072_dilithium2_key"
+#define _PATH_HOST_ECDSA_NISTP256_DILITHIUM_2_KEY_FILE SSHDIR "/ssh_host_ecdsa_nistp256_dilithium2_key"
+#define _PATH_HOST_DILITHIUM_3_KEY_FILE SSHDIR "/ssh_host_dilithium3_key"
+#define _PATH_HOST_ECDSA_NISTP384_DILITHIUM_3_KEY_FILE SSHDIR "/ssh_host_ecdsa_nistp384_dilithium3_key"
+#define _PATH_HOST_DILITHIUM_5_KEY_FILE SSHDIR "/ssh_host_dilithium5_key"
+#define _PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_KEY_FILE SSHDIR "/ssh_host_ecdsa_nistp521_dilithium5_key"
+///// OQS_TEMPLATE_FRAGMENT_ADD_KEY_FILE_PATHS_END
 #define _PATH_DH_MODULI			SSHDIR "/moduli"
 
 #ifndef _PATH_SSH_PROGRAM
@@ -79,6 +91,18 @@
 #define _PATH_SSH_CLIENT_ID_XMSS	_PATH_SSH_USER_DIR "/id_xmss"
 #define _PATH_SSH_CLIENT_ID_ECDSA_SK	_PATH_SSH_USER_DIR "/id_ecdsa_sk"
 #define _PATH_SSH_CLIENT_ID_ED25519_SK	_PATH_SSH_USER_DIR "/id_ed25519_sk"
+///// OQS_TEMPLATE_FRAGMENT_ADD_ID_FILE_PATHS_START
+#define _PATH_SSH_CLIENT_ID_OQS_DEFAULT _PATH_SSH_USER_DIR "/id_oqsdefault"
+#define _PATH_SSH_CLIENT_ID_RSA3072_OQS_DEFAULT _PATH_SSH_USER_DIR "/id_rsa3072_oqsdefault"
+#define _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_OQS_DEFAULT _PATH_SSH_USER_DIR "/id_ecdsa_nistp256_oqsdefault"
+#define _PATH_SSH_CLIENT_ID_DILITHIUM_2 _PATH_SSH_USER_DIR "/id_dilithium2"
+#define _PATH_SSH_CLIENT_ID_RSA3072_DILITHIUM_2 _PATH_SSH_USER_DIR "/id_rsa3072_dilithium2"
+#define _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_DILITHIUM_2 _PATH_SSH_USER_DIR "/id_ecdsa_nistp256_dilithium2"
+#define _PATH_SSH_CLIENT_ID_DILITHIUM_3 _PATH_SSH_USER_DIR "/id_dilithium3"
+#define _PATH_SSH_CLIENT_ID_ECDSA_NISTP384_DILITHIUM_3 _PATH_SSH_USER_DIR "/id_ecdsa_nistp384_dilithium3"
+#define _PATH_SSH_CLIENT_ID_DILITHIUM_5 _PATH_SSH_USER_DIR "/id_dilithium5"
+#define _PATH_SSH_CLIENT_ID_ECDSA_NISTP521_DILITHIUM_5 _PATH_SSH_USER_DIR "/id_ecdsa_nistp521_dilithium5"
+///// OQS_TEMPLATE_FRAGMENT_ADD_ID_FILE_PATHS_END
 
 /*
  * Configuration file in user's home directory.  This file need not be

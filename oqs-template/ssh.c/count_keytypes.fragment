@@ -1,0 +1,6 @@
+{%- set count = namespace(val = config['sigs']|length) -%}
+{%- for sig in config['sigs'] -%}
+    {%- set count.val = count.val + sig['mix_with']|length -%}
+{%- endfor %}
+		sensitive_data.nkeys = 10 + {{ count.val }};
+

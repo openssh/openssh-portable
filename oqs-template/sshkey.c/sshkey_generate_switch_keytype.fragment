@@ -1,0 +1,51 @@
+{%- for sig in config['sigs'] %}
+	  case KEY_{{ sig['name']|upper }}:
+    {%- if sig['name'] == 'oqs_default' %}
+	  { // OQS-TODO: Clean this up
+	    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
+	    ret = sig->keypair(k->oqs_pk, k->oqs_sk);
+	    OQS_SIG_free(sig);
+	    break;
+	  }
+    {%- else %}
+	    ret = OQS_SIG_{{ sig['name'] }}_keypair(k->oqs_pk, k->oqs_sk);
+	    break;
+    {%- endif %}
+{%- endfor %}
+#ifdef WITH_OPENSSL
+{%- for sig in config['sigs'] %}
+    {%- for alg in sig['mix_with'] if alg['rsa'] %}
+	  case KEY_{{ alg['name']|upper }}_{{ sig['name']|upper }}:
+    {%- if sig['name'] == 'oqs_default' %}
+	  { // OQS-TODO: Clean this up
+	    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
+	    ret = sig->keypair(k->oqs_pk, k->oqs_sk);
+	    OQS_SIG_free(sig);
+	    break;
+	  }
+    {%- else %}
+	    ret = OQS_SIG_{{ sig['name'] }}_keypair(k->oqs_pk, k->oqs_sk);
+	    break;
+    {%- endif %}
+    {%- endfor %}
+{%- endfor %}
+#ifdef OPENSSL_HAS_ECC
+{%- for sig in config['sigs'] %}
+    {%- for alg in sig['mix_with'] if not alg['rsa'] %}
+	  case KEY_{{ alg['name']|upper }}_{{ sig['name']|upper }}:
+    {%- if sig['name'] == 'oqs_default' %}
+	  { // OQS-TODO: Clean this up
+	    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
+	    ret = sig->keypair(k->oqs_pk, k->oqs_sk);
+	    OQS_SIG_free(sig);
+	    break;
+	  }
+    {%- else %}
+	    ret = OQS_SIG_{{ sig['name'] }}_keypair(k->oqs_pk, k->oqs_sk);
+	    break;
+    {%- endif %}
+    {%- endfor %}
+{%- endfor %}
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+

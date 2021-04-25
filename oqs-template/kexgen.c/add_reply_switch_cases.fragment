@@ -1,0 +1,17 @@
+{%- for kex in config['kexs'] %}
+	case KEX_KEM_{{ kex['name']|upper }}_{{ kex['hash']|upper }}:
+		r = kex_kem_{{ kex['name'] }}_dec(kex, server_blob, &shared_secret);
+		break;
+{%- endfor %}
+#ifdef WITH_OPENSSL
+#ifdef OPENSSL_HAS_ECC
+{%- for kex in config['kexs'] -%}
+    {%- for curve in kex['mix_with'] %}
+	case KEX_KEM_{{ kex['name']|upper }}_ECDH_{{ curve['name']|upper }}_{{ kex['hash']|upper }}:
+		r = kex_kem_{{ kex['name'] }}_ecdh_{{ curve['name'] }}_dec(kex, server_blob, &shared_secret);
+		break;
+    {%- endfor %}
+{%- endfor %}
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+

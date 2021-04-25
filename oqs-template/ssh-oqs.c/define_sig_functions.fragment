@@ -1,0 +1,45 @@
+{%- for sig in config['sigs'] %}
+/*---------------------------------------------------
+ * {{ sig['name']|upper }} METHODS
+ *---------------------------------------------------
+ */
+int ssh_{{ sig['name']|replace('_','') }}_sign(const struct sshkey *key,
+                     u_char **sigp,
+                     size_t *lenp,
+                     const u_char *data,
+                     size_t datalen,
+                     u_int compat)
+{
+    {% if sig['name'] == 'oqs_default' -%}
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
+    {%- else -%}
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_{{ sig['name'] }});
+    {%- endif %}
+    if (sig == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = ssh_generic_sign(sig, "{{ sig['name']|replace('_','') }}", key, sigp, lenp, data, datalen, compat);
+    OQS_SIG_free(sig);
+    return r;
+}
+int ssh_{{ sig['name']|replace('_','') }}_verify(const struct sshkey *key,
+                       const u_char *signature,
+                       size_t signaturelen,
+                       const u_char *data,
+                       size_t datalen,
+                       u_int compat)
+{
+    {% if sig['name'] == 'oqs_default' -%}
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
+    {%- else -%}
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_{{ sig['name'] }});
+    {%- endif %}
+    if (sig == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = ssh_generic_verify(sig, "{{ sig['name']|replace('_','') }}", key, signature, signaturelen, data, datalen, compat);
+    OQS_SIG_free(sig);
+    return r;
+}
+{%- endfor %}
+

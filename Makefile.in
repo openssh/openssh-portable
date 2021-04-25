@@ -99,6 +99,8 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	atomicio.o dispatch.o mac.o misc.o utf8.o \
 	monitor_fdpass.o rijndael.o ssh-dss.o ssh-ecdsa.o ssh-ecdsa-sk.o \
 	ssh-ed25519-sk.o ssh-rsa.o dh.o \
+	ssh-oqs.o \
+	oqs-utils.o \
 	msg.o progressmeter.o dns.o entropy.o gss-genr.o umac.o umac128.o \
 	ssh-pkcs11.o smult_curve25519_ref.o \
 	poly1305.o chacha.o cipher-chachapoly.o cipher-chachapoly-libcrypto.o \
@@ -106,6 +108,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	hmac.o sc25519.o ge25519.o fe25519.o ed25519.o verify.o hash.o \
 	kex.o kexdh.o kexgex.o kexecdh.o kexc25519.o \
 	kexgexc.o kexgexs.o \
+	kexoqs.o kexoqsecdh.o \
 	sntrup4591761.o kexsntrup4591761x25519.o kexgen.o \
 	sftp-realpath.o platform-pledge.o platform-tracing.o platform-misc.o \
 	sshbuf-io.o

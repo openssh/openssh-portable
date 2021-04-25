@@ -1,0 +1,24 @@
+{%- set rsa_hybrids = [] -%}
+{%- set ecdsa_hybrids = [] %}
+#define CASE_KEY_OQS \
+{%- for sig in config['sigs'] %}
+	case KEY_{{ sig['name']|upper }}{%- if not loop.last -%}: \{%- endif -%}
+    {%- for alg in sig['mix_with'] %}
+        {%- if alg.rsa -%}
+            {%- do rsa_hybrids.append("KEY_" + alg['name'] + "_" + sig['name'] ) -%}
+        {%- else -%}
+            {%- do ecdsa_hybrids.append("KEY_" + alg['name'] + "_" + sig['name'] ) -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endfor %}
+
+#define CASE_KEY_RSA_HYBRID \
+{%- for alg in rsa_hybrids %}
+	case {{ alg|upper }}{%- if not loop.last %}: \{%- endif -%}
+{%- endfor %}
+
+#define CASE_KEY_ECDSA_HYBRID \
+{%- for alg in ecdsa_hybrids %}
+	case {{ alg|upper }}{%- if not loop.last %}: \{%- endif -%}
+{%- endfor %}
+

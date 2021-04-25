@@ -61,6 +61,8 @@
 #include "misc.h"
 #include "ssherr.h"
 
+#include "oqs-utils.h"
+
 #define MAX_AGENT_IDENTITIES	2048		/* Max keys in agent reply */
 #define MAX_AGENT_REPLY_LEN	(256 * 1024) 	/* Max bytes in agent reply */
 
@@ -495,6 +497,7 @@ ssh_add_identity_constrained(int sock, struct sshkey *key,
 	case KEY_ECDSA_CERT:
 	case KEY_ECDSA_SK:
 	case KEY_ECDSA_SK_CERT:
+	CASE_KEY_HYBRID:
 #endif
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
@@ -502,6 +505,7 @@ ssh_add_identity_constrained(int sock, struct sshkey *key,
 	case KEY_ED25519_SK_CERT:
 	case KEY_XMSS:
 	case KEY_XMSS_CERT:
+	CASE_KEY_OQS:
 		type = constrained ?
 		    SSH2_AGENTC_ADD_ID_CONSTRAINED :
 		    SSH2_AGENTC_ADD_IDENTITY;

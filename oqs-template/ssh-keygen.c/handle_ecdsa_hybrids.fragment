@@ -1,0 +1,12 @@
+{%- for sig in config['sigs'] if sig['level'] != 1 -%}
+    {%- for alg in sig['mix_with'] %}
+		  case KEY_{{ alg['name']|upper }}_{{ sig['name']|upper }}:
+        {%- if sig['level'] == 3 %}
+		    *bitsp = 384;
+        {%- elif sig['level'] == 5 %}
+		    *bitsp = 521;
+        {%- endif %}
+		    break;
+    {%- endfor %}
+{%- endfor %}
+
