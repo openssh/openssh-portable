@@ -108,6 +108,10 @@ case "$config" in
 esac
 
 case "${TARGET_HOST}" in
+    nbsd4)
+	# System compiler will ICE on some files with fstack-protector
+	CONFIGFLAGS="${CONFIGFLAGS} --without-hardening"
+	;;
     sol10|sol11)
 	# sol10 VM is 32bit and the unit tests are slow.
 	# sol11 has 4 test configs so skip unit tests to speed up.
