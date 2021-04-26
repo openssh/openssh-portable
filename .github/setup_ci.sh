@@ -24,7 +24,7 @@ fi
 
 for TARGET in $TARGETS; do
     case $TARGET in
-    default|without-openssl|without-zlib)
+    default|without-openssl|without-zlib|c89)
         # nothing to do
         ;;
     kerberos5)
