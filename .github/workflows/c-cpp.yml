@@ -33,6 +33,7 @@ jobs:
           - { os: ubuntu-20.04, configs: libressl-3.0.2 }
           - { os: ubuntu-20.04, configs: libressl-3.2.5 }
           - { os: ubuntu-20.04, configs: openssl-master }
+          - { os: ubuntu-20.04, configs: openssl-noec }
           - { os: ubuntu-20.04, configs: openssl-1.0.1 }
           - { os: ubuntu-20.04, configs: openssl-1.0.1u }
           - { os: ubuntu-20.04, configs: openssl-1.0.2u }

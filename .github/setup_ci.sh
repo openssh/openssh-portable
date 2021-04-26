@@ -47,6 +47,10 @@ for TARGET in $TARGETS; do
     hardenedmalloc)
         INSTALL_HARDENED_MALLOC=yes
        ;;
+    openssl-noec)
+	INSTALL_OPENSSL=OpenSSL_1_1_1k
+	SSLCONFOPTS="no-ec"
+	;;
     openssl-*)
         INSTALL_OPENSSL=$(echo ${TARGET} | cut -f2 -d-)
         case ${INSTALL_OPENSSL} in
@@ -94,7 +98,8 @@ if [ ! -z "${INSTALL_OPENSSL}" ]; then
     (cd ${HOME} &&
      git clone https://github.com/openssl/openssl.git &&
      cd ${HOME}/openssl &&
-     ./config no-threads no-engine no-fips no-shared --prefix=/opt/openssl/head &&
+     ./config no-threads no-engine no-fips no-shared ${SSLCONFOPTS} \
+         --prefix=/opt/openssl/head &&
      make -j2 && sudo make install_sw)
 fi
 
