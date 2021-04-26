@@ -439,6 +439,8 @@ channel_close_fd(struct ssh *ssh, int *fdp, int nonblock)
 	struct ssh_channels *sc = ssh->chanctxt;
 	int ret = 0, fd = *fdp;
 
+	/* As the fd is duped, restoring the block mode
+	 * affects the original fd */
 	if (nonblock && fd != -1 && !isatty(fd))
 		unset_nonblock(fd);
 	if (fd != -1) {
