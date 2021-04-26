@@ -53,6 +53,7 @@ for TARGET in $TARGETS; do
           1.*)	INSTALL_OPENSSL="OpenSSL_$(echo ${INSTALL_OPENSSL} | tr . _)" ;;
           3.*)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
         esac
+        PACKAGES="${PACKAGES} putty-tools"
        ;;
     libressl-*)
         INSTALL_LIBRESSL=$(echo ${TARGET} | cut -f2 -d-)
@@ -60,6 +61,7 @@ for TARGET in $TARGETS; do
           master) ;;
           *) INSTALL_LIBRESSL="v$(echo ${TARGET} | cut -f2 -d-)" ;;
         esac
+        PACKAGES="${PACKAGES} putty-tools"
        ;;
     valgrind*)
        PACKAGES="$PACKAGES valgrind"
