@@ -44,11 +44,11 @@ case "$config" in
 	CONFIGFLAGS="--with-pam"
 	SSHD_CONFOPTS="UsePam yes"
 	;;
-    libressl-head)
-	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/libressl/head --with-rpath=-Wl,-rpath,"
+    libressl-*)
+	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/libressl --with-rpath=-Wl,-rpath,"
 	;;
-    openssl-head)
-	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/openssl/head --with-rpath=-Wl,-rpath,"
+    openssl-*)
+	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/openssl --with-rpath=-Wl,-rpath,"
 	;;
     selinux)
 	CONFIGFLAGS="--with-selinux"

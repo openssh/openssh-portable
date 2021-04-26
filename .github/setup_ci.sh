@@ -47,11 +47,19 @@ for TARGET in $TARGETS; do
     hardenedmalloc)
         INSTALL_HARDENED_MALLOC=yes
        ;;
-    openssl-head)
-        INSTALL_OPENSSL_HEAD=yes
+    openssl-*)
+        INSTALL_OPENSSL=$(echo ${TARGET} | cut -f2 -d-)
+        case ${INSTALL_OPENSSL} in
+          1.*)	INSTALL_OPENSSL="OpenSSL_$(echo ${INSTALL_OPENSSL} | tr . _)" ;;
+          3.*)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
+        esac
        ;;
-    libressl-head)
-        INSTALL_LIBRESSL_HEAD=yes
+    libressl-*)
+        INSTALL_LIBRESSL=$(echo ${TARGET} | cut -f2 -d-)
+        case ${INSTALL_LIBRESSL} in
+          master) ;;
+          *) INSTALL_LIBRESSL="v$(echo ${TARGET} | cut -f2 -d-)" ;;
+        esac
        ;;
     valgrind*)
        PACKAGES="$PACKAGES valgrind"
@@ -80,7 +88,7 @@ if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
      make -j2 && sudo cp libhardened_malloc.so /usr/lib/)
 fi
 
-if [ "${INSTALL_OPENSSL_HEAD}" = "yes" ];then
+if [ ! -z "${INSTALL_OPENSSL}" ]; then
     (cd ${HOME} &&
      git clone https://github.com/openssl/openssl.git &&
      cd ${HOME}/openssl &&
@@ -88,10 +96,12 @@ if [ "${INSTALL_OPENSSL_HEAD}" = "yes" ];then
      make -j2 && sudo make install_sw)
 fi
 
-if [ "${INSTALL_LIBRESSL_HEAD}" = "yes" ];then
+if [ ! -z "${INSTALL_LIBRESSL}" ]; then
     (mkdir -p ${HOME}/libressl && cd ${HOME}/libressl &&
      git clone https://github.com/libressl-portable/portable.git &&
-     cd ${HOME}/libressl/portable && sh update.sh && sh autogen.sh &&
+     cd ${HOME}/libressl/portable &&
+     git checkout ${INSTALL_LIBRESSL} &&
+     sh update.sh && sh autogen.sh &&
      ./configure --prefix=/opt/libressl/head &&
-     make -j2 && sudo make install_sw)
+     make -j2 && sudo make install)
 fi
