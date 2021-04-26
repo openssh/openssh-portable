@@ -98,9 +98,10 @@ if [ ! -z "${INSTALL_OPENSSL}" ]; then
     (cd ${HOME} &&
      git clone https://github.com/openssl/openssl.git &&
      cd ${HOME}/openssl &&
-     ./config no-threads no-engine no-fips no-shared ${SSLCONFOPTS} \
-         --prefix=/opt/openssl/head &&
-     make -j2 && sudo make install_sw)
+     git checkout ${INSTALL_OPENSSL} &&
+     ./config no-threads ${SSLCONFOPTS} \
+         --prefix=/opt/openssl &&
+     make && sudo make install_sw)
 fi
 
 if [ ! -z "${INSTALL_LIBRESSL}" ]; then
@@ -109,6 +110,6 @@ if [ ! -z "${INSTALL_LIBRESSL}" ]; then
      cd ${HOME}/libressl/portable &&
      git checkout ${INSTALL_LIBRESSL} &&
      sh update.sh && sh autogen.sh &&
-     ./configure --prefix=/opt/libressl/head &&
+     ./configure --prefix=/opt/libressl &&
      make -j2 && sudo make install)
 fi
