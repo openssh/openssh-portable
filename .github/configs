@@ -22,6 +22,12 @@ LIBCRYPTOFLAGS=""
 case "$config" in
     default|sol64)
 	;;
+    c89)
+	CC="gcc"
+	CFLAGS="-Wall -std=c89 -pedantic -Werror=vla"
+	CONFIGFLAGS="--without-openssl --without-zlib"
+	TEST_TARGET=t-exec
+	;;
     kitchensink)
 	CONFIGFLAGS="--with-kerberos5 --with-libedit --with-pam"
 	CONFIGFLAGS="${CONFIGFLAGS} --with-security-key-builtin --with-selinux"
