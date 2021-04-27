@@ -37,7 +37,7 @@ jobs:
           - { os: ubuntu-latest, configs: openssl-1.0.1 }
           - { os: ubuntu-latest, configs: openssl-1.0.1u }
           - { os: ubuntu-latest, configs: openssl-1.0.2u }
-          - { os: ubuntu-latest, configs: openssl-1.1.0g }
+          - { os: ubuntu-latest, configs: openssl-1.1.0h }
           - { os: ubuntu-latest, configs: openssl-1.1.1 }
           - { os: ubuntu-latest, configs: openssl-1.1.1k }
           - { os: ubuntu-18.04, configs: pam }
