@@ -99,7 +99,7 @@ if [ ! -z "${INSTALL_OPENSSL}" ]; then
      git clone https://github.com/openssl/openssl.git &&
      cd ${HOME}/openssl &&
      git checkout ${INSTALL_OPENSSL} &&
-     ./config no-threads ${SSLCONFOPTS} \
+     ./config no-threads shared ${SSLCONFOPTS} \
          --prefix=/opt/openssl &&
      make && sudo make install_sw)
 fi
