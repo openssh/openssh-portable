@@ -27,19 +27,19 @@ jobs:
           - { os: ubuntu-20.04, configs: pam }
           - { os: ubuntu-20.04, configs: kitchensink }
           - { os: ubuntu-20.04, configs: hardenedmalloc }
-          - { os: ubuntu-20.04, configs: libressl-master }
-          - { os: ubuntu-20.04, configs: libressl-2.2.9 }
-          - { os: ubuntu-20.04, configs: libressl-2.8.3 }
-          - { os: ubuntu-20.04, configs: libressl-3.0.2 }
-          - { os: ubuntu-20.04, configs: libressl-3.2.5 }
-          - { os: ubuntu-20.04, configs: openssl-master }
-          - { os: ubuntu-20.04, configs: openssl-noec }
-          - { os: ubuntu-20.04, configs: openssl-1.0.1 }
-          - { os: ubuntu-20.04, configs: openssl-1.0.1u }
-          - { os: ubuntu-20.04, configs: openssl-1.0.2u }
-          - { os: ubuntu-20.04, configs: openssl-1.1.0g }
-          - { os: ubuntu-20.04, configs: openssl-1.1.1 }
-          - { os: ubuntu-20.04, configs: openssl-1.1.1k }
+          - { os: ubuntu-latest, configs: libressl-master }
+          - { os: ubuntu-latest, configs: libressl-2.2.9 }
+          - { os: ubuntu-latest, configs: libressl-2.8.3 }
+          - { os: ubuntu-latest, configs: libressl-3.0.2 }
+          - { os: ubuntu-latest, configs: libressl-3.2.5 }
+          - { os: ubuntu-latest, configs: openssl-master }
+          - { os: ubuntu-latest, configs: openssl-noec }
+          - { os: ubuntu-latest, configs: openssl-1.0.1 }
+          - { os: ubuntu-latest, configs: openssl-1.0.1u }
+          - { os: ubuntu-latest, configs: openssl-1.0.2u }
+          - { os: ubuntu-latest, configs: openssl-1.1.0g }
+          - { os: ubuntu-latest, configs: openssl-1.1.1 }
+          - { os: ubuntu-latest, configs: openssl-1.1.1k }
           - { os: ubuntu-18.04, configs: pam }
           - { os: ubuntu-18.04, configs: kerberos5 }
           - { os: ubuntu-18.04, configs: libedit }
