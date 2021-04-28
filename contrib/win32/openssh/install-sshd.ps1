@@ -81,7 +81,7 @@ if (Test-Path $sshAgentRegPath)
 $moduliPath = Join-Path $PSScriptRoot "moduli"
 if (Test-Path $moduliPath -PathType Leaf)
 {
-    Repair-ModuliFilePermission -FilePath $moduliPath @psBoundParameters
+    Repair-ModuliFilePermission -FilePath $moduliPath @psBoundParameters -confirm:$false
 }
 
 #register etw provider
