@@ -1,0 +1,34 @@
+name: Upstream self-hosted
+
+on:
+  push:
+    branches: [ master, ci ]
+
+jobs:
+  selfhosted:
+    if: github.repository == 'openssh/openssh-portable-selfhosted'
+    runs-on: ${{ matrix.os }}
+    env:
+      TARGET_HOST: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ obsdsnap ]
+        configs: [ default ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: shutdown VM if running
+      run: vmshutdown
+    - name: startup VM
+      run: vmstartup
+    - name: update source
+      run: vmrun "cd /usr/src && cvs up -dPA usr.bin/ssh regress/usr.bin/ssh"
+    - name: make
+      run: vmrun "cd /usr/src/usr.bin/ssh && make obj && make clean && make"
+    - name: make install
+      run: vmrun "cd /usr/src/usr.bin/ssh && sudo make install"
+    - name: make tests
+      run: vmrun "cd /usr/src/regress/usr.bin/ssh && make obj && make clean &&  SUDO=sudo make"
+    - name: shutdown VM
+      if: always()
+      run: vmshutdown
