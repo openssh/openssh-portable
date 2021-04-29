@@ -158,6 +158,7 @@ struct w32_io* fileio_afunix_socket();
 int fileio_connect(struct w32_io*, char*);
 struct w32_io* fileio_open(const char *pathname, int flags, mode_t mode);
 int fileio_read(struct w32_io* pio, void *dst, size_t max);
+int fileio_write_wrapper(struct w32_io* pio, const void* buf, size_t bytes_to_copy);
 int fileio_write(struct w32_io* pio, const void *buf, size_t max);
 int fileio_fstat(struct w32_io* pio, struct _stat64 *buf);
 int fileio_stat(const char *path, struct _stat64 *buf);

@@ -65,7 +65,12 @@ static size_t nlog_verbose;
 
 extern char *__progname;
 
+#ifdef WINDOWS
+#define LOG_SYSLOG_VIS	(VIS_CSTYLE|VIS_NL|VIS_TAB|VIS_OCTAL|VIS_LOG_UTF16)
+#else
 #define LOG_SYSLOG_VIS	(VIS_CSTYLE|VIS_NL|VIS_TAB|VIS_OCTAL)
+#endif
+
 #define LOG_STDERR_VIS	(VIS_SAFE|VIS_OCTAL)
 
 /* textual representation of log-facilities/levels */
