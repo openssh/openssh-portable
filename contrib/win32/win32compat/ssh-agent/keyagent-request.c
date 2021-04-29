@@ -231,7 +231,7 @@ static int sign_blob(const struct sshkey *pubkey, u_char ** sig, size_t *siglen,
 		algo = "rsa-sha2-512";
 
 	if (sshkey_private_deserialize(tmpbuf, &prikey) != 0 ||
-	    sshkey_sign(prikey, sig, siglen, blob, blen, algo, 0) != 0) {
+	    sshkey_sign(prikey, sig, siglen, blob, blen, algo, NULL, NULL, 0) != 0) {
 		debug("cannot sign using retrieved key");
 		goto done;
 	}

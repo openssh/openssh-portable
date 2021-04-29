@@ -113,9 +113,6 @@ fix_cwd()
 	_wchdir(path);
 }
 
-/* TODO - get rid of this dependency */
-void log_init(char*, int, int, int);
-
 int 
 wmain(int argc, wchar_t **argv) 
 {

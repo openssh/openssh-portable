@@ -82,7 +82,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\readpassphrase.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\reallocarray.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\recallocarray.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\rmd160.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\rresvport.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\setenv.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\setproctitle.c" />
@@ -131,7 +130,6 @@
     <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\port-net.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\port-uw.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\readpassphrase.h" />
-    <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\rmd160.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\sha1.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\sha2.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\sys-queue.h" />

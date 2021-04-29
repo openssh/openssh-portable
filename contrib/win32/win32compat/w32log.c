@@ -40,7 +40,7 @@
 
 #define MSGBUFSIZ 1024
 static int logfd = -1;
-char* identity = NULL;
+const char* identity = NULL;
 int log_facility = 0;
 
 void openlog_etw()
@@ -150,7 +150,7 @@ syslog_file(int priority, const char *format, const char *formatBuffer)
 }
 
 void
-openlog(char *ident, unsigned int option, int facility)
+openlog(const char *ident, unsigned int option, int facility)
 {
 	identity = ident;
 	log_facility = facility;

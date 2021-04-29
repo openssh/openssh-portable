@@ -27,7 +27,7 @@ int their_addr_len = sizeof(their_addr);
 char *send_buf, *recv_buf;
 
 int
-unset_nonblock(int fd)
+w32_unw32_set_nonblock(int fd)
 {
 	int val;
 
@@ -46,7 +46,7 @@ unset_nonblock(int fd)
 }
 
 int
-set_nonblock(int fd)
+w32_set_nonblock(int fd)
 {
 	int val;
 
@@ -389,19 +389,19 @@ socket_nonblocking_io_tests()
 	{
 		TEST_START("non blocking accept and connect");
 
-		retValue = set_nonblock(listen_fd);
+		retValue = w32_set_nonblock(listen_fd);
 		ASSERT_INT_EQ(retValue, 0);
 		accept_fd = accept(listen_fd, NULL, NULL);
 		ASSERT_INT_EQ(accept_fd, -1);
 		ASSERT_INT_EQ(errno, EAGAIN);
-		retValue = set_nonblock(connect_fd);
+		retValue = w32_set_nonblock(connect_fd);
 		ASSERT_INT_EQ(retValue, 0);
 		retValue = connect(connect_fd, servinfo->ai_addr, servinfo->ai_addrlen);
 		/* connect is too fast to block
 		ASSERT_INT_EQ(ret, -1);
 		ASSERT_INT_EQ(errno, EINPROGRESS); */
 		ASSERT_INT_EQ(retValue, 0);
-		retValue = unset_nonblock(listen_fd);
+		retValue = w32_unw32_set_nonblock(listen_fd);
 		ASSERT_INT_EQ(retValue, 0);
 		accept_fd = accept(listen_fd, NULL, NULL);
 		ASSERT_INT_NE(accept_fd, -1);
@@ -414,16 +414,16 @@ socket_nonblocking_io_tests()
 	{
 		TEST_START("non blocking recv");
 
-		retValue = set_nonblock(connect_fd);
+		retValue = w32_set_nonblock(connect_fd);
 		ASSERT_INT_EQ(retValue, 0);
 		retValue = recv(connect_fd, small_recv_buf, SMALL_RECV_BUF_SIZE, 0);
 		ASSERT_INT_EQ(retValue, -1);
 		ASSERT_INT_EQ(errno, EAGAIN);
-		retValue = unset_nonblock(accept_fd);
+		retValue = w32_unw32_set_nonblock(accept_fd);
 		ASSERT_INT_EQ(retValue, 0);
 		retValue = send(accept_fd, small_send_buf, strlen(small_send_buf), 0);
 		ASSERT_INT_EQ(retValue, strlen(small_send_buf));
-		retValue = unset_nonblock(connect_fd);
+		retValue = w32_unw32_set_nonblock(connect_fd);
 		ASSERT_INT_EQ(retValue, 0);
 		retValue = recv(connect_fd, small_recv_buf, SMALL_RECV_BUF_SIZE, 0);
 		ASSERT_INT_EQ(retValue, strlen(small_send_buf));
@@ -439,7 +439,7 @@ socket_nonblocking_io_tests()
 		
 		send_buf = malloc(10 * 1024);
 		ASSERT_PTR_NE(send_buf, NULL);
-		retValue = set_nonblock(connect_fd);
+		retValue = w32_set_nonblock(connect_fd);
 		ASSERT_INT_EQ(retValue, 0);
 		retValue = 1;
 		while (retValue > 0) {
@@ -485,7 +485,7 @@ socket_select_tests() {
 		ASSERT_INT_NE(connect_fd, -1);
 		retValue = connect(connect_fd, servinfo->ai_addr, servinfo->ai_addrlen);
 		ASSERT_INT_EQ(retValue, 0);
-		retValue = set_nonblock(listen_fd);
+		retValue = w32_set_nonblock(listen_fd);
 		ASSERT_INT_EQ(retValue, 0);
 		time_val.tv_sec = 60;
 		time_val.tv_usec = 0;
@@ -507,9 +507,9 @@ socket_select_tests() {
 
 		s = accept_fd;
 		r = connect_fd;
-		retValue = set_nonblock(s);
+		retValue = w32_set_nonblock(s);
 		ASSERT_INT_EQ(retValue, 0);
-		retValue = set_nonblock(r);
+		retValue = w32_set_nonblock(r);
 		ASSERT_INT_EQ(retValue, 0);
 		send_buf = malloc(num_bytes);
 		recv_buf = malloc(num_bytes + 1);
@@ -607,9 +607,9 @@ socket_typical_ssh_payload_tests() {
 
 		r = accept_fd;
 		s = connect_fd;
-		retValue = set_nonblock(s);
+		retValue = w32_set_nonblock(s);
 		ASSERT_INT_EQ(retValue, 0);
-		retValue = set_nonblock(r);
+		retValue = w32_set_nonblock(r);
 		ASSERT_INT_EQ(retValue, 0);
 		send_buf = malloc(max_bytes);
 		recv_buf = malloc(max_bytes + 1);

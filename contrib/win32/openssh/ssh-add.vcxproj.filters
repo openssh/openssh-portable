@@ -21,6 +21,12 @@
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-sk-client.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\win32compat\win32-utf8.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc">

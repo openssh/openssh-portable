@@ -98,11 +98,19 @@ sshbuf_load_file(const char *path, struct sshbuf **bufp)
 }
 
 int
+#ifdef WINDOWS
+sshbuf_write_file(const char *path, struct sshbuf *buf, mode_t mode)
+#else
 sshbuf_write_file(const char *path, struct sshbuf *buf)
+#endif
 {
 	int fd, oerrno;
 
+#ifdef WINDOWS
+	if ((fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, mode)) == -1)
+#else
 	if ((fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1)
+#endif
 		return SSH_ERR_SYSTEM_ERROR;
 	if (atomicio(vwrite, fd, sshbuf_mutable_ptr(buf),
 	    sshbuf_len(buf)) != sshbuf_len(buf) || close(fd) != 0) {

@@ -1,12 +1,10 @@
 #pragma once
+#ifndef __attribute__
+#define __attribute__(A)
+#endif
 
-void     __declspec(noreturn) fatal(const char *, ...);
-void     error(const char *, ...);
-void     verbose(const char *, ...);
-void     debug(const char *, ...);
-void     debug2(const char *, ...);
-void     debug3(const char *, ...);
-
+#include "..\..\..\log.h"
+#include "..\..\..\ssherr.h"
 /* Enable the following for verbose logging */
 #if (0)
 #define debug4 debug2

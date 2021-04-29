@@ -402,6 +402,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)sshsig.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\win32-utf8.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-sk-client.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

@@ -398,7 +398,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\ssh-pubkey\ssh-pubkeydefs.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\ssh-agent\agent-request.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\ssh-agent\agent.h" />
   </ItemGroup>
@@ -407,6 +406,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\ssh-agent\agent.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\ssh-agent\connection.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\ssh-agent\keyagent-request.c" />
+    <ClCompile Include="..\..\..\ssh-sk-client.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="openssh-events.rc" />

@@ -38,6 +38,8 @@
   <ItemGroup>
     <ClCompile Include="$(OpenSSH-Src-Path)ssh-add.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-sk-client.c" />
+    <ClCompile Include="..\win32compat\win32-utf8.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

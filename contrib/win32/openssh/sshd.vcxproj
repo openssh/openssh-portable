@@ -428,7 +428,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)auth-rhosts.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)auth-shadow.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)auth-sia.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-skey.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)auth.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)auth2-chall.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)auth2-gss.c" />
@@ -460,8 +459,10 @@
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\win32_groupaccess.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\win32_sshpty.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_sshd.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\spawn-ext.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\w32-doexec.c" />
+    <ClCompile Include="..\..\..\srclimit.c" />
+    <ClCompile Include="..\..\..\ssh-sk-client.c" />
+    <ClCompile Include="..\win32compat\win32-utf8.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

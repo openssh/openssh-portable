@@ -23,7 +23,7 @@ struct passwd {
 };
 
 /*start - declarations not applicable in Windows */
-uid_t getuid(void);
+uid_t w32_getuid(void);
 gid_t getgid(void);
 uid_t geteuid(void);
 gid_t getegid(void);
@@ -44,5 +44,6 @@ void endpwent(void);
 
 #define getpwuid w32_getpwuid
 #define getpwnam w32_getpwnam
+#define getuid w32_getuid
 
 #endif

@@ -37,7 +37,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(OpenSSH-Src-Path)sftp-common.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sftp-realpath.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)sftp-server-main.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)sftp-server.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c" />

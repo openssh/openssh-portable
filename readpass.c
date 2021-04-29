@@ -70,12 +70,15 @@ ssh_askpass(char *askpass, const char *msg, const char *env_hint)
 	fcntl(p[0], F_SETFD, FD_CLOEXEC);
 	fcntl(p[1], F_SETFD, FD_CLOEXEC);
 	{
+		if (env_hint != NULL)
+			setenv("SSH_ASKPASS_PROMPT", env_hint, 1);
+
 		posix_spawn_file_actions_t actions;
 		pid = -1;
 		if (posix_spawn_file_actions_init(&actions) != 0 ||
 		    posix_spawn_file_actions_adddup2(&actions, p[1], STDOUT_FILENO) != 0 ) {
 			error("posix_spawn initialization failed");
-			signal(SIGCHLD, osigchld);
+			ssh_signal(SIGCHLD, osigchld);
 			return NULL;
 		} else {
 			const char* spawn_argv[3];
@@ -85,7 +88,7 @@ ssh_askpass(char *askpass, const char *msg, const char *env_hint)
 			if (posix_spawnp(&pid, spawn_argv[0], &actions, NULL, (char* const*) spawn_argv, NULL) != 0) {
 				posix_spawn_file_actions_destroy(&actions);
 				error("ssh_askpass: posix_spawnp: %s", strerror(errno));
-				signal(SIGCHLD, osigchld);
+				ssh_signal(SIGCHLD, osigchld);
 				return NULL;
 			}
 			posix_spawn_file_actions_destroy(&actions);

@@ -46,6 +46,12 @@
 static int
 start_helper(int *fdp, pid_t *pidp, void (**osigchldp)(int))
 {
+#ifndef ENABLE_SK
+	/* TODO - This is added temporarily to resolve build errors.
+	 * The below logic has to be converted using posix_internal() APIs as windows doesn't support fork.
+	 */
+	return SSH_ERR_SYSTEM_ERROR;
+#else
 	void (*osigchld)(int);
 	int oerrno, pair[2];
 	pid_t pid;
@@ -106,6 +112,7 @@ start_helper(int *fdp, pid_t *pidp, void (**osigchldp)(int))
 	*pidp = pid;
 	*osigchldp = osigchld;
 	return 0;
+#endif
 }
 
 static int

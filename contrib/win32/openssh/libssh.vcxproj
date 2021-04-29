@@ -344,6 +344,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(OpenSSH-Src-Path)addr.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)addrmatch.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)atomicio.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)authfd.c" />
@@ -391,7 +392,7 @@
       <ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)kexgen.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexsntrup4591761x25519.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)kexsntrup761x25519.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)krl.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)log.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)mac.c" />
@@ -408,7 +409,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)rijndael.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)sc25519.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)smult_curve25519_ref.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sntrup4591761.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)sntrup761.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)ssh-dss.c">
       <ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
     </ClCompile>
@@ -441,6 +442,12 @@
       <ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)kexgexs.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-ecdsa-sk.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-ed25519-sk.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-sk.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)sshbuf-io.c" />
+    <ClCompile Include="..\..\..\cipher-chachapoly-libcrypto.c" />
+    <ClCompile Include="..\win32compat\spawn-ext.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OpenSSH-Src-Path)sshfileperm.h" />

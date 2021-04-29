@@ -306,8 +306,14 @@ int sshbuf_load_file(const char *, struct sshbuf **)
  * Write a buffer to a path, creating/truncating as needed (mode 0644,
  * subject to umask). The buffer contents are not modified.
  */
+ #ifdef WINDOWS
+ /* umask doesn't work the same on windows. so pass the mode instead. */
+int sshbuf_write_file(const char *path, struct sshbuf *buf, mode_t mode)
+__attribute__((__nonnull__(2)));
+ #else
 int sshbuf_write_file(const char *path, struct sshbuf *buf)
     __attribute__((__nonnull__ (2)));
+#endif
 
 /* Macros for decoding/encoding integers */
 #define PEEK_U64(p) \

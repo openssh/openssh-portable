@@ -22,7 +22,7 @@
 
 #define LOG_PID		0x01			/* log the pid */
 
-void openlog	(char *, unsigned int, int);
+void openlog	(const char *, unsigned int, int);
 void closelog	(void);
 void syslog		(int, const char *, const char *);
 

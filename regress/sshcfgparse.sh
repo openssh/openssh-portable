@@ -144,12 +144,24 @@ fi
 
 verbose "agentforwarding"
 f=`${SSH} -GF none host | awk '/^forwardagent /{print$2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 expect_result_present "$f" "no"
 f=`${SSH} -GF none -oforwardagent=no host | awk '/^forwardagent /{print$2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 expect_result_present "$f" "no"
 f=`${SSH} -GF none -oforwardagent=yes host | awk '/^forwardagent /{print$2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 expect_result_present "$f" "yes"
 f=`${SSH} -GF none '-oforwardagent=SSH_AUTH_SOCK.forward' host | awk '/^forwardagent /{print$2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 expect_result_present "$f" "SSH_AUTH_SOCK.forward"
 
 # cleanup

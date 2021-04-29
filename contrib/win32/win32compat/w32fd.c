@@ -1071,6 +1071,10 @@ spawn_child_internal(const char* cmd, char *const argv[], HANDLE in, HANDLE out,
 	if (strstr(cmd, "sshd.exe")) {
 		flags |= DETACHED_PROCESS;
 	}
+
+	if (is_bash_test_env()) {
+		flags |= CREATE_NO_WINDOW;
+	}
 	
 	wchar_t * t = cmdline_utf16;
 	do {

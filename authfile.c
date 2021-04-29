@@ -59,9 +59,13 @@ sshkey_save_private_blob(struct sshbuf *keybuf, const char *filename)
 	int r;
 	mode_t omask;
 
+#ifdef WINDOWS
+	r = sshbuf_write_file(filename, keybuf, 0600);
+#else
 	omask = umask(077);
 	r = sshbuf_write_file(filename, keybuf);
 	umask(omask);
+#endif
 	return r;
 }
 

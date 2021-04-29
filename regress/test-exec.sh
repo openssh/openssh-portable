@@ -372,8 +372,15 @@ fi
 
 make_tmpdir ()
 {
-	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
-	    fatal "failed to create temporary directory"
+	if [ "$os" == "windows" ]; then
+		powershell.exe /c "New-Item -Path $OBJ\openssh-XXXXXXXX -ItemType Directory -Force" >/dev/null 2>&1
+		if [ $? -ne 0 ]; then
+			fatal "failed to create temporary directory"
+		fi
+	else
+		SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
+			fatal "failed to create temporary directory"
+	fi
 }
 # End of portable specific functions
 
@@ -413,22 +420,6 @@ stop_sshd ()
 	fi
 }
 
-<<<<<<< HEAD
-make_tmpdir ()
-{
-	if [ "$os" == "windows" ]; then
-		powershell.exe /c "New-Item -Path $OBJ\openssh-XXXXXXXX -ItemType Directory -Force" >/dev/null 2>&1
-		if [ $? -ne 0 ]; then
-			fatal "failed to create temporary directory"
-		fi
-	else
-		SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
-			fatal "failed to create temporary directory"
-	fi
-}
-
-=======
->>>>>>> e86968280e358e62649d268d41f698d64d0dc9fa
 # helper
 cleanup ()
 {
@@ -531,6 +522,7 @@ cat << EOF > $OBJ/sshd_config
 	Subsystem	sftp	$SFTPSERVER
 EOF
 
+if [ "$os" != "windows" ]; then
 # This may be necessary if /usr/src and/or /usr/obj are group-writable,
 # but if you aren't careful with permissions then the unit tests could
 # be abused to locally escalate privileges.
@@ -561,6 +553,7 @@ bypass this check by setting TEST_SSH_UNSAFE_PERMISSIONS=1
 
 EOD
 	fi
+fi
 fi
 
 if [ ! -z "$TEST_SSH_MODULI_FILE" ]; then
@@ -752,6 +745,8 @@ fi
 (
 	cat $OBJ/ssh_config
 	if [ "$os" == "windows" ]; then
+		# TODO - having SSH_SK_HELPER is causing issues. Need to find a way.
+		# This is fine for now as we don't have FIDO enabled.
 		echo proxycommand  `windows_path ${SSHD}` -i -f $OBJ_WIN_FORMAT/sshd_proxy
 	else
 		echo proxycommand ${SUDO} env SSH_SK_HELPER=\"$SSH_SK_HELPER\" sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy

@@ -2363,7 +2363,7 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		fprintf(stderr, "exec: %s: %s\n", path, strerror(errno));
 		_exit(1);
 	}
-
+#endif
 	ssh_signal(SIGTERM, killchild);
 	ssh_signal(SIGINT, killchild);
 	ssh_signal(SIGHUP, killchild);

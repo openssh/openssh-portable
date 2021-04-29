@@ -51,6 +51,7 @@ typedef int sigset_t;
 #define W32_SIG_DFL		((sighandler_t)0)
 #define W32_SIG_IGN		((sighandler_t)1)
 
+#define signal(a, b) mysignal(a, b)
 sighandler_t w32_signal(int signum, sighandler_t handler);
 sighandler_t mysignal(int signum, sighandler_t handler);
 char* strsignal(int);

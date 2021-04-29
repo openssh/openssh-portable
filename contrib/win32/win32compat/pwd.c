@@ -394,7 +394,7 @@ user_from_uid(uid_t uid, int nouser)
 }
 
 uid_t
-getuid(void)
+w32_getuid(void)
 {
 	return 1;
 }

@@ -2626,7 +2626,7 @@ done_loading_hostkeys:
 	if ((r = kex_exchange_identification(ssh, -1,
 	    options.version_addendum)) != 0)
 		sshpkt_fatal(ssh, r, "banner exchange");
-
+idexch_done:
 	ssh_packet_set_nonblocking(ssh);
 
 	/* allocate authentication context */

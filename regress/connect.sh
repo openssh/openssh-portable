@@ -11,8 +11,10 @@ if [ $? -ne 0 ]; then
 	fail "ssh direct connect failed"
 fi
 
-trace "proxy connect"
-${SSH} -F $OBJ/ssh_config -o "proxycommand $NC %h %p" somehost true
-if [ $? -ne 0 ]; then
-	fail "ssh proxycommand connect failed"
+if [ "$os" != "windows" ]; then
+	trace "proxy connect"
+	${SSH} -F $OBJ/ssh_config -o "proxycommand $NC %h %p" somehost true
+	if [ $? -ne 0 ]; then
+		fail "ssh proxycommand connect failed"
+	fi
 fi

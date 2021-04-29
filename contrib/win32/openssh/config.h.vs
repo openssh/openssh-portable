@@ -779,7 +779,7 @@
 /* #undef HAVE_READPASSPHRASE_H */
 
 /* Define to 1 if you have the `realpath' function. */
-/* #define HAVE_REALPATH 1 */
+#define HAVE_REALPATH 1
 
 /* Define to 1 if you have the `recvmsg' function. */
 /* #undef HAVE_RECVMSG */
@@ -915,7 +915,7 @@
 /* #undef HAVE_SO_PEERCRED */
 
 /* define if you have ssize_t data type */
-#define HAVE_SSIZE_T 1
+/* #define HAVE_SSIZE_T 1 */
 
 /* Fields in struct sockaddr_storage */
 #define HAVE_SS_FAMILY_IN_SS 1
@@ -1000,6 +1000,7 @@
 
 /* Define to 1 if the system has the type `struct timespec'. */
 /* #undef HAVE_STRUCT_TIMESPEC */
+#define HAVE_STRUCT_TIMESPEC 1
 
 /* define if you have struct timeval */
 #define HAVE_STRUCT_TIMEVAL 1
@@ -1711,3 +1712,6 @@
 #define FORK_NOT_SUPPORTED
 #define HAVE_FREEZERO
 #define FILESYSTEM_NO_BACKSLASH
+#define HAVE_LOCALTIME_R
+#define HAVE_DECL_MEMMEM 0
+#define WITH_ZLIB

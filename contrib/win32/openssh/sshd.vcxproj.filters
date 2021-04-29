@@ -48,9 +48,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)auth-sia.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-skey.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)auth.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -141,13 +138,19 @@
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\win32_sshpty.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\spawn-ext.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\win32_groupaccess.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\w32-doexec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\win32compat\win32-utf8.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\srclimit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ssh-sk-client.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

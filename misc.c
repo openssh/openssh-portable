@@ -2499,6 +2499,9 @@ opt_array_append(const char *file, const int line, const char *directive,
 sshsig_t
 ssh_signal(int signum, sshsig_t handler)
 {
+#ifdef WINDOWS
+	return signal(signum, handler);
+#else
 	struct sigaction sa, osa;
 
 	/* mask all other signals while in handler */
@@ -2514,6 +2517,7 @@ ssh_signal(int signum, sshsig_t handler)
 		return SIG_ERR;
 	}
 	return osa.sa_handler;
+#endif // WINDOWS
 }
 
 int
@@ -2633,6 +2637,7 @@ subprocess(const char *tag, const char *command,
 			fatal("posix_spawn initialization failed");
 		else {
 #ifdef WINDOWS
+			extern PSID get_sid(const char*);
 			/* If the user's SID is the System SID and sshd is running as system,
 			 * launch as a child process.
 			 */

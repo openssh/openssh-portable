@@ -10,7 +10,11 @@ cp $OBJ/ssh_proxy $OBJ/ssh_proxy_orig
     grep -vi UserKnownHostsFile;
   echo "GlobalKnownHostsFile none" ;
   echo "UserKnownHostsFile none" ;
+if [ "$os" == "windows" ]; then
+  echo "KnownHostsCommand ${TEST_SHELL_PATH} $OBJ/knownhosts_command '%t' '%K' '%u'" ;
+else
   echo "KnownHostsCommand $OBJ/knownhosts_command '%t' '%K' '%u'" ;
+fi
 ) > $OBJ/ssh_proxy
 
 verbose "simple connection"

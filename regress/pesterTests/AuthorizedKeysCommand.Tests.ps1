@@ -53,5 +53,20 @@ Describe "E2E scenarios for AuthorizedKeysCommand" -Tags "CI" {
             (gc $kcOutFile).Contains($ssouser) | Should Be $true
         }
 
+        It "$tC.$tI - keys command with %k argument AuthorizedKeysCommandUser as SYSTEM" {
+            #override authorizedkeysfile location to an unknown location, so AuthorizedKeysCommand gets executed
+            $kcOutFile = Join-Path $testDir "$tC.$tI.kcout.txt"
+            Remove-Item -Force $kcOutFile -ErrorAction SilentlyContinue
+            $sshdArgs = "-ddd -f $sshdconfig  -E $logFile -o `"AuthorizedKeysFile .fake/authorized_keys`""
+            $sshdArgs += " -o `"AuthorizedKeysCommand=$env:windir\system32\cmd.exe /c echo ssh-ed25519 %k & whoami > $kcOutFile`""
+            $sshdArgs += " -o `"AuthorizedKeysCommandUser=system`""
+            $sshdArgs += " -o PasswordAuthentication=no"
+            Start-SSHDTestDaemon -WorkDir $opensshbinpath -Arguments $sshdArgs -Port $port
+            $o = ssh -p $port test_target echo 12345
+            Stop-SSHDTestDaemon -Port $port
+            $o | Should Be "12345"
+            #check the command is run as AuthorizedKeysCommandUser
+            (gc $kcOutFile).Contains("nt authority\system") | Should Be $true
+        }
     }
 }

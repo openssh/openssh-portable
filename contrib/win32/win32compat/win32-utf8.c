@@ -62,6 +62,36 @@ snmprintf(char *buf, size_t len, int *written, const char *fmt, ...)
 	return ret;
 }
 
+/* TODO - Make windows implementation insync with Unix */
+int
+vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
+{
+	int ret;
+	size_t sz;
+
+	if((sz = vsnprintf(NULL, 0, fmt, ap)) < 0)
+		return -1;
+
+	*str = (char *) malloc(sizeof(char) * (sz + 1));
+	ret = vsnprintf_s(*str, sz + 1, _TRUNCATE, fmt, ap);		
+	if (wp != NULL && ret != -1)
+		*wp = ret;
+
+	return ret;
+}
+
+int
+asmprintf(char **outp, size_t sz, int *written, const char *fmt, ...)
+{
+	int ret;
+	va_list valist;
+	va_start(valist, fmt);
+	ret = vasnmprintf(outp, sz, written, fmt, valist);
+	va_end(valist);
+
+	return ret;
+}
+
 void
 msetlocale(void)
 {

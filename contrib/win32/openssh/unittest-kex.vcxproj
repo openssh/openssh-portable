@@ -398,6 +398,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c">
       <ExcludedFromBuild Condition="$(UseOpenSSL)=='false'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-sk-client.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

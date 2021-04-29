@@ -138,9 +138,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\reallocarray.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\rmd160.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\rresvport.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -205,6 +202,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\strndup.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-getline.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\libressl-api-compat.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\memmem.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -285,9 +291,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\readpassphrase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\rmd160.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\sha1.h">

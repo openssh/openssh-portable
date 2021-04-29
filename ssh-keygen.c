@@ -2419,7 +2419,11 @@ do_gen_krl(struct passwd *pw, int updating, const char *ca_key_path,
 		fatal("sshbuf_new failed");
 	if (ssh_krl_to_blob(krl, kbuf, NULL, 0) != 0)
 		fatal("Couldn't generate KRL");
+#ifdef WINDOWS
+	if ((r = sshbuf_write_file(identity_file, kbuf, 0644)) != 0)
+#else
 	if ((r = sshbuf_write_file(identity_file, kbuf)) != 0)
+#endif
 		fatal("write %s: %s", identity_file, strerror(errno));
 	sshbuf_free(kbuf);
 	ssh_krl_free(krl);
@@ -3052,9 +3056,13 @@ save_attestation(struct sshbuf *attest, const char *path)
 		return; /* nothing to do */
 	if (attest == NULL || sshbuf_len(attest) == 0)
 		fatal("Enrollment did not return attestation data");
+#ifdef WINDOWS
+	r = sshbuf_write_file(path, attest, 0644);
+#else
 	omask = umask(077);
 	r = sshbuf_write_file(path, attest);
 	umask(omask);
+#endif
 	if (r != 0)
 		fatal_r(r, "Unable to write attestation data \"%s\"", path);
 	if (!quiet)

@@ -202,6 +202,9 @@ kex_tests(void)
 	do_kex("diffie-hellman-group-exchange-sha1");
 	do_kex("diffie-hellman-group14-sha1");
 	do_kex("diffie-hellman-group1-sha1");
+#ifdef USE_SNTRUP761X25519
 	do_kex("sntrup761x25519-sha512@openssh.com");
+#endif
+
 #endif /* WITH_OPENSSL */
 }

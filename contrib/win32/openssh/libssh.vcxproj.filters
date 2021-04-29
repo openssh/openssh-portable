@@ -16,7 +16,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)cipher.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)cleanup.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)compat.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)crc32.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)dh.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)digest-libc.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)dispatch.c" />
@@ -72,11 +71,20 @@
     <ClCompile Include="$(OpenSSH-Src-Path)progressmeter.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)readpass.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)rijndael.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)uuencode.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)verify.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)xmalloc.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)kexgexs.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)platform-misc.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)addr.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)kexgen.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)kexsntrup761x25519.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)sntrup761.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-ecdsa-sk.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-ed25519-sk.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-sk.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)sshbuf-io.c" />
+    <ClCompile Include="..\win32compat\spawn-ext.c" />
+    <ClCompile Include="..\..\..\cipher-chachapoly-libcrypto.c" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(OpenSSH-Src-Path)addrmatch.c">
@@ -92,18 +100,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)bitmap.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)bufaux.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)bufbn.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)bufec.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)buffer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)canohost.c">
@@ -134,9 +130,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)compat.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)crc32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)dh.c">
@@ -184,37 +177,16 @@
     <ClCompile Include="$(OpenSSH-Src-Path)kexc25519.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)kexc25519c.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)kexc25519s.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)kexdh.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)kexdhc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)kexdhs.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)kexecdh.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)kexecdhc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)kexecdhs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)kexgex.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)kexgexc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)key.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)krl.c">
@@ -233,9 +205,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)nchan.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)opacket.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)packet.c">

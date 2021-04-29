@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.127 2021/04/03 06:18:41 djm Exp $ */
+﻿/* $OpenBSD: sftp-server.c,v 1.127 2021/04/03 06:18:41 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1506,12 +1506,10 @@ process_extended_limits(u_int32_t id)
 #endif
 
 	debug("request %u: limits", id);
-
 #ifdef HAVE_GETRLIMIT
 	if (getrlimit(RLIMIT_NOFILE, &rlim) != -1 && rlim.rlim_cur > 5)
 		nfiles = rlim.rlim_cur - 5; /* stdio(3) + syslog + spare */
 #endif
-
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	if ((r = sshbuf_put_u8(msg, SSH2_FXP_EXTENDED_REPLY)) != 0 ||

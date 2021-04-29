@@ -76,10 +76,11 @@
 #include "ssherr.h"
 #include "compat.h"
 #include "channels.h"
-#include "sshfileperm.h"
+
 #ifdef WINDOWS
 #include <Windows.h>
 #include "misc_internal.h"
+#include "sshfileperm.h"
 #endif // WINDOWS
 
 /* import */
@@ -613,6 +614,7 @@ getpwnamallow(struct ssh *ssh, const char *user)
 	ci->user = pw? xstrdup(pw->pw_name): user;
 #else
 	ci->user = user;
+#endif // WINDOWS
 	parse_server_match_config(&options, &includes, ci);
 	log_change_level(options.log_level);
 	log_verbose_reset();

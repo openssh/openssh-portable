@@ -41,7 +41,6 @@ utf8_to_utf16(const char *utf8)
 	if ((needed = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0)) == 0 ||
 	    (utf16 = malloc(needed * sizeof(wchar_t))) == NULL ||
 	    MultiByteToWideChar(CP_UTF8, 0, utf8, -1, utf16, needed) == 0) {
-		debug3("failed to convert utf8 payload:%s error:%d", utf8, GetLastError());
 		errno = ENOMEM;
 		return NULL;
 	}
