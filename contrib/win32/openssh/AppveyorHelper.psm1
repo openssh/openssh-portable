@@ -253,6 +253,7 @@ function Add-Artifact
     else
     {
         $null = $artifacts.Add($FileToAdd)
+        Write-Host "Added $FileToAdd to publishing package artifacts"
     }
 }
 
