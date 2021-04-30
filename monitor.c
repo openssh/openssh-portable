@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.225 2021/04/15 16:24:31 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.226 2021/04/30 04:02:52 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -120,8 +120,6 @@ int mm_answer_authserv(struct ssh *, int, struct sshbuf *);
 int mm_answer_authpassword(struct ssh *, int, struct sshbuf *);
 int mm_answer_bsdauthquery(struct ssh *, int, struct sshbuf *);
 int mm_answer_bsdauthrespond(struct ssh *, int, struct sshbuf *);
-int mm_answer_skeyquery(struct ssh *, int, struct sshbuf *);
-int mm_answer_skeyrespond(struct ssh *, int, struct sshbuf *);
 int mm_answer_keyallowed(struct ssh *, int, struct sshbuf *);
 int mm_answer_keyverify(struct ssh *, int, struct sshbuf *);
 int mm_answer_pty(struct ssh *, int, struct sshbuf *);
