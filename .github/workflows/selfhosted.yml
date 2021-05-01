@@ -33,6 +33,7 @@ jobs:
           - obsd51
           - obsd67
           - obsd68
+          - obsd69
           - obsdsnap
           - openindiana
           - sol10
