@@ -10,7 +10,7 @@ if(Test-Path ~\.ssh\config -PathType Leaf)
     Repair-UserSshConfigPermission -FilePath ~\.ssh\config @psBoundParameters
 }
 
-Get-ChildItem ~\.ssh\* -Include "id_rsa","id_dsa" -ErrorAction SilentlyContinue | % {
+Get-ChildItem ~\.ssh\* -Include "id_rsa","id_dsa","id_ecdsa","id_ed25519" -ErrorAction SilentlyContinue | ForEach-Object {
     Repair-UserKeyPermission -FilePath $_.FullName @psBoundParameters
 }
 
