@@ -1701,9 +1701,7 @@ monitor_send_keystate(struct monitor *pmonitor) {
 	if ((m = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
 
-	if ((r = sshbuf_put_u32(m, session_id2_len)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if ((r = sshbuf_put_cstring(m, session_id2)) != 0)
+	if ((r = sshbuf_put_string(m, session_id2, session_id2_len)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	if ((r = sshbuf_put_stringb(m, child_state)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -1732,9 +1730,7 @@ monitor_recv_keystate(struct monitor*pmonitor) {
 	if (ver != 0)
 		fatal("%s: rexec version mismatch", __func__);
 
-	if ((r = sshbuf_get_u32(m, &session_id2_len)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if ((r = sshbuf_get_cstring(m, &session_id2, NULL)) != 0)
+	if ((r = sshbuf_get_string(m, &session_id2, &session_id2_len)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	if ((r = sshbuf_get_string_direct(m, &cp, &len)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -1818,7 +1814,7 @@ monitor_apply_keystate(struct ssh *ssh, struct monitor *pmonitor)
 	}
 
 	if (memcmp(sshbuf_ptr(ssh->kex->session_id), session_id2,
-	    strlen(sshbuf_ptr(ssh->kex->session_id))) != 0)
+	    session_id2_len) != 0)
 		fatal_f("session ID mismatch");
 
 	/* XXX set callbacks */
