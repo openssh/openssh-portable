@@ -99,6 +99,7 @@ errno_from_Win32Error(int win32_error)
 	case ERROR_INVALID_NAME:
 		return ENOENT;
 	case ERROR_INVALID_FUNCTION:
+	case ERROR_NOT_SUPPORTED:
 		return EOPNOTSUPP;
 	default:
 		return win32_error;
