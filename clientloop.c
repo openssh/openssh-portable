@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.360 2021/04/30 04:29:53 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.361 2021/05/03 00:16:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2154,11 +2154,14 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 		 */
 		use_kexsigtype = kexsigtype == KEY_RSA &&
 		    sshkey_type_plain(ctx->keys[i]->type) == KEY_RSA;
+		debug3_f("verify %s key %zu using %s sigalg",
+		    sshkey_type(ctx->keys[i]), i,
+		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL);
 		if ((r = sshkey_verify(ctx->keys[i], sig, siglen,
 		    sshbuf_ptr(signdata), sshbuf_len(signdata),
 		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL, 0,
 		    NULL)) != 0) {
-			error_f("server gave bad signature for %s key %zu",
+			error_fr(r, "server gave bad signature for %s key %zu",
 			    sshkey_type(ctx->keys[i]), i);
 			goto out;
 		}
