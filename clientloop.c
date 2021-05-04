@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.361 2021/05/03 00:16:45 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.362 2021/05/04 22:53:52 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2156,7 +2156,7 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 		    sshkey_type_plain(ctx->keys[i]->type) == KEY_RSA;
 		debug3_f("verify %s key %zu using %s sigalg",
 		    sshkey_type(ctx->keys[i]), i,
-		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL);
+		    use_kexsigtype ? ssh->kex->hostkey_alg : "default");
 		if ((r = sshkey_verify(ctx->keys[i], sig, siglen,
 		    sshbuf_ptr(signdata), sshbuf_len(signdata),
 		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL, 0,
