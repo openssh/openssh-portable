@@ -33,6 +33,11 @@ for t in $types; do
 	    fail "$t import rfc4716 public"
 
 	cut -f1,2 -d " " $OBJ/$t-key.pub >$OBJ/$t-key-nocomment.pub
+	cat $OBJ/$t-rfc-imported |\
+	awk 'BEGIN { FS="[ ]" } ; { print $1 " " $2 }' > \
+	$OBJ/$t-rfc-imported.tmp
+	mv $OBJ/$t-rfc-imported.tmp $OBJ/$t-rfc-imported
+	cat $OBJ/$t-rfc-imported
 	cmp $OBJ/$t-key-nocomment.pub $OBJ/$t-rfc-imported || \
 	    fail "$t imported differs from original"
 

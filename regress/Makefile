@@ -153,7 +153,11 @@ t2:
 
 t3:
 	${TEST_SSH_SSHKEYGEN} -ef ${.CURDIR}/rsa_openssh.pub >$(OBJ)/t3.out
-	${TEST_SSH_SSHKEYGEN} -if $(OBJ)/t3.out | diff - ${.CURDIR}/rsa_openssh.pub
+	# rsa_openssh.pub does not contain a comment, so only check
+	# that algorithm and key match
+	${TEST_SSH_SSHKEYGEN} -if $(OBJ)/t3.out |\
+		awk 'BEGIN { FS="[ ]" } ; { print $$1 " " $$2 }' |\
+		diff - ${.CURDIR}/rsa_openssh.pub
 
 t4:
 	${TEST_SSH_SSHKEYGEN} -E md5 -lf ${.CURDIR}/rsa_openssh.pub |\
@@ -167,7 +171,22 @@ t6:
 	${TEST_SSH_SSHKEYGEN} -if ${.CURDIR}/dsa_ssh2.prv > $(OBJ)/t6.out1
 	${TEST_SSH_SSHKEYGEN} -if ${.CURDIR}/dsa_ssh2.pub > $(OBJ)/t6.out2
 	chmod 600 $(OBJ)/t6.out1
-	${TEST_SSH_SSHKEYGEN} -yf $(OBJ)/t6.out1 | diff - $(OBJ)/t6.out2
+	cat $(OBJ)/t6.out2 |\
+	grep "1024-bit dsa, Tue Jan 08 2002 22:00:23 +0100"
+	# dsa_ssh2.prv does not contain a comment, so only check
+	# that algorithm and key match
+	cat $(OBJ)/t6.out2 |\
+	awk 'BEGIN { FS="[ ]" } ; { print $$1 " " $$2 }' > $(OBJ)/t6.tmp
+	mv $(OBJ)/t6.tmp $(OBJ)/t6.out2
+	${TEST_SSH_SSHKEYGEN} -yf $(OBJ)/t6.out1 |\
+	diff - $(OBJ)/t6.out2
+	# check that the Comment field is preserved on conversion
+	# when it is not surrounded by double-quotes
+	cat ${.CURDIR}/dsa_ssh2.pub | sed 's/"//g' | tee $(OBJ)/t6.tmp
+	${TEST_SSH_SSHKEYGEN} -if $(OBJ)/t6.tmp > $(OBJ)/t6.out2
+	rm $(OBJ)/t6.tmp
+	cat $(OBJ)/t6.out2 |\
+	grep "1024-bit dsa, Tue Jan 08 2002 22:00:23 +0100"
 
 $(OBJ)/t7.out:
 	${TEST_SSH_SSHKEYGEN} -q -t rsa -N '' -f $@
@@ -210,6 +229,8 @@ $(OBJ)/t12.out:
 
 t12: $(OBJ)/t12.out
 	${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t12.out.pub | grep test-comment-1234 >/dev/null
+	${TEST_SSH_SSHKEYGEN} -f $(OBJ)/t12.out.pub -e -m RFC4716 |\
+	grep "Comment: \"test-comment-1234\""
 
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \

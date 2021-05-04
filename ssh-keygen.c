@@ -342,7 +342,7 @@ load_identity(const char *filename, char **commentp)
 
 #ifdef WITH_OPENSSL
 static void
-do_convert_to_ssh2(struct passwd *pw, struct sshkey *k)
+do_convert_to_ssh2(struct passwd *pw, struct sshkey *k, char *commentp)
 {
 	struct sshbuf *b;
 	char comment[61], *b64;
@@ -356,10 +356,14 @@ do_convert_to_ssh2(struct passwd *pw, struct sshkey *k)
 		fatal_f("sshbuf_dtob64_string failed");
 
 	/* Comment + surrounds must fit into 72 chars (RFC 4716 sec 3.3) */
-	snprintf(comment, sizeof(comment),
-	    "%u-bit %s, converted by %s@%s from OpenSSH",
-	    sshkey_size(k), sshkey_type(k),
-	    pw->pw_name, hostname);
+	if (commentp != NULL) {
+		strlcpy(comment, commentp, 61);
+	} else {
+		snprintf(comment, sizeof(comment),
+		    "%u-bit %s, converted by %s@%s from OpenSSH",
+		    sshkey_size(k), sshkey_type(k),
+	 	   pw->pw_name, hostname);
+	}
 
 	sshkey_free(k);
 	sshbuf_free(b);
@@ -425,16 +429,17 @@ do_convert_to(struct passwd *pw)
 	struct sshkey *k;
 	struct stat st;
 	int r;
+	char *comment = NULL;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
 	if (stat(identity_file, &st) == -1)
 		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
-	if ((r = sshkey_load_public(identity_file, &k, NULL)) != 0)
+	if ((r = sshkey_load_public(identity_file, &k, &comment)) != 0)
 		k = load_identity(identity_file, NULL);
 	switch (convert_format) {
 	case FMT_RFC4716:
-		do_convert_to_ssh2(pw, k);
+		do_convert_to_ssh2(pw, k, comment);
 		break;
 	case FMT_PKCS8:
 		do_convert_to_pkcs8(k);
@@ -629,13 +634,14 @@ get_line(FILE *fp, char *line, size_t len)
 }
 
 static void
-do_convert_from_ssh2(struct passwd *pw, struct sshkey **k, int *private)
+do_convert_from_ssh2(struct passwd *pw, struct sshkey **k, char **comment, int *private)
 {
 	int r, blen, escaped = 0;
 	u_int len;
 	char line[1024];
 	struct sshbuf *buf;
 	char encoded[8096];
+	char *com_start, *com_end;
 	FILE *fp;
 
 	if ((buf = sshbuf_new()) == NULL)
@@ -652,6 +658,18 @@ do_convert_from_ssh2(struct passwd *pw, struct sshkey **k, int *private)
 				*private = 1;
 			if (strstr(line, " END ") != NULL) {
 				break;
+			}
+			if (strncmp(line, "Comment: ", 9) == 0 && blen > 9) {
+				com_start = line + 9;
+				if (*com_start == '\"') {
+					com_start++;
+				}
+				com_end = strchr(com_start, '\"');
+				if (com_end != NULL) {
+					*comment = strndup(com_start, com_end - com_start);
+				} else {
+					*comment = xstrdup(com_start);
+				}
 			}
 			/* fprintf(stderr, "ignore: %s", line); */
 			continue;
@@ -748,6 +766,7 @@ do_convert_from(struct passwd *pw)
 	struct sshkey *k = NULL;
 	int r, private = 0, ok = 0;
 	struct stat st;
+	char *comment = NULL;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
@@ -756,7 +775,7 @@ do_convert_from(struct passwd *pw)
 
 	switch (convert_format) {
 	case FMT_RFC4716:
-		do_convert_from_ssh2(pw, &k, &private);
+		do_convert_from_ssh2(pw, &k, &comment, &private);
 		break;
 	case FMT_PKCS8:
 		do_convert_from_pkcs8(&k, &private);
@@ -771,8 +790,13 @@ do_convert_from(struct passwd *pw)
 	if (!private) {
 		if ((r = sshkey_write(k, stdout)) == 0)
 			ok = 1;
-		if (ok)
+		if (ok) {
+			if (comment != NULL) {
+				fprintf(stdout, " %s", comment);
+				free(comment);
+			}
 			fprintf(stdout, "\n");
+		}
 	} else {
 		switch (k->type) {
 		case KEY_DSA:
