@@ -100,14 +100,16 @@ function Add-PasswordSetting
         $askpass_util = Join-Path $PSScriptRoot "utilities\askpass_util\askpass_util.exe"
         $env:SSH_ASKPASS=$askpass_util
         $env:ASKPASS_PASSWORD=$pass
+        $env:SSH_ASKPASS_REQUIRE="prefer"
     }
 }
 
 function Remove-PasswordSetting
 {
-    if ($env:DISPLAY -eq 1) { Remove-Item env:\DISPLAY }
+    if ($env:DISPLAY -eq 1) { Remove-Item env:\DISPLAY -ErrorAction SilentlyContinue }
     Remove-item "env:SSH_ASKPASS" -ErrorAction SilentlyContinue
     Remove-item "env:ASKPASS_PASSWORD" -ErrorAction SilentlyContinue
+    Remove-item "env:SSH_ASKPASS_REQUIRE" -ErrorAction SilentlyContinue
 }
 
 $Taskfolder = "\OpenSSHTestTasks\"
