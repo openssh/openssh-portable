@@ -915,10 +915,6 @@ toremote(int argc, char **argv)
 			goto out;
 		}
 	}
-	if (tuser != NULL && !okname(tuser)) {
-		++errs;
-		goto out;
-	}
 
 	/* Parse source files */
 	for (i = 0; i < argc - 1; i++) {
@@ -933,10 +929,6 @@ toremote(int argc, char **argv)
 		}
 		if (r != 0) {
 			parse_user_host_path(argv[i], &suser, &host, &src);
-		}
-		if (suser != NULL && !okname(suser)) {
-			++errs;
-			continue;
 		}
 		if (host && throughlocal) {	/* extended remote to remote */
 			xasprintf(&bp, "%s -f %s%s", cmd,
@@ -953,6 +945,10 @@ toremote(int argc, char **argv)
 			(void) close(remout);
 			remin = remout = -1;
 		} else if (host) {	/* standard remote to remote */
+			if (tuser != NULL && !okname(tuser)) {
+				++errs;
+				break;
+			}
 			if (tport != -1 && tport != SSH_DEFAULT_PORT) {
 				/* This would require the remote support URIs */
 				fatal("target port not supported with two "
@@ -1031,10 +1027,6 @@ tolocal(int argc, char **argv)
 		}
 		if (r != 0)
 			parse_user_host_path(argv[i], &suser, &host, &src);
-		if (suser != NULL && !okname(suser)) {
-			++errs;
-			continue;
-		}
 		if (!host) {	/* Local to local. */
 			freeargs(&alist);
 			addargs(&alist, "%s", _PATH_CP);
