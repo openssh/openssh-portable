@@ -214,10 +214,9 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 		CopySid(sizeof(binary_sid), binary_sid, sid);
 	/* else attempt to lookup the account; this will verify the account is valid and
 	 * is will return its sid and the realm that owns it */
-	else if(LookupAccountNameW(NULL, user_utf16_modified, binary_sid, &sid_size,
-	    domain_name, &domain_name_size, &account_type) == 0) {
+	else if (lookup_sid(user_utf16_modified, binary_sid, &sid_size) == NULL) {
 		errno = ENOENT;
-		debug("%s: LookupAccountName() failed: %d.", __FUNCTION__, GetLastError());
+		debug("%s: lookup_sid() failed: %d.", __FUNCTION__, GetLastError());
 		goto cleanup;
 	}
 
@@ -249,16 +248,17 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 	wchar_t computer_name[CNLEN + 1];
 	DWORD computer_name_size = ARRAYSIZE(computer_name);
 	if (GetComputerNameW(computer_name, &computer_name_size) == 0) {
+		error_f("GetComputerNameW() failed with error:%d", GetLastError());
 		goto cleanup;
 	}
 
 	/* if standard local user name or system account, just use name without decoration */
 	const SID_IDENTIFIER_AUTHORITY nt_authority = SECURITY_NT_AUTHORITY;
-	if (((_wcsicmp(domain_name, computer_name) == 0) && (_wcsicmp(computer_name, user_name) != 0)) ||
+	if ((_wcsicmp(domain_name, computer_name) == 0) ||
 		((memcmp(&nt_authority, GetSidIdentifierAuthority((PSID)binary_sid), sizeof(SID_IDENTIFIER_AUTHORITY)) == 0) &&
 		 (((SID*)binary_sid)->SubAuthority[0] == SECURITY_LOCAL_SYSTEM_RID))) {
 		wcscpy_s(user_resolved, ARRAYSIZE(user_resolved), user_name);
-	}	
+	}
 
 	/* put any other format in sam compatible format */
 	else

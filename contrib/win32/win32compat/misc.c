@@ -1587,6 +1587,104 @@ am_system()
 	return running_as_system;
 }
 
+/*
+ * Returns SID of user/group. If psid argument is NULL, allocates a new one,
+ * otherwise saves SID into the supplied memory area.
+ * Sets psid_len (if non-NULL) to the actual SID size.
+ * Caller should free() return value if psid argument was NULL.
+ */
+PSID
+lookup_sid(const wchar_t* name_utf16, PSID psid, DWORD * psid_len)
+{
+	PSID ret = NULL, alloc_psid = NULL, target_psid;
+	DWORD sid_len = 0;
+	SID_NAME_USE n_use;
+	WCHAR dom[DNLEN + 1] = L"";
+	DWORD dom_len = DNLEN + 1;
+	wchar_t* name_utf16_modified = NULL;
+	BOOL resolveAsAdminsSid = 0, r;
+
+	debug3_f("name_utf16:%S", name_utf16);
+
+	LookupAccountNameW(NULL, name_utf16, NULL, &sid_len, dom, &dom_len, &n_use);
+
+	if (sid_len == 0 && _wcsicmp(name_utf16, L"administrators") == 0) {
+		CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, NULL, &sid_len);
+		resolveAsAdminsSid = 1;
+		debug3_f("resolveAsAdminsSid:%d", resolveAsAdminsSid);
+	}
+
+	if (sid_len == 0) {
+		error_f("LookupAccountNameW() failed with error:%d", GetLastError());
+		errno = errno_from_Win32LastError();
+		goto cleanup;
+	}
+
+	target_psid = psid;
+	if (target_psid == NULL) {
+		if ((alloc_psid = malloc(sid_len)) == NULL) {
+			errno = ENOMEM;
+			error_f("Failed to allocate memory");
+			goto cleanup;
+		}
+		target_psid = alloc_psid;
+	}
+
+	if (resolveAsAdminsSid)
+		r = CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, target_psid, &sid_len);
+	else
+		r = LookupAccountNameW(NULL, name_utf16, target_psid, &sid_len, dom, &dom_len, &n_use);
+
+	if (!r) {
+		error_f("Failed to retrieve SID for user:%S error:%d", name_utf16, GetLastError());
+		errno = errno_from_Win32LastError();
+		goto cleanup;
+	}
+
+	if (n_use == SidTypeDomain) {
+		// Additionally check the case when name is the same as computer name and
+		// thus same as local domain. Try to resolve <name>\<name>.
+		/* fetch the computer name so we can determine if the specified user is local or not */
+		wchar_t computer_name[CNLEN + 1];
+		DWORD computer_name_size = ARRAYSIZE(computer_name);
+		if (GetComputerNameW(computer_name, &computer_name_size) == 0) {
+			error_f("GetComputerNameW() failed with error:%d", GetLastError());
+			goto cleanup;
+		}
+
+		if (_wcsicmp(name_utf16, computer_name) != 0) {
+			error_f("For SidTypeDomain, name:%ls must be same as machine name:%ls", name_utf16, computer_name);
+			goto cleanup;
+		}
+
+		debug3_f("local user name is same as machine name");
+		size_t name_size = wcslen(name_utf16) * 2U + 2U;
+		name_utf16_modified = malloc(name_size * sizeof(wchar_t));
+		name_utf16_modified[0] = L'\0';
+		wcscat_s(name_utf16_modified, name_size, name_utf16);
+		wcscat_s(name_utf16_modified, name_size, L"\\");
+		wcscat_s(name_utf16_modified, name_size, name_utf16);
+
+		ret = lookup_sid(name_utf16_modified, psid, psid_len);
+	}
+	else {
+		if (psid_len != NULL)
+			*psid_len = sid_len;
+
+		alloc_psid = NULL;
+		ret = target_psid;
+	}
+
+cleanup:
+
+	if (name_utf16_modified)
+		free(name_utf16_modified);
+	if (alloc_psid)
+		free(alloc_psid);
+
+	return ret;
+}
+
 /* 
  * returns SID of user/group or current user if (user = NULL) 
  * caller should free() return value
@@ -1601,41 +1699,10 @@ get_sid(const char* name)
 	wchar_t* name_utf16 = NULL;
 
 	if (name) {
-		DWORD sid_len = 0;
-		SID_NAME_USE n_use;
-		WCHAR dom[DNLEN + 1] = L"";
-		DWORD dom_len = DNLEN + 1;
-		BOOL resolveAsAdminsSid = 0, r;
-
 		if ((name_utf16 = utf8_to_utf16(name)) == NULL)
 			goto cleanup;
 
-		LookupAccountNameW(NULL, name_utf16, NULL, &sid_len, dom, &dom_len, &n_use);
-
-		if (sid_len == 0 && _stricmp(name, "administrators") == 0) {
-			CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, NULL, &sid_len);
-			resolveAsAdminsSid = 1;
-		}
-
-		if (sid_len == 0) {
-			errno = errno_from_Win32LastError();
-			goto cleanup;
-		}
-
-		if ((psid = malloc(sid_len)) == NULL) {
-			errno = ENOMEM;
-			goto cleanup;
-		}
-
-		if (resolveAsAdminsSid)
-			r = CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, psid, &sid_len);
-		else
-			r = LookupAccountNameW(NULL, name_utf16, psid, &sid_len, dom, &dom_len, &n_use);
-
-		if (!r) {
-			errno = errno_from_Win32LastError();
-			goto cleanup;
-		}
+		psid = lookup_sid(name_utf16, NULL, NULL);
 	}
 	else {
 		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == FALSE ||

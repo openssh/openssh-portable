@@ -70,6 +70,7 @@ int load_user_profile(HANDLE user_token, char* user);
 int create_directory_withsddl(wchar_t *path, wchar_t *sddl);
 int is_absolute_path(const char *);
 int file_in_chroot_jail(HANDLE);
+PSID lookup_sid(const wchar_t* name_utf16, PSID psid, DWORD * psid_len);
 PSID get_sid(const char*);
 int am_system();
 int is_conpty_supported();
