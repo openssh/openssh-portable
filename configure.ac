@@ -1859,7 +1859,6 @@ AC_CHECK_FUNCS([ \
 	localtime_r \
 	login_getcapbool \
 	login_getpwclass \
-	md5_crypt \
 	memmem \
 	memmove \
 	memset_s \
@@ -4943,19 +4942,6 @@ else
 fi
 AC_SUBST([mansubdir])
 
-# Check whether to enable MD5 passwords
-MD5_MSG="no"
-AC_ARG_WITH([md5-passwords],
-	[  --with-md5-passwords    Enable use of MD5 passwords],
-	[
-		if test "x$withval" != "xno" ; then
-			AC_DEFINE([HAVE_MD5_PASSWORDS], [1],
-				[Define if you want to allow MD5 passwords])
-			MD5_MSG="yes"
-		fi
-	]
-)
-
 # Whether to disable shadow password support
 AC_ARG_WITH([shadow],
 	[  --without-shadow        Disable shadow password support],
@@ -5550,7 +5536,6 @@ echo "                       PAM support: $PAM_MSG"
 echo "                   OSF SIA support: $SIA_MSG"
 echo "                 KerberosV support: $KRB5_MSG"
 echo "                   SELinux support: $SELINUX_MSG"
-echo "              MD5 password support: $MD5_MSG"
 echo "                   libedit support: $LIBEDIT_MSG"
 echo "                   libldns support: $LDNS_MSG"
 echo "  Solaris process contract support: $SPC_MSG"

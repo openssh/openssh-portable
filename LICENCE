@@ -210,22 +210,14 @@ OpenSSH contains no GPL code.
 
 8) Portable OpenSSH contains the following additional licenses:
 
-    a) md5crypt.c, md5crypt.h
-
-	 * "THE BEER-WARE LICENSE" (Revision 42):
-	 * <phk@login.dknet.dk> wrote this file.  As long as you retain this
-	 * notice you can do whatever you want with this stuff. If we meet
-	 * some day, and you think this stuff is worth it, you can buy me a
-	 * beer in return.   Poul-Henning Kamp
-
-    b) snprintf replacement
+    a) snprintf replacement
 
 	* Copyright Patrick Powell 1995
 	* This code is based on code written by Patrick Powell
 	* (papowell@astart.com) It may be used for any purpose as long as this
 	* notice remains intact on all source code distributions
 
-    c) Compatibility code (openbsd-compat)
+    b) Compatibility code (openbsd-compat)
 
        Apart from the previously mentioned licenses, various pieces of code
        in the openbsd-compat/ subdirectory are licensed as follows:

@@ -54,10 +54,6 @@
 #  include <pwdadj.h>
 # endif
 
-# if defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT)
-#  include "md5crypt.h"
-# endif
-
 # if defined(WITH_OPENSSL) && !defined(HAVE_CRYPT) && defined(HAVE_DES_CRYPT)
 #  include <openssl/des.h>
 #  define crypt DES_crypt
@@ -108,12 +104,7 @@ xcrypt(const char *password, const char *salt)
 	if (salt == NULL)
 		salt = pick_salt();
 
-# ifdef HAVE_MD5_PASSWORDS
-	if (is_md5_salt(salt))
-		crypted = md5_crypt(password, salt);
-	else
-		crypted = crypt(password, salt);
-# elif defined(__hpux) && !defined(HAVE_SECUREWARE)
+#if defined(__hpux) && !defined(HAVE_SECUREWARE)
 	if (iscomsec())
 		crypted = bigcrypt(password, salt);
 	else
@@ -122,7 +113,7 @@ xcrypt(const char *password, const char *salt)
 	crypted = bigcrypt(password, salt);
 # else
 	crypted = crypt(password, salt);
-# endif
+#endif
 
 	return crypted;
 }
