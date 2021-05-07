@@ -253,16 +253,10 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    (char *)compression_alg_list(options.compression);
 	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
-	if (use_known_hosts_order) {
-		/* Query known_hosts and prefer algorithms that appear there */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(ssh,
-		    order_hostkeyalgs(host, hostaddr, port, cinfo));
-	} else {
-		/* Use specified HostkeyAlgorithms exactly */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(ssh, options.hostkeyalgorithms);
-	}
+	
+	/* Use specified HostkeyAlgorithms exactly */
+	myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
+	    compat_pkalg_proposal(ssh, options.hostkeyalgorithms);
 
 	if (options.rekey_limit || options.rekey_interval)
 		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
