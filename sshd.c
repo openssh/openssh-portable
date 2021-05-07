@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.572 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.573 2021/05/07 03:09:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -366,11 +366,14 @@ grace_alarm_handler(int sig)
 		kill(0, SIGTERM);
 	}
 
-	/* XXX pre-format ipaddr/port so we don't need to access active_state */
 	/* Log error and exit. */
-	sigdie("Timeout before authentication for %s port %d",
-	    ssh_remote_ipaddr(the_active_state),
-	    ssh_remote_port(the_active_state));
+	if (use_privsep && pmonitor != NULL && pmonitor->m_pid <= 0)
+		cleanup_exit(255); /* don't log in privsep child */
+	else {
+		sigdie("Timeout before authentication for %s port %d",
+		    ssh_remote_ipaddr(the_active_state),
+		    ssh_remote_port(the_active_state));
+	}
 }
 
 /* Destroy the host and server keys.  They will no longer be needed. */
