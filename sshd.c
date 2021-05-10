@@ -1943,10 +1943,10 @@ main(int ac, char **av)
 		    (st.st_uid != getuid () ||
 		    (st.st_mode & (S_IWGRP|S_IWOTH)) != 0))
 #else
-		if (st.st_uid != 0 || (st.st_mode & (S_IWGRP|S_IWOTH)) != 0)
+		//if (st.st_uid != 0 || (st.st_mode & (S_IWGRP|S_IWOTH)) != 0)
 #endif
-			fatal("%s must be owned by root and not group or "
-			    "world-writable.", _PATH_PRIVSEP_CHROOT_DIR);
+			//fatal("%s must be owned by root and not group or "
+			   // "world-writable.", _PATH_PRIVSEP_CHROOT_DIR);
 	}
 
 	if (test_flag > 1) {

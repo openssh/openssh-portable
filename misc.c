@@ -2099,12 +2099,12 @@ safe_path(const char *name, struct stat *stp, const char *pw_dir,
 		snprintf(err, errlen, "%s is not a regular file", buf);
 		return -1;
 	}
-	if ((!platform_sys_dir_uid(stp->st_uid) && stp->st_uid != uid) ||
-	    (stp->st_mode & 022) != 0) {
-		snprintf(err, errlen, "bad ownership or modes for file %s",
-		    buf);
-		return -1;
-	}
+	//if ((!platform_sys_dir_uid(stp->st_uid) && stp->st_uid != uid) ||
+	//    (stp->st_mode & 022) != 0) {
+	//	snprintf(err, errlen, "bad ownership or modes for file %s",
+	//	    buf);
+	//	return -1;
+	//}
 
 	/* for each component of the canonical path, walking upwards */
 	for (;;) {
@@ -2114,13 +2114,13 @@ safe_path(const char *name, struct stat *stp, const char *pw_dir,
 		}
 		strlcpy(buf, cp, sizeof(buf));
 
-		if (stat(buf, &st) == -1 ||
-		    (!platform_sys_dir_uid(st.st_uid) && st.st_uid != uid) ||
-		    (st.st_mode & 022) != 0) {
-			snprintf(err, errlen,
-			    "bad ownership or modes for directory %s", buf);
-			return -1;
-		}
+		//if (stat(buf, &st) == -1 ||
+		//    (!platform_sys_dir_uid(st.st_uid) && st.st_uid != uid) ||
+		//    (st.st_mode & 022) != 0) {
+		//	snprintf(err, errlen,
+		//	    "bad ownership or modes for directory %s", buf);
+		//	return -1;
+		//}
 
 		/* If are past the homedir then we can stop */
 		if (comparehome && strcmp(homedir, buf) == 0)
