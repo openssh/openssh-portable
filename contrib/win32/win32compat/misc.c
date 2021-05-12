@@ -1604,8 +1604,6 @@ lookup_sid(const wchar_t* name_utf16, PSID psid, DWORD * psid_len)
 	wchar_t* name_utf16_modified = NULL;
 	BOOL resolveAsAdminsSid = 0, r;
 
-	debug3_f("name_utf16:%S", name_utf16);
-
 	LookupAccountNameW(NULL, name_utf16, NULL, &sid_len, dom, &dom_len, &n_use);
 
 	if (sid_len == 0 && _wcsicmp(name_utf16, L"administrators") == 0) {
@@ -1615,7 +1613,6 @@ lookup_sid(const wchar_t* name_utf16, PSID psid, DWORD * psid_len)
 	}
 
 	if (sid_len == 0) {
-		error_f("LookupAccountNameW() failed with error:%d", GetLastError());
 		errno = errno_from_Win32LastError();
 		goto cleanup;
 	}
@@ -1653,7 +1650,7 @@ lookup_sid(const wchar_t* name_utf16, PSID psid, DWORD * psid_len)
 		}
 
 		if (_wcsicmp(name_utf16, computer_name) != 0) {
-			error_f("For SidTypeDomain, name:%ls must be same as machine name:%ls", name_utf16, computer_name);
+			error_f("For SidTypeDomain, username:%ls must be same as machine name:%ls", name_utf16, computer_name);
 			goto cleanup;
 		}
 
