@@ -215,8 +215,7 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 	/* else attempt to lookup the account; this will verify the account is valid and
 	 * is will return its sid and the realm that owns it */
 	else if (lookup_sid(user_utf16_modified, binary_sid, &sid_size) == NULL) {
-		errno = ENOENT;
-		debug("%s: lookup_sid() failed: %d.", __FUNCTION__, GetLastError());
+		debug("%s: lookup_sid() failed: %d.", __FUNCTION__, errno);
 		goto cleanup;
 	}
 

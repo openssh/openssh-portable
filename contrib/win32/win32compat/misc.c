@@ -1650,7 +1650,8 @@ lookup_sid(const wchar_t* name_utf16, PSID psid, DWORD * psid_len)
 		}
 
 		if (_wcsicmp(name_utf16, computer_name) != 0) {
-			error_f("For SidTypeDomain, username:%ls must be same as machine name:%ls", name_utf16, computer_name);
+			errno = ENOENT;
+			error_f("Invalid account type: %d for user:%S", n_use, name_utf16);
 			goto cleanup;
 		}
 
