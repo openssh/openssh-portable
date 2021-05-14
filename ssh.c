@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.553 2021/04/03 05:40:39 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.554 2021/05/14 03:09:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2147,7 +2147,7 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 		stdin_null_flag = 1;
 		no_shell_flag = 1;
 		tty_flag = 0;
-		if (!fork_after_authentication_flag)
+		if (!fork_after_authentication_flag && !no_shell_flag)
 			need_controlpersist_detach = 1;
 		fork_after_authentication_flag = 1;
 	}
