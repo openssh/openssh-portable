@@ -153,7 +153,9 @@ static const struct sftp_handler extended_handlers[] = {
 	{ "posix-rename", "posix-rename@openssh.com", 0,
 	    process_extended_posix_rename, 1 },
 	{ "statvfs", "statvfs@openssh.com", 0, process_extended_statvfs, 0 },
+#ifndef WINDOWS
 	{ "fstatvfs", "fstatvfs@openssh.com", 0, process_extended_fstatvfs, 0 },
+#endif
 	{ "hardlink", "hardlink@openssh.com", 0, process_extended_hardlink, 1 },
 	{ "fsync", "fsync@openssh.com", 0, process_extended_fsync, 1 },
 	{ "lsetstat", "lsetstat@openssh.com", 0, process_extended_lsetstat, 1 },
@@ -701,7 +703,9 @@ process_init(void)
 	 /* extension advertisments */
 	compose_extension(msg, "posix-rename@openssh.com", "1");
 	compose_extension(msg, "statvfs@openssh.com", "2");
+#ifndef WINDOWS
 	compose_extension(msg, "fstatvfs@openssh.com", "2");
+#endif
 	compose_extension(msg, "hardlink@openssh.com", "1");
 	compose_extension(msg, "fsync@openssh.com", "1");
 	compose_extension(msg, "lsetstat@openssh.com", "1");
