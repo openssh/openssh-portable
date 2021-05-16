@@ -332,13 +332,6 @@ case "$REMOTE_VERSION" in
       exit 1
     fi
     ;;
-  dropbear*)
-    populate_new_ids 0
-    [ "$DRY_RUN" ] || printf '%s\n' "$NEW_IDS" | \
-      $SSH "$@" "$(installkeys_sh /etc/dropbear/authorized_keys)" \
-      || exit 1
-    ADDED=$(printf '%s\n' "$NEW_IDS" | wc -l)
-    ;;
   *)
     # Assuming that the remote host treats ~/.ssh/authorized_keys as one might expect
     populate_new_ids 0
