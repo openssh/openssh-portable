@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.87 2021/04/03 06:18:40 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.88 2021/05/19 01:24:05 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -452,14 +452,6 @@ mux_master_process_new_session(struct ssh *ssh, u_int rid,
 	if (cctx->want_tty && tcgetattr(new_fd[0], &cctx->tio) == -1)
 		error_f("tcgetattr: %s", strerror(errno));
 
-	/* enable nonblocking unless tty */
-	if (!isatty(new_fd[0]))
-		set_nonblock(new_fd[0]);
-	if (!isatty(new_fd[1]))
-		set_nonblock(new_fd[1]);
-	if (!isatty(new_fd[2]))
-		set_nonblock(new_fd[2]);
-
 	window = CHAN_SES_WINDOW_DEFAULT;
 	packetmax = CHAN_SES_PACKET_DEFAULT;
 	if (cctx->want_tty) {
@@ -469,7 +461,7 @@ mux_master_process_new_session(struct ssh *ssh, u_int rid,
 
 	nc = channel_new(ssh, "session", SSH_CHANNEL_OPENING,
 	    new_fd[0], new_fd[1], new_fd[2], window, packetmax,
-	    CHAN_EXTENDED_WRITE, "client-session", /*nonblock*/0);
+	    CHAN_EXTENDED_WRITE, "client-session", CHANNEL_NONBLOCK_STDIO);
 
 	nc->ctl_chan = c->self;		/* link session -> control channel */
 	c->remote_id = nc->self;	/* link control -> session channel */
@@ -1025,13 +1017,8 @@ mux_master_process_stdio_fwd(struct ssh *ssh, u_int rid,
 		}
 	}
 
-	/* enable nonblocking unless tty */
-	if (!isatty(new_fd[0]))
-		set_nonblock(new_fd[0]);
-	if (!isatty(new_fd[1]))
-		set_nonblock(new_fd[1]);
-
-	nc = channel_connect_stdio_fwd(ssh, chost, cport, new_fd[0], new_fd[1]);
+	nc = channel_connect_stdio_fwd(ssh, chost, cport, new_fd[0], new_fd[1],
+	    CHANNEL_NONBLOCK_STDIO);
 	free(chost);
 
 	nc->ctl_chan = c->self;		/* link session -> control channel */

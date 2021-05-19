@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.362 2021/05/04 22:53:52 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.363 2021/05/19 01:24:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1404,14 +1404,6 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 
 	if (have_pty)
 		leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
-
-	/* restore blocking io */
-	if (!isatty(fileno(stdin)))
-		unset_nonblock(fileno(stdin));
-	if (!isatty(fileno(stdout)))
-		unset_nonblock(fileno(stdout));
-	if (!isatty(fileno(stderr)))
-		unset_nonblock(fileno(stderr));
 
 	/*
 	 * If there was no shell or command requested, there will be no remote
