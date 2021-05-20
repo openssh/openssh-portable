@@ -273,7 +273,7 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 
 #ifdef HAVE_HEADER_AD
 	/* check for authenticated data */
-	if (response->header.ad == 1)
+	if (response->header.ad == 1 || response->header.aa == 1)
 		rrset->rri_flags |= RRSET_VALIDATED;
 #endif
 
