@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_strdelim.c,v 1.1 2021/05/21 03:48:07 djm Exp $ */
+/* 	$OpenBSD: test_strdelim.c,v 1.2 2021/05/21 03:59:01 djm Exp $ */
 /*
  * Regress test for misc strdelim() and co
  *
@@ -33,7 +33,9 @@ test_strdelim(void)
 	TEST_START("empty");
 	START_STRING("");
 	cp = strdelim(&str);
-	ASSERT_STRING_EQ(cp, "");	/* XXX better as NULL */
+	ASSERT_STRING_EQ(cp, "");	/* XXX arguable */
+	cp = strdelim(&str);
+	ASSERT_PTR_EQ(cp, NULL);
 	DONE_STRING();
 	TEST_DONE();
 
@@ -41,6 +43,7 @@ test_strdelim(void)
 	START_STRING("	");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "");	/* XXX better as NULL */
+	ASSERT_STRING_EQ(str, "");
 	DONE_STRING();
 	TEST_DONE();
 
@@ -50,6 +53,7 @@ test_strdelim(void)
 	ASSERT_STRING_EQ(cp, "blob");
 	cp = strdelim(&str);
 	ASSERT_PTR_EQ(cp, NULL);
+	ASSERT_PTR_EQ(str, NULL);
 	DONE_STRING();
 	TEST_DONE();
 
@@ -57,8 +61,10 @@ test_strdelim(void)
 	START_STRING("blob   ");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob");
+	ASSERT_STRING_EQ(str, "");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "");	/* XXX better as NULL */
+	ASSERT_PTR_EQ(str, NULL);
 	DONE_STRING();
 	TEST_DONE();
 
@@ -66,8 +72,10 @@ test_strdelim(void)
 	START_STRING("blob1 blob2");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob1");
+	ASSERT_STRING_EQ(str, "blob2");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob2");
+	ASSERT_PTR_EQ(str, NULL);
 	cp = strdelim(&str);
 	ASSERT_PTR_EQ(cp, NULL);
 	DONE_STRING();
@@ -77,10 +85,12 @@ test_strdelim(void)
 	START_STRING("blob1	 	blob2  	 	");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob1");
+	ASSERT_STRING_EQ(str, "blob2  	 	");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob2");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "");	/* XXX better as NULL */
+	ASSERT_PTR_EQ(str, NULL);
 	DONE_STRING();
 	TEST_DONE();
 
@@ -88,8 +98,10 @@ test_strdelim(void)
 	START_STRING("blob1=blob2");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob1");
+	ASSERT_STRING_EQ(str, "blob2");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob2");
+	ASSERT_PTR_EQ(str, NULL);
 	cp = strdelim(&str);
 	ASSERT_PTR_EQ(cp, NULL);
 	DONE_STRING();
@@ -99,8 +111,13 @@ test_strdelim(void)
 	START_STRING("blob1==blob2");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob1");	/* XXX better returning NULL early */
+	ASSERT_STRING_EQ(str, "=blob2");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "");
+	ASSERT_STRING_EQ(str, "blob2");
+	cp = strdelim(&str);
+	ASSERT_STRING_EQ(cp, "blob2");	/* XXX should (but can't) reject */
+	ASSERT_PTR_EQ(str, NULL);
 	DONE_STRING();
 	TEST_DONE();
 
@@ -108,6 +125,7 @@ test_strdelim(void)
 	START_STRING("blob1=blob2");
 	cp = strdelimw(&str);
 	ASSERT_STRING_EQ(cp, "blob1=blob2");
+	ASSERT_PTR_EQ(str, NULL);
 	cp = strdelimw(&str);
 	ASSERT_PTR_EQ(cp, NULL);
 	DONE_STRING();
@@ -119,6 +137,7 @@ test_strdelim(void)
 	ASSERT_STRING_EQ(cp, "blob");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "");	/* XXX better as NULL */
+	ASSERT_PTR_EQ(str, NULL);
 	DONE_STRING();
 	TEST_DONE();
 
@@ -126,8 +145,10 @@ test_strdelim(void)
 	START_STRING("\"blob1\" blob2");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob1");
+	ASSERT_STRING_EQ(str, "blob2");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob2");
+	ASSERT_PTR_EQ(str, NULL);
 	cp = strdelim(&str);
 	ASSERT_PTR_EQ(cp, NULL);
 	DONE_STRING();
@@ -137,10 +158,13 @@ test_strdelim(void)
 	START_STRING("blob1 \"blob2\"");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob1");
+	ASSERT_STRING_EQ(str, "\"blob2\"");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "blob2");
+	ASSERT_STRING_EQ(str, "");
 	cp = strdelim(&str);
 	ASSERT_STRING_EQ(cp, "");	/* XXX better as NULL */
+	ASSERT_PTR_EQ(str, NULL);
 	DONE_STRING();
 	TEST_DONE();
 
