@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.353 2021/04/03 06:18:40 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.354 2021/05/23 18:22:57 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -308,7 +308,7 @@ static struct {
 	{ "revokedhostkeys", oRevokedHostKeys },
 	{ "fingerprinthash", oFingerprintHash },
 	{ "updatehostkeys", oUpdateHostkeys },
-	{ "hostbasedalgorithms", oHostbasedAcceptedAlgorithms },
+	{ "hostbasedacceptedalgorithms", oHostbasedAcceptedAlgorithms },
 	{ "hostbasedkeytypes", oHostbasedAcceptedAlgorithms }, /* obsolete */
 	{ "pubkeyacceptedalgorithms", oPubkeyAcceptedAlgorithms },
 	{ "pubkeyacceptedkeytypes", oPubkeyAcceptedAlgorithms }, /* obsolete */
