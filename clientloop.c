@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.363 2021/05/19 01:24:05 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.364 2021/05/26 01:47:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1952,7 +1952,7 @@ hostkeys_check_old(struct hostkey_foreach_line *l, void *_ctx)
 		if (!sshkey_equal(l->key, ctx->old_keys[i]))
 			continue;
 		debug3_f("found deprecated %s key at %s:%ld as %s",
-		    sshkey_ssh_name(ctx->keys[i]), l->path, l->linenum,
+		    sshkey_ssh_name(ctx->old_keys[i]), l->path, l->linenum,
 		    hashed ? "[HASHED]" : l->hosts);
 		ctx->old_key_seen = 1;
 		break;
