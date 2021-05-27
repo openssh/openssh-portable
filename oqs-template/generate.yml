@@ -32,6 +32,78 @@ kexs:
         name: 'nistp521'
         openssl_nid: 'NID_secp521r1'
   -
+    family: 'FrodoKEM'
+    name: 'frodokem_640_shake'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'FrodoKEM'
+    name: 'frodokem_976_shake'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'FrodoKEM'
+    name: 'frodokem_1344_shake'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SIDH'
+    name: 'sidh_p434'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SIDH'
+    name: 'sidh_p434_compressed'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SIDH'
+    name: 'sidh_p610'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SIDH'
+    name: 'sidh_p610_compressed'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SIDH'
+    name: 'sidh_p751'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SIDH'
+    name: 'sidh_p751_compressed'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
     family: 'SIKE'
     name: 'sike_p434'
     hash: 'sha256'
@@ -39,10 +111,339 @@ kexs:
       -
         name: 'nistp256'
         openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SIKE'
+    name: 'sike_p434_compressed'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SIKE'
+    name: 'sike_p610'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SIKE'
+    name: 'sike_p610_compressed'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SIKE'
+    name: 'sike_p751'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SIKE'
+    name: 'sike_p751_compressed'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Saber'
+    name: 'saber_lightsaber'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Saber'
+    name: 'saber_saber'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Saber'
+    name: 'saber_firesaber'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Kyber'
+    name: 'kyber_512'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Kyber'
+    name: 'kyber_768'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Kyber'
+    name: 'kyber_1024'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Kyber'
+    name: 'kyber_512_90s'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Kyber'
+    name: 'kyber_768_90s'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Kyber'
+    name: 'kyber_1024_90s'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'BIKE'
+    name: 'bike1_l1_cpa'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'BIKE'
+    name: 'bike1_l1_fo'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'BIKE'
+    name: 'bike1_l3_cpa'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'BIKE'
+    name: 'bike1_l3_fo'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'NTRU'
+    name: 'ntru_hps2048509'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'NTRU'
+    name: 'ntru_hps2048677'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'NTRU'
+    name: 'ntru_hrss701'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'NTRU'
+    name: 'ntru_hps4096821'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_348864'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_348864f'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_460896'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_460896f'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_6688128'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_6688128f'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_6960119'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_6960119f'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_8192128'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'ClassicMcEliece'
+    name: 'classic_mceliece_8192128f'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'HQC'
+    name: 'hqc_128'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'HQC'
+    name: 'hqc_192'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'HQC'
+    name: 'hqc_256'
+    hash: 'sha512'
+    mix_with:
+      -
+        name: 'nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'NTRU-PRIME'
+    name: 'ntruprime_ntrulpr653'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'NTRU-PRIME'
+    name: 'ntruprime_sntrup653'
+    hash: 'sha256'
+    mix_with:
+      -
+        name: 'nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'NTRU-PRIME'
+    name: 'ntruprime_ntrulpr761'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'NTRU-PRIME'
+    name: 'ntruprime_sntrup761'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'NTRU-PRIME'
+    name: 'ntruprime_ntrulpr857'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'NTRU-PRIME'
+    name: 'ntruprime_sntrup857'
+    hash: 'sha384'
+    mix_with:
+      -
+        name: 'nistp384'
+        openssl_nid: 'NID_secp384r1'
 
 sigs:
   -
     name: 'oqs_default'
+    enable: true
     level: 1
     mix_with:
       -
@@ -51,6 +452,27 @@ sigs:
       -
         name: 'ecdsa_nistp256'
         openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Falcon'
+    name: 'falcon_512'
+    enable: true
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Falcon'
+    name: 'falcon_1024'
+    enable: true
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
   -
     family: 'Dilithium'
     name: 'dilithium_2'
@@ -65,6 +487,7 @@ sigs:
   -
     family: 'Dilithium'
     name: 'dilithium_3'
+    enable: true
     level: 3
     mix_with:
       -
@@ -78,3 +501,523 @@ sigs:
       -
         name: 'ecdsa_nistp521'
         openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Dilithium'
+    name: 'dilithium_2_aes'
+    enable: true
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Dilithium'
+    name: 'dilithium_3_aes'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Dilithium'
+    name: 'dilithium_5_aes'
+    enable: true
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Picnic'
+    name: 'picnic_L1_FS'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Picnic'
+    name: 'picnic_L1_UR'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Picnic'
+    name: 'picnic_L1_full'
+    enable: true
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Picnic'
+    name: 'picnic_L3_FS'
+    enable: true
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Picnic'
+    name: 'picnic_L3_UR'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Picnic'
+    name: 'picnic_L3_full'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Picnic'
+    name: 'picnic_L5_FS'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Picnic'
+    name: 'picnic_L5_UR'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Picnic'
+    name: 'picnic_L5_full'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Rainbow'
+    name: 'rainbow_I_classic'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Rainbow'
+    name: 'rainbow_I_circumzenithal'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Rainbow'
+    name: 'rainbow_I_compressed'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'Rainbow'
+    name: 'rainbow_III_classic'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Rainbow'
+    name: 'rainbow_III_circumzenithal'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Rainbow'
+    name: 'rainbow_III_compressed'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'Rainbow'
+    name: 'rainbow_V_classic'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Rainbow'
+    name: 'rainbow_V_circumzenithal'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'Rainbow'
+    name: 'rainbow_V_compressed'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_128f_robust'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_128f_simple'
+    enable: true
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_128s_robust'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_128s_simple'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_128f_robust'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_128s_robust'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_128f_simple'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_128s_simple'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_128f_robust'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_128s_robust'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_128f_simple'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_128s_simple'
+    level: 1
+    mix_with:
+      -
+        name: 'rsa3072'
+        rsa: true
+      -
+        name: 'ecdsa_nistp256'
+        openssl_nid: 'NID_X9_62_prime256v1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_192f_robust'
+    enable: true
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_192s_robust'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_192f_simple'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_192s_simple'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_192f_robust'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_192s_robust'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_192f_simple'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_192s_simple'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_192f_robust'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_192s_robust'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_192f_simple'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_192s_simple'
+    level: 3
+    mix_with:
+      -
+        name: 'ecdsa_nistp384'
+        openssl_nid: 'NID_secp384r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_256f_robust'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_256s_robust'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_256f_simple'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_haraka_256s_simple'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_256f_robust'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_256s_robust'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_256f_simple'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_sha256_256s_simple'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_256f_robust'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_256s_robust'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_256f_simple'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+  -
+    family: 'SPHINCS'
+    name: 'sphincs_shake256_256s_simple'
+    level: 5
+    mix_with:
+      -
+        name: 'ecdsa_nistp521'
+        openssl_nid: 'NID_secp521r1'
+

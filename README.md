@@ -57,8 +57,16 @@ The following quantum-safe algorithms from liboqs are supported (assuming they h
 
 - `oqs-default-sha256` (see [here](https://github.com/open-quantum-safe/openssh-portable/wiki/Using-liboqs-supported-algorithms-in-the-fork) for what this denotes)
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_KEXS_START -->
-- **FrodoKEM**: `frodokem-640-aes-sha256`, `frodokem-976-aes-sha384`, `frodokem-1344-aes-sha512`
-- **SIKE**: `sike-p434-sha256`
+- **BIKE**: `bike1-l1-cpa-sha512`, `bike1-l1-fo-sha512`, `bike1-l3-cpa-sha512`, `bike1-l3-fo-sha512`
+- **ClassicMcEliece**: `classic-mceliece-348864-sha256`, `classic-mceliece-348864f-sha256`, `classic-mceliece-460896-sha512`, `classic-mceliece-460896f-sha512`, `classic-mceliece-6688128-sha512`, `classic-mceliece-6688128f-sha512`, `classic-mceliece-6960119-sha512`, `classic-mceliece-6960119f-sha512`, `classic-mceliece-8192128-sha512`, `classic-mceliece-8192128f-sha512`
+- **FrodoKEM**: `frodokem-640-aes-sha256`, `frodokem-976-aes-sha384`, `frodokem-1344-aes-sha512`, `frodokem-640-shake-sha256`, `frodokem-976-shake-sha384`, `frodokem-1344-shake-sha512`
+- **HQC**: `hqc-128-sha256`, `hqc-192-sha384`, `hqc-256-sha512`†
+- **Kyber**: `kyber-512-sha256`, `kyber-768-sha384`, `kyber-1024-sha512`, `kyber-512-90s-sha256`, `kyber-768-90s-sha384`, `kyber-1024-90s-sha512`
+- **NTRU**: `ntru-hps2048509-sha512`, `ntru-hps2048677-sha512`, `ntru-hrss701-sha512`, `ntru-hps4096821-sha512`
+- **NTRU-PRIME**: `ntruprime-ntrulpr653-sha256`, `ntruprime-sntrup653-sha256`, `ntruprime-ntrulpr761-sha384`, `ntruprime-sntrup761-sha384`, `ntruprime-ntrulpr857-sha384`, `ntruprime-sntrup857-sha384`
+- **SIDH**: `sidh-p434-sha256`, `sidh-p434-compressed-sha256`, `sidh-p610-sha256`, `sidh-p610-compressed-sha256`, `sidh-p751-sha256`, `sidh-p751-compressed-sha256`
+- **SIKE**: `sike-p434-sha256`, `sike-p434-compressed-sha256`, `sike-p610-sha256`, `sike-p610-compressed-sha256`, `sike-p751-sha256`, `sike-p751-compressed-sha256`
+- **Saber**: `saber-lightsaber-sha256`, `saber-saber-sha384`, `saber-firesaber-sha512`
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_KEXS_END -->
 
 For each `<KEX>` listed above, the following hybrid algorithms are made available as follows:
@@ -71,12 +79,17 @@ Note that algorithms marked with a dagger (†) have large stack usage and may c
 
 #### Digital Signature
 
-The following digital signature algorithms from liboqs are supported (assuming they have been enabled in liboqs). Note that only L1 signature and all **Rainbow** variants are enabled by default, and should you wish to enable additional variants, consult [the "Code Generation" section of the documentation in the wiki](https://github.com/open-quantum-safe/openssh/wiki/Using-liboqs-supported-algorithms-in-the-for://github.com/open-quantum-safe/openssh/wiki/Using-liboqs-supported-algorithms-in-the-fork#code-generation).
+The following digital signature algorithms from liboqs are supported (assuming they have been enabled in liboqs). Note that only select L3 signature variants are enabled by default, and should you wish to enable additional variants, consult [the "Code Generation" section of the documentation in the wiki](https://github.com/open-quantum-safe/openssh/wiki/Using-liboqs-supported-algorithms-in-the-fork#code-generation). Note that enabling Rainbow will introduce a substantial execution delay to all operations. If doing it inadvertently, tests will fail and all kind of headaches occur. You have been warned.
 
 - `oqsdefault` (see [here](https://github.com/open-quantum-safe/openssh-portable/wiki/Using-liboqs-supported-algorithms-in-the-fork) for what this denotes)
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_SIGS_START -->
-- **Dilithium**: `dilithium2`, `dilithium3`, `dilithium5`
+- **Dilithium**: `dilithium2`, `dilithium3`*, `dilithium5`, `dilithium2aes`*, `dilithium3aes`, `dilithium5aes`*
+- **Falcon**: `falcon512`*, `falcon1024`*
+- **Picnic**: `picnicL1FS`, `picnicL1UR`, `picnicL1full`*, `picnicL3FS`*, `picnicL3UR`, `picnicL3full`, `picnicL5FS`, `picnicL5UR`, `picnicL5full`
+- **Rainbow**: `rainbowIclassic`, `rainbowIcircumzenithal`, `rainbowIcompressed`, `rainbowIIIclassic`, `rainbowIIIcircumzenithal`, `rainbowIIIcompressed`, `rainbowVclassic`, `rainbowVcircumzenithal`, `rainbowVcompressed`
+- **SPHINCS**: `sphincsharaka128frobust`, `sphincsharaka128fsimple`*, `sphincsharaka128srobust`, `sphincsharaka128ssimple`, `sphincssha256128frobust`, `sphincssha256128srobust`, `sphincssha256128fsimple`, `sphincssha256128ssimple`, `sphincsshake256128frobust`, `sphincsshake256128srobust`, `sphincsshake256128fsimple`, `sphincsshake256128ssimple`, `sphincsharaka192frobust`*, `sphincsharaka192srobust`, `sphincsharaka192fsimple`, `sphincsharaka192ssimple`, `sphincssha256192frobust`, `sphincssha256192srobust`, `sphincssha256192fsimple`, `sphincssha256192ssimple`, `sphincsshake256192frobust`, `sphincsshake256192srobust`, `sphincsshake256192fsimple`, `sphincsshake256192ssimple`, `sphincsharaka256frobust`, `sphincsharaka256srobust`, `sphincsharaka256fsimple`, `sphincsharaka256ssimple`, `sphincssha256256frobust`, `sphincssha256256srobust`, `sphincssha256256fsimple`, `sphincssha256256ssimple`, `sphincsshake256256frobust`, `sphincsshake256256srobust`, `sphincsshake256256fsimple`, `sphincsshake256256ssimple`
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_SIGS_END -->
+
 
 The following hybrid algorithms are supported; they combine a quantum-safe algorithm listed above with a traditional digital signature algorithm (`<SIG>` is any one of the algorithms listed above):
 
@@ -86,7 +99,7 @@ The following hybrid algorithms are supported; they combine a quantum-safe algor
 
 ## Quickstart
 
-The steps below have been confirmed to work on macOS 10.14 (clang 10.0.0) and Ubuntu 18.04.1 Bionic (gcc-7).
+The steps below have been confirmed to work on Ubuntu 20.04.1 Focal
 
 ### Building OQS-OpenSSH
 
@@ -131,7 +144,6 @@ Building liboqs requires your system to have OpenSSL 1.1.1 or higher already ins
 In `<OPENSSH_ROOT>`, first run:
 
 ```
-export LIBOQS_INSTALL=<path-to-liboqs>
 export OPENSSH_INSTALL=<path-to-install-openssh>
 autoreconf
 ```
@@ -143,25 +155,17 @@ Then, run the following:
 	            --with-libs=-lm                          \
 	            --prefix=$OPENSSH_INSTALL                \
 	            --sysconfdir=$OPENSSH_INSTALL            \
-	            --with-liboqs-dir=$LIBOQS_INSTALL
-	make -j
+	            --with-liboqs-dir=`pwd`/oqs
+	make 
 	make install
 
-To test the build, run:
+Again, the `path-to-openssl` (1.1.1) does not need to be specified if it is in one of the standard locations.
 
-	make tests
+So, in summary, if OpenSSL is installed in a default location and `oqs-openssh` is to be installed in `/opt/openssh` this command builds and installs `oqs-openssh`: `export OPENSSH_INSTALL=/opt/openssh && autoreconf && ./configure --with-libs=-lm --prefix=$OPENSSH_INSTALL --sysconfdir=$OPENSSH_INSTALL --with-liboqs-dir=`pwd`/oqs && make && make install`
 
-To run OQS-specific tests of all the post-quantum key-exchanges:
+As not all stock `openssh` tests are passing, be sure to execute `oqs-test/run_tests.sh` instead of simply executing `make tests` to ensure the build was successful.
 
-```
-python3 -m nose --rednose --verbose
-```
-
-To run OQS-specific tests of all combinations of post-quantum key-exchange and authentication algorithms:
-
-```
-env WITH_PQAUTH=true python3 -m nose --rednose --verbose
-```
+To execute a connection test with one of the supported quantum-safe algorithms (chosen at random), run `python3 oqs-test/try_connection.py`. If all algorithms should be exercized, pass a parameter to this command, e.g., like this: `python3 oqs-test/try_connection.py all`. Be aware that this test can take a long time due to the number of algorithm combinations available.
 
 ### Running OQS-OpenSSH
 
@@ -197,7 +201,7 @@ In one terminal, run a server:
 	                            -o AuthorizedKeysFile=<absolute-path-to>/ssh_server/authorized_keys \
 	                            -o HostKeyAlgorithms=ssh-<SIG> \
 	                            -o PubkeyAcceptedKeyTypes=ssh-<SIG> \
-	                            -h <absolute-path-to>/ssh_server/id_<SIG>]
+	                            -h <absolute-path-to>/ssh_server/id_<SIG>
 
 `<KEX>` and `<SIG>` are respectively one of the key exchange and signature (PQ-only or hybrid) algorithms listed in the [Supported Algorithms](#supported-algorithms) section above.
 
@@ -205,16 +209,17 @@ The `-o` options can also be added to the server/client configuration file inste
 
 The server automatically supports all available hybrid and PQ-only key exchange algorithms.  `sudo` is required on Linux so that sshd can read the shadow password file.
 
-In another terminal, run a client(the arguments between `[...]` can be omitted if only classical authentication is required):
+In another terminal, run a client:
 
 	<path-to-openssh>/bin/ssh -p 2222 localhost \
 	                          -o KexAlgorithms=<KEX> \
 	                          -o HostKeyAlgorithms=ssh-<SIG>\
 	                          -o PubkeyAcceptedKeyTypes=ssh-<SIG> \
 	                          -o StrictHostKeyChecking=no \
+	                          -o PasswordAuthentication=no \
 	                          -i ~/ssh_client/id_<SIG>
 
-The `StrictHostKeyChecking` option is used to allow trusting the newly generated server key; alternatively, the key could be added manually to the client's trusted keys.
+The `StrictHostKeyChecking` option is used to allow trusting the newly generated server key; alternatively, the key could be added manually to the client's trusted keys. The `PasswordAuthentication` option is used to ensure the test server does not fall back to password authentication if public key authentication fails for some reason.
 
 ## Contributing
 
@@ -236,6 +241,7 @@ Contributors to this fork of OpenSSH include:
 - Christian Paquin (Microsoft Research)
 - Douglas Stebila (University of Waterloo)
 - Goutam Tamvada (University of Waterloo)
+- Michael Baentsch
 
 Contributors to an earlier OQS fork of OpenSSH included:
 

@@ -1,4 +1,4 @@
 {%- for family, kexs in (config['kexs'] | selectattr("family") | groupby('family')) %}
-- **{{ family }}**: {% for kex in kexs -%}  `{{ kex['name']|replace('_','-') }}-{{ kex['hash'] }}` {%- if not loop.last %}, {% endif -%}{%- if loop.last and family == 'HQC' -%}†{%- endif -%}{%- endfor -%}
+- **{{ family }}**: {% for kex in kexs -%}  `{{ kex['name']|replace('_','-') }}-{{ kex['hash'] }}` {%- if kex['enable'] -%} * {%- endif -%} {%- if not loop.last %}, {% endif -%}{%- if loop.last and family == 'HQC' -%}†{%- endif -%}{%- endfor -%}
 {%- endfor %}
 

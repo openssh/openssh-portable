@@ -32,9 +32,15 @@ for fmt in '' RFC4716 PKCS8 PEM; do
 		ssh-ed25519|*openssh.com) test -z "$oldfmt" || continue ;;
 ##### OQS_TEMPLATE_FRAGMENT_EXCLUDE_OQS_ALGS_START
 		*oqsdefault*) test -z "$oldfmt" || continue ;;
-		*dilithium2*) test -z "$oldfmt" || continue ;;
+		*falcon512*) test -z "$oldfmt" || continue ;;
+		*falcon1024*) test -z "$oldfmt" || continue ;;
 		*dilithium3*) test -z "$oldfmt" || continue ;;
-		*dilithium5*) test -z "$oldfmt" || continue ;;
+		*dilithium2aes*) test -z "$oldfmt" || continue ;;
+		*dilithium5aes*) test -z "$oldfmt" || continue ;;
+		*picnicL1full*) test -z "$oldfmt" || continue ;;
+		*picnicL3FS*) test -z "$oldfmt" || continue ;;
+		*sphincsharaka128fsimple*) test -z "$oldfmt" || continue ;;
+		*sphincsharaka192frobust*) test -z "$oldfmt" || continue ;;
 ##### OQS_TEMPLATE_FRAGMENT_EXCLUDE_OQS_ALGS_END
 		esac
 		comment="foo bar"

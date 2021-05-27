@@ -46,9 +46,15 @@ def populate(filename, config, delimiter):
 
     file_put_contents(filename, contents)
 
-def load_config():
+def load_config(include_disabled_algs=False):
     config = file_get_contents(os.path.join('oqs-template', 'generate.yml'), encoding='utf-8')
     config = yaml.safe_load(config)
+    if not include_disabled_algs:
+        config['sigs'] = [sig for sig in config['sigs'] if 'enable' in sig.keys() and sig['enable']]
+
+        # enable if single KEXs are to be en/disabled:
+        #config['kexs'] = [kex for kex in config['kexs'] if 'enable' in kex.keys() and kex['enable']]
+
     return config
 
 config = load_config()
@@ -84,5 +90,8 @@ populate('regress/keygen-comment.sh', config, '#####')
 
 # both
 populate('ssh-keyscan.c', config, '/////')
-populate('README.md', config, '<!---')
 populate('oqs-test/try_connection.py', config, '#####')
+
+config = load_config(include_disabled_algs=True)
+populate('README.md', config, '<!---')
+
