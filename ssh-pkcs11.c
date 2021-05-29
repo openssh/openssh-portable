@@ -995,6 +995,7 @@ pkcs11_fetch_eddsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	struct sshkey		*key = NULL;
 	int			 i;
 	u_char			*ed25519_pk = NULL;
+	ASN1_OCTET_STRING	*octet = NULL;
 
 	memset(&key_attr, 0, sizeof(key_attr));
 	key_attr[0].type = CKA_ID;
@@ -1035,16 +1036,30 @@ pkcs11_fetch_eddsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	}
 
 	if (key_attr[1].ulValueLen != crypto_sign_ed25519_PUBLICKEYBYTES) {
-		error("CKA_EC_POINT invalid length");
-		goto fail;
+		const unsigned char	*attrp = key_attr[1].pValue;
+
+		octet = d2i_ASN1_OCTET_STRING(NULL, &attrp, key_attr[1].ulValueLen);
+		if (octet == NULL) {
+			ossl_error("d2i_ASN1_OCTET_STRING failed");
+			goto fail;
+		}
+
+		if (octet->length != crypto_sign_ed25519_PUBLICKEYBYTES) {
+			error("CKA_EC_POINT invalid length");
+			goto fail;
+		}
 	}
 
-	ed25519_pk = malloc(key_attr[1].ulValueLen);
+	ed25519_pk = malloc(crypto_sign_ed25519_PUBLICKEYBYTES);
 	if (ed25519_pk == NULL) {
 		error("malloc failed");
 		goto fail;
 	}
-	memcpy(ed25519_pk, key_attr[1].pValue, key_attr[1].ulValueLen);
+
+	if (octet != NULL)
+		memcpy(ed25519_pk, octet->data, crypto_sign_ed25519_PUBLICKEYBYTES);
+	else
+		memcpy(ed25519_pk, key_attr[1].pValue, crypto_sign_ed25519_PUBLICKEYBYTES);
 
 	if (eddsa_validate_parameters(key_attr[2].pValue, key_attr[2].ulValueLen) != 0) {
 		error("parameters validation failed");
@@ -1069,6 +1084,8 @@ fail:
 		free(key_attr[i].pValue);
 	if (ed25519_pk)
 		free(ed25519_pk);
+	if (octet)
+		ASN1_OCTET_STRING_free(octet);
 
 	return (key);
 }
