@@ -75,7 +75,7 @@ For each `<KEX>` listed above, the following hybrid algorithms are made availabl
 - If `<KEX>` has L3 security, the method `ecdh-nistp384-<KEX>` is available, which combines `<KEX>` with ECDH using NIST's P384 curve
 - If `<KEX>` has L5 security, the method `ecdh-nistp521-<KEX>` is available, which combines `<KEX>` with ECDH using NIST's P521 curve
 
-Note that algorithms marked with a dagger (†) have large stack usage and may cause failures when run on threads or in constrained environments.
+Note that algorithms marked with a dagger (†) have large stack usage and may cause failures when run on threads or in constrained environments. For example, McEliece require building `oqs-openssh` with a large(r) stack provision than is default: Adding `LDFLAGS="-Wl,--stack,20000000"` to [the `./configure` command below](#step-2-build-the-fork) is required to allow cygwin-based testing to pass.
 
 #### Digital Signature
 

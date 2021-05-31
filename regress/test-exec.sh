@@ -575,6 +575,9 @@ for t in ${SSH_HOSTKEY_TYPES}; do
 
 	# use key as host key, too
 	$SUDO cp $OBJ/$t $OBJ/host.$t
+	# ensure proper file access permissions even in cygwin:
+	$SUDO chmod 600 $OBJ/$t $OBJ/host.$t
+
 	echo HostKey $OBJ/host.$t >> $OBJ/sshd_config
 
 	# don't use SUDO for proxy connect
