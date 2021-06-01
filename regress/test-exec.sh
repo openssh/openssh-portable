@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.80 2021/05/24 10:25:18 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.81 2021/06/01 23:56:20 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -100,7 +100,7 @@ CONCH=conch
 
 # Tools used by multiple tests
 NC=$OBJ/netcat
-OPENSSL=openssl
+OPENSSL="${OPENSSL:-openssl}"
 
 if [ "x$TEST_SSH_SSH" != "x" ]; then
 	SSH="${TEST_SSH_SSH}"
