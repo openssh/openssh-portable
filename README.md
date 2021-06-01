@@ -1,4 +1,5 @@
-[![Build status image](https://circleci.com/gh/open-quantum-safe/openssh/tree/OQS-master.svg?style=svg)](https://circleci.com/gh/open-quantum-safe/openssh/tree/OQS-master)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/uwl8qgs60mqh5x9j?svg=true)](https://ci.appveyor.com/project/dstebila/openssh/branch/OQS-v8),
+[![CircleCI](https://circleci.com/gh/open-quantum-safe/openssh/tree/OQS-master.svg?style=svg)](https://circleci.com/gh/open-quantum-safe/openssh/tree/OQS-master)
 
 OQS-OpenSSH
 ==================================
