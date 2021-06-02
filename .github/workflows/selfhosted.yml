@@ -20,6 +20,7 @@ jobs:
           - dfly30
           - dfly48
           - dfly58
+          - dfly60
           - fbsd6
           - fbsd7
           - fbsd10
@@ -47,6 +48,7 @@ jobs:
          - { os: dfly30, configs: without-openssl}
          - { os: dfly48, configs: pam }
          - { os: dfly58, configs: pam }
+         - { os: dfly60, configs: pam }
          - { os: fbsd6,  configs: pam }
          - { os: fbsd7,  configs: pam }
          - { os: fbsd10, configs: pam }
