@@ -909,7 +909,10 @@ main(int ac, char **av)
 			if (muxclient_command != 0)
 				fatal("Cannot specify stdio forward with -O");
 			if (parse_forward(&fwd, optarg, 1, 0)) {
-				options.stdio_forward_host = fwd.listen_host;
+				if (fwd.listen_port == PORT_STREAMLOCAL)
+					options.stdio_forward_host = fwd.listen_path;
+				else
+					options.stdio_forward_host = fwd.listen_host;
 				options.stdio_forward_port = fwd.listen_port;
 				free(fwd.connect_host);
 			} else {

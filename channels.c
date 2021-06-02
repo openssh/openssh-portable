@@ -1517,12 +1517,18 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 
 Channel *
 channel_connect_stdio_fwd(struct ssh *ssh,
-    const char *host_to_connect, u_short port_to_connect,
+    const char *host_to_connect, int port_to_connect,
     int in, int out, int nonblock)
 {
 	Channel *c;
+	char* rtype;
 
 	debug_f("%s:%d", host_to_connect, port_to_connect);
+
+	if (port_to_connect == PORT_STREAMLOCAL)
+		rtype = "direct-streamlocal@openssh.com";
+	else
+		rtype = "direct-tcpip";
 
 	c = channel_new(ssh, "stdio-forward", SSH_CHANNEL_OPENING, in, out,
 	    -1, CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
@@ -1534,7 +1540,7 @@ channel_connect_stdio_fwd(struct ssh *ssh,
 	c->force_drain = 1;
 
 	channel_register_fds(ssh, c, in, out, -1, 0, 1, 0);
-	port_open_helper(ssh, c, "direct-tcpip");
+	port_open_helper(ssh, c, rtype);
 
 	return c;
 }

@@ -324,7 +324,7 @@ Channel	*channel_connect_to_port(struct ssh *, const char *, u_short,
 	    char *, char *, int *, const char **);
 Channel *channel_connect_to_path(struct ssh *, const char *, char *, char *);
 Channel	*channel_connect_stdio_fwd(struct ssh *, const char*,
-	    u_short, int, int, int);
+	    int, int, int, int);
 Channel	*channel_connect_by_listen_address(struct ssh *, const char *,
 	    u_short, char *, char *);
 Channel	*channel_connect_by_listen_path(struct ssh *, const char *,
