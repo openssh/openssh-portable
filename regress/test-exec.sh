@@ -327,6 +327,8 @@ md5 () {
 		cksum
 	elif have_prog sum; then
 		sum
+	elif [ -x ${OPENSSL} ]; then
+		${OPENSSL} md5
 	else
 		wc -c
 	fi
