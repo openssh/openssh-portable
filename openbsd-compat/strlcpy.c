@@ -30,7 +30,7 @@
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
 size_t
-strlcpy(char * restrict dst, const char * restrict src, size_t siz)
+strlcpy(char * __restrict dst, const char * __restrict src, size_t siz)
 {
 	const char * const s = src;
 	const size_t n = siz;
