@@ -95,7 +95,7 @@ int rresvport_af(int *alport, sa_family_t af);
 #endif
 
 #ifndef HAVE_STRLCPY
-size_t strlcpy(char * restrict dst, const char * restrict src, size_t siz);
+size_t strlcpy(char * __restrict dst, const char * __restrict src, size_t siz);
 #endif
 
 #ifndef HAVE_STRLCAT
