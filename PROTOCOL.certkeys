@@ -260,6 +260,14 @@ source-address          string        Comma-separated list of source addresses
                                       certificates may be presented from any
                                       source address.
 
+verify-required         empty         Flag indicating that signatures made
+                                      with this certificate must assert FIDO
+                                      user verification (e.g. PIN or
+                                      biometric). This option only make sense
+                                      for the U2F/FIDO security key types that
+                                      support this feature in their signature
+                                      formats.
+
 Extensions
 ----------
 
@@ -280,11 +288,11 @@ their data fields are:
 
 Name                    Format        Description
 -----------------------------------------------------------------------------
-no-presence-required    empty         Flag indicating that signatures made
+no-touch-required       empty         Flag indicating that signatures made
                                       with this certificate need not assert
-                                      user presence. This option only make
-                                      sense for the U2F/FIDO security key
-                                      types that support this feature in
+                                      FIDO user presence. This option only
+                                      make sense for the U2F/FIDO security
+                                      key types that support this feature in
                                       their signature formats.
 
 permit-X11-forwarding   empty         Flag indicating that X11 forwarding
@@ -311,4 +319,4 @@ permit-user-rc          empty         Flag indicating that execution of
                                       of this script will not be permitted if
                                       this option is not present.
 
-$OpenBSD: PROTOCOL.certkeys,v 1.17 2019/11/25 00:57:51 djm Exp $
+$OpenBSD: PROTOCOL.certkeys,v 1.18 2021/06/04 04:02:21 djm Exp $
