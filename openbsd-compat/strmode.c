@@ -37,10 +37,8 @@
 #include <sys/stat.h>
 #include <string.h>
 
-/* XXX mode should be mode_t */
-
 void
-strmode(int mode, char *p)
+strmode(mode_t mode, char *p)
 {
 	 /* print type */
 	switch (mode & S_IFMT) {
