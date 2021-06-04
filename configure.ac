@@ -1858,6 +1858,7 @@ AC_CHECK_FUNCS([ \
 	pledge \
 	poll \
 	prctl \
+	pselect \
 	pstat \
 	raise \
 	readpassphrase \
@@ -3972,7 +3973,7 @@ AC_CHECK_TYPES([intmax_t, uintmax_t], , , [
 
 TYPE_SOCKLEN_T
 
-AC_CHECK_TYPES([sig_atomic_t], , , [#include <signal.h>])
+AC_CHECK_TYPES([sig_atomic_t, sighandler_t], , , [#include <signal.h>])
 AC_CHECK_TYPES([fsblkcnt_t, fsfilcnt_t], , , [
 #include <sys/types.h>
 #ifdef HAVE_SYS_BITYPES_H

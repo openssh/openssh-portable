@@ -79,6 +79,7 @@ COMPAT=	arc4random.o \
 	bsd-nextstep.o \
 	bsd-openpty.o \
 	bsd-poll.o \
+	bsd-pselect.o \
 	bsd-setres_id.o \
 	bsd-signal.o \
 	bsd-snprintf.o \

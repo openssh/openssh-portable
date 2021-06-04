@@ -125,6 +125,11 @@ int	isblank(int);
 pid_t getpgid(pid_t);
 #endif
 
+#ifndef HAVE_PSELECT
+int pselect(int, fd_set *, fd_set *, fd_set *, const struct timespec *,
+    const sigset_t *);
+#endif
+
 #ifndef HAVE_ENDGRENT
 # define endgrent() do { } while(0)
 #endif
