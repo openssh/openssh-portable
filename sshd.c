@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.573 2021/05/07 03:09:38 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.574 2021/06/04 05:09:08 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1141,6 +1141,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 	socklen_t fromlen;
 	pid_t pid;
 	u_char rnd[256];
+	sigset_t nsigset, osigset;
 
 	/* setup fd set for accept */
 	fdset = NULL;
@@ -1155,10 +1156,31 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 		startup_pipes[i] = -1;
 
 	/*
+	 * Prepare signal mask that we use to block signals that might set
+	 * received_sigterm or received_sighup, so that we are guaranteed
+	 * to immediately wake up the pselect if a signal is received after
+	 * the flag is checked.
+	 */
+	sigemptyset(&nsigset);
+	sigaddset(&nsigset, SIGHUP);
+	sigaddset(&nsigset, SIGCHLD);
+	sigaddset(&nsigset, SIGTERM);
+	sigaddset(&nsigset, SIGQUIT);
+
+	/*
 	 * Stay listening for connections until the system crashes or
 	 * the daemon is killed with a signal.
 	 */
 	for (;;) {
+		sigprocmask(SIG_BLOCK, &nsigset, &osigset);
+		if (received_sigterm) {
+			logit("Received signal %d; terminating.",
+			    (int) received_sigterm);
+			close_listen_socks();
+			if (options.pid_file != NULL)
+				unlink(options.pid_file);
+			exit(received_sigterm == SIGTERM ? 0 : 255);
+		}
 		if (ostartups != startups) {
 			setproctitle("%s [listener] %d of %d-%d startups",
 			    listener_proctitle, startups,
@@ -1171,8 +1193,10 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				close_listen_socks();
 				lameduck = 1;
 			}
-			if (listening <= 0)
+			if (listening <= 0) {
+				sigprocmask(SIG_SETMASK, &osigset, NULL);
 				sighup_restart();
+			}
 		}
 		free(fdset);
 		fdset = xcalloc(howmany(maxfd + 1, NFDBITS),
@@ -1184,19 +1208,12 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			if (startup_pipes[i] != -1)
 				FD_SET(startup_pipes[i], fdset);
 
-		/* Wait in select until there is a connection. */
-		ret = select(maxfd+1, fdset, NULL, NULL, NULL);
+		/* Wait until a connection arrives or a child exits. */
+		ret = pselect(maxfd+1, fdset, NULL, NULL, NULL, &osigset);
 		if (ret == -1 && errno != EINTR)
-			error("select: %.100s", strerror(errno));
-		if (received_sigterm) {
-			logit("Received signal %d; terminating.",
-			    (int) received_sigterm);
-			close_listen_socks();
-			if (options.pid_file != NULL)
-				unlink(options.pid_file);
-			exit(received_sigterm == SIGTERM ? 0 : 255);
-		}
-		if (ret == -1)
+			error("pselect: %.100s", strerror(errno));
+		sigprocmask(SIG_SETMASK, &osigset, NULL);
+		if (received_sigterm)
 			continue;
 
 		for (i = 0; i < options.max_startups; i++) {
