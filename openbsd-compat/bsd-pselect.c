@@ -60,13 +60,13 @@ static sighandler_t saved_sighandler[_NSIG];
 static int
 notify_setup_fd(int *fd)
 {
-       int r;
+	int r;
 
-       if ((r = fcntl(*fd, F_DUPFD, REEXEC_MIN_FREE_FD)) < 0 ||
-           fcntl(r, F_SETFD, FD_CLOEXEC) < 0 || r >= FD_SETSIZE)
-               return -1;
-       (void)close(*fd);
-       return (*fd = r);
+	if ((r = fcntl(*fd, F_DUPFD, REEXEC_MIN_FREE_FD)) < 0 ||
+	    fcntl(r, F_SETFD, FD_CLOEXEC) < 0 || r >= FD_SETSIZE)
+		return -1;
+	(void)close(*fd);
+	return (*fd = r);
 }
 
 /*
@@ -77,58 +77,58 @@ static int notify_pipe[2];
 static void
 notify_setup(void)
 {
-       static int initialized;
+	static int initialized;
 
-       if (initialized)
-               return;
-       if (pipe(notify_pipe) == -1) {
-               error("pipe(notify_pipe) failed %s", strerror(errno));
-       } else if (notify_setup_fd(&notify_pipe[0]) == -1 ||
-           notify_setup_fd(&notify_pipe[1]) == -1) {
-               error("fcntl(notify_pipe, ...) failed %s", strerror(errno));
-               close(notify_pipe[0]);
-               close(notify_pipe[1]);
-       } else {
-               set_nonblock(notify_pipe[0]);
-               set_nonblock(notify_pipe[1]);
-               initialized = 1;
-               return;
-       }
-       notify_pipe[0] = -1;    /* read end */
-       notify_pipe[1] = -1;    /* write end */
+	if (initialized)
+		return;
+	if (pipe(notify_pipe) == -1) {
+		error("pipe(notify_pipe) failed %s", strerror(errno));
+	} else if (notify_setup_fd(&notify_pipe[0]) == -1 ||
+	    notify_setup_fd(&notify_pipe[1]) == -1) {
+		error("fcntl(notify_pipe, ...) failed %s", strerror(errno));
+		close(notify_pipe[0]);
+		close(notify_pipe[1]);
+	} else {
+		set_nonblock(notify_pipe[0]);
+		set_nonblock(notify_pipe[1]);
+		initialized = 1;
+		return;
+	}
+	notify_pipe[0] = -1;    /* read end */
+	notify_pipe[1] = -1;    /* write end */
 }
 static void
 notify_parent(void)
 {
-       if (notify_pipe[1] != -1)
-               (void)write(notify_pipe[1], "", 1);
+	if (notify_pipe[1] != -1)
+		(void)write(notify_pipe[1], "", 1);
 }
 static void
 notify_prepare(fd_set *readset)
 {
-       if (notify_pipe[0] != -1)
-               FD_SET(notify_pipe[0], readset);
+	if (notify_pipe[0] != -1)
+		FD_SET(notify_pipe[0], readset);
 }
 static void
 notify_done(fd_set *readset)
 {
-       char c;
+	char c;
 
-       if (notify_pipe[0] != -1 && FD_ISSET(notify_pipe[0], readset))
-               while (read(notify_pipe[0], &c, 1) != -1)
-                       debug2_f("reading");
+	if (notify_pipe[0] != -1 && FD_ISSET(notify_pipe[0], readset))
+		while (read(notify_pipe[0], &c, 1) != -1)
+			debug2_f("reading");
 }
 
 /*ARGSUSED*/
 static void
 sig_handler(int sig)
 {
-       int save_errno = errno;
+	int save_errno = errno;
 
-       notify_parent();
-       if (saved_sighandler[sig] != NULL)
-               (*saved_sighandler[sig])(sig);  /* call original handler */
-       errno = save_errno;
+	notify_parent();
+	if (saved_sighandler[sig] != NULL)
+		(*saved_sighandler[sig])(sig);  /* call original handler */
+	errno = save_errno;
 }
 
 /*
@@ -139,50 +139,50 @@ int
 pselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
     const struct timespec *timeout, const sigset_t *mask)
 {
-       int ret, sig, saved_errno, unmasked = 0;
-       sigset_t osig;
-       struct sigaction sa, osa;
-       struct timeval tv, *tvp = NULL;
+	int ret, sig, saved_errno, unmasked = 0;
+	sigset_t osig;
+	struct sigaction sa, osa;
+	struct timeval tv, *tvp = NULL;
 
-       if (timeout != NULL) {
-               tv.tv_sec = timeout->tv_sec;
-               tv.tv_usec = timeout->tv_nsec / 1000;
-               tvp = &tv;
-       }
-       if (mask == NULL)  /* no signal mask, just call select */
-               return select(nfds, readfds, writefds, exceptfds, tvp);
+	if (timeout != NULL) {
+		tv.tv_sec = timeout->tv_sec;
+		tv.tv_usec = timeout->tv_nsec / 1000;
+		tvp = &tv;
+	}
+	if (mask == NULL)  /* no signal mask, just call select */
+		return select(nfds, readfds, writefds, exceptfds, tvp);
 
-       /* For each signal we're unmasking, install our handler if needed. */
-       for (sig = 0; sig < _NSIG; sig++) {
-               if (sig == SIGKILL || sig == SIGSTOP || sigismember(mask, sig))
-                       continue;
-               if (sigaction(sig, NULL, &sa) == 0 &&
-                   sa.sa_handler != SIG_IGN && sa.sa_handler != SIG_DFL &&
-                   sa.sa_handler != sig_handler) {
-                       sa.sa_handler = sig_handler;
-                       if (sigaction(sig, &sa, &osa) == 0) {
-                               debug3_f("installing signal handler for %s, "
-                                   "previous %p", strsignal(sig),
-                                    osa.sa_handler);
-                               saved_sighandler[sig] = osa.sa_handler;
-                               unmasked = 1;
-                       }
-               }
-       }
-       if (unmasked) {
-               notify_setup();
-               notify_prepare(readfds);
-               nfds = MAX(nfds, notify_pipe[0]);
-       }
+	/* For each signal we're unmasking, install our handler if needed. */
+	for (sig = 0; sig < _NSIG; sig++) {
+		if (sig == SIGKILL || sig == SIGSTOP || sigismember(mask, sig))
+			continue;
+		if (sigaction(sig, NULL, &sa) == 0 &&
+		    sa.sa_handler != SIG_IGN && sa.sa_handler != SIG_DFL &&
+		    sa.sa_handler != sig_handler) {
+			sa.sa_handler = sig_handler;
+			if (sigaction(sig, &sa, &osa) == 0) {
+				debug3_f("installing signal handler for %s, "
+				    "previous %p", strsignal(sig),
+				     osa.sa_handler);
+				saved_sighandler[sig] = osa.sa_handler;
+				unmasked = 1;
+			}
+		}
+	}
+	if (unmasked) {
+		notify_setup();
+		notify_prepare(readfds);
+		nfds = MAX(nfds, notify_pipe[0]);
+	}
 
-       /* Unmask signals, call select then restore signal mask. */
-       sigprocmask(SIG_SETMASK, mask, &osig);
-       ret = select(nfds, readfds, writefds, exceptfds, tvp);
-       saved_errno = errno;
-       sigprocmask(SIG_SETMASK, &osig, NULL);
+	/* Unmask signals, call select then restore signal mask. */
+	sigprocmask(SIG_SETMASK, mask, &osig);
+	ret = select(nfds, readfds, writefds, exceptfds, tvp);
+	saved_errno = errno;
+	sigprocmask(SIG_SETMASK, &osig, NULL);
 
-       notify_done(readfds);
-       errno = saved_errno;
-       return ret;
+	notify_done(readfds);
+	errno = saved_errno;
+	return ret;
 }
 #endif
