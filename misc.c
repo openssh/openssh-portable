@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.164 2021/04/03 06:18:40 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.165 2021/06/04 05:02:40 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2670,4 +2670,19 @@ subprocess(const char *tag, const char *command,
 	if (child != NULL)
 		*child = f;
 	return pid;
+}
+
+const char *
+lookup_env_in_list(const char *env, char * const *envs, size_t nenvs)
+{
+	size_t i, envlen;
+
+	envlen = strlen(env);
+	for (i = 0; i < nenvs; i++) {
+		if (strncmp(envs[i], env, envlen) == 0 &&
+		    envs[i][envlen] == '=') {
+			return envs[i] + envlen + 1;
+		}
+	}
+	return NULL;
 }

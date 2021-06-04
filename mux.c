@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.88 2021/05/19 01:24:05 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.89 2021/06/04 05:02:40 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1866,7 +1866,7 @@ mux_client_request_session(int fd)
 {
 	struct sshbuf *m;
 	char *e;
-	const char *term;
+	const char *term = NULL;
 	u_int echar, rid, sid, esid, exitval, type, exitval_seen;
 	extern char **environ;
 	int r, i, rawmode;
@@ -1883,8 +1883,10 @@ mux_client_request_session(int fd)
 	if (stdin_null_flag && stdfd_devnull(1, 0, 0) == -1)
 		fatal_f("stdfd_devnull failed");
 
-	if ((term = getenv("TERM")) == NULL)
-		term = "";
+	if ((term = lookup_env_in_list("TERM", options.setenv,
+	    options.num_setenv)) == NULL || *term == '\0')
+		term = getenv("TERM");
+
 	echar = 0xffffffff;
 	if (options.escape_char != SSH_ESCAPECHAR_NONE)
 	    echar = (u_int)options.escape_char;
@@ -1899,7 +1901,7 @@ mux_client_request_session(int fd)
 	    (r = sshbuf_put_u32(m, options.forward_agent)) != 0 ||
 	    (r = sshbuf_put_u32(m, subsystem_flag)) != 0 ||
 	    (r = sshbuf_put_u32(m, echar)) != 0 ||
-	    (r = sshbuf_put_cstring(m, term)) != 0 ||
+	    (r = sshbuf_put_cstring(m, term == NULL ? "" : term)) != 0 ||
 	    (r = sshbuf_put_stringb(m, command)) != 0)
 		fatal_fr(r, "request");
 

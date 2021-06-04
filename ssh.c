@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.557 2021/05/19 01:24:05 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.558 2021/06/04 05:02:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2018,7 +2018,7 @@ static void
 ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 {
 	extern char **environ;
-	const char *display;
+	const char *display, *term;
 	int r, interactive = tty_flag;
 	char *proto = NULL, *data = NULL;
 
@@ -2053,7 +2053,10 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 	ssh_packet_set_interactive(ssh, interactive,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 
-	client_session2_setup(ssh, id, tty_flag, subsystem_flag, getenv("TERM"),
+	if ((term = lookup_env_in_list("TERM", options.setenv,
+	    options.num_setenv)) == NULL || *term == '\0')
+		term = getenv("TERM");
+	client_session2_setup(ssh, id, tty_flag, subsystem_flag, term,
 	    NULL, fileno(stdin), command, environ);
 }
 
