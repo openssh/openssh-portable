@@ -95,7 +95,7 @@ int rresvport_af(int *alport, sa_family_t af);
 #endif
 
 #ifndef HAVE_STRLCPY
-size_t strlcpy(char *dst, const char *src, size_t siz);
+size_t strlcpy(char * restrict dst, const char * restrict src, size_t siz);
 #endif
 
 #ifndef HAVE_STRLCAT
@@ -119,7 +119,7 @@ int setenv(register const char *name, register const char *value, int rewrite);
 #endif
 
 #ifndef HAVE_STRMODE
-void strmode(int mode, char *p);
+void strmode(mode_t mode, char *p);
 #endif
 
 #ifndef HAVE_STRPTIME

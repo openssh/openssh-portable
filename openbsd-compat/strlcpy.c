@@ -30,29 +30,28 @@
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
 size_t
-strlcpy(char *dst, const char *src, size_t siz)
+strlcpy(char * restrict dst, const char * restrict src, size_t siz)
 {
-	char *d = dst;
-	const char *s = src;
-	size_t n = siz;
+	const char * const s = src;
+	const size_t n = siz;
 
 	/* Copy as many bytes as will fit */
-	if (n != 0) {
-		while (--n != 0) {
-			if ((*d++ = *s++) == '\0')
+	if (siz != 0) {
+		while (--siz != 0) {
+			if ((*dst++ = *src++) == '\0')
 				break;
 		}
 	}
 
 	/* Not enough room in dst, add NUL and traverse rest of src */
-	if (n == 0) {
-		if (siz != 0)
-			*d = '\0';		/* NUL-terminate dst */
-		while (*s++)
+	if (siz == 0) {
+		if (n != 0)
+			*dst = '\0';		/* NUL-terminate dst */
+		while (*src++)
 			;
 	}
 
-	return(s - src - 1);	/* count does not include NUL */
+	return(src - s - 1);	/* count does not include NUL */
 }
 
 #endif /* !HAVE_STRLCPY */
