@@ -32,31 +32,31 @@
  * If retval >= siz, truncation occurred.
  */
 size_t
-strlcat(char *dst, const char *src, size_t siz)
+strlcat(char * __restrict dst, const char * __restrict src, size_t siz)
 {
-	char *d = dst;
-	const char *s = src;
-	size_t n = siz;
+	char * const d = dst;
+	const char * const s = src;
+	const size_t n = siz;
 	size_t dlen;
 
 	/* Find the end of dst and adjust bytes left but don't go past end */
-	while (n-- != 0 && *d != '\0')
-		d++;
-	dlen = d - dst;
-	n = siz - dlen;
+	while (siz-- != 0 && *dst != '\0')
+		dst++;
+	dlen = dst - d;
+	siz = n - dlen;
 
-	if (n == 0)
-		return(dlen + strlen(s));
-	while (*s != '\0') {
-		if (n != 1) {
-			*d++ = *s;
-			n--;
+	if (siz == 0)
+		return(dlen + strlen(src));
+	while (*src != '\0') {
+		if (siz != 1) {
+			*dst++ = *src;
+			siz--;
 		}
-		s++;
+		src++;
 	}
-	*d = '\0';
+	*dst = '\0';
 
-	return(dlen + (s - src));	/* count does not include NUL */
+	return(dlen + (src - s));	/* count does not include NUL */
 }
 
 #endif /* !HAVE_STRLCAT */
