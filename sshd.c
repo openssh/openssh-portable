@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.574 2021/06/04 05:09:08 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.575 2021/06/06 11:34:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1934,7 +1934,7 @@ main(int ac, char **av)
 		/* Find matching private key */
 		for (j = 0; j < options.num_host_key_files; j++) {
 			if (sshkey_equal_public(key,
-			    sensitive_data.host_keys[j])) {
+			    sensitive_data.host_pubkeys[j])) {
 				sensitive_data.host_certificates[j] = key;
 				break;
 			}
