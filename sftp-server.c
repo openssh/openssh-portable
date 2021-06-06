@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.127 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.128 2021/06/06 03:15:39 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -157,7 +157,7 @@ static const struct sftp_handler extended_handlers[] = {
 	{ "hardlink", "hardlink@openssh.com", 0, process_extended_hardlink, 1 },
 	{ "fsync", "fsync@openssh.com", 0, process_extended_fsync, 1 },
 	{ "lsetstat", "lsetstat@openssh.com", 0, process_extended_lsetstat, 1 },
-	{ "limits", "limits@openssh.com", 0, process_extended_limits, 1 },
+	{ "limits", "limits@openssh.com", 0, process_extended_limits, 0 },
 	{ NULL, NULL, 0, NULL, 0 }
 };
 
