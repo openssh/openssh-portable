@@ -29,6 +29,13 @@ jobs:
       run: vmrun "cd /usr/src/usr.bin/ssh && sudo make install"
     - name: make tests
       run: vmrun "cd /usr/src/regress/usr.bin/ssh && make obj && make clean &&  SUDO=sudo make"
+    - name: save logs
+      if: failure()
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}-logs
+        path: |
+          /usr/obj/regress/usr.bin/ssh/*.log
     - name: shutdown VM
       if: always()
       run: vmshutdown
