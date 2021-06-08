@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.356 2021/06/08 07:07:15 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.357 2021/06/08 22:06:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1243,6 +1243,7 @@ parse_string:
 		max_entries = SSH_MAX_HOSTS_FILES;
 parse_char_array:
 		i = 0;
+		value = *uintptr == 0; /* was array empty when we started? */
 		while ((arg = argv_next(&ac, &av)) != NULL) {
 			if (*arg == '\0') {
 				error("%s line %d: keyword %s empty argument",
@@ -1259,7 +1260,7 @@ parse_char_array:
 				}
 			}
 			i++;
-			if (*activep && *uintptr == 0) {
+			if (*activep && value) {
 				if ((*uintptr) >= max_entries) {
 					error("%s line %d: too many %s "
 					    "entries.", filename, linenum,
