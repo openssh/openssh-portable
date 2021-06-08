@@ -1,4 +1,4 @@
-#	$OpenBSD: sshcfgparse.sh,v 1.7 2021/02/24 23:12:35 dtucker Exp $
+#	$OpenBSD: sshcfgparse.sh,v 1.8 2021/06/08 06:51:47 djm Exp $
 #	Placed in the Public Domain.
 
 tid="ssh config parse"
@@ -32,7 +32,7 @@ expect_result_absent() {
 verbose "reparse minimal config"
 (${SSH} -G -F $OBJ/ssh_config somehost >$OBJ/ssh_config.1 &&
  ${SSH} -G -F $OBJ/ssh_config.1 somehost >$OBJ/ssh_config.2 &&
- diff $OBJ/ssh_config.1 $OBJ/ssh_config.2) || fail "reparse minimal config"
+ diff $OBJ/ssh_config.1 $OBJ/ssh_config.2) || fail "failed to reparse minimal"
 
 verbose "ssh -W opts"
 f=`${SSH} -GF $OBJ/ssh_config host | awk '/exitonforwardfailure/{print $2}'`
