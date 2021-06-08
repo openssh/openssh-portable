@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.354 2021/05/23 18:22:57 naddy Exp $ */
+/* $OpenBSD: readconf.c,v 1.355 2021/06/08 07:02:46 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1742,7 +1742,7 @@ parse_pubkey_algos:
 			    filename, linenum);
 			return -1;
 		}
-		if (*activep) {
+		if (*activep && options->tun_local == -1) {
 			options->tun_local = value;
 			options->tun_remote = value2;
 		}
@@ -1850,7 +1850,7 @@ parse_pubkey_algos:
 			    filename, linenum, arg);
 			return -1;
 		}
-		if (*activep) {
+		if (*activep && options->ip_qos_interactive == -1) {
 			options->ip_qos_interactive = value;
 			options->ip_qos_bulk = value2;
 		}
