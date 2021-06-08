@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.352 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.353 2021/06/08 06:54:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -865,7 +865,7 @@ load_hostkeys_command(struct hostkeys *hostkeys, const char *command_template,
 	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
 
 	/* Turn the command into an argument vector */
-	if (argv_split(command_template, &ac, &av) != 0) {
+	if (argv_split(command_template, &ac, &av, 0) != 0) {
 		error("%s \"%s\" contains invalid quotes", tag,
 		    command_template);
 		goto out;

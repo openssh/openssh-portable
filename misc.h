@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.96 2021/06/04 05:02:40 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.97 2021/06/08 06:54:40 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -45,6 +45,7 @@ struct ForwardOptions {
 /* misc.c */
 
 char	*chop(char *);
+void	 rtrim(char *);
 void	skip_space(char **);
 char	*strdelim(char **);
 char	*strdelimw(char **);
@@ -178,8 +179,12 @@ void	 child_set_env(char ***envp, u_int *envsizep, const char *name,
 const char *lookup_env_in_list(const char *env,
 	    char * const *envs, size_t nenvs);
 
-int	 argv_split(const char *, int *, char ***);
+int	 argv_split(const char *, int *, char ***, int);
 char	*argv_assemble(int, char **argv);
+char	*argv_next(int *, char ***);
+void	 argv_consume(int *);
+void	 argv_free(char **, int);
+
 int	 exited_cleanly(pid_t, const char *, const char *, int);
 
 struct stat;
