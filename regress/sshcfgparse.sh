@@ -1,4 +1,4 @@
-#	$OpenBSD: sshcfgparse.sh,v 1.8 2021/06/08 06:51:47 djm Exp $
+#	$OpenBSD: sshcfgparse.sh,v 1.9 2021/06/08 07:05:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="ssh config parse"
@@ -103,6 +103,17 @@ f=`${SSH} -GF none -oforwardagent=yes host | awk '/^forwardagent /{print$2}'`
 expect_result_present "$f" "yes"
 f=`${SSH} -GF none '-oforwardagent=SSH_AUTH_SOCK.forward' host | awk '/^forwardagent /{print$2}'`
 expect_result_present "$f" "SSH_AUTH_SOCK.forward"
+
+verbose "command line override"
+cat >$OBJ/ssh_config.0 <<EOD
+Host *
+    IPQoS af21 cs1
+    TunnelDevice 1:2
+EOD
+f=`${SSH} -GF $OBJ/ssh_config.0 -oipqos=cs1 host | awk '/^ipqos /{print$2}'`
+expect_result_present "$f" "cs1"
+f=`${SSH} -GF $OBJ/ssh_config.0 -otunneldevice=3:4 host | awk '/^tunneldevice /{print$2}'`
+expect_result_present "$f" "3:4"
 
 # cleanup
 rm -f $OBJ/ssh_config.[012]
