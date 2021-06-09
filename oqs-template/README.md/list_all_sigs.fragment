@@ -1,4 +1,4 @@
 {%- for family, sigs in (config['sigs'] | selectattr('family') | groupby('family')) %}
-- **{{ family }}**: {% for sig in sigs -%}  `{{ sig['name']|replace('_','') }}` {%- if sig['enable'] -%} * {%- endif -%} {%- if not loop.last %}, {% endif -%} {%- endfor -%}
+- **{{ family }}**: {% for sig in sigs -%}  `{{ sig['name']|replace('_','') }}` {%- if sig['enable'] -%} \* {%- endif -%} {%- if not loop.last %}, {% endif -%} {%- endfor -%}
 {%- endfor %}
 

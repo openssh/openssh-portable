@@ -34,7 +34,7 @@ This fork is currently based on OpenSSH version **8.4** (Git tag V_8_4_P1); rele
 
 **WE DO NOT RECOMMEND RELYING ON THIS FORK TO PROTECT SENSITIVE DATA.**
 
-liboqs is provided "as is", without warranty of any kind.  See [LICENSE.txt](https://github.com/open-quantum-safe/liboqs/blob/master/LICENSE.txt) for the full disclaimer.
+liboqs is provided "as is", without warranty of any kind.  See [LICENSE.txt](https://github.com/open-quantum-safe/liboqs/blob/main/LICENSE.txt) for the full disclaimer.
 
 This fork implements the [draft-kampanakis-curdle-pq-ssh-00](https://datatracker.ietf.org/doc/draft-kampanakis-curdle-pq-ssh/) IETF draft for hybrid key exchange algorithms.
 
@@ -80,15 +80,15 @@ Note that algorithms marked with a dagger (†) have large stack usage and may c
 
 #### Digital Signature
 
-The following digital signature algorithms from liboqs are supported (assuming they have been enabled in liboqs). Note that only select L3 signature variants are enabled by default, and should you wish to enable additional variants, consult [the "Code Generation" section of the documentation in the wiki](https://github.com/open-quantum-safe/openssh/wiki/Using-liboqs-supported-algorithms-in-the-fork#code-generation). Note that enabling Rainbow will introduce a substantial execution delay to all operations. If doing it inadvertently, tests will fail and all kind of headaches occur. You have been warned.
+The following digital signature algorithms from liboqs are supported (assuming they have been enabled in liboqs). Note that only select L3 signature variants are enabled by default. In general, algorithms that are enabled by default are marked with an asterisk, and should you wish to enable additional variants, consult [the "Code Generation" section of the documentation in the wiki](https://github.com/open-quantum-safe/openssh/wiki/Using-liboqs-supported-algorithms-in-the-fork#code-generation). Note that enabling Rainbow will introduce a substantial execution delay to all operations. If doing it inadvertently, tests will fail and all kind of headaches occur. You have been warned.
 
 - `oqsdefault` (see [here](https://github.com/open-quantum-safe/openssh-portable/wiki/Using-liboqs-supported-algorithms-in-the-fork) for what this denotes)
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_SIGS_START -->
-- **Dilithium**: `dilithium2`, `dilithium3`*, `dilithium5`, `dilithium2aes`*, `dilithium3aes`, `dilithium5aes`*
-- **Falcon**: `falcon512`*, `falcon1024`*
-- **Picnic**: `picnicL1FS`, `picnicL1UR`, `picnicL1full`*, `picnicL3FS`*, `picnicL3UR`, `picnicL3full`, `picnicL5FS`, `picnicL5UR`, `picnicL5full`
+- **Dilithium**: `dilithium2`, `dilithium3`\*, `dilithium5`, `dilithium2aes`\*, `dilithium3aes`, `dilithium5aes`\*
+- **Falcon**: `falcon512`\*, `falcon1024`\*
+- **Picnic**: `picnicL1FS`, `picnicL1UR`, `picnicL1full`\*, `picnicL3FS`\*, `picnicL3UR`, `picnicL3full`, `picnicL5FS`, `picnicL5UR`, `picnicL5full`
 - **Rainbow**: `rainbowIclassic`, `rainbowIcircumzenithal`, `rainbowIcompressed`, `rainbowIIIclassic`, `rainbowIIIcircumzenithal`, `rainbowIIIcompressed`, `rainbowVclassic`, `rainbowVcircumzenithal`, `rainbowVcompressed`
-- **SPHINCS**: `sphincsharaka128frobust`, `sphincsharaka128fsimple`*, `sphincsharaka128srobust`, `sphincsharaka128ssimple`, `sphincssha256128frobust`, `sphincssha256128srobust`, `sphincssha256128fsimple`, `sphincssha256128ssimple`, `sphincsshake256128frobust`, `sphincsshake256128srobust`, `sphincsshake256128fsimple`, `sphincsshake256128ssimple`, `sphincsharaka192frobust`*, `sphincsharaka192srobust`, `sphincsharaka192fsimple`, `sphincsharaka192ssimple`, `sphincssha256192frobust`, `sphincssha256192srobust`, `sphincssha256192fsimple`, `sphincssha256192ssimple`, `sphincsshake256192frobust`, `sphincsshake256192srobust`, `sphincsshake256192fsimple`, `sphincsshake256192ssimple`, `sphincsharaka256frobust`, `sphincsharaka256srobust`, `sphincsharaka256fsimple`, `sphincsharaka256ssimple`, `sphincssha256256frobust`, `sphincssha256256srobust`, `sphincssha256256fsimple`, `sphincssha256256ssimple`, `sphincsshake256256frobust`, `sphincsshake256256srobust`, `sphincsshake256256fsimple`, `sphincsshake256256ssimple`
+- **SPHINCS**: `sphincsharaka128frobust`, `sphincsharaka128fsimple`\*, `sphincsharaka128srobust`, `sphincsharaka128ssimple`, `sphincssha256128frobust`, `sphincssha256128srobust`, `sphincssha256128fsimple`, `sphincssha256128ssimple`, `sphincsshake256128frobust`, `sphincsshake256128srobust`, `sphincsshake256128fsimple`, `sphincsshake256128ssimple`, `sphincsharaka192frobust`\*, `sphincsharaka192srobust`, `sphincsharaka192fsimple`, `sphincsharaka192ssimple`, `sphincssha256192frobust`, `sphincssha256192srobust`, `sphincssha256192fsimple`, `sphincssha256192ssimple`, `sphincsshake256192frobust`, `sphincsshake256192srobust`, `sphincsshake256192fsimple`, `sphincsshake256192ssimple`, `sphincsharaka256frobust`, `sphincsharaka256srobust`, `sphincsharaka256fsimple`, `sphincsharaka256ssimple`, `sphincssha256256frobust`, `sphincssha256256srobust`, `sphincssha256256fsimple`, `sphincssha256256ssimple`, `sphincsshake256256frobust`, `sphincsshake256256srobust`, `sphincsshake256256fsimple`, `sphincsshake256256ssimple`
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_SIGS_END -->
 
 
