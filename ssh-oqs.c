@@ -47,6 +47,8 @@ static int ssh_generic_sign(OQS_SIG *oqs_sig,
   size_t slen = 0, len;
   int r;
   struct sshbuf *b = NULL;
+  struct sshbuf *ssh_algname = NULL;
+  char *ssh_algname_str = NULL;
 
   if (lenp != NULL)
     *lenp = 0;
@@ -72,8 +74,16 @@ static int ssh_generic_sign(OQS_SIG *oqs_sig,
     goto out;
   }
 
-  if ((r = sshbuf_put_cstring(b, "ssh-")) != 0 ||
-      (r = sshbuf_put_cstring(b, alg_pretty_name)) != 0 ||
+  if ((ssh_algname = sshbuf_new()) == NULL) {
+    r = SSH_ERR_ALLOC_FAIL;
+    goto out;
+  }
+  if ((r = sshbuf_putf(ssh_algname, "%s-%s", "ssh", alg_pretty_name)) != 0 ||
+      (ssh_algname_str = sshbuf_dup_string(ssh_algname)) == NULL) {
+      goto out;
+  }
+
+  if ((r = sshbuf_put_cstring(b, ssh_algname_str)) != 0 ||
       (r = sshbuf_put_string(b, sig, slen)) != 0)
     goto out;
 
@@ -93,6 +103,8 @@ static int ssh_generic_sign(OQS_SIG *oqs_sig,
 
 out:
   sshbuf_free(b);
+  sshbuf_free(ssh_algname);
+  free(ssh_algname_str);
   if (sig != NULL)
     freezero(sig, slen);
   return r;
@@ -108,8 +120,9 @@ static int ssh_generic_verify(OQS_SIG *oqs_sig,
                               u_int compat)
 {
   struct sshbuf *b = NULL;
-  char *ktype = NULL;
-  char *algnameprefix = NULL;
+  char *algname = NULL;
+  struct sshbuf *algname_expected = NULL;
+  char *algname_expected_str = NULL;
   const u_char *sigblob;
   size_t slen;
   int r;
@@ -122,13 +135,20 @@ static int ssh_generic_verify(OQS_SIG *oqs_sig,
   if ((b = sshbuf_from(signature, signaturelen)) == NULL)
     return SSH_ERR_ALLOC_FAIL;
 
-  if ((r = sshbuf_get_cstring(b, &algnameprefix, NULL)) != 0 ||
-      (r = sshbuf_get_cstring(b, &ktype, NULL)) != 0 ||
+  if ((r = sshbuf_get_cstring(b, &algname, NULL)) != 0 ||
       (r = sshbuf_get_string_direct(b, &sigblob, &slen)) != 0)
     goto out;
 
-  if ((strcmp("ssh-", algnameprefix) != 0) ||
-      (strcmp(alg_pretty_name, ktype) != 0)) {
+  if ((algname_expected = sshbuf_new()) == NULL) {
+    r = SSH_ERR_ALLOC_FAIL;
+    goto out;
+  }
+  if ((r = sshbuf_putf(algname_expected, "%s-%s", "ssh", alg_pretty_name)) != 0 ||
+      (algname_expected_str = sshbuf_dup_string(algname_expected)) == NULL) {
+      goto out;
+  }
+
+  if (strcmp(algname, algname_expected_str) != 0) {
     r = SSH_ERR_KEY_TYPE_MISMATCH;
     goto out;
   }
@@ -152,7 +172,8 @@ static int ssh_generic_verify(OQS_SIG *oqs_sig,
 
 out:
   sshbuf_free(b);
-  free(ktype);
+  sshbuf_free(algname_expected);
+  free(algname_expected_str);
   return r;
 }
 

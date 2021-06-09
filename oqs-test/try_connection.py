@@ -156,10 +156,12 @@ sigs = [
 ]
 
 def do_handshake(ssh, sshd, test_sig, test_kex):
-    sshd_process = subprocess.Popen([sshd, 
+    sshd_process = subprocess.Popen([sshd,
                                     '-f', os.path.abspath('regress/sshd_config'),
                                     "-o", "KexAlgorithms={}".format(test_kex),
                                     "-o", "HostKeyAlgorithms={}".format(test_sig),
+                                    "-o", "PubkeyAcceptedKeyTypes={}".format(test_sig),
+                                    "-h", os.path.abspath("regress/host.{}".format(test_sig)),
                                     '-D'],
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT)
@@ -171,6 +173,9 @@ def do_handshake(ssh, sshd, test_sig, test_kex):
     ssh_process = subprocess.run([ssh,
                                  '-F', os.path.abspath('regress/ssh_config'),
                                  "-o", "HostKeyAlgorithms={}".format(test_sig),
+                                 "-o", "PubkeyAcceptedKeyTypes={}".format(test_sig),
+                                 "-o", "PasswordAuthentication=no",
+                                 "-i", os.path.abspath("regress/{}".format(test_sig)),
                                  'somehost', 'true'],
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT)

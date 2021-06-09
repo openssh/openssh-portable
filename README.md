@@ -112,61 +112,39 @@ On **Ubuntu**, you need to install the following packages:
 
 On **Linux**, you also may need to do the following:
 
-- You may need to create the privilege separation directory:
+- Create the privilege separation directory:
 
 		sudo mkdir -p -m 0755 /var/empty
 
-- You may need to create the privilege separation user:
+- Create the privilege separation user:
 
 		sudo groupadd sshd
 		sudo useradd -g sshd -c 'sshd privsep' -d /var/empty -s /bin/false sshd
 
-On **macOS**, you need to install the following packages using brew (or a package manager of your choice):
-
-	brew install autoconf automake cmake libtool ninja openssl@1.1 wget
-
 ### Step 1: Build and install liboqs
 
-The following instructions install liboqs into a subdirectory inside the OpenSSH source. If `<OPENSSH_ROOT>` is the root of the OpenSSH source:
+The following instructions install liboqs into a subdirectory inside the OpenSSH source.
 
 ```
-git clone --branch master --single-branch --depth 1 https://github.com/open-quantum-safe/liboqs.git
-cd liboqs
-mkdir build && cd build
-cmake .. -GNinja -DOQS_ENABLE_SIG_PICNIC=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=<OPENSSH_ROOT>/oqs
-ninja
-ninja install
+./oqs-scripts/clone_liboqs.sh
+./oqs-scripts/build_liboqs.sh
 ```
 
-Building liboqs requires your system to have OpenSSL 1.1.1 or higher already installed. It will automatically be detected if it in a standard location, such as `/usr` or `/usr/local/opt/openssl@1.1` (for brew on macOS).  Otherwise, you may need to specify it with `-DOPENSSL_ROOT_DIR=<path-to-system-openssl-dir>` added to the `cmake` command.
+Building liboqs requires your system to have OpenSSL 1.1.1 or higher already installed. It will automatically be detected if it is under `/usr` or another standard location.  Otherwise, you may need to specify it with `-DOPENSSL_ROOT_DIR=<path-to-system-openssl-dir>` added to the `cmake` command.
 
 ### Step 2: Build the fork
 
-In `<OPENSSH_ROOT>`, first run:
+Run the following:
 
 ```
-export OPENSSH_INSTALL=<path-to-install-openssh>
-autoreconf
+env OPENSSL_SYS_DIR=<PATH_TO_OPENSSL> ./oqs-scripts/build_openssh.sh
 ```
 
-Then, run the following:
+`OPENSSL_SYS_DIR` does not have to be specified if OpenSSL is present under `/usr`.
 
-	./configure --with-ssl-dir=<path-to-openssl>/include \
-	            --with-ldflags=-L<path-to-openssl>/lib   \
-	            --with-libs=-lm                          \
-	            --prefix=$OPENSSH_INSTALL                \
-	            --sysconfdir=$OPENSSH_INSTALL            \
-	            --with-liboqs-dir=`pwd`/oqs
-	make 
-	make install
+As not all tests in the stock regression suite pass, run `oqs-test/run_tests.sh` instead of simply executing `make tests` to ensure the build was successful.
 
-Again, the `path-to-openssl` (1.1.1) does not need to be specified if it is in one of the standard locations.
-
-So, in summary, if OpenSSL is installed in a default location and `oqs-openssh` is to be installed in `/opt/openssh` this command builds and installs `oqs-openssh`: `export OPENSSH_INSTALL=/opt/openssh && autoreconf && ./configure --with-libs=-lm --prefix=$OPENSSH_INSTALL --sysconfdir=$OPENSSH_INSTALL --with-liboqs-dir=`pwd`/oqs && make && make install`
-
-As not all stock `openssh` tests are passing, be sure to execute `oqs-test/run_tests.sh` instead of simply executing `make tests` to ensure the build was successful.
-
-To execute a connection test with one of the supported quantum-safe algorithms (chosen at random), run `python3 oqs-test/try_connection.py`. If all algorithms should be exercized, pass a parameter to this command, e.g., like this: `python3 oqs-test/try_connection.py all`. Be aware that this test can take a long time due to the number of algorithm combinations available.
+To execute a connection test with a randomly chosen key-exchange and signature algorithm, run `python3 oqs-test/try_connection.py`. If it is desired that each such combination be tested (exactly once), run `python3 oqs-test/try_connection.py all`. Be aware that the latter can take a long time due to the number of algorithm combinations available.
 
 ### Running OQS-OpenSSH
 
@@ -174,53 +152,42 @@ The following instructions explain how to establish an SSH connection that uses 
 
 #### Generating quantum-safe authentication keys
 
-To setup quantum-safe authentication, the server (and optionally, the client) need to generate quantum-safe keys. In what follows, `<SIG>` is one of the quantum-safe digital signature algorithms listed in [Supported Algorithms](#supported-algorithms) section above.
+To setup quantum-safe authentication, the server (and optionally, the client) need to generate quantum-safe keys. To generate keys for all the OQS algorithms supported by fork, simply run `make tests -e LTESTS=""`.
 
-The server generates its key files with the right permissions, and then generates its key pair:
+Keys for a particular `<SIG>` also be generated using the `ssh-keygen` command as follows:
 
-	mkdir ~/ssh_server/
-	chmod 700 ~/ssh_server/
-	touch ~/ssh_server/authorized_keys
-	chmod 600 ~/ssh_server/authorized_keys
-	<path-to-openssh>/bin/ssh-keygen -t ssh-<SIG> -f ~/ssh_server/id_<SIG>
-
-To enable client-side public-key authentication, the client generates its key pair:
-
-	mkdir ~/ssh_client/
-	<path-to-openssh>/bin/ssh-keygen -t ssh-<SIG> -f ~/ssh_client/id_<SIG>
-
-The server then adds the client's public key to its authorized keys
-
-	cat ~/ssh_client/id_<SIG>.pub >> ~/ssh_server/authorized_keys
+`<OPENSSH_SRC>/ssh-keygen -t ssh-<SIG> -f ~/ssh_client/id_<SIG>`
 
 #### Establishing a quantum-safe SSH connection
 
-In one terminal, run a server:
+Let `<OPENSSH_SRC>` denote the absolute path to the directory in which this source is present.
 
-	<path-to-openssh>/sbin/sshd -p 2222 -d \
-	                            -o KexAlgorithms=<KEX> \
-	                            -o AuthorizedKeysFile=<absolute-path-to>/ssh_server/authorized_keys \
-	                            -o HostKeyAlgorithms=ssh-<SIG> \
-	                            -o PubkeyAcceptedKeyTypes=ssh-<SIG> \
-	                            -h <absolute-path-to>/ssh_server/id_<SIG>
+In one terminal, run the ssh server:
+
+	<OPENSSH_SRC>/sshd -D \
+	                   -f <OPENSSH_SRC>/regress/sshd_config \
+	                   -o KexAlgorithms=<KEX> \
+	                   -o HostKeyAlgorithms=ssh-<SIG> \
+	                   -o PubkeyAcceptedKeyTypes=ssh-<SIG> \
+	                   -h <OPENSSH_SRC>/regress/host.ssh-<SIG>
 
 `<KEX>` and `<SIG>` are respectively one of the key exchange and signature (PQ-only or hybrid) algorithms listed in the [Supported Algorithms](#supported-algorithms) section above.
 
 The `-o` options can also be added to the server/client configuration file instead of being specified on the command line.
 
-The server automatically supports all available hybrid and PQ-only key exchange algorithms.  `sudo` is required on Linux so that sshd can read the shadow password file.
+In another terminal, run the ssh client:
 
-In another terminal, run a client:
+	<OPENSSH_SRC>/ssh -F <OPENSSH_SRC>/regress/ssh_config \
+	                  -o KexAlgorithms=<KEX> \
+	                  -o HostKeyAlgorithms=ssh-<SIG>\
+	                  -o PubkeyAcceptedKeyTypes=ssh-<SIG> \
+	                  -o PasswordAuthentication=no \
+	                  -i regress/ssh-<SIG> \
+	                  somehost true
 
-	<path-to-openssh>/bin/ssh -p 2222 localhost \
-	                          -o KexAlgorithms=<KEX> \
-	                          -o HostKeyAlgorithms=ssh-<SIG>\
-	                          -o PubkeyAcceptedKeyTypes=ssh-<SIG> \
-	                          -o StrictHostKeyChecking=no \
-	                          -o PasswordAuthentication=no \
-	                          -i ~/ssh_client/id_<SIG>
+The `PasswordAuthentication` option is used to ensure the test server does not fall back to password authentication if public key authentication fails for some reason.
 
-The `StrictHostKeyChecking` option is used to allow trusting the newly generated server key; alternatively, the key could be added manually to the client's trusted keys. The `PasswordAuthentication` option is used to ensure the test server does not fall back to password authentication if public key authentication fails for some reason.
+The -o options can also be added to the `regress/{ssh|sshd}_config` client/server configuration files instead of being specified on the command line.
 
 ## Contributing
 

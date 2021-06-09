@@ -8,7 +8,7 @@
 
 set -exo pipefail
 
-PREFIX=${PREFIX:-"`pwd`/oqs-test/tmp"}
+INSTALL_PREFIX=${INSTALL_PREFIX:-"`pwd`/oqs-test/tmp"}
 WITH_OPENSSL=${WITH_OPENSSL:-"true"}
 
 case "$OSTYPE" in
@@ -24,9 +24,9 @@ else
 fi
 
 if [ "x${WITH_OPENSSL}" == "xtrue" ]; then
-    ./configure --prefix="${PREFIX}" --with-ldflags="-Wl,-rpath -Wl,${PREFIX}/lib" --with-libs=-lm --with-ssl-dir="${OPENSSL_SYS_DIR}" --with-liboqs-dir="`pwd`/oqs" --with-cflags="-Wno-implicit-function-declaration -I${PREFIX}/include" --sysconfdir="${PREFIX}"
+    ./configure --prefix="${INSTALL_PREFIX}" --with-ldflags="-Wl,-rpath -Wl,${INSTALL_PREFIX}/lib" --with-libs=-lm --with-ssl-dir="${OPENSSL_SYS_DIR}" --with-liboqs-dir="`pwd`/oqs" --with-cflags="-Wno-implicit-function-declaration -I${INSTALL_PREFIX}/include" --sysconfdir="${INSTALL_PREFIX}"
 else
-    ./configure --prefix="${PREFIX}" --with-ldflags="-Wl,-rpath -Wl,${PREFIX}/lib" --with-libs=-lm --without-openssl --with-liboqs-dir="`pwd`/oqs" --with-cflags="-I${PREFIX}/include" --sysconfdir="${PREFIX}"
+    ./configure --prefix="${INSTALL_PREFIX}" --with-ldflags="-Wl,-rpath -Wl,${INSTALL_PREFIX}/lib" --with-libs=-lm --without-openssl --with-liboqs-dir="`pwd`/oqs" --with-cflags="-I${INSTALL_PREFIX}/include" --sysconfdir="${INSTALL_PREFIX}"
 fi
 if [ "x${CIRCLECI}" == "xtrue" ] || [ "x${TRAVIS}" == "xtrue" ]; then
     make -j2
