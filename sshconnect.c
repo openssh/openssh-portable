@@ -1346,7 +1346,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		 * XXX Should permit the user to change to use the new id.
 		 * This could be done by converting the host key to an
 		 * identifying sentence, tell that the host identifies itself
-		 * by that sentence, and ask the user if he/she wishes to
+		 * by that sentence, and ask the user if they wish to
 		 * accept the authentication.
 		 */
 		break;
