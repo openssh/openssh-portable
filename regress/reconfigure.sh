@@ -1,4 +1,4 @@
-#	$OpenBSD: reconfigure.sh,v 1.8 2021/06/10 09:43:51 dtucker Exp $
+#	$OpenBSD: reconfigure.sh,v 1.9 2021/06/10 09:46:28 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="simple connect after reconfigure"
@@ -45,7 +45,7 @@ fi
 trace "reconfigure with active clients"
 ${SSH} -F $OBJ/ssh_config somehost sleep 10  # authenticated client
 ${NC} -d 127.0.0.1 $PORT >/dev/null &  # unauthenticated client
-PID=`cat $PIDFILE`
+PID=`$SUDO cat $PIDFILE`
 rm -f $PIDFILE
 $SUDO kill -HUP $PID
 
