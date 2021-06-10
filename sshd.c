@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.575 2021/06/06 11:34:16 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.576 2021/06/10 03:14:14 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1213,7 +1213,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 		if (ret == -1 && errno != EINTR)
 			error("pselect: %.100s", strerror(errno));
 		sigprocmask(SIG_SETMASK, &osigset, NULL);
-		if (received_sigterm)
+		if (ret == -1)
 			continue;
 
 		for (i = 0; i < options.max_startups; i++) {
