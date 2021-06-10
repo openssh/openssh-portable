@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.81 2021/06/01 23:56:20 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.82 2021/06/10 09:37:59 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -601,7 +601,7 @@ for t in ${SSH_HOSTKEY_TYPES}; do
 	) >> $OBJ/known_hosts
 
 	# use key as host key, too
-	$SUDO cp $OBJ/$t $OBJ/host.$t
+	(umask 077; $SUDO cp $OBJ/$t $OBJ/host.$t)
 	echo HostKey $OBJ/host.$t >> $OBJ/sshd_config
 
 	# don't use SUDO for proxy connect
