@@ -13,6 +13,8 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
+#define SFTP_SERVER_LOG_FD STDERR_FILENO+1
+
 int w32_ftruncate(int, off_t);
 #define ftruncate(a, b) w32_ftruncate((a), (b))
 

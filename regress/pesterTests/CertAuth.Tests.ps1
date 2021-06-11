@@ -18,6 +18,7 @@ Describe "E2E scenarios for certificate authentication" -Tags "CI" {
         $opensshbinpath = $OpenSSHTestInfo['OpenSSHBinPath']
         $ssouser = $OpenSSHTestInfo["SSOUser"]
         $sshdconfig = Join-Path $Global:OpenSSHTestInfo["ServiceConfigDir"] sshd_config
+        $sshdDelay = $OpenSSHTestInfo["DelayTime"]
         
         $testDir = Join-Path $OpenSSHTestInfo["TestDataPath"] $suite
         if(-not (Test-Path $testDir))
@@ -82,6 +83,7 @@ Describe "E2E scenarios for certificate authentication" -Tags "CI" {
             Remove-PasswordSetting   
             
             Stop-SSHDTestDaemon -Port 47004
+            sleep $sshdDelay
             $o | Should Be "2345"
             #check the command is run as AuthorizedPrincipalsCommandUser
             (gc $pcOutFile).Contains($ssouser) | Should Be $true          

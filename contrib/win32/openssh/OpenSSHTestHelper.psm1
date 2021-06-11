@@ -13,8 +13,10 @@ $TestSetupLogFileName = "TestSetupLog.txt"
 $SSOUser = "sshtest_ssouser"
 $PubKeyUser = "sshtest_pubkeyuser"
 $PasswdUser = "sshtest_passwduser"
+$AdminUser = "sshtest_adminuser"
+$NonAdminUser = "sshtest_nonadminuser"
 $OpenSSHTestAccountsPassword = "P@ssw0rd_1"
-$OpenSSHTestAccounts = $Script:SSOUser, $Script:PubKeyUser, $Script:PasswdUser
+$OpenSSHTestAccounts = $Script:SSOUser, $Script:PubKeyUser, $Script:PasswdUser, $Script:AdminUser, $Script:NonAdminUser
 $SSHDTestSvcName = "sshdTestSvc"
 
 $Script:TestDataPath = "$env:SystemDrive\OpenSSHTests"
@@ -65,8 +67,11 @@ function Set-OpenSSHTestEnvironment
     $Global:OpenSSHTestInfo.Add("SSOUser", $SSOUser)                                   # test user with single sign on capability
     $Global:OpenSSHTestInfo.Add("PubKeyUser", $PubKeyUser)                             # test user to be used with explicit key for key auth
     $Global:OpenSSHTestInfo.Add("PasswdUser", $PasswdUser)                             # test user to be used for password auth
+    $Global:OpenSSHTestInfo.Add("AdminUser", $AdminUser)                               # test user to be used for admin logging tests
+    $Global:OpenSSHTestInfo.Add("NonAdminUser", $NonAdminUser)                         # test user to be used for non-admin logging tests
     $Global:OpenSSHTestInfo.Add("TestAccountPW", $OpenSSHTestAccountsPassword)         # common password for all test accounts
     $Global:OpenSSHTestInfo.Add("DebugMode", $DebugMode.IsPresent)                     # run openssh E2E in debug mode
+    $Global:OpenSSHTestInfo.Add("DelayTime", 3)                                        # delay between stoppig sshd service and trying to access log files
 
     $Script:EnableAppVerifier = -not ($NoAppVerifier.IsPresent)
     if($Script:WindowsInBox = $true)
@@ -209,7 +214,18 @@ WARNING: Following changes will be made to OpenSSH configuration
     #setup single sign on for ssouser
     $ssouserProfile = Get-LocalUserProfile -User $SSOUser
     $Global:OpenSSHTestInfo.Add("SSOUserProfile", $ssouserProfile)
-    $Global:OpenSSHTestInfo.Add("PubKeyUserProfile", (Get-LocalUserProfile -User $PubKeyUser))
+
+    $PubKeyUserProfile = Get-LocalUserProfile -User $PubKeyUser
+    $Global:OpenSSHTestInfo.Add("PubKeyUserProfile", $PubKeyUserProfile)
+
+    $AdminUserProfile = Get-LocalUserProfile -User $AdminUser
+    $Global:OpenSSHTestInfo.Add("AdminUserProfile", $AdminUserProfile)
+
+    $NonAdminUserProfile = Get-LocalUserProfile -User $NonAdminUser
+    $Global:OpenSSHTestInfo.Add("NonAdminUserProfile", $NonAdminUserProfile)
+
+    #make $AdminUser admin
+    net localgroup Administrators $AdminUser /add
 
     New-Item -ItemType Directory -Path (Join-Path $ssouserProfile .ssh) -Force -ErrorAction SilentlyContinue  | out-null
     $authorizedKeyPath = Join-Path $ssouserProfile .ssh\authorized_keys

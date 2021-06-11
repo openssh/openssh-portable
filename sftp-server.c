@@ -59,6 +59,10 @@ char *sftp_realpath(const char *, char *); /* sftp-realpath.c */
 
 /* Our verbosity */
 static LogLevel log_level = SYSLOG_LEVEL_ERROR;
+#ifdef WINDOWS
+static SyslogFacility log_facility_g = SYSLOG_FACILITY_AUTH;
+int log_stderr_g = 0;
+#endif
 
 /* Our client */
 static struct passwd *pw = NULL;
@@ -1641,6 +1645,42 @@ sftp_server_cleanup_exit(int i)
 	_exit(i);
 }
 
+#ifdef WINDOWS
+void
+log_handler(LogLevel level, int forced, const char* msg, void* ctx)
+{
+	#include "atomicio.h"
+	struct sshbuf* log_msg;
+	int* log_fd = (int*)ctx;
+	int r;
+	size_t len;
+
+	if (*log_fd == -1)
+		fatal_f("no log channel");
+
+	if ((log_msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+
+	if ((r = sshbuf_put_u32(log_msg, 0)) != 0 || /* length; filled below */
+		(r = sshbuf_put_u32(log_msg, level)) != 0 ||
+		(r = sshbuf_put_u32(log_msg, forced)) != 0 ||
+		(r = sshbuf_put_cstring(log_msg, msg)) != 0 ||
+		(r = sshbuf_put_cstring(log_msg, __progname)) != 0 ||
+		(r = sshbuf_put_u32(log_msg, log_level)) != 0 ||
+		(r = sshbuf_put_u32(log_msg, log_facility_g)) != 0 ||
+		(r = sshbuf_put_u32(log_msg, log_stderr_g)) != 0)
+		fatal_fr(r, "assemble");
+	if ((len = sshbuf_len(log_msg)) < 4 || len > 0xffffffff)
+		fatal_f("bad length %zu", len);
+	POKE_U32(sshbuf_mutable_ptr(log_msg), len - 4);
+	if (atomicio(vwrite, *log_fd,
+		sshbuf_mutable_ptr(log_msg), len) != len)
+		fatal_f("write: %s", strerror(errno));
+	sshbuf_free(log_msg);
+
+}
+#endif
+
 static void
 sftp_server_usage(void)
 {
@@ -1743,7 +1783,18 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	}
 
 	log_init(__progname, log_level, log_facility, log_stderr);
-
+#ifdef WINDOWS
+	/*
+	 * SFTP-Server fowards log messages to SSHD System process.
+	 * SSHD system process logs the messages to either ETW or sftp-server.log.
+	 * This allows us to log the messages of both non-admin and admin users.
+	 */
+	int log_send_fd = SFTP_SERVER_LOG_FD;
+	log_facility_g = log_facility;
+	log_stderr_g = log_stderr;
+	if (fcntl(log_send_fd, F_SETFD, FD_CLOEXEC) != -1)
+		set_log_handler(log_handler, (void*)&log_send_fd);
+#endif
 	/*
 	 * On platforms where we can, avoid making /proc/self/{mem,maps}
 	 * available to the user so that sftp access doesn't automatically

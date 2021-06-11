@@ -100,6 +100,19 @@ mm_log_handler(LogLevel level, int forced, const char *msg, void *ctx)
 	    (r = sshbuf_put_u32(log_msg, forced)) != 0 ||
 	    (r = sshbuf_put_cstring(log_msg, msg)) != 0)
 		fatal_fr(r, "assemble");
+
+#ifdef WINDOWS
+	/*
+	 * Log messages are fowarded to SSHD parent process from
+	 * both sshd children and sftp-server processes. 
+	 * Attach progname to the end of the message so that SSHD 
+	 * parent process can differentitate between messages
+	 * coming from sshd children and sftp-server. 
+	 */
+	if (r = sshbuf_put_cstring(log_msg, "sshd") != 0)
+		fatal_fr(r, "assemble");
+#endif
+		
 	if ((len = sshbuf_len(log_msg)) < 4 || len > 0xffffffff)
 		fatal_f("bad length %zu", len);
 	POKE_U32(sshbuf_mutable_ptr(log_msg), len - 4);

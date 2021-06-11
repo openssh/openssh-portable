@@ -449,15 +449,44 @@ monitor_read_log(struct monitor *pmonitor)
 		fatal_fr(r, "reserve msg");
 	if (atomicio(read, pmonitor->m_log_recvfd, p, len) != len)
 		fatal_f("log fd read: %s", strerror(errno));
+
 	if ((r = sshbuf_get_u32(logmsg, &level)) != 0 ||
 	    (r = sshbuf_get_u32(logmsg, &forced)) != 0 ||
 	    (r = sshbuf_get_cstring(logmsg, &msg, NULL)) != 0)
 		fatal_fr(r, "parse");
-
-	/* Log it */
+	
 	if (log_level_name(level) == NULL)
 		fatal_f("invalid log level %u (corrupted message?)", level);
+
+#ifdef WINDOWS
+	char* pname;
+	u_int sftp_log_level, sftp_log_facility, sftp_log_stderr;
+	extern int log_stderr;
+	if ((r = sshbuf_get_cstring(logmsg, &pname, NULL)) != 0)
+		fatal_fr(r, "parse");
+
+	if (strcmp(pname, "sftp-server") == 0) {
+		if ((r = sshbuf_get_u32(logmsg, &sftp_log_level)) != 0 ||
+			(r = sshbuf_get_u32(logmsg, &sftp_log_facility)) != 0 ||
+			(r = sshbuf_get_u32(logmsg, &sftp_log_stderr)) != 0)
+			fatal_fr(r, "parse");
+	}
+
+	/*log it*/
+	if (authctxt->authenticated == 0) 
+		sshlogdirect(level, forced, "%s [preauth]", msg);
+	else {
+		if (strcmp(pname, "sftp-server") == 0) {
+			log_init(pname, sftp_log_level, sftp_log_facility, sftp_log_stderr);
+			sshlogdirect(level, forced, "%s", msg);
+			log_init("sshd", options.log_level, options.log_facility, log_stderr);
+		} else  
+			sshlogdirect(level, forced, "%s", msg);
+	}
+#else
+	/*log it*/
 	sshlogdirect(level, forced, "%s [preauth]", msg);
+#endif
 
 	sshbuf_free(logmsg);
 	free(msg);
@@ -1910,6 +1939,14 @@ monitor_reinit(struct monitor *mon)
 {
 	monitor_openfds(mon, 0);
 }
+
+#ifdef WINDOWS
+void
+monitor_reinit_withlogs(struct monitor* mon)
+{
+	monitor_openfds(mon, 1);
+}
+#endif
 
 #ifdef GSSAPI
 int

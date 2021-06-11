@@ -16,6 +16,7 @@ Describe "E2E scenarios for AuthorizedKeysCommand" -Tags "CI" {
         $opensshbinpath = $OpenSSHTestInfo['OpenSSHBinPath']
         $ssouser = $OpenSSHTestInfo["SSOUser"]
         $sshdconfig = Join-Path $Global:OpenSSHTestInfo["ServiceConfigDir"] sshd_config
+        $sshdDelay = $OpenSSHTestInfo["DelayTime"]
 
         $testDir = Join-Path $OpenSSHTestInfo["TestDataPath"] $suite
         if(-not (Test-Path $testDir))
@@ -48,6 +49,7 @@ Describe "E2E scenarios for AuthorizedKeysCommand" -Tags "CI" {
             Start-SSHDTestDaemon -WorkDir $opensshbinpath -Arguments $sshdArgs -Port $port
             $o = ssh -p $port test_target echo 1234
             Stop-SSHDTestDaemon -Port $port
+            sleep $sshdDelay
             $o | Should Be "1234"
             #check the command is run as AuthorizedKeysCommandUser
             (gc $kcOutFile).Contains($ssouser) | Should Be $true
@@ -64,6 +66,7 @@ Describe "E2E scenarios for AuthorizedKeysCommand" -Tags "CI" {
             Start-SSHDTestDaemon -WorkDir $opensshbinpath -Arguments $sshdArgs -Port $port
             $o = ssh -p $port test_target echo 12345
             Stop-SSHDTestDaemon -Port $port
+            sleep $sshdDelay
             $o | Should Be "12345"
             #check the command is run as AuthorizedKeysCommandUser
             (gc $kcOutFile).Contains("nt authority\system") | Should Be $true

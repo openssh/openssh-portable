@@ -26,6 +26,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
         $ssouserProfile = $OpenSSHTestInfo["SSOUserProfile"]
         $opensshbinpath = $OpenSSHTestInfo['OpenSSHBinPath']
         $sshdconfig = Join-Path $Global:OpenSSHTestInfo["ServiceConfigDir"] sshd_config
+        $sshdDelay = $OpenSSHTestInfo["DelayTime"]
         Remove-Item -Path (Join-Path $testDir "*$sshLogName") -Force -ErrorAction SilentlyContinue        
         
         #skip when the task schedular (*-ScheduledTask) cmdlets does not exist
@@ -104,6 +105,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             Start-SSHDTestDaemon -WorkDir $opensshbinpath -Arguments "-d -f $sshdconfig -o `"AuthorizedKeysFile .testssh/authorized_keys`" -E $sshdlog" -Port $port
             $o = ssh -p $port $ssouser@$server echo 1234
             Stop-SSHDTestDaemon -Port $port
+            sleep $sshdDelay
             $o | Should Be "1234"
         }
 
@@ -116,6 +118,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             
             $o = ssh -p $port $ssouser@$server  echo 1234
             Stop-SSHDTestDaemon -Port $port
+            sleep $sshdDelay
             $o | Should Be "1234"
         }
 
@@ -127,6 +130,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             Start-SSHDTestDaemon -WorkDir $opensshbinpath -Arguments "-d -f $sshdconfig -o `"AuthorizedKeysFile .testssh/authorized_keys`" -E $sshdlog" -Port $port
             $o = ssh -p $port $ssouser@$server  echo 1234
             Stop-SSHDTestDaemon -Port $port
+            sleep $sshdDelay
             $o | Should Be "1234"
         }
 
@@ -138,6 +142,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             Start-SSHDTestDaemon -WorkDir $opensshbinpath -Arguments "-d -f $sshdconfig -o `"AuthorizedKeysFile .testssh/authorized_keys`" -E $sshdlog" -Port $port
             $o = ssh -p $port $ssouser@$server  echo 1234
             Stop-SSHDTestDaemon -Port $port
+            sleep $sshdDelay
             $o | Should Be "1234"          
         }
 
@@ -153,6 +158,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             Start-SSHDTestDaemon -workDir $opensshbinpath -Arguments "-d -f $sshdconfig -o `"AuthorizedKeysFile .testssh/authorized_keys`" -E $sshdlog" -Port $port
             $o = ssh -p $port -E $sshlog $ssouser@$server echo 1234
             Stop-SSHDTestDaemon -Port $port
+            sleep $sshdDelay
             $o | Should Be "1234"
         }
 
@@ -165,6 +171,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             ssh -p $port -E $sshlog $ssouser@$server echo 1234
             $LASTEXITCODE | Should Not Be 0
             Stop-SSHDTestDaemon -Port $port                  
+            sleep $sshdDelay                  
             $sshlog | Should Contain "Permission denied"
             $sshdlog | Should Contain "Authentication refused."            
         }
@@ -182,6 +189,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             ssh -p $port -E $sshlog $ssouser@$server echo 1234
             $LASTEXITCODE | Should Not Be 0            
             Stop-SSHDTestDaemon -Port $port
+            sleep $sshdDelay
             $sshlog | Should Contain "Permission denied"
             $sshdlog | Should Contain "Authentication refused."
         }
@@ -196,6 +204,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             ssh -p $port -E $sshlog $ssouser@$server echo 1234
             $LASTEXITCODE | Should Not Be 0
             Stop-SSHDTestDaemon -Port $port
+            sleep $sshdDelay
             $sshlog | Should Contain "Permission denied"
             $sshdlog | Should Contain "Authentication refused."            
         }
