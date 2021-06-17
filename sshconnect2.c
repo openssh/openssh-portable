@@ -1089,7 +1089,6 @@ userauth_passwd(struct ssh *ssh)
 
 	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ,
 	    &input_userauth_passwd_changereq);
-		
 	return 1;
 }
 
