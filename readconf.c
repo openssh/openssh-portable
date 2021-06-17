@@ -156,7 +156,7 @@ typedef enum {
 	oLogFacility, oLogLevel, oLogVerbose, oCiphers, oMacs,
 	oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
-	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
+	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication, oDisableTrivialAuth,
 	oHostKeyAlgorithms, oBindAddress, oBindInterface, oPKCS11Provider,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
@@ -231,6 +231,7 @@ static struct {
 	{ "pubkeyauthentication", oPubkeyAuthentication },
 	{ "dsaauthentication", oPubkeyAuthentication },		    /* alias */
 	{ "hostbasedauthentication", oHostbasedAuthentication },
+	{ "disabletrivialauth", oDisableTrivialAuth},
 	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
 	{ "skeyauthentication", oUnsupported },
 	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */
@@ -1097,6 +1098,10 @@ parse_time:
 
 	case oHostbasedAuthentication:
 		intptr = &options->hostbased_authentication;
+		goto parse_flag;
+		
+	case oDisableTrivialAuth:
+		intptr = &options->disable_trivial_auth;
 		goto parse_flag;
 
 	case oChallengeResponseAuthentication:
@@ -2293,6 +2298,7 @@ initialize_options(Options * options)
 	options->kbd_interactive_authentication = -1;
 	options->kbd_interactive_devices = NULL;
 	options->hostbased_authentication = -1;
+	options->disable_trivial_auth = -1;
 	options->batch_mode = -1;
 	options->check_host_ip = -1;
 	options->strict_host_key_checking = -1;
@@ -2452,6 +2458,8 @@ fill_default_options(Options * options)
 		options->kbd_interactive_authentication = 1;
 	if (options->hostbased_authentication == -1)
 		options->hostbased_authentication = 0;
+	if (options->disable_trivial_auth == -1)
+		options->disable_trivial_auth = 0;
 	if (options->batch_mode == -1)
 		options->batch_mode = 0;
 	if (options->check_host_ip == -1)
@@ -3224,6 +3232,7 @@ dump_client_config(Options *o, const char *host)
 #endif /* GSSAPI */
 	dump_cfg_fmtint(oHashKnownHosts, o->hash_known_hosts);
 	dump_cfg_fmtint(oHostbasedAuthentication, o->hostbased_authentication);
+	dump_cfg_fmtint(oDisableTrivialAuth, o->disable_trivial_auth);
 	dump_cfg_fmtint(oIdentitiesOnly, o->identities_only);
 	dump_cfg_fmtint(oKbdInteractiveAuthentication, o->kbd_interactive_authentication);
 	dump_cfg_fmtint(oNoHostAuthenticationForLocalhost, o->no_host_authentication_for_localhost);

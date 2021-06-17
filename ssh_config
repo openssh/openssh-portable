@@ -22,6 +22,7 @@
 #   ForwardX11 no
 #   PasswordAuthentication yes
 #   HostbasedAuthentication no
+#   DisableTrivialAuth no
 #   GSSAPIAuthentication no
 #   GSSAPIDelegateCredentials no
 #   BatchMode no

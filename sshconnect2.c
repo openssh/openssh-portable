@@ -326,6 +326,7 @@ struct identity {
 TAILQ_HEAD(idlist, identity);
 
 struct cauthctxt {
+	int is_trivial_auth;
 	const char *server_user;
 	const char *local_user;
 	const char *host;
@@ -449,7 +450,8 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 
 	/* setup authentication context */
 	memset(&authctxt, 0, sizeof(authctxt));
-	authctxt.server_user = server_user;
+	authctxt.server_user = server_user;	
+	authctxt.is_trivial_auth = 1;
 	authctxt.local_user = local_user;
 	authctxt.host = host;
 	authctxt.service = "ssh-connection";		/* service name */
@@ -489,6 +491,9 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 
 	if (!authctxt.success)
 		fatal("Authentication failed.");
+	if (authctxt.is_trivial_auth == 1 && options.disable_trivial_auth == 1) {
+		fatal("Trivial authentication disabled.");
+	}
 	debug("Authentication succeeded (%s).", authctxt.method->name);
 }
 
@@ -857,6 +862,7 @@ process_gssapi_token(struct ssh *ssh, gss_buffer_t recv_tok)
 			fatal_fr(r, "send %u packet", type);
 
 		gss_release_buffer(&ms, &send_tok);
+		authctxt->is_trivial_auth = 0;
 	}
 
 	if (status == GSS_S_COMPLETE) {
@@ -1053,6 +1059,7 @@ static int
 userauth_passwd(struct ssh *ssh)
 {
 	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
+	authctxt->is_trivial_auth = 0;
 	char *password, *prompt = NULL;
 	const char *host = options.host_key_alias ?  options.host_key_alias :
 	    authctxt->host;
@@ -1082,7 +1089,7 @@ userauth_passwd(struct ssh *ssh)
 
 	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ,
 	    &input_userauth_passwd_changereq);
-
+		
 	return 1;
 }
 
@@ -1863,8 +1870,10 @@ userauth_pubkey(struct ssh *ssh)
 				id->isprivate = 0;
 			}
 		}
-		if (sent)
+		if (sent) {
+			authctxt->is_trivial_auth = 0;
 			return (sent);
+		}
 	}
 	return (0);
 }
@@ -1945,6 +1954,7 @@ input_userauth_info_req(int type, u_int32_t seq, struct ssh *ssh)
 
 	debug2_f("num_prompts %d", num_prompts);
 	for (i = 0; i < num_prompts; i++) {
+		authctxt->is_trivial_auth = 0;
 		if ((r = sshpkt_get_cstring(ssh, &prompt, NULL)) != 0 ||
 		    (r = sshpkt_get_u8(ssh, &echo)) != 0)
 			goto out;

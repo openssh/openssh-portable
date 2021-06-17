@@ -38,6 +38,7 @@ typedef struct {
 	struct ForwardOptions fwd_opts;	/* forwarding options */
 	int     pubkey_authentication;	/* Try ssh2 pubkey authentication. */
 	int     hostbased_authentication;	/* ssh2's rhosts_rsa */
+	int 	disable_trivial_auth; /* disable trivial authentications */
 	int     challenge_response_authentication;
 					/* Try S/Key or TIS, authentication. */
 	int     gss_authentication;	/* Try GSS authentication */
