@@ -87,12 +87,12 @@ dns_read_key(u_int8_t *algorithm, u_int8_t *digest_type,
 	case KEY_RSA:
 		*algorithm = SSHFP_KEY_RSA;
 		if (!*digest_type)
-			*digest_type = SSHFP_HASH_SHA1;
+			*digest_type = SSHFP_HASH_SHA256;
 		break;
 	case KEY_DSA:
 		*algorithm = SSHFP_KEY_DSA;
 		if (!*digest_type)
-			*digest_type = SSHFP_HASH_SHA1;
+			*digest_type = SSHFP_HASH_SHA256;
 		break;
 	case KEY_ECDSA:
 		*algorithm = SSHFP_KEY_ECDSA;
