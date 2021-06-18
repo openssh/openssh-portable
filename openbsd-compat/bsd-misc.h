@@ -20,6 +20,7 @@
 #include "includes.h"
 
 char *ssh_get_progname(char *);
+int seed_from_prngd(unsigned char *, size_t);
 
 #ifndef HAVE_SETSID
 #define setsid() setpgrp(0, getpid())

@@ -95,6 +95,7 @@ COMPAT=	arc4random.o \
 PORTS=	port-aix.o \
 	port-irix.o \
 	port-linux.o \
+	port-prngd.o \
 	port-solaris.o \
 	port-net.o \
 	port-uw.o
