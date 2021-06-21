@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.76 2020/04/04 23:04:41 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.79 2021/04/06 23:57:56 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -16,12 +16,6 @@ CYGWIN*)
 	os=cygwin
 	;;
 esac
-
-if [ ! -z "$TEST_SSH_PORT" ]; then
-	PORT="$TEST_SSH_PORT"
-else
-	PORT=4242
-fi
 
 # If configure tells us to use a different egrep, create a wrapper function
 # to call it.  This means we don't need to change all the tests that depend
@@ -41,6 +35,20 @@ elif logname >/dev/null 2>&1; then
 	USER=`logname`
 else
 	USER=`id -un`
+fi
+if test -z "$LOGNAME"; then
+	LOGNAME="${USER}"
+	export LOGNAME
+fi
+
+if [ ! -x "$TEST_SSH_ELAPSED_TIMES" ]; then
+	STARTTIME=`date '+%s'`
+fi
+
+if [ ! -z "$TEST_SSH_PORT" ]; then
+	PORT="$TEST_SSH_PORT"
+else
+	PORT=4242
 fi
 
 OBJ=$1
@@ -319,6 +327,21 @@ md5 () {
 		wc -c
 	fi
 }
+
+# Some platforms don't have hostname at all, but on others uname -n doesn't
+# provide the fully qualified name we need, so in the former case we create
+# our own hostname function.
+if ! have_prog hostname; then
+	hostname() {
+		uname -n
+	}
+fi
+
+make_tmpdir ()
+{
+	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
+	    fatal "failed to create temporary directory"
+}
 # End of portable specific functions
 
 stop_sshd ()
@@ -352,12 +375,6 @@ stop_sshd ()
 	fi
 }
 
-make_tmpdir ()
-{
-	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
-	    fatal "failed to create temporary directory"
-}
-
 # helper
 cleanup ()
 {
@@ -372,6 +389,11 @@ cleanup ()
 		rm -rf "$SSH_REGRESS_TMP"
 	fi
 	stop_sshd
+	if [ ! -z "$TEST_SSH_ELAPSED_TIMES" ]; then
+		now=`date '+%s'`
+		elapsed=$(($now - $STARTTIME))
+		echo elapsed $elapsed `basename $SCRIPT .sh`
+	fi
 }
 
 start_debug_log ()
@@ -405,12 +427,6 @@ verbose ()
 	if [ "X$TEST_SSH_QUIET" != "Xyes" ]; then
 		echo "$@"
 	fi
-}
-
-warn ()
-{
-	echo "WARNING: $@" >>$TEST_SSH_LOGFILE
-	echo "WARNING: $@"
 }
 
 fail ()
@@ -457,7 +473,7 @@ EOF
 # but if you aren't careful with permissions then the unit tests could
 # be abused to locally escalate privileges.
 if [ ! -z "$TEST_SSH_UNSAFE_PERMISSIONS" ]; then
-	echo "StrictModes no" >> $OBJ/sshd_config
+	echo "	StrictModes no" >> $OBJ/sshd_config
 else
 	# check and warn if excessive permissions are likely to cause failures.
 	unsafe=""
@@ -483,6 +499,11 @@ bypass this check by setting TEST_SSH_UNSAFE_PERMISSIONS=1
 
 EOD
 	fi
+fi
+
+if [ ! -z "$TEST_SSH_MODULI_FILE" ]; then
+	trace "adding modulifile='$TEST_SSH_MODULI_FILE' to sshd_config"
+	echo "	ModuliFile '$TEST_SSH_MODULI_FILE'" >> $OBJ/sshd_config
 fi
 
 if [ ! -z "$TEST_SSH_SSHD_CONFOPTS" ]; then
@@ -591,10 +612,11 @@ if test -x "$CONCH" ; then
 	REGRESS_INTEROP_CONCH=yes
 fi
 
-# If PuTTY is present and we are running a PuTTY test, prepare keys and
-# configuration
+# If PuTTY is present, new enough and we are running a PuTTY test, prepare
+# keys and configuration.
 REGRESS_INTEROP_PUTTY=no
-if test -x "$PUTTYGEN" -a -x "$PLINK" ; then
+if test -x "$PUTTYGEN" -a -x "$PLINK" &&
+    "$PUTTYGEN" --help 2>&1 | grep -- --new-passphrase >/dev/null; then
 	REGRESS_INTEROP_PUTTY=yes
 fi
 case "$SCRIPT" in
@@ -607,13 +629,13 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 
 	# Add a PuTTY key to authorized_keys
 	rm -f ${OBJ}/putty.rsa2
-	if ! puttygen -t rsa -o ${OBJ}/putty.rsa2 \
+	if ! "$PUTTYGEN" -t rsa -o ${OBJ}/putty.rsa2 \
 	    --random-device=/dev/urandom \
 	    --new-passphrase /dev/null < /dev/null > /dev/null; then
-		echo "Your installed version of PuTTY is too old to support --new-passphrase; trying without (may require manual interaction) ..." >&2
-		puttygen -t rsa -o ${OBJ}/putty.rsa2 < /dev/null > /dev/null
+		echo "Your installed version of PuTTY is too old to support --new-passphrase, skipping test" >&2
+		exit 1
 	fi
-	puttygen -O public-openssh ${OBJ}/putty.rsa2 \
+	"$PUTTYGEN" -O public-openssh ${OBJ}/putty.rsa2 \
 	    >> $OBJ/authorized_keys_$USER
 
 	# Convert rsa2 host key to PuTTY format
@@ -637,8 +659,6 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 
 	PUTTYDIR=${OBJ}/.putty
 	export PUTTYDIR
-
-	REGRESS_INTEROP_PUTTY=yes
 fi
 
 # create a proxy version of the client config

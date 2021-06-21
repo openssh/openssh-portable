@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.212 2020/08/03 02:43:41 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.214 2021/04/03 06:18:40 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -630,7 +630,7 @@ do_times(int fd, int verb, const struct stat *sb)
 
 static int
 parse_scp_uri(const char *uri, char **userp, char **hostp, int *portp,
-     char **pathp)
+    char **pathp)
 {
 	int r;
 
@@ -848,7 +848,7 @@ brace_expand(const char *pattern, char ***patternsp, size_t *npatternsp)
 			goto fail;
 		}
 		if (invalid)
-			fatal("%s: invalid brace pattern \"%s\"", __func__, cp);
+			fatal_f("invalid brace pattern \"%s\"", cp);
 		if (expanded) {
 			/*
 			 * Current entry expanded to new entries on the
@@ -1279,7 +1279,7 @@ sink(int argc, char **argv, const char *src)
 		 * the requested destination file glob.
 		 */
 		if (brace_expand(src, &patterns, &npatterns) != 0)
-			fatal("%s: could not expand pattern", __func__);
+			fatal_f("could not expand pattern");
 	}
 	for (first = 1;; first = 0) {
 		cp = buf;
@@ -1423,8 +1423,7 @@ sink(int argc, char **argv, const char *src)
 				if (pflag)
 					(void) chmod(np, mode);
 			} else {
-				/* Handle copying from a read-only
-				   directory */
+				/* Handle copying from a read-only directory */
 				mod_flag = 1;
 				if (mkdir(np, mode | S_IRWXU) == -1)
 					goto bad;

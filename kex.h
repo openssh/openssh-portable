@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.109 2019/09/06 05:23:55 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.114 2021/01/31 22:55:29 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -63,7 +63,6 @@
 #define	KEX_ECDH_SHA2_NISTP521		"ecdh-sha2-nistp521"
 #define	KEX_CURVE25519_SHA256		"curve25519-sha256"
 #define	KEX_CURVE25519_SHA256_OLD	"curve25519-sha256@libssh.org"
-#define	KEX_SNTRUP4591761X25519_SHA512	"sntrup4591761x25519-sha512@tinyssh.org"
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEX_PRETTY_NAMES_START
 #define	KEX_OQS_DEFAULT_SHA256	"oqs-default-sha256"
 #define	KEX_FRODOKEM_640_AES_SHA256	"frodokem-640-aes-sha256"
@@ -180,6 +179,7 @@
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEX_PRETTY_NAMES_END
+#define	KEX_SNTRUP761X25519_SHA512	"sntrup761x25519-sha512@openssh.com"
 
 #define COMP_NONE	0
 /* pre-auth compression (COMP_ZLIB) is only supported in the client */
@@ -218,7 +218,7 @@ enum kex_exchange {
 	KEX_DH_GEX_SHA256,
 	KEX_ECDH_SHA2,
 	KEX_C25519_SHA256,
-	KEX_KEM_SNTRUP4591761X25519_SHA512,
+	KEX_KEM_SNTRUP761X25519_SHA512,
 ///// OQS_TEMPLATE_FRAGMENT_ADD_KEX_ENUMS_START
 	KEX_KEM_OQS_DEFAULT_SHA256,
 	KEX_KEM_FRODOKEM_640_AES_SHA256,
@@ -365,8 +365,6 @@ struct newkeys {
 struct ssh;
 
 struct kex {
-	u_char	*session_id;
-	size_t	session_id_len;
 	struct newkeys	*newkeys[MODE_MAX];
 	u_int	we_need;
 	u_int	dh_need;
@@ -382,6 +380,7 @@ struct kex {
 	struct sshbuf *peer;
 	struct sshbuf *client_version;
 	struct sshbuf *server_version;
+	struct sshbuf *session_id;
 	sig_atomic_t done;
 	u_int	flags;
 	int	hash_alg;
@@ -401,7 +400,7 @@ struct kex {
 	const EC_GROUP *ec_group;	/* ECDH */
 	u_char c25519_client_key[CURVE25519_SIZE]; /* 25519 + KEM */
 	u_char c25519_client_pubkey[CURVE25519_SIZE]; /* 25519 */
-	u_char sntrup4591761_client_key[crypto_kem_sntrup4591761_SECRETKEYBYTES]; /* KEM */
+	u_char sntrup761_client_key[crypto_kem_sntrup761_SECRETKEYBYTES]; /* KEM */
 	u_char* oqs_client_key; /* OQS KEM key */
 	size_t oqs_client_key_size; /* size of OQS KEM key */
 	struct sshbuf *client_pub;
@@ -429,6 +428,7 @@ int	 kex_verify_host_key(struct ssh *, struct sshkey *);
 int	 kex_send_kexinit(struct ssh *);
 int	 kex_input_kexinit(int, u_int32_t, struct ssh *);
 int	 kex_input_ext_info(int, u_int32_t, struct ssh *);
+int	 kex_protocol_error(int, u_int32_t, struct ssh *);
 int	 kex_derive_keys(struct ssh *, u_char *, u_int, const struct sshbuf *);
 int	 kex_send_newkeys(struct ssh *);
 int	 kex_start_rekex(struct ssh *);
@@ -453,10 +453,10 @@ int	 kex_c25519_enc(struct kex *, const struct sshbuf *, struct sshbuf **,
     struct sshbuf **);
 int	 kex_c25519_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 
-int	 kex_kem_sntrup4591761x25519_keypair(struct kex *);
-int	 kex_kem_sntrup4591761x25519_enc(struct kex *, const struct sshbuf *,
+int	 kex_kem_sntrup761x25519_keypair(struct kex *);
+int	 kex_kem_sntrup761x25519_enc(struct kex *, const struct sshbuf *,
     struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sntrup4591761x25519_dec(struct kex *, const struct sshbuf *,
+int	 kex_kem_sntrup761x25519_dec(struct kex *, const struct sshbuf *,
     struct sshbuf **);
 
 ///// OQS_TEMPLATE_FRAGMENT_DECLARE_KEX_PROTOTYPES_START

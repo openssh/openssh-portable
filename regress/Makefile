@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.109 2020/06/19 05:07:09 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.110 2020/12/22 06:03:36 djm Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -93,7 +93,8 @@ LTESTS= 	connect \
 		allow-deny-users \
 		authinfo \
 		sshsig \
-		keygen-comment
+		keygen-comment \
+		knownhosts-command
 
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
@@ -122,9 +123,9 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		rsa_ssh2_crnl.prv scp-ssh-wrapper.exe \
 		scp-ssh-wrapper.scp setuid-allowed sftp-server.log \
 		sftp-server.sh sftp.log ssh-log-wrapper.sh ssh.log \
-		ssh-rsa_oldfmt \
+		ssh-rsa_oldfmt knownhosts_command \
 		ssh_config ssh_config.* ssh_proxy ssh_proxy_bak \
-		ssh_proxy_envpass sshd.log sshd_config sshd_config_minimal \
+		ssh_proxy_* sshd.log sshd_config sshd_config.* \
 		sshd_config.* sshd_proxy sshd_proxy.* sshd_proxy_bak \
 		sshd_proxy_orig t10.out t10.out.pub t12.out t12.out.pub \
 		t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub \
@@ -249,17 +250,20 @@ unit:
 		V="" ; \
 		test "x${USE_VALGRIND}" = "x" || \
 		    V=${.CURDIR}/valgrind-unit.sh ; \
-		$$V ${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
-		$$V ${.OBJDIR}/unittests/sshkey/test_sshkey \
+		 $$V ${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
+		 $$V ${.OBJDIR}/unittests/sshkey/test_sshkey \
 			-d ${.CURDIR}/unittests/sshkey/testdata ; \
 		$$V ${.OBJDIR}/unittests/sshsig/test_sshsig \
 			-d ${.CURDIR}/unittests/sshsig/testdata ; \
+		$$V ${.OBJDIR}/unittests/authopt/test_authopt \
+			-d ${.CURDIR}/unittests/authopt/testdata ; \
 		$$V ${.OBJDIR}/unittests/bitmap/test_bitmap ; \
 		$$V ${.OBJDIR}/unittests/conversion/test_conversion ; \
 		$$V ${.OBJDIR}/unittests/kex/test_kex ; \
 		$$V ${.OBJDIR}/unittests/hostkeys/test_hostkeys \
 			-d ${.CURDIR}/unittests/hostkeys/testdata ; \
 		$$V ${.OBJDIR}/unittests/match/test_match ; \
+		$$V ${.OBJDIR}/unittests/misc/test_misc ; \
 		if test "x${TEST_SSH_UTF8}" = "xyes"  ; then \
 			$$V ${.OBJDIR}/unittests/utf8/test_utf8 ; \
 		fi \

@@ -45,7 +45,7 @@
 #define MAKE_CLONE(x, y)	void __ssh_compat_make_clone_##x_##y(void)
 
 #include <string.h>
-#include <sha2.h>
+#include "openbsd-compat/sha2.h"
 
 /*
  * UNROLLED TRANSFORM LOOP NOTE:
@@ -159,7 +159,7 @@
  *   same "backwards" definition.
  */
 /* Shift-right (used in SHA-224, SHA-256, SHA-384, and SHA-512): */
-#define R(b,x) 		((x) >> (b))
+#define R(b,x)		((x) >> (b))
 /* 32-bit Rotate-right (used in SHA-224 and SHA-256): */
 #define S32(b,x)	(((x) >> (b)) | ((x) << (32 - (b))))
 /* 64-bit Rotate-right (used in SHA-384 and SHA-512): */

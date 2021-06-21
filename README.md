@@ -36,6 +36,8 @@ This fork is currently based on OpenSSH version **8.4** (Git tag V_8_4_P1); rele
 
 liboqs is provided "as is", without warranty of any kind.  See [LICENSE.txt](https://github.com/open-quantum-safe/liboqs/blob/main/LICENSE.txt) for the full disclaimer.
 
+[zlib](https://www.zlib.net/) is optional; without it transport compression is not supported.
+
 This fork implements the [draft-kampanakis-curdle-pq-ssh-00](https://datatracker.ietf.org/doc/draft-kampanakis-curdle-pq-ssh/) IETF draft for hybrid key exchange algorithms.
 
 ### Limitations and security

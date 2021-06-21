@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.28 2019/01/16 23:23:45 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.30 2021/03/31 22:16:34 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
@@ -53,6 +53,14 @@ struct sftp_statvfs {
 	u_int64_t f_namemax;
 };
 
+/* Used for limits response on the wire from the server */
+struct sftp_limits {
+	u_int64_t packet_length;
+	u_int64_t read_length;
+	u_int64_t write_length;
+	u_int64_t open_handles;
+};
+
 /*
  * Initialise a SSH filexfer connection. Returns NULL on error or
  * a pointer to a initialized sftp_conn struct on success.
@@ -60,6 +68,9 @@ struct sftp_statvfs {
 struct sftp_conn *do_init(int, int, u_int, u_int, u_int64_t);
 
 u_int sftp_proto_version(struct sftp_conn *);
+
+/* Query server limits */
+int do_limits(struct sftp_conn *, struct sftp_limits *);
 
 /* Close file referred to by 'handle' */
 int do_close(struct sftp_conn *, const u_char *, u_int);
@@ -141,5 +152,18 @@ int upload_dir(struct sftp_conn *, const char *, const char *, int, int, int,
 
 /* Concatenate paths, taking care of slashes. Caller must free result. */
 char *path_append(const char *, const char *);
+
+/* Make absolute path if relative path and CWD is given. Does not modify
+ * original if the the path is already absolute. */
+char *make_absolute(char *, const char *);
+
+/* Check if remote path is directory */
+int remote_is_dir(struct sftp_conn *conn, const char *path);
+
+/* Check if local path is directory */
+int local_is_dir(const char *path);
+
+/* Check whether path returned from glob(..., GLOB_MARK, ...) is a directory */
+int globpath_is_dir(const char *pathname);
 
 #endif
