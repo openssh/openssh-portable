@@ -264,6 +264,13 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 	char *user = NULL, *service = NULL, *method = NULL, *style = NULL;
 	int r, authenticated = 0;
 	double tstart = monotime_double();
+#if defined(HAVE_LOGIN_GETPWCLASS) && (defined(HAVE_AUTH_HOSTOK) || defined(HAVE_AUTH_TIMEOK))
+	login_cap_t *lc;
+#ifdef HAVE_AUTH_HOSTOK
+	const char *from_host, *from_ip;
+#endif
+#endif
+
 
 	if (authctxt == NULL)
 		fatal("input_userauth_request: no authctxt");
@@ -314,6 +321,31 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 		    "not allowed: (%s,%s) -> (%s,%s)",
 		    authctxt->user, authctxt->service, user, service);
 	}
+
+#if defined(HAVE_LOGIN_GETPWCLASS) && (defined(HAVE_AUTH_HOSTOK) || defined(HAVE_AUTH_TIMEOK))
+	if (authctxt->pw != NULL &&
+            (lc = PRIVSEP(login_getpwclass(authctxt->pw))) != NULL) {
+#ifdef HAVE_AUTH_HOSTOK
+                from_host = auth_get_canonical_hostname(ssh, options.use_dns);
+                from_ip = ssh_remote_ipaddr(ssh);
+                if (!auth_hostok(lc, from_host, from_ip)) {
+                        logit("Denied connection for %.200s from %.200s [%.200s\
+].",
+			      authctxt->pw->pw_name, from_host, from_ip);
+                        ssh_packet_disconnect(ssh, "Sorry, you are not allowed to connect.");
+                }
+#endif /* HAVE_AUTH_HOSTOK */
+#ifdef HAVE_AUTH_TIMEOK
+                if (!auth_timeok(lc, time(NULL))) {
+                        logit("LOGIN %.200s REFUSED (TIME) FROM %.200s",
+			      authctxt->pw->pw_name, from_host);
+                        ssh_packet_disconnect(ssh, "Logins not available right now.");
+                }
+#endif /* HAVE_AUTH_TIMEOK */
+                PRIVSEP(login_close(lc));
+        }
+#endif  /* HAVE_LOGIN_GETPWCLASS */
+
 	/* reset state */
 	auth2_challenge_stop(ssh);
 
@@ -812,4 +844,3 @@ auth2_update_session_info(Authctxt *authctxt, const char *method,
 	if ((r = sshbuf_put_u8(authctxt->session_info, '\n')) != 0)
 		fatal_fr(r, "append");
 }
-

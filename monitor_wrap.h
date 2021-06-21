@@ -49,6 +49,11 @@ int mm_sshkey_sign(struct ssh *, struct sshkey *, u_char **, size_t *,
     const u_char *, size_t, const char *, const char *,
     const char *, u_int compat);
 void mm_inform_authserv(char *, char *);
+#ifdef HAVE_LOGIN_GETPWCLASS
+#include <login_cap.h>
+login_cap_t *mm_login_getpwclass(const struct passwd *);
+void mm_login_close(login_cap_t *);
+#endif
 struct passwd *mm_getpwnamallow(struct ssh *, const char *);
 char *mm_auth2_read_banner(void);
 int mm_auth_password(struct ssh *, char *);

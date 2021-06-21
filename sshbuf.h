@@ -197,6 +197,14 @@ int sshbuf_poke_u8(struct sshbuf *buf, size_t offset, u_char val);
 int sshbuf_poke(struct sshbuf *buf, size_t offset, void *v, size_t len);
 
 /*
+ * Functions to send or recieve struct passwd data.
+ */
+int sshbuf_put_passwd(struct sshbuf *buf, const struct passwd *pwent);
+struct passwd *sshbuf_get_passwd(struct sshbuf *buf);
+void sshbuf_free_passwd(struct passwd *pwent);
+
+
+/*
  * Functions to extract or store SSH wire encoded strings (u32 len || data)
  * The "cstring" variants admit no \0 characters in the string contents.
  * Caller must free *valp.

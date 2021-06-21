@@ -395,6 +395,7 @@ AC_ARG_WITH([Werror],
 AC_CHECK_HEADERS([ \
 	blf.h \
 	bstring.h \
+	capsicum_helpers.h \
 	crypt.h \
 	crypto/sha2.h \
 	dirent.h \
@@ -1784,6 +1785,8 @@ AC_SUBST([PICFLAG])
 
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS([ \
+	auth_hostok \
+	auth_timeok \
 	Blowfish_initstate \
 	Blowfish_expandstate \
 	Blowfish_expand0state \
@@ -4245,7 +4248,7 @@ AC_CHECK_MEMBERS([struct stat.st_blksize])
 AC_CHECK_MEMBERS([struct stat.st_mtim])
 AC_CHECK_MEMBERS([struct stat.st_mtime])
 AC_CHECK_MEMBERS([struct passwd.pw_gecos, struct passwd.pw_class,
-struct passwd.pw_change, struct passwd.pw_expire],
+struct passwd.pw_change, struct passwd.pw_expire, struct passwd.pw_fields],
 [], [], [[
 #include <sys/types.h>
 #include <pwd.h>

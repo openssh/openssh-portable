@@ -243,14 +243,58 @@ mm_sshkey_sign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	return (0);
 }
 
-#define GETPW(b, id) \
-	do { \
-		if ((r = sshbuf_get_string_direct(b, &p, &len)) != 0) \
-			fatal_fr(r, "parse pw %s", #id); \
-		if (len != sizeof(pw->id)) \
-			fatal_fr(r, "bad length for %s", #id); \
-		memcpy(&pw->id, p, len); \
-	} while (0)
+#ifdef HAVE_LOGIN_GETPWCLASS
+login_cap_t *
+mm_login_getpwclass(const struct passwd *pwent)
+{
+	int r;
+	struct sshbuf *m;
+	char rc;
+	login_cap_t *lc;
+
+	debug3("%s entering", __func__);
+
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if ((r = sshbuf_put_passwd(m, pwent)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_GETPWCLASS, m);
+
+	debug3("%s: waiting for MONITOR_ANS_GETPWCLASS", __func__);
+	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_GETPWCLASS, m);
+
+	if ((r = sshbuf_get_u8(m, &rc)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
+	if (rc == 0) {
+		lc = NULL;
+		goto out;
+	}
+
+	lc = xmalloc(sizeof(*lc));
+	if ((r = sshbuf_get_cstring(m, &lc->lc_class, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(m, &lc->lc_cap, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(m, &lc->lc_style, NULL)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
+ out:
+	sshbuf_free(m);
+
+	return (lc);
+}
+
+void
+mm_login_close(login_cap_t *lc)
+{
+	if (lc == NULL)
+		return;
+	free(lc->lc_style);
+	free(lc->lc_class);
+	free(lc->lc_cap);
+	free(lc);
+}
+#endif
 
 struct passwd *
 mm_getpwnamallow(struct ssh *ssh, const char *username)
@@ -283,26 +327,7 @@ mm_getpwnamallow(struct ssh *ssh, const char *username)
 		goto out;
 	}
 
-	/* XXX don't like passing struct passwd like this */
-	pw = xcalloc(sizeof(*pw), 1);
-	GETPW(m, pw_uid);
-	GETPW(m, pw_gid);
-#ifdef HAVE_STRUCT_PASSWD_PW_CHANGE
-	GETPW(m, pw_change);
-#endif
-#ifdef HAVE_STRUCT_PASSWD_PW_EXPIRE
-	GETPW(m, pw_expire);
-#endif
-	if ((r = sshbuf_get_cstring(m, &pw->pw_name, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(m, &pw->pw_passwd, NULL)) != 0 ||
-#ifdef HAVE_STRUCT_PASSWD_PW_GECOS
-	    (r = sshbuf_get_cstring(m, &pw->pw_gecos, NULL)) != 0 ||
-#endif
-#ifdef HAVE_STRUCT_PASSWD_PW_CLASS
-	    (r = sshbuf_get_cstring(m, &pw->pw_class, NULL)) != 0 ||
-#endif
-	    (r = sshbuf_get_cstring(m, &pw->pw_dir, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(m, &pw->pw_shell, NULL)) != 0)
+	if ((pw = sshbuf_get_passwd(m)) == NULL)
 		fatal_fr(r, "parse pw");
 
 out:
