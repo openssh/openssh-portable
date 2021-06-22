@@ -515,8 +515,8 @@ sshkey_size(const struct sshkey *k)
 		return BN_num_bits(rsa_n) + k->oqs_pk_len;
 	CASE_KEY_ECDSA_HYBRID:
 		return sshkey_curve_nid_to_bits(k->ecdsa_nid) + k->oqs_pk_len;
-	}
 #endif /* WITH_OPENSSL */
+	}
 	return 0;
 }
 
