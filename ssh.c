@@ -653,6 +653,12 @@ main(int ac, char **av)
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 
+	/*
+	 * Discard other fds that are hanging around. These can cause problem
+	 * with backgrounded ssh processes started by ControlPersist.
+	 */
+	closefrom(STDERR_FILENO + 1);
+
 	__progname = ssh_get_progname(av[0]);
 
 #ifndef HAVE_SETPROCTITLE
@@ -667,12 +673,6 @@ main(int ac, char **av)
 #endif
 
 	seed_rng();
-
-	/*
-	 * Discard other fds that are hanging around. These can cause problem
-	 * with backgrounded ssh processes started by ControlPersist.
-	 */
-	closefrom(STDERR_FILENO + 1);
 
 	/* Get user data. */
 	pw = getpwuid(getuid());
