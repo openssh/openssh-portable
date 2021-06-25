@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.52 2020/11/22 22:38:26 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.53 2021/06/25 06:30:22 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -973,7 +973,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	}
 
 	/* Decode DER-encoded cert subject */
-	cp = cert_attr[2].pValue;
+	cp = cert_attr[1].pValue;
 	if ((x509_name = d2i_X509_NAME(NULL, &cp,
 	    cert_attr[1].ulValueLen)) == NULL ||
 	    (subject = X509_NAME_oneline(x509_name, NULL, 0)) == NULL)
