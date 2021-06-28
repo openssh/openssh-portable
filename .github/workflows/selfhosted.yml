@@ -37,6 +37,7 @@ jobs:
           - obsd69
           - obsdsnap
           - openindiana
+          - rocky84
           - sol10
           - sol11
           - win10
@@ -55,6 +56,7 @@ jobs:
          - { os: nbsd8,  configs: pam }
          - { os: nbsd9,  configs: pam }
          - { os: openindiana, configs: pam }
+         - { os: rocky84, configs: pam }
          - { os: sol10,  configs: pam }
          - { os: sol11,  configs: pam-krb5 }
          - { os: sol11,  configs: sol64 }
