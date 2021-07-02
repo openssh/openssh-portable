@@ -44,7 +44,7 @@
 #include "misc.h"
 #include "log.h"
 
-#ifdef PRNGD_SOCKET
+#if defined(PRNGD_PORT) || defined(PRNGD_SOCKET)
 /*
  * EGD/PRNGD interface.
  *
@@ -145,7 +145,7 @@ done:
 		close(fd);
 	return rval;
 }
-#endif /* PRNGD_SOCKET */
+#endif /* PRNGD_PORT || PRNGD_SOCKET */
 
 int
 seed_from_prngd(unsigned char *buf, size_t bytes)
