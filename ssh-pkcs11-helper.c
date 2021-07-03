@@ -350,7 +350,6 @@ main(int argc, char **argv)
 	log_init(__progname, log_level, log_facility, log_stderr);
 
 	pkcs11_init(0);
-
 	in = STDIN_FILENO;
 	out = STDOUT_FILENO;
 

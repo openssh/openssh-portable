@@ -375,7 +375,6 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 #endif
 }
 
-
 void
 auth_maxtries_exceeded(struct ssh *ssh)
 {
