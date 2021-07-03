@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.226 2021/04/30 04:02:52 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.227 2021/07/02 05:11:20 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -962,7 +962,7 @@ mm_answer_bsdauthrespond(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	if ((r = sshbuf_get_cstring(m, &response, NULL)) != 0)
 		fatal_fr(r, "parse");
-	authok = options.challenge_response_authentication &&
+	authok = options.kbd_interactive_authentication &&
 	    auth_userresponse(authctxt->as, response, 0);
 	authctxt->as = NULL;
 	debug3_f("<%s> = <%d>", response, authok);

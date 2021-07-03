@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.349 2021/06/07 03:38:38 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.350 2021/07/02 05:11:21 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -442,8 +442,6 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	Authctxt authctxt;
 	int r;
 
-	if (options.challenge_response_authentication)
-		options.kbd_interactive_authentication = 1;
 	if (options.preferred_authentications == NULL)
 		options.preferred_authentications = authmethods_get();
 
