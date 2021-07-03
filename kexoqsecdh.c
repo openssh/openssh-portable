@@ -354,47 +354,6 @@ out:
 
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEX_WITH_EC_METHODS_START
 /*---------------------------------------------------------------
- * OQS_DEFAULT_ECDH_NISTP256 METHODS
- *---------------------------------------------------------------
- */
-int kex_kem_oqs_default_ecdh_nistp256_keypair(struct kex *kex)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_default);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_with_ec_keypair(kem, kex);
-    OQS_KEM_free(kem);
-    return r;
-}
-
-int kex_kem_oqs_default_ecdh_nistp256_enc(struct kex *kex,
-                                   const struct sshbuf *client_blob,
-                                   struct sshbuf **server_blobp,
-                                   struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_default);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_with_ec_enc(kem, kex, client_blob, server_blobp, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-
-int kex_kem_oqs_default_ecdh_nistp256_dec(struct kex *kex,
-                                       const struct sshbuf *server_blobp,
-                                       struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_default);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_with_ec_dec(kem, kex, server_blobp, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-/*---------------------------------------------------------------
  * FRODOKEM_640_AES_ECDH_NISTP256 METHODS
  *---------------------------------------------------------------
  */
@@ -1502,12 +1461,12 @@ int kex_kem_kyber_1024_90s_ecdh_nistp521_dec(struct kex *kex,
     return r;
 }
 /*---------------------------------------------------------------
- * BIKE1_L1_CPA_ECDH_NISTP256 METHODS
+ * BIKE_L1_ECDH_NISTP256 METHODS
  *---------------------------------------------------------------
  */
-int kex_kem_bike1_l1_cpa_ecdh_nistp256_keypair(struct kex *kex)
+int kex_kem_bike_l1_ecdh_nistp256_keypair(struct kex *kex)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_cpa);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l1);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1516,12 +1475,12 @@ int kex_kem_bike1_l1_cpa_ecdh_nistp256_keypair(struct kex *kex)
     return r;
 }
 
-int kex_kem_bike1_l1_cpa_ecdh_nistp256_enc(struct kex *kex,
+int kex_kem_bike_l1_ecdh_nistp256_enc(struct kex *kex,
                                    const struct sshbuf *client_blob,
                                    struct sshbuf **server_blobp,
                                    struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_cpa);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l1);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1530,11 +1489,11 @@ int kex_kem_bike1_l1_cpa_ecdh_nistp256_enc(struct kex *kex,
     return r;
 }
 
-int kex_kem_bike1_l1_cpa_ecdh_nistp256_dec(struct kex *kex,
+int kex_kem_bike_l1_ecdh_nistp256_dec(struct kex *kex,
                                        const struct sshbuf *server_blobp,
                                        struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_cpa);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l1);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1543,12 +1502,12 @@ int kex_kem_bike1_l1_cpa_ecdh_nistp256_dec(struct kex *kex,
     return r;
 }
 /*---------------------------------------------------------------
- * BIKE1_L1_FO_ECDH_NISTP256 METHODS
+ * BIKE_L3_ECDH_NISTP384 METHODS
  *---------------------------------------------------------------
  */
-int kex_kem_bike1_l1_fo_ecdh_nistp256_keypair(struct kex *kex)
+int kex_kem_bike_l3_ecdh_nistp384_keypair(struct kex *kex)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_fo);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l3);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1557,12 +1516,12 @@ int kex_kem_bike1_l1_fo_ecdh_nistp256_keypair(struct kex *kex)
     return r;
 }
 
-int kex_kem_bike1_l1_fo_ecdh_nistp256_enc(struct kex *kex,
+int kex_kem_bike_l3_ecdh_nistp384_enc(struct kex *kex,
                                    const struct sshbuf *client_blob,
                                    struct sshbuf **server_blobp,
                                    struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_fo);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l3);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1571,93 +1530,11 @@ int kex_kem_bike1_l1_fo_ecdh_nistp256_enc(struct kex *kex,
     return r;
 }
 
-int kex_kem_bike1_l1_fo_ecdh_nistp256_dec(struct kex *kex,
+int kex_kem_bike_l3_ecdh_nistp384_dec(struct kex *kex,
                                        const struct sshbuf *server_blobp,
                                        struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_fo);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_with_ec_dec(kem, kex, server_blobp, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-/*---------------------------------------------------------------
- * BIKE1_L3_CPA_ECDH_NISTP384 METHODS
- *---------------------------------------------------------------
- */
-int kex_kem_bike1_l3_cpa_ecdh_nistp384_keypair(struct kex *kex)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_cpa);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_with_ec_keypair(kem, kex);
-    OQS_KEM_free(kem);
-    return r;
-}
-
-int kex_kem_bike1_l3_cpa_ecdh_nistp384_enc(struct kex *kex,
-                                   const struct sshbuf *client_blob,
-                                   struct sshbuf **server_blobp,
-                                   struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_cpa);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_with_ec_enc(kem, kex, client_blob, server_blobp, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-
-int kex_kem_bike1_l3_cpa_ecdh_nistp384_dec(struct kex *kex,
-                                       const struct sshbuf *server_blobp,
-                                       struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_cpa);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_with_ec_dec(kem, kex, server_blobp, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-/*---------------------------------------------------------------
- * BIKE1_L3_FO_ECDH_NISTP384 METHODS
- *---------------------------------------------------------------
- */
-int kex_kem_bike1_l3_fo_ecdh_nistp384_keypair(struct kex *kex)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_fo);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_with_ec_keypair(kem, kex);
-    OQS_KEM_free(kem);
-    return r;
-}
-
-int kex_kem_bike1_l3_fo_ecdh_nistp384_enc(struct kex *kex,
-                                   const struct sshbuf *client_blob,
-                                   struct sshbuf **server_blobp,
-                                   struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_fo);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_with_ec_enc(kem, kex, client_blob, server_blobp, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-
-int kex_kem_bike1_l3_fo_ecdh_nistp384_dec(struct kex *kex,
-                                       const struct sshbuf *server_blobp,
-                                       struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_fo);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l3);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }

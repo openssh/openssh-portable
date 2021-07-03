@@ -66,7 +66,6 @@ rsa_hash_id_from_ident(const char *ident)
 	if (strcmp(ident, "rsa-sha2-256") == 0 ||
 	    /* OQS-note: Currently, only L1 algorithms support RSA hybrids */
 ///// OQS_TEMPLATE_FRAGMENT_LIST_L1_RSA_HYBRIDS_START
-	    strcmp(ident, "ssh-rsa3072-oqsdefault") == 0 ||
 	    strcmp(ident, "ssh-rsa3072-falcon512") == 0 ||
 	    strcmp(ident, "ssh-rsa3072-dilithium2aes") == 0 ||
 	    strcmp(ident, "ssh-rsa3072-picnicL1full") == 0 ||

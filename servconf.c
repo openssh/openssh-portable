@@ -297,8 +297,6 @@ fill_default_server_options(ServerOptions *options)
 #endif /* WITH_XMSS */
 ///// OQS_TEMPLATE_FRAGMENT_SERVER_ADD_HOSTKEYS_START
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_OQS_DEFAULT_KEY_FILE, 0);
-		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_FALCON_512_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_FALCON_1024_KEY_FILE, 0);
@@ -318,8 +316,6 @@ fill_default_server_options(ServerOptions *options)
 		    _PATH_HOST_SPHINCS_HARAKA_192F_ROBUST_KEY_FILE, 0);
 #ifdef WITH_OPENSSL
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_RSA3072_OQS_DEFAULT_KEY_FILE, 0);
-		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_RSA3072_FALCON_512_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_RSA3072_DILITHIUM_2_AES_KEY_FILE, 0);
@@ -328,8 +324,6 @@ fill_default_server_options(ServerOptions *options)
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_RSA3072_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, 0);
 #ifdef OPENSSL_HAS_ECC
-		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_ECDSA_NISTP256_OQS_DEFAULT_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ECDSA_NISTP256_FALCON_512_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,

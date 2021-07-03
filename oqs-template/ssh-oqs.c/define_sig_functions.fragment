@@ -10,11 +10,7 @@ int ssh_{{ sig['name']|replace('_','') }}_sign(const struct sshkey *key,
                      size_t datalen,
                      u_int compat)
 {
-    {% if sig['name'] == 'oqs_default' -%}
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
-    {%- else -%}
     OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_{{ sig['name'] }});
-    {%- endif %}
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -29,11 +25,7 @@ int ssh_{{ sig['name']|replace('_','') }}_verify(const struct sshkey *key,
                        size_t datalen,
                        u_int compat)
 {
-    {% if sig['name'] == 'oqs_default' -%}
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
-    {%- else -%}
     OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_{{ sig['name'] }});
-    {%- endif %}
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }

@@ -2383,7 +2383,6 @@ fill_default_options(Options * options)
 		    _PATH_SSH_CLIENT_ID_ED25519_SK, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_XMSS, 0);
 ///// OQS_TEMPLATE_FRAGMENT_ADD_ID_FILES_START
-		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_OQS_DEFAULT, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_FALCON_512, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_FALCON_1024, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_DILITHIUM_3, 0);
@@ -2394,13 +2393,11 @@ fill_default_options(Options * options)
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_SPHINCS_HARAKA_128F_SIMPLE, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_SPHINCS_HARAKA_192F_ROBUST, 0);
 #ifdef WITH_OPENSSL
-		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_RSA3072_OQS_DEFAULT, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_RSA3072_FALCON_512, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_RSA3072_DILITHIUM_2_AES, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_RSA3072_PICNIC_L1_FULL, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_RSA3072_SPHINCS_HARAKA_128F_SIMPLE, 0);
 #ifdef OPENSSL_HAS_ECC
-		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_OQS_DEFAULT, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_FALCON_512, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_ECDSA_NISTP521_FALCON_1024, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_ECDSA_NISTP384_DILITHIUM_3, 0);

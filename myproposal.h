@@ -38,8 +38,6 @@
 	"diffie-hellman-group18-sha512," \
 	"diffie-hellman-group14-sha256," \
 /*/// OQS_TEMPLATE_FRAGMENT_ADD_SERVER_KEXS_START */ \
-	"oqs-default-sha256," \
-	"ecdh-nistp256-oqs-default-sha256," \
 	"frodokem-640-aes-sha256," \
 	"ecdh-nistp256-frodokem-640-aes-sha256," \
 	"frodokem-976-aes-sha384," \
@@ -94,14 +92,10 @@
 	"ecdh-nistp384-kyber-768-90s-sha384," \
 	"kyber-1024-90s-sha512," \
 	"ecdh-nistp521-kyber-1024-90s-sha512," \
-	"bike1-l1-cpa-sha512," \
-	"ecdh-nistp256-bike1-l1-cpa-sha512," \
-	"bike1-l1-fo-sha512," \
-	"ecdh-nistp256-bike1-l1-fo-sha512," \
-	"bike1-l3-cpa-sha512," \
-	"ecdh-nistp384-bike1-l3-cpa-sha512," \
-	"bike1-l3-fo-sha512," \
-	"ecdh-nistp384-bike1-l3-fo-sha512," \
+	"bike-l1-sha512," \
+	"ecdh-nistp256-bike-l1-sha512," \
+	"bike-l3-sha512," \
+	"ecdh-nistp384-bike-l3-sha512," \
 	"ntru-hps2048509-sha512," \
 	"ecdh-nistp256-ntru-hps2048509-sha512," \
 	"ntru-hps2048677-sha512," \

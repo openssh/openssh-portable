@@ -141,46 +141,6 @@ static int kex_kem_generic_dec(OQS_KEM *kem,
 
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEX_METHODS_START
 /*---------------------------------------------------
- * OQS_DEFAULT METHODS
- *---------------------------------------------------
- */
-int kex_kem_oqs_default_keypair(struct kex *kex)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_default);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_keypair(kem, kex);
-    OQS_KEM_free(kem);
-    return r;
-}
-int kex_kem_oqs_default_enc(struct kex *kex,
-                                  const struct sshbuf *client_blob,
-                                  struct sshbuf **server_blobp,
-                                  struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_default);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_enc(kem, kex, client_blob, server_blobp, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-
-int kex_kem_oqs_default_dec(struct kex *kex,
-                                  const struct sshbuf *server_blob,
-                                  struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_default);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_dec(kem, kex, server_blob, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-/*---------------------------------------------------
  * FRODOKEM_640_AES METHODS
  *---------------------------------------------------
  */
@@ -1261,12 +1221,12 @@ int kex_kem_kyber_1024_90s_dec(struct kex *kex,
     return r;
 }
 /*---------------------------------------------------
- * BIKE1_L1_CPA METHODS
+ * BIKE_L1 METHODS
  *---------------------------------------------------
  */
-int kex_kem_bike1_l1_cpa_keypair(struct kex *kex)
+int kex_kem_bike_l1_keypair(struct kex *kex)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_cpa);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l1);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1274,12 +1234,12 @@ int kex_kem_bike1_l1_cpa_keypair(struct kex *kex)
     OQS_KEM_free(kem);
     return r;
 }
-int kex_kem_bike1_l1_cpa_enc(struct kex *kex,
+int kex_kem_bike_l1_enc(struct kex *kex,
                                   const struct sshbuf *client_blob,
                                   struct sshbuf **server_blobp,
                                   struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_cpa);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l1);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1288,11 +1248,11 @@ int kex_kem_bike1_l1_cpa_enc(struct kex *kex,
     return r;
 }
 
-int kex_kem_bike1_l1_cpa_dec(struct kex *kex,
+int kex_kem_bike_l1_dec(struct kex *kex,
                                   const struct sshbuf *server_blob,
                                   struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_cpa);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l1);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1301,12 +1261,12 @@ int kex_kem_bike1_l1_cpa_dec(struct kex *kex,
     return r;
 }
 /*---------------------------------------------------
- * BIKE1_L1_FO METHODS
+ * BIKE_L3 METHODS
  *---------------------------------------------------
  */
-int kex_kem_bike1_l1_fo_keypair(struct kex *kex)
+int kex_kem_bike_l3_keypair(struct kex *kex)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_fo);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l3);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1314,12 +1274,12 @@ int kex_kem_bike1_l1_fo_keypair(struct kex *kex)
     OQS_KEM_free(kem);
     return r;
 }
-int kex_kem_bike1_l1_fo_enc(struct kex *kex,
+int kex_kem_bike_l3_enc(struct kex *kex,
                                   const struct sshbuf *client_blob,
                                   struct sshbuf **server_blobp,
                                   struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_fo);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l3);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1328,91 +1288,11 @@ int kex_kem_bike1_l1_fo_enc(struct kex *kex,
     return r;
 }
 
-int kex_kem_bike1_l1_fo_dec(struct kex *kex,
+int kex_kem_bike_l3_dec(struct kex *kex,
                                   const struct sshbuf *server_blob,
                                   struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l1_fo);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_dec(kem, kex, server_blob, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-/*---------------------------------------------------
- * BIKE1_L3_CPA METHODS
- *---------------------------------------------------
- */
-int kex_kem_bike1_l3_cpa_keypair(struct kex *kex)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_cpa);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_keypair(kem, kex);
-    OQS_KEM_free(kem);
-    return r;
-}
-int kex_kem_bike1_l3_cpa_enc(struct kex *kex,
-                                  const struct sshbuf *client_blob,
-                                  struct sshbuf **server_blobp,
-                                  struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_cpa);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_enc(kem, kex, client_blob, server_blobp, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-
-int kex_kem_bike1_l3_cpa_dec(struct kex *kex,
-                                  const struct sshbuf *server_blob,
-                                  struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_cpa);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_dec(kem, kex, server_blob, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-/*---------------------------------------------------
- * BIKE1_L3_FO METHODS
- *---------------------------------------------------
- */
-int kex_kem_bike1_l3_fo_keypair(struct kex *kex)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_fo);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_keypair(kem, kex);
-    OQS_KEM_free(kem);
-    return r;
-}
-int kex_kem_bike1_l3_fo_enc(struct kex *kex,
-                                  const struct sshbuf *client_blob,
-                                  struct sshbuf **server_blobp,
-                                  struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_fo);
-    if (kem == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = kex_kem_generic_enc(kem, kex, client_blob, server_blobp, shared_secretp);
-    OQS_KEM_free(kem);
-    return r;
-}
-
-int kex_kem_bike1_l3_fo_dec(struct kex *kex,
-                                  const struct sshbuf *server_blob,
-                                  struct sshbuf **shared_secretp)
-{
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike1_l3_fo);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_bike_l3);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }

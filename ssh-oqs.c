@@ -179,40 +179,6 @@ out:
 
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_SIG_FUNCTIONS_START
 /*---------------------------------------------------
- * OQS_DEFAULT METHODS
- *---------------------------------------------------
- */
-int ssh_oqsdefault_sign(const struct sshkey *key,
-                     u_char **sigp,
-                     size_t *lenp,
-                     const u_char *data,
-                     size_t datalen,
-                     u_int compat)
-{
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
-    if (sig == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = ssh_generic_sign(sig, "oqsdefault", key, sigp, lenp, data, datalen, compat);
-    OQS_SIG_free(sig);
-    return r;
-}
-int ssh_oqsdefault_verify(const struct sshkey *key,
-                       const u_char *signature,
-                       size_t signaturelen,
-                       const u_char *data,
-                       size_t datalen,
-                       u_int compat)
-{
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
-    if (sig == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = ssh_generic_verify(sig, "oqsdefault", key, signature, signaturelen, data, datalen, compat);
-    OQS_SIG_free(sig);
-    return r;
-}
-/*---------------------------------------------------
  * FALCON_512 METHODS
  *---------------------------------------------------
  */

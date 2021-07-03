@@ -3,15 +3,6 @@
     {%- for alg in sig['mix_with'] %}
   case KEY_{{ alg['name']|upper }}_{{ sig['name']|upper }}:
     {%- endfor %}
-    {%- if sig['name'] == 'oqs_default' %}
-  { // OQS-TODO: Find a cleaner way
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_default);
-    size_t sk_len = sig->length_secret_key;
-    OQS_SIG_free(sig);
-    return sk_len;
-  }
-    {%- else %}
     return OQS_SIG_{{ sig['name'] }}_length_secret_key;
-    {%- endif -%}
 {%- endfor %}
 

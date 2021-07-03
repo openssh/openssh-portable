@@ -1,13 +1,6 @@
 # kexs cannot be empty due to myproposal.h
 kexs:
   -
-    name: 'oqs_default'
-    hash: 'sha256'
-    mix_with:
-      -
-        name: 'nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
     family: 'FrodoKEM'
     name: 'frodokem_640_aes'
     hash: 'sha256'
@@ -225,7 +218,7 @@ kexs:
         openssl_nid: 'NID_secp521r1'
   -
     family: 'BIKE'
-    name: 'bike1_l1_cpa'
+    name: 'bike_l1'
     hash: 'sha512'
     mix_with:
       -
@@ -233,23 +226,7 @@ kexs:
         openssl_nid: 'NID_X9_62_prime256v1'
   -
     family: 'BIKE'
-    name: 'bike1_l1_fo'
-    hash: 'sha512'
-    mix_with:
-      -
-        name: 'nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'BIKE'
-    name: 'bike1_l3_cpa'
-    hash: 'sha512'
-    mix_with:
-      -
-        name: 'nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'BIKE'
-    name: 'bike1_l3_fo'
+    name: 'bike_l3'
     hash: 'sha512'
     mix_with:
       -
@@ -441,17 +418,6 @@ kexs:
         openssl_nid: 'NID_secp384r1'
 
 sigs:
-  -
-    name: 'oqs_default'
-    enable: true
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
   -
     family: 'Falcon'
     name: 'falcon_512'
