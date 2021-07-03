@@ -1745,17 +1745,17 @@ Enables the Pluggable Authentication Module interface.
 If set to
 .Cm yes
 this will enable PAM authentication using
-.Cm ChallengeResponseAuthentication
+.Cm KbdInteractiveAuthentication
 and
 .Cm PasswordAuthentication
 in addition to PAM account and session module processing for all
 authentication types.
 .Pp
-Because PAM challenge-response authentication usually serves an equivalent
+Because PAM keyboard-interactive authentication usually serves an equivalent
 role to password authentication, you should disable either
 .Cm PasswordAuthentication
 or
-.Cm ChallengeResponseAuthentication.
+.Cm KbdInteractiveAuthentication.
 .Pp
 If
 .Cm UsePAM
