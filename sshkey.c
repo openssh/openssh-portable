@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.116 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.117 2021/07/05 01:21:07 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
