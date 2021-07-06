@@ -115,9 +115,6 @@
 /* import options */
 extern Options options;
 
-/* Flag indicating that stdin should be redirected from /dev/null. */
-extern int stdin_null_flag;
-
 /* Flag indicating that ssh should daemonise after authentication is complete */
 extern int fork_after_authentication_flag;
 

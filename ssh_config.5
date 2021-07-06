@@ -1675,6 +1675,22 @@ Similarly to
 with the exception of the
 .Ev TERM
 variable, the server must be prepared to accept the environment variable.
+.It Cm StdinNull
+Redirects stdin from
+.Pa /dev/null
+(actually, prevents reading from stdin).
+Either this or the equivalent
+.Fl n
+option must be used when
+.Nm ssh
+is run in the background.
+The argument to this keyword must be
+.Cm yes
+(same as the
+.Fl n
+option) or
+.Cm no
+(the default).
 .It Cm StreamLocalBindMask
 Sets the octal file creation mode mask
 .Pq umask

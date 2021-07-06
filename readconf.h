@@ -147,6 +147,7 @@ typedef struct {
 
 	int	request_tty;
 	int	session_type;
+	int	stdin_null;
 
 	int	proxy_use_fdpass;
 
