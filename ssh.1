@@ -425,6 +425,11 @@ keyword for more information.
 .It Fl N
 Do not execute a remote command.
 This is useful for just forwarding ports.
+Refer to the description of
+.Cm SessionType
+in
+.Xr ssh_config 5
+for details.
 .Pp
 .It Fl n
 Redirects stdin from
@@ -546,6 +551,7 @@ For full details of the options listed below, and their possible values, see
 .It SendEnv
 .It ServerAliveInterval
 .It ServerAliveCountMax
+.It SessionType
 .It SetEnv
 .It StreamLocalBindMask
 .It StreamLocalBindUnlink
@@ -703,6 +709,11 @@ Subsystems facilitate the use of SSH
 as a secure transport for other applications (e.g.\&
 .Xr sftp 1 ) .
 The subsystem is specified as the remote command.
+Refer to the description of
+.Cm SessionType
+in
+.Xr ssh_config 5
+for details.
 .Pp
 .It Fl T
 Disable pseudo-terminal allocation.

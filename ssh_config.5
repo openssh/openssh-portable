@@ -1263,6 +1263,21 @@ The argument to this keyword must be
 or
 .Cm no
 (the default).
+.It Cm SessionType
+May be used to either request invocation of a subsystem on the remote system,
+or to prevent the execution of a remote command at all.
+The latter is useful for just forwarding ports.
+The argument to this keyword must be
+.Cm none
+(same as the
+.Fl N
+option),
+.Cm subsystem
+(same as the
+.Fl s
+option) or
+.Cm default
+(the default).
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up.
 The argument to this keyword must be an integer.
