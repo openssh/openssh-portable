@@ -676,6 +676,45 @@ Valid options are:
 and
 .Cm sha256
 (the default).
+.It Cm ForkAfterAuthentication
+Requests
+.Nm ssh
+to go to background just before command execution.
+This is useful if
+.Nm ssh
+is going to ask for passwords or passphrases, but the user
+wants it in the background.
+This implies the
+.Cm StdinNull
+configuration option being set to
+.Dq yes .
+The recommended way to start X11 programs at a remote site is with
+something like
+.Ic ssh -f host xterm ,
+which is the same as
+.Ic ssh host xterm
+if the
+.Cm ForkAfterAuthentication
+configuration option is set to
+.Dq yes .
+.Pp
+If the
+.Cm ExitOnForwardFailure
+configuration option is set to
+.Dq yes ,
+then a client started with the
+.Cm ForkAfterAuthentication
+configuration option being set to
+.Dq yes
+will wait for all remote port forwards to be successfully established
+before placing itself in the background.
+The argument to this keyword must be
+.Cm yes
+(same as the
+.Fl f
+option) or
+.Cm no
+(the default).
 .It Cm ForwardAgent
 Specifies whether the connection to the authentication agent (if any)
 will be forwarded to the remote machine.

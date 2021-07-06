@@ -115,9 +115,6 @@
 /* import options */
 extern Options options;
 
-/* Flag indicating that ssh should daemonise after authentication is complete */
-extern int fork_after_authentication_flag;
-
 /* Control socket */
 extern int muxserver_sock; /* XXX use mux_client_cleanup() instead */
 
@@ -1240,7 +1237,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			fatal_f("pledge(): %s", strerror(errno));
 
 	} else if (!option_clear_or_none(options.proxy_command) ||
-	    fork_after_authentication_flag) {
+	    options.fork_after_authentication) {
 		debug("pledge: proc");
 		if (pledge("stdio cpath unix inet dns proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
