@@ -471,11 +471,11 @@ main(int argc, char **argv)
 			addargs(&args, "-oBatchmode=yes");
 			break;
 		case 'l':
-			limit_kbps = strtonum(optarg, 1, 100 * 1024 * 1024,
+			limit_kbps = strtonum(optarg, 1, 100 * 1000 * 1000,
 			    &errstr);
 			if (errstr != NULL)
 				usage();
-			limit_kbps *= 1024; /* kbps */
+			limit_kbps *= 1000; /* kbit/s */
 			bandwidth_limit_init(&bwlimit, limit_kbps, COPY_BUFLEN);
 			break;
 		case 'p':

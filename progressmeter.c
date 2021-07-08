@@ -76,7 +76,7 @@ static volatile sig_atomic_t win_resized; /* for window resizing */
 static volatile sig_atomic_t alarm_fired;
 
 /* units for format_size */
-static const char unit[] = " KMGT";
+static const char unit[] = " kMGT";
 
 static int
 can_output(void)
@@ -91,12 +91,12 @@ format_rate(char *buf, int size, off_t bytes)
 
 	bytes *= 100;
 	for (i = 0; bytes >= 100*1000 && unit[i] != 'T'; i++)
-		bytes = (bytes + 512) / 1024;
+		bytes = (bytes + 500) / 1000;
 	if (i == 0) {
 		i++;
-		bytes = (bytes + 512) / 1024;
+		bytes = (bytes + 500) / 1000;
 	}
-	snprintf(buf, size, "%3lld.%1lld%c%s",
+	snprintf(buf, size, "%3lld.%1lld %c%s",
 	    (long long) (bytes + 5) / 100,
 	    (long long) (bytes + 5) / 10 % 10,
 	    unit[i],
@@ -109,8 +109,8 @@ format_size(char *buf, int size, off_t bytes)
 	int i;
 
 	for (i = 0; bytes >= 10000 && unit[i] != 'T'; i++)
-		bytes = (bytes + 512) / 1024;
-	snprintf(buf, size, "%4lld%c%s",
+		bytes = (bytes + 500) / 1000;
+	snprintf(buf, size, "%4lld %c%s",
 	    (long long) bytes,
 	    unit[i],
 	    i ? "B" : " ");
@@ -166,7 +166,7 @@ refresh_progress_meter(int force_update)
 
 	/* filename */
 	buf[0] = '\0';
-	file_len = win_size - 36;
+	file_len = win_size - 41;
 	if (file_len > 0) {
 		buf[0] = '\r';
 		snmprintf(buf+1, sizeof(buf)-1, &file_len, "%-*s",
@@ -179,17 +179,17 @@ refresh_progress_meter(int force_update)
 	else
 		percent = ((float)cur_pos / end_pos) * 100;
 	snprintf(buf + strlen(buf), win_size - strlen(buf),
-	    " %3d%% ", percent);
+	    " %3d%%  ", percent);
 
 	/* amount transferred */
 	format_size(buf + strlen(buf), win_size - strlen(buf),
 	    cur_pos);
-	strlcat(buf, " ", win_size);
+	strlcat(buf, "  ", win_size);
 
 	/* bandwidth usage */
 	format_rate(buf + strlen(buf), win_size - strlen(buf),
 	    (off_t)bytes_per_second);
-	strlcat(buf, "/s ", win_size);
+	strlcat(buf, "/s  ", win_size);
 
 	/* ETA */
 	if (!transferred)
