@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.430 2021/07/05 01:16:46 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.431 2021/07/09 09:55:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2769,7 +2769,8 @@ sig_find_principals(const char *signature, const char *allowed_keys) {
 	}
 	if ((r = sshsig_find_principals(allowed_keys, sign_key,
 	    &principals)) != 0) {
-		error_fr(r, "sshsig_get_principal");
+		if (r != SSH_ERR_KEY_NOT_FOUND)
+			error_fr(r, "sshsig_find_principal");
 		goto done;
 	}
 	ret = 0;
