@@ -304,6 +304,12 @@ typedef long long intmax_t;
 typedef unsigned long long uintmax_t;
 #endif
 
+#if SIZEOF_TIME_T == SIZEOF_LONG_LONG_INT
+# define SSH_TIME_T_MAX LLONG_MAX
+#else
+# define SSH_TIME_T_MAX INT_MAX
+#endif
+
 #ifndef HAVE_U_CHAR
 typedef unsigned char u_char;
 # define HAVE_U_CHAR

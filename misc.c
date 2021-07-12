@@ -2384,7 +2384,7 @@ parse_absolute_time(const char *s, uint64_t *tp)
 }
 
 /* On OpenBSD time_t is int64_t which is long long. */
-#define SSH_TIME_T_MAX LLONG_MAX
+/* #define SSH_TIME_T_MAX LLONG_MAX */
 
 void
 format_absolute_time(uint64_t t, char *buf, size_t len)

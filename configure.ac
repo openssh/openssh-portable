@@ -3664,7 +3664,7 @@ if test ! -z "$SONY" ; then
   LIBS="$LIBS -liberty";
 fi
 
-# Check for  long long datatypes
+# Check for long long datatypes
 AC_CHECK_TYPES([long long, unsigned long long, long double])
 
 # Check datatype sizes
@@ -3672,6 +3672,16 @@ AC_CHECK_SIZEOF([short int])
 AC_CHECK_SIZEOF([int])
 AC_CHECK_SIZEOF([long int])
 AC_CHECK_SIZEOF([long long int])
+AC_CHECK_SIZEOF([time_t], [], [[
+    #include <sys/types.h>
+    #ifdef HAVE_SYS_TIME_H
+    # include <sys/time.h>
+    #endif
+    #ifdef HAVE_TIME_H
+    # include <time.h>
+    #endif
+	]]
+)
 
 # Sanity check long long for some platforms (AIX)
 if test "x$ac_cv_sizeof_long_long_int" = "x4" ; then
