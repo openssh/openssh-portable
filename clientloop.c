@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.365 2021/07/05 01:21:07 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.366 2021/07/13 23:48:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -117,9 +117,6 @@ extern Options options;
 
 /* Flag indicating that stdin should be redirected from /dev/null. */
 extern int stdin_null_flag;
-
-/* Flag indicating that no shell has been requested */
-extern int no_shell_flag;
 
 /* Flag indicating that ssh should daemonise after authentication is complete */
 extern int fork_after_authentication_flag;
@@ -1410,7 +1407,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	 * exit status to be returned.  In that case, clear error code if the
 	 * connection was deliberately terminated at this end.
 	 */
-	if (no_shell_flag && received_signal == SIGTERM) {
+	if (options.session_type == SESSION_TYPE_NONE && received_signal == SIGTERM) {
 		received_signal = 0;
 		exit_status = 0;
 	}
@@ -2585,7 +2582,7 @@ client_stop_mux(void)
 	 * If we are in persist mode, or don't have a shell, signal that we
 	 * should close when all active channels are closed.
 	 */
-	if (options.control_persist || no_shell_flag) {
+	if (options.control_persist || options.session_type == SESSION_TYPE_NONE) {
 		session_closed = 1;
 		setproctitle("[stopped mux]");
 	}

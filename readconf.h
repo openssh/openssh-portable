@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.141 2021/07/02 05:11:21 dtucker Exp $ */
+/* $OpenBSD: readconf.h,v 1.142 2021/07/13 23:48:36 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -146,6 +146,7 @@ typedef struct {
 	int	visual_host_key;
 
 	int	request_tty;
+	int	session_type;
 
 	int	proxy_use_fdpass;
 
@@ -190,6 +191,10 @@ typedef struct {
 #define REQUEST_TTY_NO		1
 #define REQUEST_TTY_YES		2
 #define REQUEST_TTY_FORCE	3
+
+#define SESSION_TYPE_NONE	0
+#define SESSION_TYPE_SUBSYSTEM	1
+#define SESSION_TYPE_DEFAULT	2
 
 #define SSHCONF_CHECKPERM	1  /* check permissions on config file */
 #define SSHCONF_USERCONF	2  /* user provided config file not system */

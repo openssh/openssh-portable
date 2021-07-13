@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.89 2021/06/04 05:02:40 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.90 2021/07/13 23:48:36 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -73,7 +73,6 @@ extern int tty_flag;
 extern Options options;
 extern int stdin_null_flag;
 extern char *host;
-extern int subsystem_flag;
 extern struct sshbuf *command;
 extern volatile sig_atomic_t quit_pending;
 
@@ -1899,7 +1898,7 @@ mux_client_request_session(int fd)
 	    (r = sshbuf_put_u32(m, tty_flag)) != 0 ||
 	    (r = sshbuf_put_u32(m, options.forward_x11)) != 0 ||
 	    (r = sshbuf_put_u32(m, options.forward_agent)) != 0 ||
-	    (r = sshbuf_put_u32(m, subsystem_flag)) != 0 ||
+	    (r = sshbuf_put_u32(m, options.session_type == SESSION_TYPE_SUBSYSTEM)) != 0 ||
 	    (r = sshbuf_put_u32(m, echar)) != 0 ||
 	    (r = sshbuf_put_cstring(m, term == NULL ? "" : term)) != 0 ||
 	    (r = sshbuf_put_stringb(m, command)) != 0)
