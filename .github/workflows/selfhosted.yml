@@ -13,9 +13,10 @@ jobs:
     strategy:
       fail-fast: false
       # We use a matrix in two parts: firstly all of the VMs are tested with the
-      # default config.  "vm" corresponds to a label associated with the worker.
+      # default config.  "os" corresponds to a label associated with the worker.
       matrix:
         os:
+          - ARM64
           - bbone
           - dfly30
           - dfly48
@@ -45,6 +46,7 @@ jobs:
           - default
         # Then we include any extra configs we want to test for specific VMs.
         include:
+         - { os: ARM64,  configs: pam }
          - { os: dfly30, configs: without-openssl}
          - { os: dfly48, configs: pam }
          - { os: dfly58, configs: pam }
