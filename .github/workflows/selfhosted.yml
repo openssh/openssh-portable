@@ -46,23 +46,23 @@ jobs:
           - default
         # Then we include any extra configs we want to test for specific VMs.
         include:
-         - { os: ARM64,  configs: pam }
-         - { os: dfly30, configs: without-openssl}
-         - { os: dfly48, configs: pam }
-         - { os: dfly58, configs: pam }
-         - { os: dfly60, configs: pam }
-         - { os: fbsd6,  configs: pam }
-         - { os: fbsd10, configs: pam }
-         - { os: fbsd12, configs: pam }
-         - { os: fbsd13, configs: pam }
-         - { os: nbsd8,  configs: pam }
-         - { os: nbsd9,  configs: pam }
-         - { os: openindiana, configs: pam }
-         # - { os: rocky84, configs: pam }
-         - { os: sol10,  configs: pam }
-         - { os: sol11,  configs: pam-krb5 }
-         - { os: sol11,  configs: sol64 }
-         # - { os: sol11,  configs: sol64-pam }
+          - { os: ARM64,  configs: pam }
+          - { os: dfly30, configs: without-openssl}
+          - { os: dfly48, configs: pam }
+          - { os: dfly58, configs: pam }
+          - { os: dfly60, configs: pam }
+          - { os: fbsd6,  configs: pam }
+          - { os: fbsd10, configs: pam }
+          - { os: fbsd12, configs: pam }
+          - { os: fbsd13, configs: pam }
+          - { os: nbsd8,  configs: pam }
+          - { os: nbsd9,  configs: pam }
+          - { os: openindiana, configs: pam }
+          # - { os: rocky84, configs: pam }
+          - { os: sol10,  configs: pam }
+          - { os: sol11,  configs: pam-krb5 }
+          - { os: sol11,  configs: sol64 }
+          # - { os: sol11,  configs: sol64-pam }
     steps:
     - uses: actions/checkout@v2
     - name: autoreconf
