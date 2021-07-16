@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.366 2021/07/13 23:48:36 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.367 2021/07/16 09:00:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1357,6 +1357,10 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 
 		if (quit_pending)
 			break;
+
+		/* A timeout may have triggered rekeying */
+		if ((r = ssh_packet_check_rekey(ssh)) != 0)
+			fatal_fr(r, "cannot start rekeying");
 
 		/*
 		 * Send as much buffered packet data as possible to the
