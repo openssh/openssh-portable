@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.561 2021/07/17 00:36:53 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.562 2021/07/17 00:38:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1331,7 +1331,8 @@ main(int ac, char **av)
 
 	/* Cannot fork to background if no command. */
 	if (fork_after_authentication_flag && sshbuf_len(command) == 0 &&
-	    options.remote_command == NULL && options.session_type != SESSION_TYPE_NONE)
+	    options.remote_command == NULL &&
+	    options.session_type != SESSION_TYPE_NONE)
 		fatal("Cannot fork into background without a command "
 		    "to execute.");
 
@@ -2062,7 +2063,8 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 	if ((term = lookup_env_in_list("TERM", options.setenv,
 	    options.num_setenv)) == NULL || *term == '\0')
 		term = getenv("TERM");
-	client_session2_setup(ssh, id, tty_flag, options.session_type == SESSION_TYPE_SUBSYSTEM, term,
+	client_session2_setup(ssh, id, tty_flag,
+	    options.session_type == SESSION_TYPE_SUBSYSTEM, term,
 	    NULL, fileno(stdin), command, environ);
 }
 
@@ -2150,7 +2152,8 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 		options.session_type = SESSION_TYPE_NONE;
 		tty_flag = 0;
 		if (!fork_after_authentication_flag &&
-		    (osession_type != SESSION_TYPE_NONE || options.stdio_forward_host != NULL))
+		    (osession_type != SESSION_TYPE_NONE ||
+		    options.stdio_forward_host != NULL))
 			need_controlpersist_detach = 1;
 		fork_after_authentication_flag = 1;
 	}
