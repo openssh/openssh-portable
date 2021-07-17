@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.560 2021/07/13 23:48:36 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.561 2021/07/17 00:36:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1736,6 +1736,7 @@ control_persist_detach(void)
 		stdin_null_flag = ostdin_null_flag;
 		options.request_tty = orequest_tty;
 		tty_flag = otty_flag;
+		options.session_type = osession_type;
 		close(muxserver_sock);
 		muxserver_sock = -1;
 		options.control_master = SSHCTL_MASTER_NO;
