@@ -1,4 +1,4 @@
-#	$OpenBSD: sshfp-connect.sh,v 1.1 2021/07/19 02:46:34 dtucker Exp $
+#	$OpenBSD: sshfp-connect.sh,v 1.2 2021/07/19 08:48:33 dtucker Exp $
 #	Placed in the Public Domain.
 
 # This test requires external setup and thus is skipped unless
@@ -29,8 +29,8 @@ if [ ! -z "${TEST_SSH_SSHFP_DOMAIN}" ] && \
 
 	# Set RSA host key to match fingerprints above.
 	mv $OBJ/sshd_proxy $OBJ/sshd_proxy.orig
-	cp $SRC/rsa_openssh.prv $OBJ/host.ssh-rsa
-	chmod 600 $OBJ/host.ssh-rsa
+	$SUDO cp $SRC/rsa_openssh.prv $OBJ/host.ssh-rsa
+	$SUDO chmod 600 $OBJ/host.ssh-rsa
 	sed -e "s|$OBJ/ssh-rsa|$OBJ/host.ssh-rsa|" \
 	    $OBJ/sshd_proxy.orig > $OBJ/sshd_proxy
 
