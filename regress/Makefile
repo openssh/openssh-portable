@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.112 2021/07/19 00:16:26 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.113 2021/07/19 02:46:34 dtucker Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -21,6 +21,7 @@ distclean:	clean
 
 LTESTS= 	connect \
 		proxy-connect \
+		sshfp-connect \
 		connect-privsep \
 		connect-uri \
 		proto-version \
