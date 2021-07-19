@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.111 2021/07/18 23:10:10 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.112 2021/07/19 00:16:26 dtucker Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -44,7 +44,9 @@ LTESTS= 	connect \
 		agent-subprocess \
 		keyscan \
 		keygen-change \
+		keygen-comment \
 		keygen-convert \
+		keygen-knownhosts \
 		keygen-moduli \
 		keygen-sshfp \
 		key-options \
@@ -85,7 +87,6 @@ LTESTS= 	connect \
 		multipubkey \
 		limit-keytype \
 		hostkey-agent \
-		keygen-knownhosts \
 		hostkey-rotate \
 		principals-command \
 		cert-file \
@@ -94,7 +95,6 @@ LTESTS= 	connect \
 		allow-deny-users \
 		authinfo \
 		sshsig \
-		keygen-comment \
 		knownhosts-command
 
 
