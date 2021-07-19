@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.577 2021/07/02 05:11:21 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.578 2021/07/19 02:21:50 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
