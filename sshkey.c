@@ -4504,15 +4504,15 @@ translate_libcrypto_error(unsigned long pem_err)
 		default:
 			return SSH_ERR_INVALID_FORMAT;
 		}
-#ifdef ERR_R_INTERRUPTED_OR_CANCELLED
 	case ERR_LIB_CRYPTO:
 		switch (pem_reason) {
+#ifdef ERR_R_INTERRUPTED_OR_CANCELLED
 		case ERR_R_INTERRUPTED_OR_CANCELLED:
 			return SSH_ERR_KEY_WRONG_PASSPHRASE;
+#endif
 		default:
 			return SSH_ERR_INVALID_FORMAT;
 		}
-#endif
 
 	case ERR_LIB_EVP:
 		switch (pem_reason) {
