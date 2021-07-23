@@ -1,21 +1,7 @@
-#	$OpenBSD: keygen-convert.sh,v 1.4 2021/07/23 05:07:16 dtucker Exp $
+#	$OpenBSD: keygen-convert.sh,v 1.5 2021/07/23 05:53:02 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="convert keys"
-
-ecdsa=0
-types=""
-for i in ${SSH_KEYTYPES}; do
-	case "$i" in
-		ssh-dss)	types="$types dsa" ;;
-		ssh-rsa)	types="$types rsa" ;;
-		ssh-ed25519)	types="$types ed25519" ;;
-		ecdsa-sha2-*)	ecdsa=1 ;;
-	esac
-done
-if [ "x$ecdsa" = "x1" ]; then
-	types="$types ecdsa"
-fi
 
 cat > $OBJ/askpass <<EOD
 #!/bin/sh
@@ -23,7 +9,7 @@ echo hunter2
 EOD
 chmod u+x $OBJ/askpass
 
-for t in $types; do
+for t in ${SSH_KEYTYPES}; do
 	# generate user key for agent
 	trace "generating $t key"
 	rm -f $OBJ/$t-key
