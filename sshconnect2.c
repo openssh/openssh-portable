@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.350 2021/07/02 05:11:21 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.351 2021/07/23 05:24:02 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -487,7 +487,14 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 
 	if (!authctxt.success)
 		fatal("Authentication failed.");
-	debug("Authentication succeeded (%s).", authctxt.method->name);
+	if (ssh_packet_connection_is_on_socket(ssh)) {
+		verbose("Authenticated to %s ([%s]:%d) using \"%s\".", host,
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+		    authctxt.method->name);
+	} else {
+		verbose("Authenticated to %s (via proxy) using \"%s\".", host,
+		    authctxt.method->name);
+	}
 }
 
 /* ARGSUSED */
@@ -645,7 +652,8 @@ input_userauth_failure(int type, u_int32_t seq, struct ssh *ssh)
 		goto out;
 
 	if (partial != 0) {
-		verbose("Authenticated with partial success.");
+		verbose("Authenticated using \"%s\" with partial success.",
+		    authctxt->method->name);
 		/* reset state */
 		pubkey_reset(authctxt);
 	}
