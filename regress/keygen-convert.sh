@@ -1,15 +1,21 @@
-#	$OpenBSD: keygen-convert.sh,v 1.3 2021/07/23 04:56:21 dtucker Exp $
+#	$OpenBSD: keygen-convert.sh,v 1.4 2021/07/23 05:07:16 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="convert keys"
 
+ecdsa=0
 types=""
 for i in ${SSH_KEYTYPES}; do
 	case "$i" in
 		ssh-dss)	types="$types dsa" ;;
 		ssh-rsa)	types="$types rsa" ;;
+		ssh-ed25519)	types="$types ed25519" ;;
+		ecdsa-sha2-*)	ecdsa=1 ;;
 	esac
 done
+if [ "x$ecdsa" = "x1" ]; then
+	types="$types ecdsa"
+fi
 
 cat > $OBJ/askpass <<EOD
 #!/bin/sh
