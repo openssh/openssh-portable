@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.5 2021/07/12 02:12:22 djm Exp $
+#	$OpenBSD: sshsig.sh,v 1.6 2021/07/23 03:54:55 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -106,6 +106,34 @@ for t in $SIGNKEYS; do
 		-I $sig_principal -f $OBJ/allowed_signers \
 		< $DATA >/dev/null 2>&1 && \
 		fail "accepted signature for $t key with excluded namespace"
+
+	( printf "$sig_principal " ;
+	  printf "valid-after=\"19800101\",valid-before=\"19900101\" " ;
+	  cat $pubkey) > $OBJ/allowed_signers
+
+	# key lifespan valid
+	${SSHKEYGEN} -vvv -Y verify -s $sigfile -n $sig_namespace \
+		-I $sig_principal -f $OBJ/allowed_signers \
+		-Overify-time=19850101 \
+		< $DATA >/dev/null 2>&1 || \
+		fail "failed signature for $t key with valid expiry interval"
+	# key not yet valid
+	${SSHKEYGEN} -vvv -Y verify -s $sigfile -n $sig_namespace \
+		-I $sig_principal -f $OBJ/allowed_signers \
+		-Overify-time=19790101 \
+		< $DATA >/dev/null 2>&1 && \
+		fail "failed signature for $t not-yet-valid key"
+	# key expired
+	${SSHKEYGEN} -vvv -Y verify -s $sigfile -n $sig_namespace \
+		-I $sig_principal -f $OBJ/allowed_signers \
+		-Overify-time=19910101 \
+		< $DATA >/dev/null 2>&1 && \
+		fail "failed signature for $t with expired key"
+	# NB. assumes we're not running this test in the 1980s
+	${SSHKEYGEN} -vvv -Y verify -s $sigfile -n $sig_namespace \
+		-I $sig_principal -f $OBJ/allowed_signers \
+		< $DATA >/dev/null 2>&1 && \
+		fail "failed signature for $t with expired key"
 
 	# public key in revoked keys file
 	cat $pubkey > $OBJ/revoked_keys
