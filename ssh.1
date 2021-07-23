@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.422 2021/07/13 23:48:36 djm Exp $
-.Dd $Mdocdate: July 13 2021 $
+.\" $OpenBSD: ssh.1,v 1.423 2021/07/23 04:00:59 djm Exp $
+.Dd $Mdocdate: July 23 2021 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -451,6 +451,11 @@ program will be put in the background.
 needs to ask for a password or passphrase; see also the
 .Fl f
 option.)
+Refer to the description of
+.Cm StdinNull
+in
+.Xr ssh_config 5
+for details.
 .Pp
 .It Fl O Ar ctl_cmd
 Control an active connection multiplexing master process.
@@ -553,6 +558,7 @@ For full details of the options listed below, and their possible values, see
 .It ServerAliveCountMax
 .It SessionType
 .It SetEnv
+.It StdinNull
 .It StreamLocalBindMask
 .It StreamLocalBindUnlink
 .It StrictHostKeyChecking

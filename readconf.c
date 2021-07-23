@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.359 2021/07/13 23:48:36 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.360 2021/07/23 04:00:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -167,7 +167,7 @@ typedef enum {
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
 	oVisualHostKey,
-	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType,
+	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType, oStdinNull,
 	oIgnoreUnknown, oProxyUseFdpass,
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
@@ -299,6 +299,7 @@ static struct {
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
 	{ "sessiontype", oSessionType },
+	{ "stdinnull", oStdinNull },
 	{ "proxyusefdpass", oProxyUseFdpass },
 	{ "canonicaldomains", oCanonicalDomains },
 	{ "canonicalizefallbacklocal", oCanonicalizeFallbackLocal },
@@ -1954,6 +1955,10 @@ parse_pubkey_algos:
 		multistate_ptr = multistate_sessiontype;
 		goto parse_multistate;
 
+	case oStdinNull:
+		intptr = &options->stdin_null;
+		goto parse_flag;
+
 	case oIgnoreUnknown:
 		charptr = &options->ignored_unknown;
 		goto parse_string;
@@ -2377,6 +2382,7 @@ initialize_options(Options * options)
 	options->ip_qos_bulk = -1;
 	options->request_tty = -1;
 	options->session_type = -1;
+	options->stdin_null = -1;
 	options->proxy_use_fdpass = -1;
 	options->ignored_unknown = NULL;
 	options->num_canonical_domains = 0;
@@ -2565,6 +2571,8 @@ fill_default_options(Options * options)
 		options->request_tty = REQUEST_TTY_AUTO;
 	if (options->session_type == -1)
 		options->session_type = SESSION_TYPE_DEFAULT;
+	if (options->stdin_null == -1)
+		options->stdin_null = 0;
 	if (options->proxy_use_fdpass == -1)
 		options->proxy_use_fdpass = 0;
 	if (options->canonicalize_max_dots == -1)
@@ -3243,6 +3251,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oPubkeyAuthentication, o->pubkey_authentication);
 	dump_cfg_fmtint(oRequestTTY, o->request_tty);
 	dump_cfg_fmtint(oSessionType, o->session_type);
+	dump_cfg_fmtint(oStdinNull, o->stdin_null);
 	dump_cfg_fmtint(oStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(oStrictHostKeyChecking, o->strict_host_key_checking);
 	dump_cfg_fmtint(oTCPKeepAlive, o->tcp_keep_alive);

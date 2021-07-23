@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.367 2021/07/16 09:00:23 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.368 2021/07/23 04:00:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -114,9 +114,6 @@
 
 /* import options */
 extern Options options;
-
-/* Flag indicating that stdin should be redirected from /dev/null. */
-extern int stdin_null_flag;
 
 /* Flag indicating that ssh should daemonise after authentication is complete */
 extern int fork_after_authentication_flag;
