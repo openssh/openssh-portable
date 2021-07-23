@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.423 2021/07/23 04:00:59 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.424 2021/07/23 04:04:52 djm Exp $
 .Dd $Mdocdate: July 23 2021 $
 .Dt SSH 1
 .Os
@@ -259,6 +259,11 @@ then a client started with
 .Fl f
 will wait for all remote port forwards to be successfully established
 before placing itself in the background.
+Refer to the description of
+.Cm ForkAfterAuthentication
+in
+.Xr ssh_config 5
+for details.
 .Pp
 .It Fl G
 Causes
@@ -508,6 +513,7 @@ For full details of the options listed below, and their possible values, see
 .It EscapeChar
 .It ExitOnForwardFailure
 .It FingerprintHash
+.It ForkAfterAuthentication
 .It ForwardAgent
 .It ForwardX11
 .It ForwardX11Timeout

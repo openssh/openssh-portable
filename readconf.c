@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.360 2021/07/23 04:00:59 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.361 2021/07/23 04:04:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -168,7 +168,7 @@ typedef enum {
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType, oStdinNull,
-	oIgnoreUnknown, oProxyUseFdpass,
+	oForkAfterAuthentication, oIgnoreUnknown, oProxyUseFdpass,
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
@@ -300,6 +300,7 @@ static struct {
 	{ "requesttty", oRequestTTY },
 	{ "sessiontype", oSessionType },
 	{ "stdinnull", oStdinNull },
+	{ "forkafterauthentication", oForkAfterAuthentication },
 	{ "proxyusefdpass", oProxyUseFdpass },
 	{ "canonicaldomains", oCanonicalDomains },
 	{ "canonicalizefallbacklocal", oCanonicalizeFallbackLocal },
@@ -1959,6 +1960,10 @@ parse_pubkey_algos:
 		intptr = &options->stdin_null;
 		goto parse_flag;
 
+	case oForkAfterAuthentication:
+		intptr = &options->fork_after_authentication;
+		goto parse_flag;
+
 	case oIgnoreUnknown:
 		charptr = &options->ignored_unknown;
 		goto parse_string;
@@ -2383,6 +2388,7 @@ initialize_options(Options * options)
 	options->request_tty = -1;
 	options->session_type = -1;
 	options->stdin_null = -1;
+	options->fork_after_authentication = -1;
 	options->proxy_use_fdpass = -1;
 	options->ignored_unknown = NULL;
 	options->num_canonical_domains = 0;
@@ -2573,6 +2579,8 @@ fill_default_options(Options * options)
 		options->session_type = SESSION_TYPE_DEFAULT;
 	if (options->stdin_null == -1)
 		options->stdin_null = 0;
+	if (options->fork_after_authentication == -1)
+		options->fork_after_authentication = 0;
 	if (options->proxy_use_fdpass == -1)
 		options->proxy_use_fdpass = 0;
 	if (options->canonicalize_max_dots == -1)
@@ -3252,6 +3260,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oRequestTTY, o->request_tty);
 	dump_cfg_fmtint(oSessionType, o->session_type);
 	dump_cfg_fmtint(oStdinNull, o->stdin_null);
+	dump_cfg_fmtint(oForkAfterAuthentication, o->fork_after_authentication);
 	dump_cfg_fmtint(oStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(oStrictHostKeyChecking, o->strict_host_key_checking);
 	dump_cfg_fmtint(oTCPKeepAlive, o->tcp_keep_alive);
