@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.214 2021/07/23 03:37:52 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.215 2021/07/23 06:01:17 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1155,7 +1155,7 @@ signature object and presented on the verification command-line must
 match the specified list before the key will be considered acceptable.
 .It Cm valid-after Ns = Ns "timestamp"
 Indicates that the key is valid for use at or after the specified timestamp,
-which may be a date in YYYYMMDD format or a time in YYYYMMDDHHMM[SS] format,
+which may be a date in YYYYMMDD format or a time in YYYYMMDDHHMM[SS] format.
 .It Cm valid-before Ns = Ns "timestamp"
 Indicates that the key is valid for use at or before the specified timestamp.
 .El
