@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.213 2021/05/12 11:34:30 dtucker Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.214 2021/07/23 03:37:52 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: May 12 2021 $
+.Dd $Mdocdate: July 23 2021 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -147,10 +147,12 @@
 .Ar
 .Nm ssh-keygen
 .Fl Y Cm find-principals
+.Op Fl O Ar option
 .Fl s Ar signature_file
 .Fl f Ar allowed_signers_file
 .Nm ssh-keygen
 .Fl Y Cm check-novalidate
+.Op Fl O Ar option
 .Fl n Ar namespace
 .Fl s Ar signature_file
 .Nm ssh-keygen
@@ -160,6 +162,7 @@
 .Ar
 .Nm ssh-keygen
 .Fl Y Cm verify
+.Op Fl O Ar option
 .Fl f Ar allowed_signers_file
 .Fl I Ar signer_identity
 .Fl n Ar namespace
@@ -528,6 +531,17 @@ May be used at key generation time to record the attestation data
 returned from FIDO tokens during key generation.
 Please note that this information is potentially sensitive.
 By default, this information is discarded.
+.El
+.Pp
+When performing signature-related options using the
+.Fl Y
+flag, the following options are accepted:
+.Bl -tag -width Ds
+.It Cm verify-time Ns = Ns Ar timestamp
+Specifies a time to use when validating signatures instead of the current
+time.
+The time may be specified as a date in YYYYMMDD format or a time
+in YYYYMMDDHHMM[SS] format.
 .El
 .Pp
 The
@@ -1134,11 +1148,16 @@ are case-insensitive):
 .It Cm cert-authority
 Indicates that this key is accepted as a certificate authority (CA) and
 that certificates signed by this CA may be accepted for verification.
-.It Cm namespaces="namespace-list"
+.It Cm namespaces Ns = Ns "namespace-list"
 Specifies a pattern-list of namespaces that are accepted for this key.
 If this option is present, the signature namespace embedded in the
 signature object and presented on the verification command-line must
 match the specified list before the key will be considered acceptable.
+.It Cm valid-after Ns = Ns "timestamp"
+Indicates that the key is valid for use at or after the specified timestamp,
+which may be a date in YYYYMMDD format or a time in YYYYMMDDHHMM[SS] format,
+.It Cm valid-before Ns = Ns "timestamp"
+Indicates that the key is valid for use at or before the specified timestamp.
 .El
 .Pp
 When verifying signatures made by certificates, the expected principal

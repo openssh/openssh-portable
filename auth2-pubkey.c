@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.108 2021/06/08 06:54:40 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.109 2021/07/23 03:37:52 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -674,7 +674,7 @@ check_authkey_line(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 		reason = "Certificate does not contain an authorized principal";
 		goto fail_reason;
 	}
-	if (sshkey_cert_check_authority(key, 0, 0, 0,
+	if (sshkey_cert_check_authority_now(key, 0, 0, 0,
 	    keyopts->cert_principals == NULL ? pw->pw_name : NULL,
 	    &reason) != 0)
 		goto fail_reason;
@@ -794,7 +794,7 @@ user_cert_trusted_ca(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 	}
 	if (use_authorized_principals && principals_opts == NULL)
 		fatal_f("internal error: missing principals_opts");
-	if (sshkey_cert_check_authority(key, 0, 1, 0,
+	if (sshkey_cert_check_authority_now(key, 0, 1, 0,
 	    use_authorized_principals ? NULL : pw->pw_name, &reason) != 0)
 		goto fail_reason;
 
