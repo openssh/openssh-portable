@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.432 2021/07/23 03:37:52 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.433 2021/07/24 02:08:13 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3112,9 +3112,11 @@ usage(void)
 	    "                  [-w provider] [-Z cipher]\n"
 	    "       ssh-keygen -p [-a rounds] [-f keyfile] [-m format] [-N new_passphrase]\n"
 	    "                   [-P old_passphrase] [-Z cipher]\n"
+#ifdef WITH_OPENSSL
 	    "       ssh-keygen -i [-f input_keyfile] [-m key_format]\n"
 	    "       ssh-keygen -e [-f input_keyfile] [-m key_format]\n"
 	    "       ssh-keygen -y [-f input_keyfile]\n"
+#endif
 	    "       ssh-keygen -c [-a rounds] [-C comment] [-f keyfile] [-P passphrase]\n"
 	    "       ssh-keygen -l [-v] [-E fingerprint_hash] [-f input_keyfile]\n"
 	    "       ssh-keygen -B [-f input_keyfile]\n");
