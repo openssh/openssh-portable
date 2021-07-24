@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.96 2021/07/23 03:57:20 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.97 2021/07/24 01:55:19 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -410,8 +410,10 @@ sshauthopt_parse(const char *opts, const char **errstrp)
 				errstr = "invalid environment string";
 				goto fail;
 			}
-			if ((cp = strdup(opt)) == NULL)
+			if ((cp = strdup(opt)) == NULL) {
+				free(opt);
 				goto alloc_fail;
+			}
 			l = (size_t)(tmp - opt);
 			cp[l] = '\0'; /* truncate at '=' */
 			if (!valid_env_name(cp)) {
@@ -440,7 +442,9 @@ sshauthopt_parse(const char *opts, const char **errstrp)
 					goto alloc_fail;
 				}
 				ret->env[ret->nenv++] = opt;
+				opt = NULL; /* transferred */
 			}
+			free(opt);
 		} else if (opt_match(&opts, "permitopen")) {
 			if (handle_permit(&opts, 0, &ret->permitopen,
 			    &ret->npermitopen, &errstr) != 0)
