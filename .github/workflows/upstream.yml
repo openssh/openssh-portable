@@ -30,7 +30,7 @@ jobs:
     - name: make install
       run: vmrun "cd /usr/src/usr.bin/ssh && sudo make install"
     - name: make tests
-      run: vmrun "cd /usr/src/regress/usr.bin/ssh && make obj && make clean &&  SUDO=sudo make"
+      run: vmrun "cd /usr/src/regress/usr.bin/ssh && make obj && make clean && if test '${{ matrix.configs }}' = 'without-openssl'; then make OPENSSL=no; else make; fi"
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@v2
