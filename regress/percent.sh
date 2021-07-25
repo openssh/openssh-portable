@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.12 2021/05/24 10:25:18 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.13 2021/07/25 12:13:03 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -79,7 +79,7 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	fi
 	# Matches implementation in readconf.c:ssh_connection_hash()
 	HASH=`printf "${HOSTNAME}127.0.0.1${PORT}$REMUSER" |
-	    $OPENSSL sha1 | cut -f2 -d' '`
+	    $OPENSSL_BIN sha1 | cut -f2 -d' '`
 	trial $i '%%' '%'
 	trial $i '%C' $HASH
 	trial $i '%i' $USERID

@@ -100,7 +100,7 @@ CONCH=conch
 
 # Tools used by multiple tests
 NC=$OBJ/netcat
-OPENSSL="${OPENSSL:-openssl}"
+OPENSSL_BIN="${OPENSSL_BIN:-openssl}"
 
 if [ "x$TEST_SSH_SSH" != "x" ]; then
 	SSH="${TEST_SSH_SSH}"
@@ -157,7 +157,7 @@ if [ "x$TEST_SSH_SK_HELPER" != "x" ]; then
 	SSH_SK_HELPER="${TEST_SSH_SK_HELPER}"
 fi
 if [ "x$TEST_SSH_OPENSSL" != "x" ]; then
-	OPENSSL="${TEST_SSH_OPENSSL}"
+	OPENSSL_BIN="${TEST_SSH_OPENSSL}"
 fi
 
 # Path to sshd must be absolute for rexec
@@ -327,8 +327,8 @@ md5 () {
 		cksum
 	elif have_prog sum; then
 		sum
-	elif [ -x ${OPENSSL} ]; then
-		${OPENSSL} md5
+	elif [ -x ${OPENSSL_BIN} ]; then
+		${OPENSSL_BIN} md5
 	else
 		wc -c
 	fi
