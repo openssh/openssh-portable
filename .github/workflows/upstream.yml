@@ -10,6 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       TARGET_HOST: ${{ matrix.os }}
+      SUDO: sudo
     strategy:
       fail-fast: false
       matrix:
