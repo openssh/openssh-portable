@@ -10,7 +10,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       TARGET_HOST: ${{ matrix.os }}
-      SUDO: sudo
     strategy:
       fail-fast: false
       matrix:
@@ -31,7 +30,7 @@ jobs:
     - name: make install
       run: vmrun "cd /usr/src/usr.bin/ssh && sudo make install"
     - name: make tests
-      run: vmrun "cd /usr/src/regress/usr.bin/ssh && make obj && make clean && if test '${{ matrix.configs }}' = 'without-openssl'; then make OPENSSL=no; else make; fi"
+      run: vmrun "cd /usr/src/regress/usr.bin/ssh && make obj && make clean && if test '${{ matrix.configs }}' = 'without-openssl'; then make SUDO=sudo OPENSSL=no; else make SUDO=sudo; fi"
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@v2
