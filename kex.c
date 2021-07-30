@@ -1043,9 +1043,16 @@ derive_key(struct ssh *ssh, int id, u_int need, u_char *hash, u_int hashlen,
 		ssh_digest_free(hashctx);
 		hashctx = NULL;
 	}
+	/* By this point it can happen that have > need,
+	 * e.g. if HASH=SHA512 but we only need a 128-bit key.
+	 *
+	 * This is probably harmless. However, out of caution,
+	 * we zeroize the excess data anyway.
+	 */
+  explicit_bzero(digest + need, have - need);
 #ifdef DEBUG_KEX
 	fprintf(stderr, "key '%c'== ", c);
-	dump_digest("key", digest, need);
+	dump_digest("key", digest, have);
 #endif
 	*keyp = digest;
 	digest = NULL;
