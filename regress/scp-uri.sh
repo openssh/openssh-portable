@@ -1,4 +1,4 @@
-#	$OpenBSD: scp-uri.sh,v 1.2 2017/12/11 11:41:56 dtucker Exp $
+#	$OpenBSD: scp-uri.sh,v 1.3 2021/08/03 01:05:24 djm Exp $
 #	Placed in the Public Domain.
 
 tid="scp-uri"
@@ -12,7 +12,6 @@ DIR2=${COPY}.dd2
 SRC=`dirname ${SCRIPT}`
 cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.scp
 chmod 755 ${OBJ}/scp-ssh-wrapper.scp
-scpopts="-q -S ${OBJ}/scp-ssh-wrapper.scp"
 export SCP # used in scp-ssh-wrapper.scp
 
 scpclean() {
@@ -24,47 +23,56 @@ scpclean() {
 cp $OBJ/ssh_config $OBJ/ssh_config.orig
 egrep -v '^	+(Port|User)	+.*$' $OBJ/ssh_config.orig > $OBJ/ssh_config
 
-verbose "$tid: simple copy local file to remote file"
-scpclean
-$SCP $scpopts ${DATA} "scp://${USER}@somehost:${PORT}/${COPY}" || fail "copy failed"
-cmp ${DATA} ${COPY} || fail "corrupted copy"
+for mode in scp sftp ; do
+	if test $mode = scp ; then
+		scpopts="-M scp -q -S ${OBJ}/scp-ssh-wrapper.scp"
+		tag="$tid"
+	else
+		scpopts="-M sftp -D ${SFTPSERVER}"
+		tag="$tid: sftp mode"
+	fi
+	verbose "$tag: simple copy local file to remote file"
+	scpclean
+	$SCP $scpopts ${DATA} "scp://${USER}@somehost:${PORT}/${COPY}" || fail "copy failed"
+	cmp ${DATA} ${COPY} || fail "corrupted copy"
 
-verbose "$tid: simple copy remote file to local file"
-scpclean
-$SCP $scpopts "scp://${USER}@somehost:${PORT}/${DATA}" ${COPY} || fail "copy failed"
-cmp ${DATA} ${COPY} || fail "corrupted copy"
+	verbose "$tag: simple copy remote file to local file"
+	scpclean
+	$SCP $scpopts "scp://${USER}@somehost:${PORT}/${DATA}" ${COPY} || fail "copy failed"
+	cmp ${DATA} ${COPY} || fail "corrupted copy"
 
-verbose "$tid: simple copy local file to remote dir"
-scpclean
-cp ${DATA} ${COPY}
-$SCP $scpopts ${COPY} "scp://${USER}@somehost:${PORT}/${DIR}" || fail "copy failed"
-cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
+	verbose "$tag: simple copy local file to remote dir"
+	scpclean
+	cp ${DATA} ${COPY}
+	$SCP $scpopts ${COPY} "scp://${USER}@somehost:${PORT}/${DIR}" || fail "copy failed"
+	cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
-verbose "$tid: simple copy remote file to local dir"
-scpclean
-cp ${DATA} ${COPY}
-$SCP $scpopts "scp://${USER}@somehost:${PORT}/${COPY}" ${DIR} || fail "copy failed"
-cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
+	verbose "$tag: simple copy remote file to local dir"
+	scpclean
+	cp ${DATA} ${COPY}
+	$SCP $scpopts "scp://${USER}@somehost:${PORT}/${COPY}" ${DIR} || fail "copy failed"
+	cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
-verbose "$tid: recursive local dir to remote dir"
-scpclean
-rm -rf ${DIR2}
-cp ${DATA} ${DIR}/copy
-$SCP $scpopts -r ${DIR} "scp://${USER}@somehost:${PORT}/${DIR2}" || fail "copy failed"
-for i in $(cd ${DIR} && echo *); do
-	cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
+	verbose "$tag: recursive local dir to remote dir"
+	scpclean
+	rm -rf ${DIR2}
+	cp ${DATA} ${DIR}/copy
+	$SCP $scpopts -r ${DIR} "scp://${USER}@somehost:${PORT}/${DIR2}" || fail "copy failed"
+	for i in $(cd ${DIR} && echo *); do
+		cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
+	done
+
+	verbose "$tag: recursive remote dir to local dir"
+	scpclean
+	rm -rf ${DIR2}
+	cp ${DATA} ${DIR}/copy
+	$SCP $scpopts -r "scp://${USER}@somehost:${PORT}/${DIR}" ${DIR2} || fail "copy failed"
+	for i in $(cd ${DIR} && echo *); do
+		cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
+	done
+
+	# TODO: scp -3
 done
-
-verbose "$tid: recursive remote dir to local dir"
-scpclean
-rm -rf ${DIR2}
-cp ${DATA} ${DIR}/copy
-$SCP $scpopts -r "scp://${USER}@somehost:${PORT}/${DIR}" ${DIR2} || fail "copy failed"
-for i in $(cd ${DIR} && echo *); do
-	cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
-done
-
-# TODO: scp -3
 
 scpclean
 rm -f ${OBJ}/scp-ssh-wrapper.exe
