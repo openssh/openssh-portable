@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.216 2021/08/02 23:38:27 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.217 2021/08/04 01:34:55 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1461,11 +1461,9 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		tmp = xstrdup(g.gl_pathv[i]);
 		if ((filename = basename(tmp)) == NULL) {
 			error("basename %s: %s", tmp, strerror(errno));
-			free(tmp);
 			err = -1;
 			goto out;
 		}
-		free(tmp);
 
 		if (local_is_dir(dst))
 			abs_dst = path_append(dst, filename);
@@ -1484,10 +1482,13 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		}
 		free(abs_dst);
 		abs_dst = NULL;
+		free(tmp);
+		tmp = NULL;
 	}
 
 out:
 	free(abs_src);
+	free(tmp);
 	globfree(&g);
 	if (err == -1) {
 		fatal("Failed to download file '%s'", src);
