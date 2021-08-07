@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.147 2021/08/07 00:08:52 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.148 2021/08/07 00:09:57 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -227,7 +227,8 @@ send_string_attrs_request(struct sftp_conn *conn, u_int id, u_int code,
 	    (r = encode_attrib(msg, a)) != 0)
 		fatal_fr(r, "compose");
 	send_msg(conn, msg);
-	debug3("Sent message fd %d T:%u I:%u", conn->fd_out, code, id);
+	debug3("Sent message fd %d T:%u I:%u F:0x%04x M:%05o",
+	    conn->fd_out, code, id, a->flags, a->perm);
 	sshbuf_free(msg);
 }
 
@@ -323,7 +324,6 @@ get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet)
 	    (r = sshbuf_get_u32(msg, &id)) != 0)
 		fatal_fr(r, "parse");
 
-	debug3("Received stat reply T:%u I:%u", type, id);
 	if (id != expected_id)
 		fatal("ID mismatch (%u != %u)", id, expected_id);
 	if (type == SSH2_FXP_STATUS) {
@@ -346,6 +346,8 @@ get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet)
 		sshbuf_free(msg);
 		return NULL;
 	}
+	debug3("Recevied stat reply T:%u I:%u F:0x%04x M:%05o",
+	    type, id, a.flags, a.perm);
 	sshbuf_free(msg);
 
 	return &a;
