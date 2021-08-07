@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.220 2021/08/07 00:08:52 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.221 2021/08/07 00:12:09 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1290,7 +1290,7 @@ source_sftp(int argc, char *src, char *targ,
 
 	if (local_is_dir(src) && iamrecursive) {
 		if (upload_dir(conn, src, abs_dst, pflag,
-		    SFTP_PROGRESS_ONLY, 0, 0) != 0) {
+		    SFTP_PROGRESS_ONLY, 0, 0, 1) != 0) {
 			fatal("failed to upload directory %s to %s",
 				src, abs_dst);
 		}
@@ -1522,7 +1522,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		debug("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (globpath_is_dir(g.gl_pathv[i]) && iamrecursive) {
 			if (download_dir(conn, g.gl_pathv[i], abs_dst, NULL,
-			    pflag, SFTP_PROGRESS_ONLY, 0, 0) == -1)
+			    pflag, SFTP_PROGRESS_ONLY, 0, 0, 1) == -1)
 				err = -1;
 		} else {
 			if (do_download(conn, g.gl_pathv[i], abs_dst, NULL,
@@ -1935,7 +1935,7 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 		debug("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (globpath_is_dir(g.gl_pathv[i]) && iamrecursive) {
 			if (crossload_dir(from, to, g.gl_pathv[i], abs_dst,
-			    NULL, pflag, 1) == -1)
+			    NULL, pflag, SFTP_PROGRESS_ONLY, 1) == -1)
 				err = -1;
 		} else {
 			if (do_crossload(from, to, g.gl_pathv[i], abs_dst, NULL,

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.32 2021/08/07 00:08:52 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.33 2021/08/07 00:12:09 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
@@ -140,7 +140,7 @@ int do_download(struct sftp_conn *, const char *, const char *,
  * times if 'pflag' is set
  */
 int download_dir(struct sftp_conn *, const char *, const char *,
-    Attrib *, int, int, int, int);
+    Attrib *, int, int, int, int, int);
 
 /*
  * Upload 'local_path' to 'remote_path'. Preserve permissions and times
@@ -153,7 +153,7 @@ int do_upload(struct sftp_conn *, const char *, const char *, int, int, int);
  * times if 'pflag' is set
  */
 int upload_dir(struct sftp_conn *, const char *, const char *, int, int, int,
-    int);
+    int, int);
 
 /*
  * Download a 'from_path' from the 'from' connection and upload it to
@@ -170,7 +170,8 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
  */
 int crossload_dir(struct sftp_conn *from, struct sftp_conn *to,
     const char *from_path, const char *to_path,
-    Attrib *dirattrib, int preserve_flag, int print_flag);
+    Attrib *dirattrib, int preserve_flag, int print_flag,
+    int follow_link_flag);
 
 /* Concatenate paths, taking care of slashes. Caller must free result. */
 char *path_append(const char *, const char *);

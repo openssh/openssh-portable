@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.149 2021/08/07 00:10:49 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.150 2021/08/07 00:12:09 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1615,7 +1615,7 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 static int
 download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
     int depth, Attrib *dirattrib, int preserve_flag, int print_flag,
-    int resume_flag, int fsync_flag)
+    int resume_flag, int fsync_flag, int follow_link_flag)
 {
 	int i, ret = 0;
 	SFTP_DIRENT **dir_entries;
@@ -1671,12 +1671,20 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 				continue;
 			if (download_dir_internal(conn, new_src, new_dst,
 			    depth + 1, &(dir_entries[i]->a), preserve_flag,
-			    print_flag, resume_flag, fsync_flag) == -1)
+			    print_flag, resume_flag,
+			    fsync_flag, follow_link_flag) == -1)
 				ret = -1;
-		} else if (S_ISREG(dir_entries[i]->a.perm) ) {
+		} else if (S_ISREG(dir_entries[i]->a.perm) ||
+		    (follow_link_flag && S_ISLNK(dir_entries[i]->a.perm))) {
+			/*
+			 * If this is a symlink then don't send the link's
+			 * Attrib. do_download() will do a FXP_STAT operation
+			 * and get the link target's attributes.
+			 */
 			if (do_download(conn, new_src, new_dst,
-			    &(dir_entries[i]->a), preserve_flag,
-			    resume_flag, fsync_flag) == -1) {
+			    S_ISLNK(dir_entries[i]->a.perm) ? NULL :
+			    &(dir_entries[i]->a),
+			    preserve_flag, resume_flag, fsync_flag) == -1) {
 				error("Download of file %s to %s failed",
 				    new_src, new_dst);
 				ret = -1;
@@ -1714,7 +1722,7 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 int
 download_dir(struct sftp_conn *conn, const char *src, const char *dst,
     Attrib *dirattrib, int preserve_flag, int print_flag, int resume_flag,
-    int fsync_flag)
+    int fsync_flag, int follow_link_flag)
 {
 	char *src_canon;
 	int ret;
@@ -1725,7 +1733,8 @@ download_dir(struct sftp_conn *conn, const char *src, const char *dst,
 	}
 
 	ret = download_dir_internal(conn, src_canon, dst, 0,
-	    dirattrib, preserve_flag, print_flag, resume_flag, fsync_flag);
+	    dirattrib, preserve_flag, print_flag, resume_flag, fsync_flag,
+	    follow_link_flag);
 	free(src_canon);
 	return ret;
 }
@@ -1936,7 +1945,8 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 
 static int
 upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
-    int depth, int preserve_flag, int print_flag, int resume, int fsync_flag)
+    int depth, int preserve_flag, int print_flag, int resume, int fsync_flag,
+    int follow_link_flag)
 {
 	int ret = 0;
 	DIR *dirp;
@@ -2014,9 +2024,10 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 
 			if (upload_dir_internal(conn, new_src, new_dst,
 			    depth + 1, preserve_flag, print_flag, resume,
-			    fsync_flag) == -1)
+			    fsync_flag, follow_link_flag) == -1)
 				ret = -1;
-		} else if (S_ISREG(sb.st_mode)) {
+		} else if (S_ISREG(sb.st_mode) ||
+		    (follow_link_flag && S_ISLNK(sb.st_mode))) {
 			if (do_upload(conn, new_src, new_dst,
 			    preserve_flag, resume, fsync_flag) == -1) {
 				error("Uploading of file %s to %s failed!",
@@ -2037,7 +2048,8 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 
 int
 upload_dir(struct sftp_conn *conn, const char *src, const char *dst,
-    int preserve_flag, int print_flag, int resume, int fsync_flag)
+    int preserve_flag, int print_flag, int resume, int fsync_flag,
+    int follow_link_flag)
 {
 	char *dst_canon;
 	int ret;
@@ -2048,7 +2060,7 @@ upload_dir(struct sftp_conn *conn, const char *src, const char *dst,
 	}
 
 	ret = upload_dir_internal(conn, src, dst_canon, 0, preserve_flag,
-	    print_flag, resume, fsync_flag);
+	    print_flag, resume, fsync_flag, follow_link_flag);
 
 	free(dst_canon);
 	return ret;
@@ -2372,7 +2384,8 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
 static int
 crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
     const char *from_path, const char *to_path,
-    int depth, Attrib *dirattrib, int preserve_flag, int print_flag)
+    int depth, Attrib *dirattrib, int preserve_flag, int print_flag,
+    int follow_link_flag)
 {
 	int i, ret = 0;
 	SFTP_DIRENT **dir_entries;
@@ -2394,7 +2407,7 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 		error("\"%s\" is not a directory", from_path);
 		return -1;
 	}
-	if (print_flag)
+	if (print_flag && print_flag != SFTP_PROGRESS_ONLY)
 		mprintf("Retrieving %s\n", from_path);
 
 	curdir = *dirattrib; /* dirattrib will be clobbered */
@@ -2446,10 +2459,17 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 			if (crossload_dir_internal(from, to,
 			    new_from_path, new_to_path,
 			    depth + 1, &(dir_entries[i]->a), preserve_flag,
-			    print_flag) == -1)
+			    print_flag, follow_link_flag) == -1)
 				ret = -1;
-		} else if (S_ISREG(dir_entries[i]->a.perm) ) {
+		} else if (S_ISREG(dir_entries[i]->a.perm) ||
+		    (follow_link_flag && S_ISLNK(dir_entries[i]->a.perm))) {
+			/*
+			 * If this is a symlink then don't send the link's
+			 * Attrib. do_download() will do a FXP_STAT operation
+			 * and get the link target's attributes.
+			 */
 			if (do_crossload(from, to, new_from_path, new_to_path,
+			    S_ISLNK(dir_entries[i]->a.perm) ? NULL :
 			    &(dir_entries[i]->a), preserve_flag) == -1) {
 				error("Transfer of file %s to %s failed",
 				    new_from_path, new_to_path);
@@ -2472,7 +2492,7 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 int
 crossload_dir(struct sftp_conn *from, struct sftp_conn *to,
     const char *from_path, const char *to_path,
-    Attrib *dirattrib, int preserve_flag, int print_flag)
+    Attrib *dirattrib, int preserve_flag, int print_flag, int follow_link_flag)
 {
 	char *from_path_canon;
 	int ret;
@@ -2483,7 +2503,7 @@ crossload_dir(struct sftp_conn *from, struct sftp_conn *to,
 	}
 
 	ret = crossload_dir_internal(from, to, from_path_canon, to_path, 0,
-	    dirattrib, preserve_flag, print_flag);
+	    dirattrib, preserve_flag, print_flag, follow_link_flag);
 	free(from_path_canon);
 	return ret;
 }
