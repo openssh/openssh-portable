@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.148 2021/08/07 00:09:57 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.149 2021/08/07 00:10:49 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -307,6 +307,7 @@ get_handle(struct sftp_conn *conn, u_int expected_id, size_t *len,
 	return handle;
 }
 
+/* XXX returing &static is error-prone. Refactor to fill *Attrib argument */
 static Attrib *
 get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet)
 {
@@ -2377,6 +2378,7 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	SFTP_DIRENT **dir_entries;
 	char *filename, *new_from_path = NULL, *new_to_path = NULL;
 	mode_t mode = 0777;
+	Attrib curdir;
 
 	if (depth >= MAX_DIR_DEPTH) {
 		error("Maximum directory depth exceeded: %d levels", depth);
@@ -2395,17 +2397,34 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	if (print_flag)
 		mprintf("Retrieving %s\n", from_path);
 
-	dirattrib->flags &= ~SSH2_FILEXFER_ATTR_SIZE;
-	dirattrib->flags &= ~SSH2_FILEXFER_ATTR_UIDGID;
-	if (dirattrib->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
-		mode = dirattrib->perm & 01777;
-		dirattrib->perm = mode | (S_IWUSR|S_IXUSR); /* temp */
-	} else {
-		debug("Server did not send permissions for "
+	curdir = *dirattrib; /* dirattrib will be clobbered */
+	curdir.flags &= ~SSH2_FILEXFER_ATTR_SIZE;
+	curdir.flags &= ~SSH2_FILEXFER_ATTR_UIDGID;
+	if ((curdir.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) == 0) {
+		debug("Origin did not send permissions for "
 		    "directory \"%s\"", to_path);
+		curdir.perm = S_IWUSR|S_IXUSR;
+		curdir.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 	}
-	if (do_mkdir(to, to_path, dirattrib, print_flag) != 0)
-		return -1;
+	/* We need to be able to write to the directory while we transfer it */
+	mode = curdir.perm & 01777;
+	curdir.perm = mode | (S_IWUSR|S_IXUSR);
+
+	/*
+	 * sftp lacks a portable status value to match errno EEXIST,
+	 * so if we get a failure back then we must check whether
+	 * the path already existed and is a directory.  Ensure we can
+	 * write to the directory we create for the duration of the transfer.
+	 */
+	if (do_mkdir(to, to_path, &curdir, 0) != 0) {
+		if ((dirattrib = do_stat(to, to_path, 0)) == NULL)
+			return -1;
+		if (!S_ISDIR(dirattrib->perm)) {
+			error("\"%s\" exists but is not a directory", to_path);
+			return -1;
+		}
+	}
+	curdir.perm = mode;
 
 	if (do_readdir(from, from_path, &dir_entries) == -1) {
 		error("%s: Failed to get directory contents", from_path);
@@ -2443,8 +2462,7 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	free(new_to_path);
 	free(new_from_path);
 
-	dirattrib->perm = mode; /* original mode */
-	do_setstat(to, to_path, dirattrib);
+	do_setstat(to, to_path, &curdir);
 
 	free_sftp_dirents(dir_entries);
 
