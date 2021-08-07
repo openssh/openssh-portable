@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.31 2021/08/07 00:02:41 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.32 2021/08/07 00:08:52 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
@@ -60,6 +60,11 @@ struct sftp_limits {
 	u_int64_t write_length;
 	u_int64_t open_handles;
 };
+
+/* print flag values */
+#define SFTP_QUIET		0	/* be quiet during transfers */
+#define SFTP_PRINT		1	/* list files and show progress bar */
+#define SFTP_PROGRESS_ONLY	2	/* progress bar only */
 
 /*
  * Initialise a SSH filexfer connection. Returns NULL on error or

@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.219 2021/08/07 00:06:30 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.220 2021/08/07 00:08:52 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1289,7 +1289,8 @@ source_sftp(int argc, char *src, char *targ,
 	debug3_f("copying local %s to remote %s", src, abs_dst);
 
 	if (local_is_dir(src) && iamrecursive) {
-		if (upload_dir(conn, src, abs_dst, pflag, 1, 0, 0) != 0) {
+		if (upload_dir(conn, src, abs_dst, pflag,
+		    SFTP_PROGRESS_ONLY, 0, 0) != 0) {
 			fatal("failed to upload directory %s to %s",
 				src, abs_dst);
 		}
@@ -1521,7 +1522,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		debug("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (globpath_is_dir(g.gl_pathv[i]) && iamrecursive) {
 			if (download_dir(conn, g.gl_pathv[i], abs_dst, NULL,
-			    pflag, 1, 0, 0) == -1)
+			    pflag, SFTP_PROGRESS_ONLY, 0, 0) == -1)
 				err = -1;
 		} else {
 			if (do_download(conn, g.gl_pathv[i], abs_dst, NULL,
