@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.217 2021/08/04 01:34:55 dtucker Exp $ */
+/* $OpenBSD: scp.c,v 1.218 2021/08/07 00:00:33 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -453,6 +453,8 @@ main(int argc, char **argv)
 
 	__progname = ssh_get_progname(argv[0]);
 
+	log_init(argv0, log_level, SYSLOG_FACILITY_USER, 1);
+
 	memset(&args, '\0', sizeof(args));
 	memset(&remote_remote_args, '\0', sizeof(remote_remote_args));
 	args.list = remote_remote_args.list = NULL;
@@ -576,11 +578,8 @@ main(int argc, char **argv)
 	/* Do this last because we want the user to be able to override it */
 	addargs(&args, "-oForwardAgent=no");
 
-	if (mode != MODE_SFTP && sftp_direct != NULL)
-		fatal("SFTP direct can be used only in SFTP mode");
-
-	if (mode == MODE_SFTP && iamremote)
-		fatal("The server can not be ran in SFTP mode");
+	if (iamremote)
+		mode = MODE_SCP;
 
 	if ((pwd = getpwuid(userid = getuid())) == NULL)
 		fatal("unknown user %u", (u_int) userid);
@@ -1012,11 +1011,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			continue;
 		}
 		if (host && throughlocal) {	/* extended remote to remote */
-			if (mode == MODE_SFTP) {
-				/* TODO */
-				fatal("Extended remote to remote through local "
-				    "is not yet supported with SFTP");
-			}
+			/* XXX uses scp; need to support SFTP remote-remote */
 			xasprintf(&bp, "%s -f %s%s", cmd,
 			    *src == '-' ? "-- " : "", src);
 			if (do_cmd(ssh_program, host, suser, sport, bp,
@@ -1068,14 +1063,6 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			addargs(&alist, "--");
 			addargs(&alist, "%s", host);
 			addargs(&alist, "%s", cmd);
-			/*
-			 * This will work only if the first remote scp
-			 * supports sftp mode
-			 */
-			if (mode == MODE_SFTP) {
-				addargs(&alist, "-M");
-				addargs(&alist, "sftp");
-			}
 			addargs(&alist, "%s", src);
 			addargs(&alist, "%s%s%s:%s",
 			    tuser ? tuser : "", tuser ? "@" : "",
