@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.218 2021/08/07 00:00:33 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.219 2021/08/07 00:06:30 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -139,7 +139,7 @@ extern char *__progname;
 #define COPY_BUFLEN	16384
 
 int do_cmd(char *program, char *host, char *remuser, int port, char *cmd,
-    int *fdin, int *fdout);
+    int *fdin, int *fdout, pid_t *pidp);
 int do_cmd2(char *host, char *remuser, int port, char *cmd,
     int fdin, int fdout);
 
@@ -175,6 +175,7 @@ char *ssh_program = _PATH_SSH_PROGRAM;
 
 /* This is used to store the pid of ssh_program */
 pid_t do_cmd_pid = -1;
+pid_t do_cmd_pid2 = -1;
 
 /* Needed for sftp */
 volatile sig_atomic_t interrupted = 0;
@@ -189,6 +190,10 @@ killchild(int signo)
 		kill(do_cmd_pid, signo ? signo : SIGTERM);
 		waitpid(do_cmd_pid, NULL, 0);
 	}
+	if (do_cmd_pid2 > 1) {
+		kill(do_cmd_pid2, signo ? signo : SIGTERM);
+		waitpid(do_cmd_pid2, NULL, 0);
+	}
 
 	if (signo)
 		_exit(1);
@@ -196,17 +201,24 @@ killchild(int signo)
 }
 
 static void
-suspchild(int signo)
+suspone(int pid, int signo)
 {
 	int status;
 
-	if (do_cmd_pid > 1) {
-		kill(do_cmd_pid, signo);
-		while (waitpid(do_cmd_pid, &status, WUNTRACED) == -1 &&
+	if (pid > 1) {
+		kill(pid, signo);
+		while (waitpid(pid, &status, WUNTRACED) == -1 &&
 		    errno == EINTR)
 			;
-		kill(getpid(), SIGSTOP);
 	}
+}
+
+static void
+suspchild(int signo)
+{
+	suspone(do_cmd_pid, signo);
+	suspone(do_cmd_pid2, signo);
+	kill(getpid(), SIGSTOP);
 }
 
 static int
@@ -259,7 +271,7 @@ do_local_cmd(arglist *a)
 
 int
 do_cmd(char *program, char *host, char *remuser, int port, char *cmd,
-    int *fdin, int *fdout)
+    int *fdin, int *fdout, int *pid)
 {
 	int pin[2], pout[2], reserved[2];
 
@@ -294,8 +306,8 @@ do_cmd(char *program, char *host, char *remuser, int port, char *cmd,
 	ssh_signal(SIGTTOU, suspchild);
 
 	/* Fork a child to execute the command on the remote host using ssh. */
-	do_cmd_pid = fork();
-	if (do_cmd_pid == 0) {
+	*pid = fork();
+	if (*pid == 0) {
 		/* Child. */
 		close(pin[1]);
 		close(pout[0]);
@@ -320,7 +332,7 @@ do_cmd(char *program, char *host, char *remuser, int port, char *cmd,
 		execvp(program, args.list);
 		perror(program);
 		exit(1);
-	} else if (do_cmd_pid == -1) {
+	} else if (*pid == -1) {
 		fatal("fork: %s", strerror(errno));
 	}
 	/* Parent.  Close the other side, and return the local side. */
@@ -340,10 +352,11 @@ do_cmd(char *program, char *host, char *remuser, int port, char *cmd,
  * This way the input and output of two commands can be connected.
  */
 int
-do_cmd2(char *host, char *remuser, int port, char *cmd, int fdin, int fdout)
+do_cmd2(char *host, char *remuser, int port, char *cmd,
+    int fdin, int fdout)
 {
-	pid_t pid;
 	int status;
+	pid_t pid;
 
 	if (verbose_mode)
 		fmprintf(stderr,
@@ -403,7 +416,7 @@ void verifydir(char *);
 
 struct passwd *pwd;
 uid_t userid;
-int errs, remin, remout;
+int errs, remin, remout, remin2, remout2;
 int Tflag, pflag, iamremote, iamrecursive, targetshouldbedirectory;
 
 #define	CMDNEEDS	64
@@ -424,6 +437,8 @@ void usage(void);
 
 void source_sftp(int, char *, char *, struct sftp_conn *, char **);
 void sink_sftp(int, char *, const char *, struct sftp_conn *);
+void throughlocal_sftp(struct sftp_conn *, struct sftp_conn *,
+    char *, char *, char **);
 
 int
 main(int argc, char **argv)
@@ -943,22 +958,23 @@ brace_expand(const char *pattern, char ***patternsp, size_t *npatternsp)
 }
 
 static struct sftp_conn *
-do_sftp_connect(char *host, char *user, int port, char *sftp_direct)
+do_sftp_connect(char *host, char *user, int port, char *sftp_direct,
+   int *reminp, int *remoutp, int *pidp)
 {
 	if (sftp_direct == NULL) {
 		addargs(&args, "-s");
 		if (do_cmd(ssh_program, host, user, port, "sftp",
-		    &remin, &remout) < 0)
+		    reminp, remoutp, pidp) < 0)
 			return NULL;
 
 	} else {
 		args.list = NULL;
 		addargs(&args, "sftp-server");
 		if (do_cmd(sftp_direct, host, NULL, -1, "sftp",
-		    &remin, &remout) < 0)
+		    reminp, remoutp, pidp) < 0)
 			return NULL;
 	}
-	return do_init(remin, remout, 32768, 64, limit_kbps);
+	return do_init(*reminp, *remoutp, 32768, 64, limit_kbps);
 }
 
 void
@@ -968,9 +984,9 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	char *bp, *tuser, *thost, *targ;
 	char *remote_path = NULL;
 	int sport = -1, tport = -1;
-	struct sftp_conn *conn = NULL;
+	struct sftp_conn *conn = NULL, *conn2 = NULL;
 	arglist alist;
-	int i, r;
+	int i, r, status;
 	u_int j;
 
 	memset(&alist, '\0', sizeof(alist));
@@ -1011,21 +1027,64 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			continue;
 		}
 		if (host && throughlocal) {	/* extended remote to remote */
-			/* XXX uses scp; need to support SFTP remote-remote */
-			xasprintf(&bp, "%s -f %s%s", cmd,
-			    *src == '-' ? "-- " : "", src);
-			if (do_cmd(ssh_program, host, suser, sport, bp,
-			    &remin, &remout) < 0)
-				exit(1);
-			free(bp);
-			xasprintf(&bp, "%s -t %s%s", cmd,
-			    *targ == '-' ? "-- " : "", targ);
-			if (do_cmd2(thost, tuser, tport, bp, remin, remout) < 0)
-				exit(1);
-			free(bp);
-			(void) close(remin);
-			(void) close(remout);
-			remin = remout = -1;
+			if (mode == MODE_SFTP) {
+				if (remin == -1) {
+					/* Connect to dest now */
+					conn = do_sftp_connect(thost, tuser,
+					    tport, sftp_direct,
+					    &remin, &remout, &do_cmd_pid);
+					if (conn == NULL) {
+						fatal("Unable to open "
+						    "destination connection");
+					}
+					debug3_f("origin in %d out %d pid %ld",
+					    remin, remout, (long)do_cmd_pid);
+				}
+				/*
+				 * XXX remember suser/host/sport and only
+				 * reconnect if they change between arguments.
+				 * would save reconnections for cases like
+				 * scp -3 hosta:/foo hosta:/bar hostb:
+				 */
+				/* Connect to origin now */
+				conn2 = do_sftp_connect(host, suser,
+				    sport, sftp_direct,
+				    &remin2, &remout2, &do_cmd_pid2);
+				if (conn2 == NULL) {
+					fatal("Unable to open "
+					    "source connection");
+				}
+				debug3_f("destination in %d out %d pid %ld",
+				    remin2, remout2, (long)do_cmd_pid2);
+				throughlocal_sftp(conn2, conn, src, targ,
+				    &remote_path);
+				(void) close(remin2);
+				(void) close(remout2);
+				remin2 = remout2 = -1;
+				if (waitpid(do_cmd_pid2, &status, 0) == -1)
+					++errs;
+				else if (!WIFEXITED(status) ||
+				    WEXITSTATUS(status) != 0)
+					++errs;
+				do_cmd_pid2 = -1;
+				continue;
+			} else {
+				xasprintf(&bp, "%s -f %s%s", cmd,
+				    *src == '-' ? "-- " : "", src);
+				if (do_cmd(ssh_program, host, suser, sport,
+				    bp, &remin, &remout, &do_cmd_pid) < 0)
+					exit(1);
+				free(bp);
+				xasprintf(&bp, "%s -t %s%s", cmd,
+				    *targ == '-' ? "-- " : "", targ);
+				if (do_cmd2(thost, tuser, tport, bp,
+				    remin, remout) < 0)
+					exit(1);
+				free(bp);
+				(void) close(remin);
+				(void) close(remout);
+				remin = remout = -1;
+			}
 		} else if (host) {	/* standard remote to remote */
 			/*
 			 * Second remote user is passed to first remote side
@@ -1074,7 +1133,8 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				if (remin == -1) {
 					/* Connect to remote now */
 					conn = do_sftp_connect(thost, tuser,
-					    tport, sftp_direct);
+					    tport, sftp_direct,
+					    &remin, &remout, &do_cmd_pid);
 					if (conn == NULL) {
 						fatal("Unable to open sftp "
 						    "connection");
@@ -1091,7 +1151,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				xasprintf(&bp, "%s -t %s%s", cmd,
 				    *targ == '-' ? "-- " : "", targ);
 				if (do_cmd(ssh_program, thost, tuser, tport, bp,
-				    &remin, &remout) < 0)
+				    &remin, &remout, &do_cmd_pid) < 0)
 					exit(1);
 				if (response() < 0)
 					exit(1);
@@ -1156,7 +1216,8 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 		}
 		/* Remote to local. */
 		if (mode == MODE_SFTP) {
-			conn = do_sftp_connect(host, suser, sport, sftp_direct);
+			conn = do_sftp_connect(host, suser, sport,
+			    sftp_direct, &remin, &remout, &do_cmd_pid);
 			if (conn == NULL) {
 				error("Couldn't make sftp connection "
 				    "to server");
@@ -1176,8 +1237,8 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 		/* SCP */
 		xasprintf(&bp, "%s -f %s%s",
 		    cmd, *src == '-' ? "-- " : "", src);
-		if (do_cmd(ssh_program, host, suser, sport, bp, &remin,
-		    &remout) < 0) {
+		if (do_cmd(ssh_program, host, suser, sport, bp,
+		    &remin, &remout, &do_cmd_pid) < 0) {
 			free(bp);
 			++errs;
 			continue;
@@ -1806,6 +1867,94 @@ screwup:
 	free(patterns);
 	run_err("protocol error: %s", why);
 	exit(1);
+}
+
+void
+throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
+    char *src, char *targ, char **to_remote_path)
+{
+	char *target = NULL, *filename = NULL, *abs_dst = NULL;
+	char *abs_src = NULL, *tmp = NULL, *from_remote_path;
+	glob_t g;
+	int i, r, targetisdir, err = 0;
+
+	if (*to_remote_path == NULL) {
+		*to_remote_path = do_realpath(to, ".");
+		if (*to_remote_path == NULL) {
+			fatal("Unable to determine destination remote "
+			    "working directory");
+		}
+	}
+
+	if ((from_remote_path = do_realpath(from, ".")) == NULL) {
+		fatal("Unable to determine source remote "
+		    "working directory");
+	}
+
+	if ((filename = basename(src)) == NULL)
+		fatal("basename %s: %s", src, strerror(errno));
+
+	abs_src = xstrdup(src);
+	abs_src = make_absolute(abs_src, from_remote_path);
+	free(from_remote_path);
+	target = xstrdup(targ);
+	target = make_absolute(target, *to_remote_path);
+	memset(&g, 0, sizeof(g));
+
+	targetisdir = remote_is_dir(to, target);
+	if (!targetisdir && targetshouldbedirectory) {
+		error("Destination path \"%s\" is not a directory", target);
+		err = -1;
+		goto out;
+	}
+
+	debug3_f("copying remote %s to remote %s", abs_src, target);
+	if ((r = remote_glob(from, abs_src, GLOB_MARK, NULL, &g)) != 0) {
+		if (r == GLOB_NOSPACE)
+			error("Too many glob matches for \"%s\".", abs_src);
+		else
+			error("File \"%s\" not found.", abs_src);
+		err = -1;
+		goto out;
+	}
+
+	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
+		tmp = xstrdup(g.gl_pathv[i]);
+		if ((filename = basename(tmp)) == NULL) {
+			error("basename %s: %s", tmp, strerror(errno));
+			err = -1;
+			goto out;
+		}
+
+		if (targetisdir)
+			abs_dst = path_append(target, filename);
+		else
+			abs_dst = xstrdup(target);
+
+		debug("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
+		if (globpath_is_dir(g.gl_pathv[i]) && iamrecursive) {
+			if (crossload_dir(from, to, g.gl_pathv[i], abs_dst,
+			    NULL, pflag, 1) == -1)
+				err = -1;
+		} else {
+			if (do_crossload(from, to, g.gl_pathv[i], abs_dst, NULL,
+			    pflag) == -1)
+				err = -1;
+		}
+		free(abs_dst);
+		abs_dst = NULL;
+		free(tmp);
+		tmp = NULL;
+	}
+
+out:
+	free(abs_src);
+	free(abs_dst);
+	free(target);
+	free(tmp);
+	globfree(&g);
+	if (err == -1)
+		fatal("Failed to download file '%s'", src);
 }
 
 int
