@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.145 2021/08/07 00:02:41 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.146 2021/08/07 00:07:18 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -99,6 +99,15 @@ struct sftp_conn {
 	u_int64_t limit_kbps;
 	struct bwlimit bwlimit_in, bwlimit_out;
 };
+
+/* Tracks in-progress requests during file transfers */
+struct request {
+	u_int id;
+	size_t len;
+	u_int64_t offset;
+	TAILQ_ENTRY(request) tq;
+};
+TAILQ_HEAD(requests, request);
 
 static u_char *
 get_handle(struct sftp_conn *conn, u_int expected_id, size_t *len,
@@ -1339,13 +1348,7 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 	off_t progress_counter;
 	size_t handle_len;
 	struct stat st;
-	struct request {
-		u_int id;
-		size_t len;
-		u_int64_t offset;
-		TAILQ_ENTRY(request) tq;
-	};
-	TAILQ_HEAD(reqhead, request) requests;
+	struct requests requests;
 	struct request *req;
 	u_char type;
 
@@ -2127,13 +2130,7 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
 	off_t progress_counter;
 	u_char *from_handle, *to_handle;
 	size_t from_handle_len, to_handle_len;
-	struct request {
-		u_int id;
-		size_t len;
-		u_int64_t offset;
-		TAILQ_ENTRY(request) tq;
-	};
-	TAILQ_HEAD(reqhead, request) requests;
+	struct requests requests;
 	struct request *req;
 	u_char type;
 
