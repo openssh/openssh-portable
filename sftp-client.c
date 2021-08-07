@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.143 2021/06/06 03:17:02 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.144 2021/08/07 00:01:29 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -147,6 +147,7 @@ get_msg_extended(struct sftp_conn *conn, struct sshbuf *m, int initial)
 	u_char *p;
 	int r;
 
+	sshbuf_reset(m);
 	if ((r = sshbuf_reserve(m, 4, &p)) != 0)
 		fatal_fr(r, "reserve");
 	if (atomicio6(read, conn->fd_in, p, 4, sftpio,
@@ -1283,12 +1284,52 @@ send_read_request(struct sftp_conn *conn, u_int id, u_int64_t offset,
 	sshbuf_free(msg);
 }
 
+static int
+send_open(struct sftp_conn *conn, const char *path, const char *tag,
+    u_int openmode, Attrib *a, u_char **handlep, size_t *handle_lenp)
+{
+	Attrib junk;
+	u_char *handle;
+	size_t handle_len;
+	struct sshbuf *msg;
+	int r;
+	u_int id;
+
+	*handlep = NULL;
+	*handle_lenp = 0;
+
+	if (a == NULL) {
+		attrib_clear(&junk); /* Send empty attributes */
+		a = &junk;
+	}
+	/* Send open request */
+	if ((msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	id = conn->msg_id++;
+	if ((r = sshbuf_put_u8(msg, SSH2_FXP_OPEN)) != 0 ||
+	    (r = sshbuf_put_u32(msg, id)) != 0 ||
+	    (r = sshbuf_put_cstring(msg, path)) != 0 ||
+	    (r = sshbuf_put_u32(msg, openmode)) != 0 ||
+	    (r = encode_attrib(msg, a)) != 0)
+		fatal_fr(r, "compose %s open", tag);
+	send_msg(conn, msg);
+	sshbuf_free(msg);
+	debug3("Sent %s message SSH2_FXP_OPEN I:%u P:%s M:0x%04x",
+	    tag, id, path, openmode);
+	if ((handle = get_handle(conn, id, &handle_len,
+	    "%s open(\"%s\")", tag, path)) == NULL)
+		return -1;
+	/* success */
+	*handlep = handle;
+	*handle_lenp = handle_len;
+	return 0;
+}
+
 int
 do_download(struct sftp_conn *conn, const char *remote_path,
     const char *local_path, Attrib *a, int preserve_flag, int resume_flag,
     int fsync_flag)
 {
-	Attrib junk;
 	struct sshbuf *msg;
 	u_char *handle;
 	int local_fd = -1, write_error;
@@ -1331,28 +1372,11 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 		size = 0;
 
 	buflen = conn->download_buflen;
-	if ((msg = sshbuf_new()) == NULL)
-		fatal_f("sshbuf_new failed");
-
-	attrib_clear(&junk); /* Send empty attributes */
 
 	/* Send open request */
-	id = conn->msg_id++;
-	if ((r = sshbuf_put_u8(msg, SSH2_FXP_OPEN)) != 0 ||
-	    (r = sshbuf_put_u32(msg, id)) != 0 ||
-	    (r = sshbuf_put_cstring(msg, remote_path)) != 0 ||
-	    (r = sshbuf_put_u32(msg, SSH2_FXF_READ)) != 0 ||
-	    (r = encode_attrib(msg, &junk)) != 0)
-		fatal_fr(r, "compose");
-	send_msg(conn, msg);
-	debug3("Sent message SSH2_FXP_OPEN I:%u P:%s", id, remote_path);
-
-	handle = get_handle(conn, id, &handle_len,
-	    "remote open(\"%s\")", remote_path);
-	if (handle == NULL) {
-		sshbuf_free(msg);
-		return(-1);
-	}
+	if (send_open(conn, remote_path, "remote", SSH2_FXF_READ, NULL,
+	    &handle, &handle_len) != 0)
+		return -1;
 
 	local_fd = open(local_path,
 	    O_WRONLY | O_CREAT | (resume_flag ? 0 : O_TRUNC), mode | S_IWUSR);
@@ -1377,7 +1401,6 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 			    "local file is larger than remote", local_path);
  fail:
 			do_close(conn, handle, handle_len);
-			sshbuf_free(msg);
 			free(handle);
 			if (local_fd != -1)
 				close(local_fd);
@@ -1393,6 +1416,9 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 
 	if (showprogress && size != 0)
 		start_progress_meter(remote_path, size, &progress_counter);
+
+	if ((msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
 
 	while (num_req > 0 || max_req > 0) {
 		u_char *data;
@@ -1769,31 +1795,15 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 		}
 	}
 
-	if ((msg = sshbuf_new()) == NULL)
-		fatal_f("sshbuf_new failed");
-
 	/* Send open request */
-	id = conn->msg_id++;
-	if ((r = sshbuf_put_u8(msg, SSH2_FXP_OPEN)) != 0 ||
-	    (r = sshbuf_put_u32(msg, id)) != 0 ||
-	    (r = sshbuf_put_cstring(msg, remote_path)) != 0 ||
-	    (r = sshbuf_put_u32(msg, SSH2_FXF_WRITE|SSH2_FXF_CREAT|
-	    (resume ? SSH2_FXF_APPEND : SSH2_FXF_TRUNC))) != 0 ||
-	    (r = encode_attrib(msg, &a)) != 0)
-		fatal_fr(r, "compose");
-	send_msg(conn, msg);
-	debug3("Sent message SSH2_FXP_OPEN I:%u P:%s", id, remote_path);
-
-	sshbuf_reset(msg);
-
-	handle = get_handle(conn, id, &handle_len,
-	    "remote open(\"%s\")", remote_path);
-	if (handle == NULL) {
+	if (send_open(conn, remote_path, "dest", SSH2_FXF_WRITE|SSH2_FXF_CREAT|
+	    (resume ? SSH2_FXF_APPEND : SSH2_FXF_TRUNC),
+	    &a, &handle, &handle_len) != 0) {
 		close(local_fd);
-		sshbuf_free(msg);
 		return -1;
 	}
 
+	id = conn->msg_id;
 	startid = ackid = id + 1;
 	data = xmalloc(conn->upload_buflen);
 
@@ -1803,6 +1813,8 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 		start_progress_meter(local_path, sb.st_size,
 		    &progress_counter);
 
+	if ((msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
 	for (;;) {
 		int len;
 
