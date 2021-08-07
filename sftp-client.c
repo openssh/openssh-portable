@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.151 2021/08/07 00:14:17 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.152 2021/08/07 01:55:01 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2149,7 +2149,7 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
     Attrib *a, int preserve_flag)
 {
 	struct sshbuf *msg;
-	int write_error, read_error, lmodified = 0, r;
+	int write_error, read_error, r;
 	u_int64_t offset = 0, size;
 	u_int id, buflen, num_req, max_req, status = SSH2_FX_OK;
 	u_int num_upload_req;
@@ -2271,7 +2271,6 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
 			if (len > req->len)
 				fatal("Received more data than asked for "
 				    "%zu > %zu", len, req->len);
-			lmodified = 1;
 
 			/* Write this chunk out to the destination */
 			sshbuf_reset(msg);
