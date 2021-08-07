@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.30 2021/03/31 22:16:34 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.31 2021/08/07 00:02:41 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
@@ -149,6 +149,23 @@ int do_upload(struct sftp_conn *, const char *, const char *, int, int, int);
  */
 int upload_dir(struct sftp_conn *, const char *, const char *, int, int, int,
     int);
+
+/*
+ * Download a 'from_path' from the 'from' connection and upload it to
+ * to 'to' connection at 'to_path'.
+ */
+int
+do_crossload(struct sftp_conn *from, struct sftp_conn *to,
+    const char *from_path, const char *to_path,
+    Attrib *a, int preserve_flag);
+
+/*
+ * Recursively download a directory from 'from_path' from the 'from'
+ * connection and upload it to 'to' connection at 'to_path'.
+ */
+int crossload_dir(struct sftp_conn *from, struct sftp_conn *to,
+    const char *from_path, const char *to_path,
+    Attrib *dirattrib, int preserve_flag, int print_flag);
 
 /* Concatenate paths, taking care of slashes. Caller must free result. */
 char *path_append(const char *, const char *);
