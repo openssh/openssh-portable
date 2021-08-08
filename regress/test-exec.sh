@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.85 2021/08/08 07:27:52 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.86 2021/08/08 08:27:28 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -262,7 +262,7 @@ fi
 SSHLOGWRAP=$OBJ/ssh-log-wrapper.sh
 cat >$SSHLOGWRAP <<EOD
 #!/bin/sh
-for i; do shift; case "\$i" in -q) :;; *) set -- "\$@" "\$i";; esac; done
+for i in "\$@";do shift;case "\$i" in -q):;; *) set -- "\$@" "\$i";;esac;done
 exec ${SSH} -E${TEST_SSH_LOGFILE} "\$@"
 EOD
 
