@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.565 2021/07/23 05:24:02 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.566 2021/08/08 08:49:09 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1630,7 +1630,7 @@ main(int ac, char **av)
 				fatal("Invalid ForwardAgent environment variable name %s", cp);
 			}
 			if ((p = getenv(cp + 1)) != NULL)
-				forward_agent_sock_path = p;
+				forward_agent_sock_path = xstrdup(p);
 			else
 				options.forward_agent = 0;
 			free(cp);
