@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.84 2021/08/08 06:38:33 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.85 2021/08/08 07:27:52 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -25,20 +25,6 @@ if test "x${EGREP}" != "x"; then
 {
 	 ${EGREP} "$@"
 }
-fi
-
-if [ -x /usr/ucb/whoami ]; then
-	USER=`/usr/ucb/whoami`
-elif whoami >/dev/null 2>&1; then
-	USER=`whoami`
-elif logname >/dev/null 2>&1; then
-	USER=`logname`
-else
-	USER=`id -un`
-fi
-if test -z "$LOGNAME"; then
-	LOGNAME="${USER}"
-	export LOGNAME
 fi
 
 if [ ! -x "$TEST_SSH_ELAPSED_TIMES" ]; then
@@ -76,6 +62,20 @@ else
 	exit 2
 fi
 unset SSH_AUTH_SOCK
+
+if [ -x /usr/ucb/whoami ]; then
+	USER=`/usr/ucb/whoami`
+elif whoami >/dev/null 2>&1; then
+	USER=`whoami`
+elif logname >/dev/null 2>&1; then
+	USER=`logname`
+else
+	USER=`id -un`
+fi
+if test -z "$LOGNAME"; then
+	LOGNAME="${USER}"
+	export LOGNAME
+fi
 
 SRC=`dirname ${SCRIPT}`
 
