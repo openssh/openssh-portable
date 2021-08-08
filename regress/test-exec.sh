@@ -3,30 +3,6 @@
 
 #SUDO=sudo
 
-# Unbreak GNU head(1)
-_POSIX2_VERSION=199209
-export _POSIX2_VERSION
-
-case `uname -s 2>/dev/null` in
-OSF1*)
-	BIN_SH=xpg4
-	export BIN_SH
-	;;
-CYGWIN*)
-	os=cygwin
-	;;
-esac
-
-# If configure tells us to use a different egrep, create a wrapper function
-# to call it.  This means we don't need to change all the tests that depend
-# on a good implementation.
-if test "x${EGREP}" != "x"; then
-	egrep ()
-{
-	 ${EGREP} "$@"
-}
-fi
-
 if [ ! -x "$TEST_SSH_ELAPSED_TIMES" ]; then
 	STARTTIME=`date '+%s'`
 fi
@@ -63,6 +39,8 @@ else
 fi
 unset SSH_AUTH_SOCK
 
+# Portable-specific settings.
+
 if [ -x /usr/ucb/whoami ]; then
 	USER=`/usr/ucb/whoami`
 elif whoami >/dev/null 2>&1; then
@@ -75,6 +53,30 @@ fi
 if test -z "$LOGNAME"; then
 	LOGNAME="${USER}"
 	export LOGNAME
+fi
+
+# Unbreak GNU head(1)
+_POSIX2_VERSION=199209
+export _POSIX2_VERSION
+
+case `uname -s 2>/dev/null` in
+OSF1*)
+	BIN_SH=xpg4
+	export BIN_SH
+	;;
+CYGWIN*)
+	os=cygwin
+	;;
+esac
+
+# If configure tells us to use a different egrep, create a wrapper function
+# to call it.  This means we don't need to change all the tests that depend
+# on a good implementation.
+if test "x${EGREP}" != "x"; then
+	egrep ()
+{
+	 ${EGREP} "$@"
+}
 fi
 
 SRC=`dirname ${SCRIPT}`
