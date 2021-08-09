@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.225 2021/08/09 07:21:01 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.226 2021/08/09 23:44:32 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1253,6 +1253,29 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	free(src);
 }
 
+/* Canonicalise a remote path, handling ~ by assuming cwd is the homedir */
+static char *
+absolute_remote_path(const char *path, const char *remote_path)
+{
+	char *ret;
+
+	/* Handle ~ prefixed paths */
+	if (*path != '~')
+		ret = xstrdup(path);
+	else {
+		if (strcmp(path, "~") == 0)
+			ret = xstrdup("");
+		else if (strncmp(path, "~/", 2) == 0)
+			ret = xstrdup(path + 2);
+		else {
+			/* XXX could be supported with protocol extension */
+			error("~user paths are not currently supported");
+			return NULL;
+		}
+	}
+	return make_absolute(ret, remote_path);
+}
+
 void
 source_sftp(int argc, char *src, char *targ,
     struct sftp_conn *conn, char **remote_path)
@@ -1273,8 +1296,8 @@ source_sftp(int argc, char *src, char *targ,
 	 * No need to glob here - the local shell already took care of
 	 * the expansions
 	 */
-	target = xstrdup(targ);
-	target = make_absolute(target, *remote_path);
+	if ((target = absolute_remote_path(targ, *remote_path)) == NULL)
+		cleanup_exit(255);
 	target_is_dir = remote_is_dir(conn, target);
 	if (targetshouldbedirectory && !target_is_dir) {
 		fatal("Target is not a directory, but more files selected "
@@ -1471,6 +1494,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	char *filename, *tmp = NULL, *remote_path = NULL;
 	int i, r, err = 0;
 
+	memset(&g, 0, sizeof(g));
 	/*
 	 * Here, we need remote glob as SFTP can not depend on remote shell
 	 * expansions
@@ -1484,10 +1508,11 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		goto out;
 	}
 
-	abs_src = xstrdup(src);
-	abs_src = make_absolute(abs_src, remote_path);
+	if ((abs_src = absolute_remote_path(src, remote_path)) == NULL) {
+		err = -1;
+		goto out;
+	}
 	free(remote_path);
-	memset(&g, 0, sizeof(g));
 
 	debug3_f("copying remote %s to local %s", abs_src, dst);
 	if ((r = remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
@@ -1895,11 +1920,10 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 	if ((filename = basename(src)) == NULL)
 		fatal("basename %s: %s", src, strerror(errno));
 
-	abs_src = xstrdup(src);
-	abs_src = make_absolute(abs_src, from_remote_path);
+	if ((abs_src = absolute_remote_path(src, from_remote_path)) == NULL ||
+	    (target = absolute_remote_path(targ, *to_remote_path)) == NULL)
+		cleanup_exit(255);
 	free(from_remote_path);
-	target = xstrdup(targ);
-	target = make_absolute(target, *to_remote_path);
 	memset(&g, 0, sizeof(g));
 
 	targetisdir = remote_is_dir(to, target);
