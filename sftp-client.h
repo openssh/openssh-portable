@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.33 2021/08/07 00:12:09 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.34 2021/08/09 23:47:44 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
@@ -113,11 +113,17 @@ int do_lsetstat(struct sftp_conn *conn, const char *path, Attrib *a);
 /* Canonicalise 'path' - caller must free result */
 char *do_realpath(struct sftp_conn *, const char *);
 
+/* Canonicalisation with tilde expansion (requires server extension) */
+char *do_expand_path(struct sftp_conn *, const char *);
+
+/* Returns non-zero if server can tilde-expand paths */
+int can_expand_path(struct sftp_conn *);
+
 /* Get statistics for filesystem hosting file at "path" */
 int do_statvfs(struct sftp_conn *, const char *, struct sftp_statvfs *, int);
 
 /* Rename 'oldpath' to 'newpath' */
-int do_rename(struct sftp_conn *, const char *, const char *, int force_legacy);
+int do_rename(struct sftp_conn *, const char *, const char *, int);
 
 /* Link 'oldpath' to 'newpath' */
 int do_hardlink(struct sftp_conn *, const char *, const char *);

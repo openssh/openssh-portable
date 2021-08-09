@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.226 2021/08/09 23:44:32 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.227 2021/08/09 23:47:44 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1255,9 +1255,13 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 
 /* Canonicalise a remote path, handling ~ by assuming cwd is the homedir */
 static char *
-absolute_remote_path(const char *path, const char *remote_path)
+absolute_remote_path(struct sftp_conn *conn, const char *path,
+    const char *remote_path)
 {
 	char *ret;
+
+	if (can_expand_path(conn))
+		return do_expand_path(conn, path);
 
 	/* Handle ~ prefixed paths */
 	if (*path != '~')
@@ -1296,7 +1300,7 @@ source_sftp(int argc, char *src, char *targ,
 	 * No need to glob here - the local shell already took care of
 	 * the expansions
 	 */
-	if ((target = absolute_remote_path(targ, *remote_path)) == NULL)
+	if ((target = absolute_remote_path(conn, targ, *remote_path)) == NULL)
 		cleanup_exit(255);
 	target_is_dir = remote_is_dir(conn, target);
 	if (targetshouldbedirectory && !target_is_dir) {
@@ -1508,7 +1512,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		goto out;
 	}
 
-	if ((abs_src = absolute_remote_path(src, remote_path)) == NULL) {
+	if ((abs_src = absolute_remote_path(conn, src, remote_path)) == NULL) {
 		err = -1;
 		goto out;
 	}
@@ -1920,8 +1924,9 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 	if ((filename = basename(src)) == NULL)
 		fatal("basename %s: %s", src, strerror(errno));
 
-	if ((abs_src = absolute_remote_path(src, from_remote_path)) == NULL ||
-	    (target = absolute_remote_path(targ, *to_remote_path)) == NULL)
+	if ((abs_src = absolute_remote_path(from, src,
+	    from_remote_path)) == NULL ||
+	    (target = absolute_remote_path(to, targ, *to_remote_path)) == NULL)
 		cleanup_exit(255);
 	free(from_remote_path);
 	memset(&g, 0, sizeof(g));

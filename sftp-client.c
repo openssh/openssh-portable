@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.153 2021/08/09 07:16:09 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.154 2021/08/09 23:47:44 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -102,6 +102,7 @@ struct sftp_conn {
 #define SFTP_EXT_FSYNC		0x00000010
 #define SFTP_EXT_LSETSTAT	0x00000020
 #define SFTP_EXT_LIMITS		0x00000040
+#define SFTP_EXT_PATH_EXPAND	0x00000080
 	u_int exts;
 	u_int64_t limit_kbps;
 	struct bwlimit bwlimit_in, bwlimit_out;
@@ -528,6 +529,10 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 		} else if (strcmp(name, "limits@openssh.com") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
 			ret->exts |= SFTP_EXT_LIMITS;
+			known = 1;
+		} else if (strcmp(name, "expand-path@openssh.com") == 0 &&
+		    strcmp((char *)value, "1") == 0) {
+			ret->exts |= SFTP_EXT_PATH_EXPAND;
 			known = 1;
 		}
 		if (known) {
@@ -964,8 +969,9 @@ do_fsetstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
 	return status == SSH2_FX_OK ? 0 : -1;
 }
 
-char *
-do_realpath(struct sftp_conn *conn, const char *path)
+/* Implements both the realpath and expand-path operations */
+static char *
+do_realpath_expand(struct sftp_conn *conn, const char *path, int expand)
 {
 	struct sshbuf *msg;
 	u_int expected_id, count, id;
@@ -973,14 +979,26 @@ do_realpath(struct sftp_conn *conn, const char *path)
 	Attrib a;
 	u_char type;
 	int r;
+	const char *what = "SSH2_FXP_REALPATH";
 
-	expected_id = id = conn->msg_id++;
-	send_string_request(conn, id, SSH2_FXP_REALPATH, path,
-	    strlen(path));
-
+	if (expand)
+		what = "expand-path@openssh.com";
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 
+	expected_id = id = conn->msg_id++;
+	if (expand) {
+		if ((r = sshbuf_put_u8(msg, SSH2_FXP_EXTENDED)) != 0 ||
+		    (r = sshbuf_put_u32(msg, id)) != 0 ||
+		    (r = sshbuf_put_cstring(msg,
+		    "expand-path@openssh.com")) != 0 ||
+		    (r = sshbuf_put_cstring(msg, path)) != 0)
+			fatal_fr(r, "compose %s", what);
+		send_msg(conn, msg);
+	} else {
+		send_string_request(conn, id, SSH2_FXP_REALPATH,
+		    path, strlen(path));
+	}
 	get_msg(conn, msg);
 	if ((r = sshbuf_get_u8(msg, &type)) != 0 ||
 	    (r = sshbuf_get_u32(msg, &id)) != 0)
@@ -1004,21 +1022,42 @@ do_realpath(struct sftp_conn *conn, const char *path)
 	if ((r = sshbuf_get_u32(msg, &count)) != 0)
 		fatal_fr(r, "parse count");
 	if (count != 1)
-		fatal("Got multiple names (%d) from SSH_FXP_REALPATH", count);
+		fatal("Got multiple names (%d) from %s", count, what);
 
 	if ((r = sshbuf_get_cstring(msg, &filename, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(msg, &longname, NULL)) != 0 ||
 	    (r = decode_attrib(msg, &a)) != 0)
 		fatal_fr(r, "parse filename/attrib");
 
-	debug3("SSH_FXP_REALPATH %s -> %s size %lu", path, filename,
-	    (unsigned long)a.size);
+	debug3("%s %s -> %s", what, path, filename);
 
 	free(longname);
 
 	sshbuf_free(msg);
 
 	return(filename);
+}
+
+char *
+do_realpath(struct sftp_conn *conn, const char *path)
+{
+	return do_realpath_expand(conn, path, 0);
+}
+
+int
+can_expand_path(struct sftp_conn *conn)
+{
+	return (conn->exts & SFTP_EXT_PATH_EXPAND) != 0;
+}
+
+char *
+do_expand_path(struct sftp_conn *conn, const char *path)
+{
+	if (!can_expand_path(conn)) {
+		debug3_f("no server support, fallback to realpath");
+		return do_realpath_expand(conn, path, 0);
+	}
+	return do_realpath_expand(conn, path, 1);
 }
 
 int
