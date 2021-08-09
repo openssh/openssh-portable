@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.228 2021/08/09 23:49:31 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.229 2021/08/09 23:56:36 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -165,7 +165,7 @@ int showprogress = 1;
  * This is set to non-zero if remote-remote copy should be piped
  * through this process.
  */
-int throughlocal = 0;
+int throughlocal = 1;
 
 /* Non-standard port to use for the ssh connection or -1. */
 int sshport = -1;
@@ -482,7 +482,7 @@ main(int argc, char **argv)
 
 	fflag = Tflag = tflag = 0;
 	while ((ch = getopt(argc, argv,
-	    "12346ABCTdfpqrtvD:F:J:M:P:S:c:i:l:o:")) != -1) {
+	    "12346ABCTdfpqRrtvD:F:J:M:P:S:c:i:l:o:")) != -1) {
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
@@ -503,6 +503,9 @@ main(int argc, char **argv)
 			break;
 		case '3':
 			throughlocal = 1;
+			break;
+		case 'R':
+			throughlocal = 0;
 			break;
 		case 'o':
 		case 'c':
@@ -1984,7 +1987,7 @@ void
 usage(void)
 {
 	(void) fprintf(stderr,
-	    "usage: scp [-346ABCpqrTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
+	    "usage: scp [-346ABCpqRrTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
 	    "           [-i identity_file] [-J destination] [-l limit] [-M scp|sftp]\n"
 	    "           [-o ssh_option] [-P port] [-S program] source ... target\n");
 	exit(1);

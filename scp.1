@@ -8,9 +8,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.97 2021/08/02 23:38:27 djm Exp $
+.\" $OpenBSD: scp.1,v 1.98 2021/08/09 23:56:36 djm Exp $
 .\"
-.Dd $Mdocdate: August 2 2021 $
+.Dd $Mdocdate: August 9 2021 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -18,7 +18,7 @@
 .Nd OpenSSH secure file copy
 .Sh SYNOPSIS
 .Nm scp
-.Op Fl 346ABCpqrTv
+.Op Fl 346ABCpqRrTv
 .Op Fl c Ar cipher
 .Op Fl D Ar sftp_server_path
 .Op Fl F Ar ssh_config
@@ -80,10 +80,11 @@ The options are as follows:
 Copies between two remote hosts are transferred through the local host.
 Without this option the data is copied directly between the two remote
 hosts.
-Note that this option disables the progress meter and selects batch mode
-for the second host, since
+Note that, when using the legacy SCP protocol (the default), this option
+selects batch mode for the second host as
 .Nm
 cannot ask for passwords or passphrases for both hosts.
+This mode is the default.
 .It Fl 4
 Forces
 .Nm
@@ -239,6 +240,15 @@ original file.
 Quiet mode: disables the progress meter as well as warning and diagnostic
 messages from
 .Xr ssh 1 .
+.It Fl R
+Copies between two remote hosts are performed by connecting to the origin
+host and executing
+.Nm
+there.
+This requires that
+.Nm
+running on the origin host can authenticate to the destination host without
+requiring a password.
 .It Fl r
 Recursively copy entire directories.
 Note that
