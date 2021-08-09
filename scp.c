@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.223 2021/08/09 07:13:54 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.224 2021/08/09 07:19:12 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -165,7 +165,7 @@ int showprogress = 1;
  * This is set to non-zero if remote-remote copy should be piped
  * through this process.
  */
-int throughlocal = 1;
+int throughlocal = 0;
 
 /* Non-standard port to use for the ssh connection or -1. */
 int sshport = -1;
@@ -448,7 +448,8 @@ main(int argc, char **argv)
 	const char *errstr;
 	extern char *optarg;
 	extern int optind;
-	enum scp_mode_e mode = MODE_SFTP;
+	/* For now, keep SCP as default */
+	enum scp_mode_e mode = MODE_SCP;
 	char *sftp_direct = NULL;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -481,7 +482,7 @@ main(int argc, char **argv)
 
 	fflag = Tflag = tflag = 0;
 	while ((ch = getopt(argc, argv,
-	    "12346ABCORTdfpqrtvD:F:J:P:S:c:i:l:o:")) != -1) {
+	    "12346ABCTdfpqrtvD:F:J:M:P:S:c:i:l:o:")) != -1) {
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
@@ -503,9 +504,6 @@ main(int argc, char **argv)
 		case '3':
 			throughlocal = 1;
 			break;
-		case 'R':
-			throughlocal = 0;
-			break;
 		case 'o':
 		case 'c':
 		case 'i':
@@ -516,9 +514,6 @@ main(int argc, char **argv)
 			addargs(&args, "-%c", ch);
 			addargs(&args, "%s", optarg);
 			break;
-		case 'O':
-			mode = MODE_SCP;
-			break;
 		case 'P':
 			sshport = a2port(optarg);
 			if (sshport <= 0)
@@ -527,6 +522,14 @@ main(int argc, char **argv)
 		case 'B':
 			addargs(&remote_remote_args, "-oBatchmode=yes");
 			addargs(&args, "-oBatchmode=yes");
+			break;
+		case 'M':
+			if (strcmp(optarg, "sftp") == 0)
+				mode = MODE_SFTP;
+			else if (strcmp(optarg, "scp") == 0)
+				mode = MODE_SCP;
+			else
+				usage();
 			break;
 		case 'l':
 			limit_kbps = strtonum(optarg, 1, 100 * 1024 * 1024,
@@ -1250,29 +1253,6 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	free(src);
 }
 
-/* Canonicalise a remote path, handling ~ by assuming cwd is the homedir */
-static char *
-absolute_remote_path(const char *path, const char *remote_path)
-{
-	char *ret;
-
-	/* Handle ~ prefixed paths */
-	if (*path != '~')
-		ret = xstrdup(path);
-	else {
-		if (strcmp(path, "~") == 0)
-			ret = xstrdup("");
-		else if (strncmp(path, "~/", 2) == 0)
-			ret = xstrdup(path + 2);
-		else {
-			/* XXX could be supported with protocol extension */
-			error("~user paths are not currently supported");
-			return NULL;
-		}
-	}
-	return make_absolute(ret, remote_path);
-}
-
 void
 source_sftp(int argc, char *src, char *targ,
     struct sftp_conn *conn, char **remote_path)
@@ -1293,8 +1273,8 @@ source_sftp(int argc, char *src, char *targ,
 	 * No need to glob here - the local shell already took care of
 	 * the expansions
 	 */
-	if ((target = absolute_remote_path(targ, *remote_path)) == NULL)
-		cleanup_exit(255);
+	target = xstrdup(targ);
+	target = make_absolute(target, *remote_path);
 	target_is_dir = remote_is_dir(conn, target);
 	if (targetshouldbedirectory && !target_is_dir) {
 		fatal("Target is not a directory, but more files selected "
@@ -1491,7 +1471,6 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	char *filename, *tmp = NULL, *remote_path = NULL;
 	int i, r, err = 0;
 
-	memset(&g, 0, sizeof(g));
 	/*
 	 * Here, we need remote glob as SFTP can not depend on remote shell
 	 * expansions
@@ -1505,11 +1484,10 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		goto out;
 	}
 
-	if ((abs_src = absolute_remote_path(src, remote_path)) == NULL) {
-		err = -1;
-		goto out;
-	}
+	abs_src = xstrdup(src);
+	abs_src = make_absolute(abs_src, remote_path);
 	free(remote_path);
+	memset(&g, 0, sizeof(g));
 
 	debug3_f("copying remote %s to local %s", abs_src, dst);
 	if ((r = remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
@@ -1917,10 +1895,11 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 	if ((filename = basename(src)) == NULL)
 		fatal("basename %s: %s", src, strerror(errno));
 
-	if ((abs_src = absolute_remote_path(src, from_remote_path)) == NULL ||
-	    (target = absolute_remote_path(targ, *to_remote_path)) == NULL)
-		cleanup_exit(255);
+	abs_src = xstrdup(src);
+	abs_src = make_absolute(abs_src, from_remote_path);
 	free(from_remote_path);
+	target = xstrdup(targ);
+	target = make_absolute(target, *to_remote_path);
 	memset(&g, 0, sizeof(g));
 
 	targetisdir = remote_is_dir(to, target);
@@ -2021,9 +2000,9 @@ void
 usage(void)
 {
 	(void) fprintf(stderr,
-	    "usage: scp [-346ABCOpqrTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
-	    "           [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
-	    "           [-P port] [-S program] source ... target\n");
+	    "usage: scp [-346ABCpqrTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
+	    "           [-i identity_file] [-J destination] [-l limit] [-M scp|sftp]\n"
+	    "           [-o ssh_option] [-P port] [-S program] source ... target\n");
 	exit(1);
 }
 
@@ -2161,22 +2140,4 @@ lostconn(int signo)
 		_exit(1);
 	else
 		exit(1);
-}
-
-void
-cleanup_exit(int i)
-{
-	if (remin > 0)
-		close(remin);
-	if (remout > 0)
-		close(remout);
-	if (remin2 > 0)
-		close(remin2);
-	if (remout2 > 0)
-		close(remout2);
-	if (do_cmd_pid > 0)
-		waitpid(do_cmd_pid, NULL, 0);
-	if (do_cmd_pid2 > 0)
-		waitpid(do_cmd_pid2, NULL, 0);
-	exit(i);
 }
