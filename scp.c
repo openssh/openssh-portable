@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.227 2021/08/09 23:47:44 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.228 2021/08/09 23:49:31 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -435,10 +435,10 @@ void tolocal(int, char *[], enum scp_mode_e, char *sftp_direct);
 void toremote(int, char *[], enum scp_mode_e, char *sftp_direct);
 void usage(void);
 
-void source_sftp(int, char *, char *, struct sftp_conn *, char **);
+void source_sftp(int, char *, char *, struct sftp_conn *);
 void sink_sftp(int, char *, const char *, struct sftp_conn *);
 void throughlocal_sftp(struct sftp_conn *, struct sftp_conn *,
-    char *, char *, char **);
+    char *, char *);
 
 int
 main(int argc, char **argv)
@@ -982,7 +982,6 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 {
 	char *suser = NULL, *host = NULL, *src = NULL;
 	char *bp, *tuser, *thost, *targ;
-	char *remote_path = NULL;
 	int sport = -1, tport = -1;
 	struct sftp_conn *conn = NULL, *conn2 = NULL;
 	arglist alist;
@@ -1056,8 +1055,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				}
 				debug3_f("destination in %d out %d pid %ld",
 				    remin2, remout2, (long)do_cmd_pid2);
-				throughlocal_sftp(conn2, conn, src, targ,
-				    &remote_path);
+				throughlocal_sftp(conn2, conn, src, targ);
 				(void) close(remin2);
 				(void) close(remout2);
 				remin2 = remout2 = -1;
@@ -1142,8 +1140,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				}
 
 				/* The protocol */
-				source_sftp(1, argv[i], targ, conn,
-				    &remote_path);
+				source_sftp(1, argv[i], targ, conn);
 				continue;
 			}
 			/* SCP */
@@ -1161,10 +1158,8 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 		}
 	}
 out:
-	if (mode == MODE_SFTP) {
-		free(remote_path);
+	if (mode == MODE_SFTP)
 		free(conn);
-	}
 	free(tuser);
 	free(thost);
 	free(targ);
@@ -1253,45 +1248,29 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	free(src);
 }
 
-/* Canonicalise a remote path, handling ~ by assuming cwd is the homedir */
+/* Prepare remote path, handling ~ by assuming cwd is the homedir */
 static char *
-absolute_remote_path(struct sftp_conn *conn, const char *path,
-    const char *remote_path)
+prepare_remote_path(struct sftp_conn *conn, const char *path)
 {
-	char *ret;
-
-	if (can_expand_path(conn))
-		return do_expand_path(conn, path);
-
 	/* Handle ~ prefixed paths */
 	if (*path != '~')
-		ret = xstrdup(path);
-	else {
-		if (strcmp(path, "~") == 0)
-			ret = xstrdup("");
-		else if (strncmp(path, "~/", 2) == 0)
-			ret = xstrdup(path + 2);
-		else {
-			/* XXX could be supported with protocol extension */
-			error("~user paths are not currently supported");
-			return NULL;
-		}
-	}
-	return make_absolute(ret, remote_path);
+		return xstrdup(path);
+	if (*path == '\0' || strcmp(path, "~") == 0)
+		return xstrdup(".");
+	if (strncmp(path, "~/", 2) == 0)
+		return xstrdup(path + 2);
+	if (can_expand_path(conn))
+		return do_expand_path(conn, path);
+	/* No protocol extension */
+	error("~user paths are not currently supported");
+	return NULL;
 }
 
 void
-source_sftp(int argc, char *src, char *targ,
-    struct sftp_conn *conn, char **remote_path)
+source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 {
 	char *target = NULL, *filename = NULL, *abs_dst = NULL;
 	int target_is_dir;
-
-	if (*remote_path == NULL) {
-		*remote_path = do_realpath(conn, ".");
-		if (*remote_path == NULL)
-			fatal("Unable to determine remote working directory");
-	}
 
 	if ((filename = basename(src)) == NULL)
 		fatal("basename %s: %s", src, strerror(errno));
@@ -1300,7 +1279,7 @@ source_sftp(int argc, char *src, char *targ,
 	 * No need to glob here - the local shell already took care of
 	 * the expansions
 	 */
-	if ((target = absolute_remote_path(conn, targ, *remote_path)) == NULL)
+	if ((target = prepare_remote_path(conn, targ)) == NULL)
 		cleanup_exit(255);
 	target_is_dir = remote_is_dir(conn, target);
 	if (targetshouldbedirectory && !target_is_dir) {
@@ -1495,7 +1474,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	char *abs_src = NULL;
 	char *abs_dst = NULL;
 	glob_t g;
-	char *filename, *tmp = NULL, *remote_path = NULL;
+	char *filename, *tmp = NULL;
 	int i, r, err = 0;
 
 	memset(&g, 0, sizeof(g));
@@ -1504,19 +1483,10 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	 * expansions
 	 */
 
-	remote_path = do_realpath(conn, ".");
-	if (remote_path == NULL) {
-		error("Could not obtain remote working directory");
-		/* TODO - gracefully degrade by using relative paths ? */
+	if ((abs_src = prepare_remote_path(conn, src)) == NULL) {
 		err = -1;
 		goto out;
 	}
-
-	if ((abs_src = absolute_remote_path(conn, src, remote_path)) == NULL) {
-		err = -1;
-		goto out;
-	}
-	free(remote_path);
 
 	debug3_f("copying remote %s to local %s", abs_src, dst);
 	if ((r = remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
@@ -1901,34 +1871,19 @@ screwup:
 
 void
 throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
-    char *src, char *targ, char **to_remote_path)
+    char *src, char *targ)
 {
 	char *target = NULL, *filename = NULL, *abs_dst = NULL;
-	char *abs_src = NULL, *tmp = NULL, *from_remote_path;
+	char *abs_src = NULL, *tmp = NULL;
 	glob_t g;
 	int i, r, targetisdir, err = 0;
-
-	if (*to_remote_path == NULL) {
-		*to_remote_path = do_realpath(to, ".");
-		if (*to_remote_path == NULL) {
-			fatal("Unable to determine destination remote "
-			    "working directory");
-		}
-	}
-
-	if ((from_remote_path = do_realpath(from, ".")) == NULL) {
-		fatal("Unable to determine source remote "
-		    "working directory");
-	}
 
 	if ((filename = basename(src)) == NULL)
 		fatal("basename %s: %s", src, strerror(errno));
 
-	if ((abs_src = absolute_remote_path(from, src,
-	    from_remote_path)) == NULL ||
-	    (target = absolute_remote_path(to, targ, *to_remote_path)) == NULL)
+	if ((abs_src = prepare_remote_path(from, src)) == NULL ||
+	    (target = prepare_remote_path(to, targ)) == NULL)
 		cleanup_exit(255);
-	free(from_remote_path);
 	memset(&g, 0, sizeof(g));
 
 	targetisdir = remote_is_dir(to, target);
