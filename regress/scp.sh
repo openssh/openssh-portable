@@ -1,4 +1,4 @@
-#	$OpenBSD: scp.sh,v 1.12 2021/08/03 01:05:24 djm Exp $
+#	$OpenBSD: scp.sh,v 1.13 2021/08/10 03:35:45 djm Exp $
 #	Placed in the Public Domain.
 
 tid="scp"
@@ -28,12 +28,11 @@ scpclean() {
 }
 
 for mode in scp sftp ; do
+	tag="$tid: $mode mode"
 	if test $mode = scp ; then
-		scpopts="-M scp -q -S ${OBJ}/scp-ssh-wrapper.scp"
-		tag="$tid"
+		scpopts="-O -q -S ${OBJ}/scp-ssh-wrapper.scp"
 	else
-		scpopts="-M sftp -D ${SFTPSERVER}"
-		tag="$tid: sftp mode"
+		scpopts="-s -D ${SFTPSERVER}"
 	fi
 	verbose "tid: simple copy local file to local file"
 	scpclean

@@ -1,4 +1,4 @@
-#	$OpenBSD: scp3.sh,v 1.2 2021/08/06 09:00:18 dtucker Exp $
+#	$OpenBSD: scp3.sh,v 1.3 2021/08/10 03:35:45 djm Exp $
 #	Placed in the Public Domain.
 
 tid="scp3"
@@ -20,13 +20,14 @@ scpclean() {
 	chmod 755 ${DIR} ${DIR2}
 }
 
-# XXX sftp too once it's ready
-for mode in scp ; do
+for mode in scp sftp ; do
 	scpopts="-F${OBJ}/ssh_proxy -S ${SSH} -q"
 	tag="$tid: $mode mode"
-#	if test $mode = scp ; then
-#		scpopts="$scpopts -O"
-#	fi
+	if test $mode = scp ; then
+		scpopts="$scpopts -O"
+	else
+		scpopts="-s -D ${SFTPSERVER}"
+	fi
 
 	verbose "$tag: simple copy remote file to remote file"
 	scpclean
