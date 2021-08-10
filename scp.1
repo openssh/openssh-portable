@@ -8,9 +8,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.98 2021/08/09 23:56:36 djm Exp $
+.\" $OpenBSD: scp.1,v 1.99 2021/08/10 03:33:34 djm Exp $
 .\"
-.Dd $Mdocdate: August 9 2021 $
+.Dd $Mdocdate: August 10 2021 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -18,14 +18,13 @@
 .Nd OpenSSH secure file copy
 .Sh SYNOPSIS
 .Nm scp
-.Op Fl 346ABCpqRrTv
+.Op Fl 346ABCOpqRrsTv
 .Op Fl c Ar cipher
 .Op Fl D Ar sftp_server_path
 .Op Fl F Ar ssh_config
 .Op Fl i Ar identity_file
 .Op Fl J Ar destination
 .Op Fl l Ar limit
-.Op Fl M Ar scp | sftp
 .Op Fl o Ar ssh_option
 .Op Fl P Ar port
 .Op Fl S Ar program
@@ -112,7 +111,7 @@ Selects the cipher to use for encrypting the data transfer.
 This option is directly passed to
 .Xr ssh 1 .
 .It Fl D Ar sftp_server_path
-When using the experimental SFTP protocol support via
+When using the SFTP protocol support via
 .Fl M ,
 connect directly to a local SFTP server program rather than a
 remote one via
@@ -144,14 +143,12 @@ This option is directly passed to
 .Xr ssh 1 .
 .It Fl l Ar limit
 Limits the used bandwidth, specified in Kbit/s.
-.It Fl M Ar scp | sftp
-Specifies a mode which will be used to transfer files.
-The default is to use the original
-.Cm scp
-protocol.
-Alternately, experimental support for using the
-.Cm sftp
-protocol is available.
+.It Fl O
+Use the legacy SCP protocol for file transfers instead of the SFTP protocol.
+Forcing the use of the SCP protocol may be necessary for servers that do
+not implement SFTP or for backwards-compatibility for particular filename
+wildcard patterns.
+This mode is the default.
 .It Fl o Ar ssh_option
 Can be used to pass options to
 .Nm ssh
@@ -261,6 +258,16 @@ to use for the encrypted connection.
 The program must understand
 .Xr ssh 1
 options.
+.It Fl s
+Use the SFTP protocol for file transfers instead of the legacy SCP protocol.
+Using SFTP provides avoids invoking a shell on the remote side and provides
+more predictable filename handling, as the SCP protocol
+relied on the remote shell for expanding
+.Xr glob 3
+wildcards.
+.Pp
+A near-future release of OpenSSH will make the SFTP protocol the default.
+This option will be deleted before the end of 2022.
 .It Fl T
 Disable strict filename checking.
 By default when copying files from a remote host to a local directory
@@ -290,6 +297,7 @@ debugging connection, authentication, and configuration problems.
 .Xr ssh-agent 1 ,
 .Xr ssh-keygen 1 ,
 .Xr ssh_config 5 ,
+.Xr sftp-server 8 ,
 .Xr sshd 8
 .Sh HISTORY
 .Nm

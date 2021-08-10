@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.229 2021/08/09 23:56:36 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.230 2021/08/10 03:33:34 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -448,7 +448,6 @@ main(int argc, char **argv)
 	const char *errstr;
 	extern char *optarg;
 	extern int optind;
-	/* For now, keep SCP as default */
 	enum scp_mode_e mode = MODE_SCP;
 	char *sftp_direct = NULL;
 
@@ -482,7 +481,7 @@ main(int argc, char **argv)
 
 	fflag = Tflag = tflag = 0;
 	while ((ch = getopt(argc, argv,
-	    "12346ABCTdfpqRrtvD:F:J:M:P:S:c:i:l:o:")) != -1) {
+	    "12346ABCTdfOpqRrstvD:F:J:M:P:S:c:i:l:o:")) != -1) {
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
@@ -517,6 +516,12 @@ main(int argc, char **argv)
 			addargs(&args, "-%c", ch);
 			addargs(&args, "%s", optarg);
 			break;
+		case 'O':
+			mode = MODE_SCP;
+			break;
+		case 's':
+			mode = MODE_SFTP;
+			break;
 		case 'P':
 			sshport = a2port(optarg);
 			if (sshport <= 0)
@@ -525,14 +530,6 @@ main(int argc, char **argv)
 		case 'B':
 			addargs(&remote_remote_args, "-oBatchmode=yes");
 			addargs(&args, "-oBatchmode=yes");
-			break;
-		case 'M':
-			if (strcmp(optarg, "sftp") == 0)
-				mode = MODE_SFTP;
-			else if (strcmp(optarg, "scp") == 0)
-				mode = MODE_SCP;
-			else
-				usage();
 			break;
 		case 'l':
 			limit_kbps = strtonum(optarg, 1, 100 * 1024 * 1024,
@@ -1987,8 +1984,8 @@ void
 usage(void)
 {
 	(void) fprintf(stderr,
-	    "usage: scp [-346ABCpqRrTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
-	    "           [-i identity_file] [-J destination] [-l limit] [-M scp|sftp]\n"
+	    "usage: scp [-346ABCOpqRrsTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
+	    "           [-i identity_file] [-J destination] [-l limit]\n"
 	    "           [-o ssh_option] [-P port] [-S program] source ... target\n");
 	exit(1);
 }
