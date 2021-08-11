@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.6 2021/07/23 03:54:55 djm Exp $
+#	$OpenBSD: sshsig.sh,v 1.7 2021/08/11 08:55:04 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -63,6 +63,17 @@ for t in $SIGNKEYS; do
 		-I $sig_principal -f $OBJ/allowed_signers \
 		< $DATA >/dev/null 2>&1 || \
 		fail "failed signature for $t key w/ limited namespace"
+
+	(printf "$sig_principal namespaces=\"$sig_namespace,whatever\" ";
+	 cat $pubkey) > $OBJ/allowed_signers
+	${SSHKEYGEN} -q -Y verify -s $sigfile -n $sig_namespace \
+		-I $sig_principal -f $OBJ/allowed_signers \
+		-O print-pubkey \
+		< $DATA | cut -d' ' -f1-2 > ${OBJ}/${keybase}-fromsig.pub || \
+		fail "failed signature for $t key w/ print-pubkey"
+	cut -d' ' -f1-2 ${OBJ}/${keybase}.pub > ${OBJ}/${keybase}-strip.pub
+	diff -r ${OBJ}/${keybase}-strip.pub ${OBJ}/${keybase}-fromsig.pub || \
+		fail "print-pubkey differs from signature key"
 
 	# Invalid option
 	(printf "$sig_principal octopus " ; cat $pubkey) > $OBJ/allowed_signers
