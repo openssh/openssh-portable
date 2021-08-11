@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.227 2021/07/02 05:11:20 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.228 2021/08/11 05:20:17 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -679,8 +679,8 @@ mm_answer_sign(struct ssh *ssh, int sock, struct sshbuf *m)
 	} else
 		fatal_f("no hostkey from index %d", keyid);
 
-	debug3_f("%s signature %p(%zu)", is_proof ? "hostkey proof" : "KEX",
-	    signature, siglen);
+	debug3_f("%s %s signature len=%zu", alg,
+	    is_proof ? "hostkey proof" : "KEX", siglen);
 
 	sshbuf_reset(m);
 	if ((r = sshbuf_put_string(m, signature, siglen)) != 0)
@@ -1163,8 +1163,6 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 	    (r = sshbuf_get_u32(m, &pubkey_auth_attempt)) != 0)
 		fatal_fr(r, "parse");
 
-	debug3_f("key_from_blob: %p", key);
-
 	if (key != NULL && authctxt->valid) {
 		/* These should not make it past the privsep child */
 		if (sshkey_type_plain(key->type) == KEY_RSA &&
@@ -1434,7 +1432,7 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	ret = sshkey_verify(key, signature, signaturelen, data, datalen,
 	    sigalg, ssh->compat, &sig_details);
-	debug3_f("%s %p signature %s%s%s", auth_method, key,
+	debug3_f("%s %s signature %s%s%s", auth_method, sshkey_type(key),
 	    (ret == 0) ? "verified" : "unverified",
 	    (ret != 0) ? ": " : "", (ret != 0) ? ssh_err(ret) : "");
 
