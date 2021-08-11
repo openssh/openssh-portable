@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.230 2021/08/10 03:33:34 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.231 2021/08/11 14:05:19 naddy Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -138,10 +138,8 @@ extern char *__progname;
 
 #define COPY_BUFLEN	16384
 
-int do_cmd(char *program, char *host, char *remuser, int port, char *cmd,
-    int *fdin, int *fdout, pid_t *pidp);
-int do_cmd2(char *host, char *remuser, int port, char *cmd,
-    int fdin, int fdout);
+int do_cmd(char *, char *, char *, int, int, char *, int *, int *, pid_t *);
+int do_cmd2(char *, char *, int, char *, int, int);
 
 /* Struct for addargs */
 arglist args;
@@ -270,8 +268,8 @@ do_local_cmd(arglist *a)
  */
 
 int
-do_cmd(char *program, char *host, char *remuser, int port, char *cmd,
-    int *fdin, int *fdout, pid_t *pid)
+do_cmd(char *program, char *host, char *remuser, int port, int subsystem,
+    char *cmd, int *fdin, int *fdout, pid_t *pid)
 {
 	int pin[2], pout[2], reserved[2];
 
@@ -325,6 +323,8 @@ do_cmd(char *program, char *host, char *remuser, int port, char *cmd,
 			addargs(&args, "-l");
 			addargs(&args, "%s", remuser);
 		}
+		if (subsystem)
+			addargs(&args, "-s");
 		addargs(&args, "--");
 		addargs(&args, "%s", host);
 		addargs(&args, "%s", cmd);
@@ -962,15 +962,14 @@ do_sftp_connect(char *host, char *user, int port, char *sftp_direct,
    int *reminp, int *remoutp, int *pidp)
 {
 	if (sftp_direct == NULL) {
-		addargs(&args, "-s");
-		if (do_cmd(ssh_program, host, user, port, "sftp",
+		if (do_cmd(ssh_program, host, user, port, 1, "sftp",
 		    reminp, remoutp, pidp) < 0)
 			return NULL;
 
 	} else {
 		args.list = NULL;
 		addargs(&args, "sftp-server");
-		if (do_cmd(sftp_direct, host, NULL, -1, "sftp",
+		if (do_cmd(sftp_direct, host, NULL, -1, 0, "sftp",
 		    reminp, remoutp, pidp) < 0)
 			return NULL;
 	}
@@ -1069,7 +1068,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			} else {
 				xasprintf(&bp, "%s -f %s%s", cmd,
 				    *src == '-' ? "-- " : "", src);
-				if (do_cmd(ssh_program, host, suser, sport,
+				if (do_cmd(ssh_program, host, suser, sport, 0,
 				    bp, &remin, &remout, &do_cmd_pid) < 0)
 					exit(1);
 				free(bp);
@@ -1147,8 +1146,8 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			if (remin == -1) {
 				xasprintf(&bp, "%s -t %s%s", cmd,
 				    *targ == '-' ? "-- " : "", targ);
-				if (do_cmd(ssh_program, thost, tuser, tport, bp,
-				    &remin, &remout, &do_cmd_pid) < 0)
+				if (do_cmd(ssh_program, thost, tuser, tport, 0,
+				    bp, &remin, &remout, &do_cmd_pid) < 0)
 					exit(1);
 				if (response() < 0)
 					exit(1);
@@ -1232,7 +1231,7 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 		/* SCP */
 		xasprintf(&bp, "%s -f %s%s",
 		    cmd, *src == '-' ? "-- " : "", src);
-		if (do_cmd(ssh_program, host, suser, sport, bp,
+		if (do_cmd(ssh_program, host, suser, sport, 0, bp,
 		    &remin, &remout, &do_cmd_pid) < 0) {
 			free(bp);
 			++errs;
