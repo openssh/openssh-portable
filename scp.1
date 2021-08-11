@@ -8,9 +8,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.99 2021/08/10 03:33:34 djm Exp $
+.\" $OpenBSD: scp.1,v 1.100 2021/08/11 14:07:54 naddy Exp $
 .\"
-.Dd $Mdocdate: August 10 2021 $
+.Dd $Mdocdate: August 11 2021 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -67,10 +67,10 @@ as host specifiers.
 .Pp
 When copying between two remote hosts, if the URI format is used, a
 .Ar port
-may only be specified on the
+cannot be specified on the
 .Ar target
 if the
-.Fl 3
+.Fl R
 option is used.
 .Pp
 The options are as follows:
@@ -260,7 +260,7 @@ The program must understand
 options.
 .It Fl s
 Use the SFTP protocol for file transfers instead of the legacy SCP protocol.
-Using SFTP provides avoids invoking a shell on the remote side and provides
+Using SFTP avoids invoking a shell on the remote side and provides
 more predictable filename handling, as the SCP protocol
 relied on the remote shell for expanding
 .Xr glob 3

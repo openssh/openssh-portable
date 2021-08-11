@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.231 2021/08/11 14:05:19 naddy Exp $ */
+/* $OpenBSD: scp.c,v 1.232 2021/08/11 14:07:54 naddy Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1095,7 +1095,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			if (tport != -1 && tport != SSH_DEFAULT_PORT) {
 				/* This would require the remote support URIs */
 				fatal("target port not supported with two "
-				    "remote hosts without the -3 option");
+				    "remote hosts and the -R option");
 			}
 
 			freeargs(&alist);
