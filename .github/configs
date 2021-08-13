@@ -114,6 +114,10 @@ case "$config" in
 esac
 
 case "${TARGET_HOST}" in
+    dfly58|dfly60)
+	# scp 3-way connection hangs on these so skip until sorted.
+	SKIP_LTESTS=scp3
+	;;
     minix3)
 	CC="clang"
 	LIBCRYPTOFLAGS="--without-openssl"
