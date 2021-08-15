@@ -118,6 +118,9 @@ case "${TARGET_HOST}" in
 	# scp 3-way connection hangs on these so skip until sorted.
 	SKIP_LTESTS=scp3
 	;;
+    hurd)
+	SKIP_LTESTS="forwarding multiplex proxy-connect hostkey-agent"
+	;;
     minix3)
 	CC="clang"
 	LIBCRYPTOFLAGS="--without-openssl"

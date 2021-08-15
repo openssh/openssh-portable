@@ -26,6 +26,7 @@ jobs:
           - fbsd10
           - fbsd12
           - fbsd13
+          - hurd
           - minix3
           # - nbsd2
           - nbsd3
