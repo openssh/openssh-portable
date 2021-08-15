@@ -119,7 +119,7 @@ case "${TARGET_HOST}" in
 	SKIP_LTESTS=scp3
 	;;
     hurd)
-	SKIP_LTESTS="forwarding multiplex proxy-connect hostkey-agent"
+	SKIP_LTESTS="forwarding multiplex proxy-connect hostkey-agent agent-ptrace"
 	;;
     minix3)
 	CC="clang"
