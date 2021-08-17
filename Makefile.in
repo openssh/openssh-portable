@@ -704,7 +704,7 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
 	regress/unittests/sshkey/test_sshkey$(EXEEXT) \
 	regress/unittests/sshsig/test_sshsig$(EXEEXT) \
-	regress/unittests/utf8/test_utf8$(EXEEXT) \
+	regress/unittests/utf8/test_utf8$(EXEEXT)
 
 tests:	file-tests t-exec interop-tests unit
 	echo all tests passed
