@@ -3448,7 +3448,6 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 		}
 		/* Start listening for connections on the socket. */
 		if (listen(sock, SSH_LISTEN_BACKLOG) == -1) {
-			error("listen: %.100s", strerror(errno));
 			error("listen [%s]:%s: %.100s", ntop, strport,
 			    strerror(errno));
 			close(sock);
@@ -4012,7 +4011,7 @@ channel_request_rforward_cancel_streamlocal(struct ssh *ssh, const char *path)
 
 	return 0;
 }
- 
+
 /*
  * Request cancellation of remote forwarding of a connection from local side.
  */

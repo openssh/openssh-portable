@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.152 2021/04/03 06:18:40 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.153 2021/07/05 00:50:25 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -375,7 +375,6 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 #endif
 }
 
-
 void
 auth_maxtries_exceeded(struct ssh *ssh)
 {
@@ -735,9 +734,7 @@ fakepw(void)
  * be freed. NB. this will usually trigger a DNS query the first time it is
  * called.
  * This function does additional checks on the hostname to mitigate some
- * attacks on legacy rhosts-style authentication.
- * XXX is RhostsRSAAuthentication vulnerable to these?
- * XXX Can we remove these checks? (or if not, remove RhostsRSAAuthentication?)
+ * attacks on based on conflation of hostnames and IP addresses.
  */
 
 static char *

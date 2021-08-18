@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-pkcs11.sh,v 1.8 2021/05/24 10:25:18 dtucker Exp $
+#	$OpenBSD: agent-pkcs11.sh,v 1.9 2021/07/25 12:13:03 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="pkcs11 agent test"
@@ -62,16 +62,16 @@ notty() {
 trace "generating keys"
 RSA=${DIR}/RSA
 EC=${DIR}/EC
-$OPENSSL genpkey -algorithm rsa > $RSA
-$OPENSSL pkcs8 -nocrypt -in $RSA |\
+$OPENSSL_BIN genpkey -algorithm rsa > $RSA
+$OPENSSL_BIN pkcs8 -nocrypt -in $RSA |\
     softhsm2-util --slot "$slot" --label 01 --id 01 --pin "$TEST_SSH_PIN" --import /dev/stdin
-$OPENSSL genpkey \
+$OPENSSL_BIN genpkey \
     -genparam \
     -algorithm ec \
     -pkeyopt ec_paramgen_curve:prime256v1 |\
-    $OPENSSL genpkey \
+    $OPENSSL_BIN genpkey \
     -paramfile /dev/stdin > $EC
-$OPENSSL pkcs8 -nocrypt -in $EC |\
+$OPENSSL_BIN pkcs8 -nocrypt -in $EC |\
     softhsm2-util --slot "$slot" --label 02 --id 02 --pin "$TEST_SSH_PIN" --import /dev/stdin
 
 trace "start agent"
