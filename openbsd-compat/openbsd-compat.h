@@ -195,9 +195,9 @@ int writev(int, struct iovec *, int);
 #endif
 
 /* Home grown routines */
+#include "bsd-signal.h"
 #include "bsd-misc.h"
 #include "bsd-setres_id.h"
-#include "bsd-signal.h"
 #include "bsd-statvfs.h"
 #include "bsd-waitpid.h"
 #include "bsd-poll.h"

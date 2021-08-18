@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.166 2021/06/08 06:54:40 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.169 2021/08/09 23:47:44 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -1115,29 +1115,37 @@ freeargs(arglist *args)
  * Expands tildes in the file name.  Returns data allocated by xmalloc.
  * Warning: this calls getpw*.
  */
-char *
-tilde_expand_filename(const char *filename, uid_t uid)
+int
+tilde_expand(const char *filename, uid_t uid, char **retp)
 {
 	const char *path, *sep;
 	char user[128], *ret;
 	struct passwd *pw;
 	u_int len, slash;
 
-	if (*filename != '~')
-		return (xstrdup(filename));
+	if (*filename != '~') {
+		*retp = xstrdup(filename);
+		return 0;
+	}
 	filename++;
 
 	path = strchr(filename, '/');
 	if (path != NULL && path > filename) {		/* ~user/path */
 		slash = path - filename;
-		if (slash > sizeof(user) - 1)
-			fatal("tilde_expand_filename: ~username too long");
+		if (slash > sizeof(user) - 1) {
+			error_f("~username too long");
+			return -1;
+		}
 		memcpy(user, filename, slash);
 		user[slash] = '\0';
-		if ((pw = getpwnam(user)) == NULL)
-			fatal("tilde_expand_filename: No such user %s", user);
-	} else if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
-		fatal("tilde_expand_filename: No such uid %ld", (long)uid);
+		if ((pw = getpwnam(user)) == NULL) {
+			error_f("No such user %s", user);
+			return -1;
+		}
+	} else if ((pw = getpwuid(uid)) == NULL) {	/* ~/path */
+		error_f("No such uid %ld", (long)uid);
+		return -1;
+	}
 
 	/* Make sure directory has a trailing '/' */
 	len = strlen(pw->pw_dir);
@@ -1150,10 +1158,23 @@ tilde_expand_filename(const char *filename, uid_t uid)
 	if (path != NULL)
 		filename = path + 1;
 
-	if (xasprintf(&ret, "%s%s%s", pw->pw_dir, sep, filename) >= PATH_MAX)
-		fatal("tilde_expand_filename: Path too long");
+	if (xasprintf(&ret, "%s%s%s", pw->pw_dir, sep, filename) >= PATH_MAX) {
+		error_f("Path too long");
+		return -1;
+	}
 
-	return (ret);
+	*retp = ret;
+	return 0;
+}
+
+char *
+tilde_expand_filename(const char *filename, uid_t uid)
+{
+	char *ret;
+
+	if (tilde_expand(filename, uid, &ret) != 0)
+		cleanup_exit(255);
+	return ret;
 }
 
 /*
@@ -2383,10 +2404,13 @@ parse_absolute_time(const char *s, uint64_t *tp)
 	return 0;
 }
 
+/* On OpenBSD time_t is int64_t which is long long. */
+/* #define SSH_TIME_T_MAX LLONG_MAX */
+
 void
 format_absolute_time(uint64_t t, char *buf, size_t len)
 {
-	time_t tt = t > INT_MAX ? INT_MAX : t; /* XXX revisit in 2038 :P */
+	time_t tt = t > SSH_TIME_T_MAX ? SSH_TIME_T_MAX : t;
 	struct tm tm;
 
 	localtime_r(&tt, &tm);

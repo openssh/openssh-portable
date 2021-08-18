@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.364 2021/05/26 01:47:24 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.369 2021/07/23 04:04:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -114,15 +114,6 @@
 
 /* import options */
 extern Options options;
-
-/* Flag indicating that stdin should be redirected from /dev/null. */
-extern int stdin_null_flag;
-
-/* Flag indicating that no shell has been requested */
-extern int no_shell_flag;
-
-/* Flag indicating that ssh should daemonise after authentication is complete */
-extern int fork_after_authentication_flag;
 
 /* Control socket */
 extern int muxserver_sock; /* XXX use mux_client_cleanup() instead */
@@ -1246,7 +1237,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			fatal_f("pledge(): %s", strerror(errno));
 
 	} else if (!option_clear_or_none(options.proxy_command) ||
-	    fork_after_authentication_flag) {
+	    options.fork_after_authentication) {
 		debug("pledge: proc");
 		if (pledge("stdio cpath unix inet dns proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
@@ -1361,6 +1352,10 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		if (quit_pending)
 			break;
 
+		/* A timeout may have triggered rekeying */
+		if ((r = ssh_packet_check_rekey(ssh)) != 0)
+			fatal_fr(r, "cannot start rekeying");
+
 		/*
 		 * Send as much buffered packet data as possible to the
 		 * sender.
@@ -1410,7 +1405,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	 * exit status to be returned.  In that case, clear error code if the
 	 * connection was deliberately terminated at this end.
 	 */
-	if (no_shell_flag && received_signal == SIGTERM) {
+	if (options.session_type == SESSION_TYPE_NONE && received_signal == SIGTERM) {
 		received_signal = 0;
 		exit_status = 0;
 	}
@@ -2585,7 +2580,7 @@ client_stop_mux(void)
 	 * If we are in persist mode, or don't have a shell, signal that we
 	 * should close when all active channels are closed.
 	 */
-	if (options.control_persist || no_shell_flag) {
+	if (options.control_persist || options.session_type == SESSION_TYPE_NONE) {
 		session_closed = 1;
 		setproctitle("[stopped mux]");
 	}
