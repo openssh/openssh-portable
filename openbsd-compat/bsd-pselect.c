@@ -73,6 +73,7 @@ notify_setup_fd(int *fd)
  * we write to this pipe if a SIGCHLD is caught in order to avoid
  * the race between select() and child_terminated
  */
+static pid_t notify_pid;
 static int notify_pipe[2];
 static void
 notify_setup(void)
@@ -81,6 +82,15 @@ notify_setup(void)
 
 	if (initialized)
 		return;
+	if (notify_pid == 0)
+		debug3_f("initializing");
+	else {
+		debug3_f("pid changed, reinitializing");
+		if (notify_pipe[0] != -1)
+			close(notify_pipe[0]);
+		if (notify_pipe[1] != -1)
+			close(notify_pipe[1]);
+	}
 	if (pipe(notify_pipe) == -1) {
 		error("pipe(notify_pipe) failed %s", strerror(errno));
 	} else if (notify_setup_fd(&notify_pipe[0]) == -1 ||
@@ -91,6 +101,9 @@ notify_setup(void)
 	} else {
 		set_nonblock(notify_pipe[0]);
 		set_nonblock(notify_pipe[1]);
+		notify_pid = getpid();
+		debug3_f("pid %d saved %d pipe0 %d pipe1 %d", getpid(),
+		    notify_pid, notify_pipe[0], notify_pipe[1]);
 		initialized = 1;
 		return;
 	}
@@ -159,15 +172,16 @@ pselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 		if (sig == SIGKILL || sig == SIGSTOP || sigismember(mask, sig))
 			continue;
 		if (sigaction(sig, NULL, &sa) == 0 &&
-		    sa.sa_handler != SIG_IGN && sa.sa_handler != SIG_DFL &&
-		    sa.sa_handler != sig_handler) {
+		    sa.sa_handler != SIG_IGN && sa.sa_handler != SIG_DFL) {
+			unmasked = 1;
+			if (sa.sa_handler == sig_handler)
+				continue;
 			sa.sa_handler = sig_handler;
 			if (sigaction(sig, &sa, &osa) == 0) {
 				debug3_f("installing signal handler for %s, "
 				    "previous %p", strsignal(sig),
 				     osa.sa_handler);
 				saved_sighandler[sig] = osa.sa_handler;
-				unmasked = 1;
 			}
 		}
 	}
@@ -183,7 +197,8 @@ pselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	saved_errno = errno;
 	sigprocmask(SIG_SETMASK, &osig, NULL);
 
-	notify_done(readfds);
+	if (unmasked)
+		notify_done(readfds);
 	errno = saved_errno;
 	return ret;
 }
