@@ -80,7 +80,7 @@ pselect_notify_setup(void)
 {
 	static int initialized;
 
-	if (initialized)
+	if (initialized && notify_pid == getpid())
 		return;
 	if (notify_pid == 0)
 		debug3_f("initializing");
