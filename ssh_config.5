@@ -750,6 +750,64 @@ can access the local agent through the forwarded connection.
 An attacker cannot obtain key material from the agent,
 however they can perform operations on the keys that enable them to
 authenticate using the identities loaded into the agent.
+.It Cm ForwardAgentFilter
+Specifies whether
+.Xr ssh 1
+should act as an stateful proxy for channels passed by
+.Cm ForwardAgent
+to limit the functions clients the remote host are allowed to perform.
+The argument must be
+.Cm yes
+or
+.Cm no .
+The default is
+.Cm no
+unless one of the other
+.Cm ForwardAgentFilter*
+settings is explicitly specified in which case the defaults is
+.Cm yes .
+.It Cm ForwardAgentFilterIdentitiesByComment
+A pattern-list which matches the
+.Em comment
+attached to each identity which the local agent knows about.
+Identities whose comments match this pattern-list will be
+offered across the forwarded agent connection.
+For example:
+.Pp
+.Dl *@git.example.com,*@bastion-host
+.Pp
+or:
+.Pp
+.Dl !*management*,*
+.Pp
+By default all of the agent's identities will be forwarded.
+Note that this setting has no effect if
+.Cm ForwardAgentFilter
+is set to
+.Cm no.
+.It Cm ForwardAgentFilterPermitIdentityManagement
+Allow forwarded agent connections to add or remove
+identities from the agent.
+The argument must be
+.Cm yes
+or
+.Cm no
+(the default).
+Note that this setting has no effect if
+.Cm ForwardAgentFilter
+is set to
+.Cm no.
+.It Cm ForwardAgentFilterPermitLocking
+Allow forwarded agent connections to lock or unlock the agent.
+The argument must be
+.Cm yes
+or
+.Cm no
+(the default).
+Note that this setting has no effect if
+.Cm ForwardAgentFilter
+is set to
+.Cm no.
 .It Cm ForwardX11
 Specifies whether X11 connections will be automatically redirected
 over the secure channel and

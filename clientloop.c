@@ -111,6 +111,7 @@
 #include "msg.h"
 #include "ssherr.h"
 #include "hostfile.h"
+#include "agentfilter.h"
 
 /* import options */
 extern Options options;
@@ -1601,6 +1602,7 @@ client_request_agent(struct ssh *ssh, const char *request_type, int rchan)
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0,
 	    "authentication agent connection", 1);
 	c->force_drain = 1;
+	agent_filter_maybe_initialize(ssh, c);
 	return c;
 }
 

@@ -142,7 +142,11 @@ static int process_config_line_depth(Options *options, struct passwd *pw,
 typedef enum {
 	oBadOption,
 	oHost, oMatch, oInclude,
-	oForwardAgent, oForwardX11, oForwardX11Trusted, oForwardX11Timeout,
+	oForwardAgent, oForwardAgentFilter,
+	oForwardAgentFilterIdentitiesByComment,
+	oForwardAgentFilterPermitIdentityManagement,
+	oForwardAgentFilterPermitLocking,
+	oForwardX11, oForwardX11Trusted, oForwardX11Timeout,
 	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication,
 	oXAuthLocation,
@@ -220,6 +224,10 @@ static struct {
 #endif
 
 	{ "forwardagent", oForwardAgent },
+	{ "forwardagentfilter", oForwardAgentFilter },
+	{ "forwardagentfilteridentitiesbycomment", oForwardAgentFilterIdentitiesByComment },
+	{ "forwardagentfilterpermitidentitymanagement", oForwardAgentFilterPermitIdentityManagement },
+	{ "forwardagentfilterpermitlocking", oForwardAgentFilterPermitLocking },
 	{ "forwardx11", oForwardX11 },
 	{ "forwardx11trusted", oForwardX11Trusted },
 	{ "forwardx11timeout", oForwardX11Timeout },
@@ -1056,6 +1064,22 @@ parse_time:
 
 		charptr = &options->forward_agent_sock_path;
 		goto parse_agent_path;
+
+	case oForwardAgentFilter:
+		intptr = &options->forward_agent_filter;
+		goto parse_flag;
+
+	case oForwardAgentFilterIdentitiesByComment:
+		charptr = &options->forward_agent_filter_identities_by_comment;
+		goto parse_string;
+
+	case oForwardAgentFilterPermitIdentityManagement:
+		intptr = &options->forward_agent_filter_permit_identity_management;
+		goto parse_flag;
+
+	case oForwardAgentFilterPermitLocking:
+		intptr = &options->forward_agent_filter_permit_locking;
+		goto parse_flag;
 
 	case oForwardX11:
 		intptr = &options->forward_x11;
@@ -2293,6 +2317,10 @@ initialize_options(Options * options)
 	memset(options, 'X', sizeof(*options));
 	options->forward_agent = -1;
 	options->forward_agent_sock_path = NULL;
+	options->forward_agent_filter = -1;
+	options->forward_agent_filter_identities_by_comment = NULL;
+	options->forward_agent_filter_permit_identity_management = -1;
+	options->forward_agent_filter_permit_locking = -1;
 	options->forward_x11 = -1;
 	options->forward_x11_trusted = -1;
 	options->forward_x11_timeout = -1;
@@ -2432,6 +2460,17 @@ fill_default_options(Options * options)
 
 	if (options->forward_agent == -1)
 		options->forward_agent = 0;
+	if (options->forward_agent_filter == -1)
+		options->forward_agent_filter =
+		    (options->forward_agent_filter_permit_identity_management != -1) ||
+		    (options->forward_agent_filter_permit_locking != -1) ||
+		    (options->forward_agent_filter_identities_by_comment != NULL);
+	if (options->forward_agent_filter_identities_by_comment == NULL)
+		options->forward_agent_filter_identities_by_comment = xstrdup("*");
+	if (options->forward_agent_filter_permit_identity_management == -1)
+		options->forward_agent_filter_permit_identity_management = 0;
+	if (options->forward_agent_filter_permit_locking == -1)
+		options->forward_agent_filter_permit_locking = 0;
 	if (options->forward_x11 == -1)
 		options->forward_x11 = 0;
 	if (options->forward_x11_trusted == -1)
@@ -2686,6 +2725,7 @@ free_options(Options *o)
 	} while (0)
 
 	free(o->forward_agent_sock_path);
+	free(o->forward_agent_filter_identities_by_comment);
 	free(o->xauth_location);
 	FREE_ARRAY(u_int, o->num_log_verbose, o->log_verbose);
 	free(o->log_verbose);
@@ -3241,6 +3281,9 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oClearAllForwardings, o->clear_forwardings);
 	dump_cfg_fmtint(oExitOnForwardFailure, o->exit_on_forward_failure);
 	dump_cfg_fmtint(oFingerprintHash, o->fingerprint_hash);
+	dump_cfg_fmtint(oForwardAgentFilter, o->forward_agent_filter);
+	dump_cfg_fmtint(oForwardAgentFilterPermitIdentityManagement, o->forward_agent_filter_permit_identity_management);
+	dump_cfg_fmtint(oForwardAgentFilterPermitLocking, o->forward_agent_filter_permit_locking);
 	dump_cfg_fmtint(oForwardX11, o->forward_x11);
 	dump_cfg_fmtint(oForwardX11Trusted, o->forward_x11_trusted);
 	dump_cfg_fmtint(oGatewayPorts, o->fwd_opts.gateway_ports);
@@ -3282,6 +3325,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oBindInterface, o->bind_interface);
 	dump_cfg_string(oCiphers, o->ciphers);
 	dump_cfg_string(oControlPath, o->control_path);
+	dump_cfg_string(oForwardAgentFilterIdentitiesByComment, o->forward_agent_filter_identities_by_comment);
 	dump_cfg_string(oHostKeyAlgorithms, o->hostkeyalgorithms);
 	dump_cfg_string(oHostKeyAlias, o->host_key_alias);
 	dump_cfg_string(oHostbasedAcceptedAlgorithms, o->hostbased_accepted_algos);
