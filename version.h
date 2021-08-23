@@ -1,7 +1,7 @@
-/* $OpenBSD: version.h,v 1.90 2021/04/16 03:42:00 djm Exp $ */
+/* $OpenBSD: version.h,v 1.91 2021/08/20 03:22:55 djm Exp $ */
 
-#define SSH_VERSION	"OpenSSH_8.6"
+#define SSH_VERSION	"OpenSSH_8.7"
 
 #define SSH_PORTABLE	"p1"
-#define SSH_HPN         "-hpn15v3"
+#define SSH_HPN         "-hpn15v4"
 #define SSH_RELEASE	SSH_VERSION SSH_PORTABLE SSH_HPN
