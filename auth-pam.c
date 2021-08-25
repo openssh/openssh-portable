@@ -522,10 +522,10 @@ sshpam_thread(void *ctxtp)
 	if (sshpam_err != PAM_SUCCESS)
 		goto auth_fail;
 
-	if (!do_pam_account()) {
-		sshpam_err = PAM_ACCT_EXPIRED;
+	sshpam_err = do_pam_account();
+	if (sshpam_err != PAM_SUCCESS && sshpam_err != PAM_NEW_AUTHTOK_REQD)
 		goto auth_fail;
-	}
+
 	if (sshpam_authctxt->force_pwchange) {
 		sshpam_err = pam_chauthtok(sshpam_handle,
 		    PAM_CHANGE_EXPIRED_AUTHTOK);
@@ -576,16 +576,15 @@ sshpam_thread(void *ctxtp)
 	pthread_exit(NULL);
 
  auth_fail:
+	debug3("PAM: auth_fail sshpam_err=%d %s", sshpam_err, pam_strerror(sshpam_handle, sshpam_err));
 	if ((r = sshbuf_put_cstring(buffer,
 	    pam_strerror(sshpam_handle, sshpam_err))) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	/* XXX - can't do much about an error here */
-	if (sshpam_err == PAM_ACCT_EXPIRED)
-		ssh_msg_send(ctxt->pam_csock, PAM_ACCT_EXPIRED, buffer);
-	else if (sshpam_maxtries_reached)
+	if (sshpam_maxtries_reached)
 		ssh_msg_send(ctxt->pam_csock, PAM_MAXTRIES, buffer);
 	else
-		ssh_msg_send(ctxt->pam_csock, PAM_AUTH_ERR, buffer);
+		ssh_msg_send(ctxt->pam_csock, sshpam_err, buffer);
 	sshbuf_free(buffer);
 	pthread_exit(NULL);
 
@@ -1083,7 +1082,7 @@ do_pam_account(void)
 		sshpam_password_change_required(1);
 
 	sshpam_account_status = 1;
-	return (sshpam_account_status);
+	return (sshpam_err);
 }
 
 void
