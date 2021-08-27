@@ -5,7 +5,7 @@ This feature allows SCP to resume failed transfers. In the event of a failed tra
 issues the same scp command with the '-R' option. For example - if you issued:
 'scp myhugefile me@host:~' 
 and it dies halfway through the transfer issuing 
-'scp -R myhugefile me@host:~' 
+'scp -Z myhugefile me@host:~' 
 will resume the transfer at the point where it left off.
 
 This is implemented by having the source host send a hash (blake2b512) of the file to the
@@ -19,9 +19,9 @@ source file is sent and any existing target file is overwritten.
 
 SCP however, will use the first scp in the user's path. This might not support the resume 
 function and the attempt will fail. In those cases the user can explicitly define the path to the 
-resume enabled scp with the '-s' option. For example:
+resume enabled scp with the '-z' option. For example:
 
-'scp -R -s /opt/hpnssh/usr/bin/scp myhugefile me@host:~'
+'scp -Z -z /opt/hpnssh/usr/bin/scp myhugefile me@host:~'
 
 MULTI-THREADED CIPHER:
 The AES cipher in CTR mode has been multithreaded (MTR-AES-CTR). This will allow ssh installations
