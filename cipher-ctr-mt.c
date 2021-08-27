@@ -580,7 +580,9 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
  	if (cipher_threads * 2 > MAX_THREADS)
  		cipher_threads = MAX_THREADS / 2;
 
-	/* set the number of keystream queues. 3 for each thread */
+	/* set the number of keystream queues. 4 for each thread
+	 * this seems to reduce waiting in the cipher process for queues
+	 * to fill up */
 	numkq = cipher_threads * 4;
 	if (numkq > MAX_NUMKQ)
 		numkq = MAX_NUMKQ;
