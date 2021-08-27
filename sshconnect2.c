@@ -529,7 +529,7 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 			fprintf(stderr, "NONE cipher switch disabled when a TTY is allocated\n");
 		}
 	}
-	
+
 #ifdef WITH_OPENSSL
 	if (options.disable_multithreaded == 0) {
 		/* if we are using aes-ctr there can be issues in either a fork or sandbox
@@ -538,9 +538,8 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 		 * so we repoint the define to the multithreaded evp. To start the threads we
 		 * then force a rekey
 		 */
-	  const void *cc = ssh_packet_get_send_context(ssh);
-		
-		/* only do this for the ctr cipher. otherwise gcm mode breaks. Don't know why though */
+		const void *cc = ssh_packet_get_send_context(ssh);
+		/* only do this for the ctr cipher. otherwise gcm mode breaks. */
 		if (strstr(cipher_ctx_name(cc), "ctr")) {
 			debug("Single to Multithread CTR cipher swap - client request");
 			cipher_reset_multithreaded();
@@ -548,7 +547,6 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 		}
 	}
 #endif
-
 	debug("Authentication succeeded (%s).", authctxt.method->name);
 }
 
