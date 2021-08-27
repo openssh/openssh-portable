@@ -1,7 +1,11 @@
-#	$OpenBSD: Makefile,v 1.4 2021/01/09 12:24:31 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.6 2021/03/19 04:23:50 djm Exp $
 
 PROG=test_misc
 SRCS=tests.c
+SRCS+=	test_convtime.c
+SRCS+=	test_expand.c
+SRCS+=	test_parse.c
+SRCS+=	test_argv.c
 
 # From usr.bin/ssh/Makefile.inc
 SRCS+=	sshbuf.c
