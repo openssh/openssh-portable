@@ -1,10 +1,16 @@
-#	$OpenBSD: putty-kex.sh,v 1.5 2020/01/23 03:24:38 dtucker Exp $
+#	$OpenBSD: putty-kex.sh,v 1.6 2021/08/31 06:13:23 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="putty KEX"
 
 if test "x$REGRESS_INTEROP_PUTTY" != "xyes" ; then
 	fatal "putty interop tests not enabled"
+fi
+
+# Re-enable ssh-rsa on older PuTTY versions.
+oldver="`${PLINK} --version | awk '/plink: Release/{if ($3<0.76)print "yes"}'`"
+if [ "x$oldver" = "xyes" ]; then
+	echo "HostKeyalgorithms +ssh-rsa" >> sshd_config
 fi
 
 for k in dh-gex-sha1 dh-group1-sha1 dh-group14-sha1 ecdh ; do
