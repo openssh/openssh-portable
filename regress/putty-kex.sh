@@ -1,4 +1,4 @@
-#	$OpenBSD: putty-kex.sh,v 1.6 2021/08/31 06:13:23 dtucker Exp $
+#	$OpenBSD: putty-kex.sh,v 1.7 2021/08/31 07:13:59 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="putty KEX"
