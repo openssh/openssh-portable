@@ -4,8 +4,7 @@
 tid="putty KEX"
 
 if test "x$REGRESS_INTEROP_PUTTY" != "xyes" ; then
-	echo "putty interop tests not enabled"
-	exit 0
+	fatal "putty interop tests not enabled"
 fi
 
 for k in dh-gex-sha1 dh-group1-sha1 dh-group14-sha1 ecdh ; do

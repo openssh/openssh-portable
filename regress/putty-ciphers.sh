@@ -4,8 +4,7 @@
 tid="putty ciphers"
 
 if test "x$REGRESS_INTEROP_PUTTY" != "xyes" ; then
-	echo "putty interop tests not enabled"
-	exit 0
+	fatal "putty interop tests not enabled"
 fi
 
 for c in aes 3des aes128-ctr aes192-ctr aes256-ctr chacha20 ; do
