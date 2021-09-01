@@ -1,4 +1,4 @@
-#	$OpenBSD: sshfp-connect.sh,v 1.3 2021/08/31 01:25:27 dtucker Exp $
+#	$OpenBSD: sshfp-connect.sh,v 1.4 2021/09/01 00:50:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 # This test requires external setup and thus is skipped unless
@@ -25,9 +25,9 @@
 tid="sshfp connect"
 
 if ! $SSH -Q key-plain | grep ssh-rsa >/dev/null; then
-	echo SKIPPED: RSA keys not supported.
+	skip "RSA keys not supported."
 elif [ -z "${TEST_SSH_SSHFP_DOMAIN}" ]; then
-	echo SKIPPED: TEST_SSH_SSHFP_DOMAIN not set.
+	skip "TEST_SSH_SSHFP_DOMAIN not set."
 else
 	# Set RSA host key to match fingerprints above.
 	mv $OBJ/sshd_proxy $OBJ/sshd_proxy.orig
