@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.363 2021/09/03 05:25:50 dtucker Exp $
+.\" $OpenBSD: ssh_config.5,v 1.364 2021/09/03 07:43:23 dtucker Exp $
 .Dd $Mdocdate: September 3 2021 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1788,15 +1788,15 @@ This option forces the user to manually
 add all new hosts.
 .Pp
 If this flag is set to
-.Dq accept-new
+.Cm accept-new
 then ssh will automatically add new host keys to the user's
 .Pa known_hosts
 file, but will not permit connections to hosts with
 changed host keys.
 If this flag is set to
-.Dq no
+.Cm no
 or
-.Dq off ,
+.Cm off ,
 ssh will automatically add new host keys to the user known hosts files
 and allow connections to hosts with changed hostkeys to proceed,
 subject to some restrictions.
