@@ -2762,7 +2762,7 @@ if test "x$openssl" = "xyes" ; then
 			101*)   ;; # 1.1.x
 			200*)   ;; # LibreSSL
 			300*)   ;; # OpenSSL 3
-			310*)   ;; # OpenSSL development branch.
+			301*)   ;; # OpenSSL development branch.
 		        *)
 				AC_MSG_ERROR([Unknown/unsupported OpenSSL version ("$ssl_library_ver")])
 		                ;;
