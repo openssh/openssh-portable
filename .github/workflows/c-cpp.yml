@@ -40,6 +40,7 @@ jobs:
           - { os: ubuntu-latest, configs: openssl-1.1.0h }
           - { os: ubuntu-latest, configs: openssl-1.1.1 }
           - { os: ubuntu-latest, configs: openssl-1.1.1k }
+          - { os: ubuntu-latest, configs: openssl-3.0 }
           - { os: ubuntu-18.04, configs: pam }
           - { os: ubuntu-18.04, configs: kerberos5 }
           - { os: ubuntu-18.04, configs: libedit }
