@@ -4659,6 +4659,42 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 			sshkey_dump_ec_key(prv->ecdsa);
 # endif
 #endif /* OPENSSL_HAS_ECC */
+#ifdef HAVE_EVP_PKEY_GET_RAW_PUBLIC_KEY
+	} else if (EVP_PKEY_base_id(pk) == EVP_PKEY_ED25519 &&
+	    (type == KEY_UNSPEC || type == KEY_ED25519)) {
+		u_char *privkey, *pubkey;
+		size_t privlen = crypto_sign_ed25519_PUBLICKEYBYTES, publen = crypto_sign_ed25519_PUBLICKEYBYTES;
+
+		if ((prv = sshkey_new(KEY_UNSPEC)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+
+		if ((privkey = malloc(privlen)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+
+		if(EVP_PKEY_get_raw_private_key(pk, privkey, &privlen) <= 0) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+
+		if ((pubkey = malloc(publen)) == NULL) {
+			freezero(privkey, privlen);
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+
+		if(EVP_PKEY_get_raw_public_key(pk, pubkey, &publen) <= 0) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+
+		prv->type = KEY_ED25519;
+		prv->ed25519_sk = privkey;
+		prv->ed25519_pk = pubkey;
+#endif /* HAVE_EVP_PKEY_GET_RAW_PUBLIC_KEY */
 	} else {
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;

@@ -41,6 +41,7 @@
 #include "authfd.h"
 #include "ssh-pkcs11.h"
 #include "ssherr.h"
+#include "crypto_api.h"
 
 #ifdef ENABLE_PKCS11
 
@@ -181,6 +182,11 @@ process_del(void)
 	sshbuf_free(msg);
 }
 
+
+int eddsa_do_sign_pkcs11(struct sshkey *key, unsigned char *sig,
+              size_t *siglen, const unsigned char *tbs,
+              size_t tbslen);
+
 static void
 process_sign(void)
 {
@@ -226,6 +232,12 @@ process_sign(void)
 					error_f("ECDSA_sign returned %d", ret);
 				slen = xslen;
 #endif /* OPENSSL_HAS_ECC */
+			} else if (key->type == KEY_ED25519) {
+				size_t xslen = crypto_sign_ed25519_BYTES;
+				signature = xmalloc(xslen);
+				ok = eddsa_do_sign_pkcs11(found, signature, &xslen, data, dlen);
+
+				slen = xslen;
 			} else
 				error_f("don't know how to sign with key "
 				    "type %d", (int)key->type);

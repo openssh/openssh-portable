@@ -48,6 +48,7 @@
 #include "ssh-pkcs11.h"
 #include "digest.h"
 #include "xmalloc.h"
+#include "crypto_api.h"
 
 struct pkcs11_slotinfo {
 	CK_TOKEN_INFO		token;
@@ -621,6 +622,127 @@ pkcs11_ecdsa_wrap(struct pkcs11_provider *provider, CK_ULONG slotidx,
 }
 #endif /* HAVE_EC_KEY_METHOD_NEW */
 
+int
+eddsa_do_sign_pkcs11(struct sshkey *key, unsigned char *sig,
+              size_t *siglen, const unsigned char *tbs,
+              size_t tbslen)
+{
+	struct pkcs11_key	*k11;
+	struct pkcs11_slotinfo	*si;
+	struct pkcs11_provider  *p = NULL;
+	CK_FUNCTION_LIST	*f;
+	CK_RV			 rv;
+	CK_ATTRIBUTE		 attr;
+	CK_ULONG		 idx;
+	CK_OBJECT_HANDLE	 obj;
+	int 			 found = 0;
+
+	memset(&attr, 0, sizeof(attr));
+
+	/* We make a lookup for a private key by public one */
+	TAILQ_FOREACH(p, &pkcs11_providers, next) {
+		CK_OBJECT_CLASS		public_key_class;
+		CK_ATTRIBUTE		key_filter[2];
+
+		f = p->function_list;
+
+		memset(&key_filter, 0, sizeof(key_filter));
+
+		public_key_class = CKO_PUBLIC_KEY;
+		key_filter[0].type = CKA_CLASS;
+		key_filter[0].pValue = &public_key_class;
+		key_filter[0].ulValueLen = sizeof(public_key_class);
+
+		key_filter[1].type = CKA_EC_POINT;
+		key_filter[1].pValue = key->ed25519_pk;
+		key_filter[1].ulValueLen = crypto_sign_ed25519_PUBLICKEYBYTES;
+
+		for (idx = 0; idx < p->nslots; idx++) {
+			if (pkcs11_find(p, idx, key_filter, 2, &obj) < 0)
+				continue;
+
+			si = p->slotinfo + idx;
+
+			attr.type = CKA_ID;
+			/* figure out size of the attributes */
+			rv = f->C_GetAttributeValue(si->session, obj, &attr, 1);
+			if (rv != CKR_OK) {
+				error("C_GetAttributeValue failed: %lu", rv);
+				continue;
+			}
+
+			free(attr.pValue);
+
+			if (attr.ulValueLen > 0)
+				attr.pValue = xcalloc(1, attr.ulValueLen);
+			else
+				attr.pValue = NULL;
+
+			/* figure out the value of attributes */
+			rv = f->C_GetAttributeValue(si->session, obj, &attr, 1);
+			if (rv != CKR_OK) {
+				error("C_GetAttributeValue failed: %lu", rv);
+				continue;
+			}
+
+			found = 1;
+			break;
+		}
+
+		if (found != 0)
+			break;
+	}
+
+	if (found == 0) {
+		error("private key not found");
+		free(attr.pValue);
+		return (-1);
+	}
+
+	k11 = xcalloc(1, sizeof(*k11));
+	k11->provider = p;
+
+	if (k11->provider == NULL) {
+		error("provider not found");
+		free(k11);
+		return (-1);
+	}
+
+	k11->slotidx = idx;
+
+	/* identify key object on smartcard */
+	k11->keyid_len = attr.ulValueLen;
+	k11->keyid     = attr.pValue;
+	attr.pValue    = NULL;
+
+	if (pkcs11_get_key(k11, CKM_EDDSA) == -1) {
+		error("pkcs11_get_key failed");
+		free(k11->keyid);
+		free(k11);
+		return (-1);
+	}
+
+	/* XXX handle CKR_BUFFER_TOO_SMALL */
+	rv = f->C_Sign(si->session, (CK_BYTE *)tbs, tbslen, sig, siglen);
+	if (rv != CKR_OK) {
+		error("C_Sign failed: %lu", rv);
+		free(k11->keyid);
+		free(k11);
+		return (-1);
+	}
+
+	if (*siglen != crypto_sign_ed25519_BYTES) {
+		error("Unexpected signature length");
+		free(k11->keyid);
+		free(k11);
+		return (-1);
+	}
+
+	free(k11->keyid);
+	free(k11);
+	return (0);
+}
+
 /* remove trailing spaces */
 static void
 rmspace(u_char *buf, size_t len)
@@ -819,6 +941,155 @@ fail:
 }
 #endif /* HAVE_EC_KEY_METHOD_NEW */
 
+static int
+eddsa_validate_parameters(unsigned char *param, int len)
+{
+#ifdef NID_ED25519
+	const unsigned char *p = param;
+	ASN1_OBJECT *pObj = d2i_ASN1_OBJECT(NULL, &p, len);
+
+	/* Edwards EC public keys only support the use of the curveName
+	 * selection to specify a curve name as defined in [RFC 8032]
+	 * and the use of the oID selection to specify a curve through
+	 * an EdDSA algorithm as defined in [RFC 8410]. */
+	if (pObj != NULL) {
+		int nid = OBJ_obj2nid(pObj);
+		ASN1_OBJECT_free(pObj);
+		return (nid == NID_ED25519) ? (0) : (-1);
+	} else {
+		ASN1_PRINTABLESTRING *curve_name = NULL;
+
+		p = param;
+		curve_name = d2i_ASN1_PRINTABLESTRING(NULL, &p, len);
+		if (curve_name && (strcmp((char *)curve_name->data, "edwards25519") == 0)) {
+			ASN1_PRINTABLESTRING_free(curve_name);
+			return (0);
+		}
+
+		if (curve_name) {
+			ASN1_PRINTABLESTRING_free(curve_name);
+			return (-1);
+		}
+		/* Unsupported (yet) parameters format.
+		 * If the key is invalid, we get the failure on signature verification. */
+		logit("unsupported edwards parameters format");
+		return (0);
+	}
+#else
+	/* Cannot really validate.
+	 * If the key is invalid, we get the failure on signature verification. */
+	logit("Cannot validate edwards parameters");
+	return (0);
+#endif
+}
+
+
+static struct sshkey *
+pkcs11_fetch_eddsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
+    CK_OBJECT_HANDLE *obj)
+{
+	CK_ATTRIBUTE		 key_attr[3];
+	CK_SESSION_HANDLE	 session;
+	CK_FUNCTION_LIST	*f = NULL;
+	CK_RV			 rv;
+	struct sshkey		*key = NULL;
+	int			 i;
+	u_char			*ed25519_pk = NULL;
+	ASN1_OCTET_STRING	*octet = NULL;
+
+	memset(&key_attr, 0, sizeof(key_attr));
+	key_attr[0].type = CKA_ID;
+	key_attr[1].type = CKA_EC_POINT;
+	key_attr[2].type = CKA_EC_PARAMS;
+
+	session = p->slotinfo[slotidx].session;
+	f = p->function_list;
+
+	/* figure out size of the attributes */
+	rv = f->C_GetAttributeValue(session, *obj, key_attr, 3);
+	if (rv != CKR_OK) {
+		error("C_GetAttributeValue failed: %lu", rv);
+		return (NULL);
+	}
+
+	/*
+	 * Allow CKA_ID (always first attribute) to be empty, but
+	 * ensure that none of the others are zero length.
+	 * XXX assumes CKA_ID is always first.
+	 */
+	if (key_attr[1].ulValueLen == 0 ||
+	    key_attr[2].ulValueLen == 0) {
+		error("invalid attribute length");
+		return (NULL);
+	}
+
+	/* allocate buffers for attributes */
+	for (i = 0; i < 3; i++)
+		if (key_attr[i].ulValueLen > 0)
+			key_attr[i].pValue = xcalloc(1, key_attr[i].ulValueLen);
+
+	/* retrieve ID, public point and curve parameters of Edwards key */
+	rv = f->C_GetAttributeValue(session, *obj, key_attr, 3);
+	if (rv != CKR_OK) {
+		error("C_GetAttributeValue failed: %lu", rv);
+		goto fail;
+	}
+
+	if (key_attr[1].ulValueLen != crypto_sign_ed25519_PUBLICKEYBYTES) {
+		const unsigned char	*attrp = key_attr[1].pValue;
+
+		octet = d2i_ASN1_OCTET_STRING(NULL, &attrp, key_attr[1].ulValueLen);
+		if (octet == NULL) {
+			ossl_error("d2i_ASN1_OCTET_STRING failed");
+			goto fail;
+		}
+
+		if (octet->length != crypto_sign_ed25519_PUBLICKEYBYTES) {
+			error("CKA_EC_POINT invalid length");
+			goto fail;
+		}
+	}
+
+	ed25519_pk = malloc(crypto_sign_ed25519_PUBLICKEYBYTES);
+	if (ed25519_pk == NULL) {
+		error("malloc failed");
+		goto fail;
+	}
+
+	if (octet != NULL)
+		memcpy(ed25519_pk, octet->data, crypto_sign_ed25519_PUBLICKEYBYTES);
+	else
+		memcpy(ed25519_pk, key_attr[1].pValue, crypto_sign_ed25519_PUBLICKEYBYTES);
+
+	if (eddsa_validate_parameters(key_attr[2].pValue, key_attr[2].ulValueLen) != 0) {
+		error("parameters validation failed");
+		goto fail;
+	}
+
+	key = sshkey_new(KEY_UNSPEC);
+	if (key == NULL) {
+		error("sshkey_new failed");
+		goto fail;
+	}
+
+	/* As we don't create a ref to provider, don't increase refcount */
+
+	key->type = KEY_ED25519;
+	key->flags |= SSHKEY_FLAG_EXT;
+	key->ed25519_pk = ed25519_pk;
+	ed25519_pk = NULL;
+
+fail:
+	for (i = 0; i < 3; i++)
+		free(key_attr[i].pValue);
+	if (ed25519_pk)
+		free(ed25519_pk);
+	if (octet)
+		ASN1_OCTET_STRING_free(octet);
+
+	return (key);
+}
+
 static struct sshkey *
 pkcs11_fetch_rsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
     CK_OBJECT_HANDLE *obj)
@@ -923,6 +1194,8 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 #ifdef OPENSSL_HAS_ECC
 	EC_KEY			*ec = NULL;
 #endif
+	u_char			*ed25519_pk = NULL;
+
 	struct sshkey		*key = NULL;
 	int			 i;
 #ifdef HAVE_EC_KEY_METHOD_NEW
@@ -1046,6 +1319,43 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		key->flags |= SSHKEY_FLAG_EXT;
 		ec = NULL;	/* now owned by key */
 #endif /* HAVE_EC_KEY_METHOD_NEW */
+#ifdef HAVE_EVP_PKEY_GET_RAW_PUBLIC_KEY
+	} else if (EVP_PKEY_base_id(evp) == EVP_PKEY_X25519) {
+		size_t pubkey_len = 0;
+
+		if (EVP_PKEY_get0(evp) == NULL) {
+			error("invalid x509; no public key");
+			goto out;
+		}
+
+		if (EVP_PKEY_get_raw_public_key(evp, NULL, &pubkey_len) <= 0) {
+			error("EVP_PKEY_get_raw_public_key failed");
+			goto out;
+		}
+
+		if ((ed25519_pk = malloc(pubkey_len)) == NULL) {
+			error("malloc failed");
+			goto out;
+		}
+
+		if (EVP_PKEY_get_raw_public_key(evp, ed25519_pk, &pubkey_len) <= 0) {
+			error("EVP_PKEY_get_raw_public_key failed");
+			goto out;
+		}
+
+		key = sshkey_new(KEY_UNSPEC);
+		if (key == NULL) {
+			error("sshkey_new failed");
+			goto out;
+		}
+
+		/* As we don't create a ref to provider, don't increase refcount */
+
+		key->type = KEY_ED25519;
+		key->flags |= SSHKEY_FLAG_EXT;
+		key->ed25519_pk = ed25519_pk;
+		ed25519_pk = NULL;
+#endif /* HAVE_EVP_PKEY_GET_RAW_PUBLIC_KEY */
 	} else {
 		error("unknown certificate key type");
 		goto out;
@@ -1058,6 +1368,8 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 #ifdef OPENSSL_HAS_ECC
 	EC_KEY_free(ec);
 #endif
+	if (ed25519_pk != NULL)
+		free(ed25519_pk);
 	if (key == NULL) {
 		free(subject);
 		return -1;
@@ -1274,6 +1586,9 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 			key = pkcs11_fetch_ecdsa_pubkey(p, slotidx, &obj);
 			break;
 #endif /* HAVE_EC_KEY_METHOD_NEW */
+		case CKK_EC_EDWARDS:
+			key = pkcs11_fetch_eddsa_pubkey(p, slotidx, &obj);
+			break;
 		default:
 			/* XXX print key type? */
 			key = NULL;

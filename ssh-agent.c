@@ -470,13 +470,24 @@ process_sign_request2(SocketEntry *e)
 			    sshkey_type(id->key), fp);
 		}
 	}
-	/* XXX support PIN required FIDO keys */
-	if ((r = sshkey_sign(id->key, &signature, &slen,
-	    sshbuf_ptr(data), sshbuf_len(data), agent_decode_alg(key, flags),
-	    id->sk_provider, NULL, compat)) != 0) {
-		error_fr(r, "sshkey_sign");
-		goto send;
+
+	if ((sshkey_type_plain(id->key->type) == KEY_ED25519) && (id->key->flags & SSHKEY_FLAG_EXT)) {
+		if ((r = sshkey_sign_pkcs11(id->key, &signature, &slen,
+	            sshbuf_ptr(data), sshbuf_len(data), agent_decode_alg(key, flags),
+		    id->sk_provider, NULL, compat)) != 0) {
+			error_fr(r, "sshkey_sign_pkcs11");
+			goto send;
+		}
+	} else {
+		/* XXX support PIN required FIDO keys */
+		if ((r = sshkey_sign(id->key, &signature, &slen,
+	            sshbuf_ptr(data), sshbuf_len(data), agent_decode_alg(key, flags),
+		    id->sk_provider, NULL, compat)) != 0) {
+			error_fr(r, "sshkey_sign");
+			goto send;
+		}
 	}
+
 	/* Success */
 	ok = 0;
  send:
