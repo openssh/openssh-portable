@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.436 2021/09/07 06:03:51 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.437 2021/09/08 03:23:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2680,7 +2680,7 @@ sig_process_opts(char * const *opts, size_t nopts, uint64_t *verify_timep,
 	time_t now;
 
 	*verify_timep = 0;
-	if (print_pubkey == NULL)
+	if (print_pubkey != NULL)
 		*print_pubkey = 0;
 	for (i = 0; i < nopts; i++) {
 		if (strncasecmp(opts[i], "verify-time=", 12) == 0) {
