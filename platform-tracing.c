@@ -23,6 +23,9 @@
 #ifdef HAVE_SYS_PTRACE_H
 #include <sys/ptrace.h>
 #endif
+#ifdef HAVE_SYS_PROCCTL_H
+#include <sys/procctl.h>
+#endif
 #ifdef HAVE_PRIV_H
 #include <priv.h> /* For setpflags() and __PROC_PROTECT  */
 #endif
@@ -37,6 +40,12 @@ platform_disable_tracing(int strict)
 	/* Disable ptrace on Linux without sgid bit */
 	if (prctl(PR_SET_DUMPABLE, 0) != 0 && strict)
 		fatal("unable to make the process undumpable");
+#endif
+#if defined(HAVE_PROCCTL) && defined(PROC_TRACE_CTL)
+	/* On FreeBSD, we should make this process untraceable */
+	int disable_trace = PROC_TRACE_CTL_DISABLE;
+	if (procctl(P_PID, 0, PROC_TRACE_CTL, &disable_trace) && strict)
+		fatal("unable to make the process untraceable");
 #endif
 #if defined(HAVE_SETPFLAGS) && defined(__PROC_PROTECT)
 	/* On Solaris, we should make this process untraceable */
