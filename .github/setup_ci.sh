@@ -54,6 +54,7 @@ for TARGET in $TARGETS; do
     openssl-*)
         INSTALL_OPENSSL=$(echo ${TARGET} | cut -f2 -d-)
         case ${INSTALL_OPENSSL} in
+          1.1.1_stable)	INSTALL_OPENSSL="OpenSSL_1_1_1-stable" ;;
           1.*)	INSTALL_OPENSSL="OpenSSL_$(echo ${INSTALL_OPENSSL} | tr . _)" ;;
           3.*)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
         esac
