@@ -8,9 +8,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.102 2021/09/09 06:17:39 jmc Exp $
+.\" $OpenBSD: scp.1,v 1.103 2021/09/10 07:11:11 dtucker Exp $
 .\"
-.Dd $Mdocdate: September 9 2021 $
+.Dd $Mdocdate: September 10 2021 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -229,10 +229,10 @@ Note that this option is written with a capital
 .Sq P ,
 because
 .Fl p
-is already reserved for preserving the times and modes of the file.
+is already reserved for preserving the times and mode bits of the file.
 .It Fl p
-Preserves modification times, access times, and modes from the
-original file.
+Preserves modification times, access times, and file mode bits from the
+source file.
 .It Fl q
 Quiet mode: disables the progress meter as well as warning and diagnostic
 messages from
