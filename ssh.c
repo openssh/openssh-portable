@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.566 2021/08/08 08:49:09 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.567 2021/09/10 10:26:02 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -185,7 +185,7 @@ usage(void)
 "           [-i identity_file] [-J [user@]host[:port]] [-L address]\n"
 "           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
 "           [-Q query_option] [-R address] [-S ctl_path] [-W host:port]\n"
-"           [-w local_tun[:remote_tun]] destination [command]\n"
+"           [-w local_tun[:remote_tun]] destination [command [argument ...]]\n"
 	);
 	exit(255);
 }
