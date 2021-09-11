@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.233 2021/09/08 23:31:39 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.234 2021/09/11 00:40:24 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -652,7 +652,7 @@ main(int argc, char **argv)
 	 * Finally check the exit status of the ssh process, if one was forked
 	 * and no error has occurred yet
 	 */
-	if (do_cmd_pid != -1 && errs == 0) {
+	if (do_cmd_pid != -1 && (mode == MODE_SFTP || errs == 0)) {
 		if (remin != -1)
 		    (void) close(remin);
 		if (remout != -1)
@@ -1296,11 +1296,14 @@ source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 	if (local_is_dir(src) && iamrecursive) {
 		if (upload_dir(conn, src, abs_dst, pflag,
 		    SFTP_PROGRESS_ONLY, 0, 0, 1) != 0) {
-			fatal("failed to upload directory %s to %s",
+			error("failed to upload directory %s to %s",
 				src, abs_dst);
+			errs = 1;
 		}
-	} else if (do_upload(conn, src, abs_dst, pflag, 0, 0) != 0)
-		fatal("failed to upload file %s to %s", src, abs_dst);
+	} else if (do_upload(conn, src, abs_dst, pflag, 0, 0) != 0) {
+		error("failed to upload file %s to %s", src, abs_dst);
+		errs = 1;
+	}
 
 	free(abs_dst);
 	free(target);
@@ -1538,7 +1541,8 @@ out:
 	free(tmp);
 	globfree(&g);
 	if (err == -1) {
-		fatal("Failed to download file '%s'", src);
+		error("Failed to download '%s'", src);
+		errs = 1;
 	}
 }
 
