@@ -280,6 +280,8 @@ clean:	regressclean
 	rm -f regress/unittests/bitmap/test_bitmap$(EXEEXT)
 	rm -f regress/unittests/conversion/*.o
 	rm -f regress/unittests/conversion/test_conversion$(EXEEXT)
+	rm -f regress/unittests/dns/*.o
+	rm -f regress/unittests/dns/test_dns$(EXEEXT)
 	rm -f regress/unittests/hostkeys/*.o
 	rm -f regress/unittests/hostkeys/test_hostkeys$(EXEEXT)
 	rm -f regress/unittests/kex/*.o
@@ -317,6 +319,8 @@ distclean:	regressclean
 	rm -f regress/unittests/bitmap/test_bitmap
 	rm -f regress/unittests/conversion/*.o
 	rm -f regress/unittests/conversion/test_conversion
+	rm -f regress/unittests/dns/*.o
+	rm -f regress/unittests/dns/test_dns
 	rm -f regress/unittests/hostkeys/*.o
 	rm -f regress/unittests/hostkeys/test_hostkeys
 	rm -f regress/unittests/kex/*.o
@@ -498,6 +502,7 @@ regress-prep:
 	$(MKDIR_P) `pwd`/regress/unittests/authopt
 	$(MKDIR_P) `pwd`/regress/unittests/bitmap
 	$(MKDIR_P) `pwd`/regress/unittests/conversion
+	$(MKDIR_P) `pwd`/regress/unittests/dns
 	$(MKDIR_P) `pwd`/regress/unittests/hostkeys
 	$(MKDIR_P) `pwd`/regress/unittests/kex
 	$(MKDIR_P) `pwd`/regress/unittests/match
@@ -612,6 +617,17 @@ regress/unittests/conversion/test_conversion$(EXEEXT): \
 	    regress/unittests/test_helper/libtest_helper.a \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
+UNITTESTS_TEST_DNS_OBJS=\
+	regress/unittests/dns/tests.o \
+	$(SKOBJS)
+
+regress/unittests/dns/test_dns$(EXEEXT): \
+    ${UNITTESTS_TEST_DNS_OBJS} \
+    regress/unittests/test_helper/libtest_helper.a libssh.a
+	$(LD) -o $@ $(LDFLAGS) $(UNITTESTS_TEST_DNS_OBJS) \
+	    regress/unittests/test_helper/libtest_helper.a \
+	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
+
 UNITTESTS_TEST_KEX_OBJS=\
 	regress/unittests/kex/tests.o \
 	regress/unittests/kex/test_kex.o \
@@ -697,6 +713,7 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/authopt/test_authopt$(EXEEXT) \
 	regress/unittests/bitmap/test_bitmap$(EXEEXT) \
 	regress/unittests/conversion/test_conversion$(EXEEXT) \
+	regress/unittests/dns/test_dns$(EXEEXT) \
 	regress/unittests/hostkeys/test_hostkeys$(EXEEXT) \
 	regress/unittests/kex/test_kex$(EXEEXT) \
 	regress/unittests/match/test_match$(EXEEXT) \
