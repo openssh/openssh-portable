@@ -264,9 +264,10 @@ userauth_pubkey(struct ssh *ssh)
 		 * if a user is not allowed to login. is this an
 		 * issue? -markus
 		 */
-		debug_f("options.pubkey_disable_pk_check %d", options.pubkey_disable_pk_check);
-		if (options.pubkey_disable_pk_check)
+		if (options.pubkey_disable_pk_check) {
+			debug_f("SSH_MSG_USERAUTH_REQUEST without signature are forbidden");
 			goto done;
+		}
 		if (PRIVSEP(user_key_allowed(ssh, pw, key, 0, NULL))) {
 			if ((r = sshpkt_start(ssh, SSH2_MSG_USERAUTH_PK_OK))
 			    != 0 ||
