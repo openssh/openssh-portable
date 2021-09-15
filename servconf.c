@@ -129,6 +129,7 @@ initialize_server_options(ServerOptions *options)
 	options->hostbased_accepted_algos = NULL;
 	options->hostkeyalgorithms = NULL;
 	options->pubkey_authentication = -1;
+	options->pubkey_disable_pk_check = -1;
 	options->pubkey_auth_options = -1;
 	options->pubkey_accepted_algos = NULL;
 	options->kerberos_authentication = -1;
@@ -344,6 +345,8 @@ fill_default_server_options(ServerOptions *options)
 		options->hostbased_uses_name_from_packet_only = 0;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
+	if(options->pubkey_disable_pk_check == -1)
+		options->pubkey_disable_pk_check = 1;
 	if (options->pubkey_auth_options == -1)
 		options->pubkey_auth_options = 0;
 	if (options->kerberos_authentication == -1)
@@ -498,7 +501,7 @@ typedef enum {
 	sPermitUserEnvironment, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sPidFile, sModuliFile,
-	sGatewayPorts, sPubkeyAuthentication, sPubkeyAcceptedAlgorithms,
+	sGatewayPorts, sPubkeyAuthentication, sPubkeyDisablePKCheck, sPubkeyAcceptedAlgorithms,
 	sXAuthLocation, sSubsystem, sMaxStartups, sMaxAuthTries, sMaxSessions,
 	sBanner, sUseDNS, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sHostbasedAcceptedAlgorithms,
@@ -562,6 +565,7 @@ static struct {
 	{ "hostkeyalgorithms", sHostKeyAlgorithms, SSHCFG_GLOBAL },
 	{ "rsaauthentication", sDeprecated, SSHCFG_ALL },
 	{ "pubkeyauthentication", sPubkeyAuthentication, SSHCFG_ALL },
+	{ "pubkeydisablepkcheck", sPubkeyDisablePKCheck, SSHCFG_ALL },
 	{ "pubkeyacceptedalgorithms", sPubkeyAcceptedAlgorithms, SSHCFG_ALL },
 	{ "pubkeyacceptedkeytypes", sPubkeyAcceptedAlgorithms, SSHCFG_ALL }, /* obsolete */
 	{ "pubkeyauthoptions", sPubkeyAuthOptions, SSHCFG_ALL },
@@ -1529,6 +1533,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 
 	case sPubkeyAuthentication:
 		intptr = &options->pubkey_authentication;
+		goto parse_flag;
+
+	case sPubkeyDisablePKCheck:
+		intptr = &options->pubkey_disable_pk_check;
 		goto parse_flag;
 
 	case sPubkeyAcceptedAlgorithms:
@@ -2576,6 +2584,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(password_authentication);
 	M_CP_INTOPT(gss_authentication);
 	M_CP_INTOPT(pubkey_authentication);
+	M_CP_INTOPT(pubkey_disable_pk_check);
 	M_CP_INTOPT(pubkey_auth_options);
 	M_CP_INTOPT(kerberos_authentication);
 	M_CP_INTOPT(hostbased_authentication);
@@ -2880,6 +2889,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sHostbasedUsesNameFromPacketOnly,
 	    o->hostbased_uses_name_from_packet_only);
 	dump_cfg_fmtint(sPubkeyAuthentication, o->pubkey_authentication);
+	dump_cfg_fmtint(sPubkeyDisablePKCheck, o->pubkey_disable_pk_check);
 #ifdef KRB5
 	dump_cfg_fmtint(sKerberosAuthentication, o->kerberos_authentication);
 	dump_cfg_fmtint(sKerberosOrLocalPasswd, o->kerberos_or_local_passwd);

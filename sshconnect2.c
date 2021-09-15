@@ -1849,7 +1849,7 @@ userauth_pubkey(struct ssh *ssh)
 		 * encrypted keys we cannot do this and have to load the
 		 * private key instead
 		 */
-		if (id->key != NULL) {
+		if (id->key != NULL && !options.identities_only) {
 			if (try_identity(ssh, id)) {
 				ident = format_identity(id);
 				debug("Offering public key: %s", ident);
