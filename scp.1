@@ -278,6 +278,13 @@ to print debugging messages about their progress.
 This is helpful in
 debugging connection, authentication, and configuration problems.
 .El
+.Pp
+Usage of SCP protocol can be blocked by creating a world-readable
+.Ar /etc/ssh/disable_scp
+file. If this file exists, when SCP protocol is in use (either remotely or 
+via the
+.Fl O
+option), the program will exit.
 .Sh EXIT STATUS
 .Ex -std scp
 .Sh SEE ALSO

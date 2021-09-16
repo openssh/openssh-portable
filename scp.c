@@ -596,6 +596,14 @@ main(int argc, char **argv)
 	if (iamremote)
 		mode = MODE_SCP;
 
+	if (mode == MODE_SCP) {
+		FILE *f = fopen(_PATH_SCP_KILL_SWITCH, "r");
+		if (f != NULL) {
+			fclose(f);
+			fatal("SCP protocol is forbidden via %s", _PATH_SCP_KILL_SWITCH);
+		}
+	}
+
 	if ((pwd = getpwuid(userid = getuid())) == NULL)
 		fatal("unknown user %u", (u_int) userid);
 
