@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.362 2021/09/15 06:56:01 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.363 2021/09/16 05:36:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3401,7 +3401,7 @@ dump_client_config(Options *o, const char *host)
 	/* oCanonicalizePermittedCNAMEs */
 	printf("canonicalizePermittedcnames");
 	if (o->num_permitted_cnames == 0)
-		printf("none");
+		printf(" none");
 	for (i = 0; i < o->num_permitted_cnames; i++) {
 		printf(" %s:%s", o->permitted_cnames[i].source_list,
 		    o->permitted_cnames[i].target_list);
