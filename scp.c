@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.234 2021/09/11 00:40:24 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.235 2021/09/16 15:11:19 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -467,7 +467,7 @@ main(int argc, char **argv)
 
 	__progname = ssh_get_progname(argv[0]);
 
-	log_init(argv0, log_level, SYSLOG_FACILITY_USER, 1);
+	log_init(argv0, log_level, SYSLOG_FACILITY_USER, 2);
 
 	memset(&args, '\0', sizeof(args));
 	memset(&remote_remote_args, '\0', sizeof(remote_remote_args));
@@ -588,7 +588,7 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	log_init(argv0, log_level, SYSLOG_FACILITY_USER, 1);
+	log_init(argv0, log_level, SYSLOG_FACILITY_USER, 2);
 
 	/* Do this last because we want the user to be able to override it */
 	addargs(&args, "-oForwardAgent=no");
@@ -1540,10 +1540,8 @@ out:
 	free(abs_src);
 	free(tmp);
 	globfree(&g);
-	if (err == -1) {
-		error("Failed to download '%s'", src);
+	if (err == -1)
 		errs = 1;
-	}
 }
 
 
@@ -1942,7 +1940,7 @@ out:
 	free(tmp);
 	globfree(&g);
 	if (err == -1)
-		fatal("Failed to download file '%s'", src);
+		errs = 1;
 }
 
 int
