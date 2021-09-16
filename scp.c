@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.235 2021/09/16 15:11:19 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.236 2021/09/16 15:22:22 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1213,8 +1213,7 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			conn = do_sftp_connect(host, suser, sport,
 			    sftp_direct, &remin, &remout, &do_cmd_pid);
 			if (conn == NULL) {
-				error("Couldn't make sftp connection "
-				    "to server");
+				error("sftp connection failed");
 				++errs;
 				continue;
 			}
@@ -1261,7 +1260,7 @@ prepare_remote_path(struct sftp_conn *conn, const char *path)
 	if (can_expand_path(conn))
 		return do_expand_path(conn, path);
 	/* No protocol extension */
-	error("~user paths are not currently supported");
+	error("~user paths are not supported for this server");
 	return NULL;
 }
 
@@ -1493,9 +1492,9 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	debug3_f("copying remote %s to local %s", abs_src, dst);
 	if ((r = remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
-			error("Too many glob matches for \"%s\".", abs_src);
+			error("%s: too many glob matches", abs_src);
 		else
-			error("File \"%s\" not found.", abs_src);
+			error("%s: %s", abs_src, strerror(ENOENT));
 		err = -1;
 		goto out;
 	}
@@ -1889,7 +1888,7 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 
 	targetisdir = remote_is_dir(to, target);
 	if (!targetisdir && targetshouldbedirectory) {
-		error("Destination path \"%s\" is not a directory", target);
+		error("%s: destination is not a directory", target);
 		err = -1;
 		goto out;
 	}
@@ -1897,9 +1896,9 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 	debug3_f("copying remote %s to remote %s", abs_src, target);
 	if ((r = remote_glob(from, abs_src, GLOB_MARK, NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
-			error("Too many glob matches for \"%s\".", abs_src);
+			error("%s: too many glob matches", abs_src);
 		else
-			error("File \"%s\" not found.", abs_src);
+			error("%s: %s", abs_src, strerror(ENOENT));
 		err = -1;
 		goto out;
 	}
