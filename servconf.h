@@ -127,7 +127,7 @@ typedef struct {
 	char   *hostkeyalgorithms;	/* SSH2 server key types */
 	char   *ca_sign_algorithms;	/* Allowed CA signature algorithms */
 	int     pubkey_authentication;	/* If true, permit ssh2 pubkey authentication. */
-	int		pubkey_disable_pk_check;	/* If true, permit ssh2 pubkey check. */
+	int		pubkey_disable_pk_check;	/* If true, disable ssh2 pubkey check. */
 	char   *pubkey_accepted_algos;	/* Signature algos allowed for pubkey */
 	int	pubkey_auth_options;	/* -1 or mask of PUBKEYAUTH_* flags */
 	int     kerberos_authentication;	/* If true, permit Kerberos
