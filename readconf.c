@@ -3293,7 +3293,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oGssDelegateCreds, o->gss_deleg_creds);
 #endif /* GSSAPI */
 	dump_cfg_fmtint(oHashKnownHosts, o->hash_known_hosts);
-	dump_cfg_fmtint(oHostbasedAuthentication, o->pubkey_disable_pk_check);
+	dump_cfg_fmtint(oHostbasedAuthentication, o->hostbased_authentication);
 	dump_cfg_fmtint(oIdentitiesOnly, o->identities_only);
 	dump_cfg_fmtint(oKbdInteractiveAuthentication, o->kbd_interactive_authentication);
 	dump_cfg_fmtint(oNoHostAuthenticationForLocalhost, o->no_host_authentication_for_localhost);
