@@ -346,7 +346,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
 	if(options->pubkey_disable_pk_check == -1)
-		options->pubkey_disable_pk_check = 1;
+		options->pubkey_disable_pk_check = 0;
 	if (options->pubkey_auth_options == -1)
 		options->pubkey_auth_options = 0;
 	if (options->kerberos_authentication == -1)
