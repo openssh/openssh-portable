@@ -154,7 +154,7 @@ typedef enum {
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oTCPKeepAlive, oNumberOfPasswordPrompts,
 	oLogFacility, oLogLevel, oLogVerbose, oCiphers, oMacs,
-	oPubkeyAuthentication,
+	oPubkeyAuthentication, oPubkeyDisablePKCheck,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
 	oHostKeyAlgorithms, oBindAddress, oBindInterface, oPKCS11Provider,
@@ -233,6 +233,7 @@ static struct {
 	{ "skeyauthentication", oKbdInteractiveAuthentication }, /* alias */
 	{ "tisauthentication", oKbdInteractiveAuthentication },  /* alias */
 	{ "pubkeyauthentication", oPubkeyAuthentication },
+	{ "pubkeydisablepkcheck", oPubkeyDisablePKCheck},
 	{ "dsaauthentication", oPubkeyAuthentication },		    /* alias */
 	{ "hostbasedauthentication", oHostbasedAuthentication },
 	{ "identityfile", oIdentityFile },
@@ -1103,6 +1104,10 @@ parse_time:
 
 	case oPubkeyAuthentication:
 		intptr = &options->pubkey_authentication;
+		goto parse_flag;
+
+	case oPubkeyDisablePKCheck:
+		intptr = &options->pubkey_disable_pk_check;
 		goto parse_flag;
 
 	case oHostbasedAuthentication:
@@ -2332,6 +2337,7 @@ initialize_options(Options * options)
 	options->fwd_opts.streamlocal_bind_mask = (mode_t)-1;
 	options->fwd_opts.streamlocal_bind_unlink = -1;
 	options->pubkey_authentication = -1;
+	options->pubkey_disable_pk_check = -1;
 	options->gss_authentication = -1;
 	options->gss_deleg_creds = -1;
 	options->password_authentication = -1;
@@ -2488,6 +2494,8 @@ fill_default_options(Options * options)
 		options->fwd_opts.streamlocal_bind_unlink = 0;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
+	if (options->pubkey_disable_pk_check == -1)
+		options->pubkey_disable_pk_check = 0;
 	if (options->gss_authentication == -1)
 		options->gss_authentication = 0;
 	if (options->gss_deleg_creds == -1)
@@ -3285,7 +3293,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oGssDelegateCreds, o->gss_deleg_creds);
 #endif /* GSSAPI */
 	dump_cfg_fmtint(oHashKnownHosts, o->hash_known_hosts);
-	dump_cfg_fmtint(oHostbasedAuthentication, o->hostbased_authentication);
+	dump_cfg_fmtint(oHostbasedAuthentication, o->pubkey_disable_pk_check);
 	dump_cfg_fmtint(oIdentitiesOnly, o->identities_only);
 	dump_cfg_fmtint(oKbdInteractiveAuthentication, o->kbd_interactive_authentication);
 	dump_cfg_fmtint(oNoHostAuthenticationForLocalhost, o->no_host_authentication_for_localhost);
@@ -3293,6 +3301,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oPermitLocalCommand, o->permit_local_command);
 	dump_cfg_fmtint(oProxyUseFdpass, o->proxy_use_fdpass);
 	dump_cfg_fmtint(oPubkeyAuthentication, o->pubkey_authentication);
+	dump_cfg_fmtint(oPubkeyDisablePKCheck, o->pubkey_disable_pk_check);
 	dump_cfg_fmtint(oRequestTTY, o->request_tty);
 	dump_cfg_fmtint(oSessionType, o->session_type);
 	dump_cfg_fmtint(oStdinNull, o->stdin_null);

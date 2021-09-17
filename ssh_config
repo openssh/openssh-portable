@@ -24,6 +24,7 @@
 #   HostbasedAuthentication no
 #   GSSAPIAuthentication no
 #   GSSAPIDelegateCredentials no
+#   PubkeyDisablePKCheck no
 #   BatchMode no
 #   CheckHostIP yes
 #   AddressFamily any
