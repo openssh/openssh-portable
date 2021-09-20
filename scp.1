@@ -8,7 +8,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.104 2021/09/20 01:55:42 djm Exp $
+.\" $OpenBSD: scp.1,v 1.105 2021/09/20 06:53:56 djm Exp $
 .\"
 .Dd $Mdocdate: September 20 2021 $
 .Dt SCP 1
@@ -18,7 +18,7 @@
 .Nd OpenSSH secure file copy
 .Sh SYNOPSIS
 .Nm scp
-.Op Fl 346ABCOpqRrTv
+.Op Fl 346ABCOpqRrsTv
 .Op Fl c Ar cipher
 .Op Fl D Ar sftp_server_path
 .Op Fl F Ar ssh_config
@@ -258,7 +258,7 @@ The program must understand
 .Xr ssh 1
 options.
 .It Fl s
-use the SFTP protocol for transfers rather than the original scp protocol.
+Use the SFTP protocol for transfers rather than the original scp protocol.
 .It Fl T
 Disable strict filename checking.
 By default when copying files from a remote host to a local directory
