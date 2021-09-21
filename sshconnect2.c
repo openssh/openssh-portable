@@ -1620,11 +1620,15 @@ load_identity_file(Identity *id)
 				sshkey_free(private);
 				return NULL;
 			}
-			old_type = private->type;
-			private->type = id->key->type;
+			if(sshkey_type_is_cert(id->key->type) > 0){
+				old_type = private->type;
+				private->type = id->key->type;
+				maybe_add_key_to_agent(id->filename, private, comment,
+					"");
+				private->type = sshkey_type_plain(old_type);
+			}
 			maybe_add_key_to_agent(id->filename, private, comment,
-			    passphrase);
-			private->type = old_type;
+				passphrase);
 			}
 		if (i > 0)
 			freezero(passphrase, strlen(passphrase));
