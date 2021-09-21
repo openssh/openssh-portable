@@ -8,6 +8,26 @@
       {
         "file": "\\contrib\\win32\\openssh\\OpenSSHTestHelper.psm1",
         "_justification": "password for testing purpose"
+      },
+      {
+        "file": "\\regress\\pesterTests\\PlatformAbstractLayer.psm1",
+        "_justification": "password for testing purpose"
+      },
+      {
+        "file": "auth.c",
+        "_justification": "upstream code uses fake password"
+      },
+      {
+        "file": "\\regress\\pesterTests\\data\\sshtest_hostkey_dsa",
+        "_justification": "ssh key for testing purpose"
+      },
+      {
+        "file": "\\regress\\pesterTests\\data\\sshtest_hostkey_ecdsa",
+        "_justification": "ssh key for testing purpose"
+      },
+      {
+        "file": "\\regress\\pesterTests\\data\\sshtest_hostkey_rsa",
+        "_justification": "ssh key for testing purpose"
       }
      ]  
 }
