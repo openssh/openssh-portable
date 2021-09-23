@@ -11,7 +11,7 @@ TARGETS=$@
 
 PACKAGES=""
 INSTALL_FIDO_PPA="no"
-DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive
 
 #echo "Setting up for '$TARGETS'"
 
