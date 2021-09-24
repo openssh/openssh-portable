@@ -1610,17 +1610,18 @@ load_identity_file(Identity *id)
 			/*
 			 * Try to add the certificate to the private key so the agent will keep it
 			 */
-			if ((r = sshkey_to_certified(private)) != 0) {
-				error_fr(r, "sshkey_to_certified");
-				sshkey_free(private);
-				return NULL;
-			}
-			if ((r = sshkey_cert_copy(id->key, private)) != 0) {
-				error_fr(r, "sshkey_cert_copy");
-				sshkey_free(private);
-				return NULL;
-			}
 			if(sshkey_type_is_cert(id->key->type) > 0){
+				if ((r = sshkey_to_certified(private)) != 0) {
+					error_fr(r, "sshkey_to_certified");
+					sshkey_free(private);
+					goto out;
+				}
+				if ((r = sshkey_cert_copy(id->key, private)) != 0) {
+					error_fr(r, "sshkey_cert_copy");
+					sshkey_free(private);
+					goto out;
+				}
+
 				old_type = private->type;
 				private->type = id->key->type;
 				maybe_add_key_to_agent(id->filename, private, comment,
@@ -1637,6 +1638,8 @@ load_identity_file(Identity *id)
 			break;
 	}
 	return private;
+out:
+	return NULL;
 }
 
 static int
