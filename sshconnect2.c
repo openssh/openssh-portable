@@ -1240,6 +1240,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 
 	/* The agent supports this key. */
 	if (id->key != NULL && id->agent_fd != -1) {
+		id->key->type = sshkey_type_plain(id->key->type);
 		return ssh_agent_sign(id->agent_fd, id->key, sigp, lenp,
 		    data, datalen, alg, compat);
 	}
