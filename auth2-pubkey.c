@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.109 2021/07/23 03:37:52 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.110 2021/09/29 01:33:32 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -376,7 +376,7 @@ process_principals(struct ssh *ssh, FILE *f, const char *file,
 {
 	char loc[256], *line = NULL, *cp, *ep;
 	size_t linesize = 0;
-	u_long linenum = 0;
+	u_long linenum = 0, nonblank = 0;
 	u_int found_principal = 0;
 
 	if (authoptsp != NULL)
@@ -397,10 +397,12 @@ process_principals(struct ssh *ssh, FILE *f, const char *file,
 		if (!*cp || *cp == '\n')
 			continue;
 
+		nonblank++;
 		snprintf(loc, sizeof(loc), "%.200s:%lu", file, linenum);
 		if (check_principals_line(ssh, cp, cert, loc, authoptsp) == 0)
 			found_principal = 1;
 	}
+	debug2_f("%s: processed %lu/%lu lines", file, nonblank, linenum);
 	free(line);
 	return found_principal;
 }
@@ -719,7 +721,7 @@ check_authkeys_file(struct ssh *ssh, struct passwd *pw, FILE *f,
 	char *cp, *line = NULL, loc[256];
 	size_t linesize = 0;
 	int found_key = 0;
-	u_long linenum = 0;
+	u_long linenum = 0, nonblank = 0;
 
 	if (authoptsp != NULL)
 		*authoptsp = NULL;
@@ -735,11 +737,14 @@ check_authkeys_file(struct ssh *ssh, struct passwd *pw, FILE *f,
 		skip_space(&cp);
 		if (!*cp || *cp == '\n' || *cp == '#')
 			continue;
+
+		nonblank++;
 		snprintf(loc, sizeof(loc), "%.200s:%lu", file, linenum);
 		if (check_authkey_line(ssh, pw, key, cp, loc, authoptsp) == 0)
 			found_key = 1;
 	}
 	free(line);
+	debug2_f("%s: processed %lu/%lu lines", file, nonblank, linenum);
 	return found_key;
 }
 
