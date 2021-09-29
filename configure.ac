@@ -19,7 +19,7 @@ AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
 AC_CONFIG_HEADERS([config.h])
-AC_PROG_CC([cc gcc])
+AC_PROG_CC([cc gcc clang])
 
 # XXX relax this after reimplementing logit() etc.
 AC_MSG_CHECKING([if $CC supports C99-style variadic macros])
