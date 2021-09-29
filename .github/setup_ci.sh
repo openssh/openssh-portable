@@ -1,6 +1,6 @@
 #!/bin/sh
 
-case $(./config.guess) in
+case "`./config.guess`" in
 *-darwin*)
 	brew install automake
 	exit 0

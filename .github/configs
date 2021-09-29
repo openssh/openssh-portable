@@ -156,7 +156,7 @@ esac
 
 # Unless specified otherwise, build without OpenSSL on Mac OS since
 # modern versions don't ship with libcrypto.
-case $(./config.guess) in
+case "`./config.guess`" in
 *-darwin*)
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
