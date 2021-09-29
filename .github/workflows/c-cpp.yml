@@ -24,6 +24,16 @@ jobs:
           - { os: ubuntu-20.04, configs: valgrind-4 }
           - { os: ubuntu-20.04, configs: valgrind-unit }
           - { os: ubuntu-20.04, configs: c89 }
+          - { os: ubuntu-20.04, configs: clang-6.0 }
+          - { os: ubuntu-20.04, configs: clang-8 }
+          - { os: ubuntu-20.04, configs: clang-9 }
+          - { os: ubuntu-20.04, configs: clang-10 }
+          - { os: ubuntu-20.04, configs: clang-11 }
+          - { os: ubuntu-20.04, configs: clang-12 }
+          - { os: ubuntu-20.04, configs: gcc-7 }
+          - { os: ubuntu-20.04, configs: gcc-8 }
+          - { os: ubuntu-20.04, configs: gcc-10 }
+          - { os: ubuntu-20.04, configs: gcc-11 }
           - { os: ubuntu-20.04, configs: pam }
           - { os: ubuntu-20.04, configs: kitchensink }
           - { os: ubuntu-20.04, configs: hardenedmalloc }

@@ -28,6 +28,9 @@ case "$config" in
 	CONFIGFLAGS="--without-openssl --without-zlib"
 	TEST_TARGET=t-exec
 	;;
+    clang*|gcc*)
+	CC="$config"
+	;;
     kitchensink)
 	CONFIGFLAGS="--with-kerberos5 --with-libedit --with-pam"
 	CONFIGFLAGS="${CONFIGFLAGS} --with-security-key-builtin --with-selinux"

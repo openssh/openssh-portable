@@ -28,6 +28,9 @@ for TARGET in $TARGETS; do
     default|without-openssl|without-zlib|c89)
         # nothing to do
         ;;
+    clang-*|gcc-*)
+        PACKAGES="$PACKAGES $TARGET"
+        ;;
     kerberos5)
         PACKAGES="$PACKAGES heimdal-dev"
         #PACKAGES="$PACKAGES libkrb5-dev"
