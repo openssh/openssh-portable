@@ -25,7 +25,8 @@ case "$config" in
     c89)
 	CC="gcc"
 	CFLAGS="-Wall -std=c89 -pedantic -Werror=vla"
-	CONFIGFLAGS="--without-openssl --without-zlib"
+	CONFIGFLAGS="--without-zlib"
+	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
 	;;
     clang*|gcc*)
