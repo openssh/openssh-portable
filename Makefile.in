@@ -749,7 +749,7 @@ interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 		TEST_SSH_IPV6="@TEST_SSH_IPV6@" \
 		TEST_SSH_UTF8="@TEST_SSH_UTF8@" \
 		TEST_SSH_ECC="@TEST_SSH_ECC@" \
-		TEST_SHELL="${TEST_SHELL}" \
+		TEST_SHELL="$(TEST_SHELL)" \
 		EXEEXT="$(EXEEXT)" \
 		$@ && echo all $@ passed
 
