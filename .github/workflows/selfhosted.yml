@@ -74,6 +74,8 @@ jobs:
       run: vmstartup
     - name: configure
       run: vmrun ./.github/configure.sh ${{ matrix.configs }}
+    - name: make clean
+      run: vmrun make clean
     - name: make
       run: vmrun make
     - name: make tests

@@ -73,6 +73,8 @@ jobs:
       run: autoreconf
     - name: configure
       run: ./.github/configure.sh ${{ matrix.configs }}
+    - name: make clean
+      run: make clean
     - name: make
       run: make -j2
     - name: make tests
