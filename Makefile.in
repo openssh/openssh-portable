@@ -714,8 +714,8 @@ tests:	file-tests t-exec interop-tests unit
 unit: regress-unit-binaries
 	cd $(srcdir)/regress || exit $$?; \
 	$(MAKE) \
+		.CURDIR="$(abs_top_srcdir)/regress" \
 		.OBJDIR="$(BUILDDIR)/regress" \
-		.CURDIR="`pwd`" \
 		OBJ="$(BUILDDIR)/regress" \
 		$@ && echo $@ tests passed
 
@@ -723,10 +723,10 @@ interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 	cd $(srcdir)/regress || exit $$?; \
 	EGREP='@EGREP@' \
 	$(MAKE) \
+		.CURDIR="$(abs_top_srcdir)/regress" \
 		.OBJDIR="$(BUILDDIR)/regress" \
-		.CURDIR="`pwd`" \
 		BUILDDIR="$(BUILDDIR)" \
-		OBJ="$(BUILDDIR)/regress/" \
+		OBJ="$(BUILDDIR)/regress" \
 		PATH="$(BUILDDIR):$${PATH}" \
 		TEST_ENV=MALLOC_OPTIONS="@TEST_MALLOC_OPTIONS@" \
 		TEST_MALLOC_OPTIONS="@TEST_MALLOC_OPTIONS@" \
