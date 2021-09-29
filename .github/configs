@@ -159,6 +159,7 @@ esac
 case $(./config.guess) in
 *-darwin*)
 	LIBCRYPTOFLAGS="--without-openssl"
+	TEST_TARGET=t-exec
 	;;
 esac
 
