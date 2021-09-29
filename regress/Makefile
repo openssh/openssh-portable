@@ -188,13 +188,13 @@ t8: $(OBJ)/t8.out
 	${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t8.out > /dev/null
 
 $(OBJ)/t9.out:
-	test "${TEST_SSH_ECC}" != yes || \
+	! ${TEST_SSH_SSH} -Q key-plain | grep ecdsa >/dev/null || \
 	${TEST_SSH_SSHKEYGEN} -q -t ecdsa -N '' -f $@
 
 t9: $(OBJ)/t9.out
-	test "${TEST_SSH_ECC}" != yes || \
+	! ${TEST_SSH_SSH} -Q key-plain | grep ecdsa >/dev/null || \
 	${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t9.out > /dev/null
-	test "${TEST_SSH_ECC}" != yes || \
+	! ${TEST_SSH_SSH} -Q key-plain | grep ecdsa >/dev/null || \
 	${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t9.out > /dev/null
 
 
