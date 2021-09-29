@@ -154,6 +154,14 @@ case "${TARGET_HOST}" in
 	;;
 esac
 
+# Unless specified otherwise, build without OpenSSL on Mac OS since
+# modern versions don't ship with libcrypto.
+case $(./config.guess) in
+*-darwin*)
+	LIBCRYPTOFLAGS="--without-openssl"
+	;;
+esac
+
 # If we have a local openssl/libressl, use that.
 if [ -z "${LIBCRYPTOFLAGS}" ]; then
 	# last-match
