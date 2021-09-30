@@ -1,4 +1,4 @@
-#	$OpenBSD: principals-command.sh,v 1.11 2019/12/16 02:39:05 djm Exp $
+#	$OpenBSD: principals-command.sh,v 1.12 2021/09/30 04:22:50 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="authorized principals command"
@@ -7,9 +7,7 @@ rm -f $OBJ/user_ca_key* $OBJ/cert_user_key*
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
 if [ -z "$SUDO" -a ! -w /var/run ]; then
-	echo "skipped (SUDO not set)"
-	echo "need SUDO to create file in /var/run, test won't work without"
-	exit 0
+	skip "need SUDO to create file in /var/run, test won't work without"
 fi
 
 case "$SSH_KEYTYPES" in
