@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.26 2021/02/25 03:27:34 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.27 2021/09/30 05:20:08 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -60,14 +60,12 @@ done
 # Test explicitly-specified principals
 for ktype in $EXTRA_TYPES $PLAIN_TYPES ; do
 	t=$(kname $ktype)
-	for privsep in yes ; do
-		_prefix="${ktype} privsep $privsep"
+		_prefix="${ktype}"
 
 		# Setup for AuthorizedPrincipalsFile
 		rm -f $OBJ/authorized_keys_$USER
 		(
 			cat $OBJ/sshd_proxy_bak
-			echo "UsePrivilegeSeparation $privsep"
 			echo "AuthorizedPrincipalsFile " \
 			    "$OBJ/authorized_principals_%u"
 			echo "TrustedUserCAKeys $OBJ/user_ca_key.pub"
@@ -148,7 +146,6 @@ for ktype in $EXTRA_TYPES $PLAIN_TYPES ; do
 		rm -f $OBJ/authorized_principals_$USER
 		(
 			cat $OBJ/sshd_proxy_bak
-			echo "UsePrivilegeSeparation $privsep"
 			echo "PubkeyAcceptedAlgorithms ${t}"
 		) > $OBJ/sshd_proxy
 		(
@@ -179,7 +176,6 @@ for ktype in $EXTRA_TYPES $PLAIN_TYPES ; do
 		if [ $? -ne 0 ]; then
 			fail "ssh cert connect failed"
 		fi
-	done
 done
 
 basic_tests() {
@@ -197,13 +193,11 @@ basic_tests() {
 
 	for ktype in $PLAIN_TYPES ; do
 		t=$(kname $ktype)
-		for privsep in yes ; do
-			_prefix="${ktype} privsep $privsep $auth"
+			_prefix="${ktype} $auth"
 			# Simple connect
 			verbose "$tid: ${_prefix} connect"
 			(
 				cat $OBJ/sshd_proxy_bak
-				echo "UsePrivilegeSeparation $privsep"
 				echo "PubkeyAcceptedAlgorithms ${t}"
 				echo "$extra_sshd"
 			) > $OBJ/sshd_proxy
@@ -222,7 +216,6 @@ basic_tests() {
 			verbose "$tid: ${_prefix} revoked key"
 			(
 				cat $OBJ/sshd_proxy_bak
-				echo "UsePrivilegeSeparation $privsep"
 				echo "RevokedKeys $OBJ/cert_user_key_revoked"
 				echo "PubkeyAcceptedAlgorithms ${t}"
 				echo "$extra_sshd"
@@ -265,7 +258,6 @@ basic_tests() {
 		if [ $? -eq 0 ]; then
 			fail "ssh cert connect succeeded unexpecedly"
 		fi
-	done
 
 	verbose "$tid: $auth CA does not authenticate"
 	(

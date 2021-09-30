@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.25 2021/06/08 22:30:27 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.26 2021/09/30 05:20:08 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -131,14 +131,12 @@ attempt_connect() {
 }
 
 # Basic connect and revocation tests.
-for privsep in yes ; do
 	for ktype in $PLAIN_TYPES ; do
-		verbose "$tid: host ${ktype} cert connect privsep $privsep"
+		verbose "$tid: host ${ktype} cert connect"
 		(
 			cat $OBJ/sshd_proxy_bak
 			echo HostKey $OBJ/cert_host_key_${ktype}
 			echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
-			echo UsePrivilegeSeparation $privsep
 		) > $OBJ/sshd_proxy
 
 		#               test name                         expect success
@@ -160,7 +158,6 @@ for privsep in yes ; do
 		attempt_connect "$ktype CA plaintext revocation"	"no" \
 		    -oRevokedHostKeys=$OBJ/host_revoked_ca
 	done
-done
 
 # Revoked certificates with key present
 kh_ca host_ca_key.pub host_ca_key2.pub > $OBJ/known_hosts-cert.orig
@@ -169,14 +166,12 @@ for ktype in $PLAIN_TYPES ; do
 	kh_revoke cert_host_key_${ktype}.pub >> $OBJ/known_hosts-cert.orig
 done
 cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
-for privsep in yes ; do
 	for ktype in $PLAIN_TYPES ; do
-		verbose "$tid: host ${ktype} revoked cert privsep $privsep"
+		verbose "$tid: host ${ktype} revoked cert"
 		(
 			cat $OBJ/sshd_proxy_bak
 			echo HostKey $OBJ/cert_host_key_${ktype}
 			echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
-			echo UsePrivilegeSeparation $privsep
 		) > $OBJ/sshd_proxy
 
 		cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
@@ -187,7 +182,6 @@ for privsep in yes ; do
 			fail "ssh cert connect succeeded unexpectedly"
 		fi
 	done
-done
 
 # Revoked CA
 kh_ca host_ca_key.pub host_ca_key2.pub > $OBJ/known_hosts-cert.orig
