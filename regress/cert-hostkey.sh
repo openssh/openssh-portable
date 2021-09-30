@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.26 2021/09/30 05:20:08 dtucker Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.27 2021/09/30 05:26:26 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -131,33 +131,33 @@ attempt_connect() {
 }
 
 # Basic connect and revocation tests.
-	for ktype in $PLAIN_TYPES ; do
-		verbose "$tid: host ${ktype} cert connect"
-		(
-			cat $OBJ/sshd_proxy_bak
-			echo HostKey $OBJ/cert_host_key_${ktype}
-			echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
-		) > $OBJ/sshd_proxy
+for ktype in $PLAIN_TYPES ; do
+	verbose "$tid: host ${ktype} cert connect"
+	(
+		cat $OBJ/sshd_proxy_bak
+		echo HostKey $OBJ/cert_host_key_${ktype}
+		echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
+	) > $OBJ/sshd_proxy
 
-		#               test name                         expect success
-		attempt_connect "$ktype basic connect"			"yes"
-		attempt_connect "$ktype empty KRL"			"yes" \
-		    -oRevokedHostKeys=$OBJ/host_krl_empty
-		attempt_connect "$ktype KRL w/ plain key revoked"	"no" \
-		    -oRevokedHostKeys=$OBJ/host_krl_plain
-		attempt_connect "$ktype KRL w/ cert revoked"		"no" \
-		    -oRevokedHostKeys=$OBJ/host_krl_cert
-		attempt_connect "$ktype KRL w/ CA revoked"		"no" \
-		    -oRevokedHostKeys=$OBJ/host_krl_ca
-		attempt_connect "$ktype empty plaintext revocation"	"yes" \
-		    -oRevokedHostKeys=$OBJ/host_revoked_empty
-		attempt_connect "$ktype plain key plaintext revocation"	"no" \
-		    -oRevokedHostKeys=$OBJ/host_revoked_plain
-		attempt_connect "$ktype cert plaintext revocation"	"no" \
-		    -oRevokedHostKeys=$OBJ/host_revoked_cert
-		attempt_connect "$ktype CA plaintext revocation"	"no" \
-		    -oRevokedHostKeys=$OBJ/host_revoked_ca
-	done
+	#               test name                         expect success
+	attempt_connect "$ktype basic connect"			"yes"
+	attempt_connect "$ktype empty KRL"			"yes" \
+	    -oRevokedHostKeys=$OBJ/host_krl_empty
+	attempt_connect "$ktype KRL w/ plain key revoked"	"no" \
+	    -oRevokedHostKeys=$OBJ/host_krl_plain
+	attempt_connect "$ktype KRL w/ cert revoked"		"no" \
+	    -oRevokedHostKeys=$OBJ/host_krl_cert
+	attempt_connect "$ktype KRL w/ CA revoked"		"no" \
+	    -oRevokedHostKeys=$OBJ/host_krl_ca
+	attempt_connect "$ktype empty plaintext revocation"	"yes" \
+	    -oRevokedHostKeys=$OBJ/host_revoked_empty
+	attempt_connect "$ktype plain key plaintext revocation"	"no" \
+	    -oRevokedHostKeys=$OBJ/host_revoked_plain
+	attempt_connect "$ktype cert plaintext revocation"	"no" \
+	    -oRevokedHostKeys=$OBJ/host_revoked_cert
+	attempt_connect "$ktype CA plaintext revocation"	"no" \
+	    -oRevokedHostKeys=$OBJ/host_revoked_ca
+done
 
 # Revoked certificates with key present
 kh_ca host_ca_key.pub host_ca_key2.pub > $OBJ/known_hosts-cert.orig
@@ -166,22 +166,22 @@ for ktype in $PLAIN_TYPES ; do
 	kh_revoke cert_host_key_${ktype}.pub >> $OBJ/known_hosts-cert.orig
 done
 cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
-	for ktype in $PLAIN_TYPES ; do
-		verbose "$tid: host ${ktype} revoked cert"
-		(
-			cat $OBJ/sshd_proxy_bak
-			echo HostKey $OBJ/cert_host_key_${ktype}
-			echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
-		) > $OBJ/sshd_proxy
+for ktype in $PLAIN_TYPES ; do
+	verbose "$tid: host ${ktype} revoked cert"
+	(
+		cat $OBJ/sshd_proxy_bak
+		echo HostKey $OBJ/cert_host_key_${ktype}
+		echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
+	) > $OBJ/sshd_proxy
 
-		cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
-		${SSH} -oUserKnownHostsFile=$OBJ/known_hosts-cert \
-		    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
-			-F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
-		if [ $? -eq 0 ]; then
-			fail "ssh cert connect succeeded unexpectedly"
-		fi
-	done
+	cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
+	${SSH} -oUserKnownHostsFile=$OBJ/known_hosts-cert \
+	    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
+		-F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		fail "ssh cert connect succeeded unexpectedly"
+	fi
+done
 
 # Revoked CA
 kh_ca host_ca_key.pub host_ca_key2.pub > $OBJ/known_hosts-cert.orig
