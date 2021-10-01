@@ -3149,10 +3149,6 @@ enable_pkcs11=yes
 enable_sk=yes
 if test "x$openssl" != "xyes" ; then
 	enable_pkcs11="disabled; missing libcrypto"
-	enable_sk="disabled; missing libcrypto"
-fi
-if test "x$openssl_ecc" != "xyes" ; then
-	enable_sk="disabled; OpenSSL has no ECC support"
 fi
 if test "x$ac_cv_func_dlopen" != "xyes" ; then
 	enable_pkcs11="disabled; missing dlopen(3)"
