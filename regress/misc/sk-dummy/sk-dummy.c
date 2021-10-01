@@ -28,6 +28,11 @@
 #include "crypto_api.h"
 #include "sk-api.h"
 
+#if defined(WITH_OPENSSL) && !defined(WITH_OPENSSL)
+# undef WITH_OPENSSL
+#endif
+
+#ifdef WITH_OPENSSL
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
@@ -35,8 +40,6 @@
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/pem.h>
-
-/* #define SK_DEBUG 1 */
 
 /* Compatibility with OpenSSH 1.0.x */
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
@@ -46,6 +49,9 @@
 		(*ps) = sig->s; \
 	} while (0)
 #endif
+#endif /* WITH_OPENSSL */
+
+/* #define SK_DEBUG 1 */
 
 #if SSH_SK_VERSION_MAJOR != 0x00070000
 # error SK API has changed, sk-dummy.c needs an update
