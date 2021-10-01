@@ -29,10 +29,10 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef WITH_OPENSSL
+#if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 #include <openssl/objects.h>
 #include <openssl/ec.h>
-#endif /* WITH_OPENSSL */
+#endif /* WITH_OPENSSL && OPENSSL_HAS_ECC */
 
 #include "log.h"
 #include "misc.h"
@@ -44,6 +44,15 @@
 #include "ssh-sk.h"
 #include "sk-api.h"
 #include "crypto_api.h"
+
+/*
+ * Almost every use of OpenSSL in this file is for ECDSA-NISTP256.
+ * This is strictly a larger hammer than necessary, but it reduces changes
+ * with upstream.
+ */
+#ifndef OPENSSL_HAS_ECC
+# undef WITH_OPENSSL
+#endif
 
 struct sshsk_provider {
 	char *path;
