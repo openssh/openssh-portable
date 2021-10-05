@@ -7,7 +7,7 @@ are under a BSD licence, or a licence more free than that.
 OpenSSH contains no GPL code.
 
 1)
-     * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+     * Copyright (c) 2021 guanlong huang <gl041188@gmail.com>, Espoo, Finland
      *                    All rights reserved
      *
      * As far as I am concerned, the code I have written for this software
