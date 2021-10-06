@@ -335,6 +335,9 @@ distclean:	regressclean
 	rm -f regress/unittests/sshsig/test_sshsig
 	rm -f regress/unittests/utf8/*.o
 	rm -f regress/unittests/utf8/test_utf8
+	rm -f regress/misc/sk-dummy/*.o
+	rm -f regress/misc/sk-dummy/*.lo
+	rm -f regress/misc/sk-dummy/sk-dummy.so
 	(cd openbsd-compat && $(MAKE) distclean)
 	if test -d pkg ; then \
 		rm -fr pkg ; \
