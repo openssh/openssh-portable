@@ -28,7 +28,7 @@
 #include "crypto_api.h"
 #include "sk-api.h"
 
-#if defined(WITH_OPENSSL) && !defined(WITH_OPENSSL)
+#if defined(WITH_OPENSSL) && !defined(OPENSSL_HAS_ECC)
 # undef WITH_OPENSSL
 #endif
 
