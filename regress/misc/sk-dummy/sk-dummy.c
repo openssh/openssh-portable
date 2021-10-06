@@ -36,6 +36,8 @@
 #endif
 
 #ifdef WITH_OPENSSL
+/* We don't use sha2 from OpenSSL and they can conflict with system sha2.h */
+#define OPENSSL_NO_SHA
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
