@@ -24,6 +24,9 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdarg.h>
+#ifdef HAVE_SHA2_H
+#include <sha2.h>
+#endif
 
 #include "crypto_api.h"
 #include "sk-api.h"
@@ -319,7 +322,7 @@ sig_ecdsa(const uint8_t *message, size_t message_len,
 	BIO *bio = NULL;
 	EVP_PKEY *pk = NULL;
 	EC_KEY *ec = NULL;
-	SHA256_CTX ctx;
+	SHA2_CTX ctx;
 	uint8_t	apphash[SHA256_DIGEST_LENGTH];
 	uint8_t	sighash[SHA256_DIGEST_LENGTH];
 	uint8_t countbuf[4];
@@ -349,9 +352,9 @@ sig_ecdsa(const uint8_t *message, size_t message_len,
 	}
 	/* Prepare data to be signed */
 	dump("message", message, message_len);
-	SHA256_Init(&ctx);
-	SHA256_Update(&ctx, application, strlen(application));
-	SHA256_Final(apphash, &ctx);
+	SHA256Init(&ctx);
+	SHA256Update(&ctx, application, strlen(application));
+	SHA256Final(apphash, &ctx);
 	dump("apphash", apphash, sizeof(apphash));
 	countbuf[0] = (counter >> 24) & 0xff;
 	countbuf[1] = (counter >> 16) & 0xff;
@@ -359,12 +362,12 @@ sig_ecdsa(const uint8_t *message, size_t message_len,
 	countbuf[3] = counter & 0xff;
 	dump("countbuf", countbuf, sizeof(countbuf));
 	dump("flags", &flags, sizeof(flags));
-	SHA256_Init(&ctx);
-	SHA256_Update(&ctx, apphash, sizeof(apphash));
-	SHA256_Update(&ctx, &flags, sizeof(flags));
-	SHA256_Update(&ctx, countbuf, sizeof(countbuf));
-	SHA256_Update(&ctx, message, message_len);
-	SHA256_Final(sighash, &ctx);
+	SHA256Init(&ctx);
+	SHA256Update(&ctx, apphash, sizeof(apphash));
+	SHA256Update(&ctx, &flags, sizeof(flags));
+	SHA256Update(&ctx, countbuf, sizeof(countbuf));
+	SHA256Update(&ctx, message, message_len);
+	SHA256Final(sighash, &ctx);
 	dump("sighash", sighash, sizeof(sighash));
 	/* create and encode signature */
 	if ((sig = ECDSA_do_sign(sighash, sizeof(sighash), ec)) == NULL) {
@@ -410,7 +413,7 @@ sig_ed25519(const uint8_t *message, size_t message_len,
 {
 	size_t o;
 	int ret = -1;
-	SHA256_CTX ctx;
+	SHA2_CTX ctx;
 	uint8_t	apphash[SHA256_DIGEST_LENGTH];
 	uint8_t signbuf[sizeof(apphash) + sizeof(flags) +
 	    sizeof(counter) + SHA256_DIGEST_LENGTH];
@@ -428,9 +431,9 @@ sig_ed25519(const uint8_t *message, size_t message_len,
 	}
 	/* Prepare data to be signed */
 	dump("message", message, message_len);
-	SHA256_Init(&ctx);
-	SHA256_Update(&ctx, application, strlen(application));
-	SHA256_Final(apphash, &ctx);
+	SHA256Init(&ctx);
+	SHA256Update(&ctx, application, strlen(application));
+	SHA256Final(apphash, &ctx);
 	dump("apphash", apphash, sizeof(apphash));
 
 	memcpy(signbuf, apphash, sizeof(apphash));
@@ -488,7 +491,7 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 {
 	struct sk_sign_response *response = NULL;
 	int ret = SSH_SK_ERR_GENERAL;
-	SHA256_CTX ctx;
+	SHA2_CTX ctx;
 	uint8_t message[32];
 
 	if (sign_response == NULL) {
@@ -502,9 +505,9 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 		skdebug(__func__, "calloc response failed");
 		goto out;
 	}
-	SHA256_Init(&ctx);
-	SHA256_Update(&ctx, data, datalen);
-	SHA256_Final(message, &ctx);
+	SHA256Init(&ctx);
+	SHA256Update(&ctx, data, datalen);
+	SHA256Final(message, &ctx);
 	response->flags = flags;
 	response->counter = 0x12345678;
 	switch(alg) {
