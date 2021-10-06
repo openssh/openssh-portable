@@ -127,7 +127,7 @@ case "${TARGET_HOST}" in
 	;;
     minix3)
 	CC="clang"
-	LIBCRYPTOFLAGS="--without-openssl"
+	LIBCRYPTOFLAGS="--without-openssl --disable-security-key"
 	# Minix does not have a loopback interface so we have to skip any
 	# test that relies on it.
 	TEST_TARGET=t-exec
