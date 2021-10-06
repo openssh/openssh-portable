@@ -141,7 +141,8 @@ case "${TARGET_HOST}" in
 	;;
     nbsd4)
 	# System compiler will ICE on some files with fstack-protector
-	CONFIGFLAGS="${CONFIGFLAGS} --without-hardening"
+	# SHA256 functions in sha2.h conflict with OpenSSL's breaking sk-dummy
+	CONFIGFLAGS="${CONFIGFLAGS} --without-hardening --disable-security-key"
 	;;
     sol10|sol11)
 	# sol10 VM is 32bit and the unit tests are slow.
