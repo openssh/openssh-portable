@@ -422,6 +422,7 @@ sshkey_file_tests(void)
 
 	sshkey_free(k1);
 
+#ifdef ENABLE_SK
 #if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 	TEST_START("parse ECDSA-SK from private");
 	buf = load_file("ecdsa_sk1");
@@ -552,6 +553,7 @@ sshkey_file_tests(void)
 	TEST_DONE();
 
 	sshkey_free(k1);
+#endif /* ENABLE_SK */
 
 	sshbuf_free(pw);
 

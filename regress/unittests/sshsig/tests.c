@@ -117,6 +117,7 @@ tests(void)
 	check_sig("ed25519.pub", "ed25519.sig", msg, namespace);
 	TEST_DONE();
 
+#ifdef ENABLE_SK
 #if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 	TEST_START("check ECDSA-SK signature");
 	check_sig("ecdsa_sk.pub", "ecdsa_sk.sig", msg, namespace);
@@ -133,6 +134,7 @@ tests(void)
 	    msg, namespace);
  	TEST_DONE();
 #endif
+#endif /* ENABLE_SK */
 
 	sshbuf_free(msg);
 	free(namespace);
