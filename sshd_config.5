@@ -1220,6 +1220,7 @@ Available keywords are
 .Cm PermitUserRC ,
 .Cm PubkeyAcceptedAlgorithms ,
 .Cm PubkeyAuthentication ,
+.Cm PubkeyDisablePKCheck ,
 .Cm RekeyLimit ,
 .Cm RevokedKeys ,
 .Cm RDomain ,
@@ -1570,6 +1571,10 @@ options have any effect for other, non-FIDO, public key types.
 Specifies whether public key authentication is allowed.
 The default is
 .Cm yes .
+.It Cm PubkeyDisablePKCheck
+Disables publickey lookups during publickey authentication. Only recommended for high security environments.
+The default is
+.CM no .
 .It Cm RekeyLimit
 Specifies the maximum amount of data that may be transmitted before the
 session key is renegotiated, optionally followed by a maximum amount of
