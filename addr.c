@@ -385,7 +385,7 @@ addr_pton_cidr(const char *p, struct xaddr *n, u_int *l)
 		*mp = '\0';
 		mp++;
 		masklen = strtoul(mp, &cp, 10);
-		if (*mp == '\0' || *cp != '\0' || masklen > 128)
+		if (*mp < '0' || *mp > '9' || *cp != '\0' || masklen > 128)
 			return -1;
 	}
 
