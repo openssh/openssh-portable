@@ -188,6 +188,12 @@ int auth_sock = -1;
 static int have_agent = 0;
 
 /*
+ *  Maximum number of allowed connections.
+ *  The default value is -1 to allow infinite connections.
+ */
+static int max_connections = -1;
+
+/*
  * Any really sensitive data in the application is contained in this
  * structure. The idea is that this structure could be locked into memory so
  * that the pages do not get written into swap.  However, there are some
@@ -814,6 +820,54 @@ notify_hostkeys(struct ssh *ssh)
 }
 
 /*
+ * Determines if the maximum number of connections has been reached
+ *
+ * params: newsock - Socket fd for connection
+ *
+ * return: 1 if the max_connections has been reached
+ *         0 if the max connections has not been reached
+ */
+static int max_connections_reached(int newsock) {
+	FILE *fp = NULL;
+	char line[10];
+	int count;
+	int retVal = 0;
+	char *raddr = get_peer_ipaddr(newsock);
+
+	if (max_connections == -1){
+		free(raddr);
+		return 0;
+	}
+
+	fp = popen("ss -o state established '( sport = :ssh )' | grep ':ssh' | wc -l", "r");
+
+	if (fp == NULL) {
+		logit("Failed to retrieve max connections");
+
+		goto exit;
+	}
+
+	fgets(line, sizeof(line), fp); //check errors here
+	count = (int)strtol(line, NULL, 10);
+
+	if (count > max_connections) {
+		logit("Max connections reached (%d), dropping connection from %s",
+				max_connections, raddr);
+		retVal = 1;
+	}
+
+exit:
+	if (raddr != NULL) {
+		free(raddr);
+	}
+	if (fp != NULL){
+		pclose(fp);
+	}
+
+	return retVal;
+}
+	
+/*
  * returns 1 if connection should be dropped, 0 otherwise.
  * dropping starts at connection #max_startups_begin with a probability
  * of (max_startups_rate/100). the probability increases linearly until
@@ -908,6 +962,7 @@ usage(void)
 "usage: sshd [-46DdeiqTt] [-C connection_spec] [-c host_cert_file]\n"
 "            [-E log_file] [-f config_file] [-g login_grace_time]\n"
 "            [-h host_key_file] [-o option] [-p port] [-u len]\n"
+"            [-m max_connections]\n"
 	);
 	exit(1);
 }
@@ -1266,7 +1321,8 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			if (unset_nonblock(*newsock) == -1 ||
 			    pipe(startup_p) == -1)
 				continue;
-			if (drop_connection(*newsock, startups, startup_p[0])) {
+			if (drop_connection(*newsock, startups, startup_p[0]) ||
+			    max_connections_reached(*newsock) == 1) {
 				close(*newsock);
 				close(startup_p[0]);
 				close(startup_p[1]);
@@ -1577,7 +1633,7 @@ main(int ac, char **av)
 
 	/* Parse command-line arguments. */
 	while ((opt = getopt(ac, av,
-	    "C:E:b:c:f:g:h:k:o:p:u:46DQRTdeiqrt")) != -1) {
+	    "C:E:b:c:f:g:h:k:o:p:u:m:46DQRTdeiqrt")) != -1) {
 		switch (opt) {
 		case '4':
 			options.address_family = AF_INET;
@@ -1670,6 +1726,10 @@ main(int ac, char **av)
 				fprintf(stderr, "Invalid utmp length.\n");
 				exit(1);
 			}
+			break;
+		case 'm':
+			line = xstrdup(optarg);
+			max_connections = (int)strtol(line, NULL, 10);
 			break;
 		case 'o':
 			line = xstrdup(optarg);
