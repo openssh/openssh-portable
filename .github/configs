@@ -40,6 +40,9 @@ case "$config" in
     hardenedmalloc)
 	CONFIGFLAGS="--with-ldflags=-lhardened_malloc"
 	;;
+    tcmalloc)
+	CONFIGFLAGS="--with-ldflags=-ltcmalloc"
+	;;
     kerberos5)
 	CONFIGFLAGS="--with-kerberos5"
 	;;

@@ -50,7 +50,10 @@ for TARGET in $TARGETS; do
         ;;
     hardenedmalloc)
         INSTALL_HARDENED_MALLOC=yes
-       ;;
+        ;;
+    tcmalloc)
+        PACKAGES="$PACKAGES libgoogle-perftools-dev"
+        ;;
     openssl-noec)
 	INSTALL_OPENSSL=OpenSSL_1_1_1k
 	SSLCONFOPTS="no-ec"
