@@ -117,13 +117,13 @@ struct ssh_aes_ctr_ctx_mt
 	int		state;
 	int		qidx;
 	int		ridx;
-	int             id[MAX_THREADS]; /* 32 */
+	int             id[MAX_THREADS]; /* 6 */
 	AES_KEY         aes_key;
 	const u_char    *orig_key;
 	u_char		aes_counter[AES_BLOCK_SIZE]; /* 16B */
-	pthread_t	tid[MAX_THREADS]; /* 32 */
+	pthread_t	tid[MAX_THREADS]; /* 6 */
 	pthread_rwlock_t tid_lock;
-	struct kq	q[MAX_NUMKQ]; /* 64 */
+	struct kq	q[MAX_NUMKQ]; /* 24 */
 #ifdef __APPLE__
 	pthread_rwlock_t stop_lock;
 	int		exit_flag;
@@ -234,6 +234,8 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
  * which means we should be able to create the exact same ctx and use that to
  * fill the keystream queues. I'm concerned about additional overhead but the
  * additional speed from AESNI should make up for it.  */
+/* The above comment was made when I thought I needed to do a new EVP init for 
+ * each counter increment. Turns out not to be the case -cjr 10/15/21*/
 
 static void *
 thread_loop(void *x)
@@ -256,6 +258,19 @@ thread_loop(void *x)
 	/* create the context for this thread */
 	aesni_ctx = EVP_CIPHER_CTX_new();
 
+	/* initialize the cipher ctx with the key provided
+	 * determinbe which cipher to use based on the key size */
+	if (c->keylen == 256)
+		EVP_EncryptInit_ex(aesni_ctx, EVP_aes_256_ctr(), NULL, c->orig_key, NULL);
+	else if (c->keylen == 128)
+		EVP_EncryptInit_ex(aesni_ctx, EVP_aes_128_ctr(), NULL, c->orig_key, NULL);
+	else if (c->keylen == 192)
+		EVP_EncryptInit_ex(aesni_ctx, EVP_aes_192_ctr(), NULL, c->orig_key, NULL);
+	else {
+		logit("Invalid key length of %d in AES CTR MT. Exiting", c->keylen);
+		exit(1);
+	}
+
 	/*
 	 * Handle the special case of startup, one thread must fill
 	 * the first KQ then mark it as draining. Lock held throughout.
@@ -267,19 +282,8 @@ thread_loop(void *x)
 		pthread_mutex_lock(&q->lock);
 		/* if we are in the INIT state then fill the queue */
 		if (q->qstate == KQINIT) {
-			/* initialize the cipher ctx with the key provided
-			 * determinbe which cipher to use based on the key size */
-			if (c->keylen == 256)
-				EVP_EncryptInit_ex(aesni_ctx, EVP_aes_256_ctr(), NULL, c->orig_key, q->ctr);
-			else if (c->keylen == 128)
-				EVP_EncryptInit_ex(aesni_ctx, EVP_aes_128_ctr(), NULL, c->orig_key, q->ctr);
-			else if (c->keylen == 192)
-				EVP_EncryptInit_ex(aesni_ctx, EVP_aes_192_ctr(), NULL, c->orig_key, q->ctr);
-			else {
-				logit("Invalid key length of %d in AES CTR MT. Exiting", c->keylen);
-				exit(1);
-			}
-			/* fill the queue */
+			/* set the initial counter */
+			EVP_EncryptInit_ex(aesni_ctx, NULL, NULL, NULL, q->ctr);
 			for (i = 0; i < KQLEN; i++) {
 				/* encypher a block sized null string (mynull) with the key. This
 				 * returns the keystream because xoring the keystream
@@ -335,16 +339,10 @@ thread_loop(void *x)
 		q->qstate = KQFILLING;
 		pthread_cond_broadcast(&q->cond);
 		pthread_mutex_unlock(&q->lock);
-		if (c->keylen == 256)
-			EVP_EncryptInit_ex(aesni_ctx, EVP_aes_256_ctr(), NULL, c->orig_key, q->ctr);
-		else if (c->keylen == 128)
-			EVP_EncryptInit_ex(aesni_ctx, EVP_aes_128_ctr(), NULL, c->orig_key, q->ctr);
-		else if (c->keylen == 192)
-				EVP_EncryptInit_ex(aesni_ctx, EVP_aes_192_ctr(), NULL, c->orig_key, q->ctr);
-		else {
-			logit("Invalid key length of %d in AES CTR MT. Exiting", c->keylen);
-			exit(1);
-		}
+
+		/* set the initial counter */
+		EVP_EncryptInit_ex(aesni_ctx, NULL, NULL, NULL, q->ctr);
+
 		/* see coresponding block above for useful comments */
 		for (i = 0; i < KQLEN; i++) {
 			EVP_EncryptUpdate(aesni_ctx, q->keys[i], &outlen, mynull, AES_BLOCK_SIZE);
