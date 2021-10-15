@@ -30,6 +30,8 @@
 #include <priv.h> /* For setpflags() and __PROC_PROTECT  */
 #endif
 #include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "log.h"
 
