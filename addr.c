@@ -244,7 +244,7 @@ addr_cmp(const struct xaddr *a, const struct xaddr *b)
 		if (a->v4.s_addr == b->v4.s_addr)
 			return 0;
 		return (ntohl(a->v4.s_addr) > ntohl(b->v4.s_addr) ? 1 : -1);
-	case AF_INET6:;
+	case AF_INET6:
 		/*
 		 * Do this a byte at a time to avoid the above issue and
 		 * any endian problems
@@ -268,7 +268,7 @@ addr_is_all0s(const struct xaddr *a)
 	switch (a->af) {
 	case AF_INET:
 		return (a->v4.s_addr == 0 ? 0 : -1);
-	case AF_INET6:;
+	case AF_INET6:
 		for (i = 0; i < 4; i++)
 			if (a->addr32[i] != 0)
 				return -1;
@@ -281,7 +281,7 @@ addr_is_all0s(const struct xaddr *a)
 /*
  * Test whether host portion of address 'a', as determined by 'masklen'
  * is all zeros.
- * Returns 0 on if host portion of address is all-zeros,
+ * Returns 0 if host portion of address is all-zeros,
  * -1 if not all zeros or on failure.
  */
 int
@@ -298,7 +298,7 @@ addr_host_is_all0s(const struct xaddr *a, u_int masklen)
 }
 
 /*
- * Parse string address 'p' into 'n'
+ * Parse string address 'p' into 'n'.
  * Returns 0 on success, -1 on failure.
  */
 int
