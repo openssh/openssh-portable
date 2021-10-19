@@ -394,7 +394,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 	/* src already padded to block multiple */
 	srcp.cu8 = src;
 	destp.u8 = dest;
-	while (len > 0) {
+	while (len) {
 		buf = q->keys[ridx];
 		bufp.u8 = buf;
 
@@ -404,31 +404,38 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 #else
 		align = destp.u | srcp.u | bufp.u;
 #endif
-
+		
+		/* xor the src against the key (buf)
+		 * different systems can do all 16 bytes at once or
+		 * may need to do it in 8 or 4 bytes chunks
+		 * worst case is doing it as a loop */
 #ifdef CIPHER_INT128_OK
 		if ((align & 0xf) == 0) {
 			destp.u128[0] = srcp.u128[0] ^ bufp.u128[0];
 		} else
 #endif
+		/* 64 bits */
 		if ((align & 0x7) == 0) {
 			destp.u64[0] = srcp.u64[0] ^ bufp.u64[0];
 			destp.u64[1] = srcp.u64[1] ^ bufp.u64[1];
+		/* 32 bits */
 		} else if ((align & 0x3) == 0) {
 			destp.u32[0] = srcp.u32[0] ^ bufp.u32[0];
 			destp.u32[1] = srcp.u32[1] ^ bufp.u32[1];
 			destp.u32[2] = srcp.u32[2] ^ bufp.u32[2];
 			destp.u32[3] = srcp.u32[3] ^ bufp.u32[3];
 		} else {
+			/*1 byte at a time*/
 			size_t i;
 			for (i = 0; i < AES_BLOCK_SIZE; ++i)
 				dest[i] = src[i] ^ buf[i];
 		}
 
+		/* inc/decrement the pointers by the block size (16)*/
 		destp.u += AES_BLOCK_SIZE;
 		srcp.u += AES_BLOCK_SIZE;
 		len -= AES_BLOCK_SIZE;
-		ssh_ctr_inc(c->aes_counter, AES_BLOCK_SIZE);
-
+		
 		/* Increment read index, switch queues on rollover */
 		if ((ridx = (ridx + 1) % KQLEN) == 0) {
 			oldq = q;
