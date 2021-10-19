@@ -234,7 +234,7 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
  * which means we should be able to create the exact same ctx and use that to
  * fill the keystream queues. I'm concerned about additional overhead but the
  * additional speed from AESNI should make up for it.  */
-/* The above comment was made when I thought I needed to do a new EVP init for 
+/* The above comment was made when I thought I needed to do a new EVP init for
  * each counter increment. Turns out not to be the case -cjr 10/15/21*/
 
 static void *
@@ -394,7 +394,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 	/* src already padded to block multiple */
 	srcp.cu8 = src;
 	destp.u8 = dest;
-	while (len) {
+	do { /* do until len is 0 */
 		buf = q->keys[ridx];
 		bufp.u8 = buf;
 
@@ -404,7 +404,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 #else
 		align = destp.u | srcp.u | bufp.u;
 #endif
-		
+
 		/* xor the src against the key (buf)
 		 * different systems can do all 16 bytes at once or
 		 * may need to do it in 8 or 4 bytes chunks
@@ -434,8 +434,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 		/* inc/decrement the pointers by the block size (16)*/
 		destp.u += AES_BLOCK_SIZE;
 		srcp.u += AES_BLOCK_SIZE;
-		len -= AES_BLOCK_SIZE;
-		
+
 		/* Increment read index, switch queues on rollover */
 		if ((ridx = (ridx + 1) % KQLEN) == 0) {
 			oldq = q;
@@ -457,7 +456,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 			pthread_cond_broadcast(&oldq->cond);
 			pthread_mutex_unlock(&oldq->lock);
 		}
-	}
+	} while (len -= AES_BLOCK_SIZE);
 	c->ridx = ridx;
 	return 1;
 }
