@@ -150,7 +150,8 @@ allowed_user(struct ssh *ssh, struct passwd * pw)
 			locked = 1;
 #endif
 #ifdef USE_LIBIAF
-		free((void *) passwd);
+		if (spw != NULL)
+			free((void *) passwd);
 #endif /* USE_LIBIAF */
 		if (locked) {
 			logit("User %.100s not allowed because account is locked",
