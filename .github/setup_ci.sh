@@ -23,9 +23,16 @@ if [ "${TARGETS}" = "kitchensink" ]; then
 	TARGETS="kerberos5 libedit pam sk selinux"
 fi
 
+for flag in $CONFIGFLAGS; do
+    case "$flag" in
+    --with-pam)		PACKAGES="${PACKAGES} libpam0g-dev" ;;
+    --with-libedit)	PACKAGES="${PACKAGES} libedit-dev" ;;
+    esac
+done
+
 for TARGET in $TARGETS; do
     case $TARGET in
-    default|without-openssl|without-zlib|c89)
+    default|without-openssl|without-zlib|c89|libedit|*pam)
         # nothing to do
         ;;
     clang-*|gcc-*)
@@ -35,12 +42,6 @@ for TARGET in $TARGETS; do
     kerberos5)
         PACKAGES="$PACKAGES heimdal-dev"
         #PACKAGES="$PACKAGES libkrb5-dev"
-        ;;
-    libedit)
-        PACKAGES="$PACKAGES libedit-dev"
-        ;;
-    *pam)
-        PACKAGES="$PACKAGES libpam0g-dev"
         ;;
     sk)
         INSTALL_FIDO_PPA="yes"
