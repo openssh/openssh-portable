@@ -2195,6 +2195,7 @@ handle_dest_replies(struct sftp_conn *to, const char *to_path, int synchronous,
 		(*nreqsp)--;
 	}
 	debug3_f("done: %u outstanding replies", *nreqsp);
+	sshbuf_free(msg);
 }
 
 int

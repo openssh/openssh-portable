@@ -1553,6 +1553,7 @@ process_extended_expand(u_int32_t id)
 			npath = xstrdup(path + 2);
 			free(path);
 			xasprintf(&path, "%s/%s", cwd, npath);
+			free(npath);
 		} else {
 			/* ~user expansions */
 			if (tilde_expand(path, pw->pw_uid, &npath) != 0) {
