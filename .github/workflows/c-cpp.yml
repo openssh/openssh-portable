@@ -29,11 +29,11 @@ jobs:
           - { os: ubuntu-20.04, configs: clang-9 }
           - { os: ubuntu-20.04, configs: clang-10 }
           - { os: ubuntu-20.04, configs: clang-11 }
-          - { os: ubuntu-20.04, configs: clang-12 }
+          - { os: ubuntu-20.04, configs: clang-12-Werror }
           - { os: ubuntu-20.04, configs: gcc-7 }
           - { os: ubuntu-20.04, configs: gcc-8 }
           - { os: ubuntu-20.04, configs: gcc-10 }
-          - { os: ubuntu-20.04, configs: gcc-11 }
+          - { os: ubuntu-20.04, configs: gcc-11-Werror }
           - { os: ubuntu-20.04, configs: pam }
           - { os: ubuntu-20.04, configs: kitchensink }
           - { os: ubuntu-20.04, configs: hardenedmalloc }
