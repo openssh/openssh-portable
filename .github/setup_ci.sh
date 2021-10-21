@@ -29,7 +29,7 @@ for TARGET in $TARGETS; do
         # nothing to do
         ;;
     clang-*|gcc-*)
-        compiler=$(sed 's/-Werror//' <<<$TARGET)
+        compiler=$(echo $TARGET | sed 's/-Werror//')
         PACKAGES="$PACKAGES $compiler"
         ;;
     kerberos5)
