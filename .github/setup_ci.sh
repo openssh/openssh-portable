@@ -29,7 +29,8 @@ for TARGET in $TARGETS; do
         # nothing to do
         ;;
     clang-*|gcc-*)
-        PACKAGES="$PACKAGES $TARGET"
+        compiler=$(sed 's/-Werror//' <<<$TARGET)
+        PACKAGES="$PACKAGES $compiler"
         ;;
     kerberos5)
         PACKAGES="$PACKAGES heimdal-dev"
