@@ -1,4 +1,4 @@
-/* $OpenBSD: addr.c,v 1.3 2021/10/22 09:22:04 dtucker Exp $ */
+/* $OpenBSD: addr.c,v 1.4 2021/10/22 10:51:57 dtucker Exp $ */
 
 /*
  * Copyright (c) 2004-2008 Damien Miller <djm@mindrot.org>
@@ -312,8 +312,13 @@ addr_pton(const char *p, struct xaddr *n)
 	if (p == NULL || getaddrinfo(p, NULL, &hints, &ai) != 0)
 		return -1;
 
-	if (ai == NULL || ai->ai_addr == NULL)
+	if (ai == NULL)
 		return -1;
+
+	if (ai->ai_addr == NULL) {
+		freeaddrinfo(ai);
+		return -1;
+	}
 
 	if (n != NULL && addr_sa_to_xaddr(ai->ai_addr, ai->ai_addrlen,
 	    n) == -1) {
@@ -336,12 +341,19 @@ addr_sa_pton(const char *h, const char *s, struct sockaddr *sa, socklen_t slen)
 	if (h == NULL || getaddrinfo(h, s, &hints, &ai) != 0)
 		return -1;
 
-	if (ai == NULL || ai->ai_addr == NULL)
+	if (ai == NULL)
 		return -1;
 
+	if (ai->ai_addr == NULL) {
+		freeaddrinfo(ai);
+		return -1;
+	}
+
 	if (sa != NULL) {
-		if (slen < ai->ai_addrlen)
+		if (slen < ai->ai_addrlen) {
+			freeaddrinfo(ai);
 			return -1;
+		}
 		memcpy(sa, &ai->ai_addr, ai->ai_addrlen);
 	}
 
@@ -357,7 +369,7 @@ addr_ntop(const struct xaddr *n, char *p, size_t len)
 
 	if (addr_xaddr_to_sa(n, _SA(&ss), &slen, 0) == -1)
 		return -1;
-	if (n == NULL || p == NULL || len == 0)
+	if (p == NULL || len == 0)
 		return -1;
 	if (getnameinfo(_SA(&ss), slen, p, len, NULL, 0,
 	    NI_NUMERICHOST) == -1)
