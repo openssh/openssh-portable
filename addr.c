@@ -1,4 +1,4 @@
-/* $OpenBSD: addr.c,v 1.2 2021/10/22 09:19:34 dtucker Exp $ */
+/* $OpenBSD: addr.c,v 1.3 2021/10/22 09:22:04 dtucker Exp $ */
 
 /*
  * Copyright (c) 2004-2008 Damien Miller <djm@mindrot.org>
@@ -244,7 +244,7 @@ addr_cmp(const struct xaddr *a, const struct xaddr *b)
 		if (a->v4.s_addr == b->v4.s_addr)
 			return 0;
 		return (ntohl(a->v4.s_addr) > ntohl(b->v4.s_addr) ? 1 : -1);
-	case AF_INET6:;
+	case AF_INET6:
 		/*
 		 * Do this a byte at a time to avoid the above issue and
 		 * any endian problems
@@ -268,7 +268,7 @@ addr_is_all0s(const struct xaddr *a)
 	switch (a->af) {
 	case AF_INET:
 		return (a->v4.s_addr == 0 ? 0 : -1);
-	case AF_INET6:;
+	case AF_INET6:
 		for (i = 0; i < 4; i++)
 			if (a->addr32[i] != 0)
 				return -1;
