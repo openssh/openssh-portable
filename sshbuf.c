@@ -179,7 +179,8 @@ sshbuf_reset(struct sshbuf *buf)
 		buf->off = buf->size;
 		return;
 	}
-	(void) sshbuf_check_sanity(buf);
+	if (sshbuf_check_sanity(buf) != 0)
+		return;
 	buf->off = buf->size = 0;
 	if (buf->alloc != SSHBUF_SIZE_INIT) {
 		if ((d = recallocarray(buf->d, buf->alloc, SSHBUF_SIZE_INIT,
@@ -188,7 +189,7 @@ sshbuf_reset(struct sshbuf *buf)
 			buf->alloc = SSHBUF_SIZE_INIT;
 		}
 	}
-	explicit_bzero(buf->d, SSHBUF_SIZE_INIT);
+	explicit_bzero(buf->d, buf->alloc);
 }
 
 size_t
