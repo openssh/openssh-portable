@@ -51,16 +51,18 @@ extern ServerOptions options;
 static int
 userauth_passwd(struct ssh *ssh)
 {
-	char *password;
+	char *password = NULL;
 	int authenticated = 0, r;
 	u_char change;
-	size_t len;
+	size_t len = 0;
 
 	if ((r = sshpkt_get_u8(ssh, &change)) != 0 ||
 	    (r = sshpkt_get_cstring(ssh, &password, &len)) != 0 ||
 	    (change && (r = sshpkt_get_cstring(ssh, NULL, NULL)) != 0) ||
-	    (r = sshpkt_get_end(ssh)) != 0)
+	    (r = sshpkt_get_end(ssh)) != 0) {
+		freezero(password, len);
 		fatal_fr(r, "parse packet");
+	}
 
 	if (change)
 		logit("password change not supported");
