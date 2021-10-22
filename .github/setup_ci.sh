@@ -22,7 +22,7 @@ set -ex
 lsb_release -a
 
 if [ "${TARGETS}" = "kitchensink" ]; then
-	TARGETS="kerberos5 libedit pam sk selinux"
+	TARGETS="krb5 libedit pam sk selinux"
 fi
 
 for flag in $CONFIGFLAGS; do
