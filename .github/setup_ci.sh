@@ -1,5 +1,7 @@
 #!/bin/sh
 
+ . .github/configs $@
+
 case "`./config.guess`" in
 *-darwin*)
 	brew install automake
