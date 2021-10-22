@@ -1,4 +1,4 @@
-/* $OpenBSD: addr.c,v 1.1 2021/01/09 11:58:50 dtucker Exp $ */
+/* $OpenBSD: addr.c,v 1.2 2021/10/22 09:19:34 dtucker Exp $ */
 
 /*
  * Copyright (c) 2004-2008 Damien Miller <djm@mindrot.org>
@@ -281,7 +281,7 @@ addr_is_all0s(const struct xaddr *a)
 /*
  * Test whether host portion of address 'a', as determined by 'masklen'
  * is all zeros.
- * Returns 0 on if host portion of address is all-zeros,
+ * Returns 0 if host portion of address is all-zeros,
  * -1 if not all zeros or on failure.
  */
 int
@@ -298,7 +298,7 @@ addr_host_is_all0s(const struct xaddr *a, u_int masklen)
 }
 
 /*
- * Parse string address 'p' into 'n'
+ * Parse string address 'p' into 'n'.
  * Returns 0 on success, -1 on failure.
  */
 int
