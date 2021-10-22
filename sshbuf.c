@@ -109,6 +109,8 @@ sshbuf_set_parent(struct sshbuf *child, struct sshbuf *parent)
 	if ((r = sshbuf_check_sanity(child)) != 0 ||
 	    (r = sshbuf_check_sanity(parent)) != 0)
 		return r;
+	if (child->parent != NULL)
+		child->parent->refcount--;
 	child->parent = parent;
 	child->parent->refcount++;
 	return 0;
