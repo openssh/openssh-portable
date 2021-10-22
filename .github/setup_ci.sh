@@ -41,9 +41,11 @@ for TARGET in $TARGETS; do
         compiler=$(echo $TARGET | sed 's/-Werror//')
         PACKAGES="$PACKAGES $compiler"
         ;;
-    kerberos5)
+    krb5)
+        PACKAGES="$PACKAGES libkrb5-dev"
+	;;
+    heimdal)
         PACKAGES="$PACKAGES heimdal-dev"
-        #PACKAGES="$PACKAGES libkrb5-dev"
         ;;
     sk)
         INSTALL_FIDO_PPA="yes"

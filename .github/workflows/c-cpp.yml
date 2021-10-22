@@ -57,7 +57,8 @@ jobs:
           - { os: ubuntu-latest, configs: openssl-1.1.1_stable } # stable branch
           - { os: ubuntu-latest, configs: openssl-3.0 }          # stable branch
           - { os: ubuntu-18.04, configs: pam }
-          - { os: ubuntu-18.04, configs: kerberos5 }
+          - { os: ubuntu-18.04, configs: krb5 }
+          - { os: ubuntu-18.04, configs: heimdal }
           - { os: ubuntu-18.04, configs: libedit }
           - { os: ubuntu-18.04, configs: sk }
           - { os: ubuntu-18.04, configs: selinux }

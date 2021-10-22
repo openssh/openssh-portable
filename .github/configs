@@ -56,7 +56,7 @@ case "$config" in
     tcmalloc)
 	CONFIGFLAGS="--with-ldflags=-ltcmalloc"
 	;;
-    kerberos5)
+    krb5|heimdal)
 	CONFIGFLAGS="--with-kerberos5"
 	;;
     libedit)
