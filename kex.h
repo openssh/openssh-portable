@@ -116,6 +116,8 @@
 #define	KEX_NTRUPRIME_SNTRUP761_SHA384	"ntruprime-sntrup761-sha384"
 #define	KEX_NTRUPRIME_NTRULPR857_SHA384	"ntruprime-ntrulpr857-sha384"
 #define	KEX_NTRUPRIME_SNTRUP857_SHA384	"ntruprime-sntrup857-sha384"
+#define	KEX_NTRUPRIME_NTRULPR1277_SHA512	"ntruprime-ntrulpr1277-sha512"
+#define	KEX_NTRUPRIME_SNTRUP1277_SHA512	"ntruprime-sntrup1277-sha512"
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 #define	KEX_FRODOKEM_640_AES_ECDH_NISTP256_SHA256	"ecdh-nistp256-frodokem-640-aes-sha256"
@@ -170,6 +172,8 @@
 #define	KEX_NTRUPRIME_SNTRUP761_ECDH_NISTP384_SHA384	"ecdh-nistp384-ntruprime-sntrup761-sha384"
 #define	KEX_NTRUPRIME_NTRULPR857_ECDH_NISTP384_SHA384	"ecdh-nistp384-ntruprime-ntrulpr857-sha384"
 #define	KEX_NTRUPRIME_SNTRUP857_ECDH_NISTP384_SHA384	"ecdh-nistp384-ntruprime-sntrup857-sha384"
+#define	KEX_NTRUPRIME_NTRULPR1277_ECDH_NISTP521_SHA512	"ecdh-nistp521-ntruprime-ntrulpr1277-sha512"
+#define	KEX_NTRUPRIME_SNTRUP1277_ECDH_NISTP521_SHA512	"ecdh-nistp521-ntruprime-sntrup1277-sha512"
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEX_PRETTY_NAMES_END
@@ -266,6 +270,8 @@ enum kex_exchange {
 	KEX_KEM_NTRUPRIME_SNTRUP761_SHA384,
 	KEX_KEM_NTRUPRIME_NTRULPR857_SHA384,
 	KEX_KEM_NTRUPRIME_SNTRUP857_SHA384,
+	KEX_KEM_NTRUPRIME_NTRULPR1277_SHA512,
+	KEX_KEM_NTRUPRIME_SNTRUP1277_SHA512,
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 	KEX_KEM_FRODOKEM_640_AES_ECDH_NISTP256_SHA256,
@@ -320,6 +326,8 @@ enum kex_exchange {
 	KEX_KEM_NTRUPRIME_SNTRUP761_ECDH_NISTP384_SHA384,
 	KEX_KEM_NTRUPRIME_NTRULPR857_ECDH_NISTP384_SHA384,
 	KEX_KEM_NTRUPRIME_SNTRUP857_ECDH_NISTP384_SHA384,
+	KEX_KEM_NTRUPRIME_NTRULPR1277_ECDH_NISTP521_SHA512,
+	KEX_KEM_NTRUPRIME_SNTRUP1277_ECDH_NISTP521_SHA512,
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_ADD_KEX_ENUMS_END
@@ -656,6 +664,14 @@ int	 kex_kem_ntruprime_ntrulpr857_dec(struct kex *, const struct sshbuf *, struc
 int	 kex_kem_ntruprime_sntrup857_keypair(struct kex *);
 int	 kex_kem_ntruprime_sntrup857_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_ntruprime_sntrup857_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* ntruprime_ntrulpr1277 prototypes */
+int	 kex_kem_ntruprime_ntrulpr1277_keypair(struct kex *);
+int	 kex_kem_ntruprime_ntrulpr1277_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_ntruprime_ntrulpr1277_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* ntruprime_sntrup1277 prototypes */
+int	 kex_kem_ntruprime_sntrup1277_keypair(struct kex *);
+int	 kex_kem_ntruprime_sntrup1277_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_ntruprime_sntrup1277_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 /* frodokem_640_aes_nistp256 prototypes */
@@ -866,6 +882,14 @@ int	 kex_kem_ntruprime_ntrulpr857_ecdh_nistp384_dec(struct kex *, const struct s
 int	 kex_kem_ntruprime_sntrup857_ecdh_nistp384_keypair(struct kex *);
 int	 kex_kem_ntruprime_sntrup857_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_ntruprime_sntrup857_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* ntruprime_ntrulpr1277_nistp521 prototypes */
+int	 kex_kem_ntruprime_ntrulpr1277_ecdh_nistp521_keypair(struct kex *);
+int	 kex_kem_ntruprime_ntrulpr1277_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_ntruprime_ntrulpr1277_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
+/* ntruprime_sntrup1277_nistp521 prototypes */
+int	 kex_kem_ntruprime_sntrup1277_ecdh_nistp521_keypair(struct kex *);
+int	 kex_kem_ntruprime_sntrup1277_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
+int	 kex_kem_ntruprime_sntrup1277_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_DECLARE_KEX_PROTOTYPES_END

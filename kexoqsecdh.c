@@ -2485,6 +2485,88 @@ int kex_kem_ntruprime_sntrup857_ecdh_nistp384_dec(struct kex *kex,
     OQS_KEM_free(kem);
     return r;
 }
+/*---------------------------------------------------------------
+ * NTRUPRIME_NTRULPR1277_ECDH_NISTP521 METHODS
+ *---------------------------------------------------------------
+ */
+int kex_kem_ntruprime_ntrulpr1277_ecdh_nistp521_keypair(struct kex *kex)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntruprime_ntrulpr1277);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_with_ec_keypair(kem, kex);
+    OQS_KEM_free(kem);
+    return r;
+}
+
+int kex_kem_ntruprime_ntrulpr1277_ecdh_nistp521_enc(struct kex *kex,
+                                   const struct sshbuf *client_blob,
+                                   struct sshbuf **server_blobp,
+                                   struct sshbuf **shared_secretp)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntruprime_ntrulpr1277);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_with_ec_enc(kem, kex, client_blob, server_blobp, shared_secretp);
+    OQS_KEM_free(kem);
+    return r;
+}
+
+int kex_kem_ntruprime_ntrulpr1277_ecdh_nistp521_dec(struct kex *kex,
+                                       const struct sshbuf *server_blobp,
+                                       struct sshbuf **shared_secretp)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntruprime_ntrulpr1277);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_with_ec_dec(kem, kex, server_blobp, shared_secretp);
+    OQS_KEM_free(kem);
+    return r;
+}
+/*---------------------------------------------------------------
+ * NTRUPRIME_SNTRUP1277_ECDH_NISTP521 METHODS
+ *---------------------------------------------------------------
+ */
+int kex_kem_ntruprime_sntrup1277_ecdh_nistp521_keypair(struct kex *kex)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntruprime_sntrup1277);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_with_ec_keypair(kem, kex);
+    OQS_KEM_free(kem);
+    return r;
+}
+
+int kex_kem_ntruprime_sntrup1277_ecdh_nistp521_enc(struct kex *kex,
+                                   const struct sshbuf *client_blob,
+                                   struct sshbuf **server_blobp,
+                                   struct sshbuf **shared_secretp)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntruprime_sntrup1277);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_with_ec_enc(kem, kex, client_blob, server_blobp, shared_secretp);
+    OQS_KEM_free(kem);
+    return r;
+}
+
+int kex_kem_ntruprime_sntrup1277_ecdh_nistp521_dec(struct kex *kex,
+                                       const struct sshbuf *server_blobp,
+                                       struct sshbuf **shared_secretp)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntruprime_sntrup1277);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_with_ec_dec(kem, kex, server_blobp, shared_secretp);
+    OQS_KEM_free(kem);
+    return r;
+}
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEX_WITH_EC_METHODS_END
 
 #endif /* defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC) */

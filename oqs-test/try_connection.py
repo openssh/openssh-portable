@@ -116,6 +116,10 @@ kexs = [
     "ecdh-nistp384-ntruprime-ntrulpr857-sha384",
     "ntruprime-sntrup857-sha384",
     "ecdh-nistp384-ntruprime-sntrup857-sha384",
+    "ntruprime-ntrulpr1277-sha512",
+    "ecdh-nistp521-ntruprime-ntrulpr1277-sha512",
+    "ntruprime-sntrup1277-sha512",
+    "ecdh-nistp521-ntruprime-sntrup1277-sha512",
 ##### OQS_TEMPLATE_FRAGMENT_LIST_ALL_KEXS_END
 ]
 

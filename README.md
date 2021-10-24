@@ -65,7 +65,7 @@ The following quantum-safe algorithms from liboqs are supported (assuming they h
 - **HQC**: `hqc-128-sha256`, `hqc-192-sha384`, `hqc-256-sha512`†
 - **Kyber**: `kyber-512-sha256`, `kyber-768-sha384`, `kyber-1024-sha512`, `kyber-512-90s-sha256`, `kyber-768-90s-sha384`, `kyber-1024-90s-sha512`
 - **NTRU**: `ntru-hps2048509-sha512`, `ntru-hps2048677-sha512`, `ntru-hrss701-sha512`, `ntru-hps4096821-sha512`
-- **NTRU-PRIME**: `ntruprime-ntrulpr653-sha256`, `ntruprime-sntrup653-sha256`, `ntruprime-ntrulpr761-sha384`, `ntruprime-sntrup761-sha384`, `ntruprime-ntrulpr857-sha384`, `ntruprime-sntrup857-sha384`
+- **NTRU-PRIME**: `ntruprime-ntrulpr653-sha256`, `ntruprime-sntrup653-sha256`, `ntruprime-ntrulpr761-sha384`, `ntruprime-sntrup761-sha384`, `ntruprime-ntrulpr857-sha384`, `ntruprime-sntrup857-sha384`, `ntruprime-ntrulpr1277-sha512`, `ntruprime-sntrup1277-sha512`
 - **SIDH**: `sidh-p434-sha256`, `sidh-p434-compressed-sha256`, `sidh-p610-sha256`, `sidh-p610-compressed-sha256`, `sidh-p751-sha256`, `sidh-p751-compressed-sha256`
 - **SIKE**: `sike-p434-sha256`, `sike-p434-compressed-sha256`, `sike-p610-sha256`, `sike-p610-compressed-sha256`, `sike-p751-sha256`, `sike-p751-compressed-sha256`
 - **Saber**: `saber-lightsaber-sha256`, `saber-saber-sha384`, `saber-firesaber-sha512`

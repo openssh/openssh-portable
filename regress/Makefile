@@ -130,7 +130,10 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		sshd_proxy_orig t10.out t10.out.pub t12.out t12.out.pub \
 		t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub \
 		t8.out t8.out.pub t9.out t9.out.pub testdata \
-		user_*key* user_ca* user_key*
+		user_*key* user_ca* user_key* \
+		*dilith* *falco* *picni* *sphincs* \
+		ecdsa-sha2-nistp* sk-* ssh-dss* ssh-rsa* ssh-ed25519* \
+		host.sk-* copy authkeys_orig sshd_config_minimal check-perm mkdtemp
 
 # Enable all malloc(3) randomisations and checks
 TEST_ENV=      "MALLOC_OPTIONS=CFGJRSUX"
