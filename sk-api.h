@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-api.h,v 1.12 2021/02/18 02:15:07 djm Exp $ */
+/* $OpenBSD: sk-api.h,v 1.13 2021/10/28 02:54:18 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -66,6 +66,8 @@ struct sk_resident_key {
 	char *application;
 	struct sk_enroll_response key;
 	uint8_t flags;
+	uint8_t *user_id;
+	size_t user_id_len;
 };
 
 struct sk_option {
@@ -74,7 +76,7 @@ struct sk_option {
 	uint8_t required;
 };
 
-#define SSH_SK_VERSION_MAJOR		0x00070000 /* current API version */
+#define SSH_SK_VERSION_MAJOR		0x00080000 /* current API version */
 #define SSH_SK_VERSION_MAJOR_MASK	0xffff0000
 
 /* Return the version of the middleware API */

@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.31 2021/10/01 04:50:36 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.32 2021/10/28 02:54:18 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -1088,9 +1088,11 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 	fido_credman_metadata_t *metadata = NULL;
 	fido_credman_rp_t *rp = NULL;
 	fido_credman_rk_t *rk = NULL;
-	size_t i, j, nrp, nrk;
+	size_t i, j, nrp, nrk, user_id_len;
 	const fido_cred_t *cred;
+	const char *rp_id, *rp_name, *user_name;
 	struct sk_resident_key *srk = NULL, **tmp;
+	const u_char *user_id;
 
 	if (pin == NULL) {
 		skdebug(__func__, "no PIN specified");
@@ -1132,12 +1134,16 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 
 	/* Iterate over RP IDs that have resident keys */
 	for (i = 0; i < nrp; i++) {
+		rp_id = fido_credman_rp_id(rp, i);
+		rp_name = fido_credman_rp_name(rp, i);
 		skdebug(__func__, "rp %zu: name=\"%s\" id=\"%s\" hashlen=%zu",
-		    i, fido_credman_rp_name(rp, i), fido_credman_rp_id(rp, i),
+		    i, rp_name == NULL ? "(none)" : rp_name,
+		    rp_id == NULL ? "(none)" : rp_id,
 		    fido_credman_rp_id_hash_len(rp, i));
 
 		/* Skip non-SSH RP IDs */
-		if (strncasecmp(fido_credman_rp_id(rp, i), "ssh:", 4) != 0)
+		if (rp_id == NULL ||
+		    strncasecmp(fido_credman_rp_id(rp, i), "ssh:", 4) != 0)
 			continue;
 
 		fido_credman_rk_free(&rk);
@@ -1161,17 +1167,23 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 				skdebug(__func__, "no RK in slot %zu", j);
 				continue;
 			}
-			skdebug(__func__, "Device %s RP \"%s\" slot %zu: "
-			    "type %d flags 0x%02x prot 0x%02x", sk->path,
-			    fido_credman_rp_id(rp, i), j, fido_cred_type(cred),
+			if ((user_name = fido_cred_user_name(cred)) == NULL)
+				user_name = "";
+			user_id = fido_cred_user_id_ptr(cred);
+			user_id_len = fido_cred_user_id_len(cred);
+			skdebug(__func__, "Device %s RP \"%s\" user \"%s\" "
+			    "uidlen %zu slot %zu: type %d flags 0x%02x "
+			    "prot 0x%02x", sk->path, rp_id, user_name,
+			    user_id_len, j, fido_cred_type(cred),
 			    fido_cred_flags(cred), fido_cred_prot(cred));
 
 			/* build response entry */
 			if ((srk = calloc(1, sizeof(*srk))) == NULL ||
 			    (srk->key.key_handle = calloc(1,
 			    fido_cred_id_len(cred))) == NULL ||
-			    (srk->application = strdup(fido_credman_rp_id(rp,
-			    i))) == NULL) {
+			    (srk->application = strdup(rp_id)) == NULL ||
+			    (user_id_len > 0 &&
+			     (srk->user_id = calloc(1, user_id_len)) == NULL)) {
 				skdebug(__func__, "alloc sk_resident_key");
 				goto out;
 			}
@@ -1179,6 +1191,9 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 			srk->key.key_handle_len = fido_cred_id_len(cred);
 			memcpy(srk->key.key_handle, fido_cred_id_ptr(cred),
 			    srk->key.key_handle_len);
+			srk->user_id_len = user_id_len;
+			if (srk->user_id_len != 0)
+				memcpy(srk->user_id, user_id, srk->user_id_len);
 
 			switch (fido_cred_type(cred)) {
 			case COSE_ES256:
@@ -1219,6 +1234,7 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 		free(srk->application);
 		freezero(srk->key.public_key, srk->key.public_key_len);
 		freezero(srk->key.key_handle, srk->key.key_handle_len);
+		freezero(srk->user_id, srk->user_id_len);
 		freezero(srk, sizeof(*srk));
 	}
 	fido_credman_rp_free(&rp);
@@ -1271,6 +1287,7 @@ sk_load_resident_keys(const char *pin, struct sk_option **options,
 		free(rks[i]->application);
 		freezero(rks[i]->key.public_key, rks[i]->key.public_key_len);
 		freezero(rks[i]->key.key_handle, rks[i]->key.key_handle_len);
+		freezero(rks[i]->user_id, rks[i]->user_id_len);
 		freezero(rks[i], sizeof(*rks[i]));
 	}
 	free(rks);

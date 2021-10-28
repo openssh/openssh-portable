@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.160 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.161 2021/10/28 02:54:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -580,25 +580,26 @@ lock_agent(int agent_fd, int lock)
 static int
 load_resident_keys(int agent_fd, const char *skprovider, int qflag)
 {
-	struct sshkey **keys;
-	size_t nkeys, i;
+	struct sshsk_resident_key **srks;
+	size_t nsrks, i;
+	struct sshkey *key;
 	int r, ok = 0;
 	char *fp;
 
 	pass = read_passphrase("Enter PIN for authenticator: ", RP_ALLOW_STDIN);
-	if ((r = sshsk_load_resident(skprovider, NULL, pass,
-	    &keys, &nkeys)) != 0) {
+	if ((r = sshsk_load_resident(skprovider, NULL, pass, 0,
+	    &srks, &nsrks)) != 0) {
 		error_r(r, "Unable to load resident keys");
 		return r;
 	}
-	for (i = 0; i < nkeys; i++) {
-		if ((fp = sshkey_fingerprint(keys[i],
+	for (i = 0; i < nsrks; i++) {
+		key = srks[i]->key;
+		if ((fp = sshkey_fingerprint(key,
 		    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
 			fatal_f("sshkey_fingerprint failed");
-		if ((r = ssh_add_identity_constrained(agent_fd, keys[i], "",
+		if ((r = ssh_add_identity_constrained(agent_fd, key, "",
 		    lifetime, confirm, maxsign, skprovider)) != 0) {
-			error("Unable to add key %s %s",
-			    sshkey_type(keys[i]), fp);
+			error("Unable to add key %s %s", sshkey_type(key), fp);
 			free(fp);
 			ok = r;
 			continue;
@@ -607,7 +608,7 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag)
 			ok = 1;
 		if (!qflag) {
 			fprintf(stderr, "Resident identity added: %s %s\n",
-			    sshkey_type(keys[i]), fp);
+			    sshkey_type(key), fp);
 			if (lifetime != 0) {
 				fprintf(stderr,
 				    "Lifetime set to %d seconds\n", lifetime);
@@ -618,10 +619,9 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag)
 			}
 		}
 		free(fp);
-		sshkey_free(keys[i]);
 	}
-	free(keys);
-	if (nkeys == 0)
+	sshsk_free_resident_keys(srks, nsrks);
+	if (nsrks == 0)
 		return SSH_ERR_KEY_NOT_FOUND;
 	return ok == 1 ? 0 : ok;
 }
