@@ -177,6 +177,7 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-Wunused-result], [-Wno-unused-result])
 	OSSH_CHECK_CFLAG_COMPILE([-Wimplicit-fallthrough])
 	OSSH_CHECK_CFLAG_COMPILE([-Wmisleading-indentation])
+	OSSH_CHECK_CFLAG_COMPILE([-Wbitwise-instead-of-logical])
 	OSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
     if test "x$use_toolchain_hardening" = "x1"; then
 	OSSH_CHECK_CFLAG_COMPILE([-mretpoline]) # clang
