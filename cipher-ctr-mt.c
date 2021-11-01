@@ -104,9 +104,11 @@ enum {
 struct kq {
 	u_char		keys[KQLEN][AES_BLOCK_SIZE]; /* 8192 x 16B */
 	u_char		ctr[AES_BLOCK_SIZE]; /* 16B */
+	u_char          pad0[CACHELINE_LEN];
 	pthread_mutex_t	lock;
 	pthread_cond_t	cond;
 	int             qstate;
+	u_char          pad1[CACHELINE_LEN];
 };
 
 /* Context struct */
