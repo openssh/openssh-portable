@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.32 2021/10/28 02:54:18 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.33 2021/11/02 22:56:40 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -111,6 +111,9 @@
 		(*pr) = sig->r; \
 		(*ps) = sig->s; \
 	} while (0)
+#endif
+#ifndef FIDO_ERR_OPERATION_DENIED
+#define FIDO_ERR_OPERATION_DENIED 0x27
 #endif
 
 struct sk_usbhid {
@@ -501,6 +504,48 @@ sk_probe(const char *application, const uint8_t *key_handle,
 	return sk;
 }
 
+static int
+check_sk_options(fido_dev_t *dev, const char *opt, int *ret)
+{
+	fido_cbor_info_t *info;
+	char * const *name;
+	const bool *value;
+	size_t len;
+	int r;
+
+	*ret = -1;
+
+	if (!fido_dev_is_fido2(dev)) {
+		skdebug(__func__, "device is not fido2");
+		return 0;
+	}
+	if ((info = fido_cbor_info_new()) == NULL) {
+		skdebug(__func__, "fido_cbor_info_new failed");
+		return -1;
+	}
+	if ((r = fido_dev_get_cbor_info(dev, info)) != FIDO_OK) {
+		skdebug(__func__, "fido_dev_get_cbor_info: %s", fido_strerr(r));
+		fido_cbor_info_free(&info);
+		return -1;
+	}
+	name = fido_cbor_info_options_name_ptr(info);
+	value = fido_cbor_info_options_value_ptr(info);
+	len = fido_cbor_info_options_len(info);
+	for (size_t i = 0; i < len; i++) {
+		if (!strcmp(name[i], opt)) {
+			*ret = value[i];
+			break;
+		}
+	}
+	fido_cbor_info_free(&info);
+	if (*ret == -1)
+		skdebug(__func__, "option %s is unknown", opt);
+	else
+		skdebug(__func__, "option %s is %s", opt, *ret ? "on" : "off");
+
+	return 0;
+}
+
 #ifdef WITH_OPENSSL
 /*
  * The key returned via fido_cred_pubkey_ptr() is in affine coordinates,
@@ -634,6 +679,7 @@ fidoerr_to_skerr(int fidoerr)
 		return SSH_SK_ERR_UNSUPPORTED;
 	case FIDO_ERR_PIN_REQUIRED:
 	case FIDO_ERR_PIN_INVALID:
+	case FIDO_ERR_OPERATION_DENIED:
 		return SSH_SK_ERR_PIN_REQUIRED;
 	default:
 		return -1;
@@ -687,6 +733,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	struct sk_enroll_response *response = NULL;
 	size_t len;
 	int credprot;
+	int internal_uv;
 	int cose_alg;
 	int ret = SSH_SK_ERR_GENERAL;
 	int r;
@@ -808,6 +855,14 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	if ((response = calloc(1, sizeof(*response))) == NULL) {
 		skdebug(__func__, "calloc response failed");
 		goto out;
+	}
+	response->flags = flags;
+	if ((flags & SSH_SK_USER_VERIFICATION_REQD)) {
+		if (check_sk_options(sk->dev, "uv", &internal_uv) == 0 &&
+		    internal_uv != -1) {
+			/* user verification handled by token */
+			response->flags &= ~SSH_SK_USER_VERIFICATION_REQD;
+		}
 	}
 	if (pack_public_key(alg, cred, response) != 0) {
 		skdebug(__func__, "pack_public_key failed");
@@ -991,7 +1046,7 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	struct sk_usbhid *sk = NULL;
 	struct sk_sign_response *response = NULL;
 	uint8_t message[32];
-	int ret = SSH_SK_ERR_GENERAL;
+	int ret = SSH_SK_ERR_GENERAL, internal_uv;
 	int r;
 
 	fido_init(SSH_FIDO_INIT_ARG);
@@ -1043,11 +1098,20 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 		skdebug(__func__, "fido_assert_set_up: %s", fido_strerr(r));
 		goto out;
 	}
-	if (pin == NULL && (flags & SSH_SK_USER_VERIFICATION_REQD) &&
-	    (r = fido_assert_set_uv(assert, FIDO_OPT_TRUE)) != FIDO_OK) {
-		skdebug(__func__, "fido_assert_set_uv: %s", fido_strerr(r));
-		ret = FIDO_ERR_PIN_REQUIRED;
-		goto out;
+	if (pin == NULL && (flags & SSH_SK_USER_VERIFICATION_REQD)) {
+		if (check_sk_options(sk->dev, "uv", &internal_uv) < 0 ||
+		    internal_uv != 1) {
+			skdebug(__func__, "check_sk_options uv");
+			ret = SSH_SK_ERR_PIN_REQUIRED;
+			goto out;
+		}
+		if ((r = fido_assert_set_uv(assert,
+		    FIDO_OPT_TRUE)) != FIDO_OK) {
+			skdebug(__func__, "fido_assert_set_uv: %s",
+			    fido_strerr(r));
+			ret = fidoerr_to_skerr(r);
+			goto out;
+		}
 	}
 	if ((r = fido_dev_get_assert(sk->dev, assert, pin)) != FIDO_OK) {
 		skdebug(__func__, "fido_dev_get_assert: %s", fido_strerr(r));
@@ -1084,7 +1148,7 @@ static int
 read_rks(struct sk_usbhid *sk, const char *pin,
     struct sk_resident_key ***rksp, size_t *nrksp)
 {
-	int ret = SSH_SK_ERR_GENERAL, r = -1;
+	int ret = SSH_SK_ERR_GENERAL, r = -1, internal_uv;
 	fido_credman_metadata_t *metadata = NULL;
 	fido_credman_rp_t *rp = NULL;
 	fido_credman_rk_t *rk = NULL;
@@ -1101,6 +1165,10 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 	}
 	if ((metadata = fido_credman_metadata_new()) == NULL) {
 		skdebug(__func__, "alloc failed");
+		goto out;
+	}
+	if (check_sk_options(sk->dev, "uv", &internal_uv) != 0) {
+		skdebug(__func__, "check_sk_options failed");
 		goto out;
 	}
 
@@ -1208,7 +1276,8 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 				goto out; /* XXX free rk and continue */
 			}
 
-			if (fido_cred_prot(cred) == FIDO_CRED_PROT_UV_REQUIRED)
+			if (fido_cred_prot(cred) == FIDO_CRED_PROT_UV_REQUIRED
+			    && internal_uv == -1)
 				srk->flags |=  SSH_SK_USER_VERIFICATION_REQD;
 
 			if ((r = pack_public_key(srk->alg, cred,
