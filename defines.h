@@ -854,7 +854,7 @@ struct winsize {
 #endif
 
 #ifndef SSH_IOBUFSZ
-# define SSH_IOBUFSZ 32*1024
+# define SSH_IOBUFSZ 128*1024
 #endif
 
 /*

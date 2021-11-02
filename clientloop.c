@@ -601,6 +601,7 @@ static void
 client_process_net_input(struct ssh *ssh, fd_set *readset)
 {
 	char buf[SSH_IOBUFSZ];
+	//char buf[128*1204];
 	int r, len;
 
 	/*
