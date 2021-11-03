@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.33 2021/11/02 22:56:40 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.34 2021/11/03 22:00:56 deraadt Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -510,7 +510,7 @@ check_sk_options(fido_dev_t *dev, const char *opt, int *ret)
 	fido_cbor_info_t *info;
 	char * const *name;
 	const bool *value;
-	size_t len;
+	size_t len, i;
 	int r;
 
 	*ret = -1;
@@ -531,7 +531,7 @@ check_sk_options(fido_dev_t *dev, const char *opt, int *ret)
 	name = fido_cbor_info_options_name_ptr(info);
 	value = fido_cbor_info_options_value_ptr(info);
 	len = fido_cbor_info_options_len(info);
-	for (size_t i = 0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		if (!strcmp(name[i], opt)) {
 			*ret = value[i];
 			break;
