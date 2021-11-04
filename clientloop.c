@@ -600,8 +600,7 @@ client_suspend_self(struct sshbuf *bin, struct sshbuf *bout, struct sshbuf *berr
 static void
 client_process_net_input(struct ssh *ssh, fd_set *readset)
 {
-	char buf[SSH_IOBUFSZ];
-	//char buf[128*1204];
+	char buf[SSH_IOBUFSZ*4];
 	int r, len;
 
 	/*
