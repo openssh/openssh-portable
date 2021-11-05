@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.21 2021/07/23 04:00:59 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.22 2021/11/05 03:10:58 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -813,6 +813,60 @@ parse_principals_key_and_options(const char *path, u_long linenum, char *line,
 }
 
 static int
+cert_filter_principals(const char *path, u_long linenum,
+    char **principalsp, const struct sshkey *cert, uint64_t verify_time)
+{
+	char *cp, *oprincipals, *principals;
+	const char *reason;
+	struct sshbuf *nprincipals;
+	int r = SSH_ERR_INTERNAL_ERROR, success = 0;
+
+	oprincipals = principals = *principalsp;
+	*principalsp = NULL;
+
+	if ((nprincipals = sshbuf_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+
+	while ((cp = strsep(&principals, ",")) != NULL && *cp != '\0') {
+		if (strcspn(cp, "!?*") != strlen(cp)) {
+			debug("%s:%lu: principal \"%s\" not authorized: "
+			    "contains wildcards", path, linenum, cp);
+			continue;
+		}
+		/* Check against principals list in certificate */
+		if ((r = sshkey_cert_check_authority(cert, 0, 1, 0,
+		    verify_time, cp, &reason)) != 0) {
+			debug("%s:%lu: principal \"%s\" not authorized: %s",
+			    path, linenum, cp, reason);
+			continue;
+		}
+		if ((r = sshbuf_putf(nprincipals, "%s%s",
+		    sshbuf_len(nprincipals) != 0 ? "," : "", cp)) != 0) {
+			error_f("buffer error");
+			goto out;
+		}
+	}
+	if (sshbuf_len(nprincipals) == 0) {
+		error("%s:%lu: no valid principals found", path, linenum);
+		r = SSH_ERR_KEY_CERT_INVALID;
+		goto out;
+	}
+	if ((principals = sshbuf_dup_string(nprincipals)) == NULL) {
+		error_f("buffer error");
+		goto out;
+	}
+	/* success */
+	success = 1;
+	*principalsp = principals;
+ out:
+	sshbuf_free(nprincipals);
+	free(oprincipals);
+	return success ? 0 : r;
+}
+
+static int
 check_allowed_keys_line(const char *path, u_long linenum, char *line,
     const struct sshkey *sign_key, const char *principal,
     const char *sig_namespace, uint64_t verify_time)
@@ -923,60 +977,6 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	fclose(f);
 	free(line);
 	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
-}
-
-static int
-cert_filter_principals(const char *path, u_long linenum,
-    char **principalsp, const struct sshkey *cert, uint64_t verify_time)
-{
-	char *cp, *oprincipals, *principals;
-	const char *reason;
-	struct sshbuf *nprincipals;
-	int r = SSH_ERR_INTERNAL_ERROR, success = 0;
-
-	oprincipals = principals = *principalsp;
-	*principalsp = NULL;
-
-	if ((nprincipals = sshbuf_new()) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-
-	while ((cp = strsep(&principals, ",")) != NULL && *cp != '\0') {
-		if (strcspn(cp, "!?*") != strlen(cp)) {
-			debug("%s:%lu: principal \"%s\" not authorized: "
-			    "contains wildcards", path, linenum, cp);
-			continue;
-		}
-		/* Check against principals list in certificate */
-		if ((r = sshkey_cert_check_authority(cert, 0, 1, 0,
-		    verify_time, cp, &reason)) != 0) {
-			debug("%s:%lu: principal \"%s\" not authorized: %s",
-			    path, linenum, cp, reason);
-			continue;
-		}
-		if ((r = sshbuf_putf(nprincipals, "%s%s",
-		    sshbuf_len(nprincipals) != 0 ? "," : "", cp)) != 0) {
-			error_f("buffer error");
-			goto out;
-		}
-	}
-	if (sshbuf_len(nprincipals) == 0) {
-		error("%s:%lu: no valid principals found", path, linenum);
-		r = SSH_ERR_KEY_CERT_INVALID;
-		goto out;
-	}
-	if ((principals = sshbuf_dup_string(nprincipals)) == NULL) {
-		error_f("buffer error");
-		goto out;
-	}
-	/* success */
-	success = 1;
-	*principalsp = principals;
- out:
-	sshbuf_free(nprincipals);
-	free(oprincipals);
-	return success ? 0 : r;
 }
 
 static int
