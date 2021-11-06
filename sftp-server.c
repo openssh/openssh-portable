@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.129 2021/08/09 23:47:44 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.130 2021/11/06 10:13:39 dtucker Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1553,6 +1553,7 @@ process_extended_expand(u_int32_t id)
 			npath = xstrdup(path + 2);
 			free(path);
 			xasprintf(&path, "%s/%s", cwd, npath);
+			free(npath);
 		} else {
 			/* ~user expansions */
 			if (tilde_expand(path, pw->pw_uid, &npath) != 0) {
