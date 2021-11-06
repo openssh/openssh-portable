@@ -765,6 +765,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		if test -z "$GCC"; then
 			CFLAGS="$CFLAGS -Ae"
 		fi
+		AC_DEFINE([BROKEN_GETLINE], [1], [getline is not what we expect])
 		;;
 	*-*-hpux11*)
 		AC_DEFINE([PAM_SUN_CODEBASE], [1],
