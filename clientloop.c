@@ -600,7 +600,10 @@ client_suspend_self(struct sshbuf *bin, struct sshbuf *bout, struct sshbuf *berr
 static void
 client_process_net_input(struct ssh *ssh, fd_set *readset)
 {
-	char buf[SSH_IOBUFSZ*4];
+	// the larger buf size helps in some situations but I am not sure why.
+	// I'm not seeing performance hits in other situations though. 
+	// 4x got me to 720MB/s 16x gets me to 815Mb/s higher doesn't help. 
+	char buf[SSH_IOBUFSZ*16];
 	int r, len;
 
 	/*
