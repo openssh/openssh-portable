@@ -839,6 +839,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	dnl Target SUSv3/POSIX.1-2001 plus BSD specifics.
 	dnl _DEFAULT_SOURCE is the new name for _BSD_SOURCE
 	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_DEFAULT_SOURCE"
+	AC_DEFINE([BROKEN_CLOSEFROM], [1], [broken in chroots on older kernels])
 	AC_DEFINE([PAM_TTY_KLUDGE], [1],
 		[Work around problematic Linux PAM modules handling of PAM_TTY])
 	AC_DEFINE([LOCKED_PASSWD_PREFIX], ["!"],
@@ -1820,6 +1821,7 @@ AC_CHECK_FUNCS([ \
 	cap_rights_limit \
 	clock \
 	closefrom \
+	close_range \
 	dirfd \
 	endgrent \
 	err \
