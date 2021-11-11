@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.140 2021/10/02 03:17:01 dtucker Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.141 2021/11/11 15:32:32 deraadt Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -25,6 +25,7 @@
 
 #include <netdb.h>
 #include <errno.h>
+#include <poll.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -85,8 +86,7 @@ int maxfd;
 #define MAXCON (maxfd - 10)
 
 extern char *__progname;
-fd_set *read_wait;
-size_t read_wait_nfdset;
+struct pollfd *read_wait;
 int ncon;
 
 /*
@@ -111,7 +111,7 @@ typedef struct Connection {
 	char *c_output_name;	/* Hostname of connection for output */
 	char *c_data;		/* Data read from this fd */
 	struct ssh *c_ssh;	/* SSH-connection */
-	struct timeval c_tv;	/* Time at which connection gets aborted */
+	struct timespec c_ts;	/* Time at which connection gets aborted */
 	TAILQ_ENTRY(Connection) c_link;	/* List of connections in timeout order. */
 } con;
 
@@ -413,10 +413,11 @@ conalloc(char *iname, char *oname, int keytype)
 	fdcon[s].c_len = 4;
 	fdcon[s].c_off = 0;
 	fdcon[s].c_keytype = keytype;
-	monotime_tv(&fdcon[s].c_tv);
-	fdcon[s].c_tv.tv_sec += timeout;
+	monotime_ts(&fdcon[s].c_ts);
+	fdcon[s].c_ts.tv_sec += timeout;
 	TAILQ_INSERT_TAIL(&tq, &fdcon[s], c_link);
-	FD_SET(s, read_wait);
+	read_wait[s].fd = s;
+	read_wait[s].events = POLLIN;
 	ncon++;
 	return (s);
 }
@@ -439,7 +440,8 @@ confree(int s)
 	} else
 		close(s);
 	TAILQ_REMOVE(&tq, &fdcon[s], c_link);
-	FD_CLR(s, read_wait);
+	read_wait[s].fd = -1;
+	read_wait[s].events = 0;
 	ncon--;
 }
 
@@ -447,8 +449,8 @@ static void
 contouch(int s)
 {
 	TAILQ_REMOVE(&tq, &fdcon[s], c_link);
-	monotime_tv(&fdcon[s].c_tv);
-	fdcon[s].c_tv.tv_sec += timeout;
+	monotime_ts(&fdcon[s].c_ts);
+	fdcon[s].c_ts.tv_sec += timeout;
 	TAILQ_INSERT_TAIL(&tq, &fdcon[s], c_link);
 }
 
@@ -576,40 +578,31 @@ conread(int s)
 static void
 conloop(void)
 {
-	struct timeval seltime, now;
-	fd_set *r, *e;
+	struct timespec seltime, now;
 	con *c;
 	int i;
 
-	monotime_tv(&now);
+	monotime_ts(&now);
 	c = TAILQ_FIRST(&tq);
 
-	if (c && timercmp(&c->c_tv, &now, >))
-		timersub(&c->c_tv, &now, &seltime);
+	if (c && timespeccmp(&c->c_ts, &now, >))
+		timespecsub(&c->c_ts, &now, &seltime);
 	else
-		timerclear(&seltime);
+		timespecclear(&seltime);
 
-	r = xcalloc(read_wait_nfdset, sizeof(fd_mask));
-	e = xcalloc(read_wait_nfdset, sizeof(fd_mask));
-	memcpy(r, read_wait, read_wait_nfdset * sizeof(fd_mask));
-	memcpy(e, read_wait, read_wait_nfdset * sizeof(fd_mask));
-
-	while (select(maxfd, r, NULL, e, &seltime) == -1 &&
+	while (ppoll(read_wait, maxfd, &seltime, NULL) == -1 &&
 	    (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK))
 		;
 
 	for (i = 0; i < maxfd; i++) {
-		if (FD_ISSET(i, e)) {
-			error("%s: exception!", fdcon[i].c_name);
+		if (read_wait[i].revents & (POLLHUP|POLLERR|POLLNVAL))
 			confree(i);
-		} else if (FD_ISSET(i, r))
+		else if (read_wait[i].revents & POLLIN)
 			conread(i);
 	}
-	free(r);
-	free(e);
 
 	c = TAILQ_FIRST(&tq);
-	while (c && timercmp(&c->c_tv, &now, <)) {
+	while (c && timespeccmp(&c->c_ts, &now, <)) {
 		int s = c->c_fd;
 
 		c = TAILQ_NEXT(c, c_link);
@@ -779,9 +772,7 @@ main(int argc, char **argv)
 	if (maxfd > fdlim_get(0))
 		fdlim_set(maxfd);
 	fdcon = xcalloc(maxfd, sizeof(con));
-
-	read_wait_nfdset = howmany(maxfd, NFDBITS);
-	read_wait = xcalloc(read_wait_nfdset, sizeof(fd_mask));
+	read_wait = xcalloc(maxfd, sizeof(struct pollfd));
 
 	for (j = 0; j < fopt_count; j++) {
 		if (argv[j] == NULL)
