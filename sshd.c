@@ -478,6 +478,7 @@ privsep_preauth(struct ssh *ssh)
 {
 	int status, r;
 	pid_t pid;
+	sigset_t oldset, ourset;
 	struct ssh_sandbox *box = NULL;
 
 	/* Set up unprivileged child process to deal with network data */
@@ -487,6 +488,16 @@ privsep_preauth(struct ssh *ssh)
 
 	if (use_privsep == PRIVSEP_ON)
 		box = ssh_sandbox_init(pmonitor);
+
+	// We need to block SIGALRM, as otherwise we could be killed by our alarm
+	// handler before setting pmonitor->m_pid = pid, which would result in our
+	// alarm handler not killing our child.
+	sigemptyset(&ourset);
+	(void) sigaddset(&ourset, SIGALRM);
+	if (sigprocmask(SIG_BLOCK, &ourset, &oldset) == -1) {
+		fatal_f("sigprocmask: %s", strerror(errno));
+	}
+
 	pid = fork();
 	if (pid == -1) {
 		fatal("fork of unprivileged child failed");
@@ -494,6 +505,11 @@ privsep_preauth(struct ssh *ssh)
 		debug2("Network child is on pid %ld", (long)pid);
 
 		pmonitor->m_pid = pid;
+		// Restore signal mask to state before fork()
+		if (sigprocmask(SIG_SETMASK, &oldset, NULL) == -1) {
+			fatal_f("sigprocmask: %s", strerror(errno));
+		}
+
 		if (have_agent) {
 			r = ssh_get_authentication_socket(&auth_sock);
 			if (r != 0) {
@@ -526,6 +542,11 @@ privsep_preauth(struct ssh *ssh)
 		return 1;
 	} else {
 		/* child */
+		// Restore signal mask to state before fork()
+		if (sigprocmask(SIG_SETMASK, &oldset, NULL) == -1) {
+			fatal_f("sigprocmask: %s", strerror(errno));
+		}
+
 		close(pmonitor->m_sendfd);
 		close(pmonitor->m_log_recvfd);
 
