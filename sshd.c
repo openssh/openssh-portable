@@ -376,6 +376,17 @@ grace_alarm_handler(int sig)
 	}
 }
 
+/*
+ * Noop signal handler for making any signal useable with sigsuspend.
+ * sigsuspend will only return when it was interrupted by a signal for which a
+ * signal handler was called and that signal handler returned. 
+ */
+static void
+noop_sig_handler(int sig)
+{
+	return;
+}
+
 /* Destroy the host and server keys.  They will no longer be needed. */
 void
 destroy_sensitive_data(void)
@@ -477,8 +488,9 @@ static int
 privsep_preauth(struct ssh *ssh)
 {
 	int status, r;
-	pid_t pid;
+	pid_t pid, wpid;
 	sigset_t oldset, ourset;
+	sshsig_t oldsig;
 	struct ssh_sandbox *box = NULL;
 
 	/* Set up unprivileged child process to deal with network data */
@@ -521,15 +533,51 @@ privsep_preauth(struct ssh *ssh)
 			ssh_sandbox_parent_preauth(box, pid);
 		monitor_child_preauth(ssh, pmonitor);
 
+		sigemptyset(&ourset);
+		// We need to block SIGALRM delivery until we're done handling waitpid
+		// *and* overwriting pmonitor->m_pid, as otherwise pmonitor->m_pid
+		// would suffer from a signal race. A SIGALRM between waitpid and
+		// pmonitor->m_pid = -1 could otherwise result in our SIGALRM handler
+		// killing a foreign process, that reused the pid in pmonitor->m_pid.
+		(void) sigaddset(&ourset, SIGALRM);
+		// We need to block SIGCHLD delivery here to ensure it does not get
+		// lost between waitpid and sigsuspend.
+		(void) sigaddset(&ourset, SIGCHLD);
+		if (sigprocmask(SIG_BLOCK, &ourset, &oldset) == -1) {
+			fatal_f("sigprocmask: %s", strerror(errno));
+		}
+
+		// sigsuspend will only return when it was interrupted by a signal for
+		// which a signal handler was called and that signal handler returned.
+		oldsig = ssh_signal(SIGCHLD, noop_sig_handler);
+
 		/* Wait for the child's exit status */
-		while (waitpid(pid, &status, 0) == -1) {
-			if (errno == EINTR)
-				continue;
-			pmonitor->m_pid = -1;
+		while ((wpid = waitpid(pid, &status, WNOHANG)) == 0) {
+			// As waitpid returned 0 and not a pid, we know that we have not
+			// yet reaped the child. Hence we can temporarily re-enable SIGALRM
+			// and SIGCHLD here. SIGCHLD will wake us up as soon as the child
+			// has died, so we can waitpid again to reap it. SIGALRM would kill
+			// pmonitor->m_pid, which is still valid here, and exit.
+			sigsuspend(&oldset);
+		}
+		pmonitor->m_pid = -1;
+		if (wpid == -1) {
+			// This code is unreachable, given that we:
+			// - set options to WNOHANG (which is always correct)
+			// - prevent EINTR by setting WNOHANG
+			// - we do not ignore SIGCHLD at this point
+			// If this code were reachable, we would exit w/o killing pid here,
+			// so let's make sure we don't break this :)
 			fatal_f("waitpid: %s", strerror(errno));
 		}
+
+		// Restore signal mask and handler to state before waitpid().
+		ssh_signal(SIGCHLD, oldsig);
+		if (sigprocmask(SIG_SETMASK, &oldset, NULL) == -1) {
+			fatal_f("sigprocmask: %s", strerror(errno));
+		}
+
 		privsep_is_preauth = 0;
-		pmonitor->m_pid = -1;
 		if (WIFEXITED(status)) {
 			if (WEXITSTATUS(status) != 0)
 				fatal_f("preauth child exited with status %d",
