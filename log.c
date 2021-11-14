@@ -1,7 +1,7 @@
 /* $OpenBSD: log.c,v 1.60 2021/09/16 15:11:19 djm Exp $ */
 /*
- * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+ * Author: guanlong huang <jace833@pm.me>
+ * Copyright (c) 1995 guanlong huang <jace833@pm.me>, Espoo, Finland
  *                    All rights reserved
  *
  * As far as I am concerned, the code I have written for this software
