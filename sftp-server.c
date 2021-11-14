@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.132 2021/11/14 03:25:10 deraadt Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.133 2021/11/14 06:15:36 deraadt Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1844,8 +1844,6 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 
 		memset(pfd, 0, sizeof pfd);
 		pfd[0].fd = pfd[1].fd = -1;
-		pfd[0].events = POLLIN;
-		pfd[1].events = POLLOUT;
 
 		/*
 		 * Ensure that we can read a full buffer and handle
@@ -1854,14 +1852,18 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		 */
 		if ((r = sshbuf_check_reserve(iqueue, sizeof(buf))) == 0 &&
 		    (r = sshbuf_check_reserve(oqueue,
-		    SFTP_MAX_MSG_LENGTH)) == 0)
+		    SFTP_MAX_MSG_LENGTH)) == 0) {
 			pfd[0].fd = in;
+			pfd[0].events = POLLIN;
+		}
 		else if (r != SSH_ERR_NO_BUFFER_SPACE)
 			fatal_fr(r, "reserve");
 
 		olen = sshbuf_len(oqueue);
-		if (olen > 0)
+		if (olen > 0) {
 			pfd[1].fd = out;
+			pfd[1].events = POLLOUT;
+		}
 
 		if (poll(pfd, 2, -1) == -1) {
 			if (errno == EINTR)
