@@ -1874,6 +1874,7 @@ AC_CHECK_FUNCS([ \
 	openlog_r \
 	pledge \
 	poll \
+	ppoll \
 	prctl \
 	procctl \
 	pselect \
@@ -3546,6 +3547,26 @@ AC_RUN_IFELSE(
 	[AC_MSG_WARN([cross compiling: assuming yes])
 	 select_works_with_rlimit=yes]
 )
+
+AC_CHECK_MEMBERS([struct pollfd.fd], [], [], [[
+#include <sys/types.h>
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#endif
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#endif
+]])
+
+AC_CHECK_TYPES([nfds_t], , , [
+#include <sys/types.h>
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#endif
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#endif
+])
 
 AC_MSG_CHECKING([if setrlimit(RLIMIT_NOFILE,{0,0}) works])
 AC_RUN_IFELSE(

@@ -27,17 +27,23 @@
 
 /* OPENBSD ORIGINAL: sys/sys/poll.h */
 
-#if !defined(HAVE_POLL) && !defined(HAVE_POLL_H)
 #ifndef	_COMPAT_POLL_H_
 #define	_COMPAT_POLL_H_
 
+#include <sys/types.h>
+#ifdef HAVE_POLL_H
+# include <poll.h>
+#endif
+#ifdef HAVE_SYS_POLL_H
+# include <sys/poll.h>
+#endif
+
+#ifndef HAVE_STRUCT_POLLFD_FD
 typedef struct pollfd {
 	int	fd;
 	short	events;
 	short	revents;
 } pollfd_t;
-
-typedef unsigned int	nfds_t;
 
 #define	POLLIN		0x0001
 #define	POLLOUT		0x0004
@@ -55,7 +61,18 @@ typedef unsigned int	nfds_t;
 #endif
 
 #define INFTIM		(-1)	/* not standard */
+#endif /* !HAVE_STRUCT_POLLFD_FD */
 
+#ifndef HAVE_NFDS_T
+typedef unsigned int	nfds_t;
+#endif
+
+#ifndef HAVE_POLL
 int   poll(struct pollfd *, nfds_t, int);
+#endif
+
+#ifndef HAVE_PPOLL
+int   ppoll(struct pollfd *, nfds_t, const struct timespec *, const sigset_t *);
+#endif
+
 #endif /* !_COMPAT_POLL_H_ */
-#endif /* !HAVE_POLL_H */

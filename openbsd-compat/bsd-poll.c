@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-#if !defined(HAVE_POLL)
+#if !defined(HAVE_PPOLL) || !defined(HAVE_POLL)
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -24,12 +24,14 @@
 #endif
 
 #include <errno.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "bsd-poll.h"
 
+#ifndef HAVE_PPOLL
 /*
- * A minimal implementation of poll(2), built on top of select(2).
+ * A minimal implementation of ppoll(2), built on top of pselect(2).
  *
  * Only supports POLLIN and POLLOUT flags in pfd.events, and POLLIN, POLLOUT
  * and POLLERR flags in revents.
@@ -38,13 +40,13 @@
  */
 
 int
-poll(struct pollfd *fds, nfds_t nfds, int timeout)
+ppoll(struct pollfd *fds, nfds_t nfds, const struct timespec *tmoutp,
+    const sigset_t *sigmask)
 {
 	nfds_t i;
 	int saved_errno, ret, fd, maxfd = 0;
 	fd_set *readfds = NULL, *writefds = NULL, *exceptfds = NULL;
 	size_t nmemb;
-	struct timeval tv, *tvp = NULL;
 
 	for (i = 0; i < nfds; i++) {
 		fd = fds[i].fd;
@@ -79,14 +81,7 @@ poll(struct pollfd *fds, nfds_t nfds, int timeout)
 		}
 	}
 
-	/* poll timeout is msec, select is timeval (sec + usec) */
-	if (timeout >= 0) {
-		tv.tv_sec = timeout / 1000;
-		tv.tv_usec = (timeout % 1000) * 1000;
-		tvp = &tv;
-	}
-
-	ret = select(maxfd + 1, readfds, writefds, exceptfds, tvp);
+	ret = pselect(maxfd + 1, readfds, writefds, exceptfds, tmoutp, sigmask);
 	saved_errno = errno;
 
 	/* scan through select results and set poll() flags */
@@ -114,4 +109,23 @@ out:
 		errno = saved_errno;
 	return ret;
 }
-#endif
+#endif /* HAVE_PPOLL */
+
+#ifdef HAVE_POLL
+int
+poll(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+	struct timespec ts, *tsp = NULL;
+
+	/* poll timeout is msec, ppoll is timespec (sec + nsec) */
+	if (timeout >= 0) {
+		ts.tv_sec = timeout / 1000;
+		ts.tv_nsec = (timeout % 1000000) * 1000000;
+		tsp = &ts;
+	}
+
+	return ppoll(fds, nfds, tsp, NULL);
+}
+#endif /* HAVE_POLL */
+
+#endif /* HAVE_PPOLL || HAVE_POLL */
