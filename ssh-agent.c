@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.278 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.279 2021/11/18 03:31:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1214,10 +1214,9 @@ after_poll(struct pollfd *pfd, size_t npfd, u_int maxfds)
 				activefds++;
 			break;
 		case AUTH_CONNECTION:
-			if ((pfd[i].revents & (POLLIN|POLLERR)) != 0 &&
-			    handle_conn_read(socknum) != 0) {
+			if ((pfd[i].revents & (POLLIN|POLLHUP|POLLERR)) != 0 &&
+			    handle_conn_read(socknum) != 0)
 				goto close_sock;
-			}
 			if ((pfd[i].revents & (POLLOUT|POLLHUP)) != 0 &&
 			    handle_conn_write(socknum) != 0) {
  close_sock:
