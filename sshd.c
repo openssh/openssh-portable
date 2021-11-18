@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.580 2021/11/17 21:06:39 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.581 2021/11/18 03:07:20 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1218,7 +1218,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 
 		for (i = 0; i < options.max_startups; i++) {
 			if (startup_pipes[i] == -1 ||
-			    !(pfd[num_listen_socks+i].revents & POLLIN))
+			    !(pfd[num_listen_socks+i].revents & (POLLIN|POLLHUP)))
 				continue;
 			switch (read(startup_pipes[i], &c, sizeof(c))) {
 			case -1:
