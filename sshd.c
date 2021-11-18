@@ -64,7 +64,9 @@
 #include <paths.h>
 #endif
 #include <grp.h>
+#ifdef HAVE_POLL_H
 #include <poll.h>
+#endif
 #include <pwd.h>
 #include <signal.h>
 #include <stdarg.h>
