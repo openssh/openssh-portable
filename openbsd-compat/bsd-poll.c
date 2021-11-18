@@ -120,7 +120,7 @@ poll(struct pollfd *fds, nfds_t nfds, int timeout)
 	/* poll timeout is msec, ppoll is timespec (sec + nsec) */
 	if (timeout >= 0) {
 		ts.tv_sec = timeout / 1000;
-		ts.tv_nsec = (timeout % 1000000) * 1000000;
+		ts.tv_nsec = (timeout % 1000) * 1000000;
 		tsp = &ts;
 	}
 
