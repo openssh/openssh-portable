@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.22 2021/11/05 03:10:58 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.23 2021/11/18 03:50:41 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -869,17 +869,21 @@ cert_filter_principals(const char *path, u_long linenum,
 static int
 check_allowed_keys_line(const char *path, u_long linenum, char *line,
     const struct sshkey *sign_key, const char *principal,
-    const char *sig_namespace, uint64_t verify_time)
+    const char *sig_namespace, uint64_t verify_time, char **principalsp)
 {
 	struct sshkey *found_key = NULL;
+	char *principals = NULL;
 	int r, success = 0;
 	const char *reason = NULL;
 	struct sshsigopt *sigopts = NULL;
 	char tvalid[64], tverify[64];
 
+	if (principalsp != NULL)
+		*principalsp = NULL;
+
 	/* Parse the line */
 	if ((r = parse_principals_key_and_options(path, linenum, line,
-	    principal, NULL, &found_key, &sigopts)) != 0) {
+	    principal, &principals, &found_key, &sigopts)) != 0) {
 		/* error already logged */
 		goto done;
 	}
@@ -889,14 +893,28 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 		debug("%s:%lu: matched key", path, linenum);
 	} else if (sigopts->ca && sshkey_is_cert(sign_key) &&
 	    sshkey_equal_public(sign_key->cert->signature_key, found_key)) {
-		/* Match of certificate's CA key */
-		if ((r = sshkey_cert_check_authority(sign_key, 0, 1, 0,
-		    verify_time, principal, &reason)) != 0) {
-			error("%s:%lu: certificate not authorized: %s",
-			    path, linenum, reason);
-			goto done;
+		if (principal) {
+			/* Match certificate CA key with specified principal */
+			if ((r = sshkey_cert_check_authority(sign_key, 0, 1, 0,
+			    verify_time, principal, &reason)) != 0) {
+				error("%s:%lu: certificate not authorized: %s",
+				    path, linenum, reason);
+				goto done;
+			}
+			debug("%s:%lu: matched certificate CA key",
+			    path, linenum);
+		} else {
+			/* No principal specified - find all matching ones */
+			if ((r = cert_filter_principals(path, linenum,
+			    &principals, sign_key, verify_time)) != 0) {
+				/* error already displayed */
+				debug_r(r, "%s:%lu: cert_filter_principals",
+				    path, linenum);
+				goto done;
+			}
+			debug("%s:%lu: matched certificate CA key",
+			    path, linenum);
 		}
-		debug("%s:%lu: matched certificate CA key", path, linenum);
 	} else {
 		/* Didn't match key */
 		goto done;
@@ -933,6 +951,11 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 	success = 1;
 
  done:
+	if (success && principalsp != NULL) {
+		*principalsp = principals;
+		principals = NULL; /* transferred */
+	}
+	free(principals);
 	sshkey_free(found_key);
 	sshsigopt_free(sigopts);
 	return success ? 0 : SSH_ERR_KEY_NOT_FOUND;
@@ -960,7 +983,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
 		r = check_allowed_keys_line(path, linenum, line, sign_key,
-		    principal, sig_namespace, verify_time);
+		    principal, sig_namespace, verify_time, NULL);
 		free(line);
 		line = NULL;
 		linesize = 0;
@@ -977,58 +1000,6 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	fclose(f);
 	free(line);
 	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
-}
-
-static int
-get_matching_principals_from_line(const char *path, u_long linenum, char *line,
-    const struct sshkey *sign_key, uint64_t verify_time, char **principalsp)
-{
-	struct sshkey *found_key = NULL;
-	char *principals = NULL;
-	int r, found = 0;
-	struct sshsigopt *sigopts = NULL;
-
-	if (principalsp != NULL)
-		*principalsp = NULL;
-
-	/* Parse the line */
-	if ((r = parse_principals_key_and_options(path, linenum, line,
-	    NULL, &principals, &found_key, &sigopts)) != 0) {
-		/* error already logged */
-		goto done;
-	}
-
-	if (!sigopts->ca && sshkey_equal(found_key, sign_key)) {
-		/* Exact match of key */
-		debug("%s:%lu: matched key", path, linenum);
-		/* success */
-		found = 1;
-	} else if (sigopts->ca && sshkey_is_cert(sign_key) &&
-	    sshkey_equal_public(sign_key->cert->signature_key, found_key)) {
-		/* Remove principals listed in file but not allowed by cert */
-		if ((r = cert_filter_principals(path, linenum,
-		    &principals, sign_key, verify_time)) != 0) {
-			/* error already displayed */
-			debug_r(r, "%s:%lu: cert_filter_principals",
-			    path, linenum);
-			goto done;
-		}
-		debug("%s:%lu: matched certificate CA key", path, linenum);
-		/* success */
-		found = 1;
-	} else {
-		/* Key didn't match */
-		goto done;
-	}
- done:
-	if (found && principalsp != NULL) {
-		*principalsp = principals;
-		principals = NULL; /* transferred */
-	}
-	free(principals);
-	sshkey_free(found_key);
-	sshsigopt_free(sigopts);
-	return found ? 0 : SSH_ERR_KEY_NOT_FOUND;
 }
 
 int
@@ -1051,8 +1022,8 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
-		r = get_matching_principals_from_line(path, linenum, line,
-		    sign_key, verify_time, principals);
+		r = check_allowed_keys_line(path, linenum, line,
+		    sign_key, NULL, NULL, verify_time, principals);
 		free(line);
 		line = NULL;
 		linesize = 0;
