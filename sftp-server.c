@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.133 2021/11/14 06:15:36 deraadt Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.134 2021/11/18 03:06:03 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1873,23 +1873,31 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		}
 
 		/* copy stdin to iqueue */
-		if (pfd[0].revents & POLLIN) {
+		if (pfd[0].revents & (POLLIN|POLLHUP)) {
 			len = read(in, buf, sizeof buf);
 			if (len == 0) {
 				debug("read eof");
 				sftp_server_cleanup_exit(0);
 			} else if (len == -1) {
-				error("read: %s", strerror(errno));
-				sftp_server_cleanup_exit(1);
+				if (errno != EAGAIN && errno != EINTR) {
+					error("read: %s", strerror(errno));
+					sftp_server_cleanup_exit(1);
+				}
 			} else if ((r = sshbuf_put(iqueue, buf, len)) != 0)
 				fatal_fr(r, "sshbuf_put");
 		}
 		/* send oqueue to stdout */
-		if (pfd[1].revents & POLLOUT) {
+		if (pfd[1].revents & (POLLOUT|POLLHUP)) {
 			len = write(out, sshbuf_ptr(oqueue), olen);
-			if (len == -1) {
-				error("write: %s", strerror(errno));
+			if (len == 0 || (len == -1 && errno == EPIPE)) {
+				debug("write eof");
+				sftp_server_cleanup_exit(0);
+			} else if (len == -1) {
 				sftp_server_cleanup_exit(1);
+				if (errno != EAGAIN && errno != EINTR) {
+					error("write: %s", strerror(errno));
+					sftp_server_cleanup_exit(1);
+				}
 			} else if ((r = sshbuf_consume(oqueue, len)) != 0)
 				fatal_fr(r, "consume");
 		}
