@@ -994,6 +994,11 @@ mips-sony-bsd|mips-sony-newsos4)
 	# and will crash if they cannot be opened.
 	AC_DEFINE([SANDBOX_SKIP_RLIMIT_NOFILE], [1],
 	    [define if setrlimit RLIMIT_NOFILE breaks things])
+	case "$host" in
+	*-*-freebsd9.*|*-*-freebsd10.*)
+		# Capsicum on 9 and 10 do not allow ppoll() so don't auto-enable.
+		disable_capsicum=yes
+	esac
 	;;
 *-*-bsdi*)
 	AC_DEFINE([SETEUID_BREAKS_SETUID])
@@ -3654,6 +3659,7 @@ elif test "x$sandbox_arg" = "xseccomp_filter" || \
 	AC_DEFINE([SANDBOX_SECCOMP_FILTER], [1], [Sandbox using seccomp filter])
 elif test "x$sandbox_arg" = "xcapsicum" || \
      ( test -z "$sandbox_arg" && \
+       test "x$disable_capsicum" != "xyes" && \
        test "x$ac_cv_header_sys_capsicum_h" = "xyes" && \
        test "x$ac_cv_func_cap_rights_limit" = "xyes") ; then
        test "x$ac_cv_header_sys_capsicum_h" != "xyes" && \
