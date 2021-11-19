@@ -50,7 +50,7 @@ ppoll(struct pollfd *fds, nfds_t nfds, const struct timespec *tmoutp,
 
 	for (i = 0; i < nfds; i++) {
 		fd = fds[i].fd;
-		if (fd >= FD_SETSIZE) {
+		if (fd != -1 && fd >= FD_SETSIZE) {
 			errno = EINVAL;
 			return -1;
 		}
