@@ -1381,6 +1381,86 @@ int kex_kem_ntru_hps2048677_dec(struct kex *kex,
     return r;
 }
 /*---------------------------------------------------
+ * NTRU_HPS4096821 METHODS
+ *---------------------------------------------------
+ */
+int kex_kem_ntru_hps4096821_keypair(struct kex *kex)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hps4096821);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_keypair(kem, kex);
+    OQS_KEM_free(kem);
+    return r;
+}
+int kex_kem_ntru_hps4096821_enc(struct kex *kex,
+                                  const struct sshbuf *client_blob,
+                                  struct sshbuf **server_blobp,
+                                  struct sshbuf **shared_secretp)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hps4096821);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_enc(kem, kex, client_blob, server_blobp, shared_secretp);
+    OQS_KEM_free(kem);
+    return r;
+}
+
+int kex_kem_ntru_hps4096821_dec(struct kex *kex,
+                                  const struct sshbuf *server_blob,
+                                  struct sshbuf **shared_secretp)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hps4096821);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_dec(kem, kex, server_blob, shared_secretp);
+    OQS_KEM_free(kem);
+    return r;
+}
+/*---------------------------------------------------
+ * NTRU_HPS40961229 METHODS
+ *---------------------------------------------------
+ */
+int kex_kem_ntru_hps40961229_keypair(struct kex *kex)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hps40961229);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_keypair(kem, kex);
+    OQS_KEM_free(kem);
+    return r;
+}
+int kex_kem_ntru_hps40961229_enc(struct kex *kex,
+                                  const struct sshbuf *client_blob,
+                                  struct sshbuf **server_blobp,
+                                  struct sshbuf **shared_secretp)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hps40961229);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_enc(kem, kex, client_blob, server_blobp, shared_secretp);
+    OQS_KEM_free(kem);
+    return r;
+}
+
+int kex_kem_ntru_hps40961229_dec(struct kex *kex,
+                                  const struct sshbuf *server_blob,
+                                  struct sshbuf **shared_secretp)
+{
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hps40961229);
+    if (kem == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = kex_kem_generic_dec(kem, kex, server_blob, shared_secretp);
+    OQS_KEM_free(kem);
+    return r;
+}
+/*---------------------------------------------------
  * NTRU_HRSS701 METHODS
  *---------------------------------------------------
  */
@@ -1421,12 +1501,12 @@ int kex_kem_ntru_hrss701_dec(struct kex *kex,
     return r;
 }
 /*---------------------------------------------------
- * NTRU_HPS4096821 METHODS
+ * NTRU_HRSS1373 METHODS
  *---------------------------------------------------
  */
-int kex_kem_ntru_hps4096821_keypair(struct kex *kex)
+int kex_kem_ntru_hrss1373_keypair(struct kex *kex)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hps4096821);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hrss1373);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1434,12 +1514,12 @@ int kex_kem_ntru_hps4096821_keypair(struct kex *kex)
     OQS_KEM_free(kem);
     return r;
 }
-int kex_kem_ntru_hps4096821_enc(struct kex *kex,
+int kex_kem_ntru_hrss1373_enc(struct kex *kex,
                                   const struct sshbuf *client_blob,
                                   struct sshbuf **server_blobp,
                                   struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hps4096821);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hrss1373);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
@@ -1448,11 +1528,11 @@ int kex_kem_ntru_hps4096821_enc(struct kex *kex,
     return r;
 }
 
-int kex_kem_ntru_hps4096821_dec(struct kex *kex,
+int kex_kem_ntru_hrss1373_dec(struct kex *kex,
                                   const struct sshbuf *server_blob,
                                   struct sshbuf **shared_secretp)
 {
-    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hps4096821);
+    OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ntru_hrss1373);
     if (kem == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
