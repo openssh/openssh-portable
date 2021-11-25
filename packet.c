@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.302 2021/11/13 21:14:13 deraadt Exp $ */
+/* $OpenBSD: packet.c,v 1.303 2021/11/25 23:02:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -871,7 +871,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	int r, crypt_type;
 	const char *dir = mode == MODE_OUT ? "out" : "in";
 
-	debug2("set_newkeys: mode %d", mode);
+	debug2_f("mode %d", mode);
 
 	if (mode == MODE_OUT) {
 		ccp = &state->send_context;
@@ -908,7 +908,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 			return r;
 	}
 	mac->enabled = 1;
-	DBG(debug_f("cipher_init_context: %s", dir));
+	DBG(debug_f("cipher_init: %s", dir));
 	cipher_free(*ccp);
 	*ccp = NULL;
 	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len,
@@ -2083,16 +2083,16 @@ ssh_packet_set_maxsize(struct ssh *ssh, u_int s)
 	struct session_state *state = ssh->state;
 
 	if (state->set_maxsize_called) {
-		logit("packet_set_maxsize: called twice: old %d new %d",
+		logit_f("called twice: old %d new %d",
 		    state->max_packet_size, s);
 		return -1;
 	}
 	if (s < 4 * 1024 || s > 1024 * 1024) {
-		logit("packet_set_maxsize: bad size %d", s);
+		logit_f("bad size %d", s);
 		return -1;
 	}
 	state->set_maxsize_called = 1;
-	debug("packet_set_maxsize: setting to %d", s);
+	debug_f("setting to %d", s);
 	state->max_packet_size = s;
 	return s;
 }
