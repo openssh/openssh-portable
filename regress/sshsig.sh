@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.9 2021/11/18 03:53:48 djm Exp $
+#	$OpenBSD: sshsig.sh,v 1.10 2021/11/27 07:20:58 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -408,6 +408,32 @@ for t in $SIGNKEYS; do
 		< $DATA >/dev/null 2>&1 && \
 		fail "accepted signature for $t key with expired CA but valid cert"
 
+done
+
+# Test key independant match-principals
+(
+	printf "principal1 " ; cat $pubkey;
+	printf "princi* " ; cat $pubkey;
+	printf "unique " ; cat $pubkey;
+) > $OBJ/allowed_signers
+
+verbose "$tid: match principals"
+${SSHKEYGEN} -Y match-principals -f $OBJ/allowed_signers -I "unique" | \
+    fgrep "unique" >/dev/null || \
+	fail "faild to match static principal"
+
+${SSHKEYGEN} -Y match-principals -f $OBJ/allowed_signers -I "princip" | \
+    fgrep "princi*" >/dev/null || \
+	fail "faild to match wildcard principal"
+
+${SSHKEYGEN} -Y match-principals -f $OBJ/allowed_signers -I "principal1" | \
+    fgrep -e "principal1" -e "princi*" >/dev/null || \
+	fail "faild to match static and wildcard principal"
+verbose "$tid: nomatch principals"
+for x in princ prince unknown ; do 
+	${SSHKEYGEN} -Y match-principals -f $OBJ/allowed_signers \
+	    -I $x >/dev/null 2>&1 && \
+		fail "succeeded to match unknown principal \"$x\""
 done
 
 trace "kill agent"
