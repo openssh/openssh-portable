@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.10 2021/11/27 07:20:58 djm Exp $
+#	$OpenBSD: sshsig.sh,v 1.11 2021/11/27 07:23:35 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -430,7 +430,7 @@ ${SSHKEYGEN} -Y match-principals -f $OBJ/allowed_signers -I "principal1" | \
     fgrep -e "principal1" -e "princi*" >/dev/null || \
 	fail "faild to match static and wildcard principal"
 verbose "$tid: nomatch principals"
-for x in princ prince unknown ; do 
+for x in princ prince unknown ; do
 	${SSHKEYGEN} -Y match-principals -f $OBJ/allowed_signers \
 	    -I $x >/dev/null 2>&1 && \
 		fail "succeeded to match unknown principal \"$x\""
