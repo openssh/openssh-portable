@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.23 2021/11/18 03:50:41 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.24 2021/11/27 07:14:46 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -1048,6 +1048,76 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 	}
 	fclose(f);
 	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+}
+
+int
+sshsig_match_principals(const char *path, const char *principal,
+    char ***principalsp, size_t *nprincipalsp)
+{
+	FILE *f = NULL;
+	char *found, *line = NULL, **principals = NULL, **tmp;
+	size_t i, nprincipals = 0, linesize = 0;
+	u_long linenum = 0;
+	int oerrno, r, ret = 0;
+
+	if (principalsp != NULL)
+		*principalsp = NULL;
+	if (nprincipalsp != NULL)
+		*nprincipalsp = 0;
+
+	/* Check key and principal against file */
+	if ((f = fopen(path, "r")) == NULL) {
+		oerrno = errno;
+		error("Unable to open allowed keys file \"%s\": %s",
+		    path, strerror(errno));
+		errno = oerrno;
+		return SSH_ERR_SYSTEM_ERROR;
+	}
+
+	while (getline(&line, &linesize, f) != -1) {
+		linenum++;
+		/* Parse the line */
+		if ((r = parse_principals_key_and_options(path, linenum, line,
+		    principal, &found, NULL, NULL)) != 0) {
+			if (r == SSH_ERR_KEY_NOT_FOUND)
+				continue;
+			ret = r;
+			oerrno = errno;
+			break; /* unexpected error */
+		}
+		if ((tmp = recallocarray(principals, nprincipals,
+		    nprincipals + 1, sizeof(*principals))) == NULL) {
+			ret = SSH_ERR_ALLOC_FAIL;
+			free(found);
+			break;
+		}
+		principals = tmp;
+		principals[nprincipals++] = found; /* transferred */
+		free(line);
+		line = NULL;
+		linesize = 0;
+	}
+	fclose(f);
+
+	if (ret == 0) {
+		if (nprincipals == 0)
+			ret = SSH_ERR_KEY_NOT_FOUND;
+		if (principalsp != NULL) {
+			*principalsp = principals;
+			principals = NULL; /* transferred */
+		}
+		if (nprincipalsp != 0) {
+			*nprincipalsp = nprincipals;
+			nprincipals = 0;
+		}
+	}
+
+	for (i = 0; i < nprincipals; i++)
+		free(principals[i]);
+	free(principals);
+
+	errno = oerrno;
+	return ret;
 }
 
 int

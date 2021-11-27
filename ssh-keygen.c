@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.440 2021/10/29 03:20:46 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.441 2021/11/27 07:14:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2849,6 +2849,32 @@ done:
 	return ret;
 }
 
+static int
+sig_match_principals(const char *allowed_keys, char *principal,
+	char * const *opts, size_t nopts)
+{
+	int r;
+	char **principals = NULL;
+	size_t i, nprincipals = 0;
+
+	if ((r = sig_process_opts(opts, nopts, NULL, NULL)) != 0)
+		return r; /* error already logged */
+
+	if ((r = sshsig_match_principals(allowed_keys, principal,
+	    &principals, &nprincipals)) != 0) {
+		debug_f("match: %s", ssh_err(r));
+		fprintf(stderr, "No principal matched.\n");
+		return r;
+	}
+	for (i = 0; i < nprincipals; i++) {
+		printf("%s\n", principals[i]);
+		free(principals[i]);
+	}
+	free(principals);
+
+	return 0;
+}
+
 static void
 do_moduli_gen(const char *out_file, char **opts, size_t nopts)
 {
@@ -3187,6 +3213,7 @@ usage(void)
 	    "                  file ...\n"
 	    "       ssh-keygen -Q [-l] -f krl_file [file ...]\n"
 	    "       ssh-keygen -Y find-principals -s signature_file -f allowed_signers_file\n"
+		"       ssh-keygen -Y match-principals -I signer_identity -f allowed_signers_file\n"
 	    "       ssh-keygen -Y check-novalidate -n namespace -s signature_file\n"
 	    "       ssh-keygen -Y sign -f key_file -n namespace file ...\n"
 	    "       ssh-keygen -Y verify -f allowed_signers_file -I signer_identity\n"
@@ -3467,6 +3494,19 @@ main(int argc, char **argv)
 				exit(1);
 			}
 			return sig_find_principals(ca_key_path, identity_file,
+			    opts, nopts);
+		} else if (strncmp(sign_op, "match-principals", 16) == 0) {
+			if (!have_identity) {
+				error("Too few arguments for match-principals:"
+				    "missing allowed keys file");
+				exit(1);
+			}
+			if (cert_key_id == NULL) {
+				error("Too few arguments for match-principals: "
+				    "missing principal ID");
+				exit(1);
+			}
+			return sig_match_principals(identity_file, cert_key_id,
 			    opts, nopts);
 		} else if (strncmp(sign_op, "sign", 4) == 0) {
 			if (cert_principals == NULL ||
