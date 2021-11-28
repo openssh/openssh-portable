@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.24 2021/11/27 07:14:46 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.25 2021/11/28 07:10:18 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -1058,7 +1058,7 @@ sshsig_match_principals(const char *path, const char *principal,
 	char *found, *line = NULL, **principals = NULL, **tmp;
 	size_t i, nprincipals = 0, linesize = 0;
 	u_long linenum = 0;
-	int oerrno, r, ret = 0;
+	int oerrno = 0, r, ret = 0;
 
 	if (principalsp != NULL)
 		*principalsp = NULL;
