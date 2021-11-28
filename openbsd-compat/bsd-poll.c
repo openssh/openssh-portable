@@ -111,7 +111,7 @@ out:
 }
 #endif /* HAVE_PPOLL */
 
-#ifdef HAVE_POLL
+#ifndef HAVE_POLL
 int
 poll(struct pollfd *fds, nfds_t nfds, int timeout)
 {
