@@ -306,7 +306,7 @@ OpenSSH contains no GPL code.
 	* authorization.                                                           *
 	****************************************************************************/
 
-       The Blowfish cipher implementation is licensed by Niels Provis under
+       The Blowfish cipher implementation is licensed by Niels Provos under
        a 3-clause BSD license:
 
          * Blowfish - a fast block cipher designed by Bruce Schneier
