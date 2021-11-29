@@ -17,6 +17,8 @@
 
 /* OPENBSD ORIGINAL: lib/libutil/bcrypt_pbkdf.c */
 
+/* This version has been modified to use SHA512 from SUPERCOP */
+
 #include "includes.h"
 
 #ifndef HAVE_BCRYPT_PBKDF
@@ -117,7 +119,7 @@ bcrypt_pbkdf(const char *pass, size_t passlen, const uint8_t *salt, size_t saltl
 	uint8_t sha2salt[SHA512_DIGEST_LENGTH];
 	uint8_t out[BCRYPT_HASHSIZE];
 	uint8_t tmpout[BCRYPT_HASHSIZE];
-	uint8_t countsalt[4];
+	uint8_t *countsalt;
 	size_t i, j, amt, stride;
 	uint32_t count;
 	size_t origkeylen = keylen;
@@ -126,20 +128,24 @@ bcrypt_pbkdf(const char *pass, size_t passlen, const uint8_t *salt, size_t saltl
 	if (rounds < 1)
 		goto bad;
 	if (passlen == 0 || saltlen == 0 || keylen == 0 ||
-	    keylen > sizeof(out) * sizeof(out))
+	    keylen > sizeof(out) * sizeof(out) || saltlen > 1<<20)
+		goto bad;
+	if ((countsalt = calloc(1, saltlen + 4)) == NULL)
 		goto bad;
 	stride = (keylen + sizeof(out) - 1) / sizeof(out);
 	amt = (keylen + stride - 1) / stride;
+
+	memcpy(countsalt, salt, saltlen);
 
 	/* collapse password */
 	crypto_hash_sha512(sha2pass, pass, passlen);
 
 	/* generate key, sizeof(out) at a time */
 	for (count = 1; keylen > 0; count++) {
-		countsalt[0] = (count >> 24) & 0xff;
-		countsalt[1] = (count >> 16) & 0xff;
-		countsalt[2] = (count >> 8) & 0xff;
-		countsalt[3] = count & 0xff;
+		countsalt[saltlen + 0] = (count >> 24) & 0xff;
+		countsalt[saltlen + 1] = (count >> 16) & 0xff;
+		countsalt[saltlen + 2] = (count >> 8) & 0xff;
+		countsalt[saltlen + 3] = count & 0xff;
 
 		/* first round, salt is salt */
 		crypto_hash_sha512(sha2salt, countsalt, saltlen + 4);
@@ -169,6 +175,7 @@ bcrypt_pbkdf(const char *pass, size_t passlen, const uint8_t *salt, size_t saltl
 	}
 
 	/* zap */
+	freezero(countsalt, saltlen + 4);
 	explicit_bzero(out, sizeof(out));
 	explicit_bzero(tmpout, sizeof(tmpout));
 
