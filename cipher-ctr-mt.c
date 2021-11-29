@@ -44,6 +44,11 @@
 
 #include <pthread.h>
 
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
+
 /*-------------------- TUNABLES --------------------*/
 /* maximum number of threads and queues */
 #define MAX_THREADS      6
