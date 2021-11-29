@@ -488,10 +488,10 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	/* determine is hyperthreading is enabled */
 	fp = fopen("/sys/devices/system/cpu/smt/active", "r");
 	/* can't find the file so assume that it does not exist */
-	if (fp == NULL)
-		divisor = 2;
-	fscanf(fp, "%d", &status);
-	fclose(fp);
+	if (fp != NULL) {
+		fscanf(fp, "%d", &status);
+		fclose(fp);
+	}
 	/* 1 for HT on 0 for HT off */
 	if (status == 1)
 		divisor = 4;
