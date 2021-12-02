@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.35 2021/12/02 22:40:05 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.36 2021/12/02 23:23:13 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -434,12 +434,14 @@ sk_select_by_cred(const fido_dev_info_t *devlist, size_t ndevs,
 {
 	struct sk_usbhid **skv, *sk;
 	size_t skvcnt, i;
+	int internal_uv;
 
 	if ((skv = sk_openv(devlist, ndevs, &skvcnt)) == NULL) {
 		skdebug(__func__, "sk_openv failed");
 		return NULL;
 	}
-	if (skvcnt == 1) {
+	if (skvcnt == 1 && check_sk_options(skv[0]->dev, "uv",
+	    &internal_uv) == 0 && internal_uv != -1) {
 		sk = skv[0];
 		skv[0] = NULL;
 		goto out;
