@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.34 2021/11/03 22:00:56 deraadt Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.35 2021/12/02 22:40:05 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -386,6 +386,48 @@ sk_try(const struct sk_usbhid *sk, const char *application,
 	return r != FIDO_OK ? -1 : 0;
 }
 
+static int
+check_sk_options(fido_dev_t *dev, const char *opt, int *ret)
+{
+	fido_cbor_info_t *info;
+	char * const *name;
+	const bool *value;
+	size_t len, i;
+	int r;
+
+	*ret = -1;
+
+	if (!fido_dev_is_fido2(dev)) {
+		skdebug(__func__, "device is not fido2");
+		return 0;
+	}
+	if ((info = fido_cbor_info_new()) == NULL) {
+		skdebug(__func__, "fido_cbor_info_new failed");
+		return -1;
+	}
+	if ((r = fido_dev_get_cbor_info(dev, info)) != FIDO_OK) {
+		skdebug(__func__, "fido_dev_get_cbor_info: %s", fido_strerr(r));
+		fido_cbor_info_free(&info);
+		return -1;
+	}
+	name = fido_cbor_info_options_name_ptr(info);
+	value = fido_cbor_info_options_value_ptr(info);
+	len = fido_cbor_info_options_len(info);
+	for (i = 0; i < len; i++) {
+		if (!strcmp(name[i], opt)) {
+			*ret = value[i];
+			break;
+		}
+	}
+	fido_cbor_info_free(&info);
+	if (*ret == -1)
+		skdebug(__func__, "option %s is unknown", opt);
+	else
+		skdebug(__func__, "option %s is %s", opt, *ret ? "on" : "off");
+
+	return 0;
+}
+
 static struct sk_usbhid *
 sk_select_by_cred(const fido_dev_info_t *devlist, size_t ndevs,
     const char *application, const uint8_t *key_handle, size_t key_handle_len)
@@ -502,48 +544,6 @@ sk_probe(const char *application, const uint8_t *key_handle,
 	}
 	fido_dev_info_free(&devlist, MAX_FIDO_DEVICES);
 	return sk;
-}
-
-static int
-check_sk_options(fido_dev_t *dev, const char *opt, int *ret)
-{
-	fido_cbor_info_t *info;
-	char * const *name;
-	const bool *value;
-	size_t len, i;
-	int r;
-
-	*ret = -1;
-
-	if (!fido_dev_is_fido2(dev)) {
-		skdebug(__func__, "device is not fido2");
-		return 0;
-	}
-	if ((info = fido_cbor_info_new()) == NULL) {
-		skdebug(__func__, "fido_cbor_info_new failed");
-		return -1;
-	}
-	if ((r = fido_dev_get_cbor_info(dev, info)) != FIDO_OK) {
-		skdebug(__func__, "fido_dev_get_cbor_info: %s", fido_strerr(r));
-		fido_cbor_info_free(&info);
-		return -1;
-	}
-	name = fido_cbor_info_options_name_ptr(info);
-	value = fido_cbor_info_options_value_ptr(info);
-	len = fido_cbor_info_options_len(info);
-	for (i = 0; i < len; i++) {
-		if (!strcmp(name[i], opt)) {
-			*ret = value[i];
-			break;
-		}
-	}
-	fido_cbor_info_free(&info);
-	if (*ret == -1)
-		skdebug(__func__, "option %s is unknown", opt);
-	else
-		skdebug(__func__, "option %s is %s", opt, *ret ? "on" : "off");
-
-	return 0;
 }
 
 #ifdef WITH_OPENSSL
