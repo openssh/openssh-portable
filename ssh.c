@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.569 2021/09/20 04:02:13 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.570 2021/12/02 02:44:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1342,7 +1342,8 @@ main(int ac, char **av)
 
 	/* Force no tty */
 	if (options.request_tty == REQUEST_TTY_NO ||
-	    (muxclient_command && muxclient_command != SSHMUX_COMMAND_PROXY))
+	    (muxclient_command && muxclient_command != SSHMUX_COMMAND_PROXY) ||
+	    options.session_type == SESSION_TYPE_NONE)
 		tty_flag = 0;
 	/* Do not allocate a tty if stdin is not a tty. */
 	if ((!isatty(fileno(stdin)) || options.stdin_null) &&
