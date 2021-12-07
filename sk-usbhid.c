@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.36 2021/12/02 23:23:13 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.37 2021/12/07 22:06:45 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -771,6 +771,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	else
 		sk = sk_probe(NULL, NULL, 0);
 	if (sk == NULL) {
+		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "failed to find sk");
 		goto out;
 	}
@@ -1072,6 +1073,7 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	else
 		sk = sk_probe(application, key_handle, key_handle_len);
 	if (sk == NULL) {
+		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "failed to find sk");
 		goto out;
 	}
@@ -1336,6 +1338,7 @@ sk_load_resident_keys(const char *pin, struct sk_option **options,
 	else
 		sk = sk_probe(NULL, NULL, 0);
 	if (sk == NULL) {
+		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "failed to find sk");
 		goto out;
 	}
