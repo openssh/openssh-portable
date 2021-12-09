@@ -963,6 +963,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		AC_MSG_RESULT([architecture not supported])
 	fi
 	;;
+*-*-minix)
+	AC_DEFINE([SETEUID_BREAKS_SETUID])
+	;;
 mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([NEED_SETPGRP], [1], [Need setpgrp to acquire controlling tty])
 	SONY=1
