@@ -142,17 +142,17 @@ case "${TARGET_HOST}" in
 	SKIP_LTESTS="forwarding multiplex proxy-connect hostkey-agent agent-ptrace"
 	;;
     minix3)
-	CC="clang"
 	LIBCRYPTOFLAGS="--without-openssl --disable-security-key"
 	# Minix does not have a loopback interface so we have to skip any
-	# test that relies on it.
+	# test that relies on one.
+	T="addrmatch brokenkeys cfgmatch cfgmatchlisten cfgparse connect
+	    connect-uri exit-status forward-control forwarding hostkey-agent
+	    key-options keyscan knownhosts-command login-timeout multiplex
+	    reconfigure reexec rekey scp scp-uri scp3 sftp sftp-badcmds
+	    sftp-batch sftp-cmds sftp-glob sftp-perm sftp-uri stderr-data
+	    transfer"
+	SKIP_LTESTS="$(echo $T)"
 	TEST_TARGET=t-exec
-	SKIP_LTESTS="addrmatch cfgparse key-options reexec agent connect"
-	SKIP_LTESTS="$SKIP_LTESTS keyscan rekey allow-deny-users connect-uri"
-	SKIP_LTESTS="$SKIP_LTESTS knownhosts-command sftp-uri brokenkeys"
-	SKIP_LTESTS="$SKIP_LTESTS exit-status login-timeout stderr-data"
-	SKIP_LTESTS="$SKIP_LTESTS cfgmatch forward-control multiplex transfer"
-	SKIP_LTESTS="$SKIP_LTESTS cfgmatchlisten forwarding reconfigure"
 	SUDO=""
 	;;
     nbsd4)
