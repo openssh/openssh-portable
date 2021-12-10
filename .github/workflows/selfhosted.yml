@@ -80,6 +80,7 @@ jobs:
       run: vmrun make
     - name: make tests
       run: vmrun ./.github/run_test.sh ${{ matrix.configs }}
+      timeout-minutes: 300
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@v2
