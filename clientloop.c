@@ -85,6 +85,7 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <limits.h>
+#include <linux/tcp.h> /* for TCP_INFO data */
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -111,6 +112,7 @@
 #include "msg.h"
 #include "ssherr.h"
 #include "hostfile.h"
+#include "metrics.h"
 
 /* import options */
 extern Options options;
@@ -157,6 +159,10 @@ static time_t server_alive_time;	/* Time to do server_alive_check */
 
 static void client_init_dispatch(struct ssh *ssh);
 int	session_ident = -1;
+int     metrics_hdr_remote_flag = 0;
+int     metrics_hdr_local_flag = 0;
+int     remote_no_poll_flag = 0;
+int     local_no_poll_flag = 0;
 
 /* Track escape per proto2 channel */
 struct escape_filter_ctx {
@@ -184,6 +190,7 @@ static struct global_confirms global_confirms =
     TAILQ_HEAD_INITIALIZER(global_confirms);
 
 void ssh_process_session2_setup(int, int, int, struct sshbuf *);
+void client_request_metrics(struct ssh *);
 
 /*
  * Signal handler for the window change signal (SIGWINCH).  This just sets a
@@ -1217,7 +1224,8 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	int r, max_fd = 0, max_fd2 = 0, len;
 	u_int64_t ibytes, obytes;
 	u_int nalloc = 0;
-
+	time_t previous_time;
+	
 	debug("Entering interactive session.");
 
 	if (options.control_master &&
@@ -1252,7 +1260,8 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	}
 
 	start_time = monotime_double();
-
+	previous_time = time(NULL); /* for metrics polling */
+	
 	/* Initialize variables. */
 	last_was_cr = 1;
 	exit_status = -1;
@@ -1299,10 +1308,20 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	}
 
 	schedule_server_alive_check();
-
+	if (options.metrics) {
+		client_request_metrics(ssh); /* initial metrics polling */	
+		//fprintf(stderr, "Metrics interval is %d\n", options.metrics_interval);
+	}
+		
 	/* Main loop of the client for the interactive session mode. */
 	while (!quit_pending) {
-
+		if (options.metrics) {
+			if ((time(NULL) - previous_time) >= options.metrics_interval) {
+				client_request_metrics(ssh);
+				previous_time = time(NULL);
+			}
+		}
+		
 		/* Process buffered packets sent by the server. */
 		client_process_buffered_input_packets(ssh);
 
@@ -1382,6 +1401,10 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			}
 		}
 	}
+
+	if (options.metrics)
+		client_request_metrics(ssh); /* final metrics polling */
+		
 	free(readset);
 	free(writeset);
 
@@ -2403,6 +2426,140 @@ client_input_hostkeys(struct ssh *ssh)
 	 * what the client does with its hosts file.
 	 */
 	return 1;
+}
+
+/* take the resposne from the server and parse out the data. 
+ * the _ctx should be null. It's just here because the format
+ * of the callback handler expects it. Likewise, seq is
+ * not used.  */
+static void
+client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *_ctx) {
+	struct tcp_info local_tcp_info;
+	const u_char *blob;
+	FILE *remfptr;
+	FILE *localfptr;
+	char remfilename[1024];
+	char localfilename[1024];
+	time_t now;
+	struct tm *info;
+	char timestamp[40];
+	char *metricsstring = NULL;
+	size_t tcpi_len, len = 0;
+	binn *metricsobj = NULL;
+	
+	time(&now);
+	info = localtime(&now);
+	strftime(timestamp, 40, "%d-%m-%Y %H:%M:%S", info);
+		
+	/* malloc the string 1KB should be large enough */
+	metricsstring = malloc(1024);
+
+	/* get the local socket information */
+	int sock_in = ssh_packet_get_connection_in(ssh);
+
+	/* the user can specify a name/path with options.metrics_path 
+	 * but if it's not defined we'll use a defaul name. In either case
+	 * the name will have a suffix of local for the local data and remote for
+	 * the remote data */
+	if (options.metrics_path == NULL) {
+		snprintf(remfilename, 1024, "%s", "./ssh_stack_metrics.remote");
+		snprintf(localfilename, 1024, "%s", "./ssh_stack_metrics.local");
+	} else {
+		snprintf(remfilename, 1024, "%s.%s", options.metrics_path, "remote");
+		snprintf(localfilename, 1024, "%s.%s", options.metrics_path, "local");
+	}
+
+	/* should be type 81 and if it's not then its likley that
+	* the remote does not support polling. We can still get local data though 
+	*/
+	if (type != SSH2_MSG_REQUEST_SUCCESS && !remote_no_poll_flag) {
+		error("Remote does not support stack metric polling. Local data only.");
+		remote_no_poll_flag = 1;
+		goto localonly;
+	}
+
+	/* open the file handle to write the remote data*/
+	remfptr = fopen(remfilename, "a");
+	if (remfptr == NULL)
+		fatal("Error opening %s: %s", remfilename, strerror(errno));		
+
+	/* read the entire packet string into blob */
+	sshpkt_get_string_direct(ssh, &blob, &len);
+	if (len == 0) {
+		/* received no data. which is weird */
+		error("Received no remote metrics data. Continuing.");
+	}
+
+	/* create a string of the data from the binn object blob */
+	metrics_read_binn_object((void *)blob, &metricsstring);
+
+	/* have we printed the header? */
+	if (metrics_hdr_remote_flag == 0) {
+		metrics_print_header(remfptr, "REMOTE CONNECTION");
+		metrics_hdr_remote_flag = 1;
+	}
+	fprintf(remfptr, "%s, ", timestamp);
+	fprintf(remfptr, "%s", metricsstring);
+
+	/* close remote file pointer*/
+	fclose(remfptr);
+
+	/* got the remote data, now get the local */
+localonly:
+#ifndef __linux__
+	if (!local_no_poll_flag) {
+		error("Local host does not support metric polling. Remote data only.");
+		local_no_poll_flag = 1;
+		return;
+	}
+#endif
+	/* open file handle for local data */
+	localfptr = fopen(localfilename, "a");
+	if(localfptr == NULL)
+		fatal("Error opening %s: %s", localfilename, strerror(errno));		
+	
+	tcpi_len = (size_t)sizeof(local_tcp_info);
+	getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&local_tcp_info, (socklen_t *)&tcpi_len);	
+	/* we write and read to a binn object because it lets us
+	 * format the data consistently */
+	metrics_write_binn_object(&local_tcp_info, metricsobj);
+	/* create a string of the data from the binn object blob */
+	metrics_read_binn_object((void *)blob, &metricsstring);
+	
+	if (metrics_hdr_local_flag == 0) {
+		metrics_print_header(localfptr, "LOCAL CONNECTION");
+		metrics_hdr_local_flag = 1;
+	}
+
+	fprintf(localfptr, "%s, ", timestamp);
+	fprintf(localfptr, "%s", metricsstring);
+	fclose (localfptr);
+      	free(metricsstring);
+}
+
+/* trying to use the SSH2_MSG_GLOBAL_REQUEST protocol to 
+ * ask the server to send metrics back to the client.
+ * currently I'm just checking to see if I can get the 
+ * message to the server. After that I'll try to figure out
+ * how to get a response and parse it 
+ * I may need to do something in monitor.c to handle it 
+ */
+void client_request_metrics(struct ssh *ssh) {
+	int r;
+	
+	debug("asking server for TCP stack metrics");
+	/* create a pakcet of GLOBAL_REQUEST type */
+	if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
+	    /* define the type of GLOBAL_REQUEST message */
+	    (r = sshpkt_put_cstring(ssh,
+	    "stack-metrics@hpnssh.org")) != 0 ||
+	    /* indicate if we want a response. 1 for yes 0 for no */
+	    (r = sshpkt_put_u8(ssh, 1)) != 0) /* bool: no reply during tests */
+		fatal_fr(r, "prepare stack request failure");
+	/* send the packet */ 
+	if ((r = sshpkt_send(ssh)) != 0)
+		fatal_fr(r, "send stack request");
+	client_register_global_confirm(client_process_request_metrics, NULL);
 }
 
 static int

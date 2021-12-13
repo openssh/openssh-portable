@@ -170,6 +170,7 @@ typedef enum {
 	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
 	oNoneEnabled, oNoneMacEnabled, oNoneSwitch,
 	oDisableMTAES,
+	oMetrics, oMetricsPath, oMetricsInterval,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType, oStdinNull,
 	oForkAfterAuthentication, oIgnoreUnknown, oProxyUseFdpass,
@@ -306,6 +307,9 @@ static struct {
 	{ "nonemacenabled", oNoneMacEnabled },
 	{ "noneswitch", oNoneSwitch },
         { "disablemtaes", oDisableMTAES },
+	{ "metrics", oMetrics },
+	{ "metricspath", oMetricsPath },
+	{ "metricsinterval", oMetricsInterval },	
 	{ "sessiontype", oSessionType },
 	{ "stdinnull", oStdinNull },
 	{ "forkafterauthentication", oForkAfterAuthentication },
@@ -1159,8 +1163,21 @@ parse_time:
         case oDisableMTAES:
 		intptr = &options->disable_multithreaded;
 		goto parse_flag;
-				
-	/*
+
+	case oMetrics:
+		intptr = &options->metrics;
+		goto parse_flag;
+
+	case oMetricsInterval:
+		intptr = &options->metrics_interval;
+		goto parse_int;
+		
+	case oMetricsPath:
+		charptr = &options->metrics_path;
+		options->metrics = 1;
+		goto parse_string;
+
+	 /*
 	 * We check to see if the command comes from the command
 	 * line or not. If it does then enable it otherwise fail.
 	 *  NONE should never be a default configuration.
@@ -2445,6 +2462,9 @@ initialize_options(Options * options)
 	options->none_enabled = -1;
 	options->nonemac_enabled = -1;
         options->disable_multithreaded = -1;
+	options->metrics = -1;
+	options->metrics_path = NULL;
+	options->metrics_interval = -1;
 	options->hpn_disabled = -1;
 	options->hpn_buffer_size = -1;
 	options->tcp_rcv_buf_poll = -1;
@@ -2651,6 +2671,8 @@ fill_default_options(Options * options)
 	}
         if (options->disable_multithreaded == -1)
 		options->disable_multithreaded = 0;
+	if (options->metrics_interval == -1)
+		options->metrics_interval = 5;
 	if (options->control_master == -1)
 		options->control_master = 0;
 	if (options->control_persist == -1) {

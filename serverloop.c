@@ -55,6 +55,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <linux/tcp.h> /* for TCP_INFO data */
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -78,6 +79,7 @@
 #include "auth-options.h"
 #include "serverloop.h"
 #include "ssherr.h"
+#include "metrics.h"
 
 extern ServerOptions options;
 
@@ -691,6 +693,66 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	return 0;
 }
 
+/* we need to get the actual socket in use and from there
+ * read the values in the TCP_INFO struct. 
+ * shout out to Rene Pfiffer for the article https://linuxgazette.net/136/pfeiffer.html
+ * Note: This code is linux specific. */
+static int
+server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
+{
+	struct tcp_info tcp_info;
+	struct sshbuf *resp = NULL;
+	int tcp_info_len = sizeof(tcp_info); /*expect around 104 bytes */
+	/* this is the socket of the current connection */
+	int sock_in = ssh_packet_get_connection_in(ssh);
+	int r, success = 0;
+	binn *metricsobj;
+
+	/* if this isn't for linux then just return as there is no
+	 * consistent tcp_info struct in other OSes */
+#ifndef __linux__
+	return success;
+#endif
+	
+	if ((resp = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new");
+
+	/* create the binn object to hold the serialized metrics */
+	metricsobj = binn_object();
+
+	debug("Stack metrics request for connection %d", sock_in);
+	getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&tcp_info, (socklen_t *)&tcp_info_len);
+	metrics_write_binn_object(&tcp_info, metricsobj);
+	//int foo;
+	//foo = binn_object_int8(metricsobj, "tcpi_snd_wscale");
+	//debug("******** snd_wscale is %d", foo);
+	//int bar;
+	//bar = binn_object_int32(metricsobj, "tcpi_segs_in");
+	//debug("******** segs in is %d", bar);
+	//debug("Metric obj written: size of: %d\n", binn_size(metricsobj));
+	//debug ("string is %s\n", binn_ptr(metricsobj));
+	//int size = binn_size(metricsobj);
+	//const unsigned char *p;
+	//p = binn_ptr(metricsobj);
+	//for (int i =0; i < size; i++) {
+	//  fprintf (stderr, "%d ", p[i]);
+	//}
+	//debug ("size of resp is %ld", sizeof(resp));
+	if ((r = sshbuf_put_string(resp, binn_ptr(metricsobj), binn_size(metricsobj))) != 0) {
+			error_fr(r, "assemble metrics");
+			goto out;
+	}
+	//debug ("size of resp is now %ld", sizeof(resp));
+	sshbuf_dump(resp, stderr);
+	*respp = resp;
+	resp = NULL; /* don't free it */
+	success = 1;
+out:
+	sshbuf_free(resp);
+	binn_free(metricsobj);
+	return success;
+}
+
 static int
 server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 {
@@ -857,6 +919,10 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 		success = 1;
 	} else if (strcmp(rtype, "hostkeys-prove-00@openssh.com") == 0) {
 		success = server_input_hostkeys_prove(ssh, &resp);
+	} else if (strcmp(rtype, "stack-metrics@hpnssh.org") == 0) {
+		/* resp is the response (sshbuf struct) from the function which is
+		 * handled below in the want_reply stanza */
+		success = server_input_metrics_request(ssh, &resp);
 	}
 	/* XXX sshpkt_get_end() */
 	if (want_reply) {
