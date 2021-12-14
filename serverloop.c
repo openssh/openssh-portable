@@ -55,7 +55,9 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdarg.h>
+#ifdef __linux__
 #include <linux/tcp.h> /* for TCP_INFO data */
+#endif
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -722,28 +724,12 @@ server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
 
 	debug("Stack metrics request for connection %d", sock_in);
 	getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&tcp_info, (socklen_t *)&tcp_info_len);
+	/* write the tcp_info data to the binn object */
 	metrics_write_binn_object(&tcp_info, metricsobj);
-	//int foo;
-	//foo = binn_object_int8(metricsobj, "tcpi_snd_wscale");
-	//debug("******** snd_wscale is %d", foo);
-	//int bar;
-	//bar = binn_object_int32(metricsobj, "tcpi_segs_in");
-	//debug("******** segs in is %d", bar);
-	//debug("Metric obj written: size of: %d\n", binn_size(metricsobj));
-	//debug ("string is %s\n", binn_ptr(metricsobj));
-	//int size = binn_size(metricsobj);
-	//const unsigned char *p;
-	//p = binn_ptr(metricsobj);
-	//for (int i =0; i < size; i++) {
-	//  fprintf (stderr, "%d ", p[i]);
-	//}
-	//debug ("size of resp is %ld", sizeof(resp));
 	if ((r = sshbuf_put_string(resp, binn_ptr(metricsobj), binn_size(metricsobj))) != 0) {
 			error_fr(r, "assemble metrics");
 			goto out;
 	}
-	//debug ("size of resp is now %ld", sizeof(resp));
-	sshbuf_dump(resp, stderr);
 	*respp = resp;
 	resp = NULL; /* don't free it */
 	success = 1;

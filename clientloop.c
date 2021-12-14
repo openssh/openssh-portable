@@ -85,7 +85,9 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <limits.h>
+#ifdef __linux__
 #include <linux/tcp.h> /* for TCP_INFO data */
+#endif
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
