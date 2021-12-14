@@ -66,7 +66,9 @@ enum
 #endif /* IPTOS_LOWDELAY */
 
 /*
- * Definitions for DiffServ Codepoints as per RFC2474
+ * Definitions for DiffServ Codepoints as per RFCs 2474, 3246, 4594 & 8622.
+ * These are the 6 most significant bits as they appear on the wire, so the
+ * two least significant bits must be zero.
  */
 #ifndef IPTOS_DSCP_AF11
 # define	IPTOS_DSCP_AF11		0x28
@@ -97,7 +99,7 @@ enum
 # define	IPTOS_DSCP_EF		0xb8
 #endif /* IPTOS_DSCP_EF */
 #ifndef IPTOS_DSCP_LE
-# define	IPTOS_DSCP_LE		0x01
+# define	IPTOS_DSCP_LE		0x04
 #endif /* IPTOS_DSCP_LE */
 #ifndef IPTOS_PREC_CRITIC_ECP
 # define IPTOS_PREC_CRITIC_ECP		0xa0
