@@ -2,15 +2,72 @@
 #include "metrics.h"
 #include "ssherr.h"
 #include <stdlib.h>
+#ifdef __linux__
+#include <linux/version.h>
+#endif
 
 /* add the information from the tcp_info struct to the
  * serialized binary object
  */
-void 
+void
 metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,10,0)
 	if (data->tcpi_delivery_rate_app_limited)
 		binn_object_set_int8(binnobj, "tcpi_delivery_rate_app_limited",
 				    data->tcpi_delivery_rate_app_limited);
+	if (data->tcpi_busy_time)
+		binn_object_set_int64(binnobj, "tcpi_busy_time",
+				     data->tcpi_busy_time);
+	if (data->tcpi_data_segs_out)
+		binn_object_set_int32(binnobj, "tcpi_data_segs_out",
+				     data->tcpi_data_segs_out);
+	if (data->tcpi_min_rtt)
+		binn_object_set_int32(binnobj, "tcpi_min_rtt",
+				     data->tcpi_min_rtt);
+	if (data->tcpi_data_segs_in)
+		binn_object_set_int32(binnobj, "tcpi_data_segs_in",
+				     data->tcpi_data_segs_in);
+	if (data->tcpi_reord_seen)
+		binn_object_set_int32(binnobj, "tcpi_reord_seen",
+				     data->tcpi_reord_seen);
+	if (data->tcpi_delivered_ce)
+		binn_object_set_int32(binnobj, "tcpi_delivered_ce",
+				     data->tcpi_delivered_ce);
+	if (data->tcpi_fastopen_client_fail)
+		binn_object_set_int8(binnobj, "tcpi_fastopen_client_fail",
+				    data->tcpi_fastopen_client_fail);
+	if (data->tcpi_sndbuf_limited)
+		binn_object_set_int64(binnobj, "tcpi_sndbuf_limited",
+				     data->tcpi_sndbuf_limited);
+	if (data->tcpi_delivery_rate)
+		binn_object_set_int64(binnobj, "tcpi_delivery_rate",
+				     data->tcpi_delivery_rate);
+	if (data->tcpi_bytes_retrans)
+		binn_object_set_int64(binnobj, "tcpi_bytes_retrans",
+				     data->tcpi_bytes_retrans);
+	if (data->tcpi_dsack_dups)
+		binn_object_set_int32(binnobj, "tcpi_dsack_dups",
+				     data->tcpi_dsack_dups);
+	if (data->tcpi_delivered)
+		    binn_object_set_int32(binnobj, "tcpi_delivered",
+					 data->tcpi_delivered);
+	if (data->tcpi_rwnd_limited)
+		binn_object_set_int64(binnobj, "tcpi_rwnd_limited",
+				     data->tcpi_rwnd_limited);
+	if (data->tcpi_bytes_sent)
+		binn_object_set_int64(binnobj, "tcpi_bytes_sent",
+				     data->tcpi_bytes_sent);
+	if (data->tcpi_snd_wnd)
+		binn_object_set_int32(binnobj, "tcpi_snd_wnd",
+				     data->tcpi_snd_wnd);
+	if (data->tcpi_rcv_ooopack)
+		binn_object_set_int32(binnobj, "tcpi_rcv_ooopack",
+				     data->tcpi_rcv_ooopack);
+	if (data->tcpi_notsent_bytes)
+		binn_object_set_int32(binnobj, "tcpi_notsent_bytes",
+				      data->tcpi_notsent_bytes);
+#endif
+
 	if (data->tcpi_rcv_ssthresh)
 		binn_object_set_int32(binnobj, "tcpi_rcv_ssthresh",
 				     data->tcpi_rcv_ssthresh);
@@ -26,9 +83,6 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 	if (data->tcpi_snd_ssthresh)
 		binn_object_set_int32(binnobj, "tcpi_snd_ssthresh",
 				     data->tcpi_snd_ssthresh);
-	if (data->tcpi_data_segs_out)
-		binn_object_set_int32(binnobj, "tcpi_data_segs_out",
-				     data->tcpi_data_segs_out);
 	if (data->tcpi_rtt)
 		binn_object_set_int32(binnobj, "tcpi_rtt",
 				     data->tcpi_rtt);
@@ -53,15 +107,9 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 	if (data->tcpi_bytes_acked)
 		binn_object_set_int64(binnobj, "tcpi_bytes_acked",
 				     data->tcpi_bytes_acked);
-	if (data->tcpi_min_rtt)
-		binn_object_set_int32(binnobj, "tcpi_min_rtt",
-				     data->tcpi_min_rtt);
 	if (data->tcpi_pmtu)
 		binn_object_set_int32(binnobj, "tcpi_pmtu",
 				     data->tcpi_pmtu);
-	if (data->tcpi_data_segs_in)
-		binn_object_set_int32(binnobj, "tcpi_data_segs_in",
-				     data->tcpi_data_segs_in);
 	if (data->tcpi_ato)
 		binn_object_set_int32(binnobj, "tcpi_ato",
 				     data->tcpi_ato);
@@ -74,12 +122,6 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 	if (data->tcpi_fackets)
 		binn_object_set_int32(binnobj, "tcpi_fackets",
 				     data->tcpi_fackets);
-	if (data->tcpi_reord_seen)
-		binn_object_set_int32(binnobj, "tcpi_reord_seen",
-				     data->tcpi_reord_seen);
-	if (data->tcpi_delivered_ce)
-		binn_object_set_int32(binnobj, "tcpi_delivered_ce",
-				     data->tcpi_delivered_ce);
 	if (data->tcpi_rcv_wscale)
 		binn_object_set_int8(binnobj, "tcpi_rcv_wscale",
 				    data->tcpi_rcv_wscale);
@@ -95,18 +137,9 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 	if (data->tcpi_state)
 		binn_object_set_int8(binnobj, "tcpi_state",
 				    data->tcpi_state);
-	if (data->tcpi_fastopen_client_fail)
-		binn_object_set_int8(binnobj, "tcpi_fastopen_client_fail",
-				    data->tcpi_fastopen_client_fail);
 	if (data->tcpi_rttvar)
 		binn_object_set_int32(binnobj, "tcpi_rttvar",
 				     data->tcpi_rttvar);
-	if (data->tcpi_sndbuf_limited)
-		binn_object_set_int64(binnobj, "tcpi_sndbuf_limited",
-				     data->tcpi_sndbuf_limited);
-	if (data->tcpi_delivery_rate)
-		binn_object_set_int64(binnobj, "tcpi_delivery_rate",
-				     data->tcpi_delivery_rate);
 	if (data->tcpi_retransmits)
 		binn_object_set_int8(binnobj, "tcpi_retransmits",
 				    data->tcpi_retransmits);
@@ -119,21 +152,9 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 	if (data->tcpi_snd_cwnd)
 		binn_object_set_int32(binnobj, "tcpi_snd_cwnd",
 				     data->tcpi_snd_cwnd);
-	if (data->tcpi_bytes_retrans)
-		binn_object_set_int64(binnobj, "tcpi_bytes_retrans",
-				     data->tcpi_bytes_retrans);
-	if (data->tcpi_dsack_dups)
-		binn_object_set_int32(binnobj, "tcpi_dsack_dups",
-				     data->tcpi_dsack_dups);
-	if (data->tcpi_delivered)
-		    binn_object_set_int32(binnobj, "tcpi_delivered",
-					 data->tcpi_delivered);
 	if (data->tcpi_pacing_rate)
 		binn_object_set_int64(binnobj, "tcpi_pacing_rate",
 				     data->tcpi_pacing_rate);
-	if (data->tcpi_rwnd_limited)
-		binn_object_set_int64(binnobj, "tcpi_rwnd_limited",
-				     data->tcpi_rwnd_limited);
 	if (data->tcpi_rcv_mss)
 		binn_object_set_int32(binnobj, "tcpi_rcv_mss",
 				     data->tcpi_rcv_mss);
@@ -146,15 +167,9 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 	if (data->tcpi_reordering)
 		binn_object_set_int32(binnobj, "tcpi_reordering",
 				     data->tcpi_reordering);
-	if (data->tcpi_bytes_sent)
-		binn_object_set_int64(binnobj, "tcpi_bytes_sent",
-				     data->tcpi_bytes_sent);
 	if (data->tcpi_advmss)
 		binn_object_set_int32(binnobj, "tcpi_advmss",
 				     data->tcpi_advmss);
-	if (data->tcpi_snd_wnd)
-		binn_object_set_int32(binnobj, "tcpi_snd_wnd",
-				     data->tcpi_snd_wnd);
 	if (data->tcpi_rto)
 		binn_object_set_int32(binnobj, "tcpi_rto",
 				     data->tcpi_rto);
@@ -164,15 +179,9 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 	if (data->tcpi_rcv_space)
 		binn_object_set_int32(binnobj, "tcpi_rcv_space",
 				     data->tcpi_rcv_space);
-	if (data->tcpi_rcv_ooopack)
-		binn_object_set_int32(binnobj, "tcpi_rcv_ooopack",
-				     data->tcpi_rcv_ooopack);
 	if (data->tcpi_options)
 		binn_object_set_int8(binnobj, "tcpi_options",
 				    data->tcpi_options);
-	if (data->tcpi_notsent_bytes)
-		binn_object_set_int32(binnobj, "tcpi_notsent_bytes",
-				     data->tcpi_notsent_bytes);
 	if (data->tcpi_retrans)
 		binn_object_set_int32(binnobj, "tcpi_retrans",
 				     data->tcpi_retrans);
@@ -184,10 +193,6 @@ metrics_read_binn_object (void *binnobj, char **output) {
 		fprintf(stderr, "Remote metric polling returned bad data.\n");
 		return;
 	}
-	//*output = realloc(*output, 1024);
-/* we don't know how long this will
-					   * be so alloc 1KB and that should fit everything.
-					   * he said in famous last words */
 
 	snprintf(*output, 1023, "%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %lld, %lld, %lld, %lld, %d, %d, %d, %d, %d, %d, %lld, %lld, %lld, %lld, %d, %d, %lld, %lld, %d, %d, %d, %d\n",
 		binn_object_int8(binnobj, "tcpi_state"),

@@ -410,19 +410,19 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		process_output(ssh, writeset, connection_out);
 	}
 	collect_children(ssh);
-	
+
 	free(readset);
 	free(writeset);
 
 	/* write final log entry */
 	sshpkt_final_log_entry(ssh);
-	
+
 	/* free all channels, no more reads and writes */
 	channel_free_all(ssh);
 
 	/* final entry must come after channels close -cjr */
         sshpkt_final_log_entry(ssh);
-	
+
 	/* free remaining sessions, e.g. remove wtmp entries */
 	session_destroy_all(ssh, NULL);
 }
@@ -696,7 +696,7 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 /* we need to get the actual socket in use and from there
- * read the values in the TCP_INFO struct. 
+ * read the values in the TCP_INFO struct.
  * shout out to Rene Pfiffer for the article https://linuxgazette.net/136/pfeiffer.html
  * Note: This code is linux specific. */
 static int
@@ -715,7 +715,7 @@ server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
 #ifndef __linux__
 	return success;
 #endif
-	
+
 	if ((resp = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new");
 

@@ -610,8 +610,8 @@ static void
 client_process_net_input(struct ssh *ssh, fd_set *readset)
 {
 	// the larger buf size helps in some situations but I am not sure why.
-	// I'm not seeing performance hits in other situations though. 
-	// 4x got me to 720MB/s 16x gets me to 815Mb/s higher doesn't help. 
+	// I'm not seeing performance hits in other situations though.
+	// 4x got me to 720MB/s 16x gets me to 815Mb/s higher doesn't help.
 	char buf[SSH_IOBUFSZ*16];
 	int r, len;
 
@@ -1227,7 +1227,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	u_int64_t ibytes, obytes;
 	u_int nalloc = 0;
 	time_t previous_time;
-	
+
 	debug("Entering interactive session.");
 
 	if (options.control_master &&
@@ -1263,7 +1263,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 
 	start_time = monotime_double();
 	previous_time = time(NULL); /* for metrics polling */
-	
+
 	/* Initialize variables. */
 	last_was_cr = 1;
 	exit_status = -1;
@@ -1311,10 +1311,10 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 
 	schedule_server_alive_check();
 	if (options.metrics) {
-		client_request_metrics(ssh); /* initial metrics polling */	
+		client_request_metrics(ssh); /* initial metrics polling */
 		//fprintf(stderr, "Metrics interval is %d\n", options.metrics_interval);
 	}
-		
+
 	/* Main loop of the client for the interactive session mode. */
 	while (!quit_pending) {
 		if (options.metrics) {
@@ -1323,7 +1323,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 				previous_time = time(NULL);
 			}
 		}
-		
+
 		/* Process buffered packets sent by the server. */
 		client_process_buffered_input_packets(ssh);
 
@@ -1406,7 +1406,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 
 	if (options.metrics)
 		client_request_metrics(ssh); /* final metrics polling */
-		
+
 	free(readset);
 	free(writeset);
 
@@ -2430,7 +2430,7 @@ client_input_hostkeys(struct ssh *ssh)
 	return 1;
 }
 
-/* take the resposne from the server and parse out the data. 
+/* take the resposne from the server and parse out the data.
  * the _ctx should be null. It's just here because the format
  * of the callback handler expects it. Likewise, seq is
  * not used.  */
@@ -2448,18 +2448,18 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	char *metricsstring = NULL;
 	size_t tcpi_len, len = 0;
 	binn *metricsobj = NULL;
-	
+
 	time(&now);
 	info = localtime(&now);
 	strftime(timestamp, 40, "%d-%m-%Y %H:%M:%S", info);
-		
+
 	/* malloc the string 1KB should be large enough */
 	metricsstring = malloc(1024);
 
 	/* get the local socket information */
 	int sock_in = ssh_packet_get_connection_in(ssh);
 
-	/* the user can specify a name/path with options.metrics_path 
+	/* the user can specify a name/path with options.metrics_path
 	 * but if it's not defined we'll use a defaul name. In either case
 	 * the name will have a suffix of local for the local data and remote for
 	 * the remote data */
@@ -2472,7 +2472,7 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	}
 
 	/* should be type 81 and if it's not then its likley that
-	* the remote does not support polling. We can still get local data though 
+	* the remote does not support polling. We can still get local data though
 	*/
 	if (type != SSH2_MSG_REQUEST_SUCCESS && !remote_no_poll_flag) {
 		error("Remote does not support stack metric polling. Local data only.");
@@ -2483,7 +2483,7 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	/* open the file handle to write the remote data*/
 	remfptr = fopen(remfilename, "a");
 	if (remfptr == NULL)
-		fatal("Error opening %s: %s", remfilename, strerror(errno));		
+		fatal("Error opening %s: %s", remfilename, strerror(errno));
 
 	/* read the entire packet string into blob */
 	sshpkt_get_string_direct(ssh, &blob, &len);
@@ -2518,16 +2518,16 @@ localonly:
 	/* open file handle for local data */
 	localfptr = fopen(localfilename, "a");
 	if(localfptr == NULL)
-		fatal("Error opening %s: %s", localfilename, strerror(errno));		
-	
+		fatal("Error opening %s: %s", localfilename, strerror(errno));
+
 	tcpi_len = (size_t)sizeof(local_tcp_info);
-	getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&local_tcp_info, (socklen_t *)&tcpi_len);	
+	getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&local_tcp_info, (socklen_t *)&tcpi_len);
 	/* we write and read to a binn object because it lets us
 	 * format the data consistently */
 	metrics_write_binn_object(&local_tcp_info, metricsobj);
 	/* create a string of the data from the binn object blob */
 	metrics_read_binn_object((void *)blob, &metricsstring);
-	
+
 	if (metrics_hdr_local_flag == 0) {
 		metrics_print_header(localfptr, "LOCAL CONNECTION");
 		metrics_hdr_local_flag = 1;
@@ -2536,19 +2536,19 @@ localonly:
 	fprintf(localfptr, "%s, ", timestamp);
 	fprintf(localfptr, "%s", metricsstring);
 	fclose (localfptr);
-      	free(metricsstring);
+	free(metricsstring);
 }
 
-/* trying to use the SSH2_MSG_GLOBAL_REQUEST protocol to 
+/* trying to use the SSH2_MSG_GLOBAL_REQUEST protocol to
  * ask the server to send metrics back to the client.
- * currently I'm just checking to see if I can get the 
+ * currently I'm just checking to see if I can get the
  * message to the server. After that I'll try to figure out
- * how to get a response and parse it 
- * I may need to do something in monitor.c to handle it 
+ * how to get a response and parse it
+ * I may need to do something in monitor.c to handle it
  */
 void client_request_metrics(struct ssh *ssh) {
 	int r;
-	
+
 	debug("asking server for TCP stack metrics");
 	/* create a pakcet of GLOBAL_REQUEST type */
 	if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
@@ -2558,7 +2558,7 @@ void client_request_metrics(struct ssh *ssh) {
 	    /* indicate if we want a response. 1 for yes 0 for no */
 	    (r = sshpkt_put_u8(ssh, 1)) != 0) /* bool: no reply during tests */
 		fatal_fr(r, "prepare stack request failure");
-	/* send the packet */ 
+	/* send the packet */
 	if ((r = sshpkt_send(ssh)) != 0)
 		fatal_fr(r, "send stack request");
 	client_register_global_confirm(client_process_request_metrics, NULL);

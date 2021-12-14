@@ -309,7 +309,7 @@ static struct {
         { "disablemtaes", oDisableMTAES },
 	{ "metrics", oMetrics },
 	{ "metricspath", oMetricsPath },
-	{ "metricsinterval", oMetricsInterval },	
+	{ "metricsinterval", oMetricsInterval },
 	{ "sessiontype", oSessionType },
 	{ "stdinnull", oStdinNull },
 	{ "forkafterauthentication", oForkAfterAuthentication },
@@ -1159,7 +1159,7 @@ parse_time:
 	case oNoneMacEnabled:
 		intptr = &options->nonemac_enabled;
 		goto parse_flag;
-		
+
         case oDisableMTAES:
 		intptr = &options->disable_multithreaded;
 		goto parse_flag;
@@ -1171,7 +1171,7 @@ parse_time:
 	case oMetricsInterval:
 		intptr = &options->metrics_interval;
 		goto parse_int;
-		
+
 	case oMetricsPath:
 		charptr = &options->metrics_path;
 		options->metrics = 1;
