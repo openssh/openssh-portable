@@ -2525,8 +2525,8 @@ localonly:
 	/* we write and read to a binn object because it lets us
 	 * format the data consistently */
 	metrics_write_binn_object(&local_tcp_info, metricsobj);
-	/* create a string of the data from the binn object blob */
-	metrics_read_binn_object((void *)blob, &metricsstring);
+	/* create a string of the data from the binn object metricsobj */
+	metrics_read_binn_object(metricsobj, &metricsstring);
 
 	if (metrics_hdr_local_flag == 0) {
 		metrics_print_header(localfptr, "LOCAL CONNECTION");
