@@ -74,9 +74,6 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 	if (data->tcpi_bytes_received)
 		binn_object_set_int64(binnobj, "tcpi_bytes_received",
 				     data->tcpi_bytes_received);
-	if (data->tcpi_busy_time)
-		binn_object_set_int64(binnobj, "tcpi_busy_time",
-				     data->tcpi_busy_time);
 	if (data->tcpi_segs_in)
 		binn_object_set_int32(binnobj, "tcpi_segs_in",
 				     data->tcpi_segs_in);
