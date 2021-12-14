@@ -2474,9 +2474,11 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	/* should be type 81 and if it's not then its likley that
 	* the remote does not support polling. We can still get local data though
 	*/
-	if (type != SSH2_MSG_REQUEST_SUCCESS && !remote_no_poll_flag) {
-		error("Remote does not support stack metric polling. Local data only.");
-		remote_no_poll_flag = 1;
+	if (type != SSH2_MSG_REQUEST_SUCCESS) {
+		if (remote_no_poll_flag == 0) {
+			error("Remote does not support stack metric polling. Local data only.");
+			remote_no_poll_flag = 1;
+		}
 		goto localonly;
 	}
 
@@ -2509,7 +2511,7 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	/* got the remote data, now get the local */
 localonly:
 #ifndef __linux__
-	if (!local_no_poll_flag) {
+	if (local_no_poll_flag == 0) {
 		error("Local host does not support metric polling. Remote data only.");
 		local_no_poll_flag = 1;
 		return;
