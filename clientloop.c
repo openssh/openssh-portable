@@ -2520,13 +2520,18 @@ localonly:
 	if(localfptr == NULL)
 		fatal("Error opening %s: %s", localfilename, strerror(errno));
 
+	/* create the binn object*/
+	metricsobj = binn_object();
+	
 	tcpi_len = (size_t)sizeof(local_tcp_info);
 	getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&local_tcp_info, (socklen_t *)&tcpi_len);
+
 	/* we write and read to a binn object because it lets us
 	 * format the data consistently */
 	metrics_write_binn_object(&local_tcp_info, metricsobj);
+
 	/* create a string of the data from the binn object metricsobj */
-	metrics_read_binn_object(metricsobj, &metricsstring);
+	metrics_read_binn_object((void *)metricsobj, &metricsstring);
 
 	if (metrics_hdr_local_flag == 0) {
 		metrics_print_header(localfptr, "LOCAL CONNECTION");

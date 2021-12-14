@@ -187,7 +187,7 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 void
 metrics_read_binn_object (void *binnobj, char **output) {
 	if (binnobj == NULL) {
-		fprintf(stderr, "Remote metric polling returned bad data.\n");
+		fprintf(stderr, "Metric polling returned bad data.\n");
 		return;
 	}
 
