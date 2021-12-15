@@ -698,13 +698,15 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 /* we need to get the actual socket in use and from there
  * read the values in the TCP_INFO struct.
  * shout out to Rene Pfiffer for the article https://linuxgazette.net/136/pfeiffer.html
- * Note: This code is linux specific. */
+ * Note: This code is linux specific. I hope to include *BSD at some point*/
 static int
 server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
 {
-	struct tcp_info tcp_info;
+#ifdef __linux__
+        struct tcp_info tcp_info;
+#endif
 	struct sshbuf *resp = NULL;
-	int tcp_info_len = sizeof(tcp_info); /*expect around 104 bytes */
+	int tcp_info_len;
 	/* this is the socket of the current connection */
 	int sock_in = ssh_packet_get_connection_in(ssh);
 	int r, success = 0;
@@ -714,8 +716,8 @@ server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
 	 * consistent tcp_info struct in other OSes */
 #ifndef __linux__
 	return success;
-#endif
-
+#else
+	tcp_info_len = sizeof(tcp_info); /*expect around 330 bytes */
 	if ((resp = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new");
 
@@ -737,6 +739,7 @@ out:
 	sshbuf_free(resp);
 	binn_free(metricsobj);
 	return success;
+#endif
 }
 
 static int

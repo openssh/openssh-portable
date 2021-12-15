@@ -2434,7 +2434,9 @@ client_input_hostkeys(struct ssh *ssh)
  * not used.  */
 static void
 client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *_ctx) {
+#ifdef __linux__
 	struct tcp_info local_tcp_info;
+#endif
 	const u_char *blob;
 	FILE *remfptr;
 	FILE *localfptr;
@@ -2518,7 +2520,7 @@ localonly:
 		local_no_poll_flag = 1;
 		return;
 	}
-#endif
+#else
 	/* open file handle for local data */
 	localfptr = fopen(localfilename, "a");
 	if(localfptr == NULL)
@@ -2548,6 +2550,7 @@ localonly:
 	fprintf(localfptr, "%s, ", timestamp);
 	fprintf(localfptr, "%s\n", metricsstring);
 	fclose (localfptr);
+#endif
 	free(metricsstring);
 }
 

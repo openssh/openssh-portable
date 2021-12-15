@@ -3,9 +3,12 @@
 #include "ssherr.h"
 #include <stdlib.h>
 
+#ifndef KERNEL_VERSION
+#define KERNEL_VERSION(a,b,c) (((a) <<16) + ((b) << 8) +(c))
+#endif
+
 #ifdef __linux__
 #include <linux/version.h>
-#endif
 
 /* add the information from the tcp_info struct to the
  * serialized binary object
@@ -216,6 +219,7 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 				      data->tcpi_fastopen_client_fail);
 #endif
 }
+#endif
 
 /* this reads out the tcp_info binn object and formats it into a single line
  * the object will not necessarily have all of the elements. If it's empty it
