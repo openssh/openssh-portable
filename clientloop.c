@@ -1310,10 +1310,8 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	}
 
 	schedule_server_alive_check();
-	if (options.metrics) {
+	if (options.metrics)
 		client_request_metrics(ssh); /* initial metrics polling */
-		//fprintf(stderr, "Metrics interval is %d\n", options.metrics_interval);
-	}
 
 	/* Main loop of the client for the interactive session mode. */
 	while (!quit_pending) {
@@ -2448,6 +2446,7 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	char *metricsstring = NULL;
 	size_t tcpi_len, len = 0;
 	binn *metricsobj = NULL;
+	int kernel_version = 0;
 
 	time(&now);
 	info = localtime(&now);
@@ -2494,16 +2493,19 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 		error("Received no remote metrics data. Continuing.");
 	}
 
+	/* get the kernel version printing the header */
+	kernel_version = binn_object_int32((void *)blob, "kernel_version");
+
 	/* create a string of the data from the binn object blob */
 	metrics_read_binn_object((void *)blob, &metricsstring);
 
 	/* have we printed the header? */
 	if (metrics_hdr_remote_flag == 0) {
-		metrics_print_header(remfptr, "REMOTE CONNECTION");
+		metrics_print_header(remfptr, "REMOTE CONNECTION", kernel_version);
 		metrics_hdr_remote_flag = 1;
 	}
 	fprintf(remfptr, "%s, ", timestamp);
-	fprintf(remfptr, "%s", metricsstring);
+	fprintf(remfptr, "%s\n", metricsstring);
 
 	/* close remote file pointer*/
 	fclose(remfptr);
@@ -2524,7 +2526,7 @@ localonly:
 
 	/* create the binn object*/
 	metricsobj = binn_object();
-	
+
 	tcpi_len = (size_t)sizeof(local_tcp_info);
 	getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&local_tcp_info, (socklen_t *)&tcpi_len);
 
@@ -2535,13 +2537,16 @@ localonly:
 	/* create a string of the data from the binn object metricsobj */
 	metrics_read_binn_object((void *)metricsobj, &metricsstring);
 
+	/* get the kernel version printing the header */
+	kernel_version = binn_object_int32(metricsobj, "kernel_version");
+
 	if (metrics_hdr_local_flag == 0) {
-		metrics_print_header(localfptr, "LOCAL CONNECTION");
+		metrics_print_header(localfptr, "LOCAL CONNECTION", kernel_version);
 		metrics_hdr_local_flag = 1;
 	}
 
 	fprintf(localfptr, "%s, ", timestamp);
-	fprintf(localfptr, "%s", metricsstring);
+	fprintf(localfptr, "%s\n", metricsstring);
 	fclose (localfptr);
 	free(metricsstring);
 }
