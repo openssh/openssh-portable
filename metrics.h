@@ -4,6 +4,8 @@
 #include "binn.h"
 #ifdef __linux__
 #include <linux/tcp.h>
+#else
+#include <netinet/tcp.h>
 #endif
 
 void metrics_write_binn_object(struct tcp_info *, struct binn_struct *);

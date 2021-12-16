@@ -55,9 +55,6 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdarg.h>
-#ifdef __linux__
-#include <linux/tcp.h> /* for TCP_INFO data */
-#endif
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -702,9 +699,7 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 static int
 server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
 {
-#ifdef __linux__
         struct tcp_info tcp_info;
-#endif
 	struct sshbuf *resp = NULL;
 	int tcp_info_len;
 	/* this is the socket of the current connection */
@@ -714,7 +709,7 @@ server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
 
 	/* if this isn't for linux then just return as there is no
 	 * consistent tcp_info struct in other OSes */
-#ifndef __linux__
+#if !defined __linux__ && !defined __FreeBSD__
 	return success;
 #else
 	tcp_info_len = sizeof(tcp_info); /*expect around 330 bytes */

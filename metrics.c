@@ -9,6 +9,7 @@
 
 #ifdef __linux__
 #include <linux/version.h>
+#endif
 
 /* add the information from the tcp_info struct to the
  * serialized binary object
@@ -18,89 +19,45 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 /* the base set of tcpi_ measurements starting from kernel 3.7.0
  * these measurements existed in previous kernels but the oldest this
  * is going to support is 3.7.0. We do need to store the kernel version as well */
-	binn_object_set_uint32(binnobj, "kernel_version", LINUX_VERSION_CODE);
 
-	if (data->tcpi_rcv_ssthresh)
-		binn_object_set_uint32(binnobj, "tcpi_rcv_ssthresh",
-				       data->tcpi_rcv_ssthresh);
+/* obvioulsy the version code macro only exists under linux so
+ * on non linux systems we set the kernel version to 0
+ * which will get us the base set of metrics from netinet/tcp.h
+ */
+#ifdef __linux__
+	binn_object_set_uint32(binnobj, "kernel_version", LINUX_VERSION_CODE);
+#else
+	binn_object_set_uint32(binnobj, "kernel_version", 0);
+#endif
+
+	/* the folllwing are common under both linux and BSD */
 	if (data->tcpi_snd_ssthresh)
 		binn_object_set_uint32(binnobj, "tcpi_snd_ssthresh",
 				       data->tcpi_snd_ssthresh);
 	if (data->tcpi_rtt)
 		binn_object_set_uint32(binnobj, "tcpi_rtt",
 				       data->tcpi_rtt);
-	if (data->tcpi_backoff)
-		binn_object_set_uint8(binnobj, "tcpi_backoff",
-				      data->tcpi_backoff);
-	if (data->tcpi_rcv_rtt)
-		binn_object_set_uint32(binnobj, "tcpi_rcv_rtt",
-				       data->tcpi_rcv_rtt);
-	if (data->tcpi_total_retrans)
-		binn_object_set_uint32(binnobj, "tcpi_total_retrans",
-				       data->tcpi_total_retrans);
 	if (data->tcpi_last_data_recv)
 		binn_object_set_uint32(binnobj, "tcpi_last_data_recv",
 				       data->tcpi_last_data_recv);
-	if (data->tcpi_ca_state)
-		binn_object_set_uint8(binnobj, "tcpi_ca_state",
-				      data->tcpi_ca_state);
-	if (data->tcpi_sacked)
-		binn_object_set_uint32(binnobj, "tcpi_sacked",
-				       data->tcpi_sacked);
-	if (data->tcpi_pmtu)
-		binn_object_set_uint32(binnobj, "tcpi_pmtu",
-				       data->tcpi_pmtu);
-	if (data->tcpi_ato)
-		binn_object_set_uint32(binnobj, "tcpi_ato",
-				       data->tcpi_ato);
 	if (data->tcpi_snd_wscale)
 		binn_object_set_uint8(binnobj, "tcpi_snd_wscale",
 				      data->tcpi_snd_wscale);
-	if (data->tcpi_probes)
-		binn_object_set_uint8(binnobj, "tcpi_probes",
-				      data->tcpi_probes);
-	if (data->tcpi_fackets)
-		binn_object_set_uint32(binnobj, "tcpi_fackets",
-				       data->tcpi_fackets);
 	if (data->tcpi_rcv_wscale)
 		binn_object_set_uint8(binnobj, "tcpi_rcv_wscale",
 				      data->tcpi_rcv_wscale);
-	if (data->tcpi_lost)
-		binn_object_set_uint32(binnobj, "tcpi_lost",
-				       data->tcpi_lost);
-	if (data->tcpi_last_ack_sent)
-		binn_object_set_uint32(binnobj, "tcpi_last_ack_sent",
-				       data->tcpi_last_ack_sent);
 	if (data->tcpi_state)
 		binn_object_set_uint8(binnobj, "tcpi_state",
 				      data->tcpi_state);
 	if (data->tcpi_rttvar)
 		binn_object_set_uint32(binnobj, "tcpi_rttvar",
 				       data->tcpi_rttvar);
-	if (data->tcpi_retransmits)
-		binn_object_set_uint8(binnobj, "tcpi_retransmits",
-				      data->tcpi_retransmits);
-	if (data->tcpi_unacked)
-		binn_object_set_uint32(binnobj, "tcpi_unacked",
-				       data->tcpi_unacked);
-	if (data->tcpi_last_data_sent)
-		binn_object_set_uint32(binnobj, "tcpi_last_data_sent",
-				       data->tcpi_last_data_sent);
 	if (data->tcpi_snd_cwnd)
 		binn_object_set_uint32(binnobj, "tcpi_snd_cwnd",
 				       data->tcpi_snd_cwnd);
 	if (data->tcpi_rcv_mss)
 		binn_object_set_uint32(binnobj, "tcpi_rcv_mss",
 				       data->tcpi_rcv_mss);
-	if (data->tcpi_last_ack_recv)
-		binn_object_set_uint32(binnobj, "tcpi_last_ack_recv",
-				       data->tcpi_last_ack_recv);
-	if (data->tcpi_reordering)
-		binn_object_set_uint32(binnobj, "tcpi_reordering",
-				       data->tcpi_reordering);
-	if (data->tcpi_advmss)
-		binn_object_set_uint32(binnobj, "tcpi_advmss",
-				       data->tcpi_advmss);
 	if (data->tcpi_rto)
 		binn_object_set_uint32(binnobj, "tcpi_rto",
 				       data->tcpi_rto);
@@ -113,10 +70,133 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 	if (data->tcpi_options)
 		binn_object_set_uint8(binnobj, "tcpi_options",
 				      data->tcpi_options);
+
+/* the following exist under both but with different names */
+#ifdef __linux__
+	if (data->tcpi_rcv_ssthresh)
+		binn_object_set_uint32(binnobj, "tcpi_rcv_ssthresh",
+				       data->tcpi_rcv_ssthresh);
+	if (data->tcpi_ca_state)
+		binn_object_set_uint8(binnobj, "tcpi_ca_state",
+				      data->tcpi_ca_state);
+	if (data->tcpi_sacked)
+		binn_object_set_uint32(binnobj, "tcpi_sacked",
+				       data->tcpi_sacked);
+	if (data->tcpi_pmtu)
+		binn_object_set_uint32(binnobj, "tcpi_pmtu",
+				       data->tcpi_pmtu);
+	if (data->tcpi_probes)
+		binn_object_set_uint8(binnobj, "tcpi_probes",
+				      data->tcpi_probes);
+	if (data->tcpi_backoff)
+		binn_object_set_uint8(binnobj, "tcpi_backoff",
+				      data->tcpi_backoff);
+	if (data->tcpi_fackets)
+		binn_object_set_uint32(binnobj, "tcpi_fackets",
+				       data->tcpi_fackets);
+	if (data->tcpi_lost)
+		binn_object_set_uint32(binnobj, "tcpi_lost",
+				       data->tcpi_lost);
+	if (data->tcpi_last_ack_sent)
+		binn_object_set_uint32(binnobj, "tcpi_last_ack_sent",
+				       data->tcpi_last_ack_sent);
+	if (data->tcpi_retransmits)
+		binn_object_set_uint8(binnobj, "tcpi_retransmits",
+				      data->tcpi_retransmits);
+	if (data->tcpi_unacked)
+		binn_object_set_uint32(binnobj, "tcpi_unacked",
+				       data->tcpi_unacked);
+	if (data->tcpi_last_data_sent)
+		binn_object_set_uint32(binnobj, "tcpi_last_data_sent",
+				       data->tcpi_last_data_sent);
+	if (data->tcpi_last_ack_recv)
+		binn_object_set_uint32(binnobj, "tcpi_last_ack_recv",
+				       data->tcpi_last_ack_recv);
+	if (data->tcpi_reordering)
+		binn_object_set_uint32(binnobj, "tcpi_reordering",
+				       data->tcpi_reordering);
+	if (data->tcpi_advmss)
+		binn_object_set_uint32(binnobj, "tcpi_advmss",
+				       data->tcpi_advmss);
 	if (data->tcpi_retrans)
 		binn_object_set_uint32(binnobj, "tcpi_retrans",
 				       data->tcpi_retrans);
+	if (data->tcpi_ato)
+		binn_object_set_uint32(binnobj, "tcpi_ato",
+				       data->tcpi_ato);
+	if (data->tcpi_rcv_rtt)
+		binn_object_set_uint32(binnobj, "tcpi_rcv_rtt",
+				       data->tcpi_rcv_rtt);
+#else
+	if (data->__tcpi_rcv_ssthresh)
+		binn_object_set_uint32(binnobj, "tcpi_rcv_ssthresh",
+				       data->__tcpi_rcv_ssthresh);
+	if (data->__tcpi_backoff)
+		binn_object_set_uint8(binnobj, "tcpi_backoff",
+				      data->__tcpi_backoff);
+	if (data->__tcpi_ca_state)
+		binn_object_set_uint8(binnobj, "tcpi_ca_state",
+				      data->__tcpi_ca_state);
+	if (data->__tcpi_sacked)
+		binn_object_set_uint32(binnobj, "tcpi_sacked",
+				       data->__tcpi_sacked);
+	if (data->__tcpi_pmtu)
+		binn_object_set_uint32(binnobj, "tcpi_pmtu",
+				       data->__tcpi_pmtu);
+	if (data->__tcpi_probes)
+		binn_object_set_uint8(binnobj, "tcpi_probes",
+				      data->__tcpi_probes);
+	if (data->__tcpi_fackets)
+		binn_object_set_uint32(binnobj, "tcpi_fackets",
+				       data->__tcpi_fackets);
+	if (data->__tcpi_lost)
+		binn_object_set_uint32(binnobj, "tcpi_lost",
+				       data->__tcpi_lost);
+	if (data->__tcpi_last_ack_sent)
+		binn_object_set_uint32(binnobj, "tcpi_last_ack_sent",
+				       data->__tcpi_last_ack_sent);
+	if (data->__tcpi_retransmits)
+		binn_object_set_uint8(binnobj, "tcpi_retransmits",
+				      data->__tcpi_retransmits);
+	if (data->__tcpi_unacked)
+		binn_object_set_uint32(binnobj, "tcpi_unacked",
+				       data->__tcpi_unacked);
+	if (data->__tcpi_last_data_sent)
+		binn_object_set_uint32(binnobj, "tcpi_last_data_sent",
+				       data->__tcpi_last_data_sent);
+	if (data->__tcpi_last_ack_recv)
+		binn_object_set_uint32(binnobj, "tcpi_last_ack_recv",
+				       data->__tcpi_last_ack_recv);
+	if (data->__tcpi_reordering)
+		binn_object_set_uint32(binnobj, "tcpi_reordering",
+				       data->__tcpi_reordering);
+	if (data->__tcpi_advmss)
+		binn_object_set_uint32(binnobj, "tcpi_advmss",
+				       data->__tcpi_advmss);
+	if (data->__tcpi_retrans)
+		binn_object_set_uint32(binnobj, "tcpi_retrans",
+				       data->__tcpi_retrans);
+	if (data->__tcpi_ato)
+		binn_object_set_uint32(binnobj, "tcpi_ato",
+				       data->__tcpi_ato);
+	if (data->__tcpi_rcv_rtt)
+		binn_object_set_uint32(binnobj, "tcpi_rcv_rtt",
+				       data->__tcpi_rcv_rtt);
+#endif
 
+/* Under BSD snd_rexmitpack is the same as linux total_retrans*/
+#ifdef __linux__
+	if (data->tcpi_total_retrans)
+		binn_object_set_uint32(binnobj, "tcpi_total_retrans",
+				       data->tcpi_total_retrans);
+#else
+	if (data->tcpi_snd_rexmitpack)
+		binn_object_set_uint32(binnobj, "tcpi_total_retrans",
+				       data->tcpi_snd_rexmitpack);
+#endif
+
+/* The last section are for kernel specific metrics in linux */
+#ifdef __linux__
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
 	if (data->tcpi_max_pacing_rate)
 		binn_object_set_uint64(binnobj, "tcpi_max_pacing_rate",
@@ -218,8 +298,8 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 		binn_object_set_uint8(binnobj, "tcpi_fastopen_client_fail",
 				      data->tcpi_fastopen_client_fail);
 #endif
+#endif /*endif for #ifdef __linux__ */
 }
-#endif
 
 /* this reads out the tcp_info binn object and formats it into a single line
  * the object will not necessarily have all of the elements. If it's empty it
@@ -236,7 +316,7 @@ metrics_read_binn_object (void *binnobj, char **output) {
 	kernel_version = binn_object_uint32(binnobj, "kernel_version");
 
 	/* base set of metrics */
-	len = snprintf(*output, buflen, "%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
+	len = snprintf(*output, buflen, "%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
 		       binn_object_uint8(binnobj, "tcpi_state"),
 		       binn_object_uint8(binnobj, "tcpi_ca_state"),
 		       binn_object_uint8(binnobj, "tcpi_retransmits"),
@@ -267,7 +347,8 @@ metrics_read_binn_object (void *binnobj, char **output) {
 		       binn_object_uint32(binnobj, "tcpi_advmss"),
 		       binn_object_uint32(binnobj, "tcpi_reordering"),
 		       binn_object_uint32(binnobj, "tcpi_rcv_rtt"),
-		       binn_object_uint32(binnobj, "tcpi_rcv_space")
+		       binn_object_uint32(binnobj, "tcpi_rcv_space"),
+		       binn_object_uint32(binnobj, "tcpi_total_retrans")
 		);
 
 	/* compare the received kernel version to the version that supports
@@ -363,7 +444,7 @@ metrics_print_header(FILE *fptr, char *extra_text, int kernel_version) {
 	fprintf(fptr, "snd_wscale, rcv_wscale, rto, ato, snd_mss, rcv_mss, unacked, sacked, lost, retrans, ");
 	fprintf(fptr, "fackets, last_data_sent, last_ack_sent, last_data_recv, ");
 	fprintf(fptr, "last_ack_recv, pmtu, rcv_ssthresh, rtt, rttvar, snd_ssthresh, ");
-	fprintf(fptr, "snd_cwnd, advmss, reordering, rcv_rtt, rcv_space");
+	fprintf(fptr, "snd_cwnd, advmss, reordering, rcv_rtt, rcv_space, total_retrans");
 
 	/* compare the received kernel version to the version that supports
 	 * any given metric. This way we can print consistent headers.*/

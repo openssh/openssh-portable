@@ -85,9 +85,6 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <limits.h>
-#ifdef __linux__
-#include <linux/tcp.h> /* for TCP_INFO data */
-#endif
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -2434,9 +2431,7 @@ client_input_hostkeys(struct ssh *ssh)
  * not used.  */
 static void
 client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *_ctx) {
-#ifdef __linux__
 	struct tcp_info local_tcp_info;
-#endif
 	const u_char *blob;
 	FILE *remfptr;
 	FILE *localfptr;
@@ -2514,7 +2509,7 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 
 	/* got the remote data, now get the local */
 localonly:
-#ifndef __linux__
+#if !defined __linux__ && !defined __FreeBSD__
 	if (local_no_poll_flag == 0) {
 		error("Local host does not support metric polling. Remote data only.");
 		local_no_poll_flag = 1;
