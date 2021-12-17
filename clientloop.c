@@ -2443,7 +2443,7 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	char *metricsstring = NULL;
 	size_t tcpi_len, len = 0;
 	binn *metricsobj = NULL;
-	int kernel_version = 0;
+	int r, kernel_version = 0;
 
 	time(&now);
 	info = localtime(&now);
@@ -2456,7 +2456,7 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	int sock_in = ssh_packet_get_connection_in(ssh);
 
 	/* the user can specify a name/path with options.metrics_path
-	 * but if it's not defined we'll use a defaul name. In either case
+	 * but if it's not defined we'll use a default name. In either case
 	 * the name will have a suffix of local for the local data and remote for
 	 * the remote data */
 	if (options.metrics_path == NULL) {
@@ -2483,7 +2483,9 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	if (remfptr == NULL)
 		fatal("Error opening %s: %s", remfilename, strerror(errno));
 
-	/* read the entire packet string into blob */
+	/* read the entire packet string into blob
+	 * blob has to be a const uchar as that's what string_direct expects
+	 * we cast it as a void for the binn functions */
 	sshpkt_get_string_direct(ssh, &blob, &len);
 	if (len == 0) {
 		/* received no data. which is weird */
@@ -2514,7 +2516,6 @@ localonly:
 	if (local_no_poll_flag == 0) {
 		error("Local host does not support metric polling. Remote data only.");
 		local_no_poll_flag = 1;
-		return;
 	}
 #else
 	/* open file handle for local data */
@@ -2524,9 +2525,16 @@ localonly:
 
 	/* create the binn object*/
 	metricsobj = binn_object();
+	if (metricsobj == NULL) {
+		fatal("Could not create metrics object");
+	}
 
 	tcpi_len = (size_t)sizeof(local_tcp_info);
-	getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&local_tcp_info, (socklen_t *)&tcpi_len);
+	if ((r = getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&local_tcp_info,
+			    (socklen_t *)&tcpi_len)) != 0){
+		error("Could not read tcp_info from socket");
+		goto out;
+	}
 
 	/* we write and read to a binn object because it lets us
 	 * format the data consistently */
@@ -2547,31 +2555,34 @@ localonly:
 	fprintf(localfptr, "%s\n", metricsstring);
 	fclose (localfptr);
 #endif /* TCP_INFO */
+out:
 	free(metricsstring);
 }
 
-/* trying to use the SSH2_MSG_GLOBAL_REQUEST protocol to
+/* Use the SSH2_MSG_GLOBAL_REQUEST protocol to
  * ask the server to send metrics back to the client.
- * currently I'm just checking to see if I can get the
- * message to the server. After that I'll try to figure out
- * how to get a response and parse it
- * I may need to do something in monitor.c to handle it
+ * we use the non-canonical string stack-metrics@hpnssh.org
+ * to indicate the type of request we want. If the receiver doesn't
+ * understand it then the response indiactes a failure.
+ * I can probably do this by using clint_input_global_request but
+ * I need to understand that better.
  */
 void client_request_metrics(struct ssh *ssh) {
 	int r;
 
-	debug("asking server for TCP stack metrics");
+	debug("Asking server for TCP stack metrics");
 	/* create a pakcet of GLOBAL_REQUEST type */
 	if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
 	    /* define the type of GLOBAL_REQUEST message */
 	    (r = sshpkt_put_cstring(ssh,
 	    "stack-metrics@hpnssh.org")) != 0 ||
 	    /* indicate if we want a response. 1 for yes 0 for no */
-	    (r = sshpkt_put_u8(ssh, 1)) != 0) /* bool: no reply during tests */
+	    (r = sshpkt_put_u8(ssh, 1)) != 0)
 		fatal_fr(r, "prepare stack request failure");
 	/* send the packet */
 	if ((r = sshpkt_send(ssh)) != 0)
 		fatal_fr(r, "send stack request");
+	/* i believe this indicates what we are to use for a callback */
 	client_register_global_confirm(client_process_request_metrics, NULL);
 }
 

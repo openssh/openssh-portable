@@ -703,7 +703,9 @@ static int
 server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
 {
 	int success = 0;
-	/* TCP_INFO is defined in metrics.h */
+	/* TCP_INFO is defined in metrics.h
+	 * if it's not defined then we don't support tcp_info
+	 * so just return a failure code */
 #if !defined TCP_INFO
 	return success;
 #else
@@ -721,17 +723,28 @@ server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
 
 	/* create the binn object to hold the serialized metrics */
 	metricsobj = binn_object();
+	if (metricsobj == NULL) {
+		error_f("Could not create metrics object");
+		goto out;
+	}
 
 	debug("Stack metrics request for connection %d", sock_in);
-	getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&tcp_info, (socklen_t *)&tcp_info_len);
+	if ((r = getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&tcp_info,
+			   (socklen_t *)&tcp_info_len)) != 0) {
+		error_f("Could not read tcp_info from socket");
+		goto out;
+	}
 	/* write the tcp_info data to the binn object */
 	metrics_write_binn_object(&tcp_info, metricsobj);
-	if ((r = sshbuf_put_string(resp, binn_ptr(metricsobj), binn_size(metricsobj))) != 0) {
-			error_fr(r, "assemble metrics");
-			goto out;
+	if ((r = sshbuf_put_string(resp, binn_ptr(metricsobj),
+				   binn_size(metricsobj))) != 0) {
+		error_fr(r, "Failed to build tcp_info object");
+		goto out;
 	}
+	/* copy the pointer of the response to the passed in response pointer */
 	*respp = resp;
 	resp = NULL; /* don't free it */
+	/* everything worked so set success to true */
 	success = 1;
 out:
 	sshbuf_free(resp);
