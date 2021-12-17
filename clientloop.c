@@ -2546,7 +2546,7 @@ localonly:
 	fprintf(localfptr, "%s, ", timestamp);
 	fprintf(localfptr, "%s\n", metricsstring);
 	fclose (localfptr);
-#endif
+#endif /* TCP_INFO */
 	free(metricsstring);
 }
 

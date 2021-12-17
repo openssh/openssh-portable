@@ -15,10 +15,10 @@
  */
 void
 metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
-#ifndef TCP_INFO
+#if !defined TCP_INFO
 	/*tcp info isn't supported on this system */
 	return;
-#endif
+#else
 
 /* the base set of tcpi_ measurements starting from kernel 3.7.0
  * these measurements existed in previous kernels but the oldest this
@@ -228,6 +228,7 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
 			      data->tcpi_fastopen_client_fail);
 #endif
 #endif /*endif for #ifdef __linux__ */
+#endif /*endif for TCP_INFO */
 }
 
 /* this reads out the tcp_info binn object and formats it into a single line

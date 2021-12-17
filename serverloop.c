@@ -737,7 +737,7 @@ out:
 	sshbuf_free(resp);
 	binn_free(metricsobj);
 	return success;
-#endif
+#endif /* TCP_INFO */
 }
 
 static int
