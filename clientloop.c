@@ -2509,7 +2509,8 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 
 	/* got the remote data, now get the local */
 localonly:
-#if !defined __linux__ && !defined __FreeBSD__
+/* TCP_INFO is defined in metrics.h*/
+#if !defined TCP_INFO
 	if (local_no_poll_flag == 0) {
 		error("Local host does not support metric polling. Remote data only.");
 		local_no_poll_flag = 1;
