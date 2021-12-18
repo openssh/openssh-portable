@@ -61,9 +61,6 @@
 #include "misc.h"
 #include "ssherr.h"
 
-#define MAX_AGENT_IDENTITIES	2048		/* Max keys in agent reply */
-#define MAX_AGENT_REPLY_LEN	(256 * 1024)	/* Max bytes in agent reply */
-
 /* macro to check for "agent failure" message */
 #define agent_failed(x) \
     ((x == SSH_AGENT_FAILURE) || \
@@ -232,8 +229,9 @@ ssh_lock_agent(int sock, int lock, const char *password)
 }
 
 
-static int
-deserialise_identity2(struct sshbuf *ids, struct sshkey **keyp, char **commentp)
+int
+ssh_deserialize_agent_identity(struct sshbuf *ids,
+    struct sshkey **keyp, char **commentp)
 {
 	int r;
 	char *comment = NULL;
@@ -310,7 +308,7 @@ ssh_fetch_identitylist(int sock, struct ssh_identitylist **idlp)
 		goto out;
 	}
 	for (i = 0; i < num;) {
-		if ((r = deserialise_identity2(msg, &(idl->keys[i]),
+		if ((r = ssh_deserialize_agent_identity(msg, &(idl->keys[i]),
 		    &(idl->comments[i]))) != 0) {
 			if (r == SSH_ERR_KEY_TYPE_UNKNOWN) {
 				/* Gracefully skip unknown key types */

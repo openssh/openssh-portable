@@ -97,8 +97,6 @@
 # define DEFAULT_ALLOWED_PROVIDERS "/usr/lib*/*,/usr/local/lib*/*"
 #endif
 
-/* Maximum accepted message length */
-#define AGENT_MAX_LEN	(256*1024)
 /* Maximum bytes to read from client socket */
 #define AGENT_RBUF_LEN	(4096)
 

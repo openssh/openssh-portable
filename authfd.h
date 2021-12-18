@@ -16,6 +16,8 @@
 #ifndef AUTHFD_H
 #define AUTHFD_H
 
+struct sshbuf;
+
 /* List of identities returned by ssh_fetch_identitylist() */
 struct ssh_identitylist {
 	size_t nkeys;
@@ -28,6 +30,8 @@ int	ssh_get_authentication_socket_path(const char *authsocket, int *fdp);
 void	ssh_close_authentication_socket(int sock);
 
 int	ssh_lock_agent(int sock, int lock, const char *password);
+int	ssh_deserialize_agent_identity(struct sshbuf *ids,
+	    struct sshkey **keyp, char **commentp);
 int	ssh_fetch_identitylist(int sock, struct ssh_identitylist **idlp);
 void	ssh_free_identitylist(struct ssh_identitylist *idl);
 int	ssh_add_identity_constrained(int sock, struct sshkey *key,
@@ -90,5 +94,14 @@ int	ssh_agent_sign(int sock, const struct sshkey *key,
 #define	SSH_AGENT_OLD_SIGNATURE			0x01
 #define	SSH_AGENT_RSA_SHA2_256			0x02
 #define	SSH_AGENT_RSA_SHA2_512			0x04
+
+/* Maximum accepted message length. */
+#define AGENT_MAX_LEN				(256*1024)
+
+/* Maximum keys in agent reply. */
+#define MAX_AGENT_IDENTITIES			2048
+
+/* Maximum bytes in agent reply. */
+#define MAX_AGENT_REPLY_LEN			(256 * 1024)
 
 #endif				/* AUTHFD_H */
