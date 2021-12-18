@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshbuf_fuzz.c,v 1.3 2021/12/14 21:25:27 deraadt Exp $ */
+/* 	$OpenBSD: test_sshbuf_fuzz.c,v 1.4 2021/12/18 06:53:59 anton Exp $ */
 /*
  * Regress test for sshbuf.h buffer API
  *
@@ -45,7 +45,7 @@ sshbuf_fuzz_tests(void)
 	ASSERT_PTR_NE(p1, NULL);
 	ASSERT_PTR_NE(sshbuf_ptr(p1), NULL);
 	ASSERT_MEM_ZERO_NE(sshbuf_ptr(p1), sshbuf_len(p1));
-	for (i = 0; i < NUM_FUZZ_TESTS; i++) {
+	for (i = 0; i < ntests; i++) {
 		r = arc4random_uniform(10);
 		if (r == 0) {
 			/* 10% chance: small reserve */
