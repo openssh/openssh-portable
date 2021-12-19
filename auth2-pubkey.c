@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.110 2021/09/29 01:33:32 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.111 2021/12/19 22:12:07 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -86,7 +86,7 @@ format_key(const struct sshkey *key)
 }
 
 static int
-userauth_pubkey(struct ssh *ssh)
+userauth_pubkey(struct ssh *ssh, const char *method)
 {
 	Authctxt *authctxt = ssh->authctxt;
 	struct passwd *pw = authctxt->pw;
@@ -192,7 +192,7 @@ userauth_pubkey(struct ssh *ssh)
 		if ((r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
 		    (r = sshbuf_put_cstring(b, userstyle)) != 0 ||
 		    (r = sshbuf_put_cstring(b, authctxt->service)) != 0 ||
-		    (r = sshbuf_put_cstring(b, "publickey")) != 0 ||
+		    (r = sshbuf_put_cstring(b, method)) != 0 ||
 		    (r = sshbuf_put_u8(b, have_sig)) != 0 ||
 		    (r = sshbuf_put_cstring(b, pkalg)) != 0 ||
 		    (r = sshbuf_put_string(b, pkblob, blen)) != 0)
@@ -1067,6 +1067,7 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 
 Authmethod method_pubkey = {
 	"publickey",
+	NULL,
 	userauth_pubkey,
 	&options.pubkey_authentication
 };

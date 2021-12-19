@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.161 2021/04/03 06:18:40 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.162 2021/12/19 22:12:07 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -331,7 +331,7 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 	m = authmethod_lookup(authctxt, method);
 	if (m != NULL && authctxt->failures < options.max_authtries) {
 		debug2("input_userauth_request: try method %s", method);
-		authenticated =	m->userauth(ssh);
+		authenticated =	m->userauth(ssh, method);
 	}
 	if (!authctxt->authenticated)
 		ensure_minimum_time_since(tstart,
@@ -346,18 +346,26 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 void
-userauth_finish(struct ssh *ssh, int authenticated, const char *method,
+userauth_finish(struct ssh *ssh, int authenticated, const char *packet_method,
     const char *submethod)
 {
 	Authctxt *authctxt = ssh->authctxt;
+	Authmethod *m = NULL;
+	const char *method = packet_method;
 	char *methods;
 	int r, partial = 0;
 
-	if (!authctxt->valid && authenticated)
-		fatal("INTERNAL ERROR: authenticated invalid user %s",
-		    authctxt->user);
-	if (authenticated && authctxt->postponed)
-		fatal("INTERNAL ERROR: authenticated and postponed");
+	if (authenticated) {
+		if (!authctxt->valid) {
+			fatal("INTERNAL ERROR: authenticated invalid user %s",
+			    authctxt->user);
+		}
+		if (authctxt->postponed)
+			fatal("INTERNAL ERROR: authenticated and postponed");
+		if ((m = authmethod_lookup(authctxt, method)) == NULL)
+			fatal("INTERNAL ERROR: bad method %s", method);
+		method = m->name; /* prefer primary name to possible synonym */
+	}
 
 	/* Special handling for root */
 	if (authenticated && authctxt->pw->pw_uid == 0 &&
@@ -504,7 +512,9 @@ authmethod_lookup(Authctxt *authctxt, const char *name)
 		for (i = 0; authmethods[i] != NULL; i++)
 			if (authmethods[i]->enabled != NULL &&
 			    *(authmethods[i]->enabled) != 0 &&
-			    strcmp(name, authmethods[i]->name) == 0 &&
+			    (strcmp(name, authmethods[i]->name) == 0 ||
+			    (authmethods[i]->synonym != NULL &&
+			    strcmp(name, authmethods[i]->synonym) == 0)) &&
 			    auth2_method_allowed(authctxt,
 			    authmethods[i]->name, NULL))
 				return authmethods[i];
