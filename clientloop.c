@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.371 2021/11/18 21:32:11 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.372 2021/12/19 22:08:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1597,6 +1597,12 @@ client_request_agent(struct ssh *ssh, const char *request_type, int rchan)
 			debug_fr(r, "ssh_get_authentication_socket");
 		return NULL;
 	}
+	if ((r = ssh_agent_bind_hostkey(sock, ssh->kex->initial_hostkey,
+	    ssh->kex->session_id, ssh->kex->initial_sig, 1)) == 0)
+		debug_f("bound agent to hostkey");
+	else
+		debug2_fr(r, "ssh_agent_bind_hostkey");
+
 	c = channel_new(ssh, "authentication agent connection",
 	    SSH_CHANNEL_OPEN, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0,

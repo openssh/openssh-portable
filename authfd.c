@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.127 2021/01/26 00:46:17 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.128 2021/12/19 22:08:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -641,6 +641,35 @@ ssh_remove_all_identities(int sock, int version)
 	if ((msg = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshbuf_put_u8(msg, type)) != 0)
+		goto out;
+	if ((r = ssh_request_reply_decode(sock, msg)) != 0)
+		goto out;
+	/* success */
+	r = 0;
+ out:
+	sshbuf_free(msg);
+	return r;
+}
+
+/* Binds a session ID to a hostkey via the initial KEX signature. */
+int
+ssh_agent_bind_hostkey(int sock, const struct sshkey *key,
+    const struct sshbuf *session_id, const struct sshbuf *signature,
+    int forwarding)
+{
+	struct sshbuf *msg;
+	int r;
+
+	if (key == NULL || session_id == NULL || signature == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if ((msg = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_put_u8(msg, SSH_AGENTC_EXTENSION)) != 0 ||
+	    (r = sshbuf_put_cstring(msg, "session-bind@openssh.com")) != 0 ||
+	    (r = sshkey_puts(key, msg)) != 0 ||
+	    (r = sshbuf_put_stringb(msg, session_id)) != 0 ||
+	    (r = sshbuf_put_stringb(msg, signature)) != 0 ||
+	    (r = sshbuf_put_u8(msg, forwarding ? 1 : 0)) != 0)
 		goto out;
 	if ((r = ssh_request_reply_decode(sock, msg)) != 0)
 		goto out;

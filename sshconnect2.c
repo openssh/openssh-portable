@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.351 2021/07/23 05:24:02 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.352 2021/12/19 22:08:48 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -391,7 +391,7 @@ void	userauth(struct ssh *, char *);
 
 static void pubkey_cleanup(struct ssh *);
 static int sign_and_send_pubkey(struct ssh *ssh, Identity *);
-static void pubkey_prepare(Authctxt *);
+static void pubkey_prepare(struct ssh *, Authctxt *);
 static void pubkey_reset(Authctxt *);
 static struct sshkey *load_identity_file(Identity *);
 
@@ -465,7 +465,7 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	authctxt.mech_tried = 0;
 #endif
 	authctxt.agent_fd = -1;
-	pubkey_prepare(&authctxt);
+	pubkey_prepare(ssh, &authctxt);
 	if (authctxt.method == NULL) {
 		fatal_f("internal error: cannot send userauth none request");
 	}
@@ -1631,6 +1631,36 @@ key_type_allowed_by_config(struct sshkey *key)
 	return 0;
 }
 
+/* obtain a list of keys from the agent */
+static int
+get_agent_identities(struct ssh *ssh, int *agent_fdp,
+    struct ssh_identitylist **idlistp)
+{
+	int r, agent_fd;
+	struct ssh_identitylist *idlist;
+
+	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0) {
+		if (r != SSH_ERR_AGENT_NOT_PRESENT)
+			debug_fr(r, "ssh_get_authentication_socket");
+		return r;
+	}
+	if ((r = ssh_agent_bind_hostkey(agent_fd, ssh->kex->initial_hostkey,
+	    ssh->kex->session_id, ssh->kex->initial_sig, 0)) == 0)
+		debug_f("bound agent to hostkey");
+	else
+		debug2_fr(r, "ssh_agent_bind_hostkey");
+
+	if ((r = ssh_fetch_identitylist(agent_fd, &idlist)) != 0) {
+		debug_fr(r, "ssh_fetch_identitylist");
+		close(agent_fd);
+		return r;
+	}
+	/* success */
+	*agent_fdp = agent_fd;
+	*idlistp = idlist;
+	debug_f("agent returned %zu keys", idlist->nkeys);
+	return 0;
+}
 
 /*
  * try keys in the following order:
@@ -1641,7 +1671,7 @@ key_type_allowed_by_config(struct sshkey *key)
  *	5. keys that are only listed in the config file
  */
 static void
-pubkey_prepare(Authctxt *authctxt)
+pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 {
 	struct identity *id, *id2, *tmp;
 	struct idlist agent, files, *preferred;
@@ -1703,14 +1733,7 @@ pubkey_prepare(Authctxt *authctxt)
 		TAILQ_INSERT_TAIL(preferred, id, next);
 	}
 	/* list of keys supported by the agent */
-	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0) {
-		if (r != SSH_ERR_AGENT_NOT_PRESENT)
-			debug_fr(r, "ssh_get_authentication_socket");
-	} else if ((r = ssh_fetch_identitylist(agent_fd, &idlist)) != 0) {
-		if (r != SSH_ERR_AGENT_NO_IDENTITIES)
-			debug_fr(r, "ssh_fetch_identitylist");
-		close(agent_fd);
-	} else {
+	if ((r = get_agent_identities(ssh, &agent_fd, &idlist)) == 0) {
 		for (j = 0; j < idlist->nkeys; j++) {
 			found = 0;
 			TAILQ_FOREACH(id, &files, next) {

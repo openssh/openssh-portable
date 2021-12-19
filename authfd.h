@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.h,v 1.49 2020/06/26 05:03:36 djm Exp $ */
+/* $OpenBSD: authfd.h,v 1.50 2021/12/19 22:08:48 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -15,6 +15,8 @@
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
+
+struct sshbuf;
 
 /* List of identities returned by ssh_fetch_identitylist() */
 struct ssh_identitylist {
@@ -42,6 +44,10 @@ int	ssh_remove_all_identities(int sock, int version);
 int	ssh_agent_sign(int sock, const struct sshkey *key,
 	    u_char **sigp, size_t *lenp,
 	    const u_char *data, size_t datalen, const char *alg, u_int compat);
+
+int	ssh_agent_bind_hostkey(int sock, const struct sshkey *key,
+    const struct sshbuf *session_id, const struct sshbuf *signature,
+    int forwarding);
 
 /* Messages for the authentication agent connection. */
 #define SSH_AGENTC_REQUEST_RSA_IDENTITIES	1
@@ -75,6 +81,9 @@ int	ssh_agent_sign(int sock, const struct sshkey *key,
 #define SSH_AGENTC_ADD_RSA_ID_CONSTRAINED	24
 #define SSH2_AGENTC_ADD_ID_CONSTRAINED		25
 #define SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED 26
+
+/* generic extension mechanism */
+#define SSH_AGENTC_EXTENSION			27
 
 #define	SSH_AGENT_CONSTRAIN_LIFETIME		1
 #define	SSH_AGENT_CONSTRAIN_CONFIRM		2
