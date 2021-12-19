@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.282 2021/12/19 22:13:33 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.283 2021/12/19 22:13:55 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -728,7 +728,7 @@ process_sign_request2(SocketEntry *e)
 	char *fp = NULL, *user = NULL, *sig_dest = NULL;
 	const char *fwd_host = NULL, *dest_host = NULL;
 	struct sshbuf *msg = NULL, *data = NULL, *sid = NULL;
-	struct sshkey *key = NULL;
+	struct sshkey *key = NULL, *hostkey = NULL;
 	struct identity *id;
 	struct notifier_ctx *notifier = NULL;
 
@@ -757,7 +757,8 @@ process_sign_request2(SocketEntry *e)
 			    "to sign on unbound connection");
 			goto send;
 		}
-		if (parse_userauth_request(data, key, &user, &sid, NULL) != 0) {
+		if (parse_userauth_request(data, key, &user, &sid,
+		    &hostkey) != 0) {
 			logit_f("refusing use of destination-constrained key "
 			   "to sign an unidentified signature");
 			goto send;
@@ -778,6 +779,24 @@ process_sign_request2(SocketEntry *e)
 			    "signature request for target user %s with "
 			    "key %s %s", e->nsession_ids, user,
 			    sshkey_type(id->key), fp);
+			goto send;
+		}
+		/*
+		 * Ensure that the hostkey embedded in the signature matches
+		 * the one most recently bound to the socket. An exception is
+		 * made for the initial forwarding hop.
+		 */
+		if (e->nsession_ids > 1 && hostkey == NULL) {
+			error_f("refusing use of destination-constrained key: "
+			    "no hostkey recorded in signature for forwarded "
+			    "connection");
+			goto send;
+		}
+		if (hostkey != NULL && !sshkey_equal(hostkey,
+		    e->session_ids[e->nsession_ids - 1].key)) {
+			error_f("refusing use of destination-constrained key: "
+			    "mismatch between hostkey in request and most "
+			    "recently bound session");
 			goto send;
 		}
 		xasprintf(&sig_dest, "public key authentication request for "
@@ -827,6 +846,7 @@ process_sign_request2(SocketEntry *e)
 	sshbuf_free(data);
 	sshbuf_free(msg);
 	sshkey_free(key);
+	sshkey_free(hostkey);
 	free(fp);
 	free(signature);
 	free(sig_dest);
