@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.111 2021/12/19 22:12:07 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.112 2021/12/19 22:12:30 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -67,6 +67,7 @@
 #include "authfile.h"
 #include "match.h"
 #include "ssherr.h"
+#include "kex.h"
 #include "channels.h" /* XXX for session.h */
 #include "session.h" /* XXX for child_set_env(); refactor? */
 #include "sk-api.h"
@@ -91,19 +92,34 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 	Authctxt *authctxt = ssh->authctxt;
 	struct passwd *pw = authctxt->pw;
 	struct sshbuf *b = NULL;
-	struct sshkey *key = NULL;
+	struct sshkey *key = NULL, *hostkey = NULL;
 	char *pkalg = NULL, *userstyle = NULL, *key_s = NULL, *ca_s = NULL;
 	u_char *pkblob = NULL, *sig = NULL, have_sig;
 	size_t blen, slen;
-	int r, pktype;
+	int hostbound, r, pktype;
 	int req_presence = 0, req_verify = 0, authenticated = 0;
 	struct sshauthopt *authopts = NULL;
 	struct sshkey_sig_details *sig_details = NULL;
 
+	hostbound = strcmp(method, "publickey-hostbound-v00@openssh.com") == 0;
+
 	if ((r = sshpkt_get_u8(ssh, &have_sig)) != 0 ||
 	    (r = sshpkt_get_cstring(ssh, &pkalg, NULL)) != 0 ||
 	    (r = sshpkt_get_string(ssh, &pkblob, &blen)) != 0)
-		fatal_fr(r, "parse packet");
+		fatal_fr(r, "parse %s packet", method);
+
+	/* hostbound auth includes the hostkey offered at initial KEX */
+	if (hostbound) {
+		if ((r = sshpkt_getb_froms(ssh, &b)) != 0 ||
+		    (r = sshkey_fromb(b, &hostkey)) != 0)
+			fatal_fr(r, "parse %s hostkey", method);
+		if (ssh->kex->initial_hostkey == NULL)
+			fatal_f("internal error: initial hostkey not recorded");
+		if (!sshkey_equal(hostkey, ssh->kex->initial_hostkey))
+			fatal_f("%s packet contained wrong host key", method);
+		sshbuf_free(b);
+		b = NULL;
+	}
 
 	if (log_level_get() >= SYSLOG_LEVEL_DEBUG2) {
 		char *keystring;
@@ -166,7 +182,8 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		ca_s = format_key(key->cert->signature_key);
 
 	if (have_sig) {
-		debug3_f("have %s signature for %s%s%s", pkalg, key_s,
+		debug3_f("%s have %s signature for %s%s%s",
+		    method, pkalg, key_s,
 		    ca_s == NULL ? "" : " CA ", ca_s == NULL ? "" : ca_s);
 		if ((r = sshpkt_get_string(ssh, &sig, &slen)) != 0 ||
 		    (r = sshpkt_get_end(ssh)) != 0)
@@ -196,7 +213,10 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		    (r = sshbuf_put_u8(b, have_sig)) != 0 ||
 		    (r = sshbuf_put_cstring(b, pkalg)) != 0 ||
 		    (r = sshbuf_put_string(b, pkblob, blen)) != 0)
-			fatal_fr(r, "reconstruct packet");
+			fatal_fr(r, "reconstruct %s packet", method);
+		if (hostbound &&
+		    (r = sshkey_puts(ssh->kex->initial_hostkey, b)) != 0)
+			fatal_fr(r, "reconstruct %s packet", method);
 #ifdef DEBUG_PK
 		sshbuf_dump(b, stderr);
 #endif
@@ -246,7 +266,7 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		}
 		auth2_record_key(authctxt, authenticated, key);
 	} else {
-		debug_f("test pkalg %s pkblob %s%s%s", pkalg, key_s,
+		debug_f("%s test pkalg %s pkblob %s%s%s", method, pkalg, key_s,
 		    ca_s == NULL ? "" : " CA ", ca_s == NULL ? "" : ca_s);
 
 		if ((r = sshpkt_get_end(ssh)) != 0)
@@ -285,6 +305,7 @@ done:
 	sshbuf_free(b);
 	sshauthopt_free(authopts);
 	sshkey_free(key);
+	sshkey_free(hostkey);
 	free(userstyle);
 	free(pkalg);
 	free(pkblob);
@@ -1067,7 +1088,7 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 
 Authmethod method_pubkey = {
 	"publickey",
-	NULL,
+	"publickey-hostbound-v00@openssh.com",
 	userauth_pubkey,
 	&options.pubkey_authentication
 };

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.228 2021/08/11 05:20:17 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.229 2021/12/19 22:12:30 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1246,11 +1246,12 @@ static int
 monitor_valid_userblob(struct ssh *ssh, const u_char *data, u_int datalen)
 {
 	struct sshbuf *b;
+	struct sshkey *hostkey = NULL;
 	const u_char *p;
 	char *userstyle, *cp;
 	size_t len;
 	u_char type;
-	int r, fail = 0;
+	int hostbound = 0, r, fail = 0;
 
 	if ((b = sshbuf_from(data, datalen)) == NULL)
 		fatal_f("sshbuf_from");
@@ -1291,19 +1292,34 @@ monitor_valid_userblob(struct ssh *ssh, const u_char *data, u_int datalen)
 	if ((r = sshbuf_skip_string(b)) != 0 ||	/* service */
 	    (r = sshbuf_get_cstring(b, &cp, NULL)) != 0)
 		fatal_fr(r, "parse method");
-	if (strcmp("publickey", cp) != 0)
-		fail++;
+	if (strcmp("publickey", cp) != 0) {
+		if (strcmp("publickey-hostbound-v00@openssh.com", cp) == 0)
+			hostbound = 1;
+		else
+			fail++;
+	}
 	free(cp);
 	if ((r = sshbuf_get_u8(b, &type)) != 0)
 		fatal_fr(r, "parse pktype");
 	if (type == 0)
 		fail++;
 	if ((r = sshbuf_skip_string(b)) != 0 ||	/* pkalg */
-	    (r = sshbuf_skip_string(b)) != 0)	/* pkblob */
+	    (r = sshbuf_skip_string(b)) != 0 ||	/* pkblob */
+	    (hostbound && (r = sshkey_froms(b, &hostkey)) != 0))
 		fatal_fr(r, "parse pk");
 	if (sshbuf_len(b) != 0)
 		fail++;
 	sshbuf_free(b);
+	if (hostkey != NULL) {
+		/*
+		 * Ensure this is actually one of our hostkeys; unfortunately
+		 * can't check ssh->kex->initial_hostkey directly at this point
+		 * as packet state has not yet been exported to monitor.
+		 */
+		if (get_hostkey_index(hostkey, 1, ssh) == -1)
+			fatal_f("hostbound hostkey does not match");
+		sshkey_free(hostkey);
+	}
 	return (fail == 0);
 }
 
