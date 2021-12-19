@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.353 2021/12/19 22:12:54 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.354 2021/12/19 22:14:47 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1345,16 +1345,20 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 	int r, fallback_sigtype, sent = 0;
 	char *alg = NULL, *fp = NULL;
 	const char *loc = "", *method = "publickey";
+	int hostbound = 0;
 
 	/* prefer host-bound pubkey signatures if supported by server */
-	if ((ssh->kex->flags & KEX_HAS_PUBKEY_HOSTBOUND) != 0)
+	if ((ssh->kex->flags & KEX_HAS_PUBKEY_HOSTBOUND) != 0 &&
+	    (options.pubkey_authentication & SSH_PUBKEY_AUTH_HBOUND) != 0) {
+		hostbound = 1;
 		method = "publickey-hostbound-v00@openssh.com";
+	}
 
 	if ((fp = sshkey_fingerprint(id->key, options.fingerprint_hash,
 	    SSH_FP_DEFAULT)) == NULL)
 		return 0;
 
-	debug3_f("%s %s", sshkey_type(id->key), fp);
+	debug3_f("using %s with %s %s", method, sshkey_type(id->key), fp);
 
 	/*
 	 * If the key is an certificate, try to find a matching private key
@@ -1440,7 +1444,7 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 		    (r = sshkey_puts(id->key, b)) != 0) {
 			fatal_fr(r, "assemble signed data");
 		}
-		if ((ssh->kex->flags & KEX_HAS_PUBKEY_HOSTBOUND) != 0) {
+		if (hostbound) {
 			if (ssh->kex->initial_hostkey == NULL) {
 				fatal_f("internal error: initial hostkey "
 				    "not recorded");
