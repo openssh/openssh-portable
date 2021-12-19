@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.352 2021/12/19 22:08:48 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.353 2021/12/19 22:12:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1344,7 +1344,11 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 	size_t slen = 0, skip = 0;
 	int r, fallback_sigtype, sent = 0;
 	char *alg = NULL, *fp = NULL;
-	const char *loc = "";
+	const char *loc = "", *method = "publickey";
+
+	/* prefer host-bound pubkey signatures if supported by server */
+	if ((ssh->kex->flags & KEX_HAS_PUBKEY_HOSTBOUND) != 0)
+		method = "publickey-hostbound-v00@openssh.com";
 
 	if ((fp = sshkey_fingerprint(id->key, options.fingerprint_hash,
 	    SSH_FP_DEFAULT)) == NULL)
@@ -1430,13 +1434,20 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 		if ((r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
 		    (r = sshbuf_put_cstring(b, authctxt->server_user)) != 0 ||
 		    (r = sshbuf_put_cstring(b, authctxt->service)) != 0 ||
-		    (r = sshbuf_put_cstring(b, authctxt->method->name)) != 0 ||
+		    (r = sshbuf_put_cstring(b, method)) != 0 ||
 		    (r = sshbuf_put_u8(b, 1)) != 0 ||
 		    (r = sshbuf_put_cstring(b, alg)) != 0 ||
 		    (r = sshkey_puts(id->key, b)) != 0) {
 			fatal_fr(r, "assemble signed data");
 		}
-
+		if ((ssh->kex->flags & KEX_HAS_PUBKEY_HOSTBOUND) != 0) {
+			if (ssh->kex->initial_hostkey == NULL) {
+				fatal_f("internal error: initial hostkey "
+				    "not recorded");
+			}
+			if ((r = sshkey_puts(ssh->kex->initial_hostkey, b)) != 0)
+				fatal_fr(r, "assemble %s hostkey", method);
+		}
 		/* generate signature */
 		r = identity_sign(sign_id, &signature, &slen,
 		    sshbuf_ptr(b), sshbuf_len(b), ssh->compat, alg);
