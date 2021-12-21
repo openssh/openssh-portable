@@ -684,7 +684,7 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 	struct sshbuf *resp = NULL;
 	struct sshbuf *sigbuf = NULL;
 	struct sshkey *key = NULL, *key_pub = NULL, *key_prv = NULL;
-	int r, ndx, kexsigtype, use_kexsigtype, success = 0;
+	int r, ndx, success = 0;
 	const u_char *blob;
 	u_char *sig = 0;
 	size_t blen, slen;
@@ -692,9 +692,11 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 	if ((resp = sshbuf_new()) == NULL || (sigbuf = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new");
 
-	kexsigtype = sshkey_type_plain(
-	    sshkey_type_from_name(ssh->kex->hostkey_alg));
 	while (ssh_packet_remaining(ssh) > 0) {
+		const char *pkexstr = NULL;
+		const char *rsa_sha2_256 = "rsa-sha2-256";
+		const char *rsa_sha2_512 = "rsa-sha2-512";
+
 		sshkey_free(key);
 		key = NULL;
 		if ((r = sshpkt_get_string_direct(ssh, &blob, &blen)) != 0 ||
@@ -726,8 +728,13 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 		 * For RSA keys, prefer to use the signature type negotiated
 		 * during KEX to the default (SHA1).
 		 */
-		use_kexsigtype = kexsigtype == KEY_RSA &&
-		    sshkey_type_plain(key->type) == KEY_RSA;
+		if (sshkey_type_plain(key->type) == KEY_RSA) {
+		    if (ssh->kex->flags & KEX_RSA_SHA2_512_SUPPORTED)
+			pkexstr = rsa_sha2_512;
+		    else if (ssh->kex->flags & KEX_RSA_SHA2_256_SUPPORTED)
+			pkexstr = rsa_sha2_256;
+		}
+
 		if ((r = sshbuf_put_cstring(sigbuf,
 		    "hostkeys-prove-00@openssh.com")) != 0 ||
 		    (r = sshbuf_put_stringb(sigbuf,
@@ -735,7 +742,7 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 		    (r = sshkey_puts(key, sigbuf)) != 0 ||
 		    (r = ssh->kex->sign(ssh, key_prv, key_pub, &sig, &slen,
 		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf),
-		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL)) != 0 ||
+		    pkexstr)) != 0 ||
 		    (r = sshbuf_put_string(resp, sig, slen)) != 0) {
 			error_fr(r, "assemble signature");
 			goto out;

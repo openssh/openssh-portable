@@ -935,6 +935,35 @@ kex_choose_conf(struct ssh *ssh)
 		free(ext);
 	}
 
+	/* Check whether client supports rsa-sha2 algorithms */
+	if (kex->server && (kex->flags & KEX_INITIAL)) {
+		char *ext;
+
+		ext = match_list("rsa-sha2-256", peer[PROPOSAL_SERVER_HOST_KEY_ALGS], NULL);
+		if (ext) {
+			kex->flags |= KEX_RSA_SHA2_256_SUPPORTED;
+			free(ext);
+		}
+
+		ext = match_list("rsa-sha2-512", peer[PROPOSAL_SERVER_HOST_KEY_ALGS], NULL);
+		if (ext) {
+			kex->flags |= KEX_RSA_SHA2_512_SUPPORTED;
+			free(ext);
+		}
+
+		ext = match_list("rsa-sha2-256-cert-v01@openssh.com", peer[PROPOSAL_SERVER_HOST_KEY_ALGS], NULL);
+		if (ext) {
+			kex->flags |= KEX_RSA_SHA2_256_SUPPORTED;
+			free(ext);
+		}
+
+		ext = match_list("rsa-sha2-512-cert-v01@openssh.com", peer[PROPOSAL_SERVER_HOST_KEY_ALGS], NULL);
+		if (ext) {
+			kex->flags |= KEX_RSA_SHA2_512_SUPPORTED;
+			free(ext);
+		}
+	}
+
 	/* Algorithm Negotiation */
 	if ((r = choose_kex(kex, cprop[PROPOSAL_KEX_ALGS],
 	    sprop[PROPOSAL_KEX_ALGS])) != 0) {
