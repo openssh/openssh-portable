@@ -24,7 +24,6 @@
 #ifndef HAVE_BCRYPT_PBKDF
 
 #include <sys/types.h>
-#include <sys/param.h>
 
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>

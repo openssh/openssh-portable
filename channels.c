@@ -2027,7 +2027,7 @@ channel_handle_wfd(struct ssh *ssh, Channel *c,
 #ifdef _AIX
 	/* XXX: Later AIX versions can't push as much data to tty */
 	if (c->wfd_isatty)
-		dlen = MIN(dlen, 8*1024);
+		dlen = MINIMUM(dlen, 8*1024);
 #endif
 
 	len = write(c->wfd, buf, dlen);

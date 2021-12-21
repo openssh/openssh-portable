@@ -59,6 +59,8 @@
 #  define crypt DES_crypt
 # endif
 
+#define MINIMUM(a, b)	(((a) < (b)) ? (a) : (b))
+
 /*
  * Pick an appropriate password encryption type and salt for the running
  * system by searching through accounts until we find one that has a valid
@@ -82,7 +84,7 @@ pick_salt(void)
 			continue;
 		if (passwd[0] == '$' && (p = strrchr(passwd+1, '$')) != NULL) {
 			typelen = p - passwd + 1;
-			strlcpy(salt, passwd, MIN(typelen, sizeof(salt)));
+			strlcpy(salt, passwd, MINIMUM(typelen, sizeof(salt)));
 			explicit_bzero(passwd, strlen(passwd));
 			goto out;
 		}

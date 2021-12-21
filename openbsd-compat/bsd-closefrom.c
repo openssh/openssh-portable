@@ -19,7 +19,6 @@
 #if !defined(HAVE_CLOSEFROM) || defined(BROKEN_CLOSEFROM)
 
 #include <sys/types.h>
-#include <sys/param.h>
 #include <unistd.h>
 #include <stdio.h>
 #ifdef HAVE_FCNTL_H

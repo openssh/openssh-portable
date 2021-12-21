@@ -23,7 +23,9 @@
 
 void sshbuf_tests(void);
 
+#ifndef roundup
 #define roundup(x, y)   ((((x)+((y)-1))/(y))*(y))
+#endif
 
 void
 sshbuf_tests(void)
