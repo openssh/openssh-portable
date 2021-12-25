@@ -35,8 +35,8 @@ jobs:
           - nbsd9
           - obsd51
           - obsd67
-          - obsd68
           - obsd69
+          - obsd70
           - obsdsnap
           - openindiana
           # - rocky84
