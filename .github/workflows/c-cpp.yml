@@ -75,6 +75,11 @@ jobs:
       run: autoreconf
     - name: configure
       run: ./.github/configure.sh ${{ matrix.configs }}
+    - name: save config
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}-${{ matrix.configs }}-config
+        path: config.h
     - name: make clean
       run: make clean
     - name: make
