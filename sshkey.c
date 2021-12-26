@@ -67,8 +67,8 @@
 #include "openbsd-compat/openssl-compat.h"
 
 /* openssh private key file format */
-#define MARK_BEGIN		"-----BEGIN OPENSSH PRIVATE KEY-----\n"
-#define MARK_END		"-----END OPENSSH PRIVATE KEY-----\n"
+#define MARK_BEGIN		"-----BEGIN OPENSSH PRIVATE KEY-----"
+#define MARK_END		"-----END OPENSSH PRIVATE KEY-----"
 #define MARK_BEGIN_LEN		(sizeof(MARK_BEGIN) - 1)
 #define MARK_END_LEN		(sizeof(MARK_END) - 1)
 #define KDFNAME			"bcrypt"
