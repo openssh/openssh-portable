@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.372 2021/12/19 22:08:48 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.373 2022/01/01 01:55:30 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1231,7 +1231,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			fatal_f("pledge(): %s", strerror(errno));
 
 	} else if (options.update_hostkeys) {
-		debug("pledge: fileystem");
+		debug("pledge: filesystem");
 		if (pledge("stdio rpath wpath cpath unix inet dns proc tty",
 		    NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));

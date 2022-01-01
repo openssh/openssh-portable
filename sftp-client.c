@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.157 2021/11/06 10:13:39 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.158 2022/01/01 01:55:30 jsg Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -341,7 +341,7 @@ get_handle(struct sftp_conn *conn, u_int expected_id, size_t *len,
 	return handle;
 }
 
-/* XXX returing &static is error-prone. Refactor to fill *Attrib argument */
+/* XXX returning &static is error-prone. Refactor to fill *Attrib argument */
 static Attrib *
 get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet)
 {
@@ -381,7 +381,7 @@ get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet)
 		sshbuf_free(msg);
 		return NULL;
 	}
-	debug3("Recevied stat reply T:%u I:%u F:0x%04x M:%05o",
+	debug3("Received stat reply T:%u I:%u F:0x%04x M:%05o",
 	    type, id, a.flags, a.perm);
 	sshbuf_free(msg);
 

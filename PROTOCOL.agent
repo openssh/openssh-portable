@@ -21,7 +21,7 @@ The message format is:
 	bool		is_forwarding
 
 Where 'hostkey' is the encoded server host public key, 'session
-identfier' is the exchange hash derived from the initial key
+identifier' is the exchange hash derived from the initial key
 exchange, 'signature' is the server's signature of the session
 identifier using the private hostkey, as sent in the final
 SSH2_MSG_KEXDH_REPLY/SSH2_MSG_KEXECDH_REPLY message of the initial key
@@ -62,12 +62,12 @@ An a keyspec consists of:
 When receiving this message, the agent will ensure that the
 'from_username' field is empty, and that 'to_hostname' and 'to_hostkeys'
 have been supplied (empty 'from_hostname' and 'from_hostkeys' are valid
-and signify the inital hop from the host running ssh-agent). The agent
+and signify the initial hop from the host running ssh-agent). The agent
 will then record the constraint against the key.
 
 Subsequent operations on this key including add/remove/request
 identities and, in particular, signature requests will check the key
-constraints agains the session-bind@openssh.com bindings recorded for
+constraints against the session-bind@openssh.com bindings recorded for
 the agent connection over which they were received.
 
 3. SSH_AGENT_CONSTRAIN_MAXSIGN key constraint
@@ -81,4 +81,4 @@ the constraint is:
 
 This option is only valid for XMSS keys.
 
-$OpenBSD: PROTOCOL.agent,v 1.15 2021/12/19 22:15:21 djm Exp $
+$OpenBSD: PROTOCOL.agent,v 1.16 2022/01/01 01:55:30 jsg Exp $

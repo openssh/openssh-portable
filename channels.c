@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.408 2021/09/14 11:04:21 mbuhl Exp $ */
+/* $OpenBSD: channels.c,v 1.409 2022/01/01 01:55:30 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -543,7 +543,7 @@ permission_set_get_array(struct ssh *ssh, int who, int where,
 	}
 }
 
-/* Adds an entry to the spcified forwarding list */
+/* Adds an entry to the specified forwarding list */
 static int
 permission_set_add(struct ssh *ssh, int who, int where,
     const char *host_to_connect, int port_to_connect,

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.134 2021/11/18 03:06:03 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.135 2022/01/01 01:55:30 jsg Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -667,7 +667,7 @@ send_statvfs(u_int32_t id, struct statvfs *st)
 
 /*
  * Prepare SSH2_FXP_VERSION extension advertisement for a single extension.
- * The extension is checked for permission prior to advertisment.
+ * The extension is checked for permission prior to advertisement.
  */
 static int
 compose_extension(struct sshbuf *msg, const char *name, const char *ver)
@@ -704,7 +704,7 @@ process_init(void)
 	    (r = sshbuf_put_u32(msg, SSH2_FILEXFER_VERSION)) != 0)
 		fatal_fr(r, "compose");
 
-	 /* extension advertisments */
+	 /* extension advertisements */
 	compose_extension(msg, "posix-rename@openssh.com", "1");
 	compose_extension(msg, "statvfs@openssh.com", "2");
 	compose_extension(msg, "fstatvfs@openssh.com", "2");
