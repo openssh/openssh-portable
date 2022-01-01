@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.23 2020/06/22 05:54:10 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.24 2022/01/01 05:55:06 jsg Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -380,7 +380,7 @@ u_int	sshbuf_refcount(const struct sshbuf *buf);
 
 # define SSHBUF_SIZE_INIT	256		/* Initial allocation */
 # define SSHBUF_SIZE_INC	256		/* Preferred increment length */
-# define SSHBUF_PACK_MIN	8192		/* Minimim packable offset */
+# define SSHBUF_PACK_MIN	8192		/* Minimum packable offset */
 
 /* # define SSHBUF_ABORT abort */
 /* # define SSHBUF_DEBUG */
