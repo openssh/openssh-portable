@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-restrict.sh,v 1.1 2021/12/19 22:20:12 djm Exp $
+#	$OpenBSD: agent-restrict.sh,v 1.2 2022/01/04 07:20:33 djm Exp $
 #	Placed in the Public Domain.
 
 tid="agent restrictions"
@@ -80,7 +80,7 @@ reset_keys() {
 	_command=""
 	case "$_whichcmd" in
 	authinfo)	_command="cat \$SSH_USER_AUTH" ;;
-	keylist)		_command="ssh-add -L | cut -d' ' -f-2 | sort" ;;
+	keylist)		_command="$SSHADD -L | cut -d' ' -f-2 | sort" ;;
 	*)		fatal "unsupported command $_whichcmd" ;;
 	esac
 	trace "reset keys"
@@ -328,7 +328,7 @@ if test ! -z "\$me" ; then
 	cat \$SSH_USER_AUTH
 fi
 echo AGENT
-ssh-add -L | grep ^ssh | cut -d" " -f-2 | sort
+$SSHADD -L | grep ^ssh | cut -d" " -f-2 | sort
 if test -z "\$next" ; then 
 	touch $OBJ/done
 	echo "FINISH"
