@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.446 2022/01/05 21:50:00 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.447 2022/01/05 21:54:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3523,6 +3523,7 @@ main(int argc, char **argv)
 			return sig_match_principals(identity_file, cert_key_id,
 			    opts, nopts);
 		} else if (strncmp(sign_op, "sign", 4) == 0) {
+			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
 			    *cert_principals == '\0') {
 				error("Too few arguments for sign: "
@@ -3545,10 +3546,11 @@ main(int argc, char **argv)
 			return sig_verify(ca_key_path, cert_principals,
 			    NULL, NULL, NULL, opts, nopts);
 		} else if (strncmp(sign_op, "verify", 6) == 0) {
+			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
 			    *cert_principals == '\0') {
 				error("Too few arguments for verify: "
-				    "missing principal");
+				    "missing namespace");
 				exit(1);
 			}
 			if (ca_key_path == NULL) {
@@ -3563,7 +3565,7 @@ main(int argc, char **argv)
 			}
 			if (cert_key_id == NULL) {
 				error("Too few arguments for verify: "
-				    "missing principal ID");
+				    "missing principal identity");
 				exit(1);
 			}
 			return sig_verify(ca_key_path, cert_principals,
