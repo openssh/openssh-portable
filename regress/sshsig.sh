@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.12 2022/01/05 04:10:39 djm Exp $
+#	$OpenBSD: sshsig.sh,v 1.13 2022/01/05 04:56:15 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -52,13 +52,23 @@ for t in $SIGNKEYS; do
 	sigfile_cert=${OBJ}/sshsig-${keybase}-cert.sig
 
 	${SSHKEYGEN} -vvv -Y sign -f ${OBJ}/$t -n $sig_namespace \
-		< $DATA > $sigfile 2>/dev/null || fail "sign using $t failed"
+	    -Ohashalg=sha1 < $DATA > $sigfile 2>/dev/null && \
+		fail "sign using $t with bad hash algorithm succeeded"
 
-	(printf "$sig_principal " ; cat $pubkey) > $OBJ/allowed_signers
-	${SSHKEYGEN} -vvv -Y verify -s $sigfile -n $sig_namespace \
-		-I $sig_principal -f $OBJ/allowed_signers \
-		< $DATA >/dev/null 2>&1 || \
-		fail "failed signature for $t key"
+	for h in default sha256 sha512 ; do
+		case "$h" in
+		default) hashalg_arg="" ;;
+		*) hashalg_arg="-Ohashalg=$h" ;;
+		esac
+		${SSHKEYGEN} -vvv -Y sign -f ${OBJ}/$t -n $sig_namespace \
+		    $hashalg_arg < $DATA > $sigfile 2>/dev/null || \
+			fail "sign using $t / $h failed"
+		(printf "$sig_principal " ; cat $pubkey) > $OBJ/allowed_signers
+		${SSHKEYGEN} -vvv -Y verify -s $sigfile -n $sig_namespace \
+		    -I $sig_principal -f $OBJ/allowed_signers \
+		    < $DATA >/dev/null 2>&1 || \
+			fail "failed signature for $t / $h key"
+	done
 
 	(printf "$sig_principal namespaces=\"$sig_namespace,whatever\" ";
 	 cat $pubkey) > $OBJ/allowed_signers
