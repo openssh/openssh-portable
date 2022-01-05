@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.442 2021/11/28 07:14:29 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.443 2022/01/05 04:27:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2603,6 +2603,44 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 }
 
 static int
+sig_process_opts(char * const *opts, size_t nopts, uint64_t *verify_timep,
+    int *print_pubkey)
+{
+	size_t i;
+	time_t now;
+
+	if (verify_timep != NULL)
+		*verify_timep = 0;
+	if (print_pubkey != NULL)
+		*print_pubkey = 0;
+	for (i = 0; i < nopts; i++) {
+		if (verify_timep &&
+		    strncasecmp(opts[i], "verify-time=", 12) == 0) {
+			if (parse_absolute_time(opts[i] + 12,
+			    verify_timep) != 0 || *verify_timep == 0) {
+				error("Invalid \"verify-time\" option");
+				return SSH_ERR_INVALID_ARGUMENT;
+			}
+		} else if (print_pubkey &&
+		    strcasecmp(opts[i], "print-pubkey") == 0) {
+			*print_pubkey = 1;
+		} else {
+			error("Invalid option \"%s\"", opts[i]);
+			return SSH_ERR_INVALID_ARGUMENT;
+		}
+	}
+	if (verify_timep && *verify_timep == 0) {
+		if ((now = time(NULL)) < 0) {
+			error("Time is before epoch");
+			return SSH_ERR_INVALID_ARGUMENT;
+		}
+		*verify_timep = (uint64_t)now;
+	}
+	return 0;
+}
+
+
+static int
 sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv)
 {
 	int i, fd = -1, r, ret = -1;
@@ -2671,43 +2709,6 @@ done:
 	sshkey_free(pubkey);
 	sshkey_free(privkey);
 	return ret;
-}
-
-static int
-sig_process_opts(char * const *opts, size_t nopts, uint64_t *verify_timep,
-    int *print_pubkey)
-{
-	size_t i;
-	time_t now;
-
-	if (verify_timep != NULL)
-		*verify_timep = 0;
-	if (print_pubkey != NULL)
-		*print_pubkey = 0;
-	for (i = 0; i < nopts; i++) {
-		if (verify_timep &&
-		    strncasecmp(opts[i], "verify-time=", 12) == 0) {
-			if (parse_absolute_time(opts[i] + 12,
-			    verify_timep) != 0 || *verify_timep == 0) {
-				error("Invalid \"verify-time\" option");
-				return SSH_ERR_INVALID_ARGUMENT;
-			}
-		} else if (print_pubkey &&
-		    strcasecmp(opts[i], "print-pubkey") == 0) {
-			*print_pubkey = 1;
-		} else {
-			error("Invalid option \"%s\"", opts[i]);
-			return SSH_ERR_INVALID_ARGUMENT;
-		}
-	}
-	if (verify_timep && *verify_timep == 0) {
-		if ((now = time(NULL)) < 0) {
-			error("Time is before epoch");
-			return SSH_ERR_INVALID_ARGUMENT;
-		}
-		*verify_timep = (uint64_t)now;
-	}
-	return 0;
 }
 
 static int
