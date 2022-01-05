@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.11 2021/11/27 07:23:35 djm Exp $
+#	$OpenBSD: sshsig.sh,v 1.12 2022/01/05 04:10:39 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -207,6 +207,14 @@ for t in $SIGNKEYS; do
 	(printf "$sig_principal " ; cat $WRONG) > $OBJ/allowed_signers
 	${SSHKEYGEN} -vvv -Y find-principals -s $sigfile -f $OBJ/allowed_signers >/dev/null 2>&1 && \
 		fail "succeeded finding principal with invalid signers file"
+
+	# find-principals with a configured namespace but none on command-line
+	(printf "$sig_principal " ;
+	 printf "namespaces=\"test1,test2\" ";
+	 cat $pubkey) > $OBJ/allowed_signers
+	${SSHKEYGEN} -vvv -Y find-principals -s $sigfile \
+	    -f $OBJ/allowed_signers >/dev/null 2>&1 || \
+		fail "failed finding principal when namespaces are configured"
 
 	# Check signing keys using ssh-agent.
 	${SSHADD} -D >/dev/null 2>&1 # Remove all previously-loaded keys.
