@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.218 2021/11/28 07:15:10 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.219 2022/01/05 04:50:11 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: November 28 2021 $
+.Dd $Mdocdate: January 5 2022 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -161,6 +161,7 @@
 .Fl s Ar signature_file
 .Nm ssh-keygen
 .Fl Y Cm sign
+.Op Fl O Ar option
 .Fl f Ar key_file
 .Fl n Ar namespace
 .Ar
@@ -541,6 +542,14 @@ When performing signature-related options using the
 .Fl Y
 flag, the following options are accepted:
 .Bl -tag -width Ds
+.It Cm hashalg Ns = Ns Ar algorithm
+Selects the hash algorithm to use for hashing the message to be signed.
+Valid algorithms are
+.Dq sha256
+and
+.Dq sha512.
+The default is
+.Dq sha512.
 .It Cm print-pubkey
 Print the full public key to standard output after signature verification.
 .It Cm verify-time Ns = Ns Ar timestamp
