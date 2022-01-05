@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.26 2021/11/28 07:21:26 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.27 2022/01/05 04:02:42 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -921,7 +921,7 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 	}
 
 	/* Check whether options preclude the use of this key */
-	if (sigopts->namespaces != NULL &&
+	if (sigopts->namespaces != NULL && sig_namespace != NULL &&
 	    match_pattern_list(sig_namespace, sigopts->namespaces, 0) != 1) {
 		error("%s:%lu: key is not permitted for use in signature "
 		    "namespace \"%s\"", path, linenum, sig_namespace);
