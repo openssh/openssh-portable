@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.92 2021/10/02 03:17:01 dtucker Exp $ */
+/* $OpenBSD: hostfile.c,v 1.93 2022/01/06 22:02:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -642,7 +642,7 @@ hostfile_replace_entries(const char *filename, const char *host, const char *ip,
 	/* Re-add the requested keys */
 	want = HKF_MATCH_HOST | (ip == NULL ? 0 : HKF_MATCH_IP);
 	for (i = 0; i < nkeys; i++) {
-		if ((want & ctx.match_keys[i]) == want)
+		if (keys[i] == NULL || (want & ctx.match_keys[i]) == want)
 			continue;
 		if ((fp = sshkey_fingerprint(keys[i], hash_alg,
 		    SSH_FP_DEFAULT)) == NULL) {
