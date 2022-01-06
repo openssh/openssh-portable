@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.374 2022/01/06 21:48:38 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.375 2022/01/06 21:57:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -112,6 +112,9 @@
 #include "msg.h"
 #include "ssherr.h"
 #include "hostfile.h"
+
+/* Permitted RSA signature algorithms for UpdateHostkeys proofs */
+#define HOSTKEY_PROOF_RSA_ALGS	"rsa-sha2-512,rsa-sha2-256"
 
 /* import options */
 extern Options options;
@@ -2111,8 +2114,10 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
 	size_t i, ndone;
 	struct sshbuf *signdata;
-	int r, kexsigtype, use_kexsigtype;
+	int r, plaintype;
 	const u_char *sig;
+	const char *rsa_kexalg = NULL;
+	char *alg = NULL;
 	size_t siglen;
 
 	if (ctx->nnew == 0)
@@ -2123,9 +2128,9 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 		hostkeys_update_ctx_free(ctx);
 		return;
 	}
-	kexsigtype = sshkey_type_plain(
-	    sshkey_type_from_name(ssh->kex->hostkey_alg));
-
+	if (sshkey_type_plain(sshkey_type_from_name(
+	    ssh->kex->hostkey_alg)) == KEY_RSA)
+		rsa_kexalg = ssh->kex->hostkey_alg;
 	if ((signdata = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	/*
@@ -2136,6 +2141,7 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 	for (ndone = i = 0; i < ctx->nkeys; i++) {
 		if (ctx->keys_match[i])
 			continue;
+		plaintype = sshkey_type_plain(ctx->keys[i]->type);
 		/* Prepare data to be signed: session ID, unique string, key */
 		sshbuf_reset(signdata);
 		if ( (r = sshbuf_put_cstring(signdata,
@@ -2149,19 +2155,33 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 			error_fr(r, "parse sig");
 			goto out;
 		}
+		if ((r = sshkey_get_sigtype(sig, siglen, &alg)) != 0) {
+			error_fr(r, "server gave unintelligible signature "
+			    "for %s key %zu", sshkey_type(ctx->keys[i]), i);
+			goto out;
+		}
 		/*
-		 * For RSA keys, prefer to use the signature type negotiated
-		 * during KEX to the default (SHA1).
+		 * Special case for RSA keys: if a RSA hostkey was negotiated,
+		 * then use its signature type for verification of RSA hostkey
+		 * proofs. Otherwise, accept only RSA-SHA256/512 signatures.
 		 */
-		use_kexsigtype = kexsigtype == KEY_RSA &&
-		    sshkey_type_plain(ctx->keys[i]->type) == KEY_RSA;
-		debug3_f("verify %s key %zu using %s sigalg",
-		    sshkey_type(ctx->keys[i]), i,
-		    use_kexsigtype ? ssh->kex->hostkey_alg : "default");
+		if (plaintype == KEY_RSA && rsa_kexalg == NULL &&
+		    match_pattern_list(alg, HOSTKEY_PROOF_RSA_ALGS, 0) != 1) {
+			debug_f("server used untrusted RSA signature algorithm "
+			    "%s for key %zu, disregarding", alg, i);
+			free(alg);
+			/* zap the key from the list */
+			sshkey_free(ctx->keys[i]);
+			ctx->keys[i] = NULL;
+			ndone++;
+			continue;
+		}
+		debug3_f("verify %s key %zu using sigalg %s",
+		    sshkey_type(ctx->keys[i]), i, alg);
+		free(alg);
 		if ((r = sshkey_verify(ctx->keys[i], sig, siglen,
 		    sshbuf_ptr(signdata), sshbuf_len(signdata),
-		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL, 0,
-		    NULL)) != 0) {
+		    plaintype == KEY_RSA ? rsa_kexalg : NULL, 0, NULL)) != 0) {
 			error_fr(r, "server gave bad signature for %s key %zu",
 			    sshkey_type(ctx->keys[i]), i);
 			goto out;
