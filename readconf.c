@@ -2533,7 +2533,6 @@ fill_default_options(Options * options)
 	}
 	if (options->num_identity_files == 0) {
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_RSA, 0);
-		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_DSA, 0);
 #ifdef OPENSSL_HAS_ECC
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_ECDSA, 0);
 		add_identity_file(options, "~/",
@@ -2544,6 +2543,7 @@ fill_default_options(Options * options)
 		add_identity_file(options, "~/",
 		    _PATH_SSH_CLIENT_ID_ED25519_SK, 0);
 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_XMSS, 0);
+		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_DSA, 0);
 	}
 	if (options->escape_char == -1)
 		options->escape_char = '~';
