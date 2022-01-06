@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.119 2021/12/19 22:20:12 djm Exp $
+#	$OpenBSD: Makefile,v 1.120 2022/01/06 21:46:56 dtucker Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -100,8 +100,8 @@ LTESTS= 	connect \
 		sshsig \
 		knownhosts \
 		knownhosts-command \
-		agent-restrict
-
+		agent-restrict \
+		hostbased
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
