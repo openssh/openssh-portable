@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.373 2022/01/01 01:55:30 jsg Exp $ */
+/* $OpenBSD: clientloop.c,v 1.374 2022/01/06 21:48:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -76,6 +76,7 @@
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif
+#include <poll.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -488,37 +489,41 @@ server_alive_check(struct ssh *ssh)
  * one of the file descriptors).
  */
 static void
-client_wait_until_can_do_something(struct ssh *ssh,
-    fd_set **readsetp, fd_set **writesetp,
-    int *maxfdp, u_int *nallocp, int rekeying)
+client_wait_until_can_do_something(struct ssh *ssh, struct pollfd **pfdp,
+    u_int *npfd_allocp, u_int *npfd_activep, int rekeying,
+    int *conn_in_readyp, int *conn_out_readyp)
 {
-	struct timeval tv, *tvp;
-	int timeout_secs;
+	int timeout_secs, pollwait;
 	time_t minwait_secs = 0, now = monotime();
 	int r, ret;
+	u_int p;
 
-	/* Add any selections by the channel mechanism. */
-	channel_prepare_select(ssh, readsetp, writesetp, maxfdp,
-	    nallocp, &minwait_secs);
+	*conn_in_readyp = *conn_out_readyp = 0;
 
-	/* channel_prepare_select could have closed the last channel */
+	/* Prepare channel poll. First two pollfd entries are reserved */
+	channel_prepare_poll(ssh, pfdp, npfd_allocp, npfd_activep, 2,
+	    &minwait_secs);
+	if (*npfd_activep < 2)
+		fatal_f("bad npfd %u", *npfd_activep); /* shouldn't happen */
+
+	/* channel_prepare_poll could have closed the last channel */
 	if (session_closed && !channel_still_open(ssh) &&
 	    !ssh_packet_have_data_to_write(ssh)) {
-		/* clear mask since we did not call select() */
-		memset(*readsetp, 0, *nallocp);
-		memset(*writesetp, 0, *nallocp);
+		/* clear events since we did not call poll() */
+		for (p = 0; p < *npfd_activep; p++)
+			(*pfdp)[p].revents = 0;
 		return;
 	}
 
-	FD_SET(connection_in, *readsetp);
-
-	/* Select server connection if have data to write to the server. */
-	if (ssh_packet_have_data_to_write(ssh))
-		FD_SET(connection_out, *writesetp);
+	/* Monitor server connection on reserved pollfd entries */
+	(*pfdp)[0].fd = connection_in;
+	(*pfdp)[0].events = POLLIN;
+	(*pfdp)[1].fd = connection_out;
+	(*pfdp)[1].events = ssh_packet_have_data_to_write(ssh) ? POLLOUT : 0;
 
 	/*
 	 * Wait for something to happen.  This will suspend the process until
-	 * some selected descriptor can be read, written, or has some other
+	 * some polled descriptor can be read, written, or has some other
 	 * event pending, or a timeout expires.
 	 */
 
@@ -538,37 +543,44 @@ client_wait_until_can_do_something(struct ssh *ssh,
 	if (minwait_secs != 0)
 		timeout_secs = MINIMUM(timeout_secs, (int)minwait_secs);
 	if (timeout_secs == INT_MAX)
-		tvp = NULL;
-	else {
-		tv.tv_sec = timeout_secs;
-		tv.tv_usec = 0;
-		tvp = &tv;
-	}
+		pollwait = -1;
+	else if (timeout_secs >= INT_MAX / 1000)
+		pollwait = INT_MAX;
+	else
+		pollwait = timeout_secs * 1000;
 
-	ret = select((*maxfdp)+1, *readsetp, *writesetp, NULL, tvp);
+	ret = poll(*pfdp, *npfd_activep, pollwait);
+
 	if (ret == -1) {
 		/*
-		 * We have to clear the select masks, because we return.
+		 * We have to clear the events because we return.
 		 * We have to return, because the mainloop checks for the flags
 		 * set by the signal handlers.
 		 */
-		memset(*readsetp, 0, *nallocp);
-		memset(*writesetp, 0, *nallocp);
+		for (p = 0; p < *npfd_activep; p++)
+			(*pfdp)[p].revents = 0;
 		if (errno == EINTR)
 			return;
 		/* Note: we might still have data in the buffers. */
 		if ((r = sshbuf_putf(stderr_buffer,
-		    "select: %s\r\n", strerror(errno))) != 0)
+		    "poll: %s\r\n", strerror(errno))) != 0)
 			fatal_fr(r, "sshbuf_putf");
 		quit_pending = 1;
-	} else if (options.server_alive_interval > 0 && !FD_ISSET(connection_in,
-	    *readsetp) && monotime() >= server_alive_time)
+		return;
+	}
+
+	*conn_in_readyp = (*pfdp)[0].revents != 0;
+	*conn_out_readyp = (*pfdp)[1].revents != 0;
+
+	if (options.server_alive_interval > 0 && !*conn_in_readyp &&
+	    monotime() >= server_alive_time) {
 		/*
-		 * ServerAlive check is needed. We can't rely on the select
+		 * ServerAlive check is needed. We can't rely on the poll
 		 * timing out since traffic on the client side such as port
 		 * forwards can keep waking it up.
 		 */
 		server_alive_check(ssh);
+	}
 }
 
 static void
@@ -598,7 +610,7 @@ client_suspend_self(struct sshbuf *bin, struct sshbuf *bout, struct sshbuf *berr
 }
 
 static void
-client_process_net_input(struct ssh *ssh, fd_set *readset)
+client_process_net_input(struct ssh *ssh)
 {
 	char buf[SSH_IOBUFSZ];
 	int r, len;
@@ -607,44 +619,39 @@ client_process_net_input(struct ssh *ssh, fd_set *readset)
 	 * Read input from the server, and add any such data to the buffer of
 	 * the packet subsystem.
 	 */
-	if (FD_ISSET(connection_in, readset)) {
-		schedule_server_alive_check();
-		/* Read as much as possible. */
-		len = read(connection_in, buf, sizeof(buf));
-		if (len == 0) {
-			/*
-			 * Received EOF.  The remote host has closed the
-			 * connection.
-			 */
-			if ((r = sshbuf_putf(stderr_buffer,
-			    "Connection to %.300s closed by remote host.\r\n",
-			    host)) != 0)
-				fatal_fr(r, "sshbuf_putf");
-			quit_pending = 1;
-			return;
-		}
-		/*
-		 * There is a kernel bug on Solaris that causes select to
-		 * sometimes wake up even though there is no data available.
-		 */
-		if (len == -1 &&
-		    (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK))
-			len = 0;
-
-		if (len == -1) {
-			/*
-			 * An error has encountered.  Perhaps there is a
-			 * network problem.
-			 */
-			if ((r = sshbuf_putf(stderr_buffer,
-			    "Read from remote host %.300s: %.100s\r\n",
-			    host, strerror(errno))) != 0)
-				fatal_fr(r, "sshbuf_putf");
-			quit_pending = 1;
-			return;
-		}
-		ssh_packet_process_incoming(ssh, buf, len);
+	schedule_server_alive_check();
+	/* Read as much as possible. */
+	len = read(connection_in, buf, sizeof(buf));
+	if (len == 0) {
+		/* Received EOF. The remote host has closed the connection. */
+		if ((r = sshbuf_putf(stderr_buffer,
+		    "Connection to %.300s closed by remote host.\r\n",
+		    host)) != 0)
+			fatal_fr(r, "sshbuf_putf");
+		quit_pending = 1;
+		return;
 	}
+	/*
+	 * There is a kernel bug on Solaris that causes poll to
+	 * sometimes wake up even though there is no data available.
+	 */
+	if (len == -1 &&
+	    (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK))
+		len = 0;
+
+	if (len == -1) {
+		/*
+		 * An error has encountered.  Perhaps there is a
+		 * network problem.
+		 */
+		if ((r = sshbuf_putf(stderr_buffer,
+		    "Read from remote host %.300s: %.100s\r\n",
+		    host, strerror(errno))) != 0)
+			fatal_fr(r, "sshbuf_putf");
+		quit_pending = 1;
+		return;
+	}
+	ssh_packet_process_incoming(ssh, buf, len);
 }
 
 static void
@@ -1209,11 +1216,12 @@ int
 client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
     int ssh2_chan_id)
 {
-	fd_set *readset = NULL, *writeset = NULL;
+	struct pollfd *pfd = NULL;
+	u_int npfd_alloc = 0, npfd_active = 0;
 	double start_time, total_time;
-	int r, max_fd = 0, max_fd2 = 0, len;
+	int r, len;
 	u_int64_t ibytes, obytes;
-	u_int nalloc = 0;
+	int conn_in_ready, conn_out_ready;
 
 	debug("Entering interactive session.");
 
@@ -1255,7 +1263,6 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	exit_status = -1;
 	connection_in = ssh_packet_get_connection_in(ssh);
 	connection_out = ssh_packet_get_connection_out(ssh);
-	max_fd = MAXIMUM(connection_in, connection_out);
 
 	quit_pending = 0;
 
@@ -1335,19 +1342,20 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		 * Wait until we have something to do (something becomes
 		 * available on one of the descriptors).
 		 */
-		max_fd2 = max_fd;
-		client_wait_until_can_do_something(ssh, &readset, &writeset,
-		    &max_fd2, &nalloc, ssh_packet_is_rekeying(ssh));
+		client_wait_until_can_do_something(ssh, &pfd, &npfd_alloc,
+		    &npfd_active, ssh_packet_is_rekeying(ssh),
+		    &conn_in_ready, &conn_out_ready);
 
 		if (quit_pending)
 			break;
 
 		/* Do channel operations unless rekeying in progress. */
 		if (!ssh_packet_is_rekeying(ssh))
-			channel_after_select(ssh, readset, writeset);
+			channel_after_poll(ssh, pfd, npfd_active);
 
 		/* Buffer input from the connection.  */
-		client_process_net_input(ssh, readset);
+		if (conn_in_ready)
+			client_process_net_input(ssh);
 
 		if (quit_pending)
 			break;
@@ -1360,7 +1368,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		 * Send as much buffered packet data as possible to the
 		 * sender.
 		 */
-		if (FD_ISSET(connection_out, writeset)) {
+		if (conn_out_ready) {
 			if ((r = ssh_packet_write_poll(ssh)) != 0) {
 				sshpkt_fatal(ssh, r,
 				    "%s: ssh_packet_write_poll", __func__);
@@ -1379,8 +1387,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			}
 		}
 	}
-	free(readset);
-	free(writeset);
+	free(pfd);
 
 	/* Terminate the session. */
 
