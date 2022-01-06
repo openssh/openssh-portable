@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.229 2022/01/06 21:48:38 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.230 2022/01/06 21:55:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -685,16 +685,17 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 	struct sshbuf *resp = NULL;
 	struct sshbuf *sigbuf = NULL;
 	struct sshkey *key = NULL, *key_pub = NULL, *key_prv = NULL;
-	int r, ndx, kexsigtype, use_kexsigtype, success = 0;
+	int r, ndx, success = 0;
 	const u_char *blob;
+	const char *sigalg, *kex_rsa_sigalg = NULL;
 	u_char *sig = 0;
 	size_t blen, slen;
 
 	if ((resp = sshbuf_new()) == NULL || (sigbuf = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new");
-
-	kexsigtype = sshkey_type_plain(
-	    sshkey_type_from_name(ssh->kex->hostkey_alg));
+	if (sshkey_type_plain(sshkey_type_from_name(
+	    ssh->kex->hostkey_alg)) == KEY_RSA)
+		kex_rsa_sigalg = ssh->kex->hostkey_alg;
 	while (ssh_packet_remaining(ssh) > 0) {
 		sshkey_free(key);
 		key = NULL;
@@ -727,16 +728,24 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 		 * For RSA keys, prefer to use the signature type negotiated
 		 * during KEX to the default (SHA1).
 		 */
-		use_kexsigtype = kexsigtype == KEY_RSA &&
-		    sshkey_type_plain(key->type) == KEY_RSA;
+		sigalg = NULL;
+		if (sshkey_type_plain(key->type) == KEY_RSA) {
+			if (kex_rsa_sigalg != NULL)
+				sigalg = kex_rsa_sigalg;
+			else if (ssh->kex->flags & KEX_RSA_SHA2_512_SUPPORTED)
+				sigalg = "rsa-sha2-512";
+			else if (ssh->kex->flags & KEX_RSA_SHA2_256_SUPPORTED)
+				sigalg = "rsa-sha2-256";
+		}
+		debug3_f("sign %s key (index %d) using sigalg %s",
+		    sshkey_type(key), ndx, sigalg == NULL ? "default" : sigalg);
 		if ((r = sshbuf_put_cstring(sigbuf,
 		    "hostkeys-prove-00@openssh.com")) != 0 ||
 		    (r = sshbuf_put_stringb(sigbuf,
 		    ssh->kex->session_id)) != 0 ||
 		    (r = sshkey_puts(key, sigbuf)) != 0 ||
 		    (r = ssh->kex->sign(ssh, key_prv, key_pub, &sig, &slen,
-		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf),
-		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL)) != 0 ||
+		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf), sigalg)) != 0 ||
 		    (r = sshbuf_put_string(resp, sig, slen)) != 0) {
 			error_fr(r, "assemble signature");
 			goto out;
