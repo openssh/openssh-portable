@@ -1,5 +1,5 @@
-OQS-OpenSSH snapshot 2021-12-rc1
-================================
+OQS-OpenSSH snapshot 2022-01
+============================
 
 About
 -----
@@ -13,7 +13,7 @@ The **Open Quantum Safe (OQS) project** has the goal of developing and prototypi
 Release notes
 =============
 
-This is release candidate 1 for the 2021-12 snapshot release of OQS-OpenSSH, released on December 16, 2021. This release is intended to be used with liboqs version 0.7.1.
+This is the 2022-01 snapshot release of OQS-OpenSSH, released on January 6, 2022. This release is intended to be used with liboqs version 0.7.1.
 
 What's New
 ----------
@@ -30,4 +30,4 @@ Detailed changelog
 * added s/ntrup1277 by @baentsch in https://github.com/open-quantum-safe/openssh/pull/112
 * adding NTRU hrss1373 and hps40961229 by @baentsch in https://github.com/open-quantum-safe/openssh/pull/113
 
-**Full Changelog**: https://github.com/open-quantum-safe/openssh/compare/OQS-OpenSSH-snapshot-2021-08...OQS-OpenSSH-snapshot-2021-12-rc1
+**Full Changelog**: https://github.com/open-quantum-safe/openssh/compare/OQS-OpenSSH-snapshot-2021-08...OQS-OpenSSH-snapshot-2022-01
