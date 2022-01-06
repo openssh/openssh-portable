@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.138 2021/05/19 01:24:05 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.139 2022/01/06 21:46:23 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -136,6 +136,8 @@ struct Channel {
 	int     wfd;		/* write fd */
 	int     efd;		/* extended fd */
 	int     sock;		/* sock fd */
+	u_int	io_want;	/* bitmask of SSH_CHAN_IO_* */
+	u_int	io_ready;	/* bitmask of SSH_CHAN_IO_* */
 	int     ctl_chan;	/* control channel (multiplexed connections) */
 	int     isatty;		/* rfd is a tty */
 #ifdef _AIX
@@ -230,6 +232,14 @@ struct Channel {
 #define CHAN_EOF_SENT			0x04
 #define CHAN_EOF_RCVD			0x08
 #define CHAN_LOCAL			0x10
+
+/* file descriptor events */
+#define SSH_CHAN_IO_RFD			0x01
+#define SSH_CHAN_IO_WFD			0x02
+#define SSH_CHAN_IO_EFD_R		0x04
+#define SSH_CHAN_IO_EFD_W		0x08
+#define SSH_CHAN_IO_SOCK_R		0x10
+#define SSH_CHAN_IO_SOCK_W		0x20
 
 /* Read buffer size */
 #define CHAN_RBUF	(16*1024)
