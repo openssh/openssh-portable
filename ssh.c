@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.571 2022/01/01 05:55:06 jsg Exp $ */
+/* $OpenBSD: ssh.c,v 1.572 2022/01/06 22:04:20 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1577,11 +1577,17 @@ main(int ac, char **av)
 		fatal_f("pubkey out of array bounds"); \
 	check_load(sshkey_load_public(p, &(sensitive_data.keys[o]), NULL), \
 	    p, "pubkey"); \
+	if (sensitive_data.keys[o] != NULL) \
+		debug2("hostbased key %d: %s key from \"%s\"", o, \
+		    sshkey_ssh_name(sensitive_data.keys[o]), p); \
 } while (0)
 #define L_CERT(p,o) do { \
 	if ((o) >= sensitive_data.nkeys) \
 		fatal_f("cert out of array bounds"); \
 	check_load(sshkey_load_cert(p, &(sensitive_data.keys[o])), p, "cert"); \
+	if (sensitive_data.keys[o] != NULL) \
+		debug2("hostbased key %d: %s cert from \"%s\"", o, \
+		    sshkey_ssh_name(sensitive_data.keys[o]), p); \
 } while (0)
 
 		if (options.hostbased_authentication == 1) {
