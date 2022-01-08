@@ -1,4 +1,4 @@
-#	$OpenBSD: hostbased.sh,v 1.2 2022/01/08 07:01:13 dtucker Exp $
+#	$OpenBSD: hostbased.sh,v 1.3 2022/01/08 07:55:26 dtucker Exp $
 #	Placed in the Public Domain.
 
 # This test requires external setup and thus is skipped unless
@@ -35,7 +35,6 @@ HostbasedAcceptedAlgorithms $hostkeyalgos
 PreferredAuthentications hostbased
 EOD
 
-set -x 
 algos=""
 for key in `${SUDO} ${SSHD} -T | awk '$1=="hostkey"{print $2}'`; do
 	case "`$SSHKEYGEN -l -f ${key}.pub`" in
