@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.135 2022/01/01 01:55:30 jsg Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.136 2022/01/08 07:33:54 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -536,7 +536,7 @@ status_to_message(u_int32_t status)
 }
 
 static void
-send_status(u_int32_t id, u_int32_t status)
+send_status_errmsg(u_int32_t id, u_int32_t status, const char *errmsg)
 {
 	struct sshbuf *msg;
 	int r;
@@ -552,14 +552,21 @@ send_status(u_int32_t id, u_int32_t status)
 	    (r = sshbuf_put_u32(msg, status)) != 0)
 		fatal_fr(r, "compose");
 	if (version >= 3) {
-		if ((r = sshbuf_put_cstring(msg,
-		    status_to_message(status))) != 0 ||
+		if ((r = sshbuf_put_cstring(msg, errmsg == NULL ?
+		    status_to_message(status) : errmsg)) != 0 ||
 		    (r = sshbuf_put_cstring(msg, "")) != 0)
 			fatal_fr(r, "compose message");
 	}
 	send_msg(msg);
 	sshbuf_free(msg);
 }
+
+static void
+send_status(u_int32_t id, u_int32_t status)
+{
+	return send_status_errmsg(id, status, NULL);
+}
+
 static void
 send_data_or_handle(char type, u_int32_t id, const u_char *data, int dlen)
 {
