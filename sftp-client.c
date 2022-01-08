@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.159 2022/01/08 07:34:57 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.160 2022/01/08 07:37:32 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1009,10 +1009,14 @@ do_realpath_expand(struct sftp_conn *conn, const char *path, int expand)
 
 	if (type == SSH2_FXP_STATUS) {
 		u_int status;
+		char *errmsg;
 
-		if ((r = sshbuf_get_u32(msg, &status)) != 0)
+		if ((r = sshbuf_get_u32(msg, &status)) != 0 ||
+		    (r = sshbuf_get_cstring(msg, &errmsg, NULL)) != 0)
 			fatal_fr(r, "parse status");
-		error("canonicalize %s: %s", path, fx2txt(status));
+		error("%s %s: %s", expand ? "expand" : "realpath",
+		    path, *errmsg == '\0' ? fx2txt(status) : errmsg);
+		free(errmsg);
 		sshbuf_free(msg);
 		return NULL;
 	} else if (type != SSH2_FXP_NAME)
