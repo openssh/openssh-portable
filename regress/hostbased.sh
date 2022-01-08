@@ -1,4 +1,4 @@
-#	$OpenBSD: hostbased.sh,v 1.1 2022/01/06 21:46:56 dtucker Exp $
+#	$OpenBSD: hostbased.sh,v 1.2 2022/01/08 07:01:13 dtucker Exp $
 #	Placed in the Public Domain.
 
 # This test requires external setup and thus is skipped unless
@@ -18,20 +18,24 @@ elif [ -z "${SUDO}" ]; then
 	skip "SUDO not set"
 fi
 
+# Enable all supported hostkey algos (but no others)
+hostkeyalgos=`${SSH} -Q HostKeyAlgorithms | tr '\n' , | sed 's/,$//'`
+
 cat >>$OBJ/sshd_proxy <<EOD
 HostbasedAuthentication yes
-HostbasedAcceptedAlgorithms +ssh-rsa,ssh-dss
+HostbasedAcceptedAlgorithms $hostkeyalgos
 HostbasedUsesNameFromPacketOnly yes
-HostKeyAlgorithms +ssh-rsa,ssh-dss
+HostKeyAlgorithms $hostkeyalgos
 EOD
 
 cat >>$OBJ/ssh_proxy <<EOD
 HostbasedAuthentication yes
-HostKeyAlgorithms +ssh-rsa,ssh-dss
-HostbasedAcceptedAlgorithms +ssh-rsa,ssh-dss
+HostKeyAlgorithms $hostkeyalgos
+HostbasedAcceptedAlgorithms $hostkeyalgos
 PreferredAuthentications hostbased
 EOD
 
+set -x 
 algos=""
 for key in `${SUDO} ${SSHD} -T | awk '$1=="hostkey"{print $2}'`; do
 	case "`$SSHKEYGEN -l -f ${key}.pub`" in
@@ -41,7 +45,7 @@ for key in `${SUDO} ${SSHD} -T | awk '$1=="hostkey"{print $2}'`; do
 	*RSA*)		algos="$algos ssh-rsa rsa-sha2-256 rsa-sha2-512" ;;
 	*ED25519*)	algos="$algos ssh-ed25519" ;;
 	*DSA*)		algos="$algos ssh-dss" ;;
-	*) warn "unknown host key type $key" ;;
+	*) verbose "unknown host key type $key" ;;
 	esac
 done
 
@@ -54,9 +58,10 @@ for algo in $algos; do
 	SSH_CONNECTION=`${SSH} $opts localhost 'echo $SSH_CONNECTION'`
 	if [ $? -ne 0 ]; then
 		fail "connect failed, hostbased algo $algo"
-	fi
-	if [ "$SSH_CONNECTION" != "UNKNOWN 65535 UNKNOWN 65535" ]; then
+	elif [ "$SSH_CONNECTION" != "UNKNOWN 65535 UNKNOWN 65535" ]; then
 		fail "hostbased algo $algo bad SSH_CONNECTION" \
 		    "$SSH_CONNECTION"
+	else
+		verbose "ok hostbased algo $algo"
 	fi
 done
