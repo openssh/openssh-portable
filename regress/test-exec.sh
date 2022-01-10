@@ -79,6 +79,12 @@ if test "x${EGREP}" != "x"; then
 }
 fi
 
+# Force sort to have stable output.
+sort()
+{
+	env LC_ALL=C sort "$@"
+}
+
 SRC=`dirname ${SCRIPT}`
 
 # defaults
