@@ -2425,10 +2425,10 @@ client_input_hostkeys(struct ssh *ssh)
 	return 1;
 }
 
-/* take the resposne from the server and parse out the data.
+/* take the response from the server and parse out the data.
  * the _ctx should be null. It's just here because the format
  * of the callback handler expects it. Likewise, seq is
- * not used.  */
+ * not used. */
 static void
 client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *_ctx) {
 	struct tcp_info local_tcp_info;
