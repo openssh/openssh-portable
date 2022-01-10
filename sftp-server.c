@@ -564,7 +564,7 @@ send_status_errmsg(u_int32_t id, u_int32_t status, const char *errmsg)
 static void
 send_status(u_int32_t id, u_int32_t status)
 {
-	return send_status_errmsg(id, status, NULL);
+	send_status_errmsg(id, status, NULL);
 }
 
 static void
