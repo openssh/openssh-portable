@@ -2671,6 +2671,8 @@ fill_default_options(Options * options)
 	}
         if (options->disable_multithreaded == -1)
 		options->disable_multithreaded = 0;
+	if (options->metrics == -1)
+		options->metrics = 0;
 	if (options->metrics_interval == -1)
 		options->metrics_interval = 5;
 	if (options->control_master == -1)
