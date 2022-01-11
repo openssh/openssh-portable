@@ -126,7 +126,10 @@ typedef struct {
 	int     none_enabled;   /* Allow none to be used */
 	int     nonemac_enabled;   /* Allow none to be used */	
 	int     disable_multithreaded; /*disable multithreaded aes-ctr*/
-	int	rekey_interval;
+        int     metrics; /* enable metrics */
+        int     metrics_interval; /* time in seconds between polls */
+        char   *metrics_path; /* path for the metrics files */
+        int	rekey_interval;
 
 	int	no_host_authentication_for_localhost;
 	int	identities_only;

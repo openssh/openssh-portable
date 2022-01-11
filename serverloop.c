@@ -78,6 +78,7 @@
 #include "auth-options.h"
 #include "serverloop.h"
 #include "ssherr.h"
+#include "metrics.h"
 
 extern ServerOptions options;
 
@@ -406,19 +407,19 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		process_output(ssh, writeset, connection_out);
 	}
 	collect_children(ssh);
-	
+
 	free(readset);
 	free(writeset);
 
 	/* write final log entry */
 	sshpkt_final_log_entry(ssh);
-	
+
 	/* free all channels, no more reads and writes */
 	channel_free_all(ssh);
 
 	/* final entry must come after channels close -cjr */
         sshpkt_final_log_entry(ssh);
-	
+
 	/* free remaining sessions, e.g. remove wtmp entries */
 	session_destroy_all(ssh, NULL);
 }
@@ -691,6 +692,67 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	return 0;
 }
 
+/* we need to get the actual socket in use and from there
+ * read the values in the TCP_INFO struct.
+ * shout out to Rene Pfiffer for the article https://linuxgazette.net/136/pfeiffer.html
+ * for getting me started. This only works on systems that support the tcp_info
+ * struct; linux, freebsd, netbsd as of now. Apple has one but it's completely different
+ * than any of the others.
+ */
+static int
+server_input_metrics_request(struct ssh *ssh, struct sshbuf **respp)
+{
+	int success = 0;
+	/* TCP_INFO is defined in metrics.h
+	 * if it's not defined then we don't support tcp_info
+	 * so just return a failure code */
+#if !defined TCP_INFO
+	return success;
+#else
+        struct tcp_info tcp_info;
+	struct sshbuf *resp = NULL;
+	int tcp_info_len;
+	/* this is the socket of the current connection */
+	int sock_in = ssh_packet_get_connection_in(ssh);
+	int r;
+	binn *metricsobj;
+
+	tcp_info_len = sizeof(tcp_info); /*expect around 330 bytes */
+	if ((resp = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new");
+
+	/* create the binn object to hold the serialized metrics */
+	metricsobj = binn_object();
+	if (metricsobj == NULL) {
+		error_f("Could not create metrics object");
+		goto out;
+	}
+
+	debug("Stack metrics request for connection %d", sock_in);
+	if ((r = getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&tcp_info,
+			   (socklen_t *)&tcp_info_len)) != 0) {
+		error_f("Could not read tcp_info from socket");
+		goto out;
+	}
+	/* write the tcp_info data to the binn object */
+	metrics_write_binn_object(&tcp_info, metricsobj);
+	if ((r = sshbuf_put_string(resp, binn_ptr(metricsobj),
+				   binn_size(metricsobj))) != 0) {
+		error_fr(r, "Failed to build tcp_info object");
+		goto out;
+	}
+	/* copy the pointer of the response to the passed in response pointer */
+	*respp = resp;
+	resp = NULL; /* don't free it */
+	/* everything worked so set success to true */
+	success = 1;
+out:
+	sshbuf_free(resp);
+	binn_free(metricsobj);
+	return success;
+#endif /* TCP_INFO */
+}
+
 static int
 server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 {
@@ -857,6 +919,10 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 		success = 1;
 	} else if (strcmp(rtype, "hostkeys-prove-00@openssh.com") == 0) {
 		success = server_input_hostkeys_prove(ssh, &resp);
+	} else if (strcmp(rtype, "stack-metrics@hpnssh.org") == 0) {
+		/* resp is the response (sshbuf struct) from the function which is
+		 * handled below in the want_reply stanza */
+		success = server_input_metrics_request(ssh, &resp);
 	}
 	/* XXX sshpkt_get_end() */
 	if (want_reply) {

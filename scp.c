@@ -1545,7 +1545,8 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 #endif
 
 				/* copy the cp pointer byte by byte */
-				for (int i = 0; i < HASH_LEN; i++) {
+				int i;
+				for (i = 0; i < HASH_LEN; i++) {
 					strncat(in_hashsum, cp++, 1);
 				}
 #ifdef DEBUG
@@ -2001,7 +2002,8 @@ sink(int argc, char **argv, const char *src)
 #endif
 		if (resume_flag && !dir_flag) {
 			*remote_hashsum = '\0';
-			for (int i = 0; i < HASH_LEN; i++) {
+			int i;
+			for (i = 0; i < HASH_LEN; i++) {
 				strncat (remote_hashsum, cp++, 1);
 			}
 #ifdef DEBUG
