@@ -11,13 +11,13 @@ supports this feature. This feature will *not* diagnose a poorly performing conn
 but may provide insight into what is happening during the connection.
 
 Usage:
--oMetrics=[yes|no] will enable metrics polling
--oMetricsInterval=[N] where N is the polling period in seconds. Default: 5
+-oMetrics=[yes|no] will enable metrics polling. Default: No.
+-oMetricsInterval=[N] where N is the polling period in seconds. Default: 5 seconds.
 -oMetricsPath=[/filepath/filename] is the name of the file where the remote and
-    local data will be stored. The default is ./ssh_stack_metrics.[local|remote].
+    local data will be stored. Default: ./ssh_stack_metrics.[local|remote].
     Any other option chosen by the user will have a .local or .remote suffix appended to it.
 
-Note: The number of instruments polled by this features is dependent on the kernel of the host.
+The number of instruments polled by this features is dependent on the kernel of the host.
 This means that a remote host with an older kernel may report fewer instruments than a client
 host running a current kernel or vice versa. If there is a discrepency in the number of instruments
 in the ssh_stack_metrics.local and .remote file this is the most likely reason.
@@ -25,12 +25,16 @@ in the ssh_stack_metrics.local and .remote file this is the most likely reason.
 Additionally, determining which file represents sender side versus receiver side is dependent
 on the nature of the connection. Therfore, it's up to the user to make that determination.
 
-Linux Note: Currently this is only supported on Linux kernel greater than 3.7. Newer kernels
-can have more instruments available to poll than older kernels so there may be inconsistencies
-in the total number of measurements.
+Linux Note: Currently this is only supported on Linux kernel versions 3.7 and greater. Newer kernels
+may have more instruments available to poll than older kernels.
 
 FreeBSD Note: This is supported on Release 6 and higher. However, FreeBSD has fewer available
 instruments than new Linux kernels.
+
+Multiplexing Note: The metrics are reported from the TCP socket which means that gathering 
+metrics from multiplexed sessions will report on the activity of all sessions on that socket. 
+This will likely result in less clear results and, as such, we suggest only gathering metrics
+from non-multiplexed session. 
 
 SCP with Resume functionality
 This feature allows SCP to resume failed transfers. In the event of a failed transfer
