@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-#if !defined(HAVE_PPOLL) || !defined(HAVE_POLL)
+#if !defined(HAVE_PPOLL) || !defined(HAVE_POLL) || defined(BROKEN_POLL)
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include "bsd-poll.h"
 
-#ifndef HAVE_PPOLL
+#if !defined(HAVE_PPOLL) || defined(BROKEN_POLL)
 /*
  * A minimal implementation of ppoll(2), built on top of pselect(2).
  *
@@ -109,9 +109,9 @@ out:
 		errno = saved_errno;
 	return ret;
 }
-#endif /* HAVE_PPOLL */
+#endif /* !HAVE_PPOLL || BROKEN_POLL */
 
-#ifndef HAVE_POLL
+#if !defined(HAVE_POLL) || defined(BROKEN_POLL)
 int
 poll(struct pollfd *fds, nfds_t nfds, int timeout)
 {
@@ -126,6 +126,6 @@ poll(struct pollfd *fds, nfds_t nfds, int timeout)
 
 	return ppoll(fds, nfds, tsp, NULL);
 }
-#endif /* HAVE_POLL */
+#endif /* !HAVE_POLL || BROKEN_POLL */
 
-#endif /* HAVE_PPOLL || HAVE_POLL */
+#endif /* !HAVE_PPOLL || !HAVE_POLL || BROKEN_POLL */

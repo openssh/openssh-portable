@@ -731,6 +731,10 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	# proc_pidinfo()-based closefrom() replacement.
 	AC_CHECK_HEADERS([libproc.h])
 	AC_CHECK_FUNCS([proc_pidinfo])
+	# poll(2) is broken for character-special devices (at least).
+	# cf. Apple bug 3710161 (not public, but searchable)
+	AC_DEFINE([BROKEN_POLL], [1],
+	    [System poll(2) implementation is broken])
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
