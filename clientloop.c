@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.375 2022/01/06 21:57:28 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.376 2022/01/11 01:26:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1430,7 +1430,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	 * In interactive mode (with pseudo tty) display a message indicating
 	 * that the connection has been closed.
 	 */
-	if (have_pty && options.log_level != SYSLOG_LEVEL_QUIET) {
+	if (have_pty && options.log_level >= SYSLOG_LEVEL_INFO) {
 		if ((r = sshbuf_putf(stderr_buffer,
 		    "Connection to %.64s closed.\r\n", host)) != 0)
 			fatal_fr(r, "sshbuf_putf");
