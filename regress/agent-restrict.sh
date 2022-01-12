@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-restrict.sh,v 1.2 2022/01/04 07:20:33 djm Exp $
+#	$OpenBSD: agent-restrict.sh,v 1.3 2022/01/12 07:18:37 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="agent restrictions"
@@ -328,7 +328,7 @@ if test ! -z "\$me" ; then
 	cat \$SSH_USER_AUTH
 fi
 echo AGENT
-$SSHADD -L | grep ^ssh | cut -d" " -f-2 | sort
+$SSHADD -L | egrep "^ssh" | cut -d" " -f-2 | sort
 if test -z "\$next" ; then 
 	touch $OBJ/done
 	echo "FINISH"
