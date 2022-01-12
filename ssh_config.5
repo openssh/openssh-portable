@@ -1314,6 +1314,60 @@ hmac-sha2-256,hmac-sha2-512,hmac-sha1
 .Pp
 The list of available MAC algorithms may also be obtained using
 .Qq ssh -Q mac .
+.It Cm Metrics
+Indicate that the ssh client should gather and write TCP stack metrics from the
+TCP_INFO socket structure on compliant operating systems to a text file. 
+These metrics will be collected from both the local and remote hosts if metrics 
+are supported by the version of SSH and TCP_INFO is supported by the 
+operating system. Currently operating system support is limited to Linux 
+version 3.7 and greater, NetBSD, and FreeBSD (version 6 or greater). 
+
+If one of the hosts does not support the Metrics option then only data
+from the the host that does will be reported. See the HPN-README file 
+for more detail.  
+
+The argument to the keyword must be 
+.Cm yes
+or 
+.Cm no
+(the default).
+
+See 
+.Cm MetricsInterval 
+and 
+.Cm MetricsPath 
+for more metrics options. 
+.It Cm MetricsInterval
+The frequency, in seconds, with which the TCP_INFO struct will be polled. The 
+default value is 5 seconds.
+
+.Cm Metrics 
+must be set to 
+.Cm yes
+fot this option to have any effect.
+.It Cm MetricsPath
+The file path where
+.Cm Metrics
+should write the TCP stack metrics. 
+
+The default is 
+.Sm off
+.Ar ./ssh_stack_metrics.local  
+ and 
+.Ar ./ssh_stack_metrics.remote 
+.Sm on
+
+The user may specify any other filepath and filename that they have write 
+access to. E.g. MetricsPath=/tmp/my_metrics. The suffix of .local
+and .remote will be appended to this path. Files are 
+.Cm not 
+overwritten by subsequent metrics sessions. Instead, data from new sessions
+will be appended if the file already exists. 
+
+.Cm Metrics 
+must be set to 
+.Cm yes
+fot this option to have any effect.
 .It Cm NoHostAuthenticationForLocalhost
 Disable host authentication for localhost (loopback addresses).
 The argument to this keyword must be
