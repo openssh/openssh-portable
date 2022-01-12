@@ -320,6 +320,12 @@ have_prog()
 jot() {
 	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } exit }"
 }
+if [ ! -x "`which rev`" ]; then
+rev()
+{
+	awk '{for (i=length; i>0; i--) printf "%s", substr($0, i, 1); print ""}'
+}
+fi
 
 # Check whether preprocessor symbols are defined in config.h.
 config_defined ()
