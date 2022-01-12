@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.285 2022/01/01 04:18:06 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.286 2022/01/12 03:30:32 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -263,6 +263,7 @@ match_key_hop(const char *tag, const struct sshkey *key,
     const struct dest_constraint_hop *dch)
 {
 	const char *reason = NULL;
+	const char *hostname = dch->hostname ? dch->hostname : "(ORIGIN)";
 	u_int i;
 	char *fp;
 
@@ -273,7 +274,7 @@ match_key_hop(const char *tag, const struct sshkey *key,
 	    SSH_FP_DEFAULT)) == NULL)
 		fatal_f("fingerprint failed");
 	debug3_f("%s: entering hostname %s, requested key %s %s, %u keys avail",
-	    tag, dch->hostname, sshkey_type(key), fp, dch->nkeys);
+	    tag, hostname, sshkey_type(key), fp, dch->nkeys);
 	free(fp);
 	for (i = 0; i < dch->nkeys; i++) {
 		if (dch->keys[i] == NULL)
@@ -300,10 +301,10 @@ match_key_hop(const char *tag, const struct sshkey *key,
 			return -1; /* shouldn't happen */
 		if (!sshkey_equal(key->cert->signature_key, dch->keys[i]))
 			continue;
-		if (sshkey_cert_check_host(key, dch->hostname, 1,
+		if (sshkey_cert_check_host(key, hostname, 1,
 		    SSH_ALLOWED_CA_SIGALGS, &reason) != 0) {
 			debug_f("cert %s / hostname %s rejected: %s",
-			    key->cert->key_id, dch->hostname, reason);
+			    key->cert->key_id, hostname, reason);
 			continue;
 		}
 		return 0;
