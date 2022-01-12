@@ -26,6 +26,7 @@
 /* Flags */
 #define SSH_SK_USER_PRESENCE_REQD	0x01
 #define SSH_SK_USER_VERIFICATION_REQD	0x04
+#define SSH_SK_FORCE_OPERATION		0x10
 #define SSH_SK_RESIDENT_KEY		0x20
 
 /* Algs */
@@ -37,6 +38,7 @@
 #define SSH_SK_ERR_UNSUPPORTED		-2
 #define SSH_SK_ERR_PIN_REQUIRED		-3
 #define SSH_SK_ERR_DEVICE_NOT_FOUND	-4
+#define SSH_SK_ERR_CREDENTIAL_EXISTS	-5
 
 struct sk_enroll_response {
 	uint8_t flags;
@@ -77,7 +79,7 @@ struct sk_option {
 	uint8_t required;
 };
 
-#define SSH_SK_VERSION_MAJOR		0x00090000 /* current API version */
+#define SSH_SK_VERSION_MAJOR		0x000a0000 /* current API version */
 #define SSH_SK_VERSION_MAJOR_MASK	0xffff0000
 
 /* Return the version of the middleware API */
