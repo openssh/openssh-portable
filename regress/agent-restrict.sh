@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-restrict.sh,v 1.4 2022/01/13 04:22:10 dtucker Exp $
+#	$OpenBSD: agent-restrict.sh,v 1.5 2022/01/13 04:53:16 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="agent restrictions"
@@ -51,6 +51,10 @@ _EOF
 done
 cat $OBJ/ssh_proxy.bak >> $OBJ/ssh_proxy
 cat $OBJ/ssh_proxy.bak >> $OBJ/ssh_proxy_noid
+
+LC_ALL=C
+export LC_ALL
+echo "SetEnv LC_ALL=${LC_ALL}" >> sshd_proxy
 
 verbose "prepare known_hosts"
 rm -f $OBJ/known_hosts
