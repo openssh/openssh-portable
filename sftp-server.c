@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.137 2022/01/11 02:56:19 dtucker Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.138 2022/01/14 03:31:52 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1567,7 +1567,8 @@ process_extended_expand(u_int32_t id)
 		} else {
 			/* ~user expansions */
 			if (tilde_expand(path, pw->pw_uid, &npath) != 0) {
-				send_status(id, errno_to_portable(ENOENT));
+				send_status_errmsg(id,
+				    errno_to_portable(ENOENT), "no such user");
 				goto out;
 			}
 			free(path);
