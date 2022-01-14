@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.286 2022/01/12 03:30:32 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.287 2022/01/14 03:43:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -724,8 +724,9 @@ process_sign_request2(SocketEntry *e)
 	u_char *signature = NULL;
 	size_t slen = 0;
 	u_int compat = 0, flags;
-	int r, ok = -1;
-	char *fp = NULL, *user = NULL, *sig_dest = NULL;
+	int r, ok = -1, retried = 0;
+	char *fp = NULL, *pin = NULL, *prompt = NULL;
+	char *user = NULL, *sig_dest = NULL;
 	const char *fwd_host = NULL, *dest_host = NULL;
 	struct sshbuf *msg = NULL, *data = NULL, *sid = NULL;
 	struct sshkey *key = NULL, *hostkey = NULL;
@@ -812,7 +813,16 @@ process_sign_request2(SocketEntry *e)
 			/* error already logged */
 			goto send;
 		}
-		if ((id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
+		if ((id->key->sk_flags & SSH_SK_USER_VERIFICATION_REQD)) {
+			/* XXX include sig_dest */
+			xasprintf(&prompt, "Enter PIN%sfor %s key %s: ",
+			    (id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD) ?
+			    " and confirm user presence " : " ",
+			    sshkey_type(id->key), fp);
+			pin = read_passphrase(prompt, RP_USE_ASKPASS);
+			free(prompt);
+			prompt = NULL;
+		} else if ((id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
 			notifier = notify_start(0,
 			    "Confirm user presence for key %s %s%s%s",
 			    sshkey_type(id->key), fp,
@@ -820,10 +830,26 @@ process_sign_request2(SocketEntry *e)
 			    sig_dest == NULL ? "" : sig_dest);
 		}
 	}
-	/* XXX support PIN required FIDO keys */
+ retry_pin:
 	if ((r = sshkey_sign(id->key, &signature, &slen,
 	    sshbuf_ptr(data), sshbuf_len(data), agent_decode_alg(key, flags),
-	    id->sk_provider, NULL, compat)) != 0) {
+	    id->sk_provider, pin, compat)) != 0) {
+		debug_fr(r, "sshkey_sign");
+		if (pin == NULL && !retried && sshkey_is_sk(id->key) &&
+		    r == SSH_ERR_KEY_WRONG_PASSPHRASE) {
+			if (notifier) {
+				notify_complete(notifier, NULL);
+				notifier = NULL;
+			}
+			/* XXX include sig_dest */
+			xasprintf(&prompt, "Enter PIN%sfor %s key %s: ",
+			    (id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD) ?
+			    " and confirm user presence " : " ",
+			    sshkey_type(id->key), fp);
+			pin = read_passphrase(prompt, RP_USE_ASKPASS);
+			retried = 1;
+			goto retry_pin;
+		}
 		error_fr(r, "sshkey_sign");
 		goto send;
 	}
@@ -851,6 +877,9 @@ process_sign_request2(SocketEntry *e)
 	free(signature);
 	free(sig_dest);
 	free(user);
+	free(prompt);
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 }
 
 /* shared */

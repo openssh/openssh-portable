@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.163 2021/12/22 06:56:41 jmc Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.164 2022/01/14 03:43:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -354,11 +354,6 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 		if (skprovider == NULL) {
 			fprintf(stderr, "Cannot load FIDO key %s "
 			    "without provider\n", filename);
-			goto out;
-		}
-		if ((private->sk_flags & SSH_SK_USER_VERIFICATION_REQD) != 0) {
-			fprintf(stderr, "FIDO verify-required key %s is not "
-			    "currently supported by ssh-agent\n", filename);
 			goto out;
 		}
 	} else {
