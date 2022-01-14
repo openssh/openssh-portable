@@ -18,8 +18,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef WITH_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/crypto.h>
+#endif
 
 #include "ssherr.h"
 #include "authfile.h"
