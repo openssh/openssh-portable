@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.37 2021/11/02 22:56:40 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.38 2022/01/14 03:35:10 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -742,6 +742,7 @@ sshsk_free_sk_resident_keys(struct sk_resident_key **rks, size_t nrks)
 		return;
 	for (i = 0; i < nrks; i++) {
 		free(rks[i]->application);
+		freezero(rks[i]->user_id, rks[i]->user_id_len);
 		freezero(rks[i]->key.key_handle, rks[i]->key.key_handle_len);
 		freezero(rks[i]->key.public_key, rks[i]->key.public_key_len);
 		freezero(rks[i]->key.signature, rks[i]->key.signature_len);
