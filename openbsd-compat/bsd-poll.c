@@ -33,8 +33,8 @@
 /*
  * A minimal implementation of ppoll(2), built on top of pselect(2).
  *
- * Only supports POLLIN and POLLOUT flags in pfd.events, and POLLIN, POLLOUT
- * and POLLERR flags in revents.
+ * Only supports POLLIN, POLLOUT and POLLPRI flags in pfd.events and
+ * revents. Notably POLLERR, POLLHUP and POLLNVAL are not supported.
  *
  * Supports pfd.fd = -1 meaning "unused" although it's not standard.
  */
@@ -71,14 +71,12 @@ ppoll(struct pollfd *fds, nfds_t nfds, const struct timespec *tmoutp,
 		fd = fds[i].fd;
 		if (fd == -1)
 			continue;
-		if (fds[i].events & POLLIN) {
+		if (fds[i].events & POLLIN)
 			FD_SET(fd, readfds);
-			FD_SET(fd, exceptfds);
-		}
-		if (fds[i].events & POLLOUT) {
+		if (fds[i].events & POLLOUT)
 			FD_SET(fd, writefds);
+		if (fds[i].events & POLLPRI)
 			FD_SET(fd, exceptfds);
-		}
 	}
 
 	ret = pselect(maxfd + 1, readfds, writefds, exceptfds, tmoutp, sigmask);
@@ -90,15 +88,12 @@ ppoll(struct pollfd *fds, nfds_t nfds, const struct timespec *tmoutp,
 		fds[i].revents = 0;
 		if (fd == -1)
 			continue;
-		if (FD_ISSET(fd, readfds)) {
+		if (FD_ISSET(fd, readfds))
 			fds[i].revents |= POLLIN;
-		}
-		if (FD_ISSET(fd, writefds)) {
+		if (FD_ISSET(fd, writefds))
 			fds[i].revents |= POLLOUT;
-		}
-		if (FD_ISSET(fd, exceptfds)) {
-			fds[i].revents |= POLLERR;
-		}
+		if (FD_ISSET(fd, exceptfds))
+			fds[i].revents |= POLLPRI;
 	}
 
 out:
