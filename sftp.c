@@ -2143,7 +2143,7 @@ complete(EditLine *el, int ch)
 		if (carg > 1 && line[cursor-1] != ' ')
 			filematch = argv[carg - 1];
 
-		if (remote != 0 &&
+		if ((remote == REMOTE || remote == LOCAL) &&
 		    complete_match(el, complete_ctx->conn,
 		    *complete_ctx->remote_pathp, filematch,
 		    remote, carg == argc, quote, terminated) != 0)
