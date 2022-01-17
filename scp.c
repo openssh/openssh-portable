@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.242 2022/01/08 07:36:11 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.243 2022/01/17 21:39:51 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -130,6 +130,7 @@
 #include "misc.h"
 #include "progressmeter.h"
 #include "utf8.h"
+#include "sftp.h"
 
 #include "sftp-common.h"
 #include "sftp-client.h"
@@ -1274,10 +1275,16 @@ void
 source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 {
 	char *target = NULL, *filename = NULL, *abs_dst = NULL;
-	int target_is_dir;
+	int src_is_dir, target_is_dir;
+	Attrib a;
+	struct stat st;
 
+	memset(&a, '\0', sizeof(a));
+	if (stat(src, &st) != 0)
+		fatal("stat local \"%s\": %s", src, strerror(errno));
+	src_is_dir = S_ISDIR(st.st_mode);
 	if ((filename = basename(src)) == NULL)
-		fatal("basename %s: %s", src, strerror(errno));
+		fatal("basename \"%s\": %s", src, strerror(errno));
 
 	/*
 	 * No need to glob here - the local shell already took care of
@@ -1287,8 +1294,12 @@ source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 		cleanup_exit(255);
 	target_is_dir = remote_is_dir(conn, target);
 	if (targetshouldbedirectory && !target_is_dir) {
-		fatal("Target is not a directory, but more files selected "
-		    "for upload");
+		debug("target directory \"%s\" does not exist", target);
+		a.flags = SSH2_FILEXFER_ATTR_PERMISSIONS;
+		a.perm = st.st_mode | 0700; /* ensure writable */
+		if (do_mkdir(conn, target, &a, 1) != 0)
+			cleanup_exit(255); /* error already logged */
+		target_is_dir = 1;
 	}
 	if (target_is_dir)
 		abs_dst = path_append(target, filename);
@@ -1298,7 +1309,7 @@ source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 	}
 	debug3_f("copying local %s to remote %s", src, abs_dst);
 
-	if (local_is_dir(src) && iamrecursive) {
+	if (src_is_dir && iamrecursive) {
 		if (upload_dir(conn, src, abs_dst, pflag,
 		    SFTP_PROGRESS_ONLY, 0, 0, 1) != 0) {
 			error("failed to upload directory %s to %s",
@@ -1482,14 +1493,15 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	char *abs_dst = NULL;
 	glob_t g;
 	char *filename, *tmp = NULL;
-	int i, r, err = 0;
+	int i, r, err = 0, dst_is_dir;
+	struct stat st;
 
 	memset(&g, 0, sizeof(g));
+
 	/*
 	 * Here, we need remote glob as SFTP can not depend on remote shell
 	 * expansions
 	 */
-
 	if ((abs_src = prepare_remote_path(conn, src)) == NULL) {
 		err = -1;
 		goto out;
@@ -1505,11 +1517,24 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		goto out;
 	}
 
-	if (g.gl_matchc > 1 && !local_is_dir(dst)) {
-		error("Multiple files match pattern, but destination "
-		    "\"%s\" is not a directory", dst);
-		err = -1;
-		goto out;
+	if ((r = stat(dst, &st)) != 0)
+		debug2_f("stat local \"%s\": %s", dst, strerror(errno));
+	dst_is_dir = r == 0 && S_ISDIR(st.st_mode);
+
+	if (g.gl_matchc > 1 && !dst_is_dir) {
+		if (r == 0) {
+			error("Multiple files match pattern, but destination "
+			    "\"%s\" is not a directory", dst);
+			err = -1;
+			goto out;
+		}
+		debug2_f("creating destination \"%s\"", dst);
+		if (mkdir(dst, 0777) != 0) {
+			error("local mkdir \"%s\": %s", dst, strerror(errno));
+			err = -1;
+			goto out;
+		}
+		dst_is_dir = 1;
 	}
 
 	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
@@ -1520,7 +1545,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 			goto out;
 		}
 
-		if (local_is_dir(dst))
+		if (dst_is_dir)
 			abs_dst = path_append(dst, filename);
 		else
 			abs_dst = xstrdup(dst);
