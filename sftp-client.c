@@ -1682,7 +1682,6 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 	}
 	if (read_error) {
 		error("read remote \"%s\" : %s", remote_path, fx2txt(status));
-		    remote_path, fx2txt(status));
 		status = -1;
 		do_close(conn, handle, handle_len);
 	} else if (write_error) {
