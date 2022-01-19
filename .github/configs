@@ -98,9 +98,9 @@ case "$config" in
 	# Valgrind slows things down enough that the agent timeout test
 	# won't reliably pass, and the unit tests run longer than allowed
 	# by github so split into three separate tests.
-	tests2="rekey integrity"
-	tests3="krl forward-control sshsig"
-	tests4="cert-userkey cert-hostkey kextype sftp-perm keygen-comment"
+	tests2="rekey integrity try-ciphers sftp"
+	tests3="krl forward-control sshsig agent-restrict kextype"
+	tests4="cert-userkey cert-hostkey kextype sftp-perm keygen-comment percent"
 	case "$config" in
 	    valgrind-1)
 		# All tests except agent-timeout (which is flaky under valgrind)
