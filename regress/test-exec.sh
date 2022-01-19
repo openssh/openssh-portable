@@ -718,6 +718,19 @@ start_sshd ()
 cleanup
 
 if [ "x$USE_VALGRIND" != "x" ]; then
+	# If there is an EXIT trap handler, invoke it now.
+	# Some tests set these to clean up processes such as ssh-agent.  We
+	# need to wait for all valgrind processes to complete so we can check
+	# their logs, but since the EXIT traps are not invoked until
+	# test-exec.sh exits, waiting here will deadlock.
+	# This is not very portable but then neither is valgrind itself.
+	exithandler=$(trap -p | awk -F "'" '/EXIT$/{print $2}')
+	if [ "x${exithandler}" != "x" ]; then
+		verbose invoking EXIT trap handler early: ${exithandler}
+		${exithandler}
+		trap '' EXIT
+	fi
+
 	# wait for any running process to complete
 	wait; sleep 1
 	VG_RESULTS=$(find $OBJ/valgrind-out -type f -print)
