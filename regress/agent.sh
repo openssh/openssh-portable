@@ -157,30 +157,49 @@ done
 
 ## Deletion tests.
 
+delete_cycle() {
+	# make sure they're gone
+	${SSHADD} -l > /dev/null 2>&1
+	r=$?
+	if [ $r -ne 1 ]; then
+		fail "ssh-add -l returned unexpected exit code: $r"
+	fi
+	trace "readd keys"
+	# re-add keys/certs to agent
+	for t in ${SSH_KEYTYPES}; do
+		${SSHADD} $OBJ/$t-agent-private >/dev/null 2>&1 || \
+			fail "ssh-add failed exit code $?"
+	done
+	# make sure they are there
+	${SSHADD} -l > /dev/null 2>&1
+	r=$?
+	if [ $r -ne 0 ]; then
+		fail "ssh-add -l failed: exit code $r"
+	fi
+}
+
 trace "delete all agent keys"
 ${SSHADD} -D > /dev/null 2>&1
 r=$?
 if [ $r -ne 0 ]; then
 	fail "ssh-add -D failed: exit code $r"
 fi
-# make sure they're gone
-${SSHADD} -l > /dev/null 2>&1
-r=$?
-if [ $r -ne 1 ]; then
-	fail "ssh-add -l returned unexpected exit code: $r"
-fi
-trace "readd keys"
-# re-add keys/certs to agent
-for t in ${SSH_KEYTYPES}; do
-	${SSHADD} $OBJ/$t-agent-private >/dev/null 2>&1 || \
-		fail "ssh-add failed exit code $?"
-done
-# make sure they are there
-${SSHADD} -l > /dev/null 2>&1
+delete_cycle
+
+trace "delete all agent keys via SIGUSR1"
+kill -USR1 $SSH_AGENT_PID >/dev/null 2>&1
 r=$?
 if [ $r -ne 0 ]; then
-	fail "ssh-add -l failed: exit code $r"
+	fail "kill -USR1: exit code $r"
 fi
+delete_cycle
+trace ".. and again"
+kill -USR1 $SSH_AGENT_PID >/dev/null 2>&1
+r=$?
+if [ $r -ne 0 ]; then
+	fail "kill -USR1: exit code $r"
+fi
+delete_cycle
 
 check_key_absent() {
 	${SSHADD} -L | grep "^$1 " >/dev/null

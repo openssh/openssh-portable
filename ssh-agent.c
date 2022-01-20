@@ -189,6 +189,9 @@ static int fingerprint_hash = SSH_FP_HASH_DEFAULT;
 /* Refuse signing of non-SSH messages for web-origin FIDO keys */
 static int restrict_websafe = 1;
 
+/* Request to remove_all_identities() pending */
+static volatile sig_atomic_t received_sigusr1 = 0;
+
 static void
 close_socket(SocketEntry *e)
 {
@@ -915,11 +918,10 @@ process_remove_identity(SocketEntry *e)
 }
 
 static void
-process_remove_all_identities(SocketEntry *e)
+remove_all_identities(void)
 {
 	Identity *id;
 
-	debug2_f("entering");
 	/* Loop over all identities and clear the keys. */
 	for (id = TAILQ_FIRST(&idtab->idlist); id;
 	    id = TAILQ_FIRST(&idtab->idlist)) {
@@ -929,6 +931,13 @@ process_remove_all_identities(SocketEntry *e)
 
 	/* Mark that there are no identities. */
 	idtab->nentries = 0;
+}
+
+static void
+process_remove_all_identities(SocketEntry *e)
+{
+	debug2_f("entering");
+	remove_all_identities();
 
 	/* Send success. */
 	send_status(e, 1);
@@ -1874,7 +1883,8 @@ after_poll(struct pollfd *pfd, size_t npfd, u_int maxfds)
 }
 
 static int
-prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
+prepare_poll(struct pollfd **pfdp, size_t *npfdp, struct timespec **ptimeoutpp,
+    u_int maxfds)
 {
 	struct pollfd *pfd = *pfdp;
 	size_t i, j, npfd = 0;
@@ -1936,17 +1946,17 @@ prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
 			break;
 		}
 	}
+
+	/* This also removes expired keys */
 	deadline = reaper();
 	if (parent_alive_interval != 0)
 		deadline = (deadline == 0) ? parent_alive_interval :
 		    MINIMUM(deadline, parent_alive_interval);
-	if (deadline == 0) {
-		*timeoutp = -1; /* INFTIM */
-	} else {
-		if (deadline > INT_MAX / 1000)
-			*timeoutp = INT_MAX / 1000;
-		else
-			*timeoutp = deadline * 1000;
+	if (deadline == 0)
+		*ptimeoutpp = NULL; /* INFTIM */
+	else {
+		(*ptimeoutpp)->tv_nsec = 0;
+		(*ptimeoutpp)->tv_sec = deadline;
 	}
 	return (1);
 }
@@ -1979,6 +1989,13 @@ cleanup_handler(int sig)
 	pkcs11_terminate();
 #endif
 	_exit(2);
+}
+
+/*ARGSUSED*/
+static void
+onsigusr1(int sig)
+{
+	received_sigusr1 = 1;
 }
 
 static void
@@ -2022,7 +2039,8 @@ main(int ac, char **av)
 	char pidstrbuf[1 + 3 * sizeof pid];
 	size_t len;
 	mode_t prev_mask;
-	int timeout = -1; /* INFTIM */
+	sigset_t psigset, psigseto;
+	struct timespec ptimeout, *ptimeoutp;
 	struct pollfd *pfd = NULL;
 	size_t npfd = 0;
 	u_int maxfds;
@@ -2258,18 +2276,38 @@ skip:
 	ssh_signal(SIGINT, (d_flag | D_flag) ? cleanup_handler : SIG_IGN);
 	ssh_signal(SIGHUP, cleanup_handler);
 	ssh_signal(SIGTERM, cleanup_handler);
+	ssh_signal(SIGUSR1, onsigusr1);
 
 	if (pledge("stdio rpath cpath unix id proc exec", NULL) == -1)
 		fatal("%s: pledge: %s", __progname, strerror(errno));
 	platform_pledge_agent();
 
+	/*
+	 * Prepare signal mask that we use to block signals that might set
+	 * received_sigusr1, so that we are guaranteed to immediately wake up
+	 * the ppoll if a signal is received after the flag is checked.
+	 */
+	sigemptyset(&psigset);
+	if (d_flag | D_flag)
+		sigaddset(&psigset, SIGINT);
+	sigaddset(&psigset, SIGHUP);
+	sigaddset(&psigset, SIGTERM);
+	sigaddset(&psigset, SIGUSR1);
+
 	while (1) {
-		prepare_poll(&pfd, &npfd, &timeout, maxfds);
-		result = poll(pfd, npfd, timeout);
+		sigprocmask(SIG_BLOCK, &psigset, &psigseto);
+		if (received_sigusr1) {
+			received_sigusr1 = 0;
+			remove_all_identities();
+		}
+		/* This also removes expired keys */
+		ptimeoutp = &ptimeout;
+		prepare_poll(&pfd, &npfd, &ptimeoutp, maxfds);
+		result = ppoll(pfd, npfd, ptimeoutp, &psigseto);
 		saved_errno = errno;
+		sigprocmask(SIG_SETMASK, &psigseto, NULL);
 		if (parent_alive_interval != 0)
 			check_parent_exists();
-		(void) reaper();	/* remove expired keys */
 		if (result == -1) {
 			if (saved_errno == EINTR)
 				continue;
