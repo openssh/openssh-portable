@@ -724,10 +724,15 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 	# their logs, but since the EXIT traps are not invoked until
 	# test-exec.sh exits, waiting here will deadlock.
 	# This is not very portable but then neither is valgrind itself.
-	exithandler=$(trap -p | awk -F "'" '/EXIT$/{print $2}')
+	# As a bonus, dash (as used on the runners) has a "trap" that doesn't
+	# work in a pipeline (hence the temp file) or a subshell.
+	exithandler=""
+	trap >/tmp/trap.$$ && exithandler=$(cat /tmp/trap.$$ | \
+	    awk -F "'" '/EXIT$/{print $2}')
+	rm -f /tmp/trap.$$
 	if [ "x${exithandler}" != "x" ]; then
 		verbose invoking EXIT trap handler early: ${exithandler}
-		${exithandler}
+		eval "${exithandler}"
 		trap '' EXIT
 	fi
 
