@@ -163,6 +163,7 @@ pid_t parent_pid = -1;
 time_t parent_alive_interval = 0;
 
 sig_atomic_t signalled = 0;
+static volatile sig_atomic_t sigusr1 = 0;
 
 /* pid of process for which cleanup_socket is applicable */
 pid_t cleanup_pid = 0;
@@ -1021,11 +1022,10 @@ process_remove_identity(SocketEntry *e)
 }
 
 static void
-process_remove_all_identities(SocketEntry *e)
+remove_all_identities(void)
 {
 	Identity *id;
 
-	debug2_f("entering");
 	/* Loop over all identities and clear the keys. */
 	for (id = TAILQ_FIRST(&idtab->idlist); id;
 	    id = TAILQ_FIRST(&idtab->idlist)) {
@@ -1035,6 +1035,13 @@ process_remove_all_identities(SocketEntry *e)
 
 	/* Mark that there are no identities. */
 	idtab->nentries = 0;
+}
+
+static void
+process_remove_all_identities(SocketEntry *e)
+{
+	debug2_f("entering");
+	remove_all_identities();
 
 	/* Send success. */
 	send_status(e, 1);
@@ -2163,6 +2170,13 @@ cleanup_handler(int sig)
 	signalled = sig;
 }
 
+/*ARGSUSED*/
+static void
+onsigusr1(int sig)
+{
+	sigusr1 = 1;
+}
+
 static void
 check_parent_exists(void)
 {
@@ -2443,11 +2457,13 @@ skip:
 	ssh_signal(SIGINT, (d_flag | D_flag) ? cleanup_handler : SIG_IGN);
 	ssh_signal(SIGHUP, cleanup_handler);
 	ssh_signal(SIGTERM, cleanup_handler);
+	ssh_signal(SIGUSR1, onsigusr1);
 
 	sigemptyset(&nsigset);
 	sigaddset(&nsigset, SIGINT);
 	sigaddset(&nsigset, SIGHUP);
 	sigaddset(&nsigset, SIGTERM);
+	sigaddset(&nsigset, SIGUSR1);
 
 	if (pledge("stdio rpath cpath unix id proc exec", NULL) == -1)
 		fatal("%s: pledge: %s", __progname, strerror(errno));
@@ -2458,6 +2474,10 @@ skip:
 		if (signalled != 0) {
 			logit("exiting on signal %d", (int)signalled);
 			cleanup_exit(2);
+		}
+		if (sigusr1) {
+			sigusr1 = 0;
+			remove_all_identities();
 		}
 		ptimeout_init(&timeout);
 		prepare_poll(&pfd, &npfd, &timeout, maxfds);
