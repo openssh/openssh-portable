@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.305 2022/01/17 22:56:04 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.306 2022/01/21 06:58:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1760,10 +1760,9 @@ ssh_packet_read_poll_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 }
 
 /*
- * Buffers the given amount of input characters.  This is intended to be used
- * together with packet_read_poll.
+ * Buffers the supplied input data. This is intended to be used together
+ * with packet_read_poll().
  */
-
 int
 ssh_packet_process_incoming(struct ssh *ssh, const char *buf, u_int len)
 {
@@ -1779,7 +1778,7 @@ ssh_packet_process_incoming(struct ssh *ssh, const char *buf, u_int len)
 		state->packet_discard -= len;
 		return 0;
 	}
-	if ((r = sshbuf_put(ssh->state->input, buf, len)) != 0)
+	if ((r = sshbuf_put(state->input, buf, len)) != 0)
 		return r;
 
 	return 0;
