@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.376 2022/01/11 01:26:47 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.377 2022/01/21 07:04:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -188,6 +188,24 @@ static struct global_confirms global_confirms =
     TAILQ_HEAD_INITIALIZER(global_confirms);
 
 void ssh_process_session2_setup(int, int, int, struct sshbuf *);
+static void quit_message(const char *fmt, ...)
+    __attribute__((__format__ (printf, 1, 2)));
+
+static void
+quit_message(const char *fmt, ...)
+{
+	char *msg;
+	va_list args;
+	int r;
+
+	va_start(args, fmt);
+	xvasprintf(&msg, fmt, args);
+	va_end(args);
+
+	if ((r = sshbuf_putf(stderr_buffer, "%s\r\n", msg)) != 0)
+		fatal_fr(r, "sshbuf_putf");
+	quit_pending = 1;
+}
 
 /*
  * Signal handler for the window change signal (SIGWINCH).  This just sets a
@@ -498,7 +516,7 @@ client_wait_until_can_do_something(struct ssh *ssh, struct pollfd **pfdp,
 {
 	int timeout_secs, pollwait;
 	time_t minwait_secs = 0, now = monotime();
-	int r, ret;
+	int ret;
 	u_int p;
 
 	*conn_in_readyp = *conn_out_readyp = 0;
@@ -565,10 +583,7 @@ client_wait_until_can_do_something(struct ssh *ssh, struct pollfd **pfdp,
 		if (errno == EINTR)
 			return;
 		/* Note: we might still have data in the buffers. */
-		if ((r = sshbuf_putf(stderr_buffer,
-		    "poll: %s\r\n", strerror(errno))) != 0)
-			fatal_fr(r, "sshbuf_putf");
-		quit_pending = 1;
+		quit_message("poll: %s", strerror(errno));
 		return;
 	}
 
@@ -616,7 +631,7 @@ static void
 client_process_net_input(struct ssh *ssh)
 {
 	char buf[SSH_IOBUFSZ];
-	int r, len;
+	int len;
 
 	/*
 	 * Read input from the server, and add any such data to the buffer of
@@ -627,11 +642,8 @@ client_process_net_input(struct ssh *ssh)
 	len = read(connection_in, buf, sizeof(buf));
 	if (len == 0) {
 		/* Received EOF. The remote host has closed the connection. */
-		if ((r = sshbuf_putf(stderr_buffer,
-		    "Connection to %.300s closed by remote host.\r\n",
-		    host)) != 0)
-			fatal_fr(r, "sshbuf_putf");
-		quit_pending = 1;
+		quit_message("Connection to %.300s closed by remote host.",
+		    host);
 		return;
 	}
 	/*
@@ -647,11 +659,8 @@ client_process_net_input(struct ssh *ssh)
 		 * An error has encountered.  Perhaps there is a
 		 * network problem.
 		 */
-		if ((r = sshbuf_putf(stderr_buffer,
-		    "Read from remote host %.300s: %.100s\r\n",
-		    host, strerror(errno))) != 0)
-			fatal_fr(r, "sshbuf_putf");
-		quit_pending = 1;
+		quit_message("Read from remote host %s: %s",
+		    host, strerror(errno));
 		return;
 	}
 	ssh_packet_process_incoming(ssh, buf, len);
@@ -1430,11 +1439,8 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	 * In interactive mode (with pseudo tty) display a message indicating
 	 * that the connection has been closed.
 	 */
-	if (have_pty && options.log_level >= SYSLOG_LEVEL_INFO) {
-		if ((r = sshbuf_putf(stderr_buffer,
-		    "Connection to %.64s closed.\r\n", host)) != 0)
-			fatal_fr(r, "sshbuf_putf");
-	}
+	if (have_pty && options.log_level >= SYSLOG_LEVEL_INFO)
+		quit_message("Connection to %s closed.", host);
 
 	/* Output any buffered data for stderr. */
 	if (sshbuf_len(stderr_buffer) > 0) {
