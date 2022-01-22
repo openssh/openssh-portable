@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.377 2022/01/21 07:04:19 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.378 2022/01/22 00:49:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -630,40 +630,25 @@ client_suspend_self(struct sshbuf *bin, struct sshbuf *bout, struct sshbuf *berr
 static void
 client_process_net_input(struct ssh *ssh)
 {
-	char buf[SSH_IOBUFSZ];
-	int len;
+	int r;
 
 	/*
 	 * Read input from the server, and add any such data to the buffer of
 	 * the packet subsystem.
 	 */
 	schedule_server_alive_check();
-	/* Read as much as possible. */
-	len = read(connection_in, buf, sizeof(buf));
-	if (len == 0) {
-		/* Received EOF. The remote host has closed the connection. */
-		quit_message("Connection to %.300s closed by remote host.",
-		    host);
-		return;
+	if ((r = ssh_packet_process_read(ssh, connection_in)) == 0)
+		return; /* success */
+	if (r == SSH_ERR_SYSTEM_ERROR) {
+		if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK)
+			return;
+		if (errno == EPIPE) {
+			quit_message("Connection to %s closed by remote host.",
+			    host);
+			return;
+		}
 	}
-	/*
-	 * There is a kernel bug on Solaris that causes poll to
-	 * sometimes wake up even though there is no data available.
-	 */
-	if (len == -1 &&
-	    (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK))
-		len = 0;
-
-	if (len == -1) {
-		/*
-		 * An error has encountered.  Perhaps there is a
-		 * network problem.
-		 */
-		quit_message("Read from remote host %s: %s",
-		    host, strerror(errno));
-		return;
-	}
-	ssh_packet_process_incoming(ssh, buf, len);
+	quit_message("Read from remote host %s: %s", host, ssh_err(r));
 }
 
 static void

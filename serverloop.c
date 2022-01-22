@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.230 2022/01/06 21:55:23 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.231 2022/01/22 00:49:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -272,27 +272,24 @@ wait_until_can_do_something(struct ssh *ssh,
 static int
 process_input(struct ssh *ssh, int connection_in)
 {
-	int r, len;
-	char buf[16384];
+	int r;
 
-	/* Read and buffer any input data from the client. */
-	len = read(connection_in, buf, sizeof(buf));
-	if (len == 0) {
-		verbose("Connection closed by %.100s port %d",
-		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-		return -1;
-	} else if (len == -1) {
-		if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
+	if ((r = ssh_packet_process_read(ssh, connection_in)) == 0)
+		return 0; /* success */
+	if (r == SSH_ERR_SYSTEM_ERROR) {
+		if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK)
 			return 0;
+		if (errno == EPIPE) {
+			verbose("Connection closed by %.100s port %d",
+			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
+			return -1;
+		}
 		verbose("Read error from remote host %s port %d: %s",
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 		    strerror(errno));
 		cleanup_exit(255);
 	}
-	/* Buffer any received data. */
-	if ((r = ssh_packet_process_incoming(ssh, buf, len)) != 0)
-		fatal_fr(r, "ssh_packet_process_incoming");
-	return 0;
+	return -1;
 }
 
 /*
