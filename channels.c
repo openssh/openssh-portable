@@ -1922,7 +1922,7 @@ channel_handle_rfd(struct ssh *ssh, Channel *c)
 
 	force = c->isatty && c->detach_close && c->istate != CHAN_INPUT_CLOSED;
 
-	if ((c->io_ready & SSH_CHAN_IO_RFD) == 0)
+	if (!force && (c->io_ready & SSH_CHAN_IO_RFD) == 0)
 		return 1;
 
 	errno = 0;
@@ -2087,7 +2087,7 @@ channel_handle_efd_read(struct ssh *ssh, Channel *c)
 
 	force = c->isatty && c->detach_close && c->istate != CHAN_INPUT_CLOSED;
 
-	if ((c->io_ready & SSH_CHAN_IO_EFD_R) == 0)
+	if (!force && (c->io_ready & SSH_CHAN_IO_EFD_R) == 0)
 		return 1;
 
 	len = read(c->efd, buf, sizeof(buf));
