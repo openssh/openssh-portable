@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.24 2022/01/01 05:55:06 jsg Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.25 2022/01/22 00:43:43 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -307,6 +307,10 @@ int sshbuf_load_file(const char *, struct sshbuf **)
  * subject to umask). The buffer contents are not modified.
  */
 int sshbuf_write_file(const char *path, struct sshbuf *buf)
+    __attribute__((__nonnull__ (2)));
+
+/* Read up to maxlen bytes from a fd directly to a buffer */
+int sshbuf_read(int, struct sshbuf *, size_t, size_t *)
     __attribute__((__nonnull__ (2)));
 
 /* Macros for decoding/encoding integers */
