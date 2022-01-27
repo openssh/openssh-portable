@@ -96,7 +96,7 @@ AuthorizedKeysFile	.ssh/authorized_keys
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
 #UseDNS no
-#PidFile /var/run/sshd.pid
+#PidFile /var/run/hpnsshd.pid
 #MaxStartups 10:30:100
 #PermitTunnel no
 #ChrootDirectory none

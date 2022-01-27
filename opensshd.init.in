@@ -13,7 +13,7 @@ sysconfdir=@sysconfdir@
 piddir=@piddir@
 
 SSHD=$prefix/sbin/sshd
-PIDFILE=$piddir/sshd.pid
+PIDFILE=$piddir/hpnsshd.pid
 PidFile=`grep "^PidFile" ${sysconfdir}/sshd_config | tr "=" " " | awk '{print $2}'`
 [ X$PidFile = X ]  ||  PIDFILE=$PidFile
 SSH_KEYGEN=$prefix/bin/ssh-keygen

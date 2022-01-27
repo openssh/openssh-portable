@@ -5188,7 +5188,7 @@ AC_ARG_WITH([bsd-auth],
 	]
 )
 
-# Where to place sshd.pid
+# Where to place hpnsshd.pid
 piddir=/var/run
 # make sure the directory exists
 if test ! -d $piddir ; then
@@ -5199,7 +5199,7 @@ if test ! -d $piddir ; then
 fi
 
 AC_ARG_WITH([pid-dir],
-	[  --with-pid-dir=PATH     Specify location of sshd.pid file],
+	[  --with-pid-dir=PATH     Specify location of hpnsshd.pid file],
 	[
 		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
 		    test "x${withval}" != "xyes"; then

@@ -171,7 +171,7 @@ PATHSUBS	= \
 	-e 's|/etc/ssh/ssh_host_dsa_key|$(sysconfdir)/ssh_host_dsa_key|g' \
 	-e 's|/etc/ssh/ssh_host_rsa_key|$(sysconfdir)/ssh_host_rsa_key|g' \
 	-e 's|/etc/ssh/ssh_host_ed25519_key|$(sysconfdir)/ssh_host_ed25519_key|g' \
-	-e 's|/var/run/sshd.pid|$(piddir)/sshd.pid|g' \
+	-e 's|/var/run/hpnsshd.pid|$(piddir)/hpnsshd.pid|g' \
 	-e 's|/etc/moduli|$(sysconfdir)/moduli|g' \
 	-e 's|/etc/ssh/moduli|$(sysconfdir)/moduli|g' \
 	-e 's|/etc/ssh/sshrc|$(sysconfdir)/sshrc|g' \

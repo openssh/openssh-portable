@@ -51,7 +51,7 @@
  * The process id of the daemon listening for connections is saved here to
  * make it easier to kill the correct daemon when necessary.
  */
-#define _PATH_SSH_DAEMON_PID_FILE	_PATH_SSH_PIDDIR "/sshd.pid"
+#define _PATH_SSH_DAEMON_PID_FILE	_PATH_SSH_PIDDIR "/hpnsshd.pid"
 
 /*
  * The directory in user's home directory in which the files reside. The
