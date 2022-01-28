@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.230 2022/01/06 22:03:59 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.231 2022/01/28 06:18:42 guenther Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -790,7 +790,7 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 	if (auth2_setup_methods_lists(authctxt) != 0) {
 		/*
 		 * The monitor will continue long enough to let the child
-		 * run to it's packet_disconnect(), but it must not allow any
+		 * run to its packet_disconnect(), but it must not allow any
 		 * authentication to succeed.
 		 */
 		debug_f("no valid authentication method lists");
