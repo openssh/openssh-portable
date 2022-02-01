@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.447 2022/01/05 21:54:37 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.448 2022/02/01 23:32:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2460,7 +2460,7 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 {
 	size_t i, slen, plen = strlen(keypath);
 	char *privpath = xstrdup(keypath);
-	const char *suffixes[] = { "-cert.pub", ".pub", NULL };
+	static const char * const suffixes[] = { "-cert.pub", ".pub", NULL };
 	struct sshkey *ret = NULL, *privkey = NULL;
 	int r;
 

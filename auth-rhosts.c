@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rhosts.c,v 1.53 2020/10/18 11:32:01 djm Exp $ */
+/* $OpenBSD: auth-rhosts.c,v 1.54 2022/02/01 23:32:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -191,7 +191,7 @@ auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
 {
 	char buf[1024];
 	struct stat st;
-	static const char *rhosts_files[] = {".shosts", ".rhosts", NULL};
+	static const char * const rhosts_files[] = {".shosts", ".rhosts", NULL};
 	u_int rhosts_file_index;
 
 	debug2("auth_rhosts2: clientuser %s hostname %s ipaddr %s",

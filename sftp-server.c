@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.138 2022/01/14 03:31:52 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.139 2022/02/01 23:32:51 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -520,7 +520,7 @@ send_msg(struct sshbuf *m)
 static const char *
 status_to_message(u_int32_t status)
 {
-	const char *status_messages[] = {
+	static const char * const status_messages[] = {
 		"Success",			/* SSH_FX_OK */
 		"End of file",			/* SSH_FX_EOF */
 		"No such file",			/* SSH_FX_NO_SUCH_FILE */

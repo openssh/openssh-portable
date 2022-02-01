@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.355 2022/01/06 22:06:51 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.356 2022/02/01 23:32:51 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1318,7 +1318,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 static int
 id_filename_matches(Identity *id, Identity *private_id)
 {
-	const char *suffixes[] = { ".pub", "-cert.pub", NULL };
+	static const char * const suffixes[] = { ".pub", "-cert.pub", NULL };
 	size_t len = strlen(id->filename), plen = strlen(private_id->filename);
 	size_t i, slen;
 
