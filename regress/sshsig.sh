@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.13 2022/01/05 04:56:15 djm Exp $
+#	$OpenBSD: sshsig.sh,v 1.14 2022/02/01 23:37:15 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -341,6 +341,23 @@ for t in $SIGNKEYS; do
 		-Overify-time=19850101 \
 		-f $OBJ/allowed_signers >/dev/null 2>&1 || \
 		fail "failed find-principals for $t with ca key"
+
+	# CA with wildcard principal
+	(printf "*@example.com cert-authority " ;
+	 cat $CA_PUB) > $OBJ/allowed_signers
+	# find-principals CA with wildcard principal
+	${SSHKEYGEN} -vvv -Y find-principals -s $sigfile \
+		-Overify-time=19850101 \
+		-f $OBJ/allowed_signers 2>/dev/null | \
+		fgrep "$sig_principal" >/dev/null || \
+		fail "failed find-principals for $t with ca key using wildcard principal"
+
+	# verify CA with wildcard principal
+	${SSHKEYGEN} -vvv -Y verify -s $sigfile -n $sig_namespace \
+		-I $sig_principal -f $OBJ/allowed_signers \
+		-Overify-time=19850101 \
+		< $DATA >/dev/null 2>&1 || \
+		fail "failed signature for $t cert using wildcard principal"
 
 	# signing key listed as cert-authority
 	(printf "$sig_principal cert-authority " ;
