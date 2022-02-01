@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.27 2022/01/05 04:02:42 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.28 2022/02/01 23:34:47 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -820,6 +820,7 @@ cert_filter_principals(const char *path, u_long linenum,
 	const char *reason;
 	struct sshbuf *nprincipals;
 	int r = SSH_ERR_INTERNAL_ERROR, success = 0;
+	u_int i;
 
 	oprincipals = principals = *principalsp;
 	*principalsp = NULL;
@@ -830,22 +831,23 @@ cert_filter_principals(const char *path, u_long linenum,
 	}
 
 	while ((cp = strsep(&principals, ",")) != NULL && *cp != '\0') {
-		if (strcspn(cp, "!?*") != strlen(cp)) {
-			debug("%s:%lu: principal \"%s\" not authorized: "
-			    "contains wildcards", path, linenum, cp);
-			continue;
-		}
-		/* Check against principals list in certificate */
+		/* Check certificate validity */
 		if ((r = sshkey_cert_check_authority(cert, 0, 1, 0,
-		    verify_time, cp, &reason)) != 0) {
+		    verify_time, NULL, &reason)) != 0) {
 			debug("%s:%lu: principal \"%s\" not authorized: %s",
 			    path, linenum, cp, reason);
 			continue;
 		}
-		if ((r = sshbuf_putf(nprincipals, "%s%s",
-		    sshbuf_len(nprincipals) != 0 ? "," : "", cp)) != 0) {
-			error_f("buffer error");
-			goto out;
+		/* Return all matching principal names from the cert */
+		for (i = 0; i < cert->cert->nprincipals; i++) {
+			if (match_pattern(cert->cert->principals[i], cp)) {
+				if ((r = sshbuf_putf(nprincipals, "%s%s",
+					sshbuf_len(nprincipals) != 0 ? "," : "",
+						cert->cert->principals[i])) != 0) {
+					error_f("buffer error");
+					goto out;
+				}
+			}
 		}
 	}
 	if (sshbuf_len(nprincipals) == 0) {
