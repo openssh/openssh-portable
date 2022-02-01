@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.243 2022/01/17 21:39:51 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.244 2022/02/01 23:11:11 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1312,12 +1312,11 @@ source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 	if (src_is_dir && iamrecursive) {
 		if (upload_dir(conn, src, abs_dst, pflag,
 		    SFTP_PROGRESS_ONLY, 0, 0, 1) != 0) {
-			error("failed to upload directory %s to %s",
-				src, abs_dst);
+			error("failed to upload directory %s to %s", src, targ);
 			errs = 1;
 		}
 	} else if (do_upload(conn, src, abs_dst, pflag, 0, 0) != 0) {
-		error("failed to upload file %s to %s", src, abs_dst);
+		error("failed to upload file %s to %s", src, targ);
 		errs = 1;
 	}
 
@@ -1510,9 +1509,9 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	debug3_f("copying remote %s to local %s", abs_src, dst);
 	if ((r = remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
-			error("%s: too many glob matches", abs_src);
+			error("%s: too many glob matches", src);
 		else
-			error("%s: %s", abs_src, strerror(ENOENT));
+			error("%s: %s", src, strerror(ENOENT));
 		err = -1;
 		goto out;
 	}
@@ -1919,7 +1918,7 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 
 	targetisdir = remote_is_dir(to, target);
 	if (!targetisdir && targetshouldbedirectory) {
-		error("%s: destination is not a directory", target);
+		error("%s: destination is not a directory", targ);
 		err = -1;
 		goto out;
 	}
@@ -1927,9 +1926,9 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 	debug3_f("copying remote %s to remote %s", abs_src, target);
 	if ((r = remote_glob(from, abs_src, GLOB_MARK, NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
-			error("%s: too many glob matches", abs_src);
+			error("%s: too many glob matches", src);
 		else
-			error("%s: %s", abs_src, strerror(ENOENT));
+			error("%s: %s", src, strerror(ENOENT));
 		err = -1;
 		goto out;
 	}
