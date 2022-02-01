@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.582 2021/11/18 03:07:59 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.583 2022/02/01 07:57:32 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -357,12 +357,9 @@ main_sigchld_handler(int sig)
 static void
 grace_alarm_handler(int sig)
 {
-	if (use_privsep && pmonitor != NULL && pmonitor->m_pid > 0)
-		kill(pmonitor->m_pid, SIGALRM);
-
 	/*
 	 * Try to kill any processes that we have spawned, E.g. authorized
-	 * keys command helpers.
+	 * keys command helpers or privsep children.
 	 */
 	if (getpgid(0) == getpid()) {
 		ssh_signal(SIGTERM, SIG_IGN);
@@ -370,13 +367,9 @@ grace_alarm_handler(int sig)
 	}
 
 	/* Log error and exit. */
-	if (use_privsep && pmonitor != NULL && pmonitor->m_pid <= 0)
-		cleanup_exit(255); /* don't log in privsep child */
-	else {
-		sigdie("Timeout before authentication for %s port %d",
-		    ssh_remote_ipaddr(the_active_state),
-		    ssh_remote_port(the_active_state));
-	}
+	sigdie("Timeout before authentication for %s port %d",
+	    ssh_remote_ipaddr(the_active_state),
+	    ssh_remote_port(the_active_state));
 }
 
 /* Destroy the host and server keys.  They will no longer be needed. */
