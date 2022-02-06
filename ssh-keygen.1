@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.219 2022/01/05 04:50:11 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.220 2022/02/06 00:29:03 jsg Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: January 5 2022 $
+.Dd $Mdocdate: February 6 2022 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -372,12 +372,12 @@ to use on files that mix hashed and non-hashed names.
 .It Fl h
 When signing a key, create a host certificate instead of a user
 certificate.
-Please see the
+See the
 .Sx CERTIFICATES
 section for details.
 .It Fl I Ar certificate_identity
 Specify the key identity when signing a public key.
-Please see the
+See the
 .Sx CERTIFICATES
 section for details.
 .It Fl i
@@ -469,7 +469,7 @@ Provides the new passphrase.
 Specify one or more principals (user or host names) to be included in
 a certificate when signing a key.
 Multiple principals may be specified, separated by commas.
-Please see the
+See the
 .Sx CERTIFICATES
 section for details.
 .It Fl O Ar option
@@ -534,7 +534,7 @@ but other methods may be supported in the future.
 .It Cm write-attestation Ns = Ns Ar path
 May be used at key generation time to record the attestation data
 returned from FIDO tokens during key generation.
-Please note that this information is potentially sensitive.
+This information is potentially sensitive.
 By default, this information is discarded.
 .El
 .Pp
@@ -594,7 +594,7 @@ Print the SSHFP fingerprint resource record named
 for the specified public key file.
 .It Fl s Ar ca_key
 Certify (sign) a public key using the specified CA key.
-Please see the
+See the
 .Sx CERTIFICATES
 section for details.
 .Pp
@@ -1059,7 +1059,7 @@ public key must be trusted by
 .Xr sshd 8
 or
 .Xr ssh 1 .
-Please refer to those manual pages for details.
+Refer to those manual pages for details.
 .Sh KEY REVOCATION LISTS
 .Nm
 is able to manage OpenSSH format Key Revocation Lists (KRLs).
