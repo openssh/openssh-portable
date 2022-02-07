@@ -905,9 +905,9 @@ usage(void)
 {
 	fprintf(stderr, "%s, %s\n", SSH_RELEASE, SSH_OPENSSL_VERSION);
 	fprintf(stderr,
-"usage: sshd [-46DdeiqTt] [-C connection_spec] [-c host_cert_file]\n"
-"            [-E log_file] [-f config_file] [-g login_grace_time]\n"
-"            [-h host_key_file] [-o option] [-p port] [-u len]\n"
+"usage: hpnsshd [-46DdeiqTt] [-C connection_spec] [-c host_cert_file]\n"
+"               [-E log_file] [-f config_file] [-g login_grace_time]\n"
+"               [-h host_key_file] [-o option] [-p port] [-u len]\n"
 	);
 	exit(1);
 }
