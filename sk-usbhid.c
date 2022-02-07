@@ -312,7 +312,8 @@ sk_touch_poll(struct sk_usbhid **skv, size_t nsk, int *touch, size_t *idx)
 	return 0;
 }
 
-#ifndef HAVE_FIDO_CRED_SET_CLIENTDATA
+#if !defined(FIDO_ASSERT_SET_CLIENTDATA) || \
+    !defined(HAVE_FIDO_CRED_SET_CLIENTDATA)
 /* Calculate SHA256(m) */
 static int
 sha256_mem(const void *m, size_t mlen, u_char *d, size_t dlen)
@@ -336,8 +337,10 @@ sha256_mem(const void *m, size_t mlen, u_char *d, size_t dlen)
 #endif
 	return 0;
 }
+#endif /* !FIDO_ASSERT_SET_CLIENTDATA || !HAVE_FIDO_CRED_SET_CLIENTDATA */
 
-int
+#ifndef HAVE_FIDO_CRED_SET_CLIENTDATA
+static int
 fido_cred_set_clientdata(fido_cred_t *cred, const u_char *ptr, size_t len)
 {
 	uint8_t d[32];
@@ -356,6 +359,27 @@ fido_cred_set_clientdata(fido_cred_t *cred, const u_char *ptr, size_t len)
 	return r;
 }
 #endif /* HAVE_FIDO_CRED_SET_CLIENTDATA */
+
+#ifndef HAVE_ASSERT_CRED_SET_CLIENTDATA
+static int
+fido_assert_set_clientdata(fido_assert_t *assert, const u_char *ptr, size_t len)
+{
+	uint8_t d[32];
+	int r;
+
+	if (sha256_mem(ptr, len, d, sizeof(d)) != 0) {
+		skdebug(__func__, "hash challenge failed");
+		return FIDO_ERR_INTERNAL;
+	}
+	r = fido_assert_set_clientdata_hash(assert, d, sizeof(d));
+	explicit_bzero(d, sizeof(d));
+	if (r != FIDO_OK) {
+		skdebug(__func__, "fido_assert_set_clientdata_hash failed: %s",
+		    fido_strerr(r));
+	}
+	return r;
+}
+#endif /* HAVE_FIDO_ASSERT_SET_CLIENTDATA */
 
 /* Check if the specified key handle exists on a given sk. */
 static int
