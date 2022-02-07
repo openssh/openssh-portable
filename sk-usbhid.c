@@ -312,7 +312,7 @@ sk_touch_poll(struct sk_usbhid **skv, size_t nsk, int *touch, size_t *idx)
 	return 0;
 }
 
-#if !defined(FIDO_ASSERT_SET_CLIENTDATA) || \
+#if !defined(HAVE_FIDO_ASSERT_SET_CLIENTDATA) || \
     !defined(HAVE_FIDO_CRED_SET_CLIENTDATA)
 /* Calculate SHA256(m) */
 static int
@@ -337,7 +337,7 @@ sha256_mem(const void *m, size_t mlen, u_char *d, size_t dlen)
 #endif
 	return 0;
 }
-#endif /* !FIDO_ASSERT_SET_CLIENTDATA || !HAVE_FIDO_CRED_SET_CLIENTDATA */
+#endif /* !HAVE_FIDO_ASSERT_SET_CLIENTDATA || !HAVE_FIDO_CRED_SET_CLIENTDATA */
 
 #ifndef HAVE_FIDO_CRED_SET_CLIENTDATA
 static int
@@ -360,7 +360,7 @@ fido_cred_set_clientdata(fido_cred_t *cred, const u_char *ptr, size_t len)
 }
 #endif /* HAVE_FIDO_CRED_SET_CLIENTDATA */
 
-#ifndef HAVE_ASSERT_CRED_SET_CLIENTDATA
+#ifndef HAVE_FIDO_ASSERT_SET_CLIENTDATA
 static int
 fido_assert_set_clientdata(fido_assert_t *assert, const u_char *ptr, size_t len)
 {
