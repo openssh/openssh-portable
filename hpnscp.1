@@ -10,14 +10,14 @@
 .\"
 .\" $OpenBSD: scp.1,v 1.105 2021/09/20 06:53:56 djm Exp $
 .\"
-.Dd $Mdocdate: September 20 2021 $
-.Dt SCP 1
+.Dd $Mdocdate: February 7 2022 $
+.Dt HPNSCP 1
 .Os
 .Sh NAME
-.Nm scp
-.Nd OpenSSH secure file copy
+.Nm hpnscp
+.Nd HPN/OpenSSH secure file copy
 .Sh SYNOPSIS
-.Nm scp
+.Nm hpnscp
 .Op Fl 346ABCOpqRrsTvZ
 .Op Fl c Ar cipher
 .Op Fl D Ar sftp_server_path
@@ -32,10 +32,11 @@
 .Ar source ... target
 .Sh DESCRIPTION
 .Nm
-copies files between hosts on a network.
+copies files between hosts on a network. It is binary compatible with OpenSSH's scp including
+the use of the same directives and configuration options except where noted. 
 .Pp
 It uses
-.Xr ssh 1
+.Xr hpnssh 1
 for data transfer, and uses the same authentication and provides the
 same security as a login session.
 .Pp
@@ -92,7 +93,7 @@ Forces
 to use IPv6 addresses only.
 .It Fl A
 Allows forwarding of
-.Xr ssh-agent 1
+.Xr hpnssh-agent 1
 to the remote system.
 The default is not to forward an authentication agent.
 .It Fl B
@@ -102,30 +103,30 @@ Compression enable.
 Passes the
 .Fl C
 flag to
-.Xr ssh 1
+.Xr hpnssh 1
 to enable compression.
 .It Fl c Ar cipher
 Selects the cipher to use for encrypting the data transfer.
 This option is directly passed to
-.Xr ssh 1 .
+.Xr hpnssh 1 .
 .It Fl D Ar sftp_server_path
 When using the SFTP protocol support via
 .Fl s ,
 connect directly to a local SFTP server program rather than a
 remote one via
-.Xr ssh 1 .
+.Xr hpnssh 1 .
 This option may be useful in debugging the client and server.
 .It Fl F Ar ssh_config
 Specifies an alternative
 per-user configuration file for
-.Nm ssh .
+.Nm hpnssh .
 This option is directly passed to
-.Xr ssh 1 .
+.Xr hpnssh 1 .
 .It Fl i Ar identity_file
 Selects the file from which the identity (private key) for public key
 authentication is read.
 This option is directly passed to
-.Xr ssh 1 .
+.Xr hpnssh 1 .
 .It Fl J Ar destination
 Connect to the target host by first making an
 .Nm
@@ -138,7 +139,7 @@ This is a shortcut to specify a
 .Cm ProxyJump
 configuration directive.
 This option is directly passed to
-.Xr ssh 1 .
+.Xr hpnssh 1 .
 .It Fl l Ar limit
 Limits the used bandwidth, specified in Kbit/s.
 .It Fl O
@@ -149,17 +150,17 @@ wildcard patterns and for expanding paths with a
 .Sq ~
 prefix for older SFTP servers.
 This mode is the default.
-.It Fl o Ar ssh_option
+.It Fl o Ar hpnssh_option
 Can be used to pass options to
-.Nm ssh
+.Nm hpnssh
 in the format used in
-.Xr ssh_config 5 .
+.Xr hpnssh_config 5 .
 This is useful for specifying options
 for which there is no separate
-.Nm scp
+.Nm hpnscp
 command-line flag.
 For full details of the options listed below, and their possible values, see
-.Xr ssh_config 5 .
+.Xr hpnssh_config 5 .
 .Pp
 .Bl -tag -width Ds -offset indent -compact
 .It AddressFamily
@@ -236,7 +237,7 @@ source file.
 .It Fl q
 Quiet mode: disables the progress meter as well as warning and diagnostic
 messages from
-.Xr ssh 1 .
+.Xr hpnssh 1 .
 .It Fl R
 Copies between two remote hosts are performed by connecting to the origin
 host and executing
@@ -252,18 +253,22 @@ Note that
 .Nm
 follows symbolic links encountered in the tree traversal.
 .It Fl Z
-Resume failed or interrupted transfer. Identical files will be skipped. Remote must have resume option. 
+Resume failed or interrupted transfer. Identical files will be skipped. Remote must have resume option.
+.Nm
+only option.
 .It Fl S Ar program
 Name of
 .Ar program
 to use for the encrypted connection.
 The program must understand
-.Xr ssh 1
+.Xr hpnssh 1
 options.
 .It Fl z Ar program
-Path to scp on remote system. Useful if remote has multiple scp installs.
+Path to hpnscp on remote system. Useful if remote has multiple scp installs.
 For example, using the resume option but the default remote scp does not have the resume option.
-Use -z to point the version that does - e.g. -z /opt/hpnssh/bin/scp
+Use -z to point the version that does - e.g. -z /opt/hpnssh/bin/hpnscp.
+.Nm
+only option. 
 .It Fl s
 Use the SFTP protocol for transfers rather than the original scp protocol.
 .It Fl T
@@ -281,7 +286,7 @@ Verbose mode.
 Causes
 .Nm
 and
-.Xr ssh 1
+.Xr hpnssh 1
 to print debugging messages about their progress.
 This is helpful in
 debugging connection, authentication, and configuration problems.
@@ -289,14 +294,14 @@ debugging connection, authentication, and configuration problems.
 .Sh EXIT STATUS
 .Ex -std scp
 .Sh SEE ALSO
-.Xr sftp 1 ,
-.Xr ssh 1 ,
-.Xr ssh-add 1 ,
-.Xr ssh-agent 1 ,
-.Xr ssh-keygen 1 ,
-.Xr ssh_config 5 ,
-.Xr sftp-server 8 ,
-.Xr sshd 8
+.Xr hpnsftp 1 ,
+.Xr hpnssh 1 ,
+.Xr hpnssh-add 1 ,
+.Xr hpnssh-agent 1 ,
+.Xr hpnssh-keygen 1 ,
+.Xr hpnssh_config 5 ,
+.Xr hpnsftp-server 8 ,
+.Xr hpnsshd 8
 .Sh HISTORY
 .Nm
 is based on the rcp program in

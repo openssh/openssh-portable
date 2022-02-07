@@ -4933,11 +4933,11 @@ AC_ARG_WITH([mantype],
 	]
 )
 if test -z "$MANTYPE"; then
-	if ${MANDOC} ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	if ${MANDOC} ${srcdir}/hpnssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
-	elif ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	elif ${NROFF} -mdoc ${srcdir}/hpnssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
-	elif ${NROFF} -man ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	elif ${NROFF} -man ${srcdir}/hpnssh.1 >/dev/null 2>&1; then
 		MANTYPE=man
 	else
 		MANTYPE=cat
