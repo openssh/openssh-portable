@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.37 2021/12/07 22:06:45 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.38 2022/02/07 01:25:12 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -312,6 +312,7 @@ sk_touch_poll(struct sk_usbhid **skv, size_t nsk, int *touch, size_t *idx)
 	return 0;
 }
 
+#ifndef HAVE_FIDO_CRED_SET_CLIENTDATA
 /* Calculate SHA256(m) */
 static int
 sha256_mem(const void *m, size_t mlen, u_char *d, size_t dlen)
@@ -336,26 +337,42 @@ sha256_mem(const void *m, size_t mlen, u_char *d, size_t dlen)
 	return 0;
 }
 
+int
+fido_cred_set_clientdata(fido_cred_t *cred, const u_char *ptr, size_t len)
+{
+	uint8_t d[32];
+	int r;
+
+	if (sha256_mem(ptr, len, d, sizeof(d)) != 0) {
+		skdebug(__func__, "hash challenge failed");
+		return FIDO_ERR_INTERNAL;
+	}
+	r = fido_cred_set_clientdata_hash(cred, d, sizeof(d));
+	explicit_bzero(d, sizeof(d));
+	if (r != FIDO_OK) {
+		skdebug(__func__, "fido_cred_set_clientdata_hash failed: %s",
+		    fido_strerr(r));
+	}
+	return r;
+}
+#endif /* HAVE_FIDO_CRED_SET_CLIENTDATA */
+
 /* Check if the specified key handle exists on a given sk. */
 static int
 sk_try(const struct sk_usbhid *sk, const char *application,
     const uint8_t *key_handle, size_t key_handle_len)
 {
 	fido_assert_t *assert = NULL;
-	/* generate an invalid signature on FIDO2 tokens */
-	const char *data = "";
-	uint8_t message[32];
 	int r = FIDO_ERR_INTERNAL;
+	uint8_t message[32];
 
-	if (sha256_mem(data, strlen(data), message, sizeof(message)) != 0) {
-		skdebug(__func__, "hash message failed");
-		goto out;
-	}
+	memset(message, '\0', sizeof(message));
 	if ((assert = fido_assert_new()) == NULL) {
 		skdebug(__func__, "fido_assert_new failed");
 		goto out;
 	}
-	if ((r = fido_assert_set_clientdata_hash(assert, message,
+	/* generate an invalid signature on FIDO2 tokens */
+	if ((r = fido_assert_set_clientdata(assert, message,
 	    sizeof(message))) != FIDO_OK) {
 		skdebug(__func__, "fido_assert_set_clientdata_hash: %s",
 		    fido_strerr(r));
@@ -730,7 +747,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 {
 	fido_cred_t *cred = NULL;
 	const uint8_t *ptr;
-	uint8_t user_id[32], chall_hash[32];
+	uint8_t user_id[32];
 	struct sk_usbhid *sk = NULL;
 	struct sk_enroll_response *response = NULL;
 	size_t len;
@@ -784,14 +801,9 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 		skdebug(__func__, "fido_cred_set_type: %s", fido_strerr(r));
 		goto out;
 	}
-	if (sha256_mem(challenge, challenge_len,
-	    chall_hash, sizeof(chall_hash)) != 0) {
-		skdebug(__func__, "hash challenge failed");
-		goto out;
-	}
-	if ((r = fido_cred_set_clientdata_hash(cred, chall_hash,
-	    sizeof(chall_hash))) != FIDO_OK) {
-		skdebug(__func__, "fido_cred_set_clientdata_hash: %s",
+	if ((r = fido_cred_set_clientdata(cred,
+	    challenge, challenge_len)) != FIDO_OK) {
+		skdebug(__func__, "fido_cred_set_clientdata: %s",
 		    fido_strerr(r));
 		goto out;
 	}
@@ -1048,7 +1060,6 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	char *device = NULL;
 	struct sk_usbhid *sk = NULL;
 	struct sk_sign_response *response = NULL;
-	uint8_t message[32];
 	int ret = SSH_SK_ERR_GENERAL, internal_uv;
 	int r;
 
@@ -1061,11 +1072,6 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	*sign_response = NULL;
 	if (check_sign_load_resident_options(options, &device) != 0)
 		goto out; /* error already logged */
-	/* hash data to be signed before it goes to the security key */
-	if ((r = sha256_mem(data, datalen, message, sizeof(message))) != 0) {
-		skdebug(__func__, "hash message failed");
-		goto out;
-	}
 	if (device != NULL)
 		sk = sk_open(device);
 	else if (pin != NULL || (flags & SSH_SK_USER_VERIFICATION_REQD))
@@ -1081,9 +1087,9 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 		skdebug(__func__, "fido_assert_new failed");
 		goto out;
 	}
-	if ((r = fido_assert_set_clientdata_hash(assert, message,
-	    sizeof(message))) != FIDO_OK) {
-		skdebug(__func__, "fido_assert_set_clientdata_hash: %s",
+	if ((r = fido_assert_set_clientdata(assert,
+	    data, datalen)) != FIDO_OK)  {
+		skdebug(__func__, "fido_assert_set_clientdata: %s",
 		    fido_strerr(r));
 		goto out;
 	}
@@ -1136,7 +1142,6 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	response = NULL;
 	ret = 0;
  out:
-	explicit_bzero(message, sizeof(message));
 	free(device);
 	if (response != NULL) {
 		free(response->sig_r);
