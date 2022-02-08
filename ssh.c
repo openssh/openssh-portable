@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.572 2022/01/06 22:04:20 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.573 2022/02/08 08:59:12 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1887,7 +1887,7 @@ ssh_init_forward_permissions(struct ssh *ssh, const char *what, char **opens,
 {
 	u_int i;
 	int port;
-	char *addr, *arg, *oarg, ch;
+	char *addr, *arg, *oarg;
 	int where = FORWARD_LOCAL;
 
 	channel_clear_permission(ssh, FORWARD_ADM, where);
@@ -1904,9 +1904,8 @@ ssh_init_forward_permissions(struct ssh *ssh, const char *what, char **opens,
 	/* Otherwise treat it as a list of permitted host:port */
 	for (i = 0; i < num_opens; i++) {
 		oarg = arg = xstrdup(opens[i]);
-		ch = '\0';
-		addr = hpdelim2(&arg, &ch);
-		if (addr == NULL || ch == '/')
+		addr = hpdelim(&arg);
+		if (addr == NULL)
 			fatal_f("missing host in %s", what);
 		addr = cleanhostname(addr);
 		if (arg == NULL || ((port = permitopen_port(arg)) < 0))
