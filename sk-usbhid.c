@@ -381,6 +381,14 @@ fido_assert_set_clientdata(fido_assert_t *assert, const u_char *ptr, size_t len)
 }
 #endif /* HAVE_FIDO_ASSERT_SET_CLIENTDATA */
 
+#ifndef HAVE_FIDO_DEV_IS_WINHELLO
+static bool
+fido_dev_is_winhello(const fido_dev_t *)
+{
+	return false;
+}
+#endif /* HAVE_FIDO_DEV_IS_WINHELLO */
+
 /* Check if the specified key handle exists on a given sk. */
 static int
 sk_try(const struct sk_usbhid *sk, const char *application,
