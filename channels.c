@@ -57,7 +57,9 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <netdb.h>
+#ifdef HAVE_POLL_H
 #include <poll.h>
+#endif
 #include <stdarg.h>
 #ifdef HAVE_STDINT_H
 # include <stdint.h>

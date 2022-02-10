@@ -50,7 +50,9 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <limits.h>
+#ifdef HAVE_POLL_H
 #include <poll.h>
+#endif
 #include <signal.h>
 #include <string.h>
 #include <termios.h>
