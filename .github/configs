@@ -31,6 +31,9 @@ case "$config" in
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
 	;;
+    cygwin-release)
+	CONFIGFLAGS="--with-libedit --with-xauth=/usr/bin/xauth --disable-strip --with-security-key-builtin"
+	;;
    clang-12-Werror)
 	CC="clang-12"
 	# clang's implicit-fallthrough requires that the code be annotated with
