@@ -1216,6 +1216,14 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 		skdebug(__func__, "fido_assert_set_up: %s", fido_strerr(r));
 		goto out;
 	}
+	/*
+	 * WinHello requests the PIN by default.  Make "uv" request explicit
+	 * to allow keys with and without -O verify-required to make sense.
+	 */
+	if (pin == NULL && fido_dev_is_winhello (sk->dev) &&
+	    (r = fido_assert_set_uv(assert, FIDO_OPT_FALSE)) != FIDO_OK) {
+		skdebug(__func__, "fido_assert_set_uv: %s", fido_strerr(r));
+	}
 	if (pin == NULL && (flags & SSH_SK_USER_VERIFICATION_REQD)) {
 		if (check_sk_options(sk->dev, "uv", &internal_uv) < 0 ||
 		    internal_uv != 1) {
