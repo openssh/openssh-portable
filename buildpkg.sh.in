@@ -147,7 +147,7 @@ done
 ## Set privsep defaults if not defined
 if [ -z "$SSH_PRIVSEP_USER" ]
 then
-	SSH_PRIVSEP_USER=sshd
+	SSH_PRIVSEP_USER=hpnsshd
 fi
 
 ## Extract common info requires for the 'info' part of the package.

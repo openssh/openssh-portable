@@ -3447,7 +3447,7 @@ case "$host" in
 	SSH_PRIVSEP_USER=CYGWIN_SSH_PRIVSEP_USER
 	;;
 *)
-	SSH_PRIVSEP_USER=sshd
+	SSH_PRIVSEP_USER=hpnsshd
 	;;
 esac
 AC_ARG_WITH([privsep-user],

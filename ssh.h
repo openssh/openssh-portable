@@ -48,7 +48,7 @@
  * Name for the service.  The port named by this service overrides the
  * default port if present.
  */
-#define SSH_SERVICE_NAME	"ssh"
+#define SSH_SERVICE_NAME	"hpnssh"
 
 /*
  * Name of the environment variable containing the process ID of the
@@ -93,7 +93,7 @@
  * primary group.
  */
 #ifndef SSH_PRIVSEP_USER
-#define SSH_PRIVSEP_USER		"sshd"
+#define SSH_PRIVSEP_USER		"hpnsshd"
 #endif
 
 /* Listen backlog for sshd, ssh-agent and forwarding sockets */
