@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.173 2022/02/08 08:59:12 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.174 2022/02/11 00:43:56 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -723,7 +723,7 @@ hpdelim2(char **cp, char *delim)
 char *
 hpdelim(char **cp)
 {
-	char *r, delim;
+	char *r, delim = '\0';
 
 	r =  hpdelim2(cp, &delim);
 	if (delim == '/')
