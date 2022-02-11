@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ obsdsnap, obsdsnap-i386, obsd69, obsd70 ]
+        os: [ obsdsnap, obsdsnap-i386 ]
         configs: [ default, without-openssl ]
     steps:
     - uses: actions/checkout@v2
