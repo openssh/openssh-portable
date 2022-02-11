@@ -2080,15 +2080,8 @@ main(int ac, char **av)
 	 * setlogin() affects the entire process group.  We don't
 	 * want the child to be able to affect the parent.
 	 */
-#if !defined(SSHD_ACQUIRES_CTTY)
-	/*
-	 * If setsid is called, on some platforms sshd will later acquire a
-	 * controlling terminal which will result in "could not set
-	 * controlling tty" errors.
-	 */
 	if (!debug_flag && !inetd_flag && setsid() == -1)
 		error("setsid: %.100s", strerror(errno));
-#endif
 
 	if (rexec_flag) {
 		debug("rexec start in %d out %d newsock %d pipe %d sock %d",
