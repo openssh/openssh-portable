@@ -68,13 +68,13 @@ temporarily_use_uid(struct passwd *pw)
 	    (u_int)pw->pw_uid, (u_int)pw->pw_gid,
 	    (u_int)saved_euid, (u_int)saved_egid);
 #ifndef HAVE_CYGWIN
-	if (saved_euid != 0) {
+	if (saved_euid != ROOT_UID) {
 		privileged = 0;
 		return;
 	}
 #endif
 #else
-	if (geteuid() != 0) {
+	if (geteuid() != ROOT_UID) {
 		privileged = 0;
 		return;
 	}
@@ -210,7 +210,7 @@ permanently_set_uid(struct passwd *pw)
 
 #ifndef NO_UID_RESTORATION_TEST
 	/* Try restoration of GID if changed (test clearing of saved gid) */
-	if (old_gid != pw->pw_gid && pw->pw_uid != 0 &&
+	if (old_gid != pw->pw_gid && pw->pw_uid != ROOT_UID &&
 	    (setgid(old_gid) != -1 || setegid(old_gid) != -1))
 		fatal("%s: was able to restore old [e]gid", __func__);
 #endif

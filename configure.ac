@@ -1034,6 +1034,18 @@ mips-sony-bsd|mips-sony-newsos4)
 	    [syslog_r function is safe to use in in a signal handler])
 	TEST_MALLOC_OPTIONS="AFGJPRX"
 	;;
+*-tandem-*)
+	CPPFLAGS="$CPPFLAGS -Wextensions -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1 -Wnowarn=262,1252 -DNSIG=32"
+	AC_DEFINE([HAVE_STRUCT_IN6_ADDR], [1], [struct in6_addr actually defined])
+	AC_DEFINE([HAVE_STRUCT_SOCKADDR_IN6], [1], [struct sockaddr_in6 actually defined])
+	# Todo: Fix this and getrsetbyname.c
+	AC_DEFINE([HAVE__GETSHORT], [2], [incorrect hack to be fixed])
+	AC_DEFINE([HAVE__GETLONG], [2], [incorrect hack to be fixed])
+	AC_CHECK_DECL([ftruncate],
+		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonS
+top]),
+		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonStop]))
+	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
 		rpath_opt="-R"

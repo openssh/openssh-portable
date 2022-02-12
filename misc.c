@@ -2718,7 +2718,7 @@ subprocess(const char *tag, const char *command,
 		}
 		closefrom(STDERR_FILENO + 1);
 
-		if (geteuid() == 0 &&
+		if (geteuid() == ROOT_UID &&
 		    initgroups(pw->pw_name, pw->pw_gid) == -1) {
 			error("%s: initgroups(%s, %u): %s", tag,
 			    pw->pw_name, (u_int)pw->pw_gid, strerror(errno));

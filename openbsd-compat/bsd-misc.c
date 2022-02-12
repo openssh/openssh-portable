@@ -143,7 +143,11 @@ utimensat(int fd, const char *path, const struct timespec times[2],
 		return -1;
 	}
 # ifndef HAVE_FUTIMES
+#ifndef __TANDEM
 	return utimes(path, tv);
+#else
+	return utimes((char *)path, tv);
+#endif
 # else
 #  ifdef O_NOFOLLOW
 	if (flag & AT_SYMLINK_NOFOLLOW)

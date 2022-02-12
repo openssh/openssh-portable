@@ -440,7 +440,7 @@ int
 login_write(struct logininfo *li)
 {
 #ifndef HAVE_CYGWIN
-	if (geteuid() != 0) {
+	if (geteuid() != ROOT_UID) {
 		logit("Attempt to write login records by non-root user (aborting)");
 		return (1);
 	}
@@ -1671,7 +1671,7 @@ record_failed_login(struct ssh *ssh, const char *username, const char *hostname,
 	time_t t;
 	struct stat fst;
 
-	if (geteuid() != 0)
+	if (geteuid() != ROOT_UID)
 		return;
 	if ((fd = open(_PATH_BTMP, O_WRONLY | O_APPEND)) < 0) {
 		debug("Unable to open the btmp file %s: %s", _PATH_BTMP,

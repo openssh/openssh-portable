@@ -1708,7 +1708,12 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 			tv[0].tv_sec = a->atime;
 			tv[1].tv_sec = a->mtime;
 			tv[0].tv_usec = tv[1].tv_usec = 0;
+#ifndef __TANDEM
 			if (utimes(local_path, tv) == -1)
+#else
+			/* NonStop declares utimes without const */
+			if (utimes((char *)local_path, tv) == -1)
+#endif
 				error("local set times \"%s\": %s",
 				    local_path, strerror(errno));
 		}
@@ -1820,7 +1825,12 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 			tv[0].tv_sec = dirattrib->atime;
 			tv[1].tv_sec = dirattrib->mtime;
 			tv[0].tv_usec = tv[1].tv_usec = 0;
+#ifndef __TANDEM
 			if (utimes(dst, tv) == -1)
+#else
+			/* NonStop declares utimes without const */
+			if (utimes((char *)dst, tv) == -1)
+#endif
 				error("local set times on \"%s\": %s",
 				    dst, strerror(errno));
 		} else

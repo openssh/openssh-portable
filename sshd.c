@@ -1570,7 +1570,7 @@ main(int ac, char **av)
 	av = saved_argv;
 #endif
 
-	if (geteuid() == 0 && setgroups(0, NULL) == -1)
+	if (geteuid() == ROOT_UID && setgroups(0, NULL) == -1)
 		debug("setgroups(): %.200s", strerror(errno));
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -1797,7 +1797,7 @@ main(int ac, char **av)
 	debug("sshd version %s, %s", SSH_VERSION, SSH_OPENSSL_VERSION);
 
 	/* Store privilege separation user for later use if required. */
-	privsep_chroot = use_privsep && (getuid() == 0 || geteuid() == 0);
+	privsep_chroot = use_privsep && (getuid() == ROOT_UID || geteuid() == ROOT_UID);
 	if ((privsep_pw = getpwnam(SSH_PRIVSEP_USER)) == NULL) {
 		if (privsep_chroot || options.kerberos_authentication)
 			fatal("Privilege separation user %s does not exist",
