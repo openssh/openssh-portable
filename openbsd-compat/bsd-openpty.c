@@ -66,6 +66,7 @@
 #include <unistd.h>
 
 #include "misc.h"
+#include "log.h"
 
 #ifndef O_NOCTTY
 #define O_NOCTTY 0
@@ -73,8 +74,7 @@
 
 #if defined(HAVE_DEV_PTMX) && !defined(HAVE__GETPTY)
 static int
-openpty_streams(int *amaster, int *aslave, char *name, struct termios *termp,
-   struct winsize *winp)
+openpty_streams(int *amaster, int *aslave)
 {
 	/*
 	 * This code is used e.g. on Solaris 2.x.  (Note that Solaris 2.3
@@ -162,14 +162,21 @@ openpty(int *amaster, int *aslave, char *name, struct termios *termp,
 	 * different session and is available to become controlling terminal
 	 * for the client's subprocess.  See bugzilla #245 for details.
 	 */
+	int r, fd;
 	static int junk_ptyfd = -1, junk_ttyfd;
 
-	if (junk_ptyfd == -1)
-		(void)openpty_streams(&junk_ptyfd, &junk_ttyfd, NULL, NULL,
-		    NULL);
+	r = openpty_streams(amaster, aslave);
+	if (junk_ptyfd == -1 && (fd = open(_PATH_TTY, O_RDWR|O_NOCTTY)) >= 0) {
+		close(fd);
+		junk_ptyfd = *amaster;
+		junk_ttyfd = *aslave;
+		debug("STREAMS bug workaround pty %d tty %d name %s",
+		    junk_ptyfd, junk_ttyfd, ttyname(junk_ttyfd));
+        } else
+		return r;
 #endif
 
-	return openpty_streams(amaster, aslave, name, termp, winp);
+	return openpty_streams(amaster, aslave);
 
 #elif defined(HAVE_DEV_PTS_AND_PTC)
 	/* AIX-style pty code. */
