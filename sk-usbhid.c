@@ -450,6 +450,15 @@ check_sk_options(fido_dev_t *dev, const char *opt, int *ret)
 		skdebug(__func__, "device is not fido2");
 		return 0;
 	}
+	/*
+	 * Workaround required up to libfido2 1.10.0.  As soon as 1.11.0
+	 * is released and updated in the Cygwin release, we can drop this.
+	 */
+	if (fido_dev_is_winhello(dev) && strcmp (opt, "uv") == 0) {
+		skdebug(__func__, "device is winhello");
+		*ret = 1;
+		return 0;
+	}
 	if ((info = fido_cbor_info_new()) == NULL) {
 		skdebug(__func__, "fido_cbor_info_new failed");
 		return -1;
