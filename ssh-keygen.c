@@ -213,9 +213,11 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 	   * by different types (unlike ECDSA which uses one key type and a 2nd
 	   * 'nid' value to identify the curve. We need this special processing
 	   * for ECDSA hybrid of levels 3+ to avoid defaulting to P256 when
-	   * name is NULL (like when called from do_gen_all_hostkeys).
+	   * name is NULL (like when called from do_gen_all_hostkeys) or when the
+	   * -t parameter is provided with a shortname, which sshkey_ecdsa_nid_from_name
+	   * doesn't check.
 	   */
-		if (name == NULL && oqs_utils_is_ecdsa_hybrid(type)) {
+		if (oqs_utils_is_ecdsa_hybrid(type)) {
 		  switch (type) {
 ///// OQS_TEMPLATE_FRAGMENT_HANDLE_ECDSA_HYBRIDS_START
 		  case KEY_ECDSA_NISTP521_FALCON_1024:

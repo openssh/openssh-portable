@@ -43,10 +43,12 @@ static int kex_kem_generic_keypair(OQS_KEM *kem, struct kex *kex)
   struct sshbuf *buf = NULL;
   u_char *cp = NULL;
   int r;
-  if ((buf = sshbuf_new()) == NULL)
+  if ((buf = sshbuf_new()) == NULL) {
     return SSH_ERR_ALLOC_FAIL;
-  if ((r = sshbuf_reserve(buf, kem->length_public_key, &cp)) != 0) \
+  }
+  if ((r = sshbuf_reserve(buf, kem->length_public_key, &cp)) != 0) {
     goto out;
+  }
   kex->oqs_client_key_size = kem->length_secret_key;
   if ((kex->oqs_client_key = malloc(kex->oqs_client_key_size)) == NULL ||
       OQS_KEM_keypair(kem, cp, kex->oqs_client_key) != OQS_SUCCESS) {
@@ -68,7 +70,7 @@ static int kex_kem_generic_enc(OQS_KEM *kem, struct kex *kex,
   struct sshbuf *server_blob = NULL;
   struct sshbuf *buf = NULL;
   const u_char *client_pub;
-  u_char *kem_key, *ciphertext;
+  u_char *kem_key = NULL, *ciphertext;
   int r;
   *server_blobp = NULL;
   *shared_secretp = NULL;
@@ -81,17 +83,24 @@ static int kex_kem_generic_enc(OQS_KEM *kem, struct kex *kex,
     r = SSH_ERR_ALLOC_FAIL;
     goto out;
   }
-  if ((r = sshbuf_reserve(buf, kem->length_shared_secret, &kem_key)) != 0)
+  if ((kem_key = malloc(kem->length_shared_secret)) == NULL) {
+    r = SSH_ERR_ALLOC_FAIL;
     goto out;
+  }
   /* allocate space for encrypted KEM key */
   if ((server_blob = sshbuf_new()) == NULL) {
     r = SSH_ERR_ALLOC_FAIL;
     goto out;
   }
-  if ((r = sshbuf_reserve(server_blob, kem->length_ciphertext, &ciphertext)) != 0)
+  if ((r = sshbuf_reserve(server_blob, kem->length_ciphertext, &ciphertext)) != 0) {
     goto out;
+  }
   /* generate and encrypt KEM key with client key */
   if (OQS_KEM_encaps(kem, ciphertext, kem_key, client_pub) != OQS_SUCCESS) {
+    r = SSH_ERR_LIBCRYPTO_ERROR;
+    goto out;
+  }
+  if ((r = sshbuf_put_string(buf, kem_key, kem->length_shared_secret)) != 0) {
     goto out;
   }
   *server_blobp = server_blob;
@@ -101,6 +110,10 @@ static int kex_kem_generic_enc(OQS_KEM *kem, struct kex *kex,
  out:
   sshbuf_free(server_blob);
   sshbuf_free(buf);
+  if (kem_key != NULL) {
+    explicit_bzero(kem_key, kem->length_shared_secret);
+    free(kem_key);
+  }
   return r;
 }
 
@@ -127,15 +140,25 @@ static int kex_kem_generic_dec(OQS_KEM *kem,
     r = SSH_ERR_ALLOC_FAIL;
     goto out;
   }
-  if ((r = sshbuf_reserve(buf, kem->length_shared_secret, &kem_key)) != 0)
+  if ((kem_key = malloc(kem->length_shared_secret)) == NULL) {
+    r = SSH_ERR_ALLOC_FAIL;
     goto out;
+  }
   if (OQS_KEM_decaps(kem, kem_key, ciphertext, kex->oqs_client_key) != OQS_SUCCESS) {
+    r = SSH_ERR_LIBCRYPTO_ERROR;
+    goto out;
+  }
+  if ((r = sshbuf_put_string(buf, kem_key, kem->length_shared_secret)) != 0) {
     goto out;
   }
   *shared_secretp = buf;
   buf = NULL;
  out:
   sshbuf_free(buf);
+  if (kem_key != NULL) {
+    explicit_bzero(kem_key, kem->length_shared_secret);
+    free(kem_key);
+  }
   return r;
 }
 

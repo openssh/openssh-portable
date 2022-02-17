@@ -265,7 +265,7 @@ match_user(const char *user, const char *host, const char *ipaddr,
  * Returns first item from client-list that is also supported by server-list,
  * caller must free the returned string.
  */
-#define	MAX_PROP	60
+#define	MAX_PROP	160
 #define	SEP	","
 char *
 match_list(const char *client, const char *server, u_int *next)
