@@ -1046,6 +1046,20 @@ mips-sony-bsd|mips-sony-newsos4)
 		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonS
 top]),
 		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonStop]))
+	
+	AC_SEARCH_LIBS([dlopen], [rld])
+	AC_SUBST([SHAREDFLAG],[-Wshared])
+	# Variant specific options
+	case $host in
+	nsx-tandem*)
+		AC_SUBST([SHAREDFLAG],[-Wshared -Wxld=-export_all])
+		;;
+	nse-tandem*)
+		AC_SUBST([SHAREDFLAG],[-Wshared -Weld=-export_all])
+		;;
+	*)
+		;;
+	esac
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
@@ -1827,6 +1841,18 @@ AC_COMPILE_IFELSE(
     PICFLAG=""; ])
 CFLAGS="$SAVED_CFLAGS"
 AC_SUBST([PICFLAG])
+
+AC_MSG_CHECKING([whether -shared is accepted])
+SAVED_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -shared"
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM( [[ #include <stdlib.h> ]], [[ exit(0); ]] )],
+   [AC_MSG_RESULT([yes])
+    SHAREDFLAG="-shared"; ],
+   [AC_MSG_RESULT([no])
+    SHAREDFLAG=""; ])
+CFLAGS="$SAVED_CFLAGS"
+AC_SUBST([SHAREDFLAG])
 
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS([ \

@@ -49,6 +49,7 @@ CFLAGS=@CFLAGS@
 CFLAGS_NOPIE=@CFLAGS_NOPIE@
 CPPFLAGS=-I. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
 PICFLAG=@PICFLAG@
+SHAREDFLAG=@SHAREDFLAG@
 LIBS=@LIBS@
 K5LIBS=@K5LIBS@
 GSSLIBS=@GSSLIBS@
@@ -688,7 +689,7 @@ SK_DUMMY_LIBRARY=@SK_DUMMY_LIBRARY@
 	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
 
 regress/misc/sk-dummy/sk-dummy.so: $(SK_DUMMY_OBJS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(PICFLAG) -shared -o $@ $(SK_DUMMY_OBJS) \
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(PICFLAG) $(SHAREDFLAG) -o $@ $(SK_DUMMY_OBJS) \
 	    -L. -Lopenbsd-compat -lopenbsd-compat $(LDFLAGS_NOPIE) $(LIBS)
 
 regress-binaries: regress-prep $(LIBCOMPAT) \
