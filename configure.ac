@@ -969,6 +969,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	;;
 *-*-minix)
 	AC_DEFINE([SETEUID_BREAKS_SETUID])
+	# poll(2) seems to choke on /dev/null; "Bad file descriptor"
+	AC_DEFINE([BROKEN_POLL], [1],
+	    [System poll(2) implementation is broken])
 	;;
 mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([NEED_SETPGRP], [1], [Need setpgrp to acquire controlling tty])
