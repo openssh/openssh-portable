@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.412 2022/01/22 00:45:31 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.413 2022/02/17 10:58:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1951,6 +1951,9 @@ channel_handle_rfd(struct ssh *ssh, Channel *c)
 		if (maxlen > avail)
 			maxlen = avail;
 		if ((r = sshbuf_read(c->rfd, c->input, maxlen, NULL)) != 0) {
+			if (errno == EINTR || (!force &&
+			    (errno == EAGAIN || errno == EWOULDBLOCK)))
+				return 1;
 			debug2("channel %d: read failed rfd %d maxlen %zu: %s",
 			    c->self, c->rfd, maxlen, ssh_err(r));
 			goto rfail;
