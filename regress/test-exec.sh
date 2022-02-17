@@ -574,6 +574,8 @@ if ! config_defined ENABLE_SK; then
 	trace skipping sk-dummy
 elif [ -f "${SRC}/misc/sk-dummy/obj/sk-dummy.so" ] ; then
 	SSH_SK_PROVIDER="${SRC}/misc/sk-dummy/obj/sk-dummy.so"
+elif [ -f "${OBJ}/misc/sk-dummy/sk-dummy.so" ] ; then
+	SSH_SK_PROVIDER="${OBJ}/misc/sk-dummy/sk-dummy.so"
 elif [ -f "${SRC}/misc/sk-dummy/sk-dummy.so" ] ; then
 	SSH_SK_PROVIDER="${SRC}/misc/sk-dummy/sk-dummy.so"
 fi
