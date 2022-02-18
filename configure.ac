@@ -1048,14 +1048,14 @@ top]),
 		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonStop]))
 	
 	AC_SEARCH_LIBS([dlopen], [rld])
-	AC_SUBST([SHAREDFLAG],[-Wshared])
+	SHAREDFLAG="$SHAREFLAG -Wshared"
 	# Variant specific options
 	case $host in
 	nsx-tandem*)
-		AC_SUBST([SHAREDFLAG],[-Wshared -Wxld=-export_all])
+		SHAREDFLAG="$SHAREDFLAG -Wxld=-export_all"
 		;;
 	nse-tandem*)
-		AC_SUBST([SHAREDFLAG],[-Wshared -Weld=-export_all])
+		SHAREDFLAG="$SHAREDFLAG -Weld=-export_all"
 		;;
 	*)
 		;;
@@ -1848,9 +1848,9 @@ CFLAGS="$CFLAGS -shared"
 AC_COMPILE_IFELSE(
 	[AC_LANG_PROGRAM( [[ #include <stdlib.h> ]], [[ exit(0); ]] )],
    [AC_MSG_RESULT([yes])
-    SHAREDFLAG="-shared"; ],
+    SHAREDFLAG="$SHAREDFLAG -shared"; ],
    [AC_MSG_RESULT([no])
-    SHAREDFLAG=""; ])
+    SHAREDFLAG="$SHAREDFLAG"; ])
 CFLAGS="$SAVED_CFLAGS"
 AC_SUBST([SHAREDFLAG])
 
