@@ -53,6 +53,7 @@ AC_PATH_PROG([GROFF], [groff])
 AC_PATH_PROG([NROFF], [nroff awf])
 AC_PATH_PROG([MANDOC], [mandoc])
 AC_SUBST([TEST_SHELL], [sh])
+AC_SUBST([LINK_OBJECT_EXT],[lo])
 
 dnl select manpage formatter to be used to build "cat" format pages.
 if test "x$MANDOC" != "x" ; then
@@ -1047,6 +1048,7 @@ mips-sony-bsd|mips-sony-newsos4)
 top]),
 		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonStop]))
 	
+	AC_SUBST([LINK_OBJECT_EXT],[o])
 	AC_SEARCH_LIBS([dlopen], [rld])
 	SHAREDFLAG="$SHAREFLAG -Wshared"
 	# Variant specific options
