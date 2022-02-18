@@ -38,6 +38,7 @@ jobs:
           - { os: ubuntu-20.04, configs: kitchensink }
           - { os: ubuntu-20.04, configs: hardenedmalloc }
           - { os: ubuntu-20.04, configs: tcmalloc }
+          - { os: ubuntu-20.04, configs: musl }
           - { os: ubuntu-latest, configs: libressl-master }
           - { os: ubuntu-latest, configs: libressl-2.2.9 }
           - { os: ubuntu-latest, configs: libressl-2.8.3 }

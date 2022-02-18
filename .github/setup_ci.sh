@@ -57,6 +57,9 @@ for TARGET in $TARGETS; do
     hardenedmalloc)
         INSTALL_HARDENED_MALLOC=yes
         ;;
+    musl)
+	PACKAGES="$PACKAGES musl-tools"
+	;;
     tcmalloc)
         PACKAGES="$PACKAGES libgoogle-perftools-dev"
         ;;

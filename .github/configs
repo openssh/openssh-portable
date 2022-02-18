@@ -67,6 +67,12 @@ case "$config" in
     libedit)
 	CONFIGFLAGS="--with-libedit"
 	;;
+    musl)
+	CC="musl-gcc"
+	CONFIGFLAGS="--without-zlib"
+	LIBCRYPTOFLAGS="--without-openssl"
+	TEST_TARGET="t-exec"
+	;;
     pam-krb5)
 	CONFIGFLAGS="--with-pam --with-kerberos5"
 	SSHD_CONFOPTS="UsePam yes"
