@@ -19,6 +19,9 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#ifdef HAVE_SYS_PARAM_H
+# include <sys/param.h>
+#endif
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif

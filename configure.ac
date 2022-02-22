@@ -456,6 +456,7 @@ AC_CHECK_HEADERS([ \
 	sys/mman.h \
 	sys/label.h \
 	sys/ndir.h \
+	sys/param.h \
 	sys/poll.h \
 	sys/prctl.h \
 	sys/procctl.h \
