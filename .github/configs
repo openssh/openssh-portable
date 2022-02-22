@@ -156,7 +156,9 @@ case "${TARGET_HOST}" in
 	LIBCRYPTOFLAGS="--without-openssl --disable-security-key"
 	# Minix does not have a loopback interface so we have to skip any
 	# test that relies on one.
-	T="addrmatch brokenkeys cfgmatch cfgmatchlisten cfgparse connect
+	# Also, Minix seems to be very limited in the number of select()
+	# calls that can be operating concurrently, so prune additional tests for that.
+	T="addrmatch agent-restrict brokenkeys cfgmatch cfgmatchlisten cfgparse connect
 	    connect-uri exit-status forward-control forwarding hostkey-agent
 	    key-options keyscan knownhosts-command login-timeout multiplex
 	    reconfigure reexec rekey scp scp-uri scp3 sftp sftp-badcmds
