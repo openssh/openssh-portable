@@ -3518,10 +3518,11 @@ AC_ARG_WITH([sandbox],
 	]
 )
 
-# Some platforms (seems to be the ones that have a kernel poll(2)-type
-# function with which they implement select(2)) use an extra file descriptor
-# when calling select(2), which means we can't use the rlimit sandbox.
-AC_MSG_CHECKING([if select works with descriptor rlimit])
+# POSIX specifies that poll() "shall fail with EINVAL if the nfds argument
+# is greater than OPEN_MAX".  On some platforms that includes implementions
+# ofselect in userspace on top of poll() so check both work with rlimit NOFILES
+# so check that both work before enabling the rlimit sandbox.
+AC_MSG_CHECKING([if select and/or poll works with descriptor rlimit])
 AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <sys/types.h>
@@ -3532,6 +3533,11 @@ AC_RUN_IFELSE(
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif
+#ifdef HAVE_POLL_H
+# include <poll.h>
+#elif HAVE_SYS_POLL_H
+# include <sys/poll.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -3540,6 +3546,9 @@ AC_RUN_IFELSE(
 	int fd, r;
 	fd_set fds;
 	struct timeval tv;
+#ifdef HAVE_POLL
+	struct pollfd pfd;
+#endif
 
 	fd = open("/dev/null", O_RDONLY);
 	FD_ZERO(&fds);
@@ -3550,7 +3559,16 @@ AC_RUN_IFELSE(
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
 	r = select(fd+1, &fds, NULL, NULL, &tv);
-	exit (r == -1 ? 1 : 0);
+	if (r == -1)
+		exit(1);
+#ifdef HAVE_POLL
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	r = poll(&pfd, 1, 1);
+	if (r == -1)
+		exit(2);
+#endif
+	exit(0);
 	]])],
 	[AC_MSG_RESULT([yes])
 	 select_works_with_rlimit=yes],
