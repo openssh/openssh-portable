@@ -17,6 +17,7 @@ jobs:
       matrix:
         os:
           - ARM64
+          - alpine
           - bbone
           - dfly30
           - dfly48
