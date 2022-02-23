@@ -367,7 +367,7 @@ grace_alarm_handler(int sig)
 	}
 
 	/* Log error and exit. */
-	sigdie("Timeout before authentication for %s port %d",
+	sigdie("Timeout before authentication for %s on remote port %d",
 	    ssh_remote_ipaddr(the_active_state),
 	    ssh_remote_port(the_active_state));
 }
