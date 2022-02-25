@@ -110,10 +110,17 @@ struct __res_state _res;
 #endif
 
 /*
+ * If the system doesn't have _getshort/_getlong or that are not exactly what
+ * we need then use local replacements, avoiding name collisions.
+ */
+#if !defined(HAVE__GETSHORT) || !defined(HAVE__GETLONG) || \
+    !defined(HAVE_DECL__GETSHORT) || HAVE_DECL__GETSHORT == 0 || \
+    !defined(HAVE_DECL__GETLONG) || HAVE_DECL__GETLONG == 0
+#define _getshort(x) (_ssh_compat_getshort(x))
+#define _getlong(x) (_ssh_compat_getlong(x))
+/*
  * Routines to insert/extract short/long's.
  */
-
-#ifndef HAVE__GETSHORT
 static u_int16_t
 _getshort(const u_char *msgp)
 {
@@ -122,11 +129,7 @@ _getshort(const u_char *msgp)
 	GETSHORT(u, msgp);
 	return (u);
 }
-#elif defined(HAVE_DECL__GETSHORT) && (HAVE_DECL__GETSHORT == 0)
-u_int16_t _getshort(const u_char *);
-#endif
 
-#ifndef HAVE__GETLONG
 static u_int32_t
 _getlong(const u_char *msgp)
 {
@@ -135,8 +138,6 @@ _getlong(const u_char *msgp)
 	GETLONG(u, msgp);
 	return (u);
 }
-#elif defined(HAVE_DECL__GETLONG) && (HAVE_DECL__GETLONG == 0)
-u_int32_t _getlong(const u_char *);
 #endif
 
 /* ************** */
