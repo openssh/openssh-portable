@@ -19,6 +19,7 @@ jobs:
           - ARM64
           - alpine
           - bbone
+          - debian-i386
           - dfly30
           - dfly48
           - dfly58
@@ -49,6 +50,7 @@ jobs:
         # Then we include any extra configs we want to test for specific VMs.
         include:
           - { os: ARM64,  configs: pam }
+          - { os: debian-i386, configs: pam }
           - { os: dfly30, configs: without-openssl}
           - { os: dfly48, configs: pam }
           - { os: dfly58, configs: pam }
