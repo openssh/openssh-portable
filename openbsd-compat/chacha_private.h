@@ -1,3 +1,5 @@
+/* OPENBSD ORIGINAL: lib/libc/crypt/chacha_private.h */
+
 /*
 chacha-merged.c version 20080118
 D. J. Bernstein
