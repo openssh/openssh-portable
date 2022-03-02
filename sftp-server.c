@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.127 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.139 2022/02/01 23:32:51 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -33,6 +33,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#endif
 #include <pwd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -115,6 +118,7 @@ static void process_extended_hardlink(u_int32_t id);
 static void process_extended_fsync(u_int32_t id);
 static void process_extended_lsetstat(u_int32_t id);
 static void process_extended_limits(u_int32_t id);
+static void process_extended_expand(u_int32_t id);
 static void process_extended(u_int32_t id);
 
 struct sftp_handler {
@@ -157,7 +161,9 @@ static const struct sftp_handler extended_handlers[] = {
 	{ "hardlink", "hardlink@openssh.com", 0, process_extended_hardlink, 1 },
 	{ "fsync", "fsync@openssh.com", 0, process_extended_fsync, 1 },
 	{ "lsetstat", "lsetstat@openssh.com", 0, process_extended_lsetstat, 1 },
-	{ "limits", "limits@openssh.com", 0, process_extended_limits, 1 },
+	{ "limits", "limits@openssh.com", 0, process_extended_limits, 0 },
+	{ "expand-path", "expand-path@openssh.com", 0,
+	    process_extended_expand, 0 },
 	{ NULL, NULL, 0, NULL, 0 }
 };
 
@@ -514,7 +520,7 @@ send_msg(struct sshbuf *m)
 static const char *
 status_to_message(u_int32_t status)
 {
-	const char *status_messages[] = {
+	static const char * const status_messages[] = {
 		"Success",			/* SSH_FX_OK */
 		"End of file",			/* SSH_FX_EOF */
 		"No such file",			/* SSH_FX_NO_SUCH_FILE */
@@ -530,7 +536,7 @@ status_to_message(u_int32_t status)
 }
 
 static void
-send_status(u_int32_t id, u_int32_t status)
+send_status_errmsg(u_int32_t id, u_int32_t status, const char *errmsg)
 {
 	struct sshbuf *msg;
 	int r;
@@ -546,14 +552,21 @@ send_status(u_int32_t id, u_int32_t status)
 	    (r = sshbuf_put_u32(msg, status)) != 0)
 		fatal_fr(r, "compose");
 	if (version >= 3) {
-		if ((r = sshbuf_put_cstring(msg,
-		    status_to_message(status))) != 0 ||
+		if ((r = sshbuf_put_cstring(msg, errmsg == NULL ?
+		    status_to_message(status) : errmsg)) != 0 ||
 		    (r = sshbuf_put_cstring(msg, "")) != 0)
 			fatal_fr(r, "compose message");
 	}
 	send_msg(msg);
 	sshbuf_free(msg);
 }
+
+static void
+send_status(u_int32_t id, u_int32_t status)
+{
+	send_status_errmsg(id, status, NULL);
+}
+
 static void
 send_data_or_handle(char type, u_int32_t id, const u_char *data, int dlen)
 {
@@ -661,7 +674,7 @@ send_statvfs(u_int32_t id, struct statvfs *st)
 
 /*
  * Prepare SSH2_FXP_VERSION extension advertisement for a single extension.
- * The extension is checked for permission prior to advertisment.
+ * The extension is checked for permission prior to advertisement.
  */
 static int
 compose_extension(struct sshbuf *msg, const char *name, const char *ver)
@@ -698,7 +711,7 @@ process_init(void)
 	    (r = sshbuf_put_u32(msg, SSH2_FILEXFER_VERSION)) != 0)
 		fatal_fr(r, "compose");
 
-	 /* extension advertisments */
+	 /* extension advertisements */
 	compose_extension(msg, "posix-rename@openssh.com", "1");
 	compose_extension(msg, "statvfs@openssh.com", "2");
 	compose_extension(msg, "fstatvfs@openssh.com", "2");
@@ -706,6 +719,7 @@ process_init(void)
 	compose_extension(msg, "fsync@openssh.com", "1");
 	compose_extension(msg, "lsetstat@openssh.com", "1");
 	compose_extension(msg, "limits@openssh.com", "1");
+	compose_extension(msg, "expand-path@openssh.com", "1");
 
 	send_msg(msg);
 	sshbuf_free(msg);
@@ -1491,13 +1505,13 @@ process_extended_limits(u_int32_t id)
 	struct sshbuf *msg;
 	int r;
 	uint64_t nfiles = 0;
-#ifdef HAVE_GETRLIMIT
+#if defined(HAVE_GETRLIMIT) && defined(RLIMIT_NOFILE)
 	struct rlimit rlim;
 #endif
 
 	debug("request %u: limits", id);
 
-#ifdef HAVE_GETRLIMIT
+#if defined(HAVE_GETRLIMIT) && defined(RLIMIT_NOFILE)
 	if (getrlimit(RLIMIT_NOFILE, &rlim) != -1 && rlim.rlim_cur > 5)
 		nfiles = rlim.rlim_cur - 5; /* stdio(3) + syslog + spare */
 #endif
@@ -1517,6 +1531,65 @@ process_extended_limits(u_int32_t id)
 		fatal_fr(r, "compose");
 	send_msg(msg);
 	sshbuf_free(msg);
+}
+
+static void
+process_extended_expand(u_int32_t id)
+{
+	char cwd[PATH_MAX], resolvedname[PATH_MAX];
+	char *path, *npath;
+	int r;
+	Stat s;
+
+	if ((r = sshbuf_get_cstring(iqueue, &path, NULL)) != 0)
+		fatal_fr(r, "parse");
+	if (getcwd(cwd, sizeof(cwd)) == NULL) {
+		send_status(id, errno_to_portable(errno));
+		goto out;
+	}
+
+	debug3("request %u: expand, original \"%s\"", id, path);
+	if (path[0] == '\0') {
+		/* empty path */
+		free(path);
+		path = xstrdup(".");
+	} else if (*path == '~') {
+		/* ~ expand path */
+		/* Special-case for "~" and "~/" to respect homedir flag */
+		if (strcmp(path, "~") == 0) {
+			free(path);
+			path = xstrdup(cwd);
+		} else if (strncmp(path, "~/", 2) == 0) {
+			npath = xstrdup(path + 2);
+			free(path);
+			xasprintf(&path, "%s/%s", cwd, npath);
+			free(npath);
+		} else {
+			/* ~user expansions */
+			if (tilde_expand(path, pw->pw_uid, &npath) != 0) {
+				send_status_errmsg(id,
+				    errno_to_portable(ENOENT), "no such user");
+				goto out;
+			}
+			free(path);
+			path = npath;
+		}
+	} else if (*path != '/') {
+		/* relative path */
+		xasprintf(&npath, "%s/%s", cwd, path);
+		free(path);
+		path = npath;
+	}
+	verbose("expand \"%s\"", path);
+	if (sftp_realpath(path, resolvedname) == NULL) {
+		send_status(id, errno_to_portable(errno));
+		goto out;
+	}
+	attrib_clear(&s.attrib);
+	s.name = s.long_name = resolvedname;
+	send_names(id, 1, &s);
+ out:
+	free(path);
 }
 
 static void
@@ -1646,9 +1719,8 @@ sftp_server_usage(void)
 int
 sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 {
-	fd_set *rset, *wset;
-	int i, r, in, out, max, ch, skipargs = 0, log_stderr = 0;
-	ssize_t len, olen, set_size;
+	int i, r, in, out, ch, skipargs = 0, log_stderr = 0;
+	ssize_t len, olen;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	char *cp, *homedir = NULL, uidstr[32], buf[4*4096];
 	long mask;
@@ -1765,19 +1837,10 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	setmode(out, O_BINARY);
 #endif
 
-	max = 0;
-	if (in > max)
-		max = in;
-	if (out > max)
-		max = out;
-
 	if ((iqueue = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	if ((oqueue = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
-
-	rset = xcalloc(howmany(max + 1, NFDBITS), sizeof(fd_mask));
-	wset = xcalloc(howmany(max + 1, NFDBITS), sizeof(fd_mask));
 
 	if (homedir != NULL) {
 		if (chdir(homedir) != 0) {
@@ -1786,10 +1849,11 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		}
 	}
 
-	set_size = howmany(max + 1, NFDBITS) * sizeof(fd_mask);
 	for (;;) {
-		memset(rset, 0, set_size);
-		memset(wset, 0, set_size);
+		struct pollfd pfd[2];
+
+		memset(pfd, 0, sizeof pfd);
+		pfd[0].fd = pfd[1].fd = -1;
 
 		/*
 		 * Ensure that we can read a full buffer and handle
@@ -1798,40 +1862,52 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		 */
 		if ((r = sshbuf_check_reserve(iqueue, sizeof(buf))) == 0 &&
 		    (r = sshbuf_check_reserve(oqueue,
-		    SFTP_MAX_MSG_LENGTH)) == 0)
-			FD_SET(in, rset);
+		    SFTP_MAX_MSG_LENGTH)) == 0) {
+			pfd[0].fd = in;
+			pfd[0].events = POLLIN;
+		}
 		else if (r != SSH_ERR_NO_BUFFER_SPACE)
 			fatal_fr(r, "reserve");
 
 		olen = sshbuf_len(oqueue);
-		if (olen > 0)
-			FD_SET(out, wset);
+		if (olen > 0) {
+			pfd[1].fd = out;
+			pfd[1].events = POLLOUT;
+		}
 
-		if (select(max+1, rset, wset, NULL, NULL) == -1) {
+		if (poll(pfd, 2, -1) == -1) {
 			if (errno == EINTR)
 				continue;
-			error("select: %s", strerror(errno));
+			error("poll: %s", strerror(errno));
 			sftp_server_cleanup_exit(2);
 		}
 
 		/* copy stdin to iqueue */
-		if (FD_ISSET(in, rset)) {
+		if (pfd[0].revents & (POLLIN|POLLHUP)) {
 			len = read(in, buf, sizeof buf);
 			if (len == 0) {
 				debug("read eof");
 				sftp_server_cleanup_exit(0);
 			} else if (len == -1) {
-				error("read: %s", strerror(errno));
-				sftp_server_cleanup_exit(1);
+				if (errno != EAGAIN && errno != EINTR) {
+					error("read: %s", strerror(errno));
+					sftp_server_cleanup_exit(1);
+				}
 			} else if ((r = sshbuf_put(iqueue, buf, len)) != 0)
 				fatal_fr(r, "sshbuf_put");
 		}
 		/* send oqueue to stdout */
-		if (FD_ISSET(out, wset)) {
+		if (pfd[1].revents & (POLLOUT|POLLHUP)) {
 			len = write(out, sshbuf_ptr(oqueue), olen);
-			if (len == -1) {
-				error("write: %s", strerror(errno));
+			if (len == 0 || (len == -1 && errno == EPIPE)) {
+				debug("write eof");
+				sftp_server_cleanup_exit(0);
+			} else if (len == -1) {
 				sftp_server_cleanup_exit(1);
+				if (errno != EAGAIN && errno != EINTR) {
+					error("write: %s", strerror(errno));
+					sftp_server_cleanup_exit(1);
+				}
 			} else if ((r = sshbuf_consume(oqueue, len)) != 0)
 				fatal_fr(r, "consume");
 		}

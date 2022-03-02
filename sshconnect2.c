@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.347 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.356 2022/02/01 23:32:51 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -511,7 +511,7 @@ void	userauth(struct ssh *, char *);
 
 static void pubkey_cleanup(struct ssh *);
 static int sign_and_send_pubkey(struct ssh *ssh, Identity *);
-static void pubkey_prepare(Authctxt *);
+static void pubkey_prepare(struct ssh *, Authctxt *);
 static void pubkey_reset(Authctxt *);
 static struct sshkey *load_identity_file(Identity *);
 
@@ -562,8 +562,6 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	Authctxt authctxt;
 	int r;
 
-	if (options.challenge_response_authentication)
-		options.kbd_interactive_authentication = 1;
 	if (options.preferred_authentications == NULL)
 		options.preferred_authentications = authmethods_get();
 
@@ -587,7 +585,7 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	authctxt.mech_tried = 0;
 #endif
 	authctxt.agent_fd = -1;
-	pubkey_prepare(&authctxt);
+	pubkey_prepare(ssh, &authctxt);
 	if (authctxt.method == NULL) {
 		fatal_f("internal error: cannot send userauth none request");
 	}
@@ -609,7 +607,14 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 
 	if (!authctxt.success)
 		fatal("Authentication failed.");
-	debug("Authentication succeeded (%s).", authctxt.method->name);
+	if (ssh_packet_connection_is_on_socket(ssh)) {
+		verbose("Authenticated to %s ([%s]:%d) using \"%s\".", host,
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+		    authctxt.method->name);
+	} else {
+		verbose("Authenticated to %s (via proxy) using \"%s\".", host,
+		    authctxt.method->name);
+	}
 }
 
 /* ARGSUSED */
@@ -767,7 +772,8 @@ input_userauth_failure(int type, u_int32_t seq, struct ssh *ssh)
 		goto out;
 
 	if (partial != 0) {
-		verbose("Authenticated with partial success.");
+		verbose("Authenticated using \"%s\" with partial success.",
+		    authctxt->method->name);
 		/* reset state */
 		pubkey_reset(authctxt);
 	}
@@ -1295,6 +1301,7 @@ static char *
 key_sig_algorithm(struct ssh *ssh, const struct sshkey *key)
 {
 	char *allowed, *oallowed, *cp, *tmp, *alg = NULL;
+	const char *server_sig_algs;
 
 	/*
 	 * The signature algorithm will only differ from the key algorithm
@@ -1310,6 +1317,14 @@ key_sig_algorithm(struct ssh *ssh, const struct sshkey *key)
 	}
 
 	/*
+	 * Workaround OpenSSH 7.4 bug: this version supports RSA/SHA-2 but
+	 * fails to advertise it via SSH2_MSG_EXT_INFO.
+	 */
+	server_sig_algs = ssh->kex->server_sig_algs;
+	if (key->type == KEY_RSA && (ssh->compat & SSH_BUG_SIGTYPE74))
+		server_sig_algs = "rsa-sha2-256,rsa-sha2-512";
+
+	/*
 	 * For RSA keys/certs, since these might have a different sig type:
 	 * find the first entry in PubkeyAcceptedAlgorithms of the right type
 	 * that also appears in the supported signature algorithms list from
@@ -1320,7 +1335,7 @@ key_sig_algorithm(struct ssh *ssh, const struct sshkey *key)
 		if (sshkey_type_from_name(cp) != key->type)
 			continue;
 		tmp = match_list(sshkey_sigalg_by_name(cp),
-		    ssh->kex->server_sig_algs, NULL);
+		    server_sig_algs, NULL);
 		if (tmp != NULL)
 			alg = xstrdup(cp);
 		free(tmp);
@@ -1403,15 +1418,14 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	// OQS-TODO: for now, our hybrid sig fail that test. Need to fix our formatting
 	// or update the test
 	if (!oqs_utils_is_hybrid(sign_key->type)) {
-	  /*
-	   * PKCS#11 tokens may not support all signature algorithms,
-	   * so check what we get back.
-	   */
-	  if ((r = sshkey_check_sigtype(*sigp, *lenp, alg)) != 0) {
-	    debug("%s: sshkey_check_sigtype: %s", __func__, ssh_err(r));
-	    goto out;
-	  }
-	}
+		/*
+	 	 * PKCS#11 tokens may not support all signature algorithms,
+	 	 * so check what we get back.
+	 	 */
+		if ((r = sshkey_check_sigtype(*sigp, *lenp, alg)) != 0) {
+			debug_fr(r, "sshkey_check_sigtype");
+			goto out;
+		}
 
 	/* success */
 	r = 0;
@@ -1427,7 +1441,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 static int
 id_filename_matches(Identity *id, Identity *private_id)
 {
-	const char *suffixes[] = { ".pub", "-cert.pub", NULL };
+	static const char * const suffixes[] = { ".pub", "-cert.pub", NULL };
 	size_t len = strlen(id->filename), plen = strlen(private_id->filename);
 	size_t i, slen;
 
@@ -1453,13 +1467,21 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 	size_t slen = 0, skip = 0;
 	int r, fallback_sigtype, sent = 0;
 	char *alg = NULL, *fp = NULL;
-	const char *loc = "";
+	const char *loc = "", *method = "publickey";
+	int hostbound = 0;
+
+	/* prefer host-bound pubkey signatures if supported by server */
+	if ((ssh->kex->flags & KEX_HAS_PUBKEY_HOSTBOUND) != 0 &&
+	    (options.pubkey_authentication & SSH_PUBKEY_AUTH_HBOUND) != 0) {
+		hostbound = 1;
+		method = "publickey-hostbound-v00@openssh.com";
+	}
 
 	if ((fp = sshkey_fingerprint(id->key, options.fingerprint_hash,
 	    SSH_FP_DEFAULT)) == NULL)
 		return 0;
 
-	debug3_f("%s %s", sshkey_type(id->key), fp);
+	debug3_f("using %s with %s %s", method, sshkey_type(id->key), fp);
 
 	/*
 	 * If the key is an certificate, try to find a matching private key
@@ -1497,8 +1519,8 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 		}
 		if (sign_id != NULL) {
 			debug2_f("using private key \"%s\"%s for "
-			    "certificate", id->filename,
-			    id->agent_fd != -1 ? " from agent" : "");
+			    "certificate", sign_id->filename,
+			    sign_id->agent_fd != -1 ? " from agent" : "");
 		} else {
 			debug_f("no separate private key for certificate "
 			    "\"%s\"", id->filename);
@@ -1539,13 +1561,20 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 		if ((r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
 		    (r = sshbuf_put_cstring(b, authctxt->server_user)) != 0 ||
 		    (r = sshbuf_put_cstring(b, authctxt->service)) != 0 ||
-		    (r = sshbuf_put_cstring(b, authctxt->method->name)) != 0 ||
+		    (r = sshbuf_put_cstring(b, method)) != 0 ||
 		    (r = sshbuf_put_u8(b, 1)) != 0 ||
 		    (r = sshbuf_put_cstring(b, alg)) != 0 ||
 		    (r = sshkey_puts(id->key, b)) != 0) {
 			fatal_fr(r, "assemble signed data");
 		}
-
+		if (hostbound) {
+			if (ssh->kex->initial_hostkey == NULL) {
+				fatal_f("internal error: initial hostkey "
+				    "not recorded");
+			}
+			if ((r = sshkey_puts(ssh->kex->initial_hostkey, b)) != 0)
+				fatal_fr(r, "assemble %s hostkey", method);
+		}
 		/* generate signature */
 		r = identity_sign(sign_id, &signature, &slen,
 		    sshbuf_ptr(b), sshbuf_len(b), ssh->compat, alg);
@@ -1740,6 +1769,36 @@ key_type_allowed_by_config(struct sshkey *key)
 	return 0;
 }
 
+/* obtain a list of keys from the agent */
+static int
+get_agent_identities(struct ssh *ssh, int *agent_fdp,
+    struct ssh_identitylist **idlistp)
+{
+	int r, agent_fd;
+	struct ssh_identitylist *idlist;
+
+	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0) {
+		if (r != SSH_ERR_AGENT_NOT_PRESENT)
+			debug_fr(r, "ssh_get_authentication_socket");
+		return r;
+	}
+	if ((r = ssh_agent_bind_hostkey(agent_fd, ssh->kex->initial_hostkey,
+	    ssh->kex->session_id, ssh->kex->initial_sig, 0)) == 0)
+		debug_f("bound agent to hostkey");
+	else
+		debug2_fr(r, "ssh_agent_bind_hostkey");
+
+	if ((r = ssh_fetch_identitylist(agent_fd, &idlist)) != 0) {
+		debug_fr(r, "ssh_fetch_identitylist");
+		close(agent_fd);
+		return r;
+	}
+	/* success */
+	*agent_fdp = agent_fd;
+	*idlistp = idlist;
+	debug_f("agent returned %zu keys", idlist->nkeys);
+	return 0;
+}
 
 /*
  * try keys in the following order:
@@ -1750,7 +1809,7 @@ key_type_allowed_by_config(struct sshkey *key)
  *	5. keys that are only listed in the config file
  */
 static void
-pubkey_prepare(Authctxt *authctxt)
+pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 {
 	struct identity *id, *id2, *tmp;
 	struct idlist agent, files, *preferred;
@@ -1812,14 +1871,7 @@ pubkey_prepare(Authctxt *authctxt)
 		TAILQ_INSERT_TAIL(preferred, id, next);
 	}
 	/* list of keys supported by the agent */
-	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0) {
-		if (r != SSH_ERR_AGENT_NOT_PRESENT)
-			debug_fr(r, "ssh_get_authentication_socket");
-	} else if ((r = ssh_fetch_identitylist(agent_fd, &idlist)) != 0) {
-		if (r != SSH_ERR_AGENT_NO_IDENTITIES)
-			debug_fr(r, "ssh_fetch_identitylist");
-		close(agent_fd);
-	} else {
+	if ((r = get_agent_identities(ssh, &agent_fd, &idlist)) == 0) {
 		for (j = 0; j < idlist->nkeys; j++) {
 			found = 0;
 			TAILQ_FOREACH(id, &files, next) {
@@ -2240,9 +2292,9 @@ userauth_hostbased(struct ssh *ssh)
 			if (authctxt->sensitive->keys[i] == NULL ||
 			    authctxt->sensitive->keys[i]->type == KEY_UNSPEC)
 				continue;
-			if (match_pattern_list(
+			if (!sshkey_match_keyname_to_sigalgs(
 			    sshkey_ssh_name(authctxt->sensitive->keys[i]),
-			    authctxt->active_ktype, 0) != 1)
+			    authctxt->active_ktype))
 				continue;
 			/* we take and free the key */
 			private = authctxt->sensitive->keys[i];
@@ -2268,7 +2320,8 @@ userauth_hostbased(struct ssh *ssh)
 		error_f("sshkey_fingerprint failed");
 		goto out;
 	}
-	debug_f("trying hostkey %s %s", sshkey_ssh_name(private), fp);
+	debug_f("trying hostkey %s %s using sigalg %s",
+	    sshkey_ssh_name(private), fp, authctxt->active_ktype);
 
 	/* figure out a name for the client host */
 	lname = get_local_name(ssh_packet_get_connection_in(ssh));

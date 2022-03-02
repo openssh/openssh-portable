@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.110 2020/12/22 06:03:36 djm Exp $
+#	$OpenBSD: Makefile,v 1.120 2022/01/06 21:46:56 dtucker Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -21,11 +21,13 @@ distclean:	clean
 
 LTESTS= 	connect \
 		proxy-connect \
+		sshfp-connect \
 		connect-privsep \
 		connect-uri \
 		proto-version \
 		proto-mismatch \
 		exit-status \
+		exit-status-signal \
 		envpass \
 		transfer \
 		banner \
@@ -44,10 +46,14 @@ LTESTS= 	connect \
 		agent-subprocess \
 		keyscan \
 		keygen-change \
+		keygen-comment \
 		keygen-convert \
+		keygen-knownhosts \
 		keygen-moduli \
+		keygen-sshfp \
 		key-options \
 		scp \
+		scp3 \
 		scp-uri \
 		sftp \
 		sftp-chroot \
@@ -84,7 +90,6 @@ LTESTS= 	connect \
 		multipubkey \
 		limit-keytype \
 		hostkey-agent \
-		keygen-knownhosts \
 		hostkey-rotate \
 		principals-command \
 		cert-file \
@@ -93,9 +98,10 @@ LTESTS= 	connect \
 		allow-deny-users \
 		authinfo \
 		sshsig \
-		keygen-comment \
-		knownhosts-command
-
+		knownhosts \
+		knownhosts-command \
+		agent-restrict \
+		hostbased
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
@@ -115,7 +121,7 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		host.ecdsa-sha2-nistp521 host.ssh-dss host.ssh-ed25519 \
 		host.ssh-rsa host_ca_key* host_krl_* host_revoked_* key.* \
 		key.dsa-* key.ecdsa-* key.ed25519-512 \
-		key.ed25519-512.pub key.rsa-* keys-command-args kh.* \
+		key.ed25519-512.pub key.rsa-* keys-command-args kh.* askpass \
 		known_hosts known_hosts-cert known_hosts.* krl-* ls.copy \
 		modpipe netcat no_identity_config \
 		pidfile putty.rsa2 ready regress.log remote_pid \
@@ -187,13 +193,13 @@ t8: $(OBJ)/t8.out
 	${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t8.out > /dev/null
 
 $(OBJ)/t9.out:
-	test "${TEST_SSH_ECC}" != yes || \
+	! ${TEST_SSH_SSH} -Q key-plain | grep ecdsa >/dev/null || \
 	${TEST_SSH_SSHKEYGEN} -q -t ecdsa -N '' -f $@
 
 t9: $(OBJ)/t9.out
-	test "${TEST_SSH_ECC}" != yes || \
+	! ${TEST_SSH_SSH} -Q key-plain | grep ecdsa >/dev/null || \
 	${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t9.out > /dev/null
-	test "${TEST_SSH_ECC}" != yes || \
+	! ${TEST_SSH_SSH} -Q key-plain | grep ecdsa >/dev/null || \
 	${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t9.out > /dev/null
 
 

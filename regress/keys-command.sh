@@ -1,12 +1,10 @@
-#	$OpenBSD: keys-command.sh,v 1.6 2019/07/25 08:48:11 dtucker Exp $
+#	$OpenBSD: keys-command.sh,v 1.8 2021/09/30 04:22:50 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="authorized keys from command"
 
 if [ -z "$SUDO" -a ! -w /var/run ]; then
-	echo "skipped (SUDO not set)"
-	echo "need SUDO to create file in /var/run, test won't work without"
-	exit 0
+	skip "need SUDO to create file in /var/run, test won't work without"
 fi
 
 rm -f $OBJ/keys-command-args
@@ -77,5 +75,5 @@ if [ -x $KEY_COMMAND ]; then
 		fail "connect failed"
 	fi
 else
-	echo "SKIPPED: $KEY_COMMAND not executable (/var/run mounted noexec?)"
+	skip "$KEY_COMMAND not executable (/var/run mounted noexec?)"
 fi

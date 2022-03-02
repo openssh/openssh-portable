@@ -30,13 +30,18 @@ Both liboqs and this fork are part of the **Open Quantum Safe (OQS) project**, w
 
 ## Status
 
-This fork is currently based on OpenSSH version **8.4** (Git tag V_8_4_P1); release notes can be found [here](RELEASE.md). **IT IS AT AN EXPERIMENTAL STAGE**, and has not received the same level of auditing and analysis that OpenSSH has received. See the [Limitations and Security](#limitations-and-security) section below for more information.
+This fork is currently based on OpenSSH version **8.9** (Git tag V_8_9_P1); release notes can be found [here](RELEASE.md). **IT IS AT AN EXPERIMENTAL STAGE**, and has not received the same level of auditing and analysis that OpenSSH has received. See the [Limitations and Security](#limitations-and-security) section below for more information.
 
 **WE DO NOT RECOMMEND RELYING ON THIS FORK TO PROTECT SENSITIVE DATA.**
 
 liboqs is provided "as is", without warranty of any kind.  See [LICENSE.txt](https://github.com/open-quantum-safe/liboqs/blob/main/LICENSE.txt) for the full disclaimer.
+Portable OpenSSH is built using autoconf and make. It requires a working C compiler, standard library and headers.
+
+``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) may also be used, but OpenSSH may be built without it supporting a subset of crypto algorithms.
 
 [zlib](https://www.zlib.net/) is optional; without it transport compression is not supported.
+
+FIDO security token support needs [libfido2](https://github.com/Yubico/libfido2) and its dependencies. Also, certain platforms and build-time options may require additional dependencies; see README.platform for details.
 
 This fork implements the [draft-kampanakis-curdle-pq-ssh-00](https://datatracker.ietf.org/doc/draft-kampanakis-curdle-pq-ssh/) IETF draft for hybrid key exchange algorithms.
 
@@ -133,6 +138,8 @@ The following instructions install liboqs into a subdirectory inside the OpenSSH
 Building liboqs requires your system to have OpenSSL 1.1.1 or higher already installed. It will automatically be detected if it is under `/usr` or another standard location.  Otherwise, you may need to specify it with `-DOPENSSL_ROOT_DIR=<path-to-system-openssl-dir>` added to the `cmake` command.
 
 ### Step 2: Build the fork
+
+See the [Build-time Customisation](#build-time-customisation) section below for configure options. If you plan on installing OpenSSH to your system, then you will usually want to specify destination paths.
 
 Run the following:
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.20 2021/01/31 10:50:10 dtucker Exp $ */
+/* $OpenBSD: sshsig.c,v 1.28 2022/02/01 23:34:47 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -616,6 +616,7 @@ sshsig_verify_fd(struct sshbuf *signature, int fd,
 struct sshsigopt {
 	int ca;
 	char *namespaces;
+	uint64_t valid_after, valid_before;
 };
 
 struct sshsigopt *
@@ -624,6 +625,7 @@ sshsigopt_parse(const char *opts, const char *path, u_long linenum,
 {
 	struct sshsigopt *ret;
 	int r;
+	char *opt;
 	const char *errstr = NULL;
 
 	if ((ret = calloc(1, sizeof(*ret))) == NULL)
@@ -643,6 +645,34 @@ sshsigopt_parse(const char *opts, const char *path, u_long linenum,
 			ret->namespaces = opt_dequote(&opts, &errstr);
 			if (ret->namespaces == NULL)
 				goto fail;
+		} else if (opt_match(&opts, "valid-after")) {
+			if (ret->valid_after != 0) {
+				errstr = "multiple \"valid-after\" clauses";
+				goto fail;
+			}
+			if ((opt = opt_dequote(&opts, &errstr)) == NULL)
+				goto fail;
+			if (parse_absolute_time(opt, &ret->valid_after) != 0 ||
+			    ret->valid_after == 0) {
+				free(opt);
+				errstr = "invalid \"valid-after\" time";
+				goto fail;
+			}
+			free(opt);
+		} else if (opt_match(&opts, "valid-before")) {
+			if (ret->valid_before != 0) {
+				errstr = "multiple \"valid-before\" clauses";
+				goto fail;
+			}
+			if ((opt = opt_dequote(&opts, &errstr)) == NULL)
+				goto fail;
+			if (parse_absolute_time(opt, &ret->valid_before) != 0 ||
+			    ret->valid_before == 0) {
+				free(opt);
+				errstr = "invalid \"valid-before\" time";
+				goto fail;
+			}
+			free(opt);
 		}
 		/*
 		 * Skip the comma, and move to the next option
@@ -660,6 +690,12 @@ sshsigopt_parse(const char *opts, const char *path, u_long linenum,
 			errstr = "unexpected end-of-options";
 			goto fail;
 		}
+	}
+	/* final consistency check */
+	if (ret->valid_after != 0 && ret->valid_before != 0 &&
+	    ret->valid_before <= ret->valid_after) {
+		errstr = "\"valid-before\" time is before \"valid-after\"";
+		goto fail;
 	}
 	/* success */
 	return ret;
@@ -777,106 +813,14 @@ parse_principals_key_and_options(const char *path, u_long linenum, char *line,
 }
 
 static int
-check_allowed_keys_line(const char *path, u_long linenum, char *line,
-    const struct sshkey *sign_key, const char *principal,
-    const char *sig_namespace)
-{
-	struct sshkey *found_key = NULL;
-	int r, found = 0;
-	const char *reason = NULL;
-	struct sshsigopt *sigopts = NULL;
-
-	/* Parse the line */
-	if ((r = parse_principals_key_and_options(path, linenum, line,
-	    principal, NULL, &found_key, &sigopts)) != 0) {
-		/* error already logged */
-		goto done;
-	}
-
-	/* Check whether options preclude the use of this key */
-	if (sigopts->namespaces != NULL &&
-	    match_pattern_list(sig_namespace, sigopts->namespaces, 0) != 1) {
-		error("%s:%lu: key is not permitted for use in signature "
-		    "namespace \"%s\"", path, linenum, sig_namespace);
-		goto done;
-	}
-
-	if (!sigopts->ca && sshkey_equal(found_key, sign_key)) {
-		/* Exact match of key */
-		debug("%s:%lu: matched key and principal", path, linenum);
-		/* success */
-		found = 1;
-	} else if (sigopts->ca && sshkey_is_cert(sign_key) &&
-	    sshkey_equal_public(sign_key->cert->signature_key, found_key)) {
-		/* Match of certificate's CA key */
-		if ((r = sshkey_cert_check_authority(sign_key, 0, 1, 0,
-		    principal, &reason)) != 0) {
-			error("%s:%lu: certificate not authorized: %s",
-			    path, linenum, reason);
-			goto done;
-		}
-		debug("%s:%lu: matched certificate CA key", path, linenum);
-		/* success */
-		found = 1;
-	} else {
-		/* Principal matched but key didn't */
-		goto done;
-	}
- done:
-	sshkey_free(found_key);
-	sshsigopt_free(sigopts);
-	return found ? 0 : SSH_ERR_KEY_NOT_FOUND;
-}
-
-int
-sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
-    const char *principal, const char *sig_namespace)
-{
-	FILE *f = NULL;
-	char *line = NULL;
-	size_t linesize = 0;
-	u_long linenum = 0;
-	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
-
-	/* Check key and principal against file */
-	if ((f = fopen(path, "r")) == NULL) {
-		oerrno = errno;
-		error("Unable to open allowed keys file \"%s\": %s",
-		    path, strerror(errno));
-		errno = oerrno;
-		return SSH_ERR_SYSTEM_ERROR;
-	}
-
-	while (getline(&line, &linesize, f) != -1) {
-		linenum++;
-		r = check_allowed_keys_line(path, linenum, line, sign_key,
-		    principal, sig_namespace);
-		free(line);
-		line = NULL;
-		linesize = 0;
-		if (r == SSH_ERR_KEY_NOT_FOUND)
-			continue;
-		else if (r == 0) {
-			/* success */
-			fclose(f);
-			return 0;
-		} else
-			break;
-	}
-	/* Either we hit an error parsing or we simply didn't find the key */
-	fclose(f);
-	free(line);
-	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
-}
-
-static int
 cert_filter_principals(const char *path, u_long linenum,
-    char **principalsp, const struct sshkey *cert)
+    char **principalsp, const struct sshkey *cert, uint64_t verify_time)
 {
 	char *cp, *oprincipals, *principals;
 	const char *reason;
 	struct sshbuf *nprincipals;
 	int r = SSH_ERR_INTERNAL_ERROR, success = 0;
+	u_int i;
 
 	oprincipals = principals = *principalsp;
 	*principalsp = NULL;
@@ -887,22 +831,23 @@ cert_filter_principals(const char *path, u_long linenum,
 	}
 
 	while ((cp = strsep(&principals, ",")) != NULL && *cp != '\0') {
-		if (strcspn(cp, "!?*") != strlen(cp)) {
-			debug("%s:%lu: principal \"%s\" not authorized: "
-			    "contains wildcards", path, linenum, cp);
-			continue;
-		}
-		/* Check against principals list in certificate */
+		/* Check certificate validity */
 		if ((r = sshkey_cert_check_authority(cert, 0, 1, 0,
-		    cp, &reason)) != 0) {
+		    verify_time, NULL, &reason)) != 0) {
 			debug("%s:%lu: principal \"%s\" not authorized: %s",
 			    path, linenum, cp, reason);
 			continue;
 		}
-		if ((r = sshbuf_putf(nprincipals, "%s%s",
-		    sshbuf_len(nprincipals) != 0 ? "," : "", cp)) != 0) {
-			error_f("buffer error");
-			goto out;
+		/* Return all matching principal names from the cert */
+		for (i = 0; i < cert->cert->nprincipals; i++) {
+			if (match_pattern(cert->cert->principals[i], cp)) {
+				if ((r = sshbuf_putf(nprincipals, "%s%s",
+					sshbuf_len(nprincipals) != 0 ? "," : "",
+						cert->cert->principals[i])) != 0) {
+					error_f("buffer error");
+					goto out;
+				}
+			}
 		}
 	}
 	if (sshbuf_len(nprincipals) == 0) {
@@ -924,20 +869,23 @@ cert_filter_principals(const char *path, u_long linenum,
 }
 
 static int
-get_matching_principals_from_line(const char *path, u_long linenum, char *line,
-    const struct sshkey *sign_key, char **principalsp)
+check_allowed_keys_line(const char *path, u_long linenum, char *line,
+    const struct sshkey *sign_key, const char *principal,
+    const char *sig_namespace, uint64_t verify_time, char **principalsp)
 {
 	struct sshkey *found_key = NULL;
 	char *principals = NULL;
-	int r, found = 0;
+	int r, success = 0;
+	const char *reason = NULL;
 	struct sshsigopt *sigopts = NULL;
+	char tvalid[64], tverify[64];
 
 	if (principalsp != NULL)
 		*principalsp = NULL;
 
 	/* Parse the line */
 	if ((r = parse_principals_key_and_options(path, linenum, line,
-	    NULL, &principals, &found_key, &sigopts)) != 0) {
+	    principal, &principals, &found_key, &sigopts)) != 0) {
 		/* error already logged */
 		goto done;
 	}
@@ -945,39 +893,120 @@ get_matching_principals_from_line(const char *path, u_long linenum, char *line,
 	if (!sigopts->ca && sshkey_equal(found_key, sign_key)) {
 		/* Exact match of key */
 		debug("%s:%lu: matched key", path, linenum);
-		/* success */
-		found = 1;
 	} else if (sigopts->ca && sshkey_is_cert(sign_key) &&
 	    sshkey_equal_public(sign_key->cert->signature_key, found_key)) {
-		/* Remove principals listed in file but not allowed by cert */
-		if ((r = cert_filter_principals(path, linenum,
-		    &principals, sign_key)) != 0) {
-			/* error already displayed */
-			debug_r(r, "%s:%lu: cert_filter_principals",
+		if (principal) {
+			/* Match certificate CA key with specified principal */
+			if ((r = sshkey_cert_check_authority(sign_key, 0, 1, 0,
+			    verify_time, principal, &reason)) != 0) {
+				error("%s:%lu: certificate not authorized: %s",
+				    path, linenum, reason);
+				goto done;
+			}
+			debug("%s:%lu: matched certificate CA key",
 			    path, linenum);
-			goto done;
+		} else {
+			/* No principal specified - find all matching ones */
+			if ((r = cert_filter_principals(path, linenum,
+			    &principals, sign_key, verify_time)) != 0) {
+				/* error already displayed */
+				debug_r(r, "%s:%lu: cert_filter_principals",
+				    path, linenum);
+				goto done;
+			}
+			debug("%s:%lu: matched certificate CA key",
+			    path, linenum);
 		}
-		debug("%s:%lu: matched certificate CA key", path, linenum);
-		/* success */
-		found = 1;
 	} else {
-		/* Key didn't match */
+		/* Didn't match key */
 		goto done;
 	}
+
+	/* Check whether options preclude the use of this key */
+	if (sigopts->namespaces != NULL && sig_namespace != NULL &&
+	    match_pattern_list(sig_namespace, sigopts->namespaces, 0) != 1) {
+		error("%s:%lu: key is not permitted for use in signature "
+		    "namespace \"%s\"", path, linenum, sig_namespace);
+		goto done;
+	}
+
+	/* check key time validity */
+	format_absolute_time((uint64_t)verify_time, tverify, sizeof(tverify));
+	if (sigopts->valid_after != 0 &&
+	    (uint64_t)verify_time < sigopts->valid_after) {
+		format_absolute_time(sigopts->valid_after,
+		    tvalid, sizeof(tvalid));
+		error("%s:%lu: key is not yet valid: "
+		    "verify time %s < valid-after %s", path, linenum,
+		    tverify, tvalid);
+		goto done;
+	}
+	if (sigopts->valid_before != 0 &&
+	    (uint64_t)verify_time > sigopts->valid_before) {
+		format_absolute_time(sigopts->valid_before,
+		    tvalid, sizeof(tvalid));
+		error("%s:%lu: key has expired: "
+		    "verify time %s > valid-before %s", path, linenum,
+		    tverify, tvalid);
+		goto done;
+	}
+	success = 1;
+
  done:
-	if (found && principalsp != NULL) {
+	if (success && principalsp != NULL) {
 		*principalsp = principals;
 		principals = NULL; /* transferred */
 	}
 	free(principals);
 	sshkey_free(found_key);
 	sshsigopt_free(sigopts);
-	return found ? 0 : SSH_ERR_KEY_NOT_FOUND;
+	return success ? 0 : SSH_ERR_KEY_NOT_FOUND;
+}
+
+int
+sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
+    const char *principal, const char *sig_namespace, uint64_t verify_time)
+{
+	FILE *f = NULL;
+	char *line = NULL;
+	size_t linesize = 0;
+	u_long linenum = 0;
+	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
+
+	/* Check key and principal against file */
+	if ((f = fopen(path, "r")) == NULL) {
+		oerrno = errno;
+		error("Unable to open allowed keys file \"%s\": %s",
+		    path, strerror(errno));
+		errno = oerrno;
+		return SSH_ERR_SYSTEM_ERROR;
+	}
+
+	while (getline(&line, &linesize, f) != -1) {
+		linenum++;
+		r = check_allowed_keys_line(path, linenum, line, sign_key,
+		    principal, sig_namespace, verify_time, NULL);
+		free(line);
+		line = NULL;
+		linesize = 0;
+		if (r == SSH_ERR_KEY_NOT_FOUND)
+			continue;
+		else if (r == 0) {
+			/* success */
+			fclose(f);
+			return 0;
+		} else
+			break;
+	}
+	/* Either we hit an error parsing or we simply didn't find the key */
+	fclose(f);
+	free(line);
+	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
 }
 
 int
 sshsig_find_principals(const char *path, const struct sshkey *sign_key,
-    char **principals)
+    uint64_t verify_time, char **principals)
 {
 	FILE *f = NULL;
 	char *line = NULL;
@@ -993,10 +1022,11 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 
+	r = SSH_ERR_KEY_NOT_FOUND;
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
-		r = get_matching_principals_from_line(path, linenum, line,
-		    sign_key, principals);
+		r = check_allowed_keys_line(path, linenum, line,
+		    sign_key, NULL, NULL, verify_time, principals);
 		free(line);
 		line = NULL;
 		linesize = 0;
@@ -1021,6 +1051,76 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 	}
 	fclose(f);
 	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+}
+
+int
+sshsig_match_principals(const char *path, const char *principal,
+    char ***principalsp, size_t *nprincipalsp)
+{
+	FILE *f = NULL;
+	char *found, *line = NULL, **principals = NULL, **tmp;
+	size_t i, nprincipals = 0, linesize = 0;
+	u_long linenum = 0;
+	int oerrno = 0, r, ret = 0;
+
+	if (principalsp != NULL)
+		*principalsp = NULL;
+	if (nprincipalsp != NULL)
+		*nprincipalsp = 0;
+
+	/* Check key and principal against file */
+	if ((f = fopen(path, "r")) == NULL) {
+		oerrno = errno;
+		error("Unable to open allowed keys file \"%s\": %s",
+		    path, strerror(errno));
+		errno = oerrno;
+		return SSH_ERR_SYSTEM_ERROR;
+	}
+
+	while (getline(&line, &linesize, f) != -1) {
+		linenum++;
+		/* Parse the line */
+		if ((r = parse_principals_key_and_options(path, linenum, line,
+		    principal, &found, NULL, NULL)) != 0) {
+			if (r == SSH_ERR_KEY_NOT_FOUND)
+				continue;
+			ret = r;
+			oerrno = errno;
+			break; /* unexpected error */
+		}
+		if ((tmp = recallocarray(principals, nprincipals,
+		    nprincipals + 1, sizeof(*principals))) == NULL) {
+			ret = SSH_ERR_ALLOC_FAIL;
+			free(found);
+			break;
+		}
+		principals = tmp;
+		principals[nprincipals++] = found; /* transferred */
+		free(line);
+		line = NULL;
+		linesize = 0;
+	}
+	fclose(f);
+
+	if (ret == 0) {
+		if (nprincipals == 0)
+			ret = SSH_ERR_KEY_NOT_FOUND;
+		if (principalsp != NULL) {
+			*principalsp = principals;
+			principals = NULL; /* transferred */
+		}
+		if (nprincipalsp != 0) {
+			*nprincipalsp = nprincipals;
+			nprincipals = 0;
+		}
+	}
+
+	for (i = 0; i < nprincipals; i++)
+		free(principals[i]);
+	free(principals);
+
+	errno = oerrno;
+	return ret;
 }
 
 int

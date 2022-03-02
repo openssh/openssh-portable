@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.352 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.356 2021/12/19 22:10:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -865,7 +865,7 @@ load_hostkeys_command(struct hostkeys *hostkeys, const char *command_template,
 	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
 
 	/* Turn the command into an argument vector */
-	if (argv_split(command_template, &ac, &av) != 0) {
+	if (argv_split(command_template, &ac, &av, 0) != 0) {
 		error("%s \"%s\" contains invalid quotes", tag,
 		    command_template);
 		goto out;
@@ -1298,13 +1298,6 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 			error("Keyboard-interactive authentication is disabled"
 			    " to avoid man-in-the-middle attacks.");
 			options.kbd_interactive_authentication = 0;
-			options.challenge_response_authentication = 0;
-			cancelled_forwarding = 1;
-		}
-		if (options.challenge_response_authentication) {
-			error("Challenge/response authentication is disabled"
-			    " to avoid man-in-the-middle attacks.");
-			options.challenge_response_authentication = 0;
 			cancelled_forwarding = 1;
 		}
 		if (options.forward_agent) {
@@ -1346,7 +1339,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		 * XXX Should permit the user to change to use the new id.
 		 * This could be done by converting the host key to an
 		 * identifying sentence, tell that the host identifies itself
-		 * by that sentence, and ask the user if he/she wishes to
+		 * by that sentence, and ask the user if they wish to
 		 * accept the authentication.
 		 */
 		break;
@@ -1707,7 +1700,7 @@ maybe_add_key_to_agent(const char *authfile, struct sshkey *private,
 	if ((r = ssh_add_identity_constrained(auth_sock, private,
 	    comment == NULL ? authfile : comment,
 	    options.add_keys_to_agent_lifespan,
-	    (options.add_keys_to_agent == 3), 0, skprovider)) == 0)
+	    (options.add_keys_to_agent == 3), 0, skprovider, NULL, 0)) == 0)
 		debug("identity added to agent: %s", authfile);
 	else
 		debug("could not add identity to agent: %s (%d)", authfile, r);

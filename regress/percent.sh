@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.11 2021/02/05 22:03:40 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.14 2022/02/20 03:47:26 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -21,7 +21,8 @@ echo "permitlocalcommand yes" >> $OBJ/ssh_proxy
 
 trial()
 {
-	opt="$1"; arg="$2"; expect="$3"
+	opt="$1"; arg="$2"
+	expect=`echo "$3" | sed 's|^//|/|'` # approximate realpath
 
 	trace "test $opt=$arg $expect"
 	rm -f $OBJ/actual
@@ -79,7 +80,7 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	fi
 	# Matches implementation in readconf.c:ssh_connection_hash()
 	HASH=`printf "${HOSTNAME}127.0.0.1${PORT}$REMUSER" |
-	    openssl sha1 | cut -f2 -d' '`
+	    $OPENSSL_BIN sha1 | cut -f2 -d' '`
 	trial $i '%%' '%'
 	trial $i '%C' $HASH
 	trial $i '%i' $USERID
