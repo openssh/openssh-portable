@@ -1426,6 +1426,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 			debug_fr(r, "sshkey_check_sigtype");
 			goto out;
 		}
+	}
 
 	/* success */
 	r = 0;
