@@ -1,12 +1,12 @@
 {%- for kex in config['kexs'] %}
-		kex->kex[KEX_KEM_{{ kex['name']|upper }}_{{ kex['hash']|upper }}] = kex_gen_server;
+	kex->kex[KEX_KEM_{{ kex['name']|upper }}_{{ kex['hash']|upper }}] = kex_gen_server;
 {%- endfor %}
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 {%- for kex in config['kexs'] -%}
-    {%- for curve in kex['mix_with'] %}
-		kex->kex[KEX_KEM_{{ kex['name']|upper }}_ECDH_{{ curve['name']|upper }}_{{ kex['hash']|upper }}] = kex_gen_server;
-    {%- endfor %}
+  {%- for curve in kex['mix_with'] %}
+	kex->kex[KEX_KEM_{{ kex['name']|upper }}_ECDH_{{ curve['name']|upper }}_{{ kex['hash']|upper }}] = kex_gen_server;
+  {%- endfor %}
 {%- endfor %}
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
