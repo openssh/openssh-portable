@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.152 2021/04/03 06:18:40 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.154 2022/02/23 11:17:10 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -352,26 +352,28 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 
 	free(extra);
 
-#ifdef CUSTOM_FAILED_LOGIN
-	if (authenticated == 0 && !authctxt->postponed &&
-	    (strcmp(method, "password") == 0 ||
-	    strncmp(method, "keyboard-interactive", 20) == 0 ||
-	    strcmp(method, "challenge-response") == 0))
-		record_failed_login(ssh, authctxt->user,
-		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
-# ifdef WITH_AIXAUTHENTICATE
+#if defined(CUSTOM_FAILED_LOGIN) || defined(SSH_AUDIT_EVENTS)
+	if (authenticated == 0 && !(authctxt->postponed || partial)) {
+		/* Log failed login attempt */
+# ifdef CUSTOM_FAILED_LOGIN
+		if (strcmp(method, "password") == 0 ||
+		    strncmp(method, "keyboard-interactive", 20) == 0 ||
+		    strcmp(method, "challenge-response") == 0)
+			record_failed_login(ssh, authctxt->user,
+			    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
+# endif
+# ifdef SSH_AUDIT_EVENTS
+		audit_event(ssh, audit_classify_auth(method));
+# endif
+	}
+#endif
+#if defined(CUSTOM_FAILED_LOGIN) && defined(WITH_AIXAUTHENTICATE)
 	if (authenticated)
 		sys_auth_record_login(authctxt->user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh",
 		    loginmsg);
-# endif
-#endif
-#ifdef SSH_AUDIT_EVENTS
-	if (authenticated == 0 && !authctxt->postponed)
-		audit_event(ssh, audit_classify_auth(method));
 #endif
 }
-
 
 void
 auth_maxtries_exceeded(struct ssh *ssh)
@@ -707,12 +709,21 @@ auth_debug_reset(void)
 struct passwd *
 fakepw(void)
 {
+	static int done = 0;
 	static struct passwd fake;
+	const char hashchars[] = "./ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	    "abcdefghijklmnopqrstuvwxyz0123456789"; /* from bcrypt.c */
+	char *cp;
+
+	if (done)
+		return (&fake);
 
 	memset(&fake, 0, sizeof(fake));
 	fake.pw_name = "NOUSER";
-	fake.pw_passwd =
-	    "$2a$06$r3.juUaHZDlIbQaO2dS9FuYxL1W9M81R1Tc92PoSNmzvpEqLkLGrK";
+	fake.pw_passwd = xstrdup("$2a$10$"
+	    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+	for (cp = fake.pw_passwd + 7; *cp != '\0'; cp++)
+		*cp = hashchars[arc4random_uniform(sizeof(hashchars) - 1)];
 #ifdef HAVE_STRUCT_PASSWD_PW_GECOS
 	fake.pw_gecos = "NOUSER";
 #endif
@@ -723,6 +734,7 @@ fakepw(void)
 #endif
 	fake.pw_dir = "/nonexist";
 	fake.pw_shell = "/nonexist";
+	done = 1;
 
 	return (&fake);
 }
@@ -732,9 +744,7 @@ fakepw(void)
  * be freed. NB. this will usually trigger a DNS query the first time it is
  * called.
  * This function does additional checks on the hostname to mitigate some
- * attacks on legacy rhosts-style authentication.
- * XXX is RhostsRSAAuthentication vulnerable to these?
- * XXX Can we remove these checks? (or if not, remove RhostsRSAAuthentication?)
+ * attacks on based on conflation of hostnames and IP addresses.
  */
 
 static char *

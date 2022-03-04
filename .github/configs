@@ -15,12 +15,40 @@ LTESTS=""
 SKIP_LTESTS=""
 SUDO=sudo	# run with sudo by default
 TEST_SSH_UNSAFE_PERMISSIONS=1
+# Stop on first test failure to minimize logs
+TEST_SSH_FAIL_FATAL=yes
 
 CONFIGFLAGS=""
 LIBCRYPTOFLAGS=""
 
 case "$config" in
     default|sol64)
+	;;
+    c89)
+	CC="gcc"
+	CFLAGS="-Wall -std=c89 -pedantic -Werror=vla"
+	CONFIGFLAGS="--without-zlib"
+	LIBCRYPTOFLAGS="--without-openssl"
+	TEST_TARGET=t-exec
+	;;
+    cygwin-release)
+	CONFIGFLAGS="--with-libedit --with-xauth=/usr/bin/xauth --disable-strip --with-security-key-builtin"
+	;;
+   clang-12-Werror)
+	CC="clang-12"
+	# clang's implicit-fallthrough requires that the code be annotated with
+	# __attribute__((fallthrough)) and does not understand /* FALLTHROUGH */
+	CFLAGS="-Wall -Wextra -O2 -Wno-error=implicit-fallthrough"
+	CONFIGFLAGS="--with-pam --with-Werror"
+	;;
+    gcc-11-Werror)
+	CC="gcc"
+	# -Wnoformat-truncation in gcc 7.3.1 20180130 fails on fmt_scaled
+	CFLAGS="-Wall -Wextra -Wno-format-truncation -O2 -Wimplicit-fallthrough=4"
+	CONFIGFLAGS="--with-pam --with-Werror"
+	;;
+    clang*|gcc*)
+	CC="$config"
 	;;
     kitchensink)
 	CONFIGFLAGS="--with-kerberos5 --with-libedit --with-pam"
@@ -30,21 +58,34 @@ case "$config" in
     hardenedmalloc)
 	CONFIGFLAGS="--with-ldflags=-lhardened_malloc"
 	;;
-    kerberos5)
+    tcmalloc)
+	CONFIGFLAGS="--with-ldflags=-ltcmalloc"
+	;;
+    krb5|heimdal)
 	CONFIGFLAGS="--with-kerberos5"
 	;;
     libedit)
 	CONFIGFLAGS="--with-libedit"
 	;;
+    musl)
+	CC="musl-gcc"
+	CONFIGFLAGS="--without-zlib"
+	LIBCRYPTOFLAGS="--without-openssl"
+	TEST_TARGET="t-exec"
+	;;
+    pam-krb5)
+	CONFIGFLAGS="--with-pam --with-kerberos5"
+	SSHD_CONFOPTS="UsePam yes"
+	;;
     *pam)
 	CONFIGFLAGS="--with-pam"
 	SSHD_CONFOPTS="UsePam yes"
 	;;
-    libressl-head)
-	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/libressl/head --with-rpath=-Wl,-rpath,"
+    libressl-*)
+	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/libressl --with-rpath=-Wl,-rpath,"
 	;;
-    openssl-head)
-	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/openssl/head --with-rpath=-Wl,-rpath,"
+    openssl-*)
+	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/openssl --with-rpath=-Wl,-rpath,"
 	;;
     selinux)
 	CONFIGFLAGS="--with-selinux"
@@ -66,9 +107,9 @@ case "$config" in
 	# Valgrind slows things down enough that the agent timeout test
 	# won't reliably pass, and the unit tests run longer than allowed
 	# by github so split into three separate tests.
-	tests2="rekey integrity"
-	tests3="krl forward-control sshsig"
-	tests4="cert-userkey cert-hostkey kextype sftp-perm keygen-comment"
+	tests2="rekey integrity try-ciphers sftp"
+	tests3="krl forward-control sshsig agent-restrict kextype"
+	tests4="cert-userkey cert-hostkey kextype sftp-perm keygen-comment percent"
 	case "$config" in
 	    valgrind-1)
 		# All tests except agent-timeout (which is flaky under valgrind)
@@ -104,10 +145,51 @@ case "$config" in
 esac
 
 case "${TARGET_HOST}" in
+    dfly58*|dfly60*)
+	# scp 3-way connection hangs on these so skip until sorted.
+	SKIP_LTESTS=scp3
+	;;
+    hurd)
+	SKIP_LTESTS="forwarding multiplex proxy-connect hostkey-agent agent-ptrace"
+	;;
+    minix3)
+	LIBCRYPTOFLAGS="--without-openssl --disable-security-key"
+	# Minix does not have a loopback interface so we have to skip any
+	# test that relies on one.
+	# Also, Minix seems to be very limited in the number of select()
+	# calls that can be operating concurrently, so prune additional tests for that.
+	T="addrmatch agent-restrict brokenkeys cfgmatch cfgmatchlisten cfgparse connect
+	    connect-uri exit-status forward-control forwarding hostkey-agent
+	    key-options keyscan knownhosts-command login-timeout multiplex
+	    reconfigure reexec rekey scp scp-uri scp3 sftp sftp-badcmds
+	    sftp-batch sftp-cmds sftp-glob sftp-perm sftp-uri stderr-data
+	    transfer"
+	SKIP_LTESTS="$(echo $T)"
+	TEST_TARGET=t-exec
+	SUDO=""
+	;;
+    nbsd4)
+	# System compiler will ICE on some files with fstack-protector
+	# SHA256 functions in sha2.h conflict with OpenSSL's breaking sk-dummy
+	CONFIGFLAGS="${CONFIGFLAGS} --without-hardening --disable-security-key"
+	;;
     sol10|sol11)
 	# sol10 VM is 32bit and the unit tests are slow.
 	# sol11 has 4 test configs so skip unit tests to speed up.
 	TEST_TARGET="tests SKIP_UNIT=1"
+	;;
+    win10)
+	# No sudo on Windows.
+	SUDO=""
+	;;
+esac
+
+# Unless specified otherwise, build without OpenSSL on Mac OS since
+# modern versions don't ship with libcrypto.
+case "`./config.guess`" in
+*-darwin*)
+	LIBCRYPTOFLAGS="--without-openssl"
+	TEST_TARGET=t-exec
 	;;
 esac
 
@@ -123,4 +205,10 @@ fi
 
 CONFIGFLAGS="${CONFIGFLAGS} ${LIBCRYPTOFLAGS}"
 
-export LTESTS SUDO TEST_TARGET TEST_SSH_UNSAFE_PERMISSIONS
+if [ -x "$(which plink 2>/dev/null)" ]; then
+	REGRESS_INTEROP_PUTTY=yes
+	export REGRESS_INTEROP_PUTTY
+fi
+
+export CC CFLAGS LTESTS SUDO
+export TEST_TARGET TEST_SSH_UNSAFE_PERMISSIONS TEST_SSH_FAIL_FATAL

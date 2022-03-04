@@ -33,8 +33,13 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
+<<<<<<< HEAD
 .\" $OpenBSD: ssh_config.5,v 1.353 2021/04/04 11:36:56 jmc Exp $
 .Dd $Mdocdate: April 4 2021 $
+=======
+.\" $OpenBSD: ssh_config.5,v 1.369 2022/02/15 05:13:36 djm Exp $
+.Dd $Mdocdate: February 15 2022 $
+>>>>>>> V_8_9_P1
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -341,6 +346,11 @@ again using the new target name to pick up any new configuration in matching
 and
 .Cm Match
 stanzas.
+A value of
+.Cm none
+disables the use of a
+.Cm ProxyJump
+host.
 .It Cm CanonicalizeMaxDots
 Specifies the maximum number of dot characters in a hostname before
 canonicalization is disabled.
@@ -367,15 +377,36 @@ to be canonicalized to names in the
 or
 .Qq *.c.example.com
 domains.
+.Pp
+A single argument of
+.Qq none
+causes no CNAMEs to be considered for canonicalization.
+This is the default behaviour.
 .It Cm CASignatureAlgorithms
 Specifies which algorithms are allowed for signing of certificates
 by certificate authorities (CAs).
 The default is:
 .Bd -literal -offset indent
+<<<<<<< HEAD
 ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
 sk-ssh-ed25519@openssh.com,sk-ecdsa-sha2-nistp256@openssh.com,
+=======
+ssh-ed25519,ecdsa-sha2-nistp256,
+ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
+sk-ssh-ed25519@openssh.com,
+sk-ecdsa-sha2-nistp256@openssh.com,
+>>>>>>> V_8_9_P1
 rsa-sha2-512,rsa-sha2-256
 .Ed
+.Pp
+If the specified list begins with a
+.Sq +
+character, then the specified algorithms will be appended to the default set
+instead of replacing them.
+If the specified list begins with a
+.Sq -
+character, then the specified algorithms (including wildcards) will be removed
+from the default set instead of replacing them.
 .Pp
 .Xr ssh 1
 will not accept host certificates signed using algorithms other than those
@@ -412,13 +443,6 @@ Multiple
 .Cm CertificateFile
 directives will add to the list of certificates used for
 authentication.
-.It Cm ChallengeResponseAuthentication
-Specifies whether to use challenge-response authentication.
-The argument to this keyword must be
-.Cm yes
-(the default)
-or
-.Cm no .
 .It Cm CheckHostIP
 If set to
 .Cm yes
@@ -683,6 +707,45 @@ Valid options are:
 and
 .Cm sha256
 (the default).
+.It Cm ForkAfterAuthentication
+Requests
+.Nm ssh
+to go to background just before command execution.
+This is useful if
+.Nm ssh
+is going to ask for passwords or passphrases, but the user
+wants it in the background.
+This implies the
+.Cm StdinNull
+configuration option being set to
+.Dq yes .
+The recommended way to start X11 programs at a remote site is with
+something like
+.Ic ssh -f host xterm ,
+which is the same as
+.Ic ssh host xterm
+if the
+.Cm ForkAfterAuthentication
+configuration option is set to
+.Dq yes .
+.Pp
+If the
+.Cm ExitOnForwardFailure
+configuration option is set to
+.Dq yes ,
+then a client started with the
+.Cm ForkAfterAuthentication
+configuration option being set to
+.Dq yes
+will wait for all remote port forwards to be successfully established
+before placing itself in the background.
+The argument to this keyword must be
+.Cm yes
+(same as the
+.Fl f
+option) or
+.Cm no
+(the default).
 .It Cm ForwardAgent
 Specifies whether the connection to the authentication agent (if any)
 will be forwarded to the remote machine.
@@ -826,12 +889,19 @@ sk-ssh-ed25519-cert-v01@openssh.com,
 sk-ecdsa-sha2-nistp256-cert-v01@openssh.com,
 rsa-sha2-512-cert-v01@openssh.com,
 rsa-sha2-256-cert-v01@openssh.com,
+<<<<<<< HEAD
 ssh-rsa-cert-v01@openssh.com,
+=======
+>>>>>>> V_8_9_P1
 ssh-ed25519,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
 sk-ssh-ed25519@openssh.com,
 sk-ecdsa-sha2-nistp256@openssh.com,
+<<<<<<< HEAD
 rsa-sha2-512,rsa-sha2-256,ssh-rsa
+=======
+rsa-sha2-512,rsa-sha2-256
+>>>>>>> V_8_9_P1
 .Ed
 .Pp
 The
@@ -873,12 +943,19 @@ sk-ssh-ed25519-cert-v01@openssh.com,
 sk-ecdsa-sha2-nistp256-cert-v01@openssh.com,
 rsa-sha2-512-cert-v01@openssh.com,
 rsa-sha2-256-cert-v01@openssh.com,
+<<<<<<< HEAD
 ssh-rsa-cert-v01@openssh.com,
+=======
+>>>>>>> V_8_9_P1
 ssh-ed25519,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
 sk-ecdsa-sha2-nistp256@openssh.com,
 sk-ssh-ed25519@openssh.com,
+<<<<<<< HEAD
 rsa-sha2-512,rsa-sha2-256,ssh-rsa
+=======
+rsa-sha2-512,rsa-sha2-256
+>>>>>>> V_8_9_P1
 .Ed
 .Pp
 If hostkeys are known for the destination host then this default is modified
@@ -961,13 +1038,13 @@ section.
 Specifies a file from which the user's DSA, ECDSA, authenticator-hosted ECDSA,
 Ed25519, authenticator-hosted Ed25519 or RSA authentication identity is read.
 The default is
-.Pa ~/.ssh/id_dsa ,
+.Pa ~/.ssh/id_rsa ,
 .Pa ~/.ssh/id_ecdsa ,
 .Pa ~/.ssh/id_ecdsa_sk ,
 .Pa ~/.ssh/id_ed25519 ,
 .Pa ~/.ssh/id_ed25519_sk
 and
-.Pa ~/.ssh/id_rsa .
+.Pa ~/.ssh/id_dsa .
 Additionally, any identities represented by the authentication agent
 will be used for authentication unless
 .Cm IdentitiesOnly
@@ -1085,6 +1162,8 @@ The argument to this keyword must be
 (the default)
 or
 .Cm no .
+.Cm ChallengeResponseAuthentication
+is a deprecated alias for this.
 .It Cm KbdInteractiveDevices
 Specifies the list of methods to use in keyboard-interactive authentication.
 Multiple method names must be comma-separated.
@@ -1100,20 +1179,21 @@ Specifies the available KEX (Key Exchange) algorithms.
 Multiple algorithms must be comma-separated.
 If the specified list begins with a
 .Sq +
-character, then the specified methods will be appended to the default set
+character, then the specified algorithms will be appended to the default set
 instead of replacing them.
 If the specified list begins with a
 .Sq -
-character, then the specified methods (including wildcards) will be removed
+character, then the specified algorithms (including wildcards) will be removed
 from the default set instead of replacing them.
 If the specified list begins with a
 .Sq ^
-character, then the specified methods will be placed at the head of the
+character, then the specified algorithms will be placed at the head of the
 default set.
 The default is:
 .Bd -literal -offset indent
 curve25519-sha256,curve25519-sha256@libssh.org,
 ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,
+sntrup761x25519-sha512@openssh.com,
 diffie-hellman-group-exchange-sha256,
 diffie-hellman-group16-sha512,
 diffie-hellman-group18-sha512,
@@ -1454,12 +1534,19 @@ sk-ssh-ed25519-cert-v01@openssh.com,
 sk-ecdsa-sha2-nistp256-cert-v01@openssh.com,
 rsa-sha2-512-cert-v01@openssh.com,
 rsa-sha2-256-cert-v01@openssh.com,
+<<<<<<< HEAD
 ssh-rsa-cert-v01@openssh.com,
+=======
+>>>>>>> V_8_9_P1
 ssh-ed25519,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
 sk-ssh-ed25519@openssh.com,
 sk-ecdsa-sha2-nistp256@openssh.com,
+<<<<<<< HEAD
 rsa-sha2-512,rsa-sha2-256,ssh-rsa
+=======
+rsa-sha2-512,rsa-sha2-256
+>>>>>>> V_8_9_P1
 .Ed
 .Pp
 The list of available signature algorithms may also be obtained using
@@ -1468,9 +1555,16 @@ The list of available signature algorithms may also be obtained using
 Specifies whether to try public key authentication.
 The argument to this keyword must be
 .Cm yes
-(the default)
+(the default),
+.Cm no ,
+.Cm unbound
 or
-.Cm no .
+.Cm host-bound .
+The final two options enable public key authentication while respectively
+disabling or enabling the OpenSSH host-bound authentication protocol
+extension required for restricted
+.Xr ssh-agent 1
+forwarding.
 .It Cm RekeyLimit
 Specifies the maximum amount of data that may be transmitted before the
 session key is renegotiated, optionally followed by a maximum amount of
@@ -1657,12 +1751,45 @@ will send a message through the encrypted
 channel to request a response from the server.
 The default
 is 0, indicating that these messages will not be sent to the server.
+.It Cm SessionType
+May be used to either request invocation of a subsystem on the remote system,
+or to prevent the execution of a remote command at all.
+The latter is useful for just forwarding ports.
+The argument to this keyword must be
+.Cm none
+(same as the
+.Fl N
+option),
+.Cm subsystem
+(same as the
+.Fl s
+option) or
+.Cm default
+(shell or command execution).
 .It Cm SetEnv
 Directly specify one or more environment variables and their contents to
 be sent to the server.
 Similarly to
 .Cm SendEnv ,
-the server must be prepared to accept the environment variable.
+with the exception of the
+.Ev TERM
+variable, the server must be prepared to accept the environment variable.
+.It Cm StdinNull
+Redirects stdin from
+.Pa /dev/null
+(actually, prevents reading from stdin).
+Either this or the equivalent
+.Fl n
+option must be used when
+.Nm ssh
+is run in the background.
+The argument to this keyword must be
+.Cm yes
+(same as the
+.Fl n
+option) or
+.Cm no
+(the default).
 .It Cm StreamLocalBindMask
 Sets the octal file creation mode mask
 .Pq umask
@@ -1705,14 +1832,15 @@ This option forces the user to manually
 add all new hosts.
 .Pp
 If this flag is set to
-.Dq accept-new
-then ssh will automatically add new host keys to the user
-known hosts files, but will not permit connections to hosts with
+.Cm accept-new
+then ssh will automatically add new host keys to the user's
+.Pa known_hosts
+file, but will not permit connections to hosts with
 changed host keys.
 If this flag is set to
-.Dq no
+.Cm no
 or
-.Dq off ,
+.Cm off ,
 ssh will automatically add new host keys to the user known hosts files
 and allow connections to hosts with changed hostkeys to proceed,
 subject to some restrictions.
@@ -2001,7 +2129,11 @@ tunnel forwarding was requested, or
 otherwise.
 .It %t
 The type of the server host key, e.g.
+<<<<<<< HEAD
 .Cm ssh-ed25519
+=======
+.Cm ssh-ed25519 .
+>>>>>>> V_8_9_P1
 .It %u
 The local username.
 .El

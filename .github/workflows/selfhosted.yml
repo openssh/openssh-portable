@@ -10,27 +10,62 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       TARGET_HOST: ${{ matrix.os }}
-      SUDO: sudo
     strategy:
       fail-fast: false
       # We use a matrix in two parts: firstly all of the VMs are tested with the
-      # default config.  "vm" corresponds to a label associated with the worker.
+      # default config.  "os" corresponds to a label associated with the worker.
       matrix:
-        os: [bbone, dfly30, dfly48, dfly58, fbsd6, fbsd7, fbsd12, sol10, sol11]
+        os:
+          - ARM64
+          - alpine
+          - bbone
+          - dfly30
+          - dfly48
+          - dfly58
+          - dfly60
+          - fbsd6
+          - fbsd10
+          - fbsd12
+          - fbsd13
+          # - hurd
+          - minix3
+          # - nbsd2
+          - nbsd3
+          - nbsd4
+          - nbsd8
+          - nbsd9
+          - obsd51
+          - obsd67
+          - obsd69
+          - obsd70
+          - obsdsnap
+          - openindiana
+          # - rocky84
+          - sol10
+          - sol11
+          - win10
         configs:
           - default
         # Then we include any extra configs we want to test for specific VMs.
         include:
-         - { os: dfly30, configs: without-openssl}
-         - { os: dfly48, configs: pam }
-         - { os: dfly58, configs: pam }
-         - { os: fbsd6,  configs: pam }
-         - { os: fbsd7,  configs: pam }
-         - { os: fbsd12, configs: pam }
-         - { os: sol10,  configs: pam }
-         - { os: sol11,  configs: pam }
-         - { os: sol11,  configs: sol64 }
-         # - { os: sol11,  configs: sol64-pam }
+          - { os: ARM64,  configs: pam }
+          - { os: dfly30, configs: without-openssl}
+          - { os: dfly48, configs: pam }
+          - { os: dfly58, configs: pam }
+          - { os: dfly60, configs: pam }
+          - { os: fbsd6,  configs: pam }
+          - { os: fbsd10, configs: pam }
+          - { os: fbsd12, configs: pam }
+          - { os: fbsd13, configs: pam }
+          - { os: nbsd8,  configs: pam }
+          - { os: nbsd9,  configs: pam }
+          - { os: openindiana, configs: pam }
+          # - { os: rocky84, configs: pam }
+          - { os: sol10,  configs: pam }
+          - { os: sol11,  configs: pam-krb5 }
+          - { os: sol11,  configs: sol64 }
+          # - { os: sol11,  configs: sol64-pam }
+          - { os: win10,  configs: cygwin-release }
     steps:
     - uses: actions/checkout@v2
     - name: autoreconf
@@ -41,10 +76,18 @@ jobs:
       run: vmstartup
     - name: configure
       run: vmrun ./.github/configure.sh ${{ matrix.configs }}
+    - name: save config
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}-${{ matrix.configs }}-config
+        path: config.h
+    - name: make clean
+      run: vmrun make clean
     - name: make
       run: vmrun make
     - name: make tests
       run: vmrun ./.github/run_test.sh ${{ matrix.configs }}
+      timeout-minutes: 300
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@v2
