@@ -1040,14 +1040,19 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([HAVE_STRUCT_IN6_ADDR], [1], [struct in6_addr actually defined])
 	AC_DEFINE([HAVE_STRUCT_SOCKADDR_IN6], [1], [struct sockaddr_in6 actually defined])
 	AC_DEFINE([HAVE__GETSHORT], [1], [decl exists but impl is missing])
-	AC_DEFINE([NEED__GETSHORT_IMPL], [1], [provide _getshort implementation])
+	# Force this to 0 no matter what configure finds
+	AC_CHECK_DECL([_getshort],
+		AC_DEFINE([HAVE_DECL__GETSHORT],[0],[missing implementation on NonStop]),
+		AC_DEFINE([HAVE_DECL__GETSHORT],[0],[missing implementation on NonStop]))
 	AC_DEFINE([HAVE__GETLONG], [1], [decl exists but impl is missing])
-	AC_DEFINE([NEED__GETLONG_IMPL], [1], [provide _getlong implementation])
+	# Force this to 0 no matter what configure finds
+	AC_CHECK_DECL([_getlong],
+		AC_DEFINE([HAVE_DECL__GETLONG],[0],[missing implementation on NonStop]),
+		AC_DEFINE([HAVE_DECL__GETLONG],[0],[missing implementation on NonStop]))
+	# Force this to 0 no matter what configure finds
 	AC_CHECK_DECL([ftruncate],
-		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonS
-top]),
+		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonStop]),
 		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonStop]))
-	
 	AC_SUBST([LINK_OBJECT_EXT],[o])
 	AC_SEARCH_LIBS([dlopen], [rld])
 	SHAREDFLAG="$SHAREFLAG -Wshared"
