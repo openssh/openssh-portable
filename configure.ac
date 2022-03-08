@@ -2092,6 +2092,12 @@ AC_CHECK_DECLS([O_NONBLOCK], , ,
 #endif
 	])
 
+AC_CHECK_DECLS([ftruncate], , ,
+	[
+#include <sys/types.h>
+#include <unistd.h>
+	])
+
 AC_CHECK_DECLS([readv, writev], , , [
 #include <sys/types.h>
 #include <sys/uio.h>
