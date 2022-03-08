@@ -3574,8 +3574,8 @@ AC_RUN_IFELSE(
 	 select_works_with_rlimit=yes],
 	[AC_MSG_RESULT([no])
 	 select_works_with_rlimit=no],
-	[AC_MSG_WARN([cross compiling: assuming yes])
-	 select_works_with_rlimit=yes]
+	[AC_MSG_WARN([cross compiling: assuming no])
+	 select_works_with_rlimit=no]
 )
 
 AC_CHECK_MEMBERS([struct pollfd.fd], [], [], [[
