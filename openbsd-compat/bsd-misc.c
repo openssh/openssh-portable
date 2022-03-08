@@ -412,6 +412,14 @@ getsid(pid_t pid)
 }
 #endif
 
+#ifndef HAVE_KILLPG
+int
+killpg(pid_t pgrp, int sig)
+{
+	return kill(pgrp, sig);
+}
+#endif
+
 #ifdef FFLUSH_NULL_BUG
 #undef fflush
 int _ssh_compat_fflush(FILE *f)
