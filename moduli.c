@@ -197,42 +197,76 @@ sieve_large(u_int32_t s)
 	else
 		u = s - r; /* largebase+u is first entry divisible by s */
 
-	if (u < largebits * 2) {
+	/*
+	 * Note that s and u use essentially the whole 32 bit range of
+	 * the u_int32_t type, so we have to take care to avoid overflows.
+	 *
+	 * For example, u/2 + s/2 + 1 below cannot be written as (u + s)/2.
+         *
+         * Another example were loops like  for (; u < largebits; u += s),
+         * where for large s, almost all the additions would overflow,
+         * causing u to count down towards zero instead.
+	 */
+
+	if (u/2 < largebits) {
 		/*
-		 * The sieve omits p's and q's divisible by 2, so ensure that
+		 * Mark all q's that are multiples of s.
+		 *
+		 * The sieve omits q's divisible by 2, so ensure that
 		 * largebase+u is odd. Then, step through the sieve in
 		 * increments of 2*s
 		 */
 		if (u & 0x1)
-			u += s; /* Make largebase+u odd, and u even */
+			u = u/2 + s/2 + 1; /* Make u even, then divide by 2 */
+		else
+			u = u/2; /* Divide u by 2 */
 
 		/* Mark all multiples of 2*s */
-		for (u /= 2; u < largebits; u += s)
+		while (u < largebits) {
 			BIT_SET(LargeSieve, u);
+			if (u >= (u_int32_t)-s)
+				break;
+			u += s;
+		}
 	}
 
 	/* r = p mod s */
-	r = (2 * r + 1) % s;
+	// r = (2 * r + 1) % s;
+	if (r < s/2)
+		r = 2*r + 1;
+	else
+		r = 2*r + 1 - s;
+
 	if (r == 0)
 		u = 0; /* s divides p exactly */
 	else
 		u = s - r; /* p+u is first entry divisible by s */
 
-	if (u < largebits * 4) {
+	if (u/4 < largebits) {
 		/*
-		 * The sieve omits p's divisible by 4, so ensure that
-		 * largebase+u is not. Then, step through the sieve in
-		 * increments of 4*s
+		 * Mark all p's that are multiples of s.
+		 *
+		 * The sieve only tracks p's with remainder 3 modulo 4,
+		 * so ensure that largebase+u has that shape. Then,
+		 * step through the sieve in increments of 4*s
 		 */
-		while (u & 0x3) {
-			if (SMALL_MAXIMUM - u < s)
-				return;
-			u += s;
-		}
+		if (u & 0x1)
+			u = u/2 + s/2 + 1; /* Make u even, then divide by 2 */
+		else
+			u = u/2; /* Divide u by 2 */
+
+		if (u & 0x1)
+			u = u/2 + s/2 + 1; /* Make u even, then divide by 2 */
+		else
+			u = u/2; /* Divide u by 2 */
 
 		/* Mark all multiples of 4*s */
-		for (u /= 4; u < largebits; u += s)
+		while (u < largebits) {
 			BIT_SET(LargeSieve, u);
+			if (u >= (u_int32_t)-s)
+				break;
+			u += s;
+		}
 	}
 }
 
