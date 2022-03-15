@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.413 2022/02/17 10:58:27 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.414 2022/03/15 05:27:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2475,10 +2475,10 @@ dump_channel_poll(const char *func, const char *what, Channel *c,
     u_int pollfd_offset, struct pollfd *pfd)
 {
 #ifdef DEBUG_CHANNEL_POLL
-	debug3_f("channel %d: rfd r%d w%d e%d s%d "
-	    "pfd[%u].fd=%d want 0x%02x ev 0x%02x ready 0x%02x rev 0x%02x",
-	    c->self, c->rfd, c->wfd, c->efd, c->sock, pollfd_offset, pfd->fd,
-	    c->io_want, pfd->events, c->io_ready, pfd->revents);
+	debug3("%s: channel %d: rfd r%d w%d e%d s%d pfd[%u].fd=%d "
+	    "io_want 0x%02x pfd.ev 0x%02x io_ready 0x%02x pfd.rev 0x%02x",
+	    func, c->self, c->rfd, c->wfd, c->efd, c->sock, pollfd_offset,
+	    pfd->fd, c->io_want, pfd->events, c->io_ready, pfd->revents);
 #endif
 }
 
