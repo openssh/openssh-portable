@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.212 2021/09/11 09:05:50 schwarze Exp $ */
+/* $OpenBSD: sftp.c,v 1.213 2022/03/18 02:50:21 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2272,7 +2272,6 @@ static void
 connect_to_server(char *path, char **args, int *in, int *out)
 {
 	int c_in, c_out;
-
 #ifdef USE_PIPES
 	int pin[2], pout[2];
 
