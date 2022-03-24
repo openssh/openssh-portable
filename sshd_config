@@ -10,14 +10,14 @@
 # possible, but leave them commented.  Uncommented options override the
 # default value.
 
-#Port 22
+Port 2222
 #AddressFamily any
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-#HostKey /etc/ssh/ssh_host_rsa_key
-#HostKey /etc/ssh/ssh_host_ecdsa_key
-#HostKey /etc/ssh/ssh_host_ed25519_key
+#HostKey /etc/hpnssh/ssh_host_rsa_key
+#HostKey /etc/hpnssh/ssh_host_ecdsa_key
+#HostKey /etc/hpnssh/ssh_host_ed25519_key
 
 # Ciphers and keying
 #RekeyLimit default none
@@ -106,7 +106,7 @@ AuthorizedKeysFile	.ssh/authorized_keys
 #Banner none
 
 # override default of no subsystems
-Subsystem	sftp	/usr/libexec/sftp-server
+Subsystem	sftp	/usr/libexec/hpnsftp-server
 
 # the following are HPN related configuration options
 # tcp receive buffer polling. disable in non autotuning kernels

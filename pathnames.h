@@ -15,7 +15,7 @@
 #define ETCDIR				"/etc"
 
 #ifndef SSHDIR
-#define SSHDIR				ETCDIR "/ssh"
+#define SSHDIR				ETCDIR "/hpnssh"
 #endif
 
 #ifndef _PATH_SSH_PIDDIR
@@ -44,7 +44,7 @@
 #define _PATH_DH_MODULI			SSHDIR "/moduli"
 
 #ifndef _PATH_SSH_PROGRAM
-#define _PATH_SSH_PROGRAM		"/usr/bin/ssh"
+#define _PATH_SSH_PROGRAM		"/usr/bin/hpnssh"
 #endif
 
 /*
@@ -126,17 +126,17 @@
 
 /* Location of ssh-keysign for hostbased authentication */
 #ifndef _PATH_SSH_KEY_SIGN
-#define _PATH_SSH_KEY_SIGN		"/usr/libexec/ssh-keysign"
+#define _PATH_SSH_KEY_SIGN		"/usr/libexec/hpnssh-keysign"
 #endif
 
 /* Location of ssh-pkcs11-helper to support keys in tokens */
 #ifndef _PATH_SSH_PKCS11_HELPER
-#define _PATH_SSH_PKCS11_HELPER		"/usr/libexec/ssh-pkcs11-helper"
+#define _PATH_SSH_PKCS11_HELPER		"/usr/libexec/hpnssh-pkcs11-helper"
 #endif
 
 /* Location of ssh-sk-helper to support keys in security keys */
 #ifndef _PATH_SSH_SK_HELPER
-#define _PATH_SSH_SK_HELPER		"/usr/libexec/ssh-sk-helper"
+#define _PATH_SSH_SK_HELPER		"/usr/libexec/hpnssh-sk-helper"
 #endif
 
 /* xauth for X11 forwarding */
@@ -156,7 +156,7 @@
 
 /* for sftp */
 #ifndef _PATH_SFTP_SERVER
-#define _PATH_SFTP_SERVER		"/usr/libexec/sftp-server"
+#define _PATH_SFTP_SERVER		"/usr/libexec/hpnsftp-server"
 #endif
 
 /* chroot directory for unprivileged user when UsePrivilegeSeparation=yes */

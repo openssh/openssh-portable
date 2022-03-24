@@ -12,7 +12,7 @@ datadir=@datadir@
 datarootdir=@datarootdir@
 mandir=@mandir@
 mansubdir=@mansubdir@
-sysconfdir=@sysconfdir@
+sysconfdir=@sysconfdir@/hpnssh
 piddir=@piddir@
 srcdir=@srcdir@
 top_srcdir=@top_srcdir@
@@ -20,12 +20,12 @@ abs_top_srcdir=@abs_top_srcdir@
 
 DESTDIR=
 VPATH=@srcdir@
-SSH_PROGRAM=@bindir@/ssh
-ASKPASS_PROGRAM=$(libexecdir)/ssh-askpass
-SFTP_SERVER=$(libexecdir)/sftp-server
-SSH_KEYSIGN=$(libexecdir)/ssh-keysign
-SSH_PKCS11_HELPER=$(libexecdir)/ssh-pkcs11-helper
-SSH_SK_HELPER=$(libexecdir)/ssh-sk-helper
+SSH_PROGRAM=@bindir@/hpnssh
+ASKPASS_PROGRAM=$(libexecdir)/hpnssh-askpass
+SFTP_SERVER=$(libexecdir)/hpnsftp-server
+SSH_KEYSIGN=$(libexecdir)/hpnssh-keysign
+SSH_PKCS11_HELPER=$(libexecdir)/hpnssh-pkcs11-helper
+SSH_SK_HELPER=$(libexecdir)/hpnssh-sk-helper
 PRIVSEP_PATH=@PRIVSEP_PATH@
 SSH_PRIVSEP_USER=@SSH_PRIVSEP_USER@
 STRIP_OPT=@STRIP_OPT@
@@ -67,7 +67,7 @@ MKDIR_P=@MKDIR_P@
 
 .SUFFIXES: .lo
 
-TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-pkcs11-helper$(EXEEXT) ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT) sftp$(EXEEXT) ssh-sk-helper$(EXEEXT)
+TARGETS=hpnssh$(EXEEXT) hpnsshd$(EXEEXT) hpnssh-add$(EXEEXT) hpnssh-keygen$(EXEEXT) hpnssh-keyscan${EXEEXT} hpnssh-keysign${EXEEXT} hpnssh-pkcs11-helper$(EXEEXT) hpnssh-agent$(EXEEXT) hpnscp$(EXEEXT) hpnsftp-server$(EXEEXT) hpnsftp$(EXEEXT) hpnssh-sk-helper$(EXEEXT)
 
 XMSS_OBJS=\
 	ssh-xmss.o \
@@ -153,28 +153,28 @@ SFTPSERVER_OBJS=sftp-common.o sftp-server.o sftp-server-main.o
 
 SFTP_OBJS=	sftp.o progressmeter.o $(SFTP_CLIENT_OBJS)
 
-MANPAGES	= moduli.5.out scp.1.out ssh-add.1.out ssh-agent.1.out ssh-keygen.1.out ssh-keyscan.1.out ssh.1.out sshd.8.out sftp-server.8.out sftp.1.out ssh-keysign.8.out ssh-pkcs11-helper.8.out ssh-sk-helper.8.out sshd_config.5.out ssh_config.5.out
-MANPAGES_IN	= moduli.5 scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1 ssh-keysign.8 ssh-pkcs11-helper.8 ssh-sk-helper.8 sshd_config.5 ssh_config.5
+MANPAGES	= hpnmoduli.5.out hpnscp.1.out hpnssh-add.1.out hpnssh-agent.1.out hpnssh-keygen.1.out hpnssh-keyscan.1.out hpnssh.1.out hpnsshd.8.out hpnsftp-server.8.out hpnsftp.1.out hpnssh-keysign.8.out hpnssh-pkcs11-helper.8.out hpnssh-sk-helper.8.out hpnsshd_config.5.out hpnssh_config.5.out
+MANPAGES_IN	= hpnmoduli.5 hpnscp.1 hpnssh-add.1 hpnssh-agent.1 hpnssh-keygen.1 hpnssh-keyscan.1 hpnssh.1 hpnsshd.8 hpnsftp-server.8 hpnsftp.1 hpnssh-keysign.8 hpnssh-pkcs11-helper.8 hpnssh-sk-helper.8 hpnsshd_config.5 hpnssh_config.5
 MANTYPE		= @MANTYPE@
 
 CONFIGFILES=sshd_config.out ssh_config.out moduli.out
 CONFIGFILES_IN=sshd_config ssh_config moduli
 
 PATHSUBS	= \
-	-e 's|/etc/ssh/ssh_config|$(sysconfdir)/ssh_config|g' \
-	-e 's|/etc/ssh/ssh_known_hosts|$(sysconfdir)/ssh_known_hosts|g' \
-	-e 's|/etc/ssh/sshd_config|$(sysconfdir)/sshd_config|g' \
+	-e 's|/etc/hpnssh/ssh_config|$(sysconfdir)/ssh_config|g' \
+	-e 's|/etc/hpnssh/ssh_known_hosts|$(sysconfdir)/ssh_known_hosts|g' \
+	-e 's|/etc/hpnssh/sshd_config|$(sysconfdir)/sshd_config|g' \
 	-e 's|/usr/libexec|$(libexecdir)|g' \
 	-e 's|/etc/shosts.equiv|$(sysconfdir)/shosts.equiv|g' \
-	-e 's|/etc/ssh/ssh_host_key|$(sysconfdir)/ssh_host_key|g' \
-	-e 's|/etc/ssh/ssh_host_ecdsa_key|$(sysconfdir)/ssh_host_ecdsa_key|g' \
-	-e 's|/etc/ssh/ssh_host_dsa_key|$(sysconfdir)/ssh_host_dsa_key|g' \
-	-e 's|/etc/ssh/ssh_host_rsa_key|$(sysconfdir)/ssh_host_rsa_key|g' \
-	-e 's|/etc/ssh/ssh_host_ed25519_key|$(sysconfdir)/ssh_host_ed25519_key|g' \
+	-e 's|/etc/hpnssh/ssh_host_key|$(sysconfdir)/ssh_host_key|g' \
+	-e 's|/etc/hpnssh/ssh_host_ecdsa_key|$(sysconfdir)/ssh_host_ecdsa_key|g' \
+	-e 's|/etc/hpnssh/ssh_host_dsa_key|$(sysconfdir)/ssh_host_dsa_key|g' \
+	-e 's|/etc/hpnssh/ssh_host_rsa_key|$(sysconfdir)/ssh_host_rsa_key|g' \
+	-e 's|/etc/hpnssh/ssh_host_ed25519_key|$(sysconfdir)/ssh_host_ed25519_key|g' \
 	-e 's|/var/run/hpnsshd.pid|$(piddir)/hpnsshd.pid|g' \
 	-e 's|/etc/moduli|$(sysconfdir)/moduli|g' \
-	-e 's|/etc/ssh/moduli|$(sysconfdir)/moduli|g' \
-	-e 's|/etc/ssh/sshrc|$(sysconfdir)/sshrc|g' \
+	-e 's|/etc/hpnssh/moduli|$(sysconfdir)/moduli|g' \
+	-e 's|/etc/hpnssh/sshrc|$(sysconfdir)/sshrc|g' \
 	-e 's|/usr/X11R6/bin/xauth|$(XAUTH_PATH)|g' \
 	-e 's|/var/empty|$(PRIVSEP_PATH)|g' \
 	-e 's|/usr/bin:/bin:/usr/sbin:/sbin|@user_path@|g'
@@ -206,40 +206,40 @@ libssh.a: $(LIBSSH_OBJS)
 	$(AR) rv $@ $(LIBSSH_OBJS)
 	$(RANLIB) $@
 
-ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
+hpnssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
 	$(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) $(GSSLIBS)
 
-sshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
+hpnsshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
 	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(SSHDLIBS) $(LIBS) $(GSSLIBS) $(K5LIBS)
 
-scp$(EXEEXT): $(LIBCOMPAT) libssh.a $(SCP_OBJS)
+hpnscp$(EXEEXT): $(LIBCOMPAT) libssh.a $(SCP_OBJS)
 	$(LD) -o $@ $(SCP_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-add$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHADD_OBJS)
+hpnssh-add$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHADD_OBJS)
 	$(LD) -o $@ $(SSHADD_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-agent$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHAGENT_OBJS)
+hpnssh-agent$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHAGENT_OBJS)
 	$(LD) -o $@ $(SSHAGENT_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-keygen$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHKEYGEN_OBJS)
+hpnssh-keygen$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHKEYGEN_OBJS)
 	$(LD) -o $@ $(SSHKEYGEN_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-keysign$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHKEYSIGN_OBJS)
+hpnssh-keysign$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHKEYSIGN_OBJS)
 	$(LD) -o $@ $(SSHKEYSIGN_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-pkcs11-helper$(EXEEXT): $(LIBCOMPAT) libssh.a $(P11HELPER_OBJS)
+hpnssh-pkcs11-helper$(EXEEXT): $(LIBCOMPAT) libssh.a $(P11HELPER_OBJS)
 	$(LD) -o $@ $(P11HELPER_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-ssh-sk-helper$(EXEEXT): $(LIBCOMPAT) libssh.a $(SKHELPER_OBJS)
+hpnssh-sk-helper$(EXEEXT): $(LIBCOMPAT) libssh.a $(SKHELPER_OBJS)
 	$(LD) -o $@ $(SKHELPER_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS) $(LIBFIDO2)
 
-ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHKEYSCAN_OBJS)
+hpnssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHKEYSCAN_OBJS)
 	$(LD) -o $@ $(SSHKEYSCAN_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat -lssh $(LIBS)
 
-sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a $(SFTPSERVER_OBJS)
+hpnsftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a $(SFTPSERVER_OBJS)
 	$(LD) -o $@ $(SFTPSERVER_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat -lssh $(LIBS)
 
-sftp$(EXEEXT): $(LIBCOMPAT) libssh.a $(SFTP_OBJS)
+hpnsftp$(EXEEXT): $(LIBCOMPAT) libssh.a $(SFTP_OBJS)
 	$(LD) -o $@ $(SFTP_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) $(LIBEDIT)
 
 # test driver for the loginrec code - not built by default
@@ -382,7 +382,7 @@ install-nokeys: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files install-sysc
 install-nosysconf: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files
 
 check-config:
-	-$(DESTDIR)$(sbindir)/sshd -t -f $(DESTDIR)$(sysconfdir)/sshd_config
+	-$(DESTDIR)$(sbindir)/hpnsshd -t -f $(DESTDIR)$(sysconfdir)/sshd_config
 
 install-files:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
@@ -392,33 +392,33 @@ install-files:
 	$(MKDIR_P) $(DESTDIR)$(mandir)/$(mansubdir)8
 	$(MKDIR_P) $(DESTDIR)$(libexecdir)
 	$(MKDIR_P) -m 0755 $(DESTDIR)$(PRIVSEP_PATH)
-	$(INSTALL) -m 0755 $(STRIP_OPT) ssh$(EXEEXT) $(DESTDIR)$(bindir)/ssh$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) scp$(EXEEXT) $(DESTDIR)$(bindir)/scp$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-add$(EXEEXT) $(DESTDIR)$(bindir)/ssh-add$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-agent$(EXEEXT) $(DESTDIR)$(bindir)/ssh-agent$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-keygen$(EXEEXT) $(DESTDIR)$(bindir)/ssh-keygen$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-keyscan$(EXEEXT) $(DESTDIR)$(bindir)/ssh-keyscan$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) sshd$(EXEEXT) $(DESTDIR)$(sbindir)/sshd$(EXEEXT)
-	$(INSTALL) -m 4711 $(STRIP_OPT) ssh-keysign$(EXEEXT) $(DESTDIR)$(SSH_KEYSIGN)$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-pkcs11-helper$(EXEEXT) $(DESTDIR)$(SSH_PKCS11_HELPER)$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-sk-helper$(EXEEXT) $(DESTDIR)$(SSH_SK_HELPER)$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) sftp$(EXEEXT) $(DESTDIR)$(bindir)/sftp$(EXEEXT)
-	$(INSTALL) -m 0755 $(STRIP_OPT) sftp-server$(EXEEXT) $(DESTDIR)$(SFTP_SERVER)$(EXEEXT)
-	$(INSTALL) -m 644 ssh.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
-	$(INSTALL) -m 644 scp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
-	$(INSTALL) -m 644 ssh-add.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
-	$(INSTALL) -m 644 ssh-agent.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-agent.1
-	$(INSTALL) -m 644 ssh-keygen.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
-	$(INSTALL) -m 644 ssh-keyscan.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keyscan.1
-	$(INSTALL) -m 644 moduli.5.out $(DESTDIR)$(mandir)/$(mansubdir)5/moduli.5
-	$(INSTALL) -m 644 sshd_config.5.out $(DESTDIR)$(mandir)/$(mansubdir)5/sshd_config.5
-	$(INSTALL) -m 644 ssh_config.5.out $(DESTDIR)$(mandir)/$(mansubdir)5/ssh_config.5
-	$(INSTALL) -m 644 sshd.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
-	$(INSTALL) -m 644 sftp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
-	$(INSTALL) -m 644 sftp-server.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
-	$(INSTALL) -m 644 ssh-keysign.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-keysign.8
-	$(INSTALL) -m 644 ssh-pkcs11-helper.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-pkcs11-helper.8
-	$(INSTALL) -m 644 ssh-sk-helper.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-sk-helper.8
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnssh$(EXEEXT) $(DESTDIR)$(bindir)/hpnssh$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnscp$(EXEEXT) $(DESTDIR)$(bindir)/hpnscp$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnssh-add$(EXEEXT) $(DESTDIR)$(bindir)/hpnssh-add$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnssh-agent$(EXEEXT) $(DESTDIR)$(bindir)/hpnssh-agent$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnssh-keygen$(EXEEXT) $(DESTDIR)$(bindir)/hpnssh-keygen$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnssh-keyscan$(EXEEXT) $(DESTDIR)$(bindir)/hpnssh-keyscan$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnsshd$(EXEEXT) $(DESTDIR)$(sbindir)/hpnsshd$(EXEEXT)
+	$(INSTALL) -m 4711 $(STRIP_OPT) hpnssh-keysign$(EXEEXT) $(DESTDIR)$(SSH_KEYSIGN)$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnssh-pkcs11-helper$(EXEEXT) $(DESTDIR)$(SSH_PKCS11_HELPER)$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnssh-sk-helper$(EXEEXT) $(DESTDIR)$(SSH_SK_HELPER)$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnsftp$(EXEEXT) $(DESTDIR)$(bindir)/hpnsftp$(EXEEXT)
+	$(INSTALL) -m 0755 $(STRIP_OPT) hpnsftp-server$(EXEEXT) $(DESTDIR)$(SFTP_SERVER)$(EXEEXT)
+	$(INSTALL) -m 644 hpnssh.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh.1
+	$(INSTALL) -m 644 hpnscp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/hpnscp.1
+	$(INSTALL) -m 644 hpnssh-add.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh-add.1
+	$(INSTALL) -m 644 hpnssh-agent.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh-agent.1
+	$(INSTALL) -m 644 hpnssh-keygen.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh-keygen.1
+	$(INSTALL) -m 644 hpnssh-keyscan.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh-keyscan.1
+	$(INSTALL) -m 644 hpnmoduli.5.out $(DESTDIR)$(mandir)/$(mansubdir)5/hpnmoduli.5
+	$(INSTALL) -m 644 hpnsshd_config.5.out $(DESTDIR)$(mandir)/$(mansubdir)5/hpnsshd_config.5
+	$(INSTALL) -m 644 hpnssh_config.5.out $(DESTDIR)$(mandir)/$(mansubdir)5/hpnssh_config.5
+	$(INSTALL) -m 644 hpnsshd.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/hpnsshd.8
+	$(INSTALL) -m 644 hpnsftp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/hpnsftp.1
+	$(INSTALL) -m 644 hpnsftp-server.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/hpnsftp-server.8
+	$(INSTALL) -m 644 hpnssh-keysign.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/hpnssh-keysign.8
+	$(INSTALL) -m 644 hpnssh-pkcs11-helper.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/hpnssh-pkcs11-helper.8
+	$(INSTALL) -m 644 hpnssh-sk-helper.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/hpnssh-sk-helper.8
 
 install-sysconf:
 	$(MKDIR_P) $(DESTDIR)$(sysconfdir)
@@ -443,17 +443,17 @@ install-sysconf:
 		echo "$(DESTDIR)$(sysconfdir)/moduli already exists, install will not overwrite"; \
 	fi
 
-host-key: ssh-keygen$(EXEEXT)
+host-key: hpnssh-keygen$(EXEEXT)
 	@if [ -z "$(DESTDIR)" ] ; then \
-		./ssh-keygen -A; \
+		./hpnssh-keygen -A; \
 	fi
 
-host-key-force: ssh-keygen$(EXEEXT) ssh$(EXEEXT)
-	./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
-	./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
-	./ssh-keygen -t ed25519 -f $(DESTDIR)$(sysconfdir)/ssh_host_ed25519_key -N ""
-	if ./ssh -Q key | grep ecdsa >/dev/null ; then \
-		./ssh-keygen -t ecdsa -f $(DESTDIR)$(sysconfdir)/ssh_host_ecdsa_key -N ""; \
+host-key-force: hpnssh-keygen$(EXEEXT) ssh$(EXEEXT)
+	./hpnssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
+	./hpnssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
+	./hpnssh-keygen -t ed25519 -f $(DESTDIR)$(sysconfdir)/ssh_host_ed25519_key -N ""
+	if ./hpnssh -Q key | grep ecdsa >/dev/null ; then \
+		./hpnssh-keygen -t ecdsa -f $(DESTDIR)$(sysconfdir)/ssh_host_ecdsa_key -N ""; \
 	fi
 
 uninstallall:	uninstall
@@ -468,30 +468,30 @@ uninstallall:	uninstall
 	-rmdir $(DESTDIR)$(libexecdir)
 
 uninstall:
-	-rm -f $(DESTDIR)$(bindir)/ssh$(EXEEXT)
-	-rm -f $(DESTDIR)$(bindir)/scp$(EXEEXT)
-	-rm -f $(DESTDIR)$(bindir)/ssh-add$(EXEEXT)
-	-rm -f $(DESTDIR)$(bindir)/ssh-agent$(EXEEXT)
-	-rm -f $(DESTDIR)$(bindir)/ssh-keygen$(EXEEXT)
-	-rm -f $(DESTDIR)$(bindir)/ssh-keyscan$(EXEEXT)
-	-rm -f $(DESTDIR)$(bindir)/sftp$(EXEEXT)
-	-rm -f $(DESTDIR)$(sbindir)/sshd$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/hpnssh$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/hpnscp$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/hpnssh-add$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/hpnssh-agent$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/hpnssh-keygen$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/hpnssh-keyscan$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/hpnsftp$(EXEEXT)
+	-rm -f $(DESTDIR)$(sbindir)/hpnsshd$(EXEEXT)
 	-rm -r $(DESTDIR)$(SFTP_SERVER)$(EXEEXT)
 	-rm -f $(DESTDIR)$(SSH_KEYSIGN)$(EXEEXT)
 	-rm -f $(DESTDIR)$(SSH_PKCS11_HELPER)$(EXEEXT)
 	-rm -f $(DESTDIR)$(SSH_SK_HELPER)$(EXEEXT)
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-agent.1
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keyscan.1
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-keysign.8
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-pkcs11-helper.8
-	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-sk-helper.8
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/hpnscp.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh-add.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh-agent.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh-keygen.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/hpnsftp.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/hpnssh-keyscan.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/hpnsshd.8
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/hpnsftp-server.8
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/hpnssh-keysign.8
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/hpnssh-pkcs11-helper.8
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/hpnssh-sk-helper.8
 
 regress-prep:
 	$(MKDIR_P) `pwd`/regress/unittests/test_helper
@@ -730,18 +730,18 @@ interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 		PATH="$${BUILDDIR}:$${PATH}" \
 		TEST_ENV=MALLOC_OPTIONS="@TEST_MALLOC_OPTIONS@" \
 		TEST_MALLOC_OPTIONS="@TEST_MALLOC_OPTIONS@" \
-		TEST_SSH_SCP="$${BUILDDIR}/scp" \
-		TEST_SSH_SSH="$${BUILDDIR}/ssh" \
-		TEST_SSH_SSHD="$${BUILDDIR}/sshd" \
-		TEST_SSH_SSHAGENT="$${BUILDDIR}/ssh-agent" \
-		TEST_SSH_SSHADD="$${BUILDDIR}/ssh-add" \
-		TEST_SSH_SSHKEYGEN="$${BUILDDIR}/ssh-keygen" \
-		TEST_SSH_SSHPKCS11HELPER="$${BUILDDIR}/ssh-pkcs11-helper" \
-		TEST_SSH_SSHKEYSCAN="$${BUILDDIR}/ssh-keyscan" \
-		TEST_SSH_SFTP="$${BUILDDIR}/sftp" \
-		TEST_SSH_PKCS11_HELPER="$${BUILDDIR}/ssh-pkcs11-helper" \
-		TEST_SSH_SK_HELPER="$${BUILDDIR}/ssh-sk-helper" \
-		TEST_SSH_SFTPSERVER="$${BUILDDIR}/sftp-server" \
+		TEST_SSH_SCP="$${BUILDDIR}/hpnscp" \
+		TEST_SSH_SSH="$${BUILDDIR}/hpnssh" \
+		TEST_SSH_SSHD="$${BUILDDIR}/hpnsshd" \
+		TEST_SSH_SSHAGENT="$${BUILDDIR}/hpnssh-agent" \
+		TEST_SSH_SSHADD="$${BUILDDIR}/hpnssh-add" \
+		TEST_SSH_SSHKEYGEN="$${BUILDDIR}/hpnssh-keygen" \
+		TEST_SSH_SSHPKCS11HELPER="$${BUILDDIR}/hpnssh-pkcs11-helper" \
+		TEST_SSH_SSHKEYSCAN="$${BUILDDIR}/hpnssh-keyscan" \
+		TEST_SSH_SFTP="$${BUILDDIR}/hpnsftp" \
+		TEST_SSH_PKCS11_HELPER="$${BUILDDIR}/hpnssh-pkcs11-helper" \
+		TEST_SSH_SK_HELPER="$${BUILDDIR}/hpnssh-sk-helper" \
+		TEST_SSH_SFTPSERVER="$${BUILDDIR}/hpnsftp-server" \
 		TEST_SSH_MODULI_FILE="$(abs_top_srcdir)/moduli" \
 		TEST_SSH_PLINK="plink" \
 		TEST_SSH_PUTTYGEN="puttygen" \
