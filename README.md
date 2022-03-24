@@ -1,4 +1,4 @@
-# HPNSSH Based on Portable OpenSSH Version 
+# HPNSSH: Based on Portable OpenSSH Version 
 
 Starting with version HPN17v0 there will be significant changes to the naming convention used for executables and installation locations. The last version that does not include these changes is HPN16v1 corresponding to the HPN-8_8_P1 tag on the master branch. 
 
