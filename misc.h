@@ -154,12 +154,6 @@ void		put_u32(void *, u_int32_t)
 void		put_u16(void *, u_int16_t)
     __attribute__((__bounded__( __minbytes__, 1, 2)));
 
-/* Little-endian store/load, used by umac.c */
-u_int32_t	get_u32_le(const void *)
-    __attribute__((__bounded__(__minbytes__, 1, 4)));
-void		put_u32_le(void *, u_int32_t)
-    __attribute__((__bounded__(__minbytes__, 1, 4)));
-
 struct bwlimit {
 	size_t buflen;
 	u_int64_t rate;		/* desired rate in kbit/s */
