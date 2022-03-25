@@ -173,6 +173,10 @@ case "${TARGET_HOST}" in
 	# SHA256 functions in sha2.h conflict with OpenSSL's breaking sk-dummy
 	CONFIGFLAGS="${CONFIGFLAGS} --without-hardening --disable-security-key"
 	;;
+    openwrt-*)
+	CONFIGFLAGS="${CONFIGFLAGS} --without-openssl --without-zlib"
+	TEST_TARGET="t-exec"
+	;;
     sol10|sol11)
 	# sol10 VM is 32bit and the unit tests are slow.
 	# sol11 has 4 test configs so skip unit tests to speed up.

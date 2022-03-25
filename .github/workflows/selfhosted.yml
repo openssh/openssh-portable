@@ -41,6 +41,8 @@ jobs:
           - obsd70
           - obsdsnap
           - openindiana
+          - openwrt-mips
+          - openwrt-mipsel
           # - rocky84
           - sol10
           - sol11
