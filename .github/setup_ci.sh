@@ -80,7 +80,7 @@ for TARGET in $TARGETS; do
         INSTALL_LIBRESSL=$(echo ${TARGET} | cut -f2 -d-)
         case ${INSTALL_LIBRESSL} in
           master) ;;
-          *) INSTALL_LIBRESSL="v$(echo ${TARGET} | cut -f2 -d-)" ;;
+          *) INSTALL_LIBRESSL="$(echo ${TARGET} | cut -f2 -d-)" ;;
         esac
         PACKAGES="${PACKAGES} putty-tools"
        ;;
@@ -131,7 +131,7 @@ if [ ! -z "${INSTALL_LIBRESSL}" ]; then
          ./configure --prefix=/opt/libressl &&
          make -j2 && sudo make install)
     else
-        LIBRESSL_URLBASE=https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/
+        LIBRESSL_URLBASE=https://cdn.openbsd.org/pub/OpenBSD/LibreSSL
         (cd ${HOME} &&
          wget ${LIBRESSL_URLBASE}/libressl-${INSTALL_LIBRESSL}.tar.gz &&
          tar xfz libressl-${INSTALL_LIBRESSL}.tar.gz &&
