@@ -101,7 +101,7 @@ int
 allowed_user(struct ssh *ssh, struct passwd * pw)
 {
 	struct stat st;
-	const char *hostname = NULL, *ipaddr = NULL, *passwd = NULL;
+	const char *hostname = NULL, *ipaddr = NULL;
 	u_int i;
 	int r;
 
