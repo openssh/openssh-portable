@@ -122,11 +122,20 @@ if [ ! -z "${INSTALL_OPENSSL}" ]; then
 fi
 
 if [ ! -z "${INSTALL_LIBRESSL}" ]; then
-    (mkdir -p ${HOME}/libressl && cd ${HOME}/libressl &&
-     git clone https://github.com/libressl-portable/portable.git &&
-     cd ${HOME}/libressl/portable &&
-     git checkout ${INSTALL_LIBRESSL} &&
-     sh update.sh && sh autogen.sh &&
-     ./configure --prefix=/opt/libressl &&
-     make -j2 && sudo make install)
+    if [ "${INSTALL_LIBRESSL}" = "master" ]; then
+        (mkdir -p ${HOME}/libressl && cd ${HOME}/libressl &&
+         git clone https://github.com/libressl-portable/portable.git &&
+         cd ${HOME}/libressl/portable &&
+         git checkout ${INSTALL_LIBRESSL} &&
+         sh update.sh && sh autogen.sh &&
+         ./configure --prefix=/opt/libressl &&
+         make -j2 && sudo make install)
+    else
+        LIBRESSL_URLBASE=https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/
+        (cd ${HOME} &&
+         wget ${LIBRESSL_URLBASE}/libressl-${INSTALL_LIBRESSL}.tar.gz &&
+         tar xfz libressl-${INSTALL_LIBRESSL}.tar.gz &&
+         cd libressl-${INSTALL_LIBRESSL} &&
+         ./configure --prefix=/opt/libressl && make -j2 && sudo make install)
+    fi
 fi
