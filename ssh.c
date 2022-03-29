@@ -681,6 +681,8 @@ main(int ac, char **av)
 	 */
 	initialize_options(&options);
 
+	config = getenv("SSH_CONFIG_FILE");
+
 	/*
 	 * Prepare main ssh transport/connection structures
 	 */

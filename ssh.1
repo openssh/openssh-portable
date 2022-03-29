@@ -1462,6 +1462,15 @@ is set.
 Identifies the path of a
 .Ux Ns -domain
 socket used to communicate with the agent.
+.It Ev SSH_CONFIG_FILE
+Specifies an alternative configuration file. If a configuration file is
+given using the environment variable, the system-wide configuration file
+.Pq Pa /etc/ssh/ssh_config
+and the default per-user configuration file
+.Pq Pa ~/.ssh/config
+are ignored. This environment variable is ignored if
+.Fl F
+is passed at the command line.
 .It Ev SSH_CONNECTION
 Identifies the client and server ends of the connection.
 The variable contains

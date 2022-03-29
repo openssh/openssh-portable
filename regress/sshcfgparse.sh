@@ -34,6 +34,12 @@ verbose "reparse minimal config"
  ${SSH} -G -F $OBJ/ssh_config.1 somehost >$OBJ/ssh_config.2 &&
  diff $OBJ/ssh_config.1 $OBJ/ssh_config.2) || fail "failed to reparse minimal"
 
+verbose 'verify -F is equivalent to $SSH_CONFIG_FILE'
+(${SSH} -G -F $OBJ/ssh_config somehost >$OBJ/ssh_config.1 &&
+ SSH_CONFIG_FILE=$OBJ/ssh_config.1 ${SSH} -G somehost >$OBJ/ssh_config.2 &&
+ diff $OBJ/ssh_config.1 $OBJ/ssh_config.2) \
+    || fail "difference between -F and SSH_CONFIG_FILE"
+
 verbose "ssh -W opts"
 f=`${SSH} -GF $OBJ/ssh_config host | awk '/exitonforwardfailure/{print $2}'`
 test "$f" = "no" || fail "exitonforwardfailure default"
