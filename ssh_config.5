@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.370 2022/03/31 17:27:27 naddy Exp $
+.\" $OpenBSD: ssh_config.5,v 1.371 2022/03/31 17:58:44 naddy Exp $
 .Dd $Mdocdate: March 31 2022 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1165,9 +1165,9 @@ character, then the specified algorithms will be placed at the head of the
 default set.
 The default is:
 .Bd -literal -offset indent
+sntrup761x25519-sha512@openssh.com,
 curve25519-sha256,curve25519-sha256@libssh.org,
 ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,
-sntrup761x25519-sha512@openssh.com,
 diffie-hellman-group-exchange-sha256,
 diffie-hellman-group16-sha512,
 diffie-hellman-group18-sha512,
