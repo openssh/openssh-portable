@@ -1,5 +1,4 @@
-# uncomment if you run a non bourne compatible shell. Ie. csh
-#SHELL = @SH@
+SHELL=@SH@
 
 AUTORECONF=autoreconf
 
