@@ -149,6 +149,7 @@ case "${TARGET_HOST}" in
 	# These are slow real or virtual machines so skip the slowest tests
 	# (which tend to be thw ones that transfer lots of data) so that the
 	# test run does not time out.
+	TEST_TARGET=t-exec
 	SKIP_LTESTS="rekey sftp"
 	;;
     dfly58*|dfly60*)
