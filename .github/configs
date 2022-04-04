@@ -149,7 +149,9 @@ case "${TARGET_HOST}" in
 	# These are slow real or virtual machines so skip the slowest tests
 	# (which tend to be thw ones that transfer lots of data) so that the
 	# test run does not time out.
-	TEST_TARGET=t-exec
+	# The agent-restrict test fails due to some quoting issue when run
+	# with sh or ksh so specify bash for now.
+	TEST_TARGET="t-exec TEST_SHELL=bash"
 	SKIP_LTESTS="rekey sftp"
 	;;
     dfly58*|dfly60*)
