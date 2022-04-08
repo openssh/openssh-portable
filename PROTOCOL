@@ -102,6 +102,8 @@ OpenSSH supports the use of ECDH in Curve25519 for key exchange as
 described at:
 http://git.libssh.org/users/aris/libssh.git/plain/doc/curve25519-sha256@libssh.org.txt?h=curve25519
 
+This is identical to curve25519-sha256 as later published in RFC8731.
+
 2. Connection protocol changes
 
 2.1. connection: Channel write close extension "eow@openssh.com"
@@ -649,4 +651,4 @@ master instance and later clients.
 OpenSSH extends the usual agent protocol. These changes are documented
 in the PROTOCOL.agent file.
 
-$OpenBSD: PROTOCOL,v 1.44 2022/03/31 03:05:49 djm Exp $
+$OpenBSD: PROTOCOL,v 1.45 2022/04/08 05:43:39 dtucker Exp $
