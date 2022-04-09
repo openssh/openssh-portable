@@ -23,6 +23,13 @@
 #include <stdint.h>
 #endif
 
+/*
+ * These are used for signature verification and need to match
+ * https://www.w3.org/TR/webauthn-2/#table-authData.
+ */
+#define SSH_SK_FIDO_USER_PRESENT	0x01
+#define SSH_SK_FIDO_USER_VERIFIED	0x04
+
 /* Flags */
 #define SSH_SK_USER_PRESENCE_REQD	0x01
 #define SSH_SK_USER_VERIFICATION_REQD	0x04
