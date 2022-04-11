@@ -195,6 +195,7 @@ initialize_server_options(ServerOptions *options)
 	options->fingerprint_hash = -1;
 	options->disable_forwarding = -1;
 	options->expose_userauth_info = -1;
+	options->route_cookieid = 0;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -517,6 +518,7 @@ typedef enum {
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
+	sRouteCookieId,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -676,6 +678,7 @@ static struct {
 	{ "rdomain", sRDomain, SSHCFG_ALL },
 	{ "casignaturealgorithms", sCASignatureAlgorithms, SSHCFG_ALL },
 	{ "securitykeyprovider", sSecurityKeyProvider, SSHCFG_GLOBAL },
+	{ "routecookieid", sRouteCookieId, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2430,6 +2433,24 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			    filename, linenum);
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(arg);
+		break;
+
+	case sRouteCookieId:
+		arg = argv_next(&ac, &av);
+		if (strcmp(arg, "default") == 0) {
+			val64 = 0;
+		} else {
+			if (scan_scaled(arg, &val64) == -1)
+				fatal("%.200s line %d: Bad %s number '%s': %s",
+				    filename, linenum, keyword,
+				    arg, strerror(errno));
+			if (val64 < 0 || val64 > UINT_MAX)
+				fatal("%.200s line %d: Bad %s number '%s'",
+				    filename, linenum, keyword,
+				    arg);
+		}
+		if (*activep)
+			options->route_cookieid = (u_int32_t)val64;
 		break;
 
 	case sDeprecated:

@@ -1090,6 +1090,7 @@ listen_on_addrs(struct listenaddr *la)
 		if (listen(listen_sock, SSH_LISTEN_BACKLOG) == -1)
 			fatal("listen on [%s]:%s: %.100s",
 			    ntop, strport, strerror(errno));
+		set_cookieid(listen_sock, options.route_cookieid);
 		logit("Server listening on %s port %s%s%s.",
 		    ntop, strport,
 		    la->rdomain == NULL ? "" : " rdomain ",

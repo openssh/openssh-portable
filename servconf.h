@@ -229,6 +229,7 @@ typedef struct {
 	int	expose_userauth_info;
 	u_int64_t timing_secret;
 	char   *sk_provider;
+	u_int32_t route_cookieid;
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */

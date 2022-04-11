@@ -55,6 +55,7 @@ void	 set_nodelay(int);
 int	 set_reuseaddr(int);
 char	*get_rdomain(int);
 int	 set_rdomain(int, const char *);
+int	 set_cookieid(int, u_int32_t);
 int	 get_sock_af(int);
 void	 set_sock_tos(int, int);
 int	 waitrfd(int, int *);

@@ -247,6 +247,22 @@ set_rdomain(int fd, const char *name)
 }
 
 int
+set_cookieid(int fd, u_int32_t route_cookieid)
+{
+#if defined(__FreeBSD__)
+	if (setsockopt(fd, SOL_SOCKET, SO_USER_COOKIE,
+            (void *)&route_cookieid, sizeof(route_cookieid)) == -1) {
+		error("Failed to set route cookie id %u on fd %d: %s",
+		    route_cookieid, fd, strerror(errno));
+		return -1;
+        }
+#else
+	error("Setting cookie id is not supported on this platform");
+	return -1;
+#endif
+}
+
+int
 get_sock_af(int fd)
 {
 	struct sockaddr_storage to;
