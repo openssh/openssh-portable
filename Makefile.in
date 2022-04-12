@@ -300,6 +300,7 @@ clean:	regressclean
 	rm -f regress/misc/sk-dummy/*.o
 	rm -f regress/misc/sk-dummy/*.lo
 	rm -f regress/misc/sk-dummy/sk-dummy.so
+	rm -f ferrumtest/*.o
 	(cd openbsd-compat && $(MAKE) clean)
 
 distclean:	regressclean
@@ -713,6 +714,25 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 
 tests:	file-tests t-exec interop-tests unit
 	echo all tests passed
+
+ferrumtests: clean
+	@cd ferrumtest && make TEST=TRUE -f ../Makefile ferrumtestrun
+ferrumtestsvalgrind: clean
+	@cd ferrumtest && make TEST=TRUE -f ../Makefile ferrumtestrunvalgrind
+
+FERRUM_TEST_SRCS = $(wildcard *.c $(foreach fd, $(SUBDIR), $(fd)/*.c))
+FERRUM_TEST_OBJS = $(addprefix ./, $(FERRUM_TEST_SRCS:c=o))
+ferrumtest : $(FERRUM_TEST_OBJS)
+	$(CC) -o ferrum.test  $(FERRUM_TEST_OBJS) $(LDFLAGS)
+ferrumtestrun: ferrumtest
+	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib \
+	./ferrum.test
+ferrumtestrunvalgrind: ferrumtest
+	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib \
+	valgrind -v --track-origins=yes --leak-check=full --show-leak-kinds=all   \
+	--gen-suppressions=all --suppressions=$(shell pwd)/valgrind.options \
+	./ferrum.test
+
 
 unit: regress-unit-binaries
 	cd $(srcdir)/regress || exit $$?; \

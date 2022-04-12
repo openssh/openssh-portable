@@ -1,6 +1,5 @@
-
-#include "cmocka.h"
-
+#include "ferrum_test_common.h"
+#define unused(x) (void)(x)
 static int setup(void **state)
 {
     unused(state);
@@ -18,7 +17,7 @@ static void test_object_create_destroy_success(void **start)
     unused(start);
 }
 
-int test_ferrum_test(void)
+int32_t test_ferrum_test(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_object_create_destroy_success),

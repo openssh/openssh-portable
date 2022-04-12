@@ -23,9 +23,9 @@ aclocal
 autoconf
 autoreconf
 # for debugging
-./configure --prefix=$(pwd)/build --disable-strip CFLAGS='-W -O0 -g -ggdb -DFERRUM_DEBUG -I$(shell pwd)/external/libs/include' LDFLAGS='-L$(shell pwd)/../external/libs/lib -lcmocka'
+./configure --prefix=$(pwd)/build --disable-strip CFLAGS="-W -O0 -g -ggdb -DFERRUM_DEBUG -I$(pwd)/external/libs/include" LDFLAGS="-L$(pwd)/external/libs/lib -lcmocka"
 # for prod
-./configure --prefix=$(pwd)/buildprod LDFLAGS='-L$(shell pwd)/../external/libs/lib'
+./configure --prefix=$(pwd)/buildprod LDFLAGS="-L$(pwd)/../external/libs/lib"
 make
 make tests #openssh unit tests
 make ferrumtests #ferrum unit tests

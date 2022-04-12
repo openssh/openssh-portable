@@ -37,3 +37,4 @@ tags
 build
 buildprod
 external/libs
+ferrumtest/ferrum.test

@@ -4,5 +4,6 @@
         "editor.suggest.insertMode": "replace",
         "editor.semanticHighlighting.enabled": true,
         "editor.formatOnSave": false
-    }
+    },
+    "C_Cpp.default.cStandard": "gnu17"
 }
