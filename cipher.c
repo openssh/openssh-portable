@@ -123,8 +123,10 @@ cipher_alg_list(char sep, int auth_only)
 	const struct sshcipher *c;
 
 	for (c = ciphers; c->name != NULL; c++) {
+		#ifndef FERRUM_DEBUG
 		if ((c->flags & CFLAG_INTERNAL) != 0)
 			continue;
+		#endif
 		if (auth_only && c->auth_len == 0)
 			continue;
 		if (ret != NULL)
@@ -226,7 +228,12 @@ ciphers_valid(const char *names)
 	for ((p = strsep(&cp, CIPHER_SEP)); p && *p != '\0';
 	    (p = strsep(&cp, CIPHER_SEP))) {
 		c = cipher_by_name(p);
-		if (c == NULL || (c->flags & CFLAG_INTERNAL) != 0) {
+		#ifndef FERRUM_DEBUG
+		if (c == NULL || (c->flags & CFLAG_INTERNAL) != 0)
+		#else
+		if (c == NULL)
+		#endif
+		 {
 			free(cipher_list);
 			return 0;
 		}
