@@ -1570,6 +1570,7 @@ process_ext_session_bind(SocketEntry *e)
 	/* success */
 	r = 0;
  out:
+	free(fp);
 	sshkey_free(key);
 	sshbuf_free(sid);
 	sshbuf_free(sig);
