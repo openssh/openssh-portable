@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.366 2022/02/08 08:59:12 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.367 2022/04/20 15:56:49 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -754,19 +754,15 @@ static void
 rm_env(Options *options, const char *arg, const char *filename, int linenum)
 {
 	int i, j, onum_send_env = options->num_send_env;
-	char *cp;
 
 	/* Remove an environment variable */
 	for (i = 0; i < options->num_send_env; ) {
-		cp = xstrdup(options->send_env[i]);
-		if (!match_pattern(cp, arg + 1)) {
-			free(cp);
+		if (!match_pattern(options->send_env[i], arg + 1)) {
 			i++;
 			continue;
 		}
 		debug3("%s line %d: removing environment %s",
-		    filename, linenum, cp);
-		free(cp);
+		    filename, linenum, options->send_env[i]);
 		free(options->send_env[i]);
 		options->send_env[i] = NULL;
 		for (j = i; j < options->num_send_env - 1; j++) {
