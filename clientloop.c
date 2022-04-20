@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.378 2022/01/22 00:49:34 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.379 2022/04/20 04:19:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1348,9 +1348,8 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		if (quit_pending)
 			break;
 
-		/* Do channel operations unless rekeying in progress. */
-		if (!ssh_packet_is_rekeying(ssh))
-			channel_after_poll(ssh, pfd, npfd_active);
+		/* Do channel operations. */
+		channel_after_poll(ssh, pfd, npfd_active);
 
 		/* Buffer input from the connection.  */
 		if (conn_in_ready)

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.416 2022/04/11 22:52:08 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.417 2022/04/20 04:19:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2420,6 +2420,9 @@ channel_handler(struct ssh *ssh, int table, time_t *unpause_secs)
 		c = sc->channels[i];
 		if (c == NULL)
 			continue;
+		/* Try to keep IO going while rekeying */
+		if (ssh_packet_is_rekeying(ssh) && c->type != SSH_CHANNEL_OPEN)
+			continue;
 		if (c->delayed) {
 			if (table == CHAN_PRE)
 				c->delayed = 0;
@@ -2610,17 +2613,13 @@ channel_prepare_poll(struct ssh *ssh, struct pollfd **pfdp, u_int *npfd_allocp,
 	/* Allocate 4x pollfd for each channel (rfd, wfd, efd, sock) */
 	if (sc->channels_alloc >= (INT_MAX / 4) - npfd_reserved)
 		fatal_f("too many channels"); /* shouldn't happen */
-	if (!ssh_packet_is_rekeying(ssh))
-		npfd += sc->channels_alloc * 4;
+	npfd += sc->channels_alloc * 4;
 	if (npfd > *npfd_allocp) {
 		*pfdp = xrecallocarray(*pfdp, *npfd_allocp,
 		    npfd, sizeof(**pfdp));
 		*npfd_allocp = npfd;
 	}
 	*npfd_activep = npfd_reserved;
-	if (ssh_packet_is_rekeying(ssh))
-		return;
-
 	oalloc = sc->channels_alloc;
 
 	channel_handler(ssh, CHAN_PRE, minwait_secs);
