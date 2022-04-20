@@ -265,6 +265,7 @@ process_load_resident(struct sshbuf *req)
 	sshsk_free_resident_keys(srks, nsrks);
 	sshbuf_free(kbuf);
 	free(provider);
+	free(device);
 	if (pin != NULL)
 		freezero(pin, strlen(pin));
 	return resp;
