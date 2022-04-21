@@ -1,4 +1,4 @@
-#	$OpenBSD: forward-control.sh,v 1.10 2022/04/20 13:25:55 dtucker Exp $
+#	$OpenBSD: forward-control.sh,v 1.11 2022/04/21 01:36:46 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="sshd control of local and remote forwarding"
@@ -20,6 +20,14 @@ wait_for_process_to_exit() {
 	return 0
 }
 
+mux_cmd() {
+	${SSH} -F $OBJ/ssh_proxy -S $CTL -O $1 host 2>&1
+}
+
+controlmaster_pid() {
+	mux_cmd check | cut -f2 -d= | cut -f1 -d')'
+}
+
 # usage: check_lfwd Y|N message
 check_lfwd() {
 	_expected=$1
@@ -29,12 +37,13 @@ check_lfwd() {
 	    -o ExitOnForwardFailure=yes \
 	    -MS $CTL -o ControlPersist=yes \
 	    -f host true
-	${SSH} -F $OBJ/ssh_proxy -S $CTL -O check host >/dev/null 2>&1 || \
-	    fatal "check_lfwd ssh fail: $_message"
+	mux_cmd check >/dev/null || fatal "check_lfwd ssh fail: $_message"
 	${SSH} -F $OBJ/ssh_config -p $LFWD_PORT \
 	    -oConnectionAttempts=10 host true >/dev/null 2>&1
 	_result=$?
-	${SSH} -F $OBJ/ssh_proxy -S $CTL -O exit host >/dev/null 2>&1
+	_sshpid=`controlmaster_pid`
+	mux_cmd exit >/dev/null
+	wait_for_process_to_exit $_sshpid
 	if test "x$_expected" = "xY" -a $_result -ne 0 ; then
 		fail "check_lfwd failed (expecting success): $_message"
 	elif test "x$_expected" = "xN" -a $_result -eq 0 ; then
@@ -55,13 +64,15 @@ check_rfwd() {
 	    -o ExitOnForwardFailure=yes \
 	    -MS $CTL -o ControlPersist=yes \
 	    -f host true
-	${SSH} -F $OBJ/ssh_proxy -S $CTL -O check host >/dev/null 2>&1
+	mux_cmd check >/dev/null
 	_result=$?
-	if ${SSH} -F $OBJ/ssh_proxy -S $CTL -O check host >/dev/null 2>&1; then
+	_sshpid=`controlmaster_pid`
+	if test $_result -eq 0; then
 		${SSH} -F $OBJ/ssh_config -p $RFWD_PORT \
 		    -oConnectionAttempts=10 host true >/dev/null 2>&1
 		_result=$?
-		${SSH} -F $OBJ/ssh_proxy -S $CTL -O exit host >/dev/null 2>&1
+		mux_cmd exit >/dev/null
+		wait_for_process_to_exit $_sshpid
 	fi
 	if test "x$_expected" = "xY" -a $_result -ne 0 ; then
 		fail "check_rfwd failed (expecting success): $_message"
