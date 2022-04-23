@@ -504,11 +504,19 @@ AC_CHECK_HEADERS([sys/audit.h], [], [], [
 ])
 
 # sys/capsicum.h requires sys/types.h
-AC_CHECK_HEADERS([sys/capsicum.h], [], [], [
+AC_CHECK_HEADERS([sys/capsicum.h capsicum_helpers.h], [], [], [
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
 ])
+
+AC_MSG_CHECKING([for caph_cache_tzdata])
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[ #include <capsicum_helpers.h> ]],
+	[[caph_cache_tzdata();]])],
+    [ AC_MSG_RESULT([yes]) ],
+    [ AC_MSG_RESULT([no]) ]
+)
 
 # net/route.h requires sys/socket.h and sys/types.h.
 # sys/sysctl.h also requires sys/param.h
