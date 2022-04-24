@@ -5,5 +5,12 @@
         "editor.semanticHighlighting.enabled": true,
         "editor.formatOnSave": false
     },
-    "C_Cpp.default.cStandard": "gnu17"
+    "C_Cpp.default.cStandard": "gnu17",
+    "C_Cpp.clang_format_path": "/usr/bin/clang-format",
+    "C_Cpp.clang_format_fallbackStyle": "Visual Studio",
+    "files.associations": {
+        "servconf.h": "c",
+        "sshbuf.h": "c",
+        "hiredis.h": "c"
+    }
 }

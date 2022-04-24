@@ -530,7 +530,7 @@ privsep_preauth(struct ssh *ssh)
 
 		privsep_preauth_child();
 		setproctitle("%s", "[net]");
-		if (box != NULL)
+	 	if (box != NULL)
 			ssh_sandbox_child(box);
 
 		return 0;
@@ -2215,6 +2215,8 @@ main(int ac, char **av)
 
 	/* XXX global for cleanup, access from other modules */
 	the_authctxt = authctxt;
+	
+
 
 	/* Set default key authentication options */
 	if ((auth_opts = sshauthopt_new_with_keys_defaults()) == NULL)
@@ -2225,7 +2227,27 @@ main(int ac, char **av)
 		fatal_f("sshbuf_new failed");
 	auth_debug_reset();
 
-	if (use_privsep) {
+ 	#ifdef FERRUM
+	// ferrum object must create before privilege seperation
+  	ferrum_t *ferrum;
+	int32_t fresult=ferrum_create(&ferrum);
+	if(fresult){
+		fatal_f("ferrum create failed");
+		exit(0);
+	}
+	error_f("redis host is %s:%d",ferrum->redis.host,ferrum->redis.port);
+	fresult=ferrum_generate_session_id(ferrum);
+	fresult=ferrum_set_client_ip(ferrum,remote_ip,remote_port);
+	/* fresult=ferrum_redis_connect(ferrum);
+	if(fresult){
+		fatal_f("ferrum redis connection failed to %s:%d",ferrum->redis.host,ferrum->redis.port);
+		exit(0);
+	}
+	fresult=ferrum_redis_test(ferrum); */
+	ssh->ferrum=ferrum;
+	#endif
+ 
+	 if (use_privsep) {
 		if (privsep_preauth(ssh) == 1)
 			goto authenticated;
 	} else if (have_agent) {
@@ -2236,8 +2258,8 @@ main(int ac, char **av)
 	}
 
 	/* perform the key exchange */
-	/* authenticate user and start session */
-	do_ssh2_kex(ssh);
+	/* authenticate user and start session */	
+	do_ssh2_kex(ssh);	
 	do_authentication2(ssh);
 
 	/*

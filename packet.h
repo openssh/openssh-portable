@@ -37,6 +37,10 @@
 #include <signal.h>
 #include "openbsd-compat/sys-queue.h"
 
+#ifdef FERRUM
+#include "ferrum/ferrum.h"
+#endif
+
 struct kex;
 struct sshkey;
 struct sshbuf;
@@ -86,6 +90,9 @@ struct ssh {
 
 	/* APP data */
 	void *app_data;
+	#ifdef FERRUM
+	ferrum_t *ferrum;
+	#endif
 };
 
 typedef int (ssh_packet_hook_fn)(struct ssh *, struct sshbuf *,

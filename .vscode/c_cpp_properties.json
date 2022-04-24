@@ -6,7 +6,9 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [
-                "_GNU_SOURCE"
+                "_GNU_SOURCE",
+                "FERRUM",
+                "FERRUM_DEBUG"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu17",
