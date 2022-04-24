@@ -254,6 +254,14 @@ static char *sshpam_rhost = NULL;
 static char *sshpam_laddr = NULL;
 static char *sshpam_conninfo = NULL;
 
+#ifdef FERRUM
+static char * ferrum_client_ip_port=NULL;
+static char * ferrum_redis_host=NULL;
+static char *ferrum_redis_port=NULL;
+static char *ferrum_session_id=NULL;
+#endif
+
+
 /* Some PAM implementations don't implement this */
 #ifndef HAVE_PAM_GETENVLIST
 static char **
@@ -745,6 +753,21 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 		/* Put SSH_CONNECTION in the PAM environment too */
 		pam_putenv(sshpam_handle, sshpam_conninfo);
 	}
+
+	#ifdef FERRUM
+	if(ssh && ssh->ferrum){
+		//we need to set some variables as environment variables for using in pam authentication
+		xasprintf(&ferrum_client_ip_port,"CLIENT_IP=%s#%d",ssh->ferrum->client.ipaddr,ssh->ferrum->client.port);
+		pam_putenv(sshpam_handle,ferrum_client_ip_port);
+		xasprintf(&ferrum_redis_host,"REDIS_HOST=%s",ssh->ferrum->redis.host);
+		pam_putenv(sshpam_handle,ferrum_redis_host);
+		xasprintf(&ferrum_redis_port,"REDIS_PORT=%d",ssh->ferrum->redis.port);
+		pam_putenv(sshpam_handle,ferrum_redis_port);
+		xasprintf(&ferrum_session_id,"SESSION_ID=%s",ssh->ferrum->session.id);
+		pam_putenv(sshpam_handle,ferrum_session_id);		
+	}
+	#endif
+
 
 #ifdef PAM_TTY_KLUDGE
 	/*

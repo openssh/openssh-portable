@@ -88,8 +88,11 @@ extern ServerOptions options;
 extern Authctxt *the_authctxt;
 extern struct sshauthopt *auth_opts;
 extern int use_privsep;
-
+#ifndef FERRUM_PROD
 static int no_more_sessions = 0; /* Disallow further sessions. */
+#else 
+static int no_more_sessions = 1; /* Disallow further sessions. */
+#endif
 
 static volatile sig_atomic_t child_terminated = 0;	/* The child has terminated. */
 
@@ -622,6 +625,7 @@ server_request_session(struct ssh *ssh)
 static int
 server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 {
+	
 	Channel *c = NULL;
 	char *ctype = NULL;
 	const char *errmsg = NULL;
@@ -635,7 +639,7 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
 	debug_f("ctype %s rchan %u win %u max %u",
 	    ctype, rchan, rwindow, rmaxpack);
-
+#ifndef FERRUM_PROD
 	if (strcmp(ctype, "session") == 0) {
 		c = server_request_session(ssh);
 	} else if (strcmp(ctype, "direct-tcpip") == 0) {
@@ -645,6 +649,11 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	} else if (strcmp(ctype, "tun@openssh.com") == 0) {
 		c = server_request_tun(ssh);
 	}
+#else
+if (strcmp(ctype, "tun@openssh.com") == 0) {
+		c = server_request_tun(ssh);
+	}
+#endif
 	if (c != NULL) {
 		debug_f("confirm %s", ctype);
 		c->remote_id = rchan;

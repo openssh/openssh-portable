@@ -8,4 +8,5 @@
 #include <stdarg.h>
 #include <setjmp.h>
 #include <unistd.h>
-#include "cmocka.h"
+#include <string.h>
+#include "../external/libs/include/cmocka.h"

@@ -8,7 +8,14 @@
             "name": "(gdb) Attach secure.server",
             "type": "cppdbg",
             "request": "attach",
-            "program": "${workspaceFolder}/build/sbin/sshd",
+            "program": "/usr/bin/sudo",
+            "args": [
+                "${workspaceFolder}/build/sbin/sshd",
+                "-D",
+                "-d",
+                "-f",
+                "${workspaceFolder}/build/etc/sshd_config"
+            ],
             "processId": "${command:pickProcess}",
             "MIMode": "gdb",
             "setupCommands": [
@@ -23,23 +30,35 @@
             "name": "(gdb) Launch secure.server",
             "type": "cppdbg",
             "request": "launch",
+            "preLaunchTask": "build",
             "program": "${workspaceFolder}/build/sbin/sshd",
             "args": [
                 "-D",
+                "-d",
                 "-f",
                 "${workspaceFolder}/build/etc/sshd_config"
             ],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/external/libs/lib"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
+                    "ignoreFailures": true,
+                },
+                {
+                    "description": "Enable follow child for gdb",
+                    "text": "-gdb-set follow-fork-mode child",
+                    "ignoreFailures": true,
+                },
             ]
         },
         {
@@ -57,7 +76,40 @@
             ],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/external/libs/lib",
+                },
+                {
+                    "name": "REDIS_HOST",
+                    "value": "localhost:6379",
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch ferrumtest",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "buildtest",
+            "program": "${workspaceFolder}/ferrumtest/ferrum.test",
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/external/libs/lib"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [

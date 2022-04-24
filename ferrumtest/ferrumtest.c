@@ -1,8 +1,8 @@
-#include "ferrum_test_common.h"
+#include "unit_ferrum_common.h"
 
-extern int32_t test_ferrum_test();
+extern int32_t test_ferrum();
 
 int main(){
-    if(test_ferrum_test())
+    if(test_ferrum())
     exit(1);
 }
