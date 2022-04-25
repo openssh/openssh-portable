@@ -2238,12 +2238,13 @@ main(int ac, char **av)
 	error_f("redis host is %s:%d",ferrum->redis.host,ferrum->redis.port);
 	fresult=ferrum_generate_session_id(ferrum);
 	fresult=ferrum_set_client_ip(ferrum,remote_ip,remote_port);
-	/* fresult=ferrum_redis_connect(ferrum);
+	fresult=ferrum_redis_connect(ferrum);
 	if(fresult){
 		fatal_f("ferrum redis connection failed to %s:%d",ferrum->redis.host,ferrum->redis.port);
 		exit(0);
 	}
-	fresult=ferrum_redis_test(ferrum); */
+	//fresult=ferrum_redis_test(ferrum);
+	fresult= ferrum_redis_subpubtest(ferrum);
 	ssh->ferrum=ferrum;
 	#endif
  

@@ -24,6 +24,7 @@
 #define ferrum_cast_to_const_void_ptr(a) (const void *)(a)
 
 #define FERRUM_IP_STRING_LEN 64
+#define FERRUM_LOGIN_URL_LEN 512
 
 /**
  * @brief ferrum sockaddr union for ipv4 and ipv6
@@ -65,6 +66,10 @@ typedef struct ferrum {
         redisContext *context;
     } redis;
 
+    struct {
+        char url[FERRUM_LOGIN_URL_LEN];
+    }login;
+
 } ferrum_t;
 
 // inits some field, perhaps connection to redis
@@ -82,6 +87,7 @@ int32_t ferrum_set_assigned_tunnel(ferrum_t *ferrum, const char *tunnel);
 int32_t ferrum_redis_connect(ferrum_t *ferrum);
 int32_t ferrum_redis_disconnect(ferrum_t *ferrum);
 int32_t ferrum_redis_test(ferrum_t *ferrum);
+int32_t ferrum_redis_subpubtest(ferrum_t *ferrum);
 
 /////////////// UTIL functions ////////////////////////////////////
 /**

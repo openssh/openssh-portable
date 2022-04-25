@@ -20,7 +20,12 @@ static void test_ferrum_create_destroy(void **start)
     int32_t result=ferrum_create(&fer);
     assert_int_equal(result,FERRUM_SUCCESS);
     unused(start);
+    assert_string_equal(fer->redis.host,"127.0.0.1");
+    assert_int_equal(fer->redis.port,6379);
+    assert_string_equal(fer->login.url,"http://localhost/login");
     ferrum_destroy(fer);
+
+
 }
 static void test_ferrum_generate_session_id(void **start)
 {
