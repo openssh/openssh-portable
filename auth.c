@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.154 2022/02/23 11:17:10 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.155 2022/04/26 07:41:44 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -903,7 +903,8 @@ auth_restrict_session(struct ssh *ssh)
 	debug_f("restricting session");
 
 	/* A blank sshauthopt defaults to permitting nothing */
-	restricted = sshauthopt_new();
+	if ((restricted = sshauthopt_new()) == NULL)
+		fatal_f("sshauthopt_new failed");
 	restricted->permit_pty_flag = 1;
 	restricted->restricted = 1;
 
