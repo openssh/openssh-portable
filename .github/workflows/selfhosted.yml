@@ -21,6 +21,7 @@ jobs:
           - alpine
           - bbone
           - debian-i386
+          - debian-riscv64
           - dfly30
           - dfly48
           - dfly58
