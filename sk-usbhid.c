@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.38 2022/02/07 01:25:12 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.39 2022/04/29 03:16:48 dtucker Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -1393,6 +1393,7 @@ sk_load_resident_keys(const char *pin, struct sk_option **options,
 		freezero(rks[i]->user_id, rks[i]->user_id_len);
 		freezero(rks[i], sizeof(*rks[i]));
 	}
+	free(device);
 	free(rks);
 	return ret;
 }
