@@ -3,6 +3,7 @@ name: Upstream self-hosted
 on:
   push:
     branches: [ master, ci ]
+    paths: [ '**.c', '**.h' ]
 
 jobs:
   selfhosted:
