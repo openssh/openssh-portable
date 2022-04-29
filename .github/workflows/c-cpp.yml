@@ -2,9 +2,11 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master, ci ]
+    branches: [ master, ci, V_9_0 ]
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '**.yml', 'Makefile.in', 'configure.ac' ]
   pull_request:
     branches: [ master ]
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '**.yml', 'Makefile.in', 'configure.ac' ]
 
 jobs:
   ci:
