@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.287 2022/01/14 03:43:48 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.288 2022/04/29 03:13:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1570,6 +1570,7 @@ process_ext_session_bind(SocketEntry *e)
 	/* success */
 	r = 0;
  out:
+	free(fp);
 	sshkey_free(key);
 	sshbuf_free(sid);
 	sshbuf_free(sig);
