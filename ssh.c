@@ -2086,6 +2086,9 @@ hpn_options_init(struct ssh *ssh)
 		debug("HPN to Non-HPN connection");
 	} else {
 		debug("HPN to HPN connection");
+		if (ssh->compat & SSH_HPNSSH) {
+			debug("Using 'hpn' prefixed binaries");
+		}
 		int sock, socksize;
 		socklen_t socksizelen;
 		if (options.tcp_rcv_buf_poll <= 0) {

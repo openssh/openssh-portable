@@ -2711,11 +2711,48 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 
 	len = sshbuf_len(cmd);
 	if (len > 0) {
+		/* we may be connecting to a server that has hpn prefixed
+		 * binaries installed. In that case we need to rewrite any
+		 * scp commands to look for hpnscp instead.
+		 */
+		if (ssh->compat & SSH_HPNSSH) {
+			char *new_cmd;
+			new_cmd = malloc(len+3);
+			/* read the existing command into a temp buffer */
+			sprintf(new_cmd, "%s", (const u_char*)sshbuf_ptr(cmd));
+			const char *pos;
+			/* see if the command starts with scp */
+			pos = strstr(new_cmd, "scp");
+			/* by substracting the pointer new_cmd from the pointer
+			 * pos we end up with the position of the needle in the
+			 * haystack. If it's 0 then we can mess with it
+			 */
+			if (pos - new_cmd == 0) {
+				debug("Rewriting scp command for hpnscp.");
+				sprintf(new_cmd, "hpn%s", (const u_char*)sshbuf_ptr(cmd));
+				debug("Command was: %s and is now %s",
+				      (const u_char*)sshbuf_ptr(cmd), new_cmd);
+				/* free the existing sshbuf 'cmd'
+				 * recreate it and then write our new_cmd into
+				 * the sshbuf struct
+				 */
+				sshbuf_free(cmd);
+				if ((cmd = sshbuf_new()) == NULL)
+					fatal("sshbuf_new failed in scp rewrite");
+				sshbuf_putf(cmd, "%s", new_cmd);
+				/* we use len later on so don't forget to
+				 * increment it by the number of new chars in the
+				 * command
+				 */
+				len += 3;
+				free(new_cmd);
+			}
+		}
 		if (len > 900)
 			len = 900;
 		if (want_subsystem) {
 			debug("Sending subsystem: %.*s",
-			    len, (const u_char*)sshbuf_ptr(cmd));
+			      len, (const u_char*)sshbuf_ptr(cmd));
 			channel_request_start(ssh, id, "subsystem", 1);
 			client_expect_confirm(ssh, id, "subsystem",
 			    CONFIRM_CLOSE);
