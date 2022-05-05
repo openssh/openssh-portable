@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.92 2022/01/11 01:26:47 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.93 2022/05/05 00:55:11 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -240,7 +240,7 @@ mux_master_control_cleanup_cb(struct ssh *ssh, int cid, void *unused)
 
 /* Check mux client environment variables before passing them to mux master. */
 static int
-env_permitted(char *env)
+env_permitted(const char *env)
 {
 	int i, ret;
 	char name[1024], *cp;
