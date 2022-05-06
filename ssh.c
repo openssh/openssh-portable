@@ -2166,6 +2166,12 @@ ssh_session2_open(struct ssh *ssh)
 		c->dynamic_window = 1;
 		debug("Enabled Dynamic Window Scaling");
 	}
+
+	if (options.hpn_buffer_limit) {
+		c->hpn_buffer_limit = 1;
+		debug("LIMITS!");
+	}
+		
 	debug3_f("channel_new: %d", c->self);
 
 	channel_send_open(ssh, c->self);

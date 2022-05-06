@@ -170,9 +170,10 @@ struct Channel {
 	u_int	local_consumed;
 	u_int	local_maxpacket;
 	int	dynamic_window;
+	int     hpn_buffer_limit;
 	int     extended_usage;
 	int	single_connection;
-	u_int	tcpwinsz;
+	/* u_int	tcpwinsz; */
 
 	char   *ctype;		/* type */
 

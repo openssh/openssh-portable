@@ -196,6 +196,7 @@ initialize_server_options(ServerOptions *options)
 	options->none_enabled = -1;
 	options->nonemac_enabled = -1;
 	options->disable_multithreaded = -1;
+	options->hpn_buffer_limit = -1;
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
 	options->version_addendum = NULL;
@@ -446,6 +447,8 @@ fill_default_server_options(ServerOptions *options)
 		options->disable_multithreaded = 0;
 	if (options->hpn_disabled == -1)
 		options->hpn_disabled = 0;
+	if (options->hpn_buffer_limit == -1)
+		options->hpn_buffer_limit = 0;
 
 	if (options->hpn_buffer_size == -1) {
 		/* option not explicitly set. Now we have to figure out */
@@ -550,7 +553,7 @@ typedef enum {
 	sKbdInteractiveAuthentication, sListenAddress, sAddressFamily,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sNoneEnabled, sNoneMacEnabled,
-	sDisableMTAES,
+	sDisableMTAES, sHPNBufferLimit,
 	sTcpRcvBufPoll, sHPNDisabled, sHPNBufferSize,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
@@ -723,6 +726,7 @@ static struct {
 	{ "noneenabled", sNoneEnabled, SSHCFG_ALL },
 	{ "disableMTAES", sDisableMTAES, SSHCFG_ALL },
 	{ "nonemacenabled", sNoneMacEnabled, SSHCFG_ALL },
+	{ "hpnbufferlimit", sHPNBufferLimit, SSHCFG_ALL },
 	{ "kexalgorithms", sKexAlgorithms, SSHCFG_GLOBAL },
 	{ "include", sInclude, SSHCFG_ALL },
 	{ "ipqos", sIPQoS, SSHCFG_ALL },
@@ -1586,6 +1590,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		intptr = &options->disable_multithreaded;
 		goto parse_flag;
 
+	case sHPNBufferLimit:
+		intptr = &options->hpn_buffer_limit;
+		goto parse_flag;		
+		
 	case sHostbasedAuthentication:
 		intptr = &options->hostbased_authentication;
 		goto parse_flag;

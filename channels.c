@@ -2181,15 +2181,21 @@ channel_check_window(struct ssh *ssh, Channel *c)
 		u_int addition = 0;
 		u_int32_t tcpwinsz = channel_tcpwinsz(ssh);
 		/* adjust max window size if we are in a dynamic environment */
-		if (c->dynamic_window && (tcpwinsz/2 > c->local_window_max)) {
-			/* limit window growth to prevent buffer issues
-			 * still not sure what is causing the buffer issues
-			 * but it may be an issue with c->local_consumed not being
-			 * handled properly in the cases of bottenecked IO to the
-			 * wfd endpoint. This does have an impact on throughput 
-			 * as we're essentially maxing out local_window_max to
-			 * half of the window size */
-			addition = (tcpwinsz/2 - c->local_window_max);
+		if (c->dynamic_window && (tcpwinsz > c->local_window_max)) {
+			if (c->hpn_buffer_limit) {
+				/* limit window growth to prevent buffer issues
+				 * still not sure what is causing the buffer issues
+				 * but it may be an issue with c->local_consumed not being
+				 * handled properly in the cases of bottenecked IO to the
+				 * wfd endpoint. This does have an impact on throughput 
+				 * as we're essentially maxing out local_window_max to
+				 * half of the window size */
+				addition = (tcpwinsz/2 - c->local_window_max);
+			}
+			else {
+				/* aggressively grow the window */
+				addition = 1.5 * (tcpwinsz - c->local_window_max);
+			}
 			c->local_window_max += addition;
 			debug("Channel: Window growth to %d by %d bytes", c->local_window_max, addition);
 		}
