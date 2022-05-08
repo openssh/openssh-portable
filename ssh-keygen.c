@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.450 2022/03/18 02:32:22 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.451 2022/05/08 22:58:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2462,7 +2462,8 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 	char *privpath = xstrdup(keypath);
 	static const char * const suffixes[] = { "-cert.pub", ".pub", NULL };
 	struct sshkey *ret = NULL, *privkey = NULL;
-	int r;
+	int r, waspub = 0;
+	struct stat st;
 
 	/*
 	 * If passed a public key filename, then try to locate the corresponding
@@ -2477,11 +2478,17 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 		privpath[plen - slen] = '\0';
 		debug_f("%s looks like a public key, using private key "
 		    "path %s instead", keypath, privpath);
+		waspub = 1;
 	}
-	if ((privkey = load_identity(privpath, NULL)) == NULL) {
-		error("Couldn't load identity %s", keypath);
-		goto done;
-	}
+	if (waspub && stat(privpath, &st) != 0 && errno == ENOENT)
+		fatal("No private key found for public key \"%s\"", keypath);
+	if ((r = sshkey_load_private(privpath, "", &privkey, NULL)) != 0 &&
+	    (r != SSH_ERR_KEY_WRONG_PASSPHRASE)) {
+		debug_fr(r, "load private key \"%s\"", privpath);
+		fatal("No private key found for \"%s\"", privpath);
+	} else if (privkey == NULL)
+		privkey = load_identity(privpath, NULL);
+
 	if (!sshkey_equal_public(pubkey, privkey)) {
 		error("Public key %s doesn't match private %s",
 		    keypath, privpath);
