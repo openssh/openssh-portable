@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.451 2022/05/08 22:58:35 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.452 2022/05/09 03:09:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2654,8 +2654,8 @@ sig_process_opts(char * const *opts, size_t nopts, char **hashalgp,
 
 
 static int
-sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv,
-    char * const *opts, size_t nopts)
+sig_sign(const char *keypath, const char *sig_namespace, int require_agent,
+    int argc, char **argv, char * const *opts, size_t nopts)
 {
 	int i, fd = -1, r, ret = -1;
 	int agent_fd = -1;
@@ -2679,13 +2679,18 @@ sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv,
 		goto done;
 	}
 
-	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0)
+	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0) {
+		if (require_agent)
+			fatal("Couldn't get agent socket");
 		debug_r(r, "Couldn't get agent socket");
-	else {
+	} else {
 		if ((r = ssh_agent_has_key(agent_fd, pubkey)) == 0)
 			signer = agent_signer;
-		else
+		else {
+			if (require_agent)
+				fatal("Couldn't find key in agent");
 			debug_r(r, "Couldn't find key in agent");
+		}
 	}
 
 	if (signer == NULL) {
@@ -3543,7 +3548,7 @@ main(int argc, char **argv)
 				exit(1);
 			}
 			return sig_sign(identity_file, cert_principals,
-			    argc, argv, opts, nopts);
+			    prefer_agent, argc, argv, opts, nopts);
 		} else if (strncmp(sign_op, "check-novalidate", 16) == 0) {
 			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
