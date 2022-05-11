@@ -301,13 +301,13 @@ private key that is loaded in
 .Xr hpnssh-agent 1
 when the private key file is not present locally.
 The default is
-.Pa ~/.ssh/id_dsa ,
+.Pa ~/.ssh/id_rsa ,
 .Pa ~/.ssh/id_ecdsa ,
 .Pa ~/.ssh/id_ecdsa_sk ,
 .Pa ~/.ssh/id_ed25519 ,
 .Pa ~/.ssh/id_ed25519_sk
 and
-.Pa ~/.ssh/id_rsa .
+.Pa ~/.ssh/id_dsa .
 Identity files may also be specified on
 a per-host basis in the configuration file.
 It is possible to have multiple
@@ -841,7 +841,7 @@ An attacker may then be able to perform activities such as keystroke monitoring.
 .Pp
 For this reason, X11 forwarding is subjected to X11 SECURITY extension
 restrictions by default.
-Please refer to the
+Refer to the
 .Nm
 .Fl Y
 option and the
