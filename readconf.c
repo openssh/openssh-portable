@@ -1863,6 +1863,12 @@ parse_pubkey_algos:
 				    filename, linenum, keyword);
 				goto out;
 			}
+			if ((arg2 = dollar_expand(&r, arg)) == NULL || r) {
+				debug("%s line %d: invalid environment expansion "
+				    "%s.", filename, linenum, arg);
+				continue;
+			}
+			arg = arg2;
 			/*
 			 * Ensure all paths are anchored. User configuration
 			 * files may begin with '~/' but system configurations
