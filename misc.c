@@ -1245,14 +1245,19 @@ vdollar_percent_expand(int *parseerror, int dollar, int percent,
 				break;
 			keys[num_keys].repl = va_arg(ap, char *);
 			if (keys[num_keys].repl == NULL) {
-				fatal_f("NULL replacement for token %s",
+				error_f("NULL replacement for token %s",
 				    keys[num_keys].key);
+				goto out;
 			}
 		}
-		if (num_keys == EXPAND_MAX_KEYS && va_arg(ap, char *) != NULL)
-			fatal_f("too many keys");
-		if (num_keys == 0)
-			fatal_f("percent expansion without token list");
+		if (num_keys == EXPAND_MAX_KEYS && va_arg(ap, char *) != NULL) {
+			error_f("too many keys");
+			goto out;
+		}
+		if (num_keys == 0) {
+			error_f("percent expansion without token list");
+			goto out;
+		}
 	}
 
 	/* Expand string */
@@ -1273,12 +1278,14 @@ vdollar_percent_expand(int *parseerror, int dollar, int percent,
 			var = xmalloc(len + 1);
 			(void)strlcpy(var, string, len + 1);
 			if ((val = getenv(var)) == NULL) {
-				error_f("env var ${%s} has no value", var);
+				debug_f("env var ${%s} has no value", var);
 				missingvar = 1;
 			} else {
 				debug3_f("expand ${%s} -> '%s'", var, val);
-				if ((r = sshbuf_put(buf, val, strlen(val))) !=0)
-					fatal_fr(r, "sshbuf_put ${}");
+				if ((r = sshbuf_put(buf, val, strlen(val))) !=0) {
+					error_fr(r, "sshbuf_put ${}");
+					goto out;
+				}
 			}
 			free(var);
 			string += len;
@@ -1292,8 +1299,10 @@ vdollar_percent_expand(int *parseerror, int dollar, int percent,
 		 */
 		if (*string != '%' || !percent) {
  append:
-			if ((r = sshbuf_put_u8(buf, *string)) != 0)
-				fatal_fr(r, "sshbuf_put_u8 %%");
+			if ((r = sshbuf_put_u8(buf, *string)) != 0) {
+				error_fr(r, "sshbuf_put_u8 %%");
+				goto out;
+			}
 			continue;
 		}
 		string++;
@@ -1307,8 +1316,10 @@ vdollar_percent_expand(int *parseerror, int dollar, int percent,
 		for (i = 0; i < num_keys; i++) {
 			if (strchr(keys[i].key, *string) != NULL) {
 				if ((r = sshbuf_put(buf, keys[i].repl,
-				    strlen(keys[i].repl))) != 0)
-					fatal_fr(r, "sshbuf_put %%-repl");
+				    strlen(keys[i].repl))) != 0) {
+					error_fr(r, "sshbuf_put %%-repl");
+					goto out;
+				}
 				break;
 			}
 		}
@@ -1317,8 +1328,10 @@ vdollar_percent_expand(int *parseerror, int dollar, int percent,
 			goto out;
 		}
 	}
-	if (!missingvar && (ret = sshbuf_dup_string(buf)) == NULL)
-		fatal_f("sshbuf_dup_string failed");
+	if (!missingvar && (ret = sshbuf_dup_string(buf)) == NULL) {
+		error_f("sshbuf_dup_string failed");
+		goto out;
+	}
 	*parseerror = 0;
  out:
 	sshbuf_free(buf);
