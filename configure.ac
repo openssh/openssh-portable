@@ -5570,6 +5570,7 @@ AC_SUBST([CFLAGS_NOPIE])
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \
 	openbsd-compat/Makefile openbsd-compat/regress/Makefile \
+	contrib/pam_ssh_agent_auth/Makefile \
 	survey.sh])
 AC_OUTPUT
 

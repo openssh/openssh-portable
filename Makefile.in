@@ -92,7 +92,7 @@ LIBOPENSSH_OBJS=\
 	${XMSS_OBJS}
 
 LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
-	authfd.o authfile.o \
+	authfd.o authfile.o auth-options.o auth2-pubkeyfile.o \
 	canohost.o channels.o cipher.o cipher-aes.o cipher-aesctr.o \
 	cipher-ctr.o cleanup.o \
 	compat.o fatal.o hostfile.o \
@@ -110,7 +110,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	kexgexc.o kexgexs.o \
 	kexsntrup761x25519.o sntrup761.o kexgen.o \
 	sftp-realpath.o platform-pledge.o platform-tracing.o platform-misc.o \
-	sshbuf-io.o
+	sshbuf-io.o $(SKOBJS)
 
 SKOBJS=	ssh-sk-client.o
 
@@ -123,7 +123,7 @@ SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	auth.o auth2.o auth-options.o session.o \
 	auth2-chall.o groupaccess.o \
 	auth-bsdauth.o auth2-hostbased.o auth2-kbdint.o \
-	auth2-none.o auth2-passwd.o auth2-pubkey.o auth2-pubkeyfile.o \
+	auth2-none.o auth2-passwd.o auth2-pubkey.o \
 	monitor.o monitor_wrap.o auth-krb5.o \
 	auth2-gss.o gss-serv.o gss-serv-krb5.o \
 	loginrec.o auth-pam.o auth-shadow.o auth-sia.o \
@@ -196,7 +196,7 @@ $(srcdir)/configure: configure.ac $(srcdir)/m4/*.m4
 	@exit 1
 
 .c.o:
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
 
 LIBCOMPAT=openbsd-compat/libopenbsd-compat.a
 $(LIBCOMPAT): always

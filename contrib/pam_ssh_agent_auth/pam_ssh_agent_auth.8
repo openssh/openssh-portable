@@ -1,0 +1,81 @@
+.\" Copyright (c) 2008-2014, Jamie Beverly.
+.\" Copyright (c) 2022 Tobias Heider.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd $Mdocdate$
+.Dt PAM_SSH_AGENT_AUTH 8
+.Os
+.Sh NAME
+.Nm pam_ssh_agent_auth
+.Nd PAM module for granting permissions based on SSH agent requests
+.Sh DESCRIPTION
+The
+.Nm
+module provides
+.Xr PAM 3
+authentication via ssh keys.
+If an ssh-agent listening at SSH_AUTH_SOCK can successfully authenticate that it
+has the secret key for a public key in the specified file, authentication is
+granted, otherwise authentication fails.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Cm file Ns = Ns Ar authorized_keys
+Specify the path to the
+.Ar authorized_keys
+file to use for authentication.
+The default value is
+.Pa /etc/security/authorized_keys
+.El
+.Sh EXAMPLES
+.Pp
+This example configuration for
+.Pa /etc/pam.d/sudo
+permits any user exposing an SSH_AUTH_SOCK holding a private key matching a
+public key in
+.Pa /etc/security/authorized_keys
+to execute
+.Xr sudo 8
+without having to enter a password.
+The
+.Xr ssh-agent 8
+listening on the
+.Ev SSH_AUTH_SOCK
+may be running locally or be forwarded.
+.Bd -literal -offset indent
+auth	sufficient	pam_ssh_agent_auth.so file=/etc/security/authorized_keys
+.Ed
+.Pp
+The following line must be added to
+.Pa /etc/sudoers
+to allow
+.Xr sudo 8
+to pass the
+.Ev SSH_AUTH_SOCK
+environment variable to
+.Xr PAM 3 Ns :
+.Bd -literal -offset indent
+Defaults    env_keep += "SSH_AUTH_SOCK"
+.Ed
+.Sh SEE ALSO
+.Xr pam 3 ,
+.Xr ssh 1 ,
+.Xr ssh-agent 8
