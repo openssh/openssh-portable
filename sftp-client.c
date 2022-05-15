@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.163 2022/05/13 06:31:50 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.164 2022/05/15 23:47:21 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1789,8 +1789,11 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 	/* Sanity check */
 	if (TAILQ_FIRST(&requests) != NULL)
 		fatal("Transfer complete, but requests still in queue");
-	/* Truncate at highest contiguous point to avoid holes on interrupt */
-	if (read_error || write_error || interrupted) {
+	/*
+	 * Truncate at highest contiguous point to avoid holes on interrupt,
+	 * or unconditionally if writing in place.
+	 */
+	if (inplace_flag || read_error || write_error || interrupted) {
 		if (reordered && resume_flag) {
 			error("Unable to resume download of \"%s\": "
 			    "server reordered requests", local_path);
@@ -2156,12 +2159,12 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 		status = SSH2_FX_FAILURE;
 	}
 
-	if ((resume || inplace_flag) && (status != SSH2_FX_OK || interrupted)) {
+	if (inplace_flag || (resume && (status != SSH2_FX_OK || interrupted))) {
 		debug("truncating at %llu", (unsigned long long)highwater);
 		attrib_clear(&t);
 		t.flags = SSH2_FILEXFER_ATTR_SIZE;
 		t.size = highwater;
-		do_fsetstat(conn, handle, handle_len, &a);
+		do_fsetstat(conn, handle, handle_len, &t);
 	}
 
 	if (close(local_fd) == -1) {
