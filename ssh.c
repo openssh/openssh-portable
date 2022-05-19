@@ -2092,6 +2092,9 @@ hpn_options_init(struct ssh *ssh)
 		debug("HPN to Non-HPN connection");
 	} else {
 		debug("HPN to HPN connection");
+		if (ssh->compat & SSH_HPNSSH) {
+			debug("Using 'hpn' prefixed binaries");
+		}
 		int sock, socksize;
 		socklen_t socksizelen;
 		if (options.tcp_rcv_buf_poll <= 0) {
@@ -2165,10 +2168,16 @@ ssh_session2_open(struct ssh *ssh)
 	    window, packetmax, CHAN_EXTENDED_WRITE,
 	    "client-session", CHANNEL_NONBLOCK_STDIO);
 
+	/* TODO: Is this the right place for these options? */
 	if (options.tcp_rcv_buf_poll > 0 && !options.hpn_disabled) {
 		c->dynamic_window = 1;
 		debug("Enabled Dynamic Window Scaling");
 	}
+
+	if (options.hpn_buffer_limit)
+		c->hpn_buffer_limit = 1;
+
+		
 	debug3_f("channel_new: %d", c->self);
 
 	channel_send_open(ssh, c->self);

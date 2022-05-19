@@ -151,12 +151,22 @@ compat_banner(struct ssh *ssh, const char *version)
 			    version, check[i].pat, check[i].bugs);
 			ssh->compat = check[i].bugs;
 			/* Check to see if the remote side is OpenSSH and not HPN */
-			/* TODO: See if we can work this into the new method for bucg checks */
+			/* TODO: See if we can work this into the new method for bug checks */
 			if (strstr(version, "OpenSSH") != NULL) {
 				if (strstr(version, "hpn") == NULL) {
 					ssh->compat |= SSH_BUG_LARGEWINDOW;
 					debug("Remote is NOT HPN enabled");
 				} else {
+					/* this checks to see if the remote
+					 * version string indicates that we
+					 * have access to hpn prefixed binaries
+					 * You'll need to change this to include
+					 * new major version numbers. Which is
+					 * why we should figure out how to make
+					 * the match pattern list work
+					 */
+					if (strstr(version, "hpn16") != NULL)
+						ssh->compat |= SSH_HPNSSH;
 					debug("Remote is HPN Enabled");
 				}
 			}
@@ -216,4 +226,3 @@ compat_kex_proposal(struct ssh *ssh, char *p)
 		fatal("No supported key exchange algorithms found");
 	return p;
 }
-

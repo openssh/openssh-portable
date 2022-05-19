@@ -2109,7 +2109,6 @@ channel_handle_wfd(struct ssh *ssh, Channel *c)
 		fatal_fr(r, "channel %i: consume", c->self);
  out:
 	c->local_consumed += olen - sshbuf_len(c->output);
-
 	return 1;
 }
 
@@ -2189,19 +2188,57 @@ static int
 channel_check_window(struct ssh *ssh, Channel *c)
 {
 	int r;
+	int denominator = 2;
+
+	/* The Openssh code would check to see if we needed
+	 * to send a window adjustment if the size fo the local window
+	 * (the local write buffer) was less than half of the maximum
+	 * size of the window. In cases where local_window_max was really
+	 * large (say 128MB) this mean we needed to consume, in a worst case,
+	 * 64MB out of the buffer before an adjustment was set. This could
+	 * create something like silly window syndrome where we have to
+	 * wait for a slow drain of the buffer and then the buffer is hit
+	 * by another huge chunk of data. By having a denomicator that adjusts
+	 * to the size of local_window_max we can send adjusts more frequently
+	 * and for more reaosnable amounts.
+	 */
+
+	denominator = c->local_window_max / (4*1024*1024);
+	if (denominator < 2)
+		denominator = 2;
+
+	/*
+	if (c->local_window < c->local_window_max/denominator) {
+		debug ("local: %d, LM/D: %d, local max: %d", c->local_window, c->local_window_max/denominator, c->local_window_max);
+		debug ("WILL SEND ADJUST");
+	}
+	*/
 
 	if (c->type == SSH_CHANNEL_OPEN &&
 	    !(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
 	    ((ssh_packet_is_interactive(ssh) &&
 	    c->local_window_max - c->local_window > c->local_maxpacket*3) ||
-	    c->local_window < c->local_window_max/2) &&
+	    c->local_window < c->local_window_max/denominator) &&
 	    c->local_consumed > 0) {
 		u_int addition = 0;
 		u_int32_t tcpwinsz = channel_tcpwinsz(ssh);
 		/* adjust max window size if we are in a dynamic environment */
 		if (c->dynamic_window && (tcpwinsz > c->local_window_max)) {
-			/* grow the window somewhat aggressively to maintain pressure */
-			addition = 1.5 * (tcpwinsz - c->local_window_max);
+			debug ("maxpacket = %d", c->local_maxpacket);
+			if (c->hpn_buffer_limit) {
+				/* limit window growth to prevent buffer issues
+				 * still not sure what is causing the buffer issues
+				 * but it may be an issue with c->local_consumed not being
+				 * handled properly in the cases of bottenecked IO to the
+				 * wfd endpoint. This does have an impact on throughput
+				 * as we're essentially maxing out local_window_max to
+				 * half of the window size */
+				addition = (tcpwinsz/2 - c->local_window_max);
+			}
+			else {
+				/* aggressively grow the window */
+				addition = tcpwinsz - c->local_window_max;
+			}
 			c->local_window_max += addition;
 			debug("Channel: Window growth to %d by %d bytes", c->local_window_max, addition);
 		}
@@ -2773,7 +2810,7 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 	size_t len, plen;
 	const u_char *pkt;
 	int r;
-	
+
 	if ((len = sshbuf_len(c->input)) == 0) {
 		if (c->istate == CHAN_INPUT_WAIT_DRAIN) {
 			/*
@@ -2881,7 +2918,7 @@ channel_output_poll(struct ssh *ssh)
 		c = sc->channels[i];
 		if (c == NULL)
 			continue;
-		
+
 		/*
 		 * We are only interested in channels that can have buffered
 		 * incoming data.
@@ -2894,7 +2931,7 @@ channel_output_poll(struct ssh *ssh)
 			       c->self);
 			continue;
 		}
-		
+
 		/* Get the amount of buffered data for this channel. */
 		if (c->istate == CHAN_INPUT_OPEN ||
 		    c->istate == CHAN_INPUT_WAIT_DRAIN)
@@ -4859,7 +4896,7 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 				if ((errno != EINVAL) && (errno != EAFNOSUPPORT)
 #ifdef EPFNOSUPPORT
 				    && (errno != EPFNOSUPPORT)
-#endif 
+#endif
 				    ) {
 					error("socket: %.100s", strerror(errno));
 					freeaddrinfo(aitop);

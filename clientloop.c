@@ -195,6 +195,7 @@ static struct global_confirms global_confirms =
     TAILQ_HEAD_INITIALIZER(global_confirms);
 
 void ssh_process_session2_setup(int, int, int, struct sshbuf *);
+
 void client_request_metrics(struct ssh *);
 
 static void quit_message(const char *fmt, ...)
@@ -639,11 +640,7 @@ client_suspend_self(struct sshbuf *bin, struct sshbuf *bout, struct sshbuf *berr
 static void
 client_process_net_input(struct ssh *ssh)
 {
-	// the larger buf size helps in some situations but I am not sure why.
-	// I'm not seeing performance hits in other situations though.
-	// 4x got me to 720MB/s 16x gets me to 815Mb/s higher doesn't help.
-	char buf[SSH_IOBUFSZ*16];
-	int r, len;
+	int r;
 
 	/*
 	 * Read input from the server, and add any such data to the buffer of
@@ -2669,6 +2666,11 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 	if ((c = channel_lookup(ssh, id)) == NULL)
 		fatal_f("channel %d: unknown channel", id);
 
+	if (options.hpn_buffer_limit) {
+		debug("Limiting receive buffer size");
+		c->hpn_buffer_limit = 1;
+	}
+	
 	ssh_packet_set_interactive(ssh, want_tty,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 
@@ -2739,11 +2741,48 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 
 	len = sshbuf_len(cmd);
 	if (len > 0) {
+		/* we may be connecting to a server that has hpn prefixed
+		 * binaries installed. In that case we need to rewrite any
+		 * scp commands to look for hpnscp instead.
+		 */
+		if (ssh->compat & SSH_HPNSSH) {
+			char *new_cmd;
+			new_cmd = malloc(len+3);
+			/* read the existing command into a temp buffer */
+			sprintf(new_cmd, "%s", (const u_char*)sshbuf_ptr(cmd));
+			const char *pos;
+			/* see if the command starts with scp */
+			pos = strstr(new_cmd, "scp");
+			/* by substracting the pointer new_cmd from the pointer
+			 * pos we end up with the position of the needle in the
+			 * haystack. If it's 0 then we can mess with it
+			 */
+			if (pos - new_cmd == 0) {
+				debug("Rewriting scp command for hpnscp.");
+				sprintf(new_cmd, "hpn%s", (const u_char*)sshbuf_ptr(cmd));
+				debug("Command was: %s and is now %s",
+				      (const u_char*)sshbuf_ptr(cmd), new_cmd);
+				/* free the existing sshbuf 'cmd'
+				 * recreate it and then write our new_cmd into
+				 * the sshbuf struct
+				 */
+				sshbuf_free(cmd);
+				if ((cmd = sshbuf_new()) == NULL)
+					fatal("sshbuf_new failed in scp rewrite");
+				sshbuf_putf(cmd, "%s", new_cmd);
+				/* we use len later on so don't forget to
+				 * increment it by the number of new chars in the
+				 * command
+				 */
+				len += 3;
+				free(new_cmd);
+			}
+		}
 		if (len > 900)
 			len = 900;
 		if (want_subsystem) {
 			debug("Sending subsystem: %.*s",
-			    len, (const u_char*)sshbuf_ptr(cmd));
+			      len, (const u_char*)sshbuf_ptr(cmd));
 			channel_request_start(ssh, id, "subsystem", 1);
 			client_expect_confirm(ssh, id, "subsystem",
 			    CONFIRM_CLOSE);

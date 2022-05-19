@@ -169,7 +169,7 @@ typedef enum {
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
 	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
 	oNoneEnabled, oNoneMacEnabled, oNoneSwitch,
-	oDisableMTAES,
+	oDisableMTAES, oHPNBufferLimit,
 	oMetrics, oMetricsPath, oMetricsInterval,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType, oStdinNull,
@@ -307,6 +307,7 @@ static struct {
 	{ "nonemacenabled", oNoneMacEnabled },
 	{ "noneswitch", oNoneSwitch },
         { "disablemtaes", oDisableMTAES },
+	{ "hpnbufferlimit", oHPNBufferLimit },
 	{ "metrics", oMetrics },
 	{ "metricspath", oMetricsPath },
 	{ "metricsinterval", oMetricsInterval },
@@ -1172,6 +1173,10 @@ parse_time:
 
         case oDisableMTAES:
 		intptr = &options->disable_multithreaded;
+		goto parse_flag;
+
+	case oHPNBufferLimit:
+		intptr = &options->hpn_buffer_limit;
 		goto parse_flag;
 
 	case oMetrics:
@@ -2503,6 +2508,7 @@ initialize_options(Options * options)
 	options->metrics_interval = -1;
 	options->hpn_disabled = -1;
 	options->hpn_buffer_size = -1;
+	options->hpn_buffer_limit = -1;
 	options->tcp_rcv_buf_poll = -1;
 	options->tcp_rcv_buf = -1;
 	options->session_type = -1;
@@ -2683,6 +2689,10 @@ fill_default_options(Options * options)
 		} else
 			options->hpn_buffer_size *= 1024;
 		debug("hpn_buffer_size set to %d", options->hpn_buffer_size);
+	}
+	if (options->hpn_buffer_limit == -1) {
+		options->hpn_buffer_limit = 0;
+		debug("*********************************************** LIMIT SET!");
 	}
 	if (options->tcp_rcv_buf == 0)
 		options->tcp_rcv_buf = 1;

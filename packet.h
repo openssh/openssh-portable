@@ -94,6 +94,9 @@ struct ssh {
 
 	/* track that we are in a none cipher/mac state */
 	int none;
+
+	/* use the less agressive window growth option */
+	int hpn_buffer_limit;
 };
 
 typedef int (ssh_packet_hook_fn)(struct ssh *, struct sshbuf *,
