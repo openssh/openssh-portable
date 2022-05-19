@@ -165,7 +165,8 @@ compat_banner(struct ssh *ssh, const char *version)
 					 * why we should figure out how to make
 					 * the match pattern list work
 					 */
-					if (strstr(version, "hpn16") != NULL)
+					if ((strstr(version, "hpn16") != NULL) ||
+					    (strstr(version, "hpn17") != NULL))
 						ssh->compat |= SSH_HPNSSH;
 					debug("Remote is HPN Enabled");
 				}
