@@ -3190,48 +3190,48 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-	    "usage: ssh-keygen [-q] [-a rounds] [-b bits] [-C comment] [-f output_keyfile]\n"
-	    "                  [-m format] [-N new_passphrase] [-O option]\n"
-	    "                  [-t dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
-	    "                  [-w provider] [-Z cipher]\n"
-	    "       ssh-keygen -p [-a rounds] [-f keyfile] [-m format] [-N new_passphrase]\n"
-	    "                   [-P old_passphrase] [-Z cipher]\n"
+	    "usage: hpnssh-keygen [-q] [-a rounds] [-b bits] [-C comment] [-f output_keyfile]\n"
+	    "                     [-m format] [-N new_passphrase] [-O option]\n"
+	    "                     [-t dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
+	    "                     [-w provider] [-Z cipher]\n"
+	    "       hpnssh-keygen -p [-a rounds] [-f keyfile] [-m format] [-N new_passphrase]\n"
+	    "                     [-P old_passphrase] [-Z cipher]\n"
 #ifdef WITH_OPENSSL
-	    "       ssh-keygen -i [-f input_keyfile] [-m key_format]\n"
-	    "       ssh-keygen -e [-f input_keyfile] [-m key_format]\n"
+	    "       hpnssh-keygen -i [-f input_keyfile] [-m key_format]\n"
+	    "       hpnssh-keygen -e [-f input_keyfile] [-m key_format]\n"
 #endif
-	    "       ssh-keygen -y [-f input_keyfile]\n"
-	    "       ssh-keygen -c [-a rounds] [-C comment] [-f keyfile] [-P passphrase]\n"
-	    "       ssh-keygen -l [-v] [-E fingerprint_hash] [-f input_keyfile]\n"
-	    "       ssh-keygen -B [-f input_keyfile]\n");
+	    "       hpnssh-keygen -y [-f input_keyfile]\n"
+	    "       hpnssh-keygen -c [-a rounds] [-C comment] [-f keyfile] [-P passphrase]\n"
+	    "       hpnssh-keygen -l [-v] [-E fingerprint_hash] [-f input_keyfile]\n"
+	    "       hpnssh-keygen -B [-f input_keyfile]\n");
 #ifdef ENABLE_PKCS11
 	fprintf(stderr,
-	    "       ssh-keygen -D pkcs11\n");
+	    "       hpnssh-keygen -D pkcs11\n");
 #endif
 	fprintf(stderr,
-	    "       ssh-keygen -F hostname [-lv] [-f known_hosts_file]\n"
-	    "       ssh-keygen -H [-f known_hosts_file]\n"
-	    "       ssh-keygen -K [-a rounds] [-w provider]\n"
-	    "       ssh-keygen -R hostname [-f known_hosts_file]\n"
-	    "       ssh-keygen -r hostname [-g] [-f input_keyfile]\n"
+	    "       hpnssh-keygen -F hostname [-lv] [-f known_hosts_file]\n"
+	    "       hpnssh-keygen -H [-f known_hosts_file]\n"
+	    "       hpnssh-keygen -K [-a rounds] [-w provider]\n"
+	    "       hpnssh-keygen -R hostname [-f known_hosts_file]\n"
+	    "       hpnssh-keygen -r hostname [-g] [-f input_keyfile]\n"
 #ifdef WITH_OPENSSL
-	    "       ssh-keygen -M generate [-O option] output_file\n"
-	    "       ssh-keygen -M screen [-f input_file] [-O option] output_file\n"
+	    "       hpnssh-keygen -M generate [-O option] output_file\n"
+	    "       hpnssh-keygen -M screen [-f input_file] [-O option] output_file\n"
 #endif
-	    "       ssh-keygen -I certificate_identity -s ca_key [-hU] [-D pkcs11_provider]\n"
-	    "                  [-n principals] [-O option] [-V validity_interval]\n"
-	    "                  [-z serial_number] file ...\n"
-	    "       ssh-keygen -L [-f input_keyfile]\n"
-	    "       ssh-keygen -A [-a rounds] [-f prefix_path]\n"
-	    "       ssh-keygen -k -f krl_file [-u] [-s ca_public] [-z version_number]\n"
+	    "       hpnssh-keygen -I certificate_identity -s ca_key [-hU] [-D pkcs11_provider]\n"
+	    "                     [-n principals] [-O option] [-V validity_interval]\n"
+	    "                     [-z serial_number] file ...\n"
+	    "       hpnssh-keygen -L [-f input_keyfile]\n"
+	    "       hpnssh-keygen -A [-a rounds] [-f prefix_path]\n"
+	    "       hpnssh-keygen -k -f krl_file [-u] [-s ca_public] [-z version_number]\n"
 	    "                  file ...\n"
-	    "       ssh-keygen -Q [-l] -f krl_file [file ...]\n"
-	    "       ssh-keygen -Y find-principals -s signature_file -f allowed_signers_file\n"
-	    "       ssh-keygen -Y match-principals -I signer_identity -f allowed_signers_file\n"
-	    "       ssh-keygen -Y check-novalidate -n namespace -s signature_file\n"
-	    "       ssh-keygen -Y sign -f key_file -n namespace file [-O option] ...\n"
-	    "       ssh-keygen -Y verify -f allowed_signers_file -I signer_identity\n"
-	    "                  -n namespace -s signature_file [-r krl_file] [-O option]\n");
+	    "       hpnssh-keygen -Q [-l] -f krl_file [file ...]\n"
+	    "       hpnssh-keygen -Y find-principals -s signature_file -f allowed_signers_file\n"
+	    "       hpnssh-keygen -Y match-principals -I signer_identity -f allowed_signers_file\n"
+	    "       hpnssh-keygen -Y check-novalidate -n namespace -s signature_file\n"
+	    "       hpnssh-keygen -Y sign -f key_file -n namespace file [-O option] ...\n"
+	    "       hpnssh-keygen -Y verify -f allowed_signers_file -I signer_identity\n"
+	    "                     -n namespace -s signature_file [-r krl_file] [-O option]\n");
 	exit(1);
 }
 

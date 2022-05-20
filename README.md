@@ -1,11 +1,16 @@
-# Portable OpenSSH
+# HPNSSH: Based on Portable OpenSSH Version 
 
-[![C/C++ CI](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml)
-[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/openssh.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:openssh)
+Starting with version HPN17v0 there will be significant changes to the naming convention used for executables and installation locations. The last version that does not include these changes is HPN16v1 corresponding to the HPN-8_8_P1 tag on the master branch. 
 
-OpenSSH is a complete implementation of the SSH protocol (version 2) for secure remote login, command execution and file transfer. It includes a client ``ssh`` and server ``sshd``, file transfer utilities ``scp`` and ``sftp`` as well as tools for key generation (``ssh-keygen``), run-time key storage (``ssh-agent``) and a number of supporting programs.
+HPNSSH is a variant of OpenSSH. It a complete implementation of the SSH protocol (version 2) for secure remote login, command execution and file transfer. It includes a client ``hpnssh`` and server ``hpnsshd``, file transfer utilities ``hpnscp`` and ``hpnsftp`` as well as tools for key generation (``hpnssh-keygen``), run-time key storage (``hpnssh-agent``) and a number of supporting programs. It includes numerous performance and functionality enhancements focused on high performance networks and computing envrironments. Complete information can be found in the HPN-README file. 
 
-This is a port of OpenBSD's [OpenSSH](https://openssh.com) to most Unix-like operating systems, including Linux, OS X and Cygwin. Portable OpenSSH polyfills OpenBSD APIs that are not available elsewhere, adds sshd sandboxing for more operating systems and includes support for OS-native authentication and auditing (e.g. using PAM).
+It is fully compatible with all compliant implementations of the SSH protocol and OpenSSH in particular.
+
+This version of HPNSSH reprsen a departure in the naming of executables and installation locations. This means that all of the executabels are now prefixed with ``hpn``. So ``ssh`` becomes ``hpnssh`` and ``scp`` is now ``hpnscp``. Configuation files and host keys can no be found in ``/etc/hpnssh``. By default ``hpnsshd`` runs on port 2222 but this is configurable. This change was made in order to prevent installations of hpnssh, particularly from package distributions, from interfering with default installations of OpenSSH. HPNSSH is backwards compatible with all versions of OpenSSH including configuration files, keys, and run time options. 
+
+HPNSSH is based on OpenSSH portable. This is a port of OpenBSD's [OpenSSH](https://openssh.com) to most Unix-like operating systems, including Linux, OS X and Cygwin. Portable OpenSSH polyfills OpenBSD APIs that are not available elsewhere, adds sshd sandboxing for more operating systems and includes support for OS-native authentication and auditing (e.g. using PAM).
+
+This document will be changing over time to reflect new changes and features. This document is built off of the OpenSSH README.md 
 
 ## Documentation
 
@@ -20,15 +25,11 @@ The official documentation for OpenSSH are the man pages for each tool:
 * [ssh-keyscan(8)](https://man.openbsd.org/ssh-keyscan.8)
 * [sftp-server(8)](https://man.openbsd.org/sftp-server.8)
 
-## Stable Releases
-
-Stable release tarballs are available from a number of [download mirrors](https://www.openssh.com/portable.html#downloads). We recommend the use of a stable release for most users. Please read the [release notes](https://www.openssh.com/releasenotes.html) for details of recent changes and potential incompatibilities.
-
-## Building Portable OpenSSH
+## Building HPNSSH
 
 ### Dependencies
 
-Portable OpenSSH is built using autoconf and make. It requires a working C compiler, standard library and headers.
+HPNSSH is built using autoconf and make. It requires a working C compiler, standard library and headers.
 
 ``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) may also be used, but OpenSSH may be built without it supporting a subset of crypto algorithms.
 
@@ -41,8 +42,8 @@ FIDO security token support needs [libfido2](https://github.com/Yubico/libfido2)
 Releases include a pre-built copy of the ``configure`` script and may be built using:
 
 ```
-tar zxvf openssh-X.YpZ.tar.gz
-cd openssh
+tar zxvf hpnssh-X.YpZ.tar.gz
+cd hpnssh
 ./configure # [options]
 make && make tests
 ```
@@ -54,7 +55,7 @@ See the [Build-time Customisation](#build-time-customisation) section below for 
 If building from git, you'll need [autoconf](https://www.gnu.org/software/autoconf/) installed to build the ``configure`` script. The following commands will check out and build portable OpenSSH from git:
 
 ```
-git clone https://github.com/openssh/openssh-portable # or https://anongit.mindrot.org/openssh.git
+git clone https://github.com/rapier1/openssh-portable
 cd openssh-portable
 autoreconf
 ./configure
@@ -74,11 +75,3 @@ Flag | Meaning
 ``--with-kerberos5`` | Enable Kerberos/GSSAPI support. Both [Heimdal](https://www.h5l.org/) and [MIT](https://web.mit.edu/kerberos/) Kerberos implementations are supported.
 ``--with-selinux`` | Enable [SELinux](https://en.wikipedia.org/wiki/Security-Enhanced_Linux) support.
 ``--with-security-key-builtin`` | Include built-in support for U2F/FIDO2 security keys. This requires [libfido2](https://github.com/Yubico/libfido2) be installed.
-
-## Development
-
-Portable OpenSSH development is discussed on the [openssh-unix-dev mailing list](https://lists.mindrot.org/mailman/listinfo/openssh-unix-dev) ([archive mirror](https://marc.info/?l=openssh-unix-dev)). Bugs and feature requests are tracked on our [Bugzilla](https://bugzilla.mindrot.org/).
-
-## Reporting bugs
-
-_Non-security_ bugs may be reported to the developers via [Bugzilla](https://bugzilla.mindrot.org/) or via the mailing list above. Security bugs should be reported to [openssh@openssh.com](mailto:openssh.openssh.com).

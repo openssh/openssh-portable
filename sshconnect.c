@@ -345,6 +345,30 @@ check_ifaddrs(const char *ifname, int af, const struct ifaddrs *ifaddrs,
 #endif
 
 /*
+ * Set TCP receive buffer if requested.
+ * Note: tuning needs to happen after the socket is
+ * created but before the connection happens
+ * so winscale is negotiated properly -cjr
+ */
+static void
+ssh_set_socket_recvbuf(int sock)
+{
+	void *buf = (void *)&options.tcp_rcv_buf;
+	int sz = sizeof(options.tcp_rcv_buf);
+	int socksize;
+	int socksizelen = sizeof(int);
+
+	debug("setsockopt Attempting to set SO_RCVBUF to %d", options.tcp_rcv_buf);
+	if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, buf, sz) >= 0) {
+	  getsockopt(sock, SOL_SOCKET, SO_RCVBUF, &socksize, &socksizelen);
+	  debug("setsockopt SO_RCVBUF: %.100s %d", strerror(errno), socksize);
+	}
+	else
+		error("Couldn't set socket receive buffer to %d: %.100s",
+		    options.tcp_rcv_buf, strerror(errno));
+}
+
+/*
  * Creates a socket for use as the ssh connection.
  */
 static int
@@ -365,6 +389,9 @@ ssh_create_socket(struct addrinfo *ai)
 		return -1;
 	}
 	fcntl(sock, F_SETFD, FD_CLOEXEC);
+
+	if (options.tcp_rcv_buf > 0)
+		ssh_set_socket_recvbuf(sock);
 
 	/* Use interactive QOS (if specified) until authentication completed */
 	if (options.ip_qos_interactive != INT_MAX)

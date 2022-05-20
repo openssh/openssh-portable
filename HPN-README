@@ -1,0 +1,215 @@
+Notes:
+
+TCP_INFO Metrics
+This features allows the client to request tcp networking information from the
+TCP_INFO struct. This includes data on retransmits, round trip time, lost packets,
+data transferred, and the like. The metrics are polled periodically through the
+life of the connection. By default this is every 5 seconds but users can pick different
+polling periods. The resulting data is stored in two distinct files; one for local
+metrics and one for remote metrics. Remote metrics are only available if the remote
+supports this feature. This feature will *not* diagnose a poorly performing connection
+but may provide insight into what is happening during the connection.
+
+Usage:
+-oMetrics=[yes|no] will enable metrics polling. Default: No.
+-oMetricsInterval=[N] where N is the polling period in seconds. Default: 5 seconds.
+-oMetricsPath=[/filepath/filename] is the name of the file where the remote and
+    local data will be stored. Default: ./ssh_stack_metrics.[local|remote].
+    Any other option chosen by the user will have a .local or .remote suffix appended to it.
+
+The number of instruments polled by this features is dependent on the kernel of the host.
+This means that a remote host with an older kernel may report fewer instruments than a client
+host running a current kernel or vice versa. If there is a discrepency in the number of instruments
+in the ssh_stack_metrics.local and .remote file this is the most likely reason.
+
+Additionally, determining which file represents sender side versus receiver side is dependent
+on the nature of the connection. Therfore, it's up to the user to make that determination.
+
+Linux Note: Currently this is only supported on Linux kernel versions 3.7 and greater. Newer kernels
+may have more instruments available to poll than older kernels.
+
+FreeBSD Note: This is supported on Release 6 and higher. However, FreeBSD has fewer available
+instruments than new Linux kernels.
+
+Multiplexing Note: The metrics are reported from the TCP socket which means that gathering 
+metrics from multiplexed sessions will report on the activity of all sessions on that socket. 
+This will likely result in less clear results and, as such, we suggest only gathering metrics
+from non-multiplexed session. 
+
+SCP with Resume functionality
+This feature allows SCP to resume failed transfers. In the event of a failed transfer
+issues the same scp command with the '-R' option. For example - if you issued:
+'scp myhugefile me@host:~'
+and it dies halfway through the transfer issuing
+'scp -Z myhugefile me@host:~'
+will resume the transfer at the point where it left off.
+
+This is implemented by having the source host send a hash (blake2b512) of the file to the
+target host. Teh target host then computes it's own hash of the target file. If the hashes match
+then the file is skipped as this indicates a successful transfer. However, if the hashes do not
+match then the target sends the source its hash along with the size of the file. The source then
+computes the hash of the file *up to* the size of the target file. If those hashes match then
+the source only send the necessary bytes to complete the transfer. If the hashes do not match then
+the entire file is resent. If the target file is larger then the source file then the entire
+source file is sent and any existing target file is overwritten.
+
+SCP however, will use the first scp in the user's path. This might not support the resume
+function and the attempt will fail. In those cases the user can explicitly define the path to the
+resume enabled scp with the '-z' option. For example:
+
+'scp -Z -z /opt/hpnssh/usr/bin/scp myhugefile me@host:~'
+
+MULTI-THREADED CIPHER:
+The AES cipher in CTR mode has been multithreaded (MTR-AES-CTR). This will allow ssh installations
+on hosts with multiple cores to use more than one processing core during encryption.
+Tests have show significant throughput performance increases when using MTR-AES-CTR up
+to and including a full gigabit per second on quad core systems. It should be possible to
+achieve full line rate on dual core systems but OS and data management overhead makes this
+more difficult to achieve. The cipher stream from MTR-AES-CTR is entirely compatible with single
+thread AES-CTR (ST-AES-CTR) implementations and should be 100% backward compatible. Optimal
+performance requires the MTR-AES-CTR mode be enabled on both ends of the connection.
+The MTR-AES-CTR replaces ST-AES-CTR and is used in exactly the same way with the same
+nomenclature.
+Use examples:
+		ssh -caes128-ctr you@host.com
+		scp -oCipher=aes256-ctr file you@host.com:~/file
+
+NONE CIPHER:
+To use the NONE option you must have the NoneEnabled switch set on the server and
+you *must* have *both* NoneEnabled and NoneSwitch set to yes on the client. The NONE
+feature works with ALL ssh subsystems (as far as we can tell) *AS LONG AS* a tty is not
+spawned. If a user uses the -T switch to prevent a tty being created the NONE cipher will
+be disabled.
+
+The performance increase will only be as good as the network and TCP stack tuning
+on the reciever side of the connection allows. As a rule of thumb a user will need
+at least 10Mb/s connection with a 100ms RTT to see a doubling of performance. The
+HPN-SSH home page describes this in greater detail.
+
+http://www.psc.edu/networking/projects/hpn-ssh
+
+NONE MAC:
+Starting with HPN 15v1 users will have the option to disable HMAC (message
+authentication ciphers) when using the NONE cipher. You must enable the following:
+NoneEnabled, NoneSwitch, and NoneMacEnabled. If all three are not enabled the None MAC
+will be automatically disabled. In tests the use of the None MAC improved throuput by
+more than 30%.
+
+ex: scp -oNoneSwitch=yes -oNoneEnabled=yes -oNoneMacEnabled=yes file host:~
+
+BUFFER SIZES:
+
+If HPN is disabled the receive buffer size will be set to the
+OpenSSH default of 2MB (for OpenSSH versions before 4.7: 64KB).
+
+If an HPN system connects to a nonHPN system the receive buffer will
+be set to the HPNBufferSize value. The default is 2MB but user adjustable.
+
+If an HPN to HPN connection is established a number of different things might
+happen based on the user options and conditions.
+
+Conditions: HPNBufferSize NOT Set, TCPRcvBufPoll enabled, TCPRcvBuf NOT Set
+HPN Buffer Size = up to 64MB
+This is the default state. The HPN buffer size will grow to a maximum of 64MB
+as the TCP receive buffer grows. The maximum HPN Buffer size of 64MB is
+geared towards 10GigE transcontinental connections.
+
+Conditions: HPNBufferSize NOT Set, TCPRcvBufPoll disabled, TCPRcvBuf NOT Set
+HPN Buffer Size = TCP receive buffer value.
+Users on non-autotuning systems should disable TCPRcvBufPoll in the
+ssh_config and sshd_config
+
+Conditions: HPNBufferSize SET, TCPRcvBufPoll disabled, TCPRcvBuf NOT Set
+HPN Buffer Size = minimum of TCP receive buffer and HPNBufferSize.
+This would be the system defined TCP receive buffer (RWIN).
+
+Conditions: HPNBufferSize SET, TCPRcvBufPoll disabled, TCPRcvBuf SET
+HPN Buffer Size = minimum of TCPRcvBuf and HPNBufferSize.
+Generally there is no need to set both.
+
+Conditions: HPNBufferSize SET, TCPRcvBufPoll enabled, TCPRcvBuf NOT Set
+HPN Buffer Size = grows to HPNBufferSize
+The buffer will grow up to the maximum size specified here.
+
+Conditions: HPNBufferSize SET, TCPRcvBufPoll enabled, TCPRcvBuf SET
+HPN Buffer Size = minimum of TCPRcvBuf and HPNBufferSize.
+Generally there is no need to set both of these, especially on autotuning
+systems. However, if the users wishes to override the autotuning this would be
+one way to do it.
+
+Conditions: HPNBufferSize NOT Set, TCPRcvBufPoll enabled, TCPRcvBuf SET
+HPN Buffer Size = TCPRcvBuf.
+This will override autotuning and set the TCP recieve buffer to the user defined
+value.
+
+
+HPN Specific Configuration options
+
+TcpRcvBuf=[int]KB client
+      Set the TCP socket receive buffer to n Kilobytes. It can be set up to the
+maximum socket size allowed by the system. This is useful in situations where
+the tcp receive window is set low but the maximum buffer size is set
+higher (as is typical). This works on a per TCP connection basis. You can also
+use this to artifically limit the transfer rate of the connection. In these
+cases the throughput will be no more than n/RTT. The minimum buffer size is 1KB.
+Default is the current system wide tcp receive buffer size.
+
+TcpRcvBufPoll=[yes/no] client/server
+      Enable of disable the polling of the tcp receive buffer through the life
+of the connection. You would want to make sure that this option is enabled
+for systems making use of autotuning kernels (linux 2.4.24+, 2.6, MS Vista)
+default is yes.
+
+NoneEnabled=[yes/no] client/server
+      Enable or disable the use of the None cipher. Care must always be used
+when enabling this as it will allow users to send data in the clear. However,
+it is important to note that authentication information remains encrypted
+even if this option is enabled. Set to no by default.
+
+NoneMacEnabled=[yes/no] client/server
+      Enable or disable the use of the None MAC. When this is enabled ssh
+will *not* provide data integrity of any data being transmitted between hosts. Use
+with caution as it, unlike just using NoneEnabled, doesn't provide data integrity and
+protection against man-in-the-middle attacks. As with NoneEnabled all authentication
+remains encrypted and integrity is ensured. Default is no.
+
+NoneSwitch=[yes/no] client
+     Switch the encryption cipher being used to the None cipher after
+authentication takes place. NoneEnabled must be enabled on both the client
+and server side of the connection. When the connection switches to the NONE
+cipher a warning is sent to STDERR. The connection attempt will fail with an
+error if a client requests a NoneSwitch from the server that does not explicitly
+have NoneEnabled set to yes. Note: The NONE cipher cannot be used in
+interactive (shell) sessions and it will fail silently. Set to no by default.
+
+HPNDisabled=[yes/no] client/server
+     In some situations, such as transfers on a local area network, the impact
+of the HPN code produces a net decrease in performance. In these cases it is
+helpful to disable the HPN functionality. By default HPNDisabled is set to no.
+
+HPNBufferSize=[int]KB client/server
+     This is the default buffer size the HPN functionality uses when interacting
+with nonHPN SSH installations. Conceptually this is similar to the TcpRcvBuf
+option as applied to the internal SSH flow control. This value can range from
+1KB to 64MB (1-65536). Use of oversized or undersized buffers can cause performance
+problems depending on the length of the network path. The default size of this buffer
+is 2MB.
+
+DisableMTAES=[yes/no] client/server
+     Switch the encryption cipher being used from the multithreaded MT-AES-CTR cipher
+back to the stock single-threaded AES-CTR cipher. Useful on modern processors with
+AES-NI instructions which make the stock single-threaded AES-CTR cipher faster than
+the multithreaded MT-AES-CTR cipher. Set to no by default.
+
+
+Credits: This patch was conceived, designed, and led by Chris Rapier (rapier@psc.edu)
+         The majority of the actual coding for versions up to HPN12v1 was performed
+         by Michael Stevens (mstevens@andrew.cmu.edu). The MT-AES-CTR cipher was
+         implemented by Ben Bennet (ben@psc.edu) and improved by Mike Tasota
+         (tasota@gmail.com) an NSF REU grant recipient for 2013.
+	 Allan Jude provided the code for the NoneMac and buffer normalization.
+         This work was financed, in part, by Cisco System, Inc., the National
+         Library of Medicine, and the National Science Foundation.
+
+Sponsors: Thanks to Niklas Hambuchen for being the first sponsor of HPN-SSH
+	  via github's sponsor program!

@@ -245,7 +245,7 @@ ssh_alloc_session_state(void)
 	TAILQ_INIT(&ssh->public_keys);
 	state->connection_in = -1;
 	state->connection_out = -1;
-	state->max_packet_size = 32768;
+	state->max_packet_size = CHAN_SES_PACKET_DEFAULT;
 	state->packet_timeout_ms = -1;
 	state->p_send.packets = state->p_read.packets = 0;
 	state->initialized = 1;
@@ -293,7 +293,7 @@ struct ssh *
 ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 {
 	struct session_state *state;
-	const struct sshcipher *none = cipher_by_name("none");
+	struct sshcipher *none = cipher_by_name("none");
 	int r;
 
 	if (none == NULL) {
@@ -942,16 +942,43 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	 * so enforce a 1GB limit for small blocksizes.
 	 * See RFC4344 section 3.2.
 	 */
-	if (enc->block_size >= 16)
-		*max_blocks = (u_int64_t)1 << (enc->block_size*2);
-	else
-		*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
+
+	/* we really don't need to rekey if we are using the none cipher
+	 * but there isn't a good way to disable it entirely that I can find
+	 * and using a blocksize larger that 16 doesn't work (dunno why)
+	 * so this seems to be a good limit for now - CJR 10/16/2020*/
+	if (ssh->none == 1) {
+		*max_blocks = (u_int64_t)1 << (16*2);
+	} else {
+		if (enc->block_size >= 16)
+			*max_blocks = (u_int64_t)1 << (enc->block_size*2);
+		else
+			*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
+	}
 	if (state->rekey_limit)
 		*max_blocks = MINIMUM(*max_blocks,
 		    state->rekey_limit / enc->block_size);
 	debug("rekey %s after %llu blocks", dir,
-	    (unsigned long long)*max_blocks);
+	      (unsigned long long)*max_blocks);
 	return 0;
+}
+
+/* this supports the forced rekeying required for the NONE cipher */
+int rekey_requested = 0;
+void
+packet_request_rekeying(void)
+{
+	rekey_requested = 1;
+}
+
+/* used to determine if pre or post auth when rekeying for aes-ctr
+ * and none cipher switch */
+int
+packet_authentication_state(const struct ssh *ssh)
+{
+	struct session_state *state = ssh->state;
+
+	return state->after_authentication;
 }
 
 #define MAX_PACKETS	(1U<<31)
@@ -979,6 +1006,13 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	 */
 	if (state->p_send.packets == 0 && state->p_read.packets == 0)
 		return 0;
+
+        /* used to force rekeying when called for by the none
+         * cipher switch and aes-mt-ctr methods -cjr */
+        if (rekey_requested == 1) {
+                rekey_requested = 0;
+                return 1;
+        }
 
 	/* Time-based rekeying */
 	if (state->rekey_interval != 0 &&
@@ -1325,8 +1359,8 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 {
 	struct session_state *state = ssh->state;
 	int len, r, ms_remain;
+	char buf[SSH_IOBUFSZ];
 	struct pollfd pfd;
-	char buf[8192];
 	struct timeval start;
 	struct timespec timespec, *timespecp = NULL;
 
@@ -1871,17 +1905,21 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
 		ssh_packet_clear_keys(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Connection closed by %s", remote_id);
 	case SSH_ERR_CONN_TIMEOUT:
 		ssh_packet_clear_keys(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Connection %s %s timed out",
 		    ssh->state->server_side ? "from" : "to", remote_id);
 	case SSH_ERR_DISCONNECTED:
 		ssh_packet_clear_keys(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Disconnected from %s", remote_id);
 	case SSH_ERR_SYSTEM_ERROR:
 		if (errno == ECONNRESET) {
 			ssh_packet_clear_keys(ssh);
+			sshpkt_final_log_entry(ssh);
 			logdie("Connection reset by %s", remote_id);
 		}
 		/* FALLTHROUGH */
@@ -1921,6 +1959,24 @@ sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
 	/* NOTREACHED */
 	va_end(ap);
 	logdie_f("should have exited");
+}
+
+/* this prints out the final log entry */
+void 
+sshpkt_final_log_entry (struct ssh *ssh) {
+	double total_time;
+	
+	if (ssh->start_time < 1) 
+		/* this will produce a NaN in the output. -cjr */
+		total_time = 0;
+	else
+		total_time = monotime_double() - ssh->start_time;
+	
+	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
+	      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+	      ssh->stdin_bytes, ssh->fdout_bytes, total_time,
+	      ssh->stdin_bytes / total_time,
+	      ssh->fdout_bytes / total_time);
 }
 
 /*
@@ -2716,4 +2772,11 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 {
 	ssh->state->extra_pad = pad;
 	return 0;
+}
+
+/* need this for the moment for the aes-ctr cipher */
+void *
+ssh_packet_get_send_context(struct ssh *ssh)
+{
+        return ssh->state->send_context;
 }

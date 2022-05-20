@@ -901,9 +901,9 @@ usage(void)
 {
 	fprintf(stderr, "%s, %s\n", SSH_RELEASE, SSH_OPENSSL_VERSION);
 	fprintf(stderr,
-"usage: sshd [-46DdeiqTt] [-C connection_spec] [-c host_cert_file]\n"
-"            [-E log_file] [-f config_file] [-g login_grace_time]\n"
-"            [-h host_key_file] [-o option] [-p port] [-u len]\n"
+"usage: hpnsshd [-46DdeiqTt] [-C connection_spec] [-c host_cert_file]\n"
+"               [-E log_file] [-f config_file] [-g login_grace_time]\n"
+"               [-h host_key_file] [-o option] [-p port] [-u len]\n"
 	);
 	exit(1);
 }
@@ -1031,6 +1031,8 @@ listen_on_addrs(struct listenaddr *la)
 	int ret, listen_sock;
 	struct addrinfo *ai;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	int socksize;
+	int socksizelen = sizeof(int);
 
 	for (ai = la->addrs; ai; ai = ai->ai_next) {
 		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
@@ -1075,6 +1077,11 @@ listen_on_addrs(struct listenaddr *la)
 			sock_set_v6only(listen_sock);
 
 		debug("Bind to port %s on %s.", strport, ntop);
+
+		getsockopt(listen_sock, SOL_SOCKET, SO_RCVBUF,
+				   &socksize, &socksizelen);
+		debug("Server TCP RWIN socket size: %d", socksize);
+		debug("HPN Buffer Size: %d", options.hpn_buffer_size);
 
 		/* Bind the socket to the desired port. */
 		if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) == -1) {
@@ -1759,6 +1766,19 @@ main(int ac, char **av)
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);
 
+	if (options.none_enabled == 1) {
+		char *old_ciphers = options.ciphers;
+		xasprintf(&options.ciphers, "%s,none", old_ciphers);
+		free(old_ciphers);
+
+		/* only enable the none MAC in context of the none cipher -cjr */
+		if (options.nonemac_enabled == 1) {
+		  char *old_macs = options.macs;
+		  xasprintf(&options.macs, "%s,none", old_macs);
+		  free(old_macs);
+		}
+	}
+
 	/* Check that options are sensible */
 	if (options.authorized_keys_command_user == NULL &&
 	    (options.authorized_keys_command != NULL &&
@@ -2189,6 +2209,9 @@ main(int ac, char **av)
 	    rdomain == NULL ? "" : "\"");
 	free(laddr);
 
+	/* set the HPN options for the child */
+	channel_set_hpn(options.hpn_disabled, options.hpn_buffer_size);
+
 	/*
 	 * We don't want to listen forever unless the other side
 	 * successfully authenticates itself.  So we set up an alarm which is
@@ -2296,6 +2319,25 @@ main(int ac, char **av)
 	/* Try to send all our hostkeys to the client */
 	notify_hostkeys(ssh);
 
+#ifdef WITH_OPENSSL
+	if (options.disable_multithreaded == 0) {
+		/* if we are using aes-ctr there can be issues in either a fork or sandbox
+		 * so the initial aes-ctr is defined to point ot the original single process
+		 * evp. After authentication we'll be past the fork and the sandboxed privsep
+		 * so we repoint the define to the multithreaded evp. To start the threads we
+		 * then force a rekey
+		 */
+		const void *cc = ssh_packet_get_send_context(the_active_state);
+		
+		/* only rekey if necessary. If we don't do this gcm mode cipher breaks */
+		if (strstr(cipher_ctx_name(cc), "ctr")) {
+			debug("Single to Multithreaded CTR cipher swap - server request");
+			cipher_reset_multithreaded();
+			packet_request_rekeying();
+		}
+	}
+#endif
+
 	/* Start session. */
 	do_authenticated(ssh, authctxt);
 
@@ -2365,6 +2407,11 @@ do_ssh2_kex(struct ssh *ssh)
 	char *myproposal[PROPOSAL_MAX] = { KEX_SERVER };
 	struct kex *kex;
 	int r;
+
+	if (options.none_enabled == 1)
+		debug("WARNING: None cipher enabled");
+	if (options.nonemac_enabled == 1)
+		debug("WARNING: None MAC enabled");
 
 	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(ssh,
 	    options.kex_algorithms);

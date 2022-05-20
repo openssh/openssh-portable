@@ -208,7 +208,7 @@ $DISPLAY environment variable. Some broken systems need this.
 --with-default-path=PATH allows you to specify a default $PATH for sessions
 started by sshd. This replaces the standard path entirely.
 
---with-pid-dir=PATH specifies the directory in which the sshd.pid file is
+--with-pid-dir=PATH specifies the directory in which the hpnsshd.pid file is
 created.
 
 --with-xauth=PATH specifies the location of the xauth binary

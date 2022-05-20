@@ -27,6 +27,7 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 #include "misc.h"
+/* #include "log.h" */
 
 static inline int
 sshbuf_check_sanity(const struct sshbuf *buf)
@@ -324,9 +325,29 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 */
 	need = len + buf->size - buf->alloc;
 	rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
+	/* I think the receive buffer is the one that is
+	 * growing slowly. This buffer quickly ends up being larger
+	 * than the typical packet buffer (usually 32.25KB) so if
+	 * we explicitly test for growth needs larger than that we
+	 * can accelerate the growth of this buffer and reduce load
+	 * the CPU and improve throughput. Ideally we would use
+	 * (local_window_max - rlen) as need but we don't have access
+	 * to that here */
+	if (rlen > 34*1024) {
+		need = 4 * 1024 * 1024;
+		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
+		/* rlen can continue to grow past maximum sizes and
+		 * that will kill the connection. So make sure it doesn't */
+		if (rlen > buf->max_size)
+			rlen = buf->max_size;
+	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 	if (rlen > buf->max_size)
 		rlen = buf->alloc + need;
+	/* be sure to include log.h if you uncomment the debug
+	 * this debug helped identify the buffer growth issue in v8.9
+	 * see the git log about it. search for sshbuf_read */
+	/* debug("adjusted rlen: %zu, len: %lu for %p", rlen, len, buf); */
 	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {
 		SSHBUF_DBG(("realloc fail"));
@@ -398,4 +419,3 @@ sshbuf_consume_end(struct sshbuf *buf, size_t len)
 	SSHBUF_TELL("done");
 	return 0;
 }
-

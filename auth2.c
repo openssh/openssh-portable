@@ -53,6 +53,8 @@
 #include "dispatch.h"
 #include "pathnames.h"
 #include "ssherr.h"
+#include "canohost.h"
+
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
@@ -73,6 +75,8 @@ extern Authmethod method_hostbased;
 #ifdef GSSAPI
 extern Authmethod method_gssapi;
 #endif
+
+static int log_flag = 0;
 
 Authmethod *authmethods[] = {
 	&method_none,
@@ -274,6 +278,11 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 	    (r = sshpkt_get_cstring(ssh, &method, NULL)) != 0)
 		goto out;
 	debug("userauth-request for user %s service %s method %s", user, service, method);
+	if (!log_flag) {
+		logit("SSH: Server;Ltype: Authname;Remote: %s-%d;Name: %s",
+		      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh), user);
+		log_flag = 1;
+	}
 	debug("attempt %d failures %d", authctxt->attempt, authctxt->failures);
 
 	if ((style = strchr(user, ':')) != NULL)

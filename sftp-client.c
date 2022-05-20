@@ -72,7 +72,8 @@ extern int showprogress;
 #define DEFAULT_COPY_BUFLEN	32768
 
 /* Default number of concurrent outstanding requests */
-#define DEFAULT_NUM_REQUESTS	64
+#define DEFAULT_NUM_REQUESTS	512
+/* 512 outstanding requests gives us 16MB of receive buffer space */
 
 /* Minimum amount of data to read at a time */
 #define MIN_READ_SIZE	512

@@ -86,6 +86,17 @@ struct ssh {
 
 	/* APP data */
 	void *app_data;
+
+	/* logging data for ServerLogging patch*/
+	double start_time;
+	u_long fdout_bytes;
+	u_long stdin_bytes;
+
+	/* track that we are in a none cipher/mac state */
+	int none;
+
+	/* use the less agressive window growth option */
+	int hpn_buffer_limit;
 };
 
 typedef int (ssh_packet_hook_fn)(struct ssh *, struct sshbuf *,
@@ -157,6 +168,8 @@ int	 ssh_packet_inc_alive_timeouts(struct ssh *);
 int	 ssh_packet_set_maxsize(struct ssh *, u_int);
 u_int	 ssh_packet_get_maxsize(struct ssh *);
 
+int	 packet_authentication_state(const struct ssh *);
+
 int	 ssh_packet_get_state(struct ssh *, struct sshbuf *);
 int	 ssh_packet_set_state(struct ssh *, struct sshbuf *);
 
@@ -171,6 +184,13 @@ time_t	 ssh_packet_get_rekey_timeout(struct ssh *);
 
 void	*ssh_packet_get_input(struct ssh *);
 void	*ssh_packet_get_output(struct ssh *);
+void	*ssh_packet_get_receive_context(struct ssh *);
+void	*ssh_packet_get_send_context(struct ssh *);
+
+/* for forced packet rekeying post auth */
+void	 packet_request_rekeying(void);
+/* final log entry support */
+void    sshpkt_final_log_entry (struct ssh *);
 
 /* new API */
 int	sshpkt_start(struct ssh *ssh, u_char type);

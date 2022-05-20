@@ -6,14 +6,14 @@
 .\" permitted provided that due credit is given to the author and the
 .\" OpenBSD project by leaving this copyright notice intact.
 .\"
-.Dd $Mdocdate: November 30 2019 $
-.Dt SSH-KEYSCAN 1
+.Dd $Mdocdate: Feburary 7 2022 $
+.Dt HPNSSH-KEYSCAN 1
 .Os
 .Sh NAME
-.Nm ssh-keyscan
+.Nm hpnssh-keyscan
 .Nd gather SSH public keys from servers
 .Sh SYNOPSIS
-.Nm ssh-keyscan
+.Nm hpnssh-keyscan
 .Op Fl 46cDHv
 .Op Fl f Ar file
 .Op Fl p Ar port
@@ -32,6 +32,10 @@ the format of which is documented in
 .Nm
 provides a minimal interface suitable for use by shell and perl
 scripts.
+.Pp
+.Nm
+is binary compatible with OpenSSH's ssh-keyscan and uses the same directives,
+options, configurations, and file locations except where noted. 
 .Pp
 .Nm
 uses non-blocking socket I/O to contact as many hosts as possible in
@@ -59,7 +63,7 @@ Request certificates from target hosts instead of plain keys.
 .It Fl D
 Print keys found as SSHFP DNS records.
 The default is to print keys in a format usable as a
-.Xr ssh 1
+.Xr hpnssh 1
 .Pa known_hosts
 file.
 .It Fl f Ar file
@@ -80,9 +84,9 @@ Input is expected in the format:
 .It Fl H
 Hash all hostnames and addresses in the output.
 Hashed names may be used normally by
-.Xr ssh 1
+.Xr hpnssh 1
 and
-.Xr sshd 8 ,
+.Xr hpnsshd 8 ,
 but they do not reveal identifying information should the file's contents
 be disclosed.
 .It Fl p Ar port
@@ -127,24 +131,24 @@ On the other hand, if the security model allows such a risk,
 can help in the detection of tampered keyfiles or man in the middle
 attacks which have begun after the ssh_known_hosts file was created.
 .Sh FILES
-.Pa /etc/ssh/ssh_known_hosts
+.Pa /etc/hpnssh/ssh_known_hosts
 .Sh EXAMPLES
 Print the RSA host key for machine
 .Ar hostname :
 .Pp
-.Dl $ ssh-keyscan -t rsa hostname
+.Dl $ hpnssh-keyscan -t rsa hostname
 .Pp
 Find all hosts from the file
 .Pa ssh_hosts
 which have new or different keys from those in the sorted file
 .Pa ssh_known_hosts :
 .Bd -literal -offset indent
-$ ssh-keyscan -t rsa,dsa,ecdsa,ed25519 -f ssh_hosts | \e
+$ hpnssh-keyscan -t rsa,dsa,ecdsa,ed25519 -f ssh_hosts | \e
 	sort -u - ssh_known_hosts | diff ssh_known_hosts -
 .Ed
 .Sh SEE ALSO
-.Xr ssh 1 ,
-.Xr sshd 8
+.Xr hpnssh 1 ,
+.Xr hpnsshd 8
 .Rs
 .%D 2006
 .%R RFC 4255

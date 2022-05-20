@@ -10,14 +10,14 @@
 # possible, but leave them commented.  Uncommented options override the
 # default value.
 
-#Port 22
+Port 2222
 #AddressFamily any
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-#HostKey /etc/ssh/ssh_host_rsa_key
-#HostKey /etc/ssh/ssh_host_ecdsa_key
-#HostKey /etc/ssh/ssh_host_ed25519_key
+#HostKey /etc/hpnssh/ssh_host_rsa_key
+#HostKey /etc/hpnssh/ssh_host_ecdsa_key
+#HostKey /etc/hpnssh/ssh_host_ed25519_key
 
 # Ciphers and keying
 #RekeyLimit default none
@@ -96,7 +96,7 @@ AuthorizedKeysFile	.ssh/authorized_keys
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
 #UseDNS no
-#PidFile /var/run/sshd.pid
+#PidFile /var/run/hpnsshd.pid
 #MaxStartups 10:30:100
 #PermitTunnel no
 #ChrootDirectory none
@@ -106,7 +106,28 @@ AuthorizedKeysFile	.ssh/authorized_keys
 #Banner none
 
 # override default of no subsystems
-Subsystem	sftp	/usr/libexec/sftp-server
+Subsystem	sftp	/usr/libexec/hpnsftp-server
+
+# the following are HPN related configuration options
+# tcp receive buffer polling. disable in non autotuning kernels
+#TcpRcvBufPoll yes
+
+# disable hpn performance boosts
+#HPNDisabled no
+
+# buffer size for hpn to non-hpn connections
+#HPNBufferSize 2048
+
+# allow the use of the none cipher
+#NoneEnabled no
+
+# allow the use of the none MAC
+#NoneMacEnabled no
+
+# clamp the server's receive buffer to 
+# 1/2 the tcp receive window. This may be useful
+# in some environments.
+#HPNBufferLimit no
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs

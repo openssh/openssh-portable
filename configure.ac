@@ -3465,7 +3465,7 @@ case "$host" in
 	SSH_PRIVSEP_USER=CYGWIN_SSH_PRIVSEP_USER
 	;;
 *)
-	SSH_PRIVSEP_USER=sshd
+	SSH_PRIVSEP_USER=hpnsshd
 	;;
 esac
 AC_ARG_WITH([privsep-user],
@@ -4990,11 +4990,11 @@ AC_ARG_WITH([mantype],
 	]
 )
 if test -z "$MANTYPE"; then
-	if ${MANDOC} ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	if ${MANDOC} ${srcdir}/hpnssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
-	elif ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	elif ${NROFF} -mdoc ${srcdir}/hpnssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
-	elif ${NROFF} -man ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	elif ${NROFF} -man ${srcdir}/hpnssh.1 >/dev/null 2>&1; then
 		MANTYPE=man
 	else
 		MANTYPE=cat
@@ -5232,7 +5232,7 @@ AC_ARG_WITH([bsd-auth],
 	]
 )
 
-# Where to place sshd.pid
+# Where to place hpnsshd.pid
 piddir=/var/run
 # make sure the directory exists
 if test ! -d $piddir ; then
@@ -5243,7 +5243,7 @@ if test ! -d $piddir ; then
 fi
 
 AC_ARG_WITH([pid-dir],
-	[  --with-pid-dir=PATH     Specify location of sshd.pid file],
+	[  --with-pid-dir=PATH     Specify location of hpnsshd.pid file],
 	[
 		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
 		    test "x${withval}" != "xyes"; then

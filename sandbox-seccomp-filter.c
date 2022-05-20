@@ -219,6 +219,9 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_geteuid32
 	SC_ALLOW(__NR_geteuid32),
 #endif
+#ifdef __NR_getpeername /* not defined on archs that go via socketcall(2) */
+	SC_ALLOW(__NR_getpeername),
+#endif
 #ifdef __NR_getpgid
 	SC_ALLOW(__NR_getpgid),
 #endif
@@ -302,6 +305,9 @@ static const struct sock_filter preauth_insns[] = {
 #endif
 #ifdef __NR_sigprocmask
 	SC_ALLOW(__NR_sigprocmask),
+#endif
+#ifdef __NR_socketcall
+	SC_ALLOW(__NR_socketcall),
 #endif
 #ifdef __NR_time
 	SC_ALLOW(__NR_time),

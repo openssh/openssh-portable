@@ -96,6 +96,7 @@
 #include "sftp.h"
 #include "atomicio.h"
 
+
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
 #endif
@@ -222,6 +223,7 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 		goto authsock_err;
 
 	/* Allocate a channel for the authentication agent socket. */
+	/* this shouldn't matter if its hpn or not - cjr */
 	nc = channel_new(ssh, "auth socket",
 	    SSH_CHANNEL_AUTH_SOCKET, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
@@ -455,7 +457,7 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 		return -1;
 	case 0:
 		is_child = 1;
-
+	  
 		/*
 		 * Create a new session and process group since the 4.4BSD
 		 * setlogin() affects the entire process group.
@@ -598,7 +600,7 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 		return -1;
 	case 0:
 		is_child = 1;
-
+	
 		close(fdout);
 		close(ptymaster);
 
@@ -2248,10 +2250,11 @@ session_set_fds(struct ssh *ssh, Session *s,
 	 */
 	if (s->chanid == -1)
 		fatal("no channel for session %d", s->self);
-	channel_set_fds(ssh, s->chanid,
-	    fdout, fdin, fderr,
-	    ignore_fderr ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
-	    1, is_tty, CHAN_SES_WINDOW_DEFAULT);
+        channel_set_fds(ssh, s->chanid,
+			fdout, fdin, fderr,
+			ignore_fderr ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
+			1, is_tty,
+			options.hpn_disabled ? CHAN_SES_WINDOW_DEFAULT : options.hpn_buffer_size);
 }
 
 /*

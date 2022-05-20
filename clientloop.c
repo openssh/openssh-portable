@@ -114,6 +114,7 @@
 #include "msg.h"
 #include "ssherr.h"
 #include "hostfile.h"
+#include "metrics.h"
 
 /* Permitted RSA signature algorithms for UpdateHostkeys proofs */
 #define HOSTKEY_PROOF_RSA_ALGS	"rsa-sha2-512,rsa-sha2-256"
@@ -163,6 +164,10 @@ static time_t server_alive_time;	/* Time to do server_alive_check */
 
 static void client_init_dispatch(struct ssh *ssh);
 int	session_ident = -1;
+int     metrics_hdr_remote_flag = 0;
+int     metrics_hdr_local_flag = 0;
+int     remote_no_poll_flag = 0;
+int     local_no_poll_flag = 0;
 
 /* Track escape per proto2 channel */
 struct escape_filter_ctx {
@@ -190,6 +195,9 @@ static struct global_confirms global_confirms =
     TAILQ_HEAD_INITIALIZER(global_confirms);
 
 void ssh_process_session2_setup(int, int, int, struct sshbuf *);
+
+void client_request_metrics(struct ssh *);
+
 static void quit_message(const char *fmt, ...)
     __attribute__((__format__ (printf, 1, 2)));
 
@@ -1220,6 +1228,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	double start_time, total_time;
 	int r, len;
 	u_int64_t ibytes, obytes;
+	time_t previous_time;
 	int conn_in_ready, conn_out_ready;
 
 	debug("Entering interactive session.");
@@ -1256,6 +1265,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	}
 
 	start_time = monotime_double();
+	previous_time = time(NULL); /* for metrics polling */
 
 	/* Initialize variables. */
 	last_was_cr = 1;
@@ -1302,9 +1312,17 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	}
 
 	schedule_server_alive_check();
+	if (options.metrics)
+		client_request_metrics(ssh); /* initial metrics polling */
 
 	/* Main loop of the client for the interactive session mode. */
 	while (!quit_pending) {
+		if (options.metrics) {
+			if ((time(NULL) - previous_time) >= options.metrics_interval) {
+				client_request_metrics(ssh);
+				previous_time = time(NULL);
+			}
+		}
 
 		/* Process buffered packets sent by the server. */
 		client_process_buffered_input_packets(ssh);
@@ -1386,6 +1404,10 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			}
 		}
 	}
+
+	if (options.metrics)
+		client_request_metrics(ssh); /* final metrics polling */
+
 	free(pfd);
 
 	/* Terminate the session. */
@@ -1571,9 +1593,11 @@ client_request_x11(struct ssh *ssh, const char *request_type, int rchan)
 	sock = x11_connect_display(ssh);
 	if (sock < 0)
 		return NULL;
-	c = channel_new(ssh, "x11",
-	    SSH_CHANNEL_X11_OPEN, sock, sock, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT, 0, "x11", 1);
+        c = channel_new(ssh, "x11",
+			SSH_CHANNEL_X11_OPEN, sock, sock, -1,
+			/* again is this really necessary for X11? */
+			options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
+			CHAN_X11_PACKET_DEFAULT, 0, "x11", 1);
 	c->force_drain = 1;
 	return c;
 }
@@ -1607,9 +1631,10 @@ client_request_agent(struct ssh *ssh, const char *request_type, int rchan)
 		debug2_fr(r, "ssh_agent_bind_hostkey");
 
 	c = channel_new(ssh, "authentication agent connection",
-	    SSH_CHANNEL_OPEN, sock, sock, -1,
-	    CHAN_X11_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0,
-	    "authentication agent connection", 1);
+			SSH_CHANNEL_OPEN, sock, sock, -1,
+			options.hpn_disabled ? CHAN_X11_WINDOW_DEFAULT : options.hpn_buffer_size,
+			CHAN_TCP_PACKET_DEFAULT, 0,
+			"authentication agent connection", 1);
 	c->force_drain = 1;
 	return c;
 }
@@ -1634,9 +1659,12 @@ client_request_tun_fwd(struct ssh *ssh, int tun_mode,
 	}
 	debug("Tunnel forwarding using interface %s", ifname);
 
-	c = channel_new(ssh, "tun", SSH_CHANNEL_OPENING, fd, fd, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
+        c = channel_new(ssh, "tun", SSH_CHANNEL_OPENING, fd, fd, -1,
+	    options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
+	    CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
 	c->datagram = 1;
+
+
 
 #if defined(SSH_TUN_FILTER)
 	if (options.tun_open == SSH_TUNMODE_POINTOPOINT)
@@ -2423,6 +2451,167 @@ client_input_hostkeys(struct ssh *ssh)
 	return 1;
 }
 
+/* take the response from the server and parse out the data.
+ * the _ctx should be null. It's just here because the format
+ * of the callback handler expects it. Likewise, seq is
+ * not used. */
+static void
+client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *_ctx) {
+	struct tcp_info local_tcp_info;
+	const u_char *blob;
+	FILE *remfptr;
+	FILE *localfptr;
+	char remfilename[1024];
+	char localfilename[1024];
+	time_t now;
+	struct tm *info;
+	char timestamp[40];
+	char *metricsstring = NULL;
+	size_t tcpi_len, len = 0;
+	binn *metricsobj = NULL;
+	int r, kernel_version = 0;
+
+	time(&now);
+	info = localtime(&now);
+	strftime(timestamp, 40, "%d-%m-%Y %H:%M:%S", info);
+
+	/* malloc the string 1KB should be large enough */
+	metricsstring = malloc(1024);
+
+	/* get the local socket information */
+	int sock_in = ssh_packet_get_connection_in(ssh);
+
+	/* the user can specify a name/path with options.metrics_path
+	 * but if it's not defined we'll use a default name. In either case
+	 * the name will have a suffix of local for the local data and remote for
+	 * the remote data */
+	if (options.metrics_path == NULL) {
+		snprintf(remfilename, 1024, "%s", "./ssh_stack_metrics.remote");
+		snprintf(localfilename, 1024, "%s", "./ssh_stack_metrics.local");
+	} else {
+		snprintf(remfilename, 1024, "%s.%s", options.metrics_path, "remote");
+		snprintf(localfilename, 1024, "%s.%s", options.metrics_path, "local");
+	}
+
+	/* should be type 81 and if it's not then its likley that
+	* the remote does not support polling. We can still get local data though
+	*/
+	if (type != SSH2_MSG_REQUEST_SUCCESS) {
+		if (remote_no_poll_flag == 0) {
+			error("Remote does not support stack metric polling. Local data only.");
+			remote_no_poll_flag = 1;
+		}
+		goto localonly;
+	}
+
+	/* open the file handle to write the remote data*/
+	remfptr = fopen(remfilename, "a");
+	if (remfptr == NULL)
+		fatal("Error opening %s: %s", remfilename, strerror(errno));
+
+	/* read the entire packet string into blob
+	 * blob has to be a const uchar as that's what string_direct expects
+	 * we cast it as a void for the binn functions */
+	sshpkt_get_string_direct(ssh, &blob, &len);
+	if (len == 0) {
+		/* received no data. which is weird */
+		error("Received no remote metrics data. Continuing.");
+	}
+
+	/* get the kernel version printing the header */
+	kernel_version = binn_object_int32((void *)blob, "kernel_version");
+
+	/* create a string of the data from the binn object blob */
+	metrics_read_binn_object((void *)blob, &metricsstring);
+
+	/* have we printed the header? */
+	if (metrics_hdr_remote_flag == 0) {
+		metrics_print_header(remfptr, "REMOTE CONNECTION", kernel_version);
+		metrics_hdr_remote_flag = 1;
+	}
+	fprintf(remfptr, "%s, ", timestamp);
+	fprintf(remfptr, "%s\n", metricsstring);
+
+	/* close remote file pointer*/
+	fclose(remfptr);
+
+	/* got the remote data, now get the local */
+localonly:
+/* TCP_INFO is defined in metrics.h*/
+#if !defined TCP_INFO
+	if (local_no_poll_flag == 0) {
+		error("Local host does not support metric polling. Remote data only.");
+		local_no_poll_flag = 1;
+	}
+#else
+	/* open file handle for local data */
+	localfptr = fopen(localfilename, "a");
+	if(localfptr == NULL)
+		fatal("Error opening %s: %s", localfilename, strerror(errno));
+
+	/* create the binn object*/
+	metricsobj = binn_object();
+	if (metricsobj == NULL) {
+		fatal("Could not create metrics object");
+	}
+
+	tcpi_len = (size_t)sizeof(local_tcp_info);
+	if ((r = getsockopt(sock_in, IPPROTO_TCP, TCP_INFO, (void *)&local_tcp_info,
+			    (socklen_t *)&tcpi_len)) != 0){
+		error("Could not read tcp_info from socket");
+		goto out;
+	}
+
+	/* we write and read to a binn object because it lets us
+	 * format the data consistently */
+	metrics_write_binn_object(&local_tcp_info, metricsobj);
+
+	/* create a string of the data from the binn object metricsobj */
+	metrics_read_binn_object((void *)metricsobj, &metricsstring);
+
+	/* get the kernel version printing the header */
+	kernel_version = binn_object_int32(metricsobj, "kernel_version");
+
+	if (metrics_hdr_local_flag == 0) {
+		metrics_print_header(localfptr, "LOCAL CONNECTION", kernel_version);
+		metrics_hdr_local_flag = 1;
+	}
+
+	fprintf(localfptr, "%s, ", timestamp);
+	fprintf(localfptr, "%s\n", metricsstring);
+	fclose (localfptr);
+#endif /* TCP_INFO */
+out:
+	free(metricsstring);
+}
+
+/* Use the SSH2_MSG_GLOBAL_REQUEST protocol to
+ * ask the server to send metrics back to the client.
+ * we use the non-canonical string stack-metrics@hpnssh.org
+ * to indicate the type of request we want. If the receiver doesn't
+ * understand it then the response indiactes a failure.
+ * I can probably do this by using clint_input_global_request but
+ * I need to understand that better.
+ */
+void client_request_metrics(struct ssh *ssh) {
+	int r;
+
+	debug("Asking server for TCP stack metrics");
+	/* create a pakcet of GLOBAL_REQUEST type */
+	if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
+	    /* define the type of GLOBAL_REQUEST message */
+	    (r = sshpkt_put_cstring(ssh,
+	    "stack-metrics@hpnssh.org")) != 0 ||
+	    /* indicate if we want a response. 1 for yes 0 for no */
+	    (r = sshpkt_put_u8(ssh, 1)) != 0)
+		fatal_fr(r, "prepare stack request failure");
+	/* send the packet */
+	if ((r = sshpkt_send(ssh)) != 0)
+		fatal_fr(r, "send stack request");
+	/* i believe this indicates what we are to use for a callback */
+	client_register_global_confirm(client_process_request_metrics, NULL);
+}
+
 static int
 client_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -2477,6 +2666,11 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 	if ((c = channel_lookup(ssh, id)) == NULL)
 		fatal_f("channel %d: unknown channel", id);
 
+	if (options.hpn_buffer_limit) {
+		debug("Limiting receive buffer size");
+		c->hpn_buffer_limit = 1;
+	}
+	
 	ssh_packet_set_interactive(ssh, want_tty,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 
@@ -2547,11 +2741,48 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 
 	len = sshbuf_len(cmd);
 	if (len > 0) {
+		/* we may be connecting to a server that has hpn prefixed
+		 * binaries installed. In that case we need to rewrite any
+		 * scp commands to look for hpnscp instead.
+		 */
+		if (ssh->compat & SSH_HPNSSH) {
+			char *new_cmd;
+			new_cmd = malloc(len+3);
+			/* read the existing command into a temp buffer */
+			sprintf(new_cmd, "%s", (const u_char*)sshbuf_ptr(cmd));
+			const char *pos;
+			/* see if the command starts with scp */
+			pos = strstr(new_cmd, "scp");
+			/* by substracting the pointer new_cmd from the pointer
+			 * pos we end up with the position of the needle in the
+			 * haystack. If it's 0 then we can mess with it
+			 */
+			if (pos - new_cmd == 0) {
+				debug("Rewriting scp command for hpnscp.");
+				sprintf(new_cmd, "hpn%s", (const u_char*)sshbuf_ptr(cmd));
+				debug("Command was: %s and is now %s",
+				      (const u_char*)sshbuf_ptr(cmd), new_cmd);
+				/* free the existing sshbuf 'cmd'
+				 * recreate it and then write our new_cmd into
+				 * the sshbuf struct
+				 */
+				sshbuf_free(cmd);
+				if ((cmd = sshbuf_new()) == NULL)
+					fatal("sshbuf_new failed in scp rewrite");
+				sshbuf_putf(cmd, "%s", new_cmd);
+				/* we use len later on so don't forget to
+				 * increment it by the number of new chars in the
+				 * command
+				 */
+				len += 3;
+				free(new_cmd);
+			}
+		}
 		if (len > 900)
 			len = 900;
 		if (want_subsystem) {
 			debug("Sending subsystem: %.*s",
-			    len, (const u_char*)sshbuf_ptr(cmd));
+			      len, (const u_char*)sshbuf_ptr(cmd));
 			channel_request_start(ssh, id, "subsystem", 1);
 			client_expect_confirm(ssh, id, "subsystem",
 			    CONFIRM_CLOSE);
