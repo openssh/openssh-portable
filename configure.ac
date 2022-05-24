@@ -514,7 +514,11 @@ AC_MSG_CHECKING([for caph_cache_tzdata])
 AC_LINK_IFELSE(
     [AC_LANG_PROGRAM([[ #include <capsicum_helpers.h> ]],
 	[[caph_cache_tzdata();]])],
-    [ AC_MSG_RESULT([yes]) ],
+    [
+	AC_MSG_RESULT([yes])
+	AC_DEFINE([HAVE_CAPH_CACHE_TZDATA], [1],
+	    [Define if you have caph_cache_tzdata])
+    ],
     [ AC_MSG_RESULT([no]) ]
 )
 
