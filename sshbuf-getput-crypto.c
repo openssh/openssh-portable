@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-getput-crypto.c,v 1.8 2019/11/15 06:00:20 djm Exp $	*/
+/*	$OpenBSD: sshbuf-getput-crypto.c,v 1.9 2022/05/25 00:31:13 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -84,7 +84,7 @@ sshbuf_get_ec(struct sshbuf *buf, EC_POINT *v, const EC_GROUP *g)
 	/* Skip string */
 	if (sshbuf_get_string_direct(buf, NULL, NULL) != 0) {
 		/* Shouldn't happen */
-		SSHBUF_DBG(("SSH_ERR_INTERNAL_ERROR"));
+		SSHBUF_DBG("SSH_ERR_INTERNAL_ERROR");
 		SSHBUF_ABORT();
 		return SSH_ERR_INTERNAL_ERROR;
 	}
@@ -100,7 +100,7 @@ sshbuf_get_eckey(struct sshbuf *buf, EC_KEY *v)
 	size_t len;
 
 	if (pt == NULL) {
-		SSHBUF_DBG(("SSH_ERR_ALLOC_FAIL"));
+		SSHBUF_DBG("SSH_ERR_ALLOC_FAIL");
 		return SSH_ERR_ALLOC_FAIL;
 	}
 	if ((r = sshbuf_peek_string_direct(buf, &d, &len)) < 0) {
@@ -119,7 +119,7 @@ sshbuf_get_eckey(struct sshbuf *buf, EC_KEY *v)
 	/* Skip string */
 	if (sshbuf_get_string_direct(buf, NULL, NULL) != 0) {
 		/* Shouldn't happen */
-		SSHBUF_DBG(("SSH_ERR_INTERNAL_ERROR"));
+		SSHBUF_DBG("SSH_ERR_INTERNAL_ERROR");
 		SSHBUF_ABORT();
 		return SSH_ERR_INTERNAL_ERROR;
 	}
