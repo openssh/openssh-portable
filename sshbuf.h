@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.26 2022/05/25 00:31:13 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.27 2022/05/25 06:03:44 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -395,17 +395,16 @@ u_int	sshbuf_refcount(const struct sshbuf *buf);
 
 # ifdef SSHBUF_DEBUG
 #  define SSHBUF_TELL(what) do { \
-		fprintf(stderr, \
-		    "%s:%d %s: %s size %zu alloc %zu off %zu max %zu\n", \
+		printf("%s:%d %s: %s size %zu alloc %zu off %zu max %zu\n", \
 		    __FILE__, __LINE__, __func__, what, \
 		    buf->size, buf->alloc, buf->off, buf->max_size); \
-		fflush(stderr); \
+		fflush(stdout); \
 	} while (0)
-#  define SSHBUF_DBG(...) do { \
-		fprintf(stderr, "%s:%d %s: ", __FILE__, __LINE__, __func__); \
-		fprintf(stderr, __VA_ARGS__); \
-		fprintf(stderr, "\n"); \
-		fflush(stderr); \
+#  define SSHBUF_DBG(x) do { \
+		printf("%s:%d %s: ", __FILE__, __LINE__, __func__); \
+		printf x; \
+		printf("\n"); \
+		fflush(stdout); \
 	} while (0)
 # else
 #  define SSHBUF_TELL(what)

@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.c,v 1.17 2022/05/25 00:31:13 djm Exp $	*/
+/*	$OpenBSD: sshbuf.c,v 1.18 2022/05/25 06:03:44 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -41,7 +41,7 @@ sshbuf_check_sanity(const struct sshbuf *buf)
 	    buf->size > buf->alloc ||
 	    buf->off > buf->size)) {
 		/* Do not try to recover from corrupted buffer internals */
-		SSHBUF_DBG("SSH_ERR_INTERNAL_ERROR");
+		SSHBUF_DBG(("SSH_ERR_INTERNAL_ERROR"));
 		ssh_signal(SIGSEGV, SIG_DFL);
 		raise(SIGSEGV);
 		return SSH_ERR_INTERNAL_ERROR;
@@ -52,7 +52,7 @@ sshbuf_check_sanity(const struct sshbuf *buf)
 static void
 sshbuf_maybe_pack(struct sshbuf *buf, int force)
 {
-	SSHBUF_DBG("force %d", force);
+	SSHBUF_DBG(("force %d", force));
 	SSHBUF_TELL("pre-pack");
 	if (buf->off == 0 || buf->readonly || buf->refcount > 1)
 		return;
@@ -223,7 +223,7 @@ sshbuf_set_max_size(struct sshbuf *buf, size_t max_size)
 	u_char *dp;
 	int r;
 
-	SSHBUF_DBG("set max buf = %p len = %zu", buf, max_size);
+	SSHBUF_DBG(("set max buf = %p len = %zu", buf, max_size));
 	if ((r = sshbuf_check_sanity(buf)) != 0)
 		return r;
 	if (max_size == buf->max_size)
@@ -241,7 +241,7 @@ sshbuf_set_max_size(struct sshbuf *buf, size_t max_size)
 			rlen = ROUNDUP(buf->size, SSHBUF_SIZE_INC);
 		if (rlen > max_size)
 			rlen = max_size;
-		SSHBUF_DBG("new alloc = %zu", rlen);
+		SSHBUF_DBG(("new alloc = %zu", rlen));
 		if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL)
 			return SSH_ERR_ALLOC_FAIL;
 		buf->cd = buf->d = dp;
@@ -309,7 +309,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	u_char *dp;
 	int r;
 
-	SSHBUF_DBG("allocate buf = %p len = %zu", buf, len);
+	SSHBUF_DBG(("allocate buf = %p len = %zu", buf, len));
 	if ((r = sshbuf_check_reserve(buf, len)) != 0)
 		return r;
 	/*
@@ -327,12 +327,12 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 */
 	need = len + buf->size - buf->alloc;
 	rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
-	SSHBUF_DBG("need %zu initial rlen %zu", need, rlen);
+	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 	if (rlen > buf->max_size)
 		rlen = buf->alloc + need;
-	SSHBUF_DBG("adjusted rlen %zu", rlen);
+	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {
-		SSHBUF_DBG("realloc fail");
+		SSHBUF_DBG(("realloc fail"));
 		return SSH_ERR_ALLOC_FAIL;
 	}
 	buf->alloc = rlen;
@@ -354,7 +354,7 @@ sshbuf_reserve(struct sshbuf *buf, size_t len, u_char **dpp)
 	if (dpp != NULL)
 		*dpp = NULL;
 
-	SSHBUF_DBG("reserve buf = %p len = %zu", buf, len);
+	SSHBUF_DBG(("reserve buf = %p len = %zu", buf, len));
 	if ((r = sshbuf_allocate(buf, len)) != 0)
 		return r;
 
@@ -370,7 +370,7 @@ sshbuf_consume(struct sshbuf *buf, size_t len)
 {
 	int r;
 
-	SSHBUF_DBG("len = %zu", len);
+	SSHBUF_DBG(("len = %zu", len));
 	if ((r = sshbuf_check_sanity(buf)) != 0)
 		return r;
 	if (len == 0)
@@ -390,7 +390,7 @@ sshbuf_consume_end(struct sshbuf *buf, size_t len)
 {
 	int r;
 
-	SSHBUF_DBG("len = %zu", len);
+	SSHBUF_DBG(("len = %zu", len));
 	if ((r = sshbuf_check_sanity(buf)) != 0)
 		return r;
 	if (len == 0)

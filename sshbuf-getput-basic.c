@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-getput-basic.c,v 1.12 2022/05/25 00:31:13 djm Exp $	*/
+/*	$OpenBSD: sshbuf-getput-basic.c,v 1.13 2022/05/25 06:03:44 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -198,7 +198,7 @@ sshbuf_get_string(struct sshbuf *buf, u_char **valp, size_t *lenp)
 		return r;
 	if (valp != NULL) {
 		if ((*valp = malloc(len + 1)) == NULL) {
-			SSHBUF_DBG("SSH_ERR_ALLOC_FAIL");
+			SSHBUF_DBG(("SSH_ERR_ALLOC_FAIL"));
 			return SSH_ERR_ALLOC_FAIL;
 		}
 		if (len != 0)
@@ -229,7 +229,7 @@ sshbuf_get_string_direct(struct sshbuf *buf, const u_char **valp, size_t *lenp)
 		*lenp = len;
 	if (sshbuf_consume(buf, len + 4) != 0) {
 		/* Shouldn't happen */
-		SSHBUF_DBG("SSH_ERR_INTERNAL_ERROR");
+		SSHBUF_DBG(("SSH_ERR_INTERNAL_ERROR"));
 		SSHBUF_ABORT();
 		return SSH_ERR_INTERNAL_ERROR;
 	}
@@ -248,16 +248,16 @@ sshbuf_peek_string_direct(const struct sshbuf *buf, const u_char **valp,
 	if (lenp != NULL)
 		*lenp = 0;
 	if (sshbuf_len(buf) < 4) {
-		SSHBUF_DBG("SSH_ERR_MESSAGE_INCOMPLETE");
+		SSHBUF_DBG(("SSH_ERR_MESSAGE_INCOMPLETE"));
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 	}
 	len = PEEK_U32(p);
 	if (len > SSHBUF_SIZE_MAX - 4) {
-		SSHBUF_DBG("SSH_ERR_STRING_TOO_LARGE");
+		SSHBUF_DBG(("SSH_ERR_STRING_TOO_LARGE"));
 		return SSH_ERR_STRING_TOO_LARGE;
 	}
 	if (sshbuf_len(buf) - 4 < len) {
-		SSHBUF_DBG("SSH_ERR_MESSAGE_INCOMPLETE");
+		SSHBUF_DBG(("SSH_ERR_MESSAGE_INCOMPLETE"));
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 	}
 	if (valp != NULL)
@@ -283,14 +283,14 @@ sshbuf_get_cstring(struct sshbuf *buf, char **valp, size_t *lenp)
 	/* Allow a \0 only at the end of the string */
 	if (len > 0 &&
 	    (z = memchr(p , '\0', len)) != NULL && z < p + len - 1) {
-		SSHBUF_DBG("SSH_ERR_INVALID_FORMAT");
+		SSHBUF_DBG(("SSH_ERR_INVALID_FORMAT"));
 		return SSH_ERR_INVALID_FORMAT;
 	}
 	if ((r = sshbuf_skip_string(buf)) != 0)
 		return -1;
 	if (valp != NULL) {
 		if ((*valp = malloc(len + 1)) == NULL) {
-			SSHBUF_DBG("SSH_ERR_ALLOC_FAIL");
+			SSHBUF_DBG(("SSH_ERR_ALLOC_FAIL"));
 			return SSH_ERR_ALLOC_FAIL;
 		}
 		if (len != 0)
@@ -517,7 +517,7 @@ sshbuf_put_string(struct sshbuf *buf, const void *v, size_t len)
 	int r;
 
 	if (len > SSHBUF_SIZE_MAX - 4) {
-		SSHBUF_DBG("SSH_ERR_NO_BUFFER_SPACE");
+		SSHBUF_DBG(("SSH_ERR_NO_BUFFER_SPACE"));
 		return SSH_ERR_NO_BUFFER_SPACE;
 	}
 	if ((r = sshbuf_reserve(buf, len + 4, &d)) < 0)
@@ -575,7 +575,7 @@ sshbuf_put_bignum2_bytes(struct sshbuf *buf, const void *v, size_t len)
 	int r, prepend;
 
 	if (len > SSHBUF_SIZE_MAX - 5) {
-		SSHBUF_DBG("SSH_ERR_NO_BUFFER_SPACE");
+		SSHBUF_DBG(("SSH_ERR_NO_BUFFER_SPACE"));
 		return SSH_ERR_NO_BUFFER_SPACE;
 	}
 	/* Skip leading zero bytes */
@@ -625,7 +625,7 @@ sshbuf_get_bignum2_bytes_direct(struct sshbuf *buf,
 		*lenp = len;
 	if (sshbuf_consume(buf, olen + 4) != 0) {
 		/* Shouldn't happen */
-		SSHBUF_DBG("SSH_ERR_INTERNAL_ERROR");
+		SSHBUF_DBG(("SSH_ERR_INTERNAL_ERROR"));
 		SSHBUF_ABORT();
 		return SSH_ERR_INTERNAL_ERROR;
 	}
