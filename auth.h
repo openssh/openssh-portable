@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.103 2022/05/27 05:01:25 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.104 2022/05/27 05:02:46 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -29,6 +29,7 @@
 #define AUTH_H
 
 #include <signal.h>
+#include <stdio.h>
 
 #ifdef HAVE_LOGIN_CAP
 #include <login_cap.h>
@@ -44,6 +45,7 @@ struct passwd;
 struct ssh;
 struct sshbuf;
 struct sshkey;
+struct sshkey_cert;
 struct sshauthopt;
 
 typedef struct Authctxt Authctxt;
@@ -214,8 +216,6 @@ int	 sshd_hostkey_sign(struct ssh *, struct sshkey *, struct sshkey *,
 const struct sshauthopt *auth_options(struct ssh *);
 int	 auth_activate_options(struct ssh *, struct sshauthopt *);
 void	 auth_restrict_session(struct ssh *);
-int	 auth_authorise_keyopts(struct passwd *pw, struct sshauthopt *, int,
-    const char *, const char *, const char *);
 void	 auth_log_authopts(const char *, const struct sshauthopt *, int);
 
 /* debug messages during authentication */
@@ -225,6 +225,18 @@ void	 auth_debug_send(struct ssh *);
 void	 auth_debug_reset(void);
 
 struct passwd *fakepw(void);
+
+/* auth2-pubkeyfile.c */
+int	 auth_authorise_keyopts(struct passwd *, struct sshauthopt *, int,
+    const char *, const char *, const char *);
+int	 auth_check_principals_line(char *, const struct sshkey_cert *,
+    const char *, struct sshauthopt **);
+int	 auth_process_principals(FILE *, const char *,
+    const struct sshkey_cert *, struct sshauthopt **);
+int	 auth_check_authkey_line(struct passwd *, struct sshkey *,
+    char *, const char *, const char *, const char *, struct sshauthopt **);
+int	 auth_check_authkeys_file(struct passwd *, FILE *, char *,
+    struct sshkey *, const char *, const char *, struct sshauthopt **);
 
 int	 sys_auth_passwd(struct ssh *, const char *);
 
