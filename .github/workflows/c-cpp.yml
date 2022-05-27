@@ -48,7 +48,7 @@ jobs:
           - { os: ubuntu-latest, configs: libressl-3.2.6 }
           - { os: ubuntu-latest, configs: libressl-3.3.6 }
           - { os: ubuntu-latest, configs: libressl-3.4.3 }
-          - { os: ubuntu-latest, configs: libressl-3.5.2 }
+          - { os: ubuntu-latest, configs: libressl-3.5.3 }
           - { os: ubuntu-latest, configs: openssl-master }
           - { os: ubuntu-latest, configs: openssl-noec }
           - { os: ubuntu-latest, configs: openssl-1.0.1 }
