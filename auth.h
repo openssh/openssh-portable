@@ -237,6 +237,8 @@ int	 auth_check_authkey_line(struct passwd *, struct sshkey *,
     char *, const char *, const char *, const char *, struct sshauthopt **);
 int	 auth_check_authkeys_file(struct passwd *, FILE *, char *,
     struct sshkey *, const char *, const char *, struct sshauthopt **);
+FILE	*auth_openkeyfile(const char *, struct passwd *, int);
+FILE	*auth_openprincipals(const char *, struct passwd *, int);
 
 int	 sys_auth_passwd(struct ssh *, const char *);
 
