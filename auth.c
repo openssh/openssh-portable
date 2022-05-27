@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.155 2022/04/26 07:41:44 dtucker Exp $ */
+/* $OpenBSD: auth.c,v 1.156 2022/05/27 05:01:25 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -914,12 +914,10 @@ auth_restrict_session(struct ssh *ssh)
 }
 
 int
-auth_authorise_keyopts(struct ssh *ssh, struct passwd *pw,
-    struct sshauthopt *opts, int allow_cert_authority, const char *loc)
+auth_authorise_keyopts(struct passwd *pw, struct sshauthopt *opts,
+    int allow_cert_authority, const char *remote_ip, const char *remote_host,
+    const char *loc)
 {
-	const char *remote_ip = ssh_remote_ipaddr(ssh);
-	const char *remote_host = auth_get_canonical_hostname(ssh,
-	    options.use_dns);
 	time_t now = time(NULL);
 	char buf[64];
 

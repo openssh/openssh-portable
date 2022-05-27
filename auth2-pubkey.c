@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.113 2022/02/27 01:33:59 naddy Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.114 2022/05/27 05:01:25 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -100,6 +100,9 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 	int req_presence = 0, req_verify = 0, authenticated = 0;
 	struct sshauthopt *authopts = NULL;
 	struct sshkey_sig_details *sig_details = NULL;
+	const char *remote_ip = ssh_remote_ipaddr(ssh);
+	const char *remote_host = auth_get_canonical_hostname(ssh,
+	    options.use_dns);
 
 	hostbound = strcmp(method, "publickey-hostbound-v00@openssh.com") == 0;
 
@@ -222,7 +225,8 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 #endif
 		/* test for correct signature */
 		authenticated = 0;
-		if (PRIVSEP(user_key_allowed(ssh, pw, key, 1, &authopts)) &&
+		if (PRIVSEP(user_key_allowed(pw, key, 1, remote_ip,
+		    remote_host, &authopts)) &&
 		    PRIVSEP(sshkey_verify(key, sig, slen,
 		    sshbuf_ptr(b), sshbuf_len(b),
 		    (ssh->compat & SSH_BUG_SIGTYPE) == 0 ? pkalg : NULL,
@@ -284,7 +288,8 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		 * if a user is not allowed to login. is this an
 		 * issue? -markus
 		 */
-		if (PRIVSEP(user_key_allowed(ssh, pw, key, 0, NULL))) {
+		if (PRIVSEP(user_key_allowed(pw, key, 0, remote_ip,
+		    remote_host, NULL))) {
 			if ((r = sshpkt_start(ssh, SSH2_MSG_USERAUTH_PK_OK))
 			    != 0 ||
 			    (r = sshpkt_put_cstring(ssh, pkalg)) != 0 ||
@@ -342,7 +347,7 @@ match_principals_option(const char *principal_list, struct sshkey_cert *cert)
  * log preamble for file/line information.
  */
 static int
-check_principals_line(struct ssh *ssh, char *cp, const struct sshkey_cert *cert,
+check_principals_line(char *cp, const struct sshkey_cert *cert,
     const char *loc, struct sshauthopt **authoptsp)
 {
 	u_int i, found = 0;
@@ -392,7 +397,7 @@ check_principals_line(struct ssh *ssh, char *cp, const struct sshkey_cert *cert,
 }
 
 static int
-process_principals(struct ssh *ssh, FILE *f, const char *file,
+process_principals(FILE *f, const char *file,
     const struct sshkey_cert *cert, struct sshauthopt **authoptsp)
 {
 	char loc[256], *line = NULL, *cp, *ep;
@@ -420,7 +425,7 @@ process_principals(struct ssh *ssh, FILE *f, const char *file,
 
 		nonblank++;
 		snprintf(loc, sizeof(loc), "%.200s:%lu", file, linenum);
-		if (check_principals_line(ssh, cp, cert, loc, authoptsp) == 0)
+		if (check_principals_line(cp, cert, loc, authoptsp) == 0)
 			found_principal = 1;
 	}
 	debug2_f("%s: processed %lu/%lu lines", file, nonblank, linenum);
@@ -431,7 +436,7 @@ process_principals(struct ssh *ssh, FILE *f, const char *file,
 /* XXX remove pw args here and elsewhere once ssh->authctxt is guaranteed */
 
 static int
-match_principals_file(struct ssh *ssh, struct passwd *pw, char *file,
+match_principals_file(struct passwd *pw, char *file,
     struct sshkey_cert *cert, struct sshauthopt **authoptsp)
 {
 	FILE *f;
@@ -446,7 +451,7 @@ match_principals_file(struct ssh *ssh, struct passwd *pw, char *file,
 		restore_uid();
 		return 0;
 	}
-	success = process_principals(ssh, f, file, cert, authoptsp);
+	success = process_principals(f, file, cert, authoptsp);
 	fclose(f);
 	restore_uid();
 	return success;
@@ -457,7 +462,7 @@ match_principals_file(struct ssh *ssh, struct passwd *pw, char *file,
  * returns 1 if the principal is allowed or 0 otherwise.
  */
 static int
-match_principals_command(struct ssh *ssh, struct passwd *user_pw,
+match_principals_command(struct passwd *user_pw,
     const struct sshkey *key, struct sshauthopt **authoptsp)
 {
 	struct passwd *runas_pw = NULL;
@@ -562,7 +567,7 @@ match_principals_command(struct ssh *ssh, struct passwd *user_pw,
 	uid_swapped = 1;
 	temporarily_use_uid(runas_pw);
 
-	ok = process_principals(ssh, f, "(command)", cert, authoptsp);
+	ok = process_principals(f, "(command)", cert, authoptsp);
 
 	fclose(f);
 	f = NULL;
@@ -596,8 +601,9 @@ match_principals_command(struct ssh *ssh, struct passwd *user_pw,
  * on success. "loc" is used as file/line location in log messages.
  */
 static int
-check_authkey_line(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
-    char *cp, const char *loc, struct sshauthopt **authoptsp)
+check_authkey_line(struct passwd *pw, struct sshkey *key,
+    char *cp, const char *remote_ip, const char *remote_host, const char *loc,
+    struct sshauthopt **authoptsp)
 {
 	int want_keytype = sshkey_is_cert(key) ? KEY_UNSPEC : key->type;
 	struct sshkey *found = NULL;
@@ -657,8 +663,8 @@ check_authkey_line(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 	debug("%s: matching %s found: %s %s", loc,
 	    sshkey_is_cert(key) ? "CA" : "key", sshkey_type(found), fp);
 
-	if (auth_authorise_keyopts(ssh, pw, keyopts,
-	    sshkey_is_cert(key), loc) != 0) {
+	if (auth_authorise_keyopts(pw, keyopts,
+	    sshkey_is_cert(key), remote_ip, remote_host, loc) != 0) {
 		reason = "Refused by key options";
 		goto fail_reason;
 	}
@@ -680,7 +686,8 @@ check_authkey_line(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 		reason = "Invalid certificate options";
 		goto fail_reason;
 	}
-	if (auth_authorise_keyopts(ssh, pw, certopts, 0, loc) != 0) {
+	if (auth_authorise_keyopts(pw, certopts, 0,
+	    remote_ip, remote_host, loc) != 0) {
 		reason = "Refused by certificate options";
 		goto fail_reason;
 	}
@@ -736,8 +743,9 @@ check_authkey_line(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
  * returns 1 if the key is allowed or 0 otherwise.
  */
 static int
-check_authkeys_file(struct ssh *ssh, struct passwd *pw, FILE *f,
-    char *file, struct sshkey *key, struct sshauthopt **authoptsp)
+check_authkeys_file(struct passwd *pw, FILE *f, char *file,
+    struct sshkey *key, const char *remote_ip,
+    const char *remote_host, struct sshauthopt **authoptsp)
 {
 	char *cp, *line = NULL, loc[256];
 	size_t linesize = 0;
@@ -761,7 +769,8 @@ check_authkeys_file(struct ssh *ssh, struct passwd *pw, FILE *f,
 
 		nonblank++;
 		snprintf(loc, sizeof(loc), "%.200s:%lu", file, linenum);
-		if (check_authkey_line(ssh, pw, key, cp, loc, authoptsp) == 0)
+		if (check_authkey_line(pw, key, cp,
+		    remote_ip, remote_host, loc, authoptsp) == 0)
 			found_key = 1;
 	}
 	free(line);
@@ -771,7 +780,8 @@ check_authkeys_file(struct ssh *ssh, struct passwd *pw, FILE *f,
 
 /* Authenticate a certificate key against TrustedUserCAKeys */
 static int
-user_cert_trusted_ca(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
+user_cert_trusted_ca(struct passwd *pw, struct sshkey *key,
+    const char *remote_ip, const char *remote_host,
     struct sshauthopt **authoptsp)
 {
 	char *ca_fp, *principals_file = NULL;
@@ -803,12 +813,12 @@ user_cert_trusted_ca(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 	 * against the username.
 	 */
 	if ((principals_file = authorized_principals_file(pw)) != NULL) {
-		if (match_principals_file(ssh, pw, principals_file,
+		if (match_principals_file(pw, principals_file,
 		    key->cert, &principals_opts))
 			found_principal = 1;
 	}
 	/* Try querying command if specified */
-	if (!found_principal && match_principals_command(ssh, pw, key,
+	if (!found_principal && match_principals_command(pw, key,
 	    &principals_opts))
 		found_principal = 1;
 	/* If principals file or command is specified, then require a match */
@@ -829,7 +839,8 @@ user_cert_trusted_ca(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 		reason = "Invalid certificate options";
 		goto fail_reason;
 	}
-	if (auth_authorise_keyopts(ssh, pw, cert_opts, 0, "cert") != 0) {
+	if (auth_authorise_keyopts(pw, cert_opts, 0,
+	    remote_ip, remote_host, "cert") != 0) {
 		reason = "Refused by certificate options";
 		goto fail_reason;
 	}
@@ -837,8 +848,8 @@ user_cert_trusted_ca(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 		final_opts = cert_opts;
 		cert_opts = NULL;
 	} else {
-		if (auth_authorise_keyopts(ssh, pw, principals_opts, 0,
-		    "principals") != 0) {
+		if (auth_authorise_keyopts(pw, principals_opts, 0,
+		    remote_ip, remote_host, "principals") != 0) {
 			reason = "Refused by certificate principals options";
 			goto fail_reason;
 		}
@@ -876,8 +887,9 @@ user_cert_trusted_ca(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
  * returns 1 if the key is allowed or 0 otherwise.
  */
 static int
-user_key_allowed2(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
-    char *file, struct sshauthopt **authoptsp)
+user_key_allowed2(struct passwd *pw, struct sshkey *key,
+    char *file, const char *remote_ip, const char *remote_host,
+    struct sshauthopt **authoptsp)
 {
 	FILE *f;
 	int found_key = 0;
@@ -890,8 +902,8 @@ user_key_allowed2(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 
 	debug("trying public key file %s", file);
 	if ((f = auth_openkeyfile(file, pw, options.strict_modes)) != NULL) {
-		found_key = check_authkeys_file(ssh, pw, f, file,
-		    key, authoptsp);
+		found_key = check_authkeys_file(pw, f, file,
+		    key, remote_ip, remote_host, authoptsp);
 		fclose(f);
 	}
 
@@ -904,8 +916,9 @@ user_key_allowed2(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
  * returns 1 if the key is allowed or 0 otherwise.
  */
 static int
-user_key_command_allowed2(struct ssh *ssh, struct passwd *user_pw,
-    struct sshkey *key, struct sshauthopt **authoptsp)
+user_key_command_allowed2(struct passwd *user_pw, struct sshkey *key,
+    const char *remote_ip, const char *remote_host,
+    struct sshauthopt **authoptsp)
 {
 	struct passwd *runas_pw = NULL;
 	FILE *f = NULL;
@@ -1005,8 +1018,9 @@ user_key_command_allowed2(struct ssh *ssh, struct passwd *user_pw,
 	uid_swapped = 1;
 	temporarily_use_uid(runas_pw);
 
-	ok = check_authkeys_file(ssh, user_pw, f,
-	    options.authorized_keys_command, key, authoptsp);
+	ok = check_authkeys_file(user_pw, f,
+	    options.authorized_keys_command, key, remote_ip,
+	    remote_host, authoptsp);
 
 	fclose(f);
 	f = NULL;
@@ -1036,8 +1050,9 @@ user_key_command_allowed2(struct ssh *ssh, struct passwd *user_pw,
  * Check whether key authenticates and authorises the user.
  */
 int
-user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
-    int auth_attempt, struct sshauthopt **authoptsp)
+user_key_allowed(struct passwd *pw, struct sshkey *key,
+    int auth_attempt, const char *remote_ip, const char *remote_host,
+    struct sshauthopt **authoptsp)
 {
 	u_int success = 0, i;
 	char *file;
@@ -1057,7 +1072,8 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 			continue;
 		file = expand_authorized_keys(
 		    options.authorized_keys_files[i], pw);
-		success = user_key_allowed2(ssh, pw, key, file, &opts);
+		success = user_key_allowed2(pw, key, file,
+		    remote_ip, remote_host, &opts);
 		free(file);
 		if (!success) {
 			sshauthopt_free(opts);
@@ -1067,12 +1083,14 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 	if (success)
 		goto out;
 
-	if ((success = user_cert_trusted_ca(ssh, pw, key, &opts)) != 0)
+	if ((success = user_cert_trusted_ca(pw, key, remote_ip, remote_host,
+	    &opts)) != 0)
 		goto out;
 	sshauthopt_free(opts);
 	opts = NULL;
 
-	if ((success = user_key_command_allowed2(ssh, pw, key, &opts)) != 0)
+	if ((success = user_key_command_allowed2(pw, key, remote_ip,
+	    remote_host, &opts)) != 0)
 		goto out;
 	sshauthopt_free(opts);
 	opts = NULL;

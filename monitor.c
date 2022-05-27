@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.232 2022/02/25 02:09:27 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.233 2022/05/27 05:01:25 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1151,6 +1151,9 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 	u_int type = 0;
 	int r, allowed = 0;
 	struct sshauthopt *opts = NULL;
+	const char *remote_ip = ssh_remote_ipaddr(ssh);
+	const char *remote_host = auth_get_canonical_hostname(ssh,
+	    options.use_dns);
 
 	debug3_f("entering");
 	if ((r = sshbuf_get_u32(m, &type)) != 0 ||
@@ -1176,8 +1179,8 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 			if (!key_base_type_match(auth_method, key,
 			    options.pubkey_accepted_algos))
 				break;
-			allowed = user_key_allowed(ssh, authctxt->pw, key,
-			    pubkey_auth_attempt, &opts);
+			allowed = user_key_allowed(authctxt->pw, key,
+			    pubkey_auth_attempt, remote_ip, remote_host, &opts);
 			break;
 		case MM_HOSTKEY:
 			auth_method = "hostbased";
