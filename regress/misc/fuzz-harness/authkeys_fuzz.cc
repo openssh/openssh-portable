@@ -49,9 +49,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	}
 	if (cp == NULL || pw == NULL || key == NULL || cert == NULL)
 		abort();
+
+	// Cleanup whitespace at input EOL.
+	for (; size > 0 && strchr(" \t\r\n", data[size - 1]) != NULL; size--) ;
+
+	// Append a pubkey that will match.
 	memcpy(cp, data, size);
 	cp[size] = ' ';
-	memcpy(cp + size + 1, key, strlen(pubkey) + 1);
+	memcpy(cp + size + 1, pubkey, strlen(pubkey) + 1);
 
 	// Try key.
 	if ((tmp = strdup(cp)) == NULL)
