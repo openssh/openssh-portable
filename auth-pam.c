@@ -259,6 +259,7 @@ static char * ferrum_client_ip_port=NULL;
 static char * ferrum_redis_host=NULL;
 static char *ferrum_redis_port=NULL;
 static char *ferrum_session_id=NULL;
+static char *ferrum_login_url=NULL;
 #endif
 
 
@@ -764,7 +765,9 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 		xasprintf(&ferrum_redis_port,"REDIS_PORT=%d",ssh->ferrum->redis.port);
 		pam_putenv(sshpam_handle,ferrum_redis_port);
 		xasprintf(&ferrum_session_id,"SESSION_ID=%s",ssh->ferrum->session.id);
-		pam_putenv(sshpam_handle,ferrum_session_id);		
+		pam_putenv(sshpam_handle,ferrum_session_id);
+		xasprintf(&ferrum_login_url,"LOGIN_URL=%s",ssh->ferrum->login.url);
+		pam_putenv(sshpam_handle,ferrum_login_url);		
 	}
 	#endif
 

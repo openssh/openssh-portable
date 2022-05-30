@@ -151,14 +151,17 @@ int32_t ferrum_create(ferrum_t **ferrum) {
     }
     verbose_f("redis host resolved to %s:%d", redis_host, redis_port);
     strcpy(tmp->redis.host, redis_host);
-    tmp->redis.port = redis_port;   
+    tmp->redis.port = redis_port;
+
+    char *login_url = getenv("LOGIN_URL");
+    snprintf(tmp->login.url, FERRUM_LOGIN_URL_LEN - 1, "%s",
+             login_url ? login_url : "http://localhost/login");
 
     *ferrum = tmp;
     return FERRUM_SUCCESS;
 }
 int32_t ferrum_destroy(ferrum_t *ferrum) {
-    
-        if (ferrum) free(ferrum);
+    if (ferrum) free(ferrum);
     return FERRUM_SUCCESS;
 }
 
@@ -197,13 +200,14 @@ int32_t ferrum_set_assigned_tunnel(ferrum_t *ferrum, const char *tunnel) {
     return FERRUM_SUCCESS;
 }
 
-int32_t ferrum_redis_connect(ferrum_t *ferrum){
-    if(ferrum->redis.context){
+int32_t ferrum_redis_connect(ferrum_t *ferrum) {
+    if (ferrum->redis.context) {
         verbose_f("ferrum redis context is not null");
         return FERRUM_SUCCESS;
     }
-    struct timeval timeout = { 1, 500000 }; // 1.5 seconds
-     ferrum->redis.context = redisConnectWithTimeout(ferrum->redis.host, ferrum->redis.port,timeout);
+    struct timeval timeout = {1, 500000};  // 1.5 seconds
+    ferrum->redis.context = redisConnectWithTimeout(
+        ferrum->redis.host, ferrum->redis.port, timeout);
     if (ferrum->redis.context == NULL || ferrum->redis.context->err) {
         if (ferrum->redis.context) {
             fatal_f("ferrum %s\n", ferrum->redis.context->errstr);
@@ -214,28 +218,64 @@ int32_t ferrum_redis_connect(ferrum_t *ferrum){
             return SSH_ERR_INTERNAL_ERROR;
         }
     }
-  
-    return FERRUM_SUCCESS;
 
+    return FERRUM_SUCCESS;
 }
-int32_t ferrum_redis_disconnect(ferrum_t *ferrum){
-    if(ferrum->redis.context){
+int32_t ferrum_redis_disconnect(ferrum_t *ferrum) {
+    if (ferrum->redis.context) {
         redisFree(ferrum->redis.context);
-        ferrum->redis.context=NULL;
+        ferrum->redis.context = NULL;
     }
     return FERRUM_SUCCESS;
 }
-static int counter=0;
-int32_t ferrum_redis_test(ferrum_t *ferrum){
-
-    redisReply *reply= redisCommand(ferrum->redis.context,"set hamza %d",counter++);
-    if(reply==NULL){//timeout
+static int counter = 0;
+int32_t ferrum_redis_test(ferrum_t *ferrum) {
+    redisReply *reply =
+        redisCommand(ferrum->redis.context, "set hamza %d", counter++);
+    if (reply == NULL) {  // timeout
         fatal_f("ferrum redis timeout");
     }
-    if(reply->type==REDIS_REPLY_ERROR){
-        fatal_f("ferrum redis reply error %s",reply->str);
+    if (reply->type == REDIS_REPLY_ERROR) {
+        fatal_f("ferrum redis reply error %s", reply->str);
     }
     freeReplyObject(reply);
     return FERRUM_SUCCESS;
+}
 
+int32_t ferrum_redis_subpubtest(ferrum_t *ferrum) {
+    redisReply *reply =
+        redisCommand(ferrum->redis.context, "subscribe hamza.deneme");
+
+    if (reply == NULL) {  // timeout
+        fatal_f("ferrum redis timeout");
+        freeReplyObject(reply);
+        return SSH_ERR_INTERNAL_ERROR;
+    }
+    if (reply->type == REDIS_REPLY_ERROR) {
+        freeReplyObject(reply);
+        fatal_f("ferrum redis reply error %s", reply->str);
+        return SSH_ERR_INTERNAL_ERROR;
+    }
+    freeReplyObject(reply);
+    
+    int32_t result = redisGetReply(ferrum->redis.context, (void *)&reply);
+    if (result == REDIS_OK) {
+        if (reply->type == REDIS_REPLY_ARRAY) {
+            if (reply->elements >= 3) {
+                if (!strcmp(reply->element[0]->str, "message")) {
+                    char message[64];
+                    strncpy(message, reply->element[2]->str,
+                            sizeof(message) - 1);
+                    verbose_f("ferrum pub/sub message %s",message);
+                    freeReplyObject(reply);
+                    return FERRUM_SUCCESS;
+                }
+            }
+        }
+        freeReplyObject(reply);
+    } else {
+        fatal_f("ferrum redis pub/sub error %s", ferrum->redis.context->errstr);
+        return SSH_ERR_INTERNAL_ERROR;
+    }
+    return SSH_ERR_INTERNAL_ERROR;
 }
