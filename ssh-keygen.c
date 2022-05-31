@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.452 2022/05/09 03:09:53 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.453 2022/05/31 14:05:12 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -127,6 +127,7 @@ static u_int64_t cert_valid_to = ~0ULL;
 #define CERTOPT_PTY				(1<<3)
 #define CERTOPT_USER_RC				(1<<4)
 #define CERTOPT_NO_REQUIRE_USER_PRESENCE	(1<<5)
+#define CERTOPT_REQUIRE_VERIFY			(1<<6)
 #define CERTOPT_DEFAULT	(CERTOPT_X_FWD|CERTOPT_AGENT_FWD| \
 			 CERTOPT_PORT_FWD|CERTOPT_PTY|CERTOPT_USER_RC)
 static u_int32_t certflags_flags = CERTOPT_DEFAULT;
@@ -1672,6 +1673,8 @@ finalise_cert_exts(void)
 		cert_ext_add("force-command", certflags_command, 1);
 	if (certflags_src_addr != NULL)
 		cert_ext_add("source-address", certflags_src_addr, 1);
+	if ((certflags_flags & CERTOPT_REQUIRE_VERIFY) != 0)
+		cert_ext_add("verify-required", NULL, 1);
 	/* extensions */
 	if ((certflags_flags & CERTOPT_X_FWD) != 0)
 		cert_ext_add("permit-X11-forwarding", NULL, 0);
@@ -1993,6 +1996,10 @@ add_cert_option(char *opt)
 		certflags_flags &= ~CERTOPT_NO_REQUIRE_USER_PRESENCE;
 	else if (strcasecmp(opt, "no-touch-required") == 0)
 		certflags_flags |= CERTOPT_NO_REQUIRE_USER_PRESENCE;
+	else if (strcasecmp(opt, "no-verify-required") == 0)
+		certflags_flags &= ~CERTOPT_REQUIRE_VERIFY;
+	else if (strcasecmp(opt, "verify-required") == 0)
+		certflags_flags |= CERTOPT_REQUIRE_VERIFY;
 	else if (strncasecmp(opt, "force-command=", 14) == 0) {
 		val = opt + 14;
 		if (*val == '\0')
@@ -2051,6 +2058,9 @@ show_options(struct sshbuf *optbuf, int in_critical)
 				fatal_fr(r, "parse critical");
 			printf(" %s\n", arg);
 			free(arg);
+		} else if (in_critical &&
+		    strcmp(name, "verify-required") == 0) {
+			printf("\n");
 		} else if (sshbuf_len(option) > 0) {
 			hex = sshbuf_dtob16(option);
 			printf(" UNKNOWN OPTION: %s (len %zu)\n",
