@@ -2244,6 +2244,8 @@ channel_check_window(struct ssh *ssh, Channel *c)
 				addition = tcpwinsz - c->local_window_max;
 			}
 			c->local_window_max += addition;
+			c->output->window_max = c->local_window_max;
+			c->input->window_max = c->local_window_max;
 			debug("Channel: Window growth to %d by %d bytes", c->local_window_max, addition);
 		}
 		if (!c->have_remote_id)
