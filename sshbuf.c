@@ -27,7 +27,7 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 #include "misc.h"
-#include "log.h"
+/* #include "log.h" */
 
 #define BUF_WATERSHED 256*1024
 
@@ -82,7 +82,6 @@ sshbuf_new(void)
 	ret->parent = NULL;
 	if ((ret->cd = ret->d = calloc(1, ret->alloc)) == NULL) {
 		free(ret);
-		debug ("FAILED in %s", __func__);
 		return NULL;
 	}
 	return ret;
@@ -345,7 +344,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * buf->alloc) is greater than window_max we skip it.
 	 */
 	if (rlen > BUF_WATERSHED && buf->window_max !=0 && buf->alloc < buf->window_max) {
-		debug("*********** prior rlen %zu and need %zu buf_alloc is %zu", rlen, need, buf->alloc);
+		// debug("*********** prior rlen %zu and need %zu buf_alloc is %zu", rlen, need, buf->alloc);
 		/* set need to the the max window size less the current allocation */
 		need = buf->window_max;
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
@@ -353,7 +352,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 		 * rlen can exceed buf->max size. So clamp it if necessary */
 		if (rlen > buf->max_size)
 			rlen = buf->max_size;
-		debug ("***********************************  rlen is %zu need is %zu window max is %zu max_size is %zu", rlen, need, buf->window_max, buf->max_size);
+		//debug ("***********************************  rlen is %zu need is %zu window max is %zu max_size is %zu", rlen, need, buf->window_max, buf->max_size);
 	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 	if (rlen > buf->max_size)
