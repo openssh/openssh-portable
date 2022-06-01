@@ -43,6 +43,7 @@ struct sshbuf {
 	size_t off;		/* First available byte is buf->d + buf->off */
 	size_t size;		/* Last byte is buf->d + buf->size - 1 */
 	size_t max_size;	/* Maximum size of buffer */
+	size_t window_max;      /* channel window max */
 	size_t alloc;		/* Total bytes allocated to buf->d */
 	int readonly;		/* Refers to external, const data */
 	int dont_free;		/* Kludge to support sshbuf_init */
