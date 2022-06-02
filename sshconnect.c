@@ -816,7 +816,7 @@ other_hostkeys_message(const char *host, const char *ip,
 	    system_hostfiles, num_system_hostfiles,
 	    &othernames, &num_othernames);
 	if (num_othernames == 0)
-		return xstrdup("This key is not known by any other names");
+		return xstrdup("This key is not known by any other names.");
 
 	xasprintf(&ret, "This host key is known by the following other "
 	    "names/addresses:");
