@@ -2192,31 +2192,27 @@ static int
 channel_check_window(struct ssh *ssh, Channel *c)
 {
 	int r;
-	int denominator = 2;
+	int denominator = 24;
 
-	/* The Openssh code would check to see if we needed
-	 * to send a window adjustment if the size fo the local window
-	 * (the local write buffer) was less than half of the maximum
-	 * size of the window. In cases where local_window_max was really
-	 * large (say 128MB) this mean we needed to consume, in a worst case,
-	 * 64MB out of the buffer before an adjustment was set. This could
-	 * create something like silly window syndrome where we have to
-	 * wait for a slow drain of the buffer and then the buffer is hit
-	 * by another huge chunk of data. By having a denomicator that adjusts
-	 * to the size of local_window_max we can send adjusts more frequently
-	 * and for more reaosnable amounts.
+	/* the denominator is used to control the frequency of 
+	 * windows adjustment advertisment as part of flow control.
+	 * In openssh this is set to a static value of two. What we've
+	 * found is that increasing the denominator has two effects:
+	 * 1) in low RTT situations this forces less frequent adjusts
+	 * and, in effect, coallasces, the datagrams. With a debominator
+	 * of 2 you'd see window adjusts every 64k. This would cause 
+	 * higher than necessary CPU usage. With a denominator of 24
+	 * you'll see adjusts every 500K to 1M. The reduces CPU load and
+	 * results in somewhat better throughput
+	 * 2) in high RRT environments having a higher denominator means
+	 * that more data is sent between window adjusts allowing for 
+	 * more optimal use of the network. In comparison to a denominator 
+	 * of 2 I was measuring a 20% performance improvement. 
+	 * This has no impact on interactive sessions.
 	 */
-
-	denominator = c->local_window_max / (4*1024*1024);
-	if (denominator < 2)
-		denominator = 2;
-
-	/*
-	if (c->local_window < c->local_window_max/denominator) {
-		debug ("local: %d, LM/D: %d, local max: %d", c->local_window, c->local_window_max/denominator, c->local_window_max);
-		debug ("WILL SEND ADJUST");
-	}
-	*/
+	denominator = c->local_window_max / (2*1024*1024);
+	if (denominator < 24)
+		denominator = 24;
 
 	if (c->type == SSH_CHANNEL_OPEN &&
 	    !(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
@@ -2226,9 +2222,9 @@ channel_check_window(struct ssh *ssh, Channel *c)
 	    c->local_consumed > 0) {
 		u_int addition = 0;
 		u_int32_t tcpwinsz = channel_tcpwinsz(ssh);
-		/* adjust max window size if we are in a dynamic environment */
+		/* adjust max window size if we are in a dynamic environment 
+		 * and the tcp receive buffer is larger than the ssh window */
 		if (c->dynamic_window && (tcpwinsz > c->local_window_max)) {
-			debug ("maxpacket = %d", c->local_maxpacket);
 			if (c->hpn_buffer_limit) {
 				/* limit window growth to prevent buffer issues
 				 * still not sure what is causing the buffer issues
@@ -2246,7 +2242,8 @@ channel_check_window(struct ssh *ssh, Channel *c)
 			c->local_window_max += addition;
 			c->output->window_max = c->local_window_max;
 			c->input->window_max = c->local_window_max;
-			debug("Channel: Window growth to %d by %d bytes", c->local_window_max, addition);
+			debug("Channel %d: Window growth to %d by %d bytes",c->self,
+			      c->local_window_max, addition);
 		}
 		if (!c->have_remote_id)
 			fatal_f("channel %d: no remote id", c->self);
