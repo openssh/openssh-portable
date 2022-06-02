@@ -2199,7 +2199,7 @@ channel_check_window(struct ssh *ssh, Channel *c)
 	 * In openssh this is set to a static value of two. What we've
 	 * found is that increasing the denominator has two effects:
 	 * 1) in low RTT situations this forces less frequent adjusts
-	 * and, in effect, coallasces, the datagrams. With a debominator
+	 * and, in effect, coallasces, the datagrams. With a denominator
 	 * of 2 you'd see window adjusts every 64k. This would cause 
 	 * higher than necessary CPU usage. With a denominator of 24
 	 * you'll see adjusts every 500K to 1M. The reduces CPU load and
