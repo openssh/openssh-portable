@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.104 2022/05/27 05:02:46 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.105 2022/06/03 04:47:21 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -193,8 +193,6 @@ struct passwd * getpwnamallow(struct ssh *, const char *user);
 char	*expand_authorized_keys(const char *, struct passwd *pw);
 char	*authorized_principals_file(struct passwd *);
 
-FILE	*auth_openkeyfile(const char *, struct passwd *, int);
-FILE	*auth_openprincipals(const char *, struct passwd *, int);
 int	 auth_key_is_revoked(struct sshkey *);
 
 const char	*auth_get_canonical_hostname(struct ssh *, int);
@@ -237,6 +235,8 @@ int	 auth_check_authkey_line(struct passwd *, struct sshkey *,
     char *, const char *, const char *, const char *, struct sshauthopt **);
 int	 auth_check_authkeys_file(struct passwd *, FILE *, char *,
     struct sshkey *, const char *, const char *, struct sshauthopt **);
+FILE	*auth_openkeyfile(const char *, struct passwd *, int);
+FILE	*auth_openprincipals(const char *, struct passwd *, int);
 
 int	 sys_auth_passwd(struct ssh *, const char *);
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.157 2022/05/27 05:02:46 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.158 2022/06/03 04:47:21 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -458,62 +458,6 @@ check_key_in_hostfiles(struct passwd *pw, struct sshkey *key, const char *host,
 	free_hostkeys(hostkeys);
 
 	return host_status;
-}
-
-static FILE *
-auth_openfile(const char *file, struct passwd *pw, int strict_modes,
-    int log_missing, char *file_type)
-{
-	char line[1024];
-	struct stat st;
-	int fd;
-	FILE *f;
-
-	if ((fd = open(file, O_RDONLY|O_NONBLOCK)) == -1) {
-		if (log_missing || errno != ENOENT)
-			debug("Could not open %s '%s': %s", file_type, file,
-			    strerror(errno));
-		return NULL;
-	}
-
-	if (fstat(fd, &st) == -1) {
-		close(fd);
-		return NULL;
-	}
-	if (!S_ISREG(st.st_mode)) {
-		logit("User %s %s %s is not a regular file",
-		    pw->pw_name, file_type, file);
-		close(fd);
-		return NULL;
-	}
-	unset_nonblock(fd);
-	if ((f = fdopen(fd, "r")) == NULL) {
-		close(fd);
-		return NULL;
-	}
-	if (strict_modes &&
-	    safe_path_fd(fileno(f), file, pw, line, sizeof(line)) != 0) {
-		fclose(f);
-		logit("Authentication refused: %s", line);
-		auth_debug_add("Ignored %s: %s", file_type, line);
-		return NULL;
-	}
-
-	return f;
-}
-
-
-FILE *
-auth_openkeyfile(const char *file, struct passwd *pw, int strict_modes)
-{
-	return auth_openfile(file, pw, strict_modes, 1, "authorized keys");
-}
-
-FILE *
-auth_openprincipals(const char *file, struct passwd *pw, int strict_modes)
-{
-	return auth_openfile(file, pw, strict_modes, 0,
-	    "authorized principals");
 }
 
 struct passwd *
