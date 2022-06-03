@@ -2690,10 +2690,8 @@ fill_default_options(Options * options)
 			options->hpn_buffer_size *= 1024;
 		debug("hpn_buffer_size set to %d", options->hpn_buffer_size);
 	}
-	if (options->hpn_buffer_limit == -1) {
+	if (options->hpn_buffer_limit == -1)
 		options->hpn_buffer_limit = 0;
-		debug("*********************************************** LIMIT SET!");
-	}
 	if (options->tcp_rcv_buf == 0)
 		options->tcp_rcv_buf = 1;
 	if (options->tcp_rcv_buf > -1)
