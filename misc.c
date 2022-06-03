@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.175 2022/03/20 08:51:21 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.176 2022/06/03 04:30:47 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2792,4 +2792,21 @@ lookup_env_in_list(const char *env, char * const *envs, size_t nenvs)
 		}
 	}
 	return NULL;
+}
+
+const char *
+lookup_setenv_in_list(const char *env, char * const *envs, size_t nenvs)
+{
+	char *name, *cp;
+	const char *ret;
+
+	name = xstrdup(env);
+	if ((cp = strchr(name, '=')) == NULL) {
+		free(name);
+		return NULL; /* not env=val */
+	}
+	*cp = '\0';
+	ret = lookup_env_in_list(name, envs, nenvs);
+	free(name);
+	return ret;
 }

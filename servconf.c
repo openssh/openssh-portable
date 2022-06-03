@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.384 2022/03/18 04:04:11 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.385 2022/06/03 04:30:47 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2033,6 +2033,12 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				    filename, linenum);
 			if (!*activep || uvalue != 0)
 				continue;
+			if (lookup_setenv_in_list(arg, options->setenv,
+			    options->num_setenv) != NULL) {
+				debug2("%s line %d: ignoring duplicate env "
+				    "name \"%.64s\"", filename, linenum, arg);
+				continue;
+			}
 			opt_array_append(filename, linenum, keyword,
 			    &options->setenv, &options->num_setenv, arg);
 		}

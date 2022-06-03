@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.367 2022/04/20 15:56:49 millert Exp $ */
+/* $OpenBSD: readconf.c,v 1.368 2022/06/03 04:30:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -753,7 +753,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 static void
 rm_env(Options *options, const char *arg, const char *filename, int linenum)
 {
-	int i, j, onum_send_env = options->num_send_env;
+	u_int i, j, onum_send_env = options->num_send_env;
 
 	/* Remove an environment variable */
 	for (i = 0; i < options->num_send_env; ) {
@@ -1733,20 +1733,10 @@ parse_pubkey_algos:
 				/* Removing an env var */
 				rm_env(options, arg, filename, linenum);
 				continue;
-			} else {
-				/* Adding an env var */
-				if (options->num_send_env >= INT_MAX) {
-					error("%s line %d: too many send env.",
-					    filename, linenum);
-					goto out;
-				}
-				options->send_env = xrecallocarray(
-				    options->send_env, options->num_send_env,
-				    options->num_send_env + 1,
-				    sizeof(*options->send_env));
-				options->send_env[options->num_send_env++] =
-				    xstrdup(arg);
 			}
+			opt_array_append(filename, linenum,
+			    lookup_opcode_name(opcode),
+			    &options->send_env, &options->num_send_env, arg);
 		}
 		break;
 
@@ -1760,16 +1750,15 @@ parse_pubkey_algos:
 			}
 			if (!*activep || value != 0)
 				continue;
-			/* Adding a setenv var */
-			if (options->num_setenv >= INT_MAX) {
-				error("%s line %d: too many SetEnv.",
-				    filename, linenum);
-				goto out;
+			if (lookup_setenv_in_list(arg, options->setenv,
+			    options->num_setenv) != NULL) {
+				debug2("%s line %d: ignoring duplicate env "
+				    "name \"%.64s\"", filename, linenum, arg);
+				continue;
 			}
-			options->setenv = xrecallocarray(
-			    options->setenv, options->num_setenv,
-			    options->num_setenv + 1, sizeof(*options->setenv));
-			options->setenv[options->num_setenv++] = xstrdup(arg);
+			opt_array_append(filename, linenum,
+			    lookup_opcode_name(opcode),
+			    &options->setenv, &options->num_setenv, arg);
 		}
 		break;
 
@@ -2770,9 +2759,9 @@ free_options(Options *o)
 	}
 	free(o->remote_forwards);
 	free(o->stdio_forward_host);
-	FREE_ARRAY(int, o->num_send_env, o->send_env);
+	FREE_ARRAY(u_int, o->num_send_env, o->send_env);
 	free(o->send_env);
-	FREE_ARRAY(int, o->num_setenv, o->setenv);
+	FREE_ARRAY(u_int, o->num_setenv, o->setenv);
 	free(o->setenv);
 	free(o->control_path);
 	free(o->local_command);
