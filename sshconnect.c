@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.356 2021/12/19 22:10:24 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.357 2022/06/03 03:21:09 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -816,7 +816,7 @@ other_hostkeys_message(const char *host, const char *ip,
 	    system_hostfiles, num_system_hostfiles,
 	    &othernames, &num_othernames);
 	if (num_othernames == 0)
-		return xstrdup("This key is not known by any other names");
+		return xstrdup("This key is not known by any other names.");
 
 	xasprintf(&ret, "This host key is known by the following other "
 	    "names/addresses:");
