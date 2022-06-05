@@ -38,8 +38,8 @@ jobs:
           name: Build OpenSSH
           command: env WITH_OPENSSL=<< parameters.WITH_OPENSSL >> ./oqs-scripts/build_openssh.sh
       - run:
-          name: Run short tests
-          command: make tests LTESTS=""
+          name: Run tests documented to pass
+          command: ./oqs-test/run_tests.sh
       - run:
           name: Ensure we have the ssh and sshd syntax right once for each algorithm
           command: python3 oqs-test/try_connection.py doone

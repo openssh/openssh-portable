@@ -10,7 +10,9 @@ INVESTIGATE_FURTHER="integrity \
                      keys-command \
                      hostkey-agent \
                      authinfo \
-                     principals-command"
+                     principals-command \
+                     knownhosts-command \
+                     hostkey-rotate"
 SKIPPED_DUE_TO_CERTIFIED_KEYS="agent \
                                cert-hostkey \
                                cert-userkey \
