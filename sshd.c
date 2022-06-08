@@ -2235,17 +2235,23 @@ main(int ac, char **av)
 		fatal_f("ferrum create failed");
 		exit(0);
 	}
-	error_f("redis host is %s:%d",ferrum->redis.host,ferrum->redis.port);
+	verbose_f("ferrum redis host is %s:%d",ferrum->redis.host,ferrum->redis.port);
 	fresult=ferrum_generate_session_id(ferrum);
 	fresult=ferrum_set_client_ip(ferrum,remote_ip,remote_port);
 	fresult=ferrum_redis_connect(ferrum);
+	
 	if(fresult){
 		fatal_f("ferrum redis connection failed to %s:%d",ferrum->redis.host,ferrum->redis.port);
 		exit(0);
 	}
-	//fresult=ferrum_redis_test(ferrum);
-	fresult= ferrum_redis_subpubtest(ferrum);
+	fresult=ferrum_redis_test(ferrum);
+	if(fresult){
+		fatal_f("redis check connection failed");
+		exit(0);
+	}
+	//fresult= ferrum_redis_subpubtest(ferrum);
 	ssh->ferrum=ferrum;
+	//TODO do rate limit over redis
 	#endif
  
 	 if (use_privsep) {

@@ -80,33 +80,49 @@ static int32_t redis_test(pam_handle_t *pamh,redisContext *redis){
 
 }
 
-
-static int32_t redis_wait_for_authentication(pam_handle_t *pamh,redisContext *redis,const char *session_id){
-    
-    
+static int32_t redis_execute(pam_handle_t *pamh,redisContext *redis, const char *fmt,...){
+    va_list args;
+    va_start(args, fmt);
     redisReply *reply =
-        redisCommand(redis, "subscribe authentication.%s",session_id);
+        redisvCommand(redis,fmt,args);
     if (reply == NULL) {  // timeout
         log(pamh, LOG_ALERT,"ferrum redis timeout");
+        va_end(args);
         freeReplyObject(reply);
         return PAM_AUTH_ERR;
     }
     if (reply->type == REDIS_REPLY_ERROR) {
         log(pamh, LOG_ALERT,"ferrum redis reply error %s", reply->str);
+        va_end(args);
         freeReplyObject(reply);
         return PAM_AUTH_ERR;
     }
+    va_end(args);
     freeReplyObject(reply);
-   /*  int32_t result = redisGetReply(redis, (void *)&reply);
+    return  PAM_SUCCESS;
+}
 
-    if (result == REDIS_OK)
-        freeReplyObject(reply);
-    else {
-        log(pamh, LOG_ALERT,"ferrum redis pub/sub error %s", redis->errstr);
-        return PAM_AUTH_ERR;
-    } */
+
+static int32_t redis_wait_for_authentication(pam_handle_t *pamh,redisContext *redis,const char *session_id,const char *client_ip){
+    
+    // client source ip must be setted
+    // we need to set a redis key like /session/${session_id} with some fields like clientIp   {clientIp:${clientIp}} for live to 5 minutes
+
+    // create session object with identifier and clientIp
+    int32_t result= redis_execute(pamh,redis,"hset /session/%s clientIp %s id %s",session_id,client_ip,session_id);
+    if(result)return result;//error
+
+    //set 5 minutes ttl, every client will update expire at every minute
+    result= redis_execute(pamh,redis,"pexpire /session/%s 300000",session_id,client_ip,session_id);
+    if(result)return result;//error
+
+
+    result=redis_execute(pamh,redis,"subscribe /session/authentication/%s",session_id);
+    if(result)return result;//error
+   
+   redisReply *reply;
     log(pamh, LOG_DEBUG,"ferrum redis pub/sub waiting authentication.%s", session_id);
-    int32_t result = redisGetReply(redis, (void *)&reply);
+    result = redisGetReply(redis, (void *)&reply);
     if (result == REDIS_OK) {
         if (reply->type == REDIS_REPLY_ARRAY) {
             if (reply->elements >= 3) {
@@ -170,7 +186,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     if (!sshpam_err) {
         #define FERRUM_LOGIN_URL_LEN 512
         char ferrumlink[FERRUM_LOGIN_URL_LEN];
-        snprintf(ferrumlink,FERRUM_LOGIN_URL_LEN-1, "ferrum_open:%s/%s",login_url,session_id);
+        snprintf(ferrumlink,FERRUM_LOGIN_URL_LEN-1, "ferrum_open:%s?session=%s",login_url,session_id);
         log(pamh, LOG_DEBUG, "ferrum user %s ", pam_user);
         PAM_CONST struct pam_message msg = {
             .msg_style = PAM_PROMPT_ECHO_ON,
@@ -188,7 +204,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
         free(resp);
 		}
         log(pamh, LOG_DEBUG, "ferrum waiting for authentication");
-        sshpam_err=redis_wait_for_authentication(pamh,redis,session_id);
+        sshpam_err=redis_wait_for_authentication(pamh,redis,session_id,client_ip);
         
     }
 	//return PAM_USER_UNKNOWN

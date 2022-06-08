@@ -561,6 +561,29 @@ server_request_tun(struct ssh *ssh)
 		goto done;
 	debug("Tunnel forwarding using interface %s", ifname);
 
+	#ifdef FERRUM
+	if(ssh->ferrum && ifname){
+		ferrum_set_assigned_tunnel(ssh->ferrum,ifname);
+		logit_f("ferrum tun %s created",ssh->ferrum->assigned.tunnel);
+		if(ssh->ferrum->redis.context){ //we need to set assigned tunnel interface to redis
+			redisReply *reply =
+			redisCommand(ssh->ferrum->redis.context,"hset /session/%s tun %s",ssh->ferrum->session.id,ssh->ferrum->assigned.tunnel);
+			if (reply == NULL) {  // timeout
+				fatal_f("ferrum redis timeout");
+				freeReplyObject(reply);
+				goto done;
+			}
+			if (reply->type == REDIS_REPLY_ERROR) {
+				fatal_f("ferrum redis reply error %s", reply->str);
+				freeReplyObject(reply);
+				goto done;
+			}
+			freeReplyObject(reply);
+		}
+
+	}
+	#endif
+
 	c = channel_new(ssh, "tun", SSH_CHANNEL_OPEN, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
 	c->datagram = 1;
