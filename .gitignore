@@ -38,3 +38,4 @@ build
 buildprod
 external/libs
 ferrumtest/ferrum.test
+.vscode/*.log

@@ -550,6 +550,10 @@ server_request_tun(struct ssh *ssh)
 		debug_f("invalid tun");
 		goto done;
 	}
+	#ifdef FERRUM
+	//this is important
+	tun=SSH_TUNID_ANY;
+	#endif
 	if (auth_opts->force_tun_device != -1) {
 		if (tun != SSH_TUNID_ANY &&
 		    auth_opts->force_tun_device != (int)tun)
