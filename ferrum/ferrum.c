@@ -165,19 +165,19 @@ int32_t ferrum_destroy(ferrum_t *ferrum) {
     return FERRUM_SUCCESS;
 }
 
-int32_t ferrum_generate_session_id(ferrum_t *ferrum) {
+int32_t ferrum_generate_tunnel_id(ferrum_t *ferrum) {
     // init default ssed
     if (!srand_initted) {
         srand(time(NULL));
         srand_initted = 1;
     }
     size_t len = strlen(charset);
-    for (uint32_t i = 0; i < sizeof(ferrum->session.id) - 1; ++i) {
+    for (uint32_t i = 0; i < sizeof(ferrum->tunnel.id) - 1; ++i) {
         size_t index = rand() % len;
-        ferrum->session.id[i] = charset[index];
+        ferrum->tunnel.id[i] = charset[index];
     }
-    ferrum->session.id[sizeof(ferrum->session.id) - 1] = 0;
-    logit_f("ferrum session sid generated %s", ferrum->session.id);
+    ferrum->tunnel.id[sizeof(ferrum->tunnel.id) - 1] = 0;
+    logit_f("ferrum tunnel sid generated %s", ferrum->tunnel.id);
     return FERRUM_SUCCESS;
 }
 int32_t ferrum_set_client_ip(ferrum_t *ferrum, const char *ip, int port) {

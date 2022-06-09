@@ -27,15 +27,15 @@ static void test_ferrum_create_destroy(void **start)
 
 
 }
-static void test_ferrum_generate_session_id(void **start)
+static void test_ferrum_generate_tunnel_id(void **start)
 {
     ferrum_t *fer;
     int32_t result=ferrum_create(&fer);
     assert_int_equal(result,FERRUM_SUCCESS);
-    result=ferrum_generate_session_id(fer);
+    result=ferrum_generate_tunnel_id(fer);
     assert_int_equal(result,FERRUM_SUCCESS);
-    printf("%s %zu\n",fer->session.id,strlen(fer->session.id));
-    assert_true(strlen(fer->session.id)==63);
+    printf("%s %zu\n",fer->tunnel.id,strlen(fer->tunnel.id));
+    assert_true(strlen(fer->tunnel.id)==63);
     unused(start);
     ferrum_destroy(fer);
 }
@@ -151,7 +151,7 @@ int32_t test_ferrum(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_ferrum_create_destroy),
-        cmocka_unit_test(test_ferrum_generate_session_id),
+        cmocka_unit_test(test_ferrum_generate_tunnel_id),
         cmocka_unit_test(test_field_sets),
         cmocka_unit_test(test_ferrum_util_ipport_to_addr),
         cmocka_unit_test(test_ferrum_util_addr_to_ipport_string),

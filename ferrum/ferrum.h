@@ -41,10 +41,10 @@ typedef union ferrum_sockaddr {
  *
  */
 typedef struct ferrum {
-    // creates a random session id, an alternate to ssh session identifier
+    // creates a random tunnel id, an alternate to ssh session identifier
     struct {
         char id[64];
-    } session;
+    } tunnel;
 
     struct {
         // connected client ip address holder for ipv4 and ipv6
@@ -76,7 +76,7 @@ typedef struct ferrum {
 int32_t ferrum_create(ferrum_t **ferrum);
 int32_t ferrum_destroy(ferrum_t *ferrum);
 // fills session_id field with random values as hex
-int32_t ferrum_generate_session_id(ferrum_t *ferrum);
+int32_t ferrum_generate_tunnel_id(ferrum_t *ferrum);
 // sets ip address
 int32_t ferrum_set_client_ip(ferrum_t *ferrum, const char *ip, int port);
 // sets assigned_ipaddr

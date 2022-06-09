@@ -2236,7 +2236,7 @@ main(int ac, char **av)
 		exit(0);
 	}
 	verbose_f("ferrum redis host is %s:%d",ferrum->redis.host,ferrum->redis.port);
-	fresult=ferrum_generate_session_id(ferrum);
+	fresult=ferrum_generate_tunnel_id(ferrum);
 	fresult=ferrum_set_client_ip(ferrum,remote_ip,remote_port);
 	fresult=ferrum_redis_connect(ferrum);
 	

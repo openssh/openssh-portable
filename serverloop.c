@@ -571,7 +571,7 @@ server_request_tun(struct ssh *ssh)
 		logit_f("ferrum tun %s created",ssh->ferrum->assigned.tunnel);
 		if(ssh->ferrum->redis.context){ //we need to set assigned tunnel interface to redis
 			redisReply *reply =
-			redisCommand(ssh->ferrum->redis.context,"hset /session/%s tun %s",ssh->ferrum->session.id,ssh->ferrum->assigned.tunnel);
+			redisCommand(ssh->ferrum->redis.context,"hset /tunnel/%s tun %s",ssh->ferrum->tunnel.id,ssh->ferrum->assigned.tunnel);
 			if (reply == NULL) {  // timeout
 				fatal_f("ferrum redis timeout");
 				freeReplyObject(reply);
