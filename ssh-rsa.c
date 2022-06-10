@@ -37,7 +37,17 @@
 
 #include "openbsd-compat/openssl-compat.h"
 
+static int RSA_min_bits = SSH_RSA_MINIMUM_MODULUS_SIZE;
+
 static int openssh_RSA_verify(int, u_char *, size_t, u_char *, size_t, RSA *);
+
+int ssh_set_rsa_min_bits(int minbits)
+{
+	if (minbits < SSH_RSA_MINIMUM_MODULUS_SIZE)
+		return SSH_ERR_KEY_LENGTH;
+	RSA_min_bits = minbits;
+	return 0;
+}
 
 static const char *
 rsa_hash_alg_ident(int hash_alg)
@@ -184,7 +194,7 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	    sshkey_type_plain(key->type) != KEY_RSA)
 		return SSH_ERR_INVALID_ARGUMENT;
 	RSA_get0_key(key->rsa, &rsa_n, NULL, NULL);
-	if (BN_num_bits(rsa_n) < SSH_RSA_MINIMUM_MODULUS_SIZE)
+	if (BN_num_bits(rsa_n) < RSA_min_bits)
 		return SSH_ERR_KEY_LENGTH;
 	slen = RSA_size(key->rsa);
 	if (slen <= 0 || slen > SSHBUF_MAX_BIGNUM)
@@ -258,7 +268,7 @@ ssh_rsa_verify(const struct sshkey *key,
 	    sig == NULL || siglen == 0)
 		return SSH_ERR_INVALID_ARGUMENT;
 	RSA_get0_key(key->rsa, &rsa_n, NULL, NULL);
-	if (BN_num_bits(rsa_n) < SSH_RSA_MINIMUM_MODULUS_SIZE)
+	if (BN_num_bits(rsa_n) < RSA_min_bits)
 		return SSH_ERR_KEY_LENGTH;
 
 	if ((b = sshbuf_from(sig, siglen)) == NULL)

@@ -185,6 +185,7 @@ initialize_server_options(ServerOptions *options)
 	options->authorized_keys_command_user = NULL;
 	options->revoked_keys_file = NULL;
 	options->sk_provider = NULL;
+	options->min_rsa_bits = -1;
 	options->trusted_user_ca_keys = NULL;
 	options->authorized_principals_file = NULL;
 	options->authorized_principals_command = NULL;
@@ -441,6 +442,10 @@ fill_default_server_options(ServerOptions *options)
 		options->expose_userauth_info = 0;
 	if (options->sk_provider == NULL)
 		options->sk_provider = xstrdup("internal");
+	if (options->min_rsa_bits == -1)
+		options->min_rsa_bits = SSH_RSA_MINIMUM_MODULUS_SIZE;
+
+	(void)ssh_set_rsa_min_bits(options->min_rsa_bits);
 
 	assemble_algorithms(options);
 
@@ -517,6 +522,7 @@ typedef enum {
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
+	sMinRSABits,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -676,6 +682,7 @@ static struct {
 	{ "rdomain", sRDomain, SSHCFG_ALL },
 	{ "casignaturealgorithms", sCASignatureAlgorithms, SSHCFG_ALL },
 	{ "securitykeyprovider", sSecurityKeyProvider, SSHCFG_GLOBAL },
+	{ "minrsabits", sMinRSABits, SSHCFG_GLOBAL},
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2279,6 +2286,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		}
 		break;
 
+	case sMinRSABits:
+		intptr = &options->min_rsa_bits;
+		goto parse_int;
+
 	case sIPQoS:
 		arg = argv_next(&ac, &av);
 		if (!arg || *arg == '\0')
@@ -2603,6 +2614,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(permit_user_rc);
 	M_CP_INTOPT(max_sessions);
 	M_CP_INTOPT(max_authtries);
+	M_CP_INTOPT(min_rsa_bits);
 	M_CP_INTOPT(client_alive_count_max);
 	M_CP_INTOPT(client_alive_interval);
 	M_CP_INTOPT(ip_qos_interactive);
@@ -2920,6 +2932,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(sFingerprintHash, o->fingerprint_hash);
 	dump_cfg_fmtint(sExposeAuthInfo, o->expose_userauth_info);
+	dump_cfg_int(sMinRSABits, o->min_rsa_bits);
 
 	/* string arguments */
 	dump_cfg_string(sPidFile, o->pid_file);

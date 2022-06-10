@@ -174,6 +174,7 @@ typedef enum {
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oFingerprintHash, oUpdateHostkeys, oHostbasedAcceptedAlgorithms,
 	oPubkeyAcceptedAlgorithms, oCASignatureAlgorithms, oProxyJump,
+	oMinRSABits,
 	oSecurityKeyProvider, oKnownHostsCommand,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
@@ -318,6 +319,7 @@ static struct {
 	{ "pubkeyacceptedkeytypes", oPubkeyAcceptedAlgorithms }, /* obsolete */
 	{ "ignoreunknown", oIgnoreUnknown },
 	{ "proxyjump", oProxyJump },
+	{ "minrsabits", oMinRSABits },
 	{ "securitykeyprovider", oSecurityKeyProvider },
 	{ "knownhostscommand", oKnownHostsCommand },
 
@@ -1317,6 +1319,10 @@ parse_char_array:
 	case oSecurityKeyProvider:
 		charptr = &options->sk_provider;
 		goto parse_string;
+
+	case oMinRSABits:
+		intptr = &options->min_rsa_bits;
+		goto parse_int;
 
 	case oKnownHostsCommand:
 		charptr = &options->known_hosts_command;
@@ -2377,6 +2383,7 @@ initialize_options(Options * options)
 	options->bind_interface = NULL;
 	options->pkcs11_provider = NULL;
 	options->sk_provider = NULL;
+	options->min_rsa_bits = -1;
 	options->enable_ssh_keysign = - 1;
 	options->no_host_authentication_for_localhost = - 1;
 	options->identities_only = - 1;
@@ -2619,6 +2626,8 @@ fill_default_options(Options * options)
 	if (options->sk_provider == NULL)
 		options->sk_provider = xstrdup("$SSH_SK_PROVIDER");
 #endif
+	if (options->min_rsa_bits == -1)
+		options->min_rsa_bits = SSH_RSA_MINIMUM_MODULUS_SIZE;
 
 	/* Expand KEX name lists */
 	all_cipher = cipher_alg_list(',', 0);
@@ -2684,8 +2693,10 @@ fill_default_options(Options * options)
 	/* options->host_key_alias should not be set by default */
 	/* options->preferred_authentications will be set in ssh */
 
-	/* success */
-	ret = 0;
+	if (ssh_set_rsa_min_bits(options->min_rsa_bits) == 0)
+		ret = 0;
+	else
+		ret = -1;
  fail:
 	free(all_cipher);
 	free(all_mac);
@@ -3308,6 +3319,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_int(oNumberOfPasswordPrompts, o->number_of_password_prompts);
 	dump_cfg_int(oServerAliveCountMax, o->server_alive_count_max);
 	dump_cfg_int(oServerAliveInterval, o->server_alive_interval);
+	dump_cfg_int(oMinRSABits, o->min_rsa_bits);
 
 	/* String options */
 	dump_cfg_string(oBindAddress, o->bind_address);

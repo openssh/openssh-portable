@@ -176,6 +176,8 @@ typedef struct {
 
 	char   *known_hosts_command;
 
+	int    min_rsa_bits;
+
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;
 

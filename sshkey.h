@@ -286,6 +286,8 @@ int	 sshkey_private_serialize_maxsign(struct sshkey *key,
 
 void	 sshkey_sig_details_free(struct sshkey_sig_details *);
 
+int ssh_set_rsa_min_bits(int minbits);
+
 #ifdef SSHKEY_INTERNAL
 int ssh_rsa_sign(const struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
