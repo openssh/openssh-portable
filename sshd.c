@@ -2363,6 +2363,7 @@ static void
 do_ssh2_kex(struct ssh *ssh)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_SERVER };
+	char *hostkey_types = NULL;
 	struct kex *kex;
 	int r;
 
@@ -2384,8 +2385,11 @@ do_ssh2_kex(struct ssh *ssh)
 		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
 		    options.rekey_interval);
 
+	if ((hostkey_types = list_hostkey_types()) == NULL)
+		fatal("list_hostkey_types failed");
 	myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = compat_pkalg_proposal(
-	    ssh, list_hostkey_types());
+	    ssh, hostkey_types);
+	free(hostkey_types);
 
 	/* start key exchange */
 	if ((r = kex_setup(ssh, myproposal)) != 0)

@@ -156,49 +156,64 @@ compat_banner(struct ssh *ssh, const char *version)
 	debug_f("no match: %s", version);
 }
 
+/* Always returns pointer to allocated memory */
 char *
 compat_cipher_proposal(struct ssh *ssh, char *cipher_prop)
 {
+	char *p;
+
 	if (!(ssh->compat & SSH_BUG_BIGENDIANAES))
-		return cipher_prop;
+		return xstrdup(cipher_prop);
 	debug2_f("original cipher proposal: %s", cipher_prop);
-	if ((cipher_prop = match_filter_denylist(cipher_prop, "aes*")) == NULL)
+	if ((p = match_filter_denylist(cipher_prop, "aes*")) == NULL)
 		fatal("match_filter_denylist failed");
-	debug2_f("compat cipher proposal: %s", cipher_prop);
-	if (*cipher_prop == '\0')
+	debug2_f("compat cipher proposal: %s", p);
+	if (*p == '\0')
 		fatal("No supported ciphers found");
-	return cipher_prop;
+	return p;
 }
 
+/* Always returns pointer to allocated memory */
 char *
 compat_pkalg_proposal(struct ssh *ssh, char *pkalg_prop)
 {
+	char *p;
+
 	if (!(ssh->compat & SSH_BUG_RSASIGMD5))
-		return pkalg_prop;
+		return xstrdup(pkalg_prop);
 	debug2_f("original public key proposal: %s", pkalg_prop);
-	if ((pkalg_prop = match_filter_denylist(pkalg_prop, "ssh-rsa")) == NULL)
+	if ((p = match_filter_denylist(pkalg_prop, "ssh-rsa")) == NULL)
 		fatal("match_filter_denylist failed");
-	debug2_f("compat public key proposal: %s", pkalg_prop);
-	if (*pkalg_prop == '\0')
+	debug2_f("compat public key proposal: %s", p);
+	if (*p == '\0')
 		fatal("No supported PK algorithms found");
-	return pkalg_prop;
+	return p;
 }
 
+/* Always returns pointer to allocated memory */
 char *
-compat_kex_proposal(struct ssh *ssh, char *p)
+compat_kex_proposal(struct ssh *ssh, char *prop)
 {
+	char *tmp, *p;
+
+	p = xstrdup(prop);
 	if ((ssh->compat & (SSH_BUG_CURVE25519PAD|SSH_OLD_DHGEX)) == 0)
 		return p;
 	debug2_f("original KEX proposal: %s", p);
-	if ((ssh->compat & SSH_BUG_CURVE25519PAD) != 0)
-		if ((p = match_filter_denylist(p,
-		    "curve25519-sha256@libssh.org")) == NULL)
+	if ((ssh->compat & SSH_BUG_CURVE25519PAD) != 0) {
+		tmp = match_filter_denylist(p, "curve25519-sha256@libssh.org");
+		free(p);
+		if (tmp == NULL)
 			fatal("match_filter_denylist failed");
+		p = tmp;
+	}
 	if ((ssh->compat & SSH_OLD_DHGEX) != 0) {
-		if ((p = match_filter_denylist(p,
-		    "diffie-hellman-group-exchange-sha256,"
-		    "diffie-hellman-group-exchange-sha1")) == NULL)
+		tmp = match_filter_denylist(p, "diffie-hellman-group-exchange-sha256,"
+					       "diffie-hellman-group-exchange-sha1");
+		free(p);
+		if (tmp == NULL)
 			fatal("match_filter_denylist failed");
+		p = tmp;
 	}
 	debug2_f("compat KEX proposal: %s", p);
 	if (*p == '\0')

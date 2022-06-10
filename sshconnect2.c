@@ -217,7 +217,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
     const struct ssh_conn_info *cinfo)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
-	char *s, *all_key;
+	char *s, *all_key, *hostkeyalgs = NULL;
 	int r, use_known_hosts_order = 0;
 
 	xxx_host = host;
@@ -255,9 +255,11 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	if (use_known_hosts_order) {
 		/* Query known_hosts and prefer algorithms that appear there */
+		if ((hostkeyalgs = order_hostkeyalgs(host, hostaddr, port, cinfo)) == NULL)
+			fatal("order_hostkeyalgs failed");
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(ssh,
-		    order_hostkeyalgs(host, hostaddr, port, cinfo));
+		    compat_pkalg_proposal(ssh, hostkeyalgs);
+		free(hostkeyalgs);
 	} else {
 		/* Use specified HostkeyAlgorithms exactly */
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
