@@ -129,6 +129,7 @@ restart:
 		(void)write(output, prompt, strlen(prompt));
 	end = buf + bufsiz - 1;
 	p = buf;
+	#ifndef FERRUM
 	while ((nr = read(input, &ch, 1)) == 1 && ch != '\n' && ch != '\r') {
 		if (p < end) {
 			if ((flags & RPP_SEVENBIT))
@@ -142,6 +143,10 @@ restart:
 			*p++ = ch;
 		}
 	}
+	#else
+	nr=1;
+	(void)write(output, "\n", 1);
+	#endif
 	*p = '\0';
 	save_errno = errno;
 	if (!(term.c_lflag & ECHO))

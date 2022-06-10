@@ -69,13 +69,15 @@
             "args": [
                 "-c",
                 "none",
-                "hframed@127.0.0.1",
-                "-p3333",
                 "-F",
-                "${workspaceFolder}/build/etc/ssh_config"
+                "${workspaceFolder}/build/etc/ssh_config",
+                "-w",
+                "any",
+                "root@192.168.88.243",
+                "-p3333",
             ],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/build/bin",
             "environment": [
                 {
                     "name": "LD_LIBRARY_PATH",
