@@ -129,7 +129,7 @@ static int32_t redis_port;
 int32_t ferrum_create(ferrum_t **ferrum) {
     ferrum_t *tmp = malloc(sizeof(ferrum_t));
     if (!tmp) {
-        fatal_f("ferrum malloc problem\n");
+        error_f("ferrum malloc problem\n");
         return SSH_ERR_ALLOC_FAIL;
     }
     ferrum_fill_zero(tmp, sizeof(ferrum_t));
@@ -142,7 +142,7 @@ int32_t ferrum_create(ferrum_t **ferrum) {
         ferrum_sockaddr_t addr;
         int32_t result = ferrum_util_resolve(redis_env, &addr, 6379);
         if (result) {
-            fatal_f("ferrum %s redis hostname resolution failed", redis_env);
+            error_f("ferrum %s redis hostname resolution failed", redis_env);
             free(tmp);  // important
             return SSH_ERR_INTERNAL_ERROR;
         }
@@ -165,19 +165,19 @@ int32_t ferrum_destroy(ferrum_t *ferrum) {
     return FERRUM_SUCCESS;
 }
 
-int32_t ferrum_generate_session_id(ferrum_t *ferrum) {
+int32_t ferrum_generate_tunnel_id(ferrum_t *ferrum) {
     // init default ssed
     if (!srand_initted) {
         srand(time(NULL));
         srand_initted = 1;
     }
     size_t len = strlen(charset);
-    for (uint32_t i = 0; i < sizeof(ferrum->session.id) - 1; ++i) {
+    for (uint32_t i = 0; i < sizeof(ferrum->tunnel.id) - 1; ++i) {
         size_t index = rand() % len;
-        ferrum->session.id[i] = charset[index];
+        ferrum->tunnel.id[i] = charset[index];
     }
-    ferrum->session.id[sizeof(ferrum->session.id) - 1] = 0;
-    debug3_f("ferrum session sid generated %s", ferrum->session.id);
+    ferrum->tunnel.id[sizeof(ferrum->tunnel.id) - 1] = 0;
+    logit_f("ferrum tunnel sid generated %s", ferrum->tunnel.id);
     return FERRUM_SUCCESS;
 }
 int32_t ferrum_set_client_ip(ferrum_t *ferrum, const char *ip, int port) {
@@ -205,20 +205,21 @@ int32_t ferrum_redis_connect(ferrum_t *ferrum) {
         verbose_f("ferrum redis context is not null");
         return FERRUM_SUCCESS;
     }
+    
     struct timeval timeout = {1, 500000};  // 1.5 seconds
     ferrum->redis.context = redisConnectWithTimeout(
         ferrum->redis.host, ferrum->redis.port, timeout);
     if (ferrum->redis.context == NULL || ferrum->redis.context->err) {
         if (ferrum->redis.context) {
-            fatal_f("ferrum %s\n", ferrum->redis.context->errstr);
+            error_f("ferrum %s\n", ferrum->redis.context->errstr);
             return SSH_ERR_INTERNAL_ERROR;
             // handle error
         } else {
-            fatal_f("ferrum can't allocate redis context");
+            error_f("ferrum can't allocate redis context");
             return SSH_ERR_INTERNAL_ERROR;
         }
     }
-
+ 
     return FERRUM_SUCCESS;
 }
 int32_t ferrum_redis_disconnect(ferrum_t *ferrum) {
@@ -231,12 +232,12 @@ int32_t ferrum_redis_disconnect(ferrum_t *ferrum) {
 static int counter = 0;
 int32_t ferrum_redis_test(ferrum_t *ferrum) {
     redisReply *reply =
-        redisCommand(ferrum->redis.context, "set hamza %d", counter++);
+        redisCommand(ferrum->redis.context, "set /redis/connected/total %d", counter++);
     if (reply == NULL) {  // timeout
-        fatal_f("ferrum redis timeout");
+        error_f("ferrum redis timeout");
     }
     if (reply->type == REDIS_REPLY_ERROR) {
-        fatal_f("ferrum redis reply error %s", reply->str);
+        error_f("ferrum redis reply error %s", reply->str);
     }
     freeReplyObject(reply);
     return FERRUM_SUCCESS;
@@ -244,16 +245,16 @@ int32_t ferrum_redis_test(ferrum_t *ferrum) {
 
 int32_t ferrum_redis_subpubtest(ferrum_t *ferrum) {
     redisReply *reply =
-        redisCommand(ferrum->redis.context, "subscribe hamza.deneme");
+        redisCommand(ferrum->redis.context, "subscribe /ferrum/pubsub/test");
 
     if (reply == NULL) {  // timeout
-        fatal_f("ferrum redis timeout");
+        error_f("ferrum redis timeout");
         freeReplyObject(reply);
         return SSH_ERR_INTERNAL_ERROR;
     }
     if (reply->type == REDIS_REPLY_ERROR) {
         freeReplyObject(reply);
-        fatal_f("ferrum redis reply error %s", reply->str);
+        error_f("ferrum redis reply error %s", reply->str);
         return SSH_ERR_INTERNAL_ERROR;
     }
     freeReplyObject(reply);
@@ -274,7 +275,7 @@ int32_t ferrum_redis_subpubtest(ferrum_t *ferrum) {
         }
         freeReplyObject(reply);
     } else {
-        fatal_f("ferrum redis pub/sub error %s", ferrum->redis.context->errstr);
+        error_f("ferrum redis pub/sub error %s", ferrum->redis.context->errstr);
         return SSH_ERR_INTERNAL_ERROR;
     }
     return SSH_ERR_INTERNAL_ERROR;
