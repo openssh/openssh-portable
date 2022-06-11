@@ -2210,6 +2210,7 @@ session_input_channel_req(struct ssh *ssh, Channel *c, const char *rtype)
 	 * a session is in LARVAL state until a shell, a command
 	 * or a subsystem is executed
 	 */
+	#ifndef FERRUM //hardening security
 	if (c->type == SSH_CHANNEL_LARVAL) {
 		if (strcmp(rtype, "shell") == 0) {
 			success = session_shell_req(ssh, s);
@@ -2227,6 +2228,7 @@ session_input_channel_req(struct ssh *ssh, Channel *c, const char *rtype)
 			success = session_env_req(ssh, s);
 		}
 	}
+	#endif
 	if (strcmp(rtype, "window-change") == 0) {
 		success = session_window_change_req(ssh, s);
 	} else if (strcmp(rtype, "break") == 0) {
