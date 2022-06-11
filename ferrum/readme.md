@@ -21,7 +21,7 @@ you can open documents under doc folder with [app.diagrams.net](https://app.diag
 aclocal
 autoconf
 autoreconf
-./configure --prefix=$(pwd)/build --disable-strip CFLAGS="-W -O0 -g -ggdb -DFERRUM_DEBUG -DFERRUM -I$(pwd)/external/libs/include" CXXFLAGS="-W -O0 -g -ggdb -DFERRUM_DEBUG -DFERRUM" LDFLAGS="-L$(pwd)/external/libs/lib -lhiredis" --with-pam
+./configure --prefix=$(pwd)/build --disable-strip CFLAGS="-W -O0 -g -ggdb -DFERRUM_DEBUG -DFERRUM -DFERRUM_PROD -I$(pwd)/external/libs/include" CXXFLAGS="-W -O0 -g -ggdb -DFERRUM_DEBUG -DFERRUM -DFERRUM_PROD" LDFLAGS="-L$(pwd)/external/libs/lib -lhiredis" --with-pam
 # compile with NO_SSH_LASTLOG
 make
 make install
