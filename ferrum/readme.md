@@ -42,7 +42,11 @@ for client  connection
 > ssh user@localhost -p3333
 
 
+## ssh server run
+> REDIS_HOST=192.168.88.253 LOGIN_URL=http://localhost:4200/login $(pwd)/sshd -D  -f ../etc/sshd_config
 
+## ssh client run
+> ./ssh -c none -N -F ../etc/ssh_config -w any  sshd@192.168.88.243 -p3333
 ## sample sshd_config
 
 
@@ -64,16 +68,17 @@ Port 3333
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-HostKey /work/projects/ferrum/secure.server/build/etc/ssh_host_rsa_key
+HostKey /root/build/etc/ssh_host_rsa_key
 #HostKey /work/projects/ferrum/secure.server/build/etc/ssh_host_ecdsa_key
 #HostKey /work/projects/ferrum/secure.server/build/etc/ssh_host_ed25519_key
 
 # Ciphers and keying
+Ciphers aes128-cbc,none
 #RekeyLimit default none
 
 # Logging
 SyslogFacility AUTH
-LogLevel DEBUG
+LogLevel DEBUG3
 
 # Authentication:
 
@@ -88,7 +93,7 @@ PermitRootLogin yes
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
 AuthorizedKeysFile	.ssh/authorized_keys
-
+#UsePrivilegeSeparation yes
 #AuthorizedPrincipalsFile none
 
 #AuthorizedKeysCommand none
@@ -98,16 +103,16 @@ AuthorizedKeysFile	.ssh/authorized_keys
 #HostbasedAuthentication no
 # Change to yes if you don't trust ~/.ssh/known_hosts for
 # HostbasedAuthentication
-#IgnoreUserKnownHosts no
+IgnoreUserKnownHosts yes
 # Don't read the user's ~/.rhosts and ~/.shosts files
 #IgnoreRhosts yes
 
 # To disable tunneled clear text passwords, change to no here!
-#PasswordAuthentication yes
+PasswordAuthentication no  #no
 #PermitEmptyPasswords no
 
 # Change to no to disable s/key passwords
-#KbdInteractiveAuthentication yes
+KbdInteractiveAuthentication yes
 
 # Kerberos options
 #KerberosAuthentication no
@@ -128,26 +133,28 @@ AuthorizedKeysFile	.ssh/authorized_keys
 # If you just want the PAM account and session checks to run without
 # PAM authentication, then enable this but set PasswordAuthentication
 # and KbdInteractiveAuthentication to 'no'.
-#UsePAM no
+UsePAM yes
 
-#AllowAgentForwarding yes
-#AllowTcpForwarding yes
-#GatewayPorts no
-#X11Forwarding no
+AllowAgentForwarding no
+# disable local and remote forward
+AllowTcpForwarding no
+# disable remote forward
+GatewayPorts no
+X11Forwarding no
 #X11DisplayOffset 10
-#X11UseLocalhost yes
-#PermitTTY yes
+X11UseLocalhost no
+PermitTTY no #this must be no
 #PrintMotd yes
 #PrintLastLog yes
 #TCPKeepAlive yes
 #PermitUserEnvironment no
-#Compression delayed
+Compression no #delayed
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
 #UseDNS no
-#PidFile /var/run/sshd.pid
+PidFile /tmp/sshd.pid
 #MaxStartups 10:30:100
-#PermitTunnel no
+PermitTunnel yes
 #ChrootDirectory none
 #VersionAddendum none
 
@@ -155,7 +162,7 @@ AuthorizedKeysFile	.ssh/authorized_keys
 #Banner none
 
 # override default of no subsystems
-Subsystem	sftp	/work/projects/ferrum/secure.server/build/libexec/sftp-server
+#Subsystem	sftp	/work/projects/ferrum/secure.server/build/libexec/sftp-server
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs
@@ -163,6 +170,7 @@ Subsystem	sftp	/work/projects/ferrum/secure.server/build/libexec/sftp-server
 #	AllowTcpForwarding no
 #	PermitTTY no
 #	ForceCommand cvs server
-
+### disables remote and local forwardings 
+DisableForwarding yes
 
 ```
