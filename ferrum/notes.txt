@@ -1,0 +1,2 @@
+#adding root user
+useradd -ou 0 -g 0 ferrum

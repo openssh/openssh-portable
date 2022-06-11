@@ -1657,7 +1657,7 @@ client_request_tun_fwd(struct ssh *ssh, int tun_mode,
 	    (r = sshpkt_send(ssh)) != 0)
 		sshpkt_fatal(ssh, r, "%s: send reply", __func__);
 	#ifdef FERRUM
-	logit("ferrum tunnel opened:%s",ifname);
+	logit("ferrum_tunnel_opened:%s",ifname);
 	#endif
 	return ifname;
 }

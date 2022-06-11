@@ -136,17 +136,19 @@ KbdInteractiveAuthentication yes
 UsePAM yes
 
 AllowAgentForwarding no
+# disable local and remote forward
 AllowTcpForwarding no
-#GatewayPorts no
-#X11Forwarding no
+# disable remote forward
+GatewayPorts no
+X11Forwarding no
 #X11DisplayOffset 10
-#X11UseLocalhost yes
+X11UseLocalhost no
 PermitTTY no #this must be no
 #PrintMotd yes
 #PrintLastLog yes
 #TCPKeepAlive yes
 #PermitUserEnvironment no
-#Compression delayed
+Compression no #delayed
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
 #UseDNS no
@@ -168,6 +170,7 @@ PermitTunnel yes
 #	AllowTcpForwarding no
 #	PermitTTY no
 #	ForceCommand cvs server
+### disables remote and local forwardings 
 DisableForwarding yes
 
 ```
