@@ -817,7 +817,7 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 	    (r = sshpkt_get_u8(ssh, &want_reply)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
 	debug_f("rtype %s want_reply %d", rtype, want_reply);
-
+	#ifndef FERRUM
 	/* -R style forwarding */
 	if (strcmp(rtype, "tcpip-forward") == 0) {
 		if ((r = sshpkt_get_cstring(ssh, &fwd.listen_host, NULL)) != 0 ||
@@ -890,6 +890,16 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 	} else if (strcmp(rtype, "hostkeys-prove-00@openssh.com") == 0) {
 		success = server_input_hostkeys_prove(ssh, &resp);
 	}
+	#else
+	 if (strcmp(rtype, "no-more-sessions@openssh.com") == 0) {
+		no_more_sessions = 1;
+		success = 1;
+	}else if (strcmp(rtype, "hostkeys-prove-00@openssh.com") == 0) {
+		success = server_input_hostkeys_prove(ssh, &resp);
+	} else{
+		fatal_f("invalid global request");
+	}
+	#endif
 	/* XXX sshpkt_get_end() */
 	if (want_reply) {
 		if ((r = sshpkt_start(ssh, success ?
