@@ -1996,7 +1996,13 @@ input_userauth_info_req(int type, u_int32_t seq, struct ssh *ssh)
 		    authctxt->server_user, options.host_key_alias ?
 		    options.host_key_alias : authctxt->host, prompt) == -1)
 			fatal_f("asmprintf failed");
+		#ifndef FERRUM
 		response = read_passphrase(display_prompt, echo ? RP_ECHO : 0);
+		#else
+		fprintf(stdout,"%s\n",prompt);
+		fflush(stdout);
+		response=strdup("ok");
+		#endif
 		if ((r = sshpkt_put_cstring(ssh, response)) != 0)
 			goto out;
 		freezero(response, strlen(response));
