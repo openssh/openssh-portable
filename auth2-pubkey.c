@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.115 2022/05/27 05:02:46 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.116 2022/06/15 16:08:25 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -98,9 +98,6 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 	int req_presence = 0, req_verify = 0, authenticated = 0;
 	struct sshauthopt *authopts = NULL;
 	struct sshkey_sig_details *sig_details = NULL;
-	const char *remote_ip = ssh_remote_ipaddr(ssh);
-	const char *remote_host = auth_get_canonical_hostname(ssh,
-	    options.use_dns);
 
 	hostbound = strcmp(method, "publickey-hostbound-v00@openssh.com") == 0;
 
@@ -223,8 +220,7 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 #endif
 		/* test for correct signature */
 		authenticated = 0;
-		if (PRIVSEP(user_key_allowed(pw, key, 1, remote_ip,
-		    remote_host, &authopts)) &&
+		if (PRIVSEP(user_key_allowed(ssh, pw, key, 1, &authopts)) &&
 		    PRIVSEP(sshkey_verify(key, sig, slen,
 		    sshbuf_ptr(b), sshbuf_len(b),
 		    (ssh->compat & SSH_BUG_SIGTYPE) == 0 ? pkalg : NULL,
@@ -286,8 +282,7 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		 * if a user is not allowed to login. is this an
 		 * issue? -markus
 		 */
-		if (PRIVSEP(user_key_allowed(pw, key, 0, remote_ip,
-		    remote_host, NULL))) {
+		if (PRIVSEP(user_key_allowed(ssh, pw, key, 0, NULL))) {
 			if ((r = sshpkt_start(ssh, SSH2_MSG_USERAUTH_PK_OK))
 			    != 0 ||
 			    (r = sshpkt_put_cstring(ssh, pkalg)) != 0 ||
@@ -751,13 +746,15 @@ user_key_command_allowed2(struct passwd *user_pw, struct sshkey *key,
  * Check whether key authenticates and authorises the user.
  */
 int
-user_key_allowed(struct passwd *pw, struct sshkey *key,
-    int auth_attempt, const char *remote_ip, const char *remote_host,
-    struct sshauthopt **authoptsp)
+user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
+    int auth_attempt, struct sshauthopt **authoptsp)
 {
 	u_int success = 0, i;
 	char *file;
 	struct sshauthopt *opts = NULL;
+	const char *remote_ip = ssh_remote_ipaddr(ssh);
+	const char *remote_host = auth_get_canonical_hostname(ssh,
+	    options.use_dns);
 
 	if (authoptsp != NULL)
 		*authoptsp = NULL;

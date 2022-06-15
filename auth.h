@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.105 2022/06/03 04:47:21 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.106 2022/06/15 16:08:25 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -135,8 +135,8 @@ int      auth_password(struct ssh *, const char *);
 
 int	 hostbased_key_allowed(struct ssh *, struct passwd *,
 	    const char *, char *, struct sshkey *);
-int	 user_key_allowed(struct passwd *, struct sshkey *, int,
-    const char *, const char *, struct sshauthopt **);
+int	 user_key_allowed(struct ssh *ssh, struct passwd *, struct sshkey *,
+    int, struct sshauthopt **);
 int	 auth2_key_already_used(Authctxt *, const struct sshkey *);
 
 /*
