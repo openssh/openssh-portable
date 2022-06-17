@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.585 2022/03/18 04:04:11 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.586 2022/06/17 01:00:03 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1267,8 +1267,12 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					usleep(100 * 1000);
 				continue;
 			}
-			if (unset_nonblock(*newsock) == -1 ||
-			    pipe(startup_p) == -1) {
+			if (unset_nonblock(*newsock) == -1) {
+				close(*newsock);
+				continue;
+			}
+			if (pipe(startup_p) == -1) {
+				error_f("pipe(startup_p): %s", strerror(errno));
 				close(*newsock);
 				continue;
 			}
