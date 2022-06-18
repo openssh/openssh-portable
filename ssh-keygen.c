@@ -302,7 +302,7 @@ ask_filename(struct passwd *pw, const char *prompt)
 	}
 	snprintf(identity_file, sizeof(identity_file),
 	    "%s/%s", pw->pw_dir, name);
-	printf("%s (%s): ", prompt, identity_file);
+	printf("%s (default: %s): ", prompt, identity_file);
 	fflush(stdout);
 	if (fgets(buf, sizeof(buf), stdin) == NULL)
 		exit(1);
@@ -3825,7 +3825,7 @@ main(int argc, char **argv)
 		fatal_r(r, "sshkey_from_private");
 
 	if (!have_identity)
-		ask_filename(pw, "Enter file in which to save the key");
+		ask_filename(pw, "Enter path with filename in which to save the key");
 
 	/* Create ~/.ssh directory if it doesn't already exist. */
 	hostfile_create_user_ssh_dir(identity_file, !quiet);
