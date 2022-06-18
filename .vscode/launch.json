@@ -73,7 +73,7 @@
                 "${workspaceFolder}/build/etc/ssh_config",
                 "-w",
                 "any",
-                "root@192.168.88.243",
+                "root@192.168.10.104",
                 "-p3333",
             ],
             "stopAtEntry": true,
