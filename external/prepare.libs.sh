@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+
 #!!!!!!!!!!!  test libuv with or without sudo
 #compile external libs and copy to ./external/libs folder
 set -e
@@ -9,6 +11,17 @@ CURRENTFOLDER=$(pwd)
 DESTFOLDER=$(pwd)/libs
 rm -rf $TMPFOLDER
 mkdir -p $TMPFOLDER
+
+#######  install openssl with static option
+cd $CURRENTFOLDER
+cp openssl-1.1.1o.tar.gz $TMPFOLDER
+cd $TMPFOLDER
+tar zxvf openssl-1.1.1o.tar.gz 
+cd openssl-1.1.1o
+./config -static --static --prefix=$DESTFOLDER
+make
+make install
+
 
 
 

@@ -28,7 +28,7 @@ autoreconf
 
 
 #### prod
-./configure --prefix=$(pwd)/build CFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD -I$(pwd)/external/libs/include" CXXFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD" LDFLAGS="-L$(pwd)/external/libs/lib -lhiredis" --with-pam
+./configure --prefix=$(pwd)/build CFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD -I$(pwd)/external/libs/include" CXXFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD" LDFLAGS="-L$(pwd)/external/libs/lib -lhiredis " --with-pam --with-ssl-dir=./external/libs
 
 # compile with NO_SSH_LASTLOG
 make
