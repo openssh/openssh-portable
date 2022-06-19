@@ -13,6 +13,9 @@ sudo apt install libpam0g-dev
 
 ```
 
+### openssl static compile
+./config -static --static --prefix=$(pwd)/../opensslbuild
+
 ## doc
 you can open documents under doc folder with [app.diagrams.net](https://app.diagrams.net)
 ## compile
@@ -22,6 +25,11 @@ aclocal
 autoconf
 autoreconf
 ./configure --prefix=$(pwd)/build --disable-strip CFLAGS="-W -O0 -g -ggdb -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD -I$(pwd)/external/libs/include" CXXFLAGS="-W -O0 -g -ggdb -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD" LDFLAGS="-L$(pwd)/external/libs/lib -lhiredis" --with-pam
+
+
+#### prod
+./configure --prefix=$(pwd)/build CFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD -I$(pwd)/external/libs/include" CXXFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD" LDFLAGS="-L$(pwd)/external/libs/lib -lhiredis " --with-pam --with-ssl-dir=./external/libs
+
 # compile with NO_SSH_LASTLOG
 make
 make install
