@@ -2796,8 +2796,13 @@ if test "x$openssl" = "xyes" ; then
 				;;
 			101*)   ;; # 1.1.x
 			200*)   ;; # LibreSSL
-			300*)   ;; # OpenSSL 3
-			301*)   ;; # OpenSSL development branch.
+			300*)
+				# OpenSSL 3; we use the 1.1x API
+				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
+				;;
+			301*)
+				# OpenSSL development branch; request 1.1x API
+				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
 		        *)
 				AC_MSG_ERROR([Unknown/unsupported OpenSSL version ("$ssl_library_ver")])
 		                ;;
