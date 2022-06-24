@@ -2692,11 +2692,12 @@ fill_default_options(Options * options)
 	/* options->hostname will be set in the main program if appropriate */
 	/* options->host_key_alias should not be set by default */
 	/* options->preferred_authentications will be set in ssh */
-
+#ifdef WITH_OPENSSL
 	if (ssh_set_rsa_min_bits(options->min_rsa_bits) == 0)
 		ret = 0;
 	else
 		ret = -1;
+#endif
  fail:
 	free(all_cipher);
 	free(all_mac);

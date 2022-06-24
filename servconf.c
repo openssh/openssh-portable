@@ -445,7 +445,9 @@ fill_default_server_options(ServerOptions *options)
 	if (options->min_rsa_bits == -1)
 		options->min_rsa_bits = SSH_RSA_MINIMUM_MODULUS_SIZE;
 
+#ifdef WITH_OPENSSL
 	(void)ssh_set_rsa_min_bits(options->min_rsa_bits);
+#endif
 
 	assemble_algorithms(options);
 
