@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.357 2022/06/24 04:37:00 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.358 2022/06/24 10:45:06 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -114,7 +114,6 @@ first_alg(const char *algs)
 	return ret;
 }
 
-/* Returns an allocated string that the caller must free. */
 static char *
 order_hostkeyalgs(char *host, struct sockaddr *hostaddr, u_short port,
     const struct ssh_conn_info *cinfo)
@@ -218,7 +217,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
     const struct ssh_conn_info *cinfo)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
-	char *s, *all_key, *hostkeyalgs = NULL;
+	char *s, *all_key;
 	int r, use_known_hosts_order = 0;
 
 	xxx_host = host;
@@ -256,10 +255,9 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	if (use_known_hosts_order) {
 		/* Query known_hosts and prefer algorithms that appear there */
-		hostkeyalgs = order_hostkeyalgs(host, hostaddr, port, cinfo);
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(ssh, hostkeyalgs);
-		free(hostkeyalgs);
+		    compat_pkalg_proposal(ssh,
+		    order_hostkeyalgs(host, hostaddr, port, cinfo));
 	} else {
 		/* Use specified HostkeyAlgorithms exactly */
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
