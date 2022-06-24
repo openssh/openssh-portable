@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.341 2022/04/12 05:09:49 dtucker Exp $
-.Dd $Mdocdate: April 12 2022 $
+.\" $OpenBSD: sshd_config.5,v 1.342 2022/06/24 04:27:14 djm Exp $
+.Dd $Mdocdate: June 24 2022 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1572,9 +1572,9 @@ Specifies whether public key authentication is allowed.
 The default is
 .Cm yes .
 .It Cm RekeyLimit
-Specifies the maximum amount of data that may be transmitted before the
-session key is renegotiated, optionally followed by a maximum amount of
-time that may pass before the session key is renegotiated.
+Specifies the maximum amount of data that may be transmitted or received
+before the session key is renegotiated, optionally followed by a maximum
+amount of time that may pass before the session key is renegotiated.
 The first argument is specified in bytes and may have a suffix of
 .Sq K ,
 .Sq M ,
