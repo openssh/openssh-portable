@@ -127,10 +127,11 @@ sshsk_open(const char *path)
 		ret->sk_enroll = ssh_sk_enroll;
 		ret->sk_sign = ssh_sk_sign;
 		ret->sk_load_resident_keys = ssh_sk_load_resident_keys;
+		return ret;
 #else
 		error("internal security key support not enabled");
+		goto fail;
 #endif
-		return ret;
 	}
 	if ((ret->dlhandle = dlopen(path, RTLD_NOW)) == NULL) {
 		error("Provider \"%s\" dlopen failed: %s", path, dlerror());
