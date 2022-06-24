@@ -54,6 +54,7 @@ AC_PATH_PROG([SH], [sh])
 AC_PATH_PROG([GROFF], [groff])
 AC_PATH_PROG([NROFF], [nroff awf])
 AC_PATH_PROG([MANDOC], [mandoc])
+AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
 AC_SUBST([TEST_SHELL], [sh])
 
 dnl select manpage formatter to be used to build "cat" format pages.
@@ -1666,7 +1667,6 @@ AC_ARG_WITH([libedit],
 	[  --with-libedit[[=PATH]]   Enable libedit support for sftp],
 	[ if test "x$withval" != "xno" ; then
 		if test "x$withval" = "xyes" ; then
-			AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
 			if test "x$PKGCONFIG" != "xno"; then
 				AC_MSG_CHECKING([if $PKGCONFIG knows about libedit])
 				if "$PKGCONFIG" libedit; then
@@ -2023,13 +2023,8 @@ AC_ARG_ENABLE([security-key],
 enable_sk_internal=
 AC_ARG_WITH([security-key-builtin],
 	[  --with-security-key-builtin include builtin U2F/FIDO support],
-	[
-		if test "x$withval" != "xno" ; then
-			enable_sk_internal=yes
-		fi
-	]
+	[ enable_sk_internal=$withval ]
 )
-test "x$disable_sk" != "x" && enable_sk_internal=""
 
 AC_SEARCH_LIBS([dlopen], [dl])
 AC_CHECK_FUNCS([dlopen])
@@ -3218,8 +3213,7 @@ fi
 AC_MSG_RESULT([$enable_sk])
 
 # Now check for built-in security key support.
-if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" = "xyes" ; then
-	AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
+if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" != "xno" ; then
 	use_pkgconfig_for_libfido2=
 	if test "x$PKGCONFIG" != "xno"; then
 		AC_MSG_CHECKING([if $PKGCONFIG knows about libfido2])
@@ -3237,33 +3231,43 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" = "xyes" ; then
 		LIBFIDO2="-lfido2 -lcbor"
 	fi
 	OTHERLIBS=`echo $LIBFIDO2 | sed 's/-lfido2//'`
+	fido2_error=
 	AC_CHECK_LIB([fido2], [fido_init],
-		[
-			AC_SUBST([LIBFIDO2])
-			AC_DEFINE([ENABLE_SK_INTERNAL], [],
-			    [Enable for built-in U2F/FIDO support])
-			enable_sk="built-in"
-		], [ AC_MSG_ERROR([no usable libfido2 found]) ],
+		[ ],
+		[ fido2_error="missing/unusable libfido2" ],
 		[ $OTHERLIBS ]
 	)
-	saved_LIBS="$LIBS"
-	LIBS="$LIBS $LIBFIDO2"
-	AC_CHECK_FUNCS([ \
-		fido_assert_set_clientdata \
-		fido_cred_prot \
-		fido_cred_set_prot \
-		fido_cred_set_clientdata \
-		fido_dev_get_touch_begin \
-		fido_dev_get_touch_status \
-		fido_dev_supports_cred_prot \
-	])
-	LIBS="$saved_LIBS"
 	AC_CHECK_HEADER([fido.h], [],
-		AC_MSG_ERROR([missing fido.h from libfido2]))
+		[ fido2_error="missing fido.h from libfido2" ])
 	AC_CHECK_HEADER([fido/credman.h], [],
-		AC_MSG_ERROR([missing fido/credman.h from libfido2]),
-		[#include <fido.h>]
+		[ fido2_error="missing fido/credman.h from libfido2" ],
+		[ #include <fido.h> ]
 	)
+	AC_MSG_CHECKING([for usable libfido2 installation])
+	if test ! -z "$fido2_error" ; then
+		AC_MSG_RESULT([$fido2_error])
+		if test "x$enable_sk_internal" = "xyes" ; then
+			AC_MSG_ERROR([No usable libfido2 library/headers found])
+		fi
+	else
+		AC_MSG_RESULT([yes])
+		AC_SUBST([LIBFIDO2])
+		AC_DEFINE([ENABLE_SK_INTERNAL], [],
+		    [Enable for built-in U2F/FIDO support])
+		enable_sk="built-in"
+		saved_LIBS="$LIBS"
+		LIBS="$LIBS $LIBFIDO2"
+		AC_CHECK_FUNCS([ \
+			fido_assert_set_clientdata \
+			fido_cred_prot \
+			fido_cred_set_prot \
+			fido_cred_set_clientdata \
+			fido_dev_get_touch_begin \
+			fido_dev_get_touch_status \
+			fido_dev_supports_cred_prot \
+		])
+		LIBS="$saved_LIBS"
+	fi
 fi
 
 AC_CHECK_FUNCS([ \
@@ -4667,7 +4671,6 @@ AC_ARG_WITH([kerberos5],
 		AC_DEFINE([KRB5], [1], [Define if you want Kerberos 5 support])
 		KRB5_MSG="yes"
 
-		AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
 		use_pkgconfig_for_krb5=
 		if test "x$PKGCONFIG" != "xno"; then
 			AC_MSG_CHECKING([if $PKGCONFIG knows about kerberos5])
