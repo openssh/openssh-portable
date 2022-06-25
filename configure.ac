@@ -3255,7 +3255,7 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" != "xno" ; then
 		if test "x$enable_sk_internal" = "xyes" ; then
 			AC_MSG_ERROR([No usable libfido2 library/headers found])
 		fi
-		enable_sk=no
+		LIBFIDO2=""
 	else
 		AC_MSG_RESULT([yes])
 		AC_SUBST([LIBFIDO2])
