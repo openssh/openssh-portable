@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.216 2022/05/13 06:31:50 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.217 2022/06/27 21:41:55 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2387,8 +2387,8 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	int in, out, ch, err, tmp, port = -1, noisy = 0;
-	char *host = NULL, *user, *cp, *file2 = NULL;
+	int r, in, out, ch, err, tmp, port = -1, noisy = 0;
+	char *host = NULL, *user, *cp, **cpp, *file2 = NULL;
 	int debug_level = 0;
 	char *file1 = NULL, *sftp_server = NULL;
 	char *ssh_program = _PATH_SSH_PROGRAM, *sftp_direct = NULL;
@@ -2586,10 +2586,12 @@ main(int argc, char **argv)
 
 		connect_to_server(ssh_program, args.list, &in, &out);
 	} else {
-		args.list = NULL;
-		addargs(&args, "sftp-server");
-
-		connect_to_server(sftp_direct, args.list, &in, &out);
+		if ((r = argv_split(sftp_direct, &tmp, &cpp, 1)) != 0)
+			fatal_r(r, "Parse -D arguments");
+		if (cpp[0] == 0)
+			fatal("No sftp server specified via -D");
+		connect_to_server(cpp[0], cpp, &in, &out);
+		argv_free(cpp, tmp);
 	}
 	freeargs(&args);
 
