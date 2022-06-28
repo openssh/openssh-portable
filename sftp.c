@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.217 2022/06/27 21:41:55 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.218 2022/06/28 06:09:14 jmc Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2376,7 +2376,7 @@ usage(void)
 
 	fprintf(stderr,
 	    "usage: %s [-46AaCfNpqrv] [-B buffer_size] [-b batchfile] [-c cipher]\n"
-	    "          [-D sftp_server_path] [-F ssh_config] [-i identity_file]\n"
+	    "          [-D sftp_server_command] [-F ssh_config] [-i identity_file]\n"
 	    "          [-J destination] [-l limit] [-o ssh_option] [-P port]\n"
 	    "          [-R num_requests] [-S program] [-s subsystem | sftp_server]\n"
 	    "          destination\n",
