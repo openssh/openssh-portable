@@ -1037,6 +1037,9 @@ and
 .Cm ed25519-sk .
 Currently PIN authentication is the only supported verification method,
 but other methods may be supported in the future.
+If a PIN is not set on the authenticator,
+.Nm
+will prompt for a PIN to be set.
 .El
 .Pp
 At present, no standard options are valid for host keys.
@@ -1106,6 +1109,9 @@ authenticator itself.
 This makes it easier to use the authenticator on multiple computers.
 Resident keys may be supported on FIDO2 authenticators and typically
 require that a PIN be set on the authenticator prior to generation.
+If a PIN is not set on the authenticator,
+.Nm
+will prompt for a PIN to be set.
 Resident keys may be loaded off the authenticator using
 .Xr ssh-add 1 .
 Storing both parts of a key on a FIDO authenticator increases the likelihood

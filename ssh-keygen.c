@@ -3252,6 +3252,36 @@ confirm_sk_overwrite(const char *application, const char *user)
 	return 1;
 }
 
+static char *
+ask_sk_pin(void)
+{
+	char yesno[3];
+	char *pin1, *pin2;
+
+	printf("Authenticator does not have a PIN set.\n");
+	printf("Would you like to set it? (y/n)? ");
+	fflush(stdout);
+
+	if (fgets(yesno, sizeof(yesno), stdin) == NULL)
+		return NULL;
+	if (yesno[0] != 'y' && yesno[0] != 'Y')
+		return NULL;
+
+again:
+	pin1 = read_passphrase("Enter new PIN: ", RP_ALLOW_STDIN);
+	pin2 = read_passphrase("Enter same PIN again: ", RP_ALLOW_STDIN);
+
+	if (strcmp(pin1, pin2) != 0) {
+		freezero(pin1, strlen(pin1));
+		freezero(pin2, strlen(pin2));
+		printf("PINs do not match.  Try again.\n");
+		goto again;
+	}
+
+	freezero(pin2, strlen(pin2));
+	return pin1;
+}
+
 static void
 usage(void)
 {
@@ -3820,6 +3850,7 @@ main(int argc, char **argv)
 		}
 		if ((attest = sshbuf_new()) == NULL)
 			fatal("sshbuf_new failed");
+		passphrase = NULL;
 		r = 0;
 		for (i = 0 ;;) {
 			if (!quiet) {
@@ -3842,6 +3873,18 @@ main(int argc, char **argv)
 				sk_flags |= SSH_SK_FORCE_OPERATION;
 				continue;
 			}
+			if (r == SSH_ERR_DEVICE_PIN_NOT_SET &&
+			    (sk_flags & SSH_SK_SET_PIN) == 0) {
+				if (passphrase != NULL) {
+					freezero(passphrase,
+					    strlen(passphrase));
+				}
+				if ((passphrase = ask_sk_pin()) != NULL) {
+					sk_flags |= SSH_SK_SET_PIN;
+					continue;
+				}
+			}
+
 			if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 				fatal_r(r, "Key enrollment failed");
 			else if (passphrase != NULL) {
