@@ -28,6 +28,7 @@
 #define SSH_SK_USER_VERIFICATION_REQD	0x04
 #define SSH_SK_FORCE_OPERATION		0x10
 #define SSH_SK_RESIDENT_KEY		0x20
+#define SSH_SK_SET_PIN			0x40
 
 /* Algs */
 #define SSH_SK_ECDSA			0x00
