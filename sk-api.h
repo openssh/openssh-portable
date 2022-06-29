@@ -39,6 +39,7 @@
 #define SSH_SK_ERR_PIN_REQUIRED		-3
 #define SSH_SK_ERR_DEVICE_NOT_FOUND	-4
 #define SSH_SK_ERR_CREDENTIAL_EXISTS	-5
+#define SSH_SK_ERR_PIN_NOT_SET		-6
 
 struct sk_enroll_response {
 	uint8_t flags;

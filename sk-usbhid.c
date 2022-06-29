@@ -736,6 +736,8 @@ fidoerr_to_skerr(int fidoerr)
 	case FIDO_ERR_PIN_INVALID:
 	case FIDO_ERR_OPERATION_DENIED:
 		return SSH_SK_ERR_PIN_REQUIRED;
+	case FIDO_ERR_PIN_NOT_SET:
+		return SSH_SK_ERR_PIN_NOT_SET;
 	default:
 		return -1;
 	}

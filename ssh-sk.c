@@ -356,6 +356,8 @@ skerr_to_ssherr(int skerr)
 		return SSH_ERR_DEVICE_NOT_FOUND;
 	case SSH_SK_ERR_CREDENTIAL_EXISTS:
 		return SSH_ERR_KEY_BAD_PERMISSIONS;
+	case SSH_SK_ERR_PIN_NOT_SET:
+		return SSH_ERR_DEVICE_PIN_NOT_SET;
 	case SSH_SK_ERR_GENERAL:
 	default:
 		return SSH_ERR_INVALID_FORMAT;
