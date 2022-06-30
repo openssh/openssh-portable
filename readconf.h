@@ -177,6 +177,7 @@ typedef struct {
 	char   *known_hosts_command;
 
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
+	int use_mptcp; /* decides whether to use multipath TCP */
 }       Options;
 
 #define SSH_PUBKEY_AUTH_NO	0x00
