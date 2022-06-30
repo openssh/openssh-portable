@@ -1323,7 +1323,9 @@ or
 .Cm no
 (the default).
 .It Cm MinRSABits
-Provides a minimal bits requirement for RSA keys. The default value is 1024.
+Provides a minimal bits requirement for RSA keys when used for signature and
+verification but not for the key generation. The default value is 1024 and
+can't be reduced.
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up.
 The argument to this keyword must be an integer.

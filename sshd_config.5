@@ -1267,7 +1267,9 @@ if there are currently start (10) unauthenticated connections.
 The probability increases linearly and all connection attempts
 are refused if the number of unauthenticated connections reaches full (60).
 .It Cm MinRSABits
-Provides a minimal bits requirement for RSA keys. The default value is 1024.
+Provides a minimal bits requirement for RSA keys when used for signature and
+verification but not for the key generation. The default value is 1024 and
+can't be reduced.
 .It Cm ModuliFile
 Specifies the
 .Xr moduli 5
