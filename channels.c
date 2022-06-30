@@ -2192,33 +2192,16 @@ static int
 channel_check_window(struct ssh *ssh, Channel *c)
 {
 	int r;
-	int denominator = 24;
 
-	/* the denominator is used to control the frequency of
-	 * windows adjustment advertisment as part of flow control.
-	 * In openssh this is set to a static value of two. What we've
-	 * found is that increasing the denominator has two effects:
-	 * 1) in low RTT situations this forces less frequent adjusts
-	 * and, in effect, coallasces, the datagrams. With a denominator
-	 * of 2 you'd see window adjusts every 64k. This would cause
-	 * higher than necessary CPU usage. With a denominator of 24
-	 * you'll see adjusts every 500K to 1M. The reduces CPU load and
-	 * results in somewhat better throughput
-	 * 2) in high RRT environments having a higher denominator means
-	 * that more data is sent between window adjusts allowing for
-	 * more optimal use of the network. In comparison to a denominator
-	 * of 2 I was measuring a 20% performance improvement.
-	 * This has no impact on interactive sessions.
-	 */
-	denominator = c->local_window_max / (2*1024*1024);
-	if (denominator < 24)
-		denominator = 24;
-
+	/* going back to a set denominator of 2. Prior versions had a 
+	 * dynamic denominator based on the size of the buffer. This may 
+	 * have been helpful in some situations but it isn't helping in 
+	 * the general case -cjr 6/30/23 */
 	if (c->type == SSH_CHANNEL_OPEN &&
 	    !(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
 	    ((ssh_packet_is_interactive(ssh) &&
 	    c->local_window_max - c->local_window > c->local_maxpacket*3) ||
-	    c->local_window < c->local_window_max/denominator) &&
+	    c->local_window < c->local_window_max/2) &&
 	    c->local_consumed > 0) {
 		u_int addition = 0;
 		u_int32_t tcpwinsz = channel_tcpwinsz(ssh);
