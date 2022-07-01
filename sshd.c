@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.589 2022/07/01 03:39:44 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.590 2022/07/01 05:08:23 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2376,8 +2376,6 @@ do_ssh2_kex(struct ssh *ssh)
 	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
 	    myproposal[PROPOSAL_ENC_ALGS_STOC] = prop_enc =
 	    compat_cipher_proposal(ssh, options.ciphers);
-	myproposal[PROPOSAL_ENC_ALGS_STOC] = compat_cipher_proposal(ssh,
-	    options.ciphers);
 	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 
