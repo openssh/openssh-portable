@@ -3552,10 +3552,13 @@ AC_ARG_WITH([sandbox],
 
 # POSIX specifies that poll() "shall fail with EINVAL if the nfds argument
 # is greater than OPEN_MAX".  On some platforms that includes implementions
-# ofselect in userspace on top of poll() so check both work with rlimit NOFILES
-# so check that both work before enabling the rlimit sandbox.
+# of select in userspace on top of poll() so check both work with rlimit
+# NOFILES so check that both work before enabling the rlimit sandbox.
 AC_MSG_CHECKING([if select and/or poll works with descriptor rlimit])
-AC_RUN_IFELSE(
+if test "x$sandbox_arg" = "xno"; then
+    AC_MSG_RESULT([sandboxing disabled, skipping])
+else
+    AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
@@ -3608,7 +3611,8 @@ AC_RUN_IFELSE(
 	 select_works_with_rlimit=no],
 	[AC_MSG_WARN([cross compiling: assuming no])
 	 select_works_with_rlimit=no]
-)
+    )
+fi
 
 AC_CHECK_MEMBERS([struct pollfd.fd], [], [], [[
 #include <sys/types.h>
