@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.574 2022/03/30 04:33:09 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.575 2022/07/01 00:36:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1124,6 +1124,8 @@ main(int ac, char **av)
 		}
 	}
 
+	ssh_signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
+
 	/*
 	 * Initialize "log" output.  Since we are the client all output
 	 * goes to stderr unless otherwise specified by -y or -E.
@@ -1652,7 +1654,6 @@ main(int ac, char **av)
 	    options.num_system_hostfiles);
 	tilde_expand_paths(options.user_hostfiles, options.num_user_hostfiles);
 
-	ssh_signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
 	ssh_signal(SIGCHLD, main_sigchld_handler);
 
 	/* Log into the remote system.  Never returns if the login fails. */
