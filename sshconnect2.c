@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.358 2022/06/24 10:45:06 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.359 2022/07/01 03:39:44 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -218,6 +218,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
 	char *s, *all_key;
+	char *prop_kex = NULL, *prop_enc = NULL, *prop_hostkey = NULL;
 	int r, use_known_hosts_order = 0;
 
 	xxx_host = host;
@@ -243,10 +244,9 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 
 	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
 		fatal_f("kex_names_cat");
-	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(ssh, s);
+	myproposal[PROPOSAL_KEX_ALGS] = prop_kex = compat_kex_proposal(ssh, s);
 	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-	    compat_cipher_proposal(ssh, options.ciphers);
-	myproposal[PROPOSAL_ENC_ALGS_STOC] =
+	    myproposal[PROPOSAL_ENC_ALGS_STOC] = prop_enc =
 	    compat_cipher_proposal(ssh, options.ciphers);
 	myproposal[PROPOSAL_COMP_ALGS_CTOS] =
 	    myproposal[PROPOSAL_COMP_ALGS_STOC] =
@@ -255,12 +255,12 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	if (use_known_hosts_order) {
 		/* Query known_hosts and prefer algorithms that appear there */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
+		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = prop_hostkey =
 		    compat_pkalg_proposal(ssh,
 		    order_hostkeyalgs(host, hostaddr, port, cinfo));
 	} else {
 		/* Use specified HostkeyAlgorithms exactly */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
+		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = prop_hostkey =
 		    compat_pkalg_proposal(ssh, options.hostkeyalgorithms);
 	}
 
@@ -303,6 +303,10 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    (r = ssh_packet_write_wait(ssh)) != 0)
 		fatal_fr(r, "send packet");
 #endif
+	/* Free only parts of proposal that were dynamically allocated here. */
+	free(prop_kex);
+	free(prop_enc);
+	free(prop_hostkey);
 }
 
 /*
