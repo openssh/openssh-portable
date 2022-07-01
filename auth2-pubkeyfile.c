@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkeyfile.c,v 1.2 2022/06/03 04:47:21 djm Exp $ */
+/* $OpenBSD: auth2-pubkeyfile.c,v 1.3 2022/07/01 03:52:57 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -449,9 +449,13 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 	FILE *f;
 
 	if ((fd = open(file, O_RDONLY|O_NONBLOCK)) == -1) {
-		if (log_missing || errno != ENOENT)
-			debug("Could not open %s '%s': %s", file_type, file,
-			    strerror(errno));
+		if (errno != ENOENT) {
+			logit("Could not open user '%s' %s '%s': %s",
+			    pw->pw_name, file_type, file, strerror(errno));
+		} else if (log_missing) {
+			debug("Could not open user '%s' %s '%s': %s",
+			    pw->pw_name, file_type, file, strerror(errno));
+		}
 		return NULL;
 	}
 
@@ -460,7 +464,7 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 		return NULL;
 	}
 	if (!S_ISREG(st.st_mode)) {
-		logit("User %s %s %s is not a regular file",
+		logit("User '%s' %s '%s' is not a regular file",
 		    pw->pw_name, file_type, file);
 		close(fd);
 		return NULL;
