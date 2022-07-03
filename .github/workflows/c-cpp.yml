@@ -32,6 +32,9 @@ jobs:
           - { os: ubuntu-20.04, configs: clang-10 }
           - { os: ubuntu-20.04, configs: clang-11 }
           - { os: ubuntu-20.04, configs: clang-12-Werror }
+          - { os: ubuntu-20.04, configs: clang-sanitize-address }
+          - { os: ubuntu-20.04, configs: clang-sanitize-memory }
+          - { os: ubuntu-20.04, configs: clang-sanitize-undefined }
           - { os: ubuntu-20.04, configs: gcc-7 }
           - { os: ubuntu-20.04, configs: gcc-8 }
           - { os: ubuntu-20.04, configs: gcc-10 }
@@ -106,3 +109,5 @@ jobs:
           config.log
           regress/*.log
           regress/valgrind-out/
+          /tmp/asan.log.*
+          /tnp/msan.log.*

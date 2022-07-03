@@ -37,6 +37,9 @@ for TARGET in $TARGETS; do
     default|without-openssl|without-zlib|c89|libedit|*pam)
         # nothing to do
         ;;
+    clang-sanitize*)
+        PACKAGES="$PACKAGES clang-12"
+        ;;
     clang-*|gcc-*)
         compiler=$(echo $TARGET | sed 's/-Werror//')
         PACKAGES="$PACKAGES $compiler"
