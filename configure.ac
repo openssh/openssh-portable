@@ -3570,14 +3570,12 @@ AC_ARG_WITH([sandbox],
 	]
 )
 
+if test "x$sandbox_arg" != "xno"; then
 # POSIX specifies that poll() "shall fail with EINVAL if the nfds argument
 # is greater than OPEN_MAX".  On some platforms that includes implementions
 # of select in userspace on top of poll() so check both work with rlimit
 # NOFILES so check that both work before enabling the rlimit sandbox.
-AC_MSG_CHECKING([if select and/or poll works with descriptor rlimit])
-if test "x$sandbox_arg" = "xno"; then
-    AC_MSG_RESULT([sandboxing disabled, skipping])
-else
+    AC_MSG_CHECKING([if select and/or poll works with descriptor rlimit])
     AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <sys/types.h>
@@ -3632,10 +3630,9 @@ else
 	[AC_MSG_WARN([cross compiling: assuming no])
 	 select_works_with_rlimit=no]
     )
-fi
 
-AC_MSG_CHECKING([if setrlimit(RLIMIT_NOFILE,{0,0}) works])
-AC_RUN_IFELSE(
+    AC_MSG_CHECKING([if setrlimit(RLIMIT_NOFILE,{0,0}) works])
+    AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
@@ -3658,10 +3655,10 @@ AC_RUN_IFELSE(
 	 rlimit_nofile_zero_works=no],
 	[AC_MSG_WARN([cross compiling: assuming yes])
 	 rlimit_nofile_zero_works=yes]
-)
+    )
 
-AC_MSG_CHECKING([if setrlimit RLIMIT_FSIZE works])
-AC_RUN_IFELSE(
+    AC_MSG_CHECKING([if setrlimit RLIMIT_FSIZE works])
+    AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #include <sys/resource.h>
@@ -3677,7 +3674,8 @@ AC_RUN_IFELSE(
 	 AC_DEFINE(SANDBOX_SKIP_RLIMIT_FSIZE, 1,
 	    [setrlimit RLIMIT_FSIZE works])],
 	[AC_MSG_WARN([cross compiling: assuming yes])]
-)
+    )
+fi
 
 if test "x$sandbox_arg" = "xpledge" || \
    ( test -z "$sandbox_arg" && test "x$ac_cv_func_pledge" = "xyes" ) ; then
