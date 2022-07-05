@@ -43,6 +43,8 @@ case "$config" in
 	CONFIGFLAGS="--with-pam --with-Werror"
 	;;
     clang-sanitize-*)
+	# Put Sanitizer logs in regress dir.
+	SANLOGS=`pwd`/regress
 	# - We replace chroot with chdir so that the sanitizer in the preauth
 	#   privsep process can read /proc.
 	# - clang does not recognizes explicit_bzero so we use bzero
@@ -53,14 +55,14 @@ case "$config" in
 	clang-sanitize-address)
 	    CFLAGS="-fsanitize=address -fno-omit-frame-pointer"
 	    LDFLAGS="-fsanitize=address"
-	    CPPFLAGS='-Dchroot=chdir -Dexplicit_bzero=bzero -DASAN_OPTIONS=\"detect_leaks=0:log_path=/tmp/asan.log\"'
+	    CPPFLAGS='-Dchroot=chdir -Dexplicit_bzero=bzero -DASAN_OPTIONS=\"detect_leaks=0:log_path='$SANLOGS'/asan.log\"'
 	    CONFIGFLAGS="--without-openssl --without-zlib --without-shadow"
 	    TEST_TARGET="t-exec"
 	    ;;
 	clang-sanitize-memory)
 	    CFLAGS="-fsanitize=memory -fsanitize-memory-track-origins"
 	    LDFLAGS="-fsanitize=memory"
-	    CPPFLAGS='-Dchroot=chdir -Dexplicit_bzero=bzero -DMSAN_OPTIONS=\"log_path=/tmp/msan.log\"'
+	    CPPFLAGS='-Dchroot=chdir -Dexplicit_bzero=bzero -DMSAN_OPTIONS=\"log_path='$SANLOGS'/msan.log\"'
 	    CONFIGFLAGS="--without-openssl --without-zlib --without-shadow"
 	    TEST_TARGET="t-exec"
 	    ;;

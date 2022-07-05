@@ -109,5 +109,5 @@ jobs:
           config.log
           regress/*.log
           regress/valgrind-out/
-          /tmp/asan.log.*
-          /tnp/msan.log.*
+          regress/asan.log.*
+          regress/msan.log.*
