@@ -42,7 +42,19 @@ case "$config" in
 	CFLAGS="-Wall -Wextra -O2 -Wno-error=implicit-fallthrough -Wno-error=unused-parameter"
 	CONFIGFLAGS="--with-pam --with-Werror"
 	;;
-    clang-sanitize-*)
+    *-sanitize-*)
+	case "$config" in
+	gcc-*)
+		CC=gcc
+		;;
+	clang-*)
+		# Find the newest available version of clang
+		for i in `seq 10 99`; do
+		    clang="`which clang-$i 2>/dev/null`"
+		    [ -x "$clang" ] && CC="$clang"
+		done
+		;;
+	esac
 	# Put Sanitizer logs in regress dir.
 	SANLOGS=`pwd`/regress
 	# - We replace chroot with chdir so that the sanitizer in the preauth
@@ -52,11 +64,11 @@ case "$config" in
 	# - openssl and zlib trip ASAN.
 	# - sp_pwdp returned by getspnam trips ASAN, hence disabling shadow.
 	case "$config" in
-	clang-sanitize-address)
+	*-sanitize-address)
 	    CFLAGS="-fsanitize=address -fno-omit-frame-pointer"
 	    LDFLAGS="-fsanitize=address"
-	    CPPFLAGS='-Dchroot=chdir -Dexplicit_bzero=bzero -DASAN_OPTIONS=\"detect_leaks=0:log_path='$SANLOGS'/asan.log\"'
-	    CONFIGFLAGS="--without-openssl --without-zlib --without-shadow"
+	    CPPFLAGS='-Dchroot=chdir -Dexplicit_bzero=bzero -D_FORTIFY_SOURCE=0 -DASAN_OPTIONS=\"detect_leaks=0:log_path='$SANLOGS'/asan.log\"'
+	    CONFIGFLAGS=""
 	    TEST_TARGET="t-exec"
 	    ;;
 	clang-sanitize-memory)
@@ -74,11 +86,6 @@ case "$config" in
 	     echo unknown sanitize option;
 	     exit 1;;
 	esac
-	# Find the newest available version of clang
-	for i in `seq 10 99`; do
-	    clang=$(which clang-$i 2>/dev/null)
-	    [ -x "$clang" ] && CC="$clang"
-	done
 	features="--disable-security-key --disable-pkcs11"
 	hardening="--without-sandbox --without-hardening --without-stackprotect"
 	privsep="--with-privsep-user=root"
