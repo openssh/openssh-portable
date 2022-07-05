@@ -33,8 +33,9 @@ jobs:
           - { os: ubuntu-20.04, configs: clang-11 }
           - { os: ubuntu-20.04, configs: clang-12-Werror }
           - { os: ubuntu-20.04, configs: clang-sanitize-address }
-          - { os: ubuntu-20.04, configs: clang-sanitize-memory }
           - { os: ubuntu-20.04, configs: clang-sanitize-undefined }
+          - { os: ubuntu-20.04, configs: gcc-sanitize-address }
+          - { os: ubuntu-20.04, configs: gcc-sanitize-undefined }
           - { os: ubuntu-20.04, configs: gcc-7 }
           - { os: ubuntu-20.04, configs: gcc-8 }
           - { os: ubuntu-20.04, configs: gcc-10 }

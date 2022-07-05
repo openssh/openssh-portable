@@ -78,7 +78,7 @@ case "$config" in
 	    CONFIGFLAGS="--without-openssl --without-zlib --without-shadow"
 	    TEST_TARGET="t-exec"
 	    ;;
-	clang-sanitize-undefined)
+	*-sanitize-undefined)
 	    CFLAGS="-fsanitize=undefined"
 	    LDFLAGS="-fsanitize=undefined"
 	    ;;
