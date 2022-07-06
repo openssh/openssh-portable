@@ -64,7 +64,7 @@ jobs:
           - { os: ubuntu-latest, configs: openssl-1.1.1n }
           - { os: ubuntu-latest, configs: openssl-1.1.1p }
           - { os: ubuntu-latest, configs: openssl-3.0.0 }
-          - { os: ubuntu-latest, configs: openssl-3.0.4 }
+          - { os: ubuntu-latest, configs: openssl-3.0.5 }
           - { os: ubuntu-latest, configs: openssl-1.1.1_stable } # stable branch
           - { os: ubuntu-latest, configs: openssl-3.0 }          # stable branch
           - { os: ubuntu-18.04, configs: pam }
