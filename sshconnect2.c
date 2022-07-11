@@ -231,6 +231,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	 * that are in the list that are supported by known_hosts keys.
 	 */
 	if (options.hostkeyalgorithms == NULL ||
+	    options.hostkeyalgorithms[0] == '&' ||
 	    options.hostkeyalgorithms[0] == '-' ||
 	    options.hostkeyalgorithms[0] == '+')
 		use_known_hosts_order = 1;

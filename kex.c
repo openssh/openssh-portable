@@ -264,6 +264,15 @@ kex_assemble_names(char **listp, const char *def, const char *all)
 		}
 		free(list);
 		list = tmp;
+	} else if (*list == '&') {
+		/* Filter default list */
+		if ((*listp = match_filter_allowlist(def, list + 1)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto fail;
+		}
+		free(list);
+		/* filtering has already been done */
+		return 0;
 	} else {
 		/* Explicit list, overrides default - just use "list" as is */
 	}

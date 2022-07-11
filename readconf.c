@@ -1392,7 +1392,7 @@ parse_int:
 			    filename, linenum);
 			goto out;
 		}
-		if (*arg != '-' &&
+		if (*arg != '-' && *arg != '&' &&
 		    !ciphers_valid(*arg == '+' || *arg == '^' ? arg + 1 : arg)){
 			error("%.200s line %d: Bad SSH2 cipher spec '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
@@ -1409,7 +1409,7 @@ parse_int:
 			    filename, linenum);
 			goto out;
 		}
-		if (*arg != '-' &&
+		if (*arg != '-' && *arg != '&' &&
 		    !mac_valid(*arg == '+' || *arg == '^' ? arg + 1 : arg)) {
 			error("%.200s line %d: Bad SSH2 MAC spec '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
@@ -1426,7 +1426,7 @@ parse_int:
 			    filename, linenum);
 			goto out;
 		}
-		if (*arg != '-' &&
+		if (*arg != '-' && *arg != '&' &&
 		    !kex_names_valid(*arg == '+' || *arg == '^' ?
 		    arg + 1 : arg)) {
 			error("%.200s line %d: Bad SSH2 KexAlgorithms '%s'.",
@@ -1446,7 +1446,7 @@ parse_pubkey_algos:
 			    filename, linenum);
 			goto out;
 		}
-		if (*arg != '-' &&
+		if (*arg != '-' && *arg != '&' &&
 		    !sshkey_names_valid2(*arg == '+' || *arg == '^' ?
 		    arg + 1 : arg, 1)) {
 			error("%s line %d: Bad key types '%s'.",
