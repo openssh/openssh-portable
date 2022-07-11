@@ -359,10 +359,8 @@ ssh_create_socket(struct addrinfo *ai)
 #endif
 	char ntop[NI_MAXHOST];
 
-	if (options.use_mptcp)
-		sock = socket(ai->ai_family, ai->ai_socktype, IPPROTO_MPTCP);
-	else
-		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+	sock = socket(ai->ai_family, ai->ai_socktype,
+		options.use_mptcp ? IPPROTO_MPTCP : ai->ai_protocol);
 	if (sock == -1) {
 		error("socket: %s", strerror(errno));
 		return -1;
