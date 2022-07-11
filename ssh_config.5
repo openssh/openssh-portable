@@ -1930,6 +1930,12 @@ Presently, only
 from OpenSSH 6.8 and greater support the
 .Qq hostkeys@openssh.com
 protocol extension used to inform the client of all the server's hostkeys.
+.It Cm UseMPTCP
+If set to
+.Cm yes ,
+this will enable Multipath TCP (MPTCP) instead of TCP (this only works on Linux).
+The default is
+.Cm no .
 .It Cm User
 Specifies the user to log in as.
 This can be useful when a different user name is used on different machines.
