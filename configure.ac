@@ -2796,6 +2796,7 @@ if test "x$openssl" = "xyes" ; then
 				;;
 			101*)   ;; # 1.1.x
 			200*)   ;; # LibreSSL
+			3000004*) AC_MSG_ERROR([OpenSSL 3.0.4 has a potential RCE in its RSA implementation (CVE-2022-2274)]) ;;
 			300*)
 				# OpenSSL 3; we use the 1.1x API
 				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
