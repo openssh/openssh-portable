@@ -10,6 +10,8 @@
 
 config=$1
 
+unset CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
+
 TEST_TARGET="tests"
 LTESTS=""
 SKIP_LTESTS=""
@@ -17,7 +19,6 @@ SUDO=sudo	# run with sudo by default
 TEST_SSH_UNSAFE_PERMISSIONS=1
 # Stop on first test failure to minimize logs
 TEST_SSH_FAIL_FATAL=yes
-unset CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
 
 CONFIGFLAGS=""
 LIBCRYPTOFLAGS=""
@@ -72,7 +73,7 @@ case "$config" in
 	    TEST_TARGET="t-exec"
 	    ;;
 	clang-sanitize-memory)
-	    CFLAGS="-fsanitize=memory -fsanitize-memory-track-origins"
+	    CFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer"
 	    LDFLAGS="-fsanitize=memory"
 	    CPPFLAGS='-Dchroot=chdir -Dexplicit_bzero=bzero -DMSAN_OPTIONS=\"log_path='$SANLOGS'/msan.log\"'
 	    CONFIGFLAGS="--without-openssl --without-zlib --without-shadow"
