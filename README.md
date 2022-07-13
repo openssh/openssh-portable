@@ -30,7 +30,7 @@ Stable release tarballs are available from a number of [download mirrors](https:
 
 Portable OpenSSH is built using autoconf and make. It requires a working C compiler, standard library and headers.
 
-``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) may also be used, but OpenSSH may be built without it supporting a subset of crypto algorithms.
+``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) may also be used.  OpenSSH may be built without either of these, but the resulting binaries will have only a subset of the cryptographic algorithms normally available.
 
 [zlib](https://www.zlib.net/) is optional; without it transport compression is not supported.
 
@@ -65,7 +65,7 @@ make && make tests
 
 There are many build-time customisation options available. All Autoconf destination path flags (e.g. ``--prefix``) are supported (and are usually required if you want to install OpenSSH).
 
-For a full list of available flags, run ``configure --help`` but a few of the more frequently-used ones are described below. Some of these flags will require additional libraries and/or headers be installed.
+For a full list of available flags, run ``./configure --help`` but a few of the more frequently-used ones are described below. Some of these flags will require additional libraries and/or headers be installed.
 
 Flag | Meaning
 --- | ---
