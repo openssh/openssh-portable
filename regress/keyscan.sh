@@ -23,16 +23,3 @@ for t in $SSH_KEYTYPES; do
 		fail "ssh-keyscan -t $t failed with: $r"
 	fi
 done
-
-stop_sshd
-sleep 1
-
-trace "keyscan banner length"
-banner=""
-for i in `seq 245 256`; do
-	trace "keyscan length $i"
-	banner=`perl -le "print 'A'x$i"`
-	(printf "SSH-2.0-${banner}" | ${NC} -N -l $PORT >/dev/null) &
-	${SSHKEYSCAN} -p $PORT 127.0.0.1
-	sleep 3
-done
