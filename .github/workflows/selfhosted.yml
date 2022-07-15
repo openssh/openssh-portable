@@ -18,9 +18,9 @@ jobs:
       matrix:
         os:
           - aix51
+          - ARM
           - ARM64
           - alpine
-          - bbone
           - debian-i386
           - debian-riscv64
           - dfly30
