@@ -72,11 +72,11 @@ jobs:
           # - { os: sol11,  configs: sol64-pam }
           - { os: win10,  configs: cygwin-release }
     steps:
+    - name: shutdown VM if running
+      run: vmshutdown
     - uses: actions/checkout@v2
     - name: autoreconf
       run: autoreconf
-    - name: shutdown VM if running
-      run: vmshutdown
     - name: startup VM
       run: vmstartup
     - name: configure
