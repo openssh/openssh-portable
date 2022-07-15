@@ -936,6 +936,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	s390-*)
 		seccomp_audit_arch=AUDIT_ARCH_S390
 		;;
+	powerpc-*)
+		seccomp_audit_arch=AUDIT_ARCH_PPC
+		;;
 	powerpc64-*)
 		seccomp_audit_arch=AUDIT_ARCH_PPC64
 		;;
