@@ -85,6 +85,16 @@ There is no official registry of 3rd party event numbers, so if this
 number is already in use on your system, you may change it at build time
 by configure'ing --with-cflags=-DAUE_openssh=32801 then rebuilding.
 
+HPE NonStop
+-----------
+OpenSSH is primarily useful on the NonStop platform primarily as a client.
+There is already an implementation with the operating system supporting most
+sshd functions. To build on the platform, standard configure rules apply with
+the follwing requirements:
+
+_RLD_LIB_PATH, includes, and --withssl-dir needs to specify the path to
+OpenSSL on the platform. c99 and c11 are recommended. --disable-utmpx is
+required.
 
 Platforms using PAM
 -------------------

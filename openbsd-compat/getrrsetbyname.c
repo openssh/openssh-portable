@@ -169,11 +169,20 @@ struct dns_response {
 	struct dns_rr		*additional;
 };
 
+#ifdef __TANDEM
+/* Bypass NonStop compiler defect */
+#define const
+#endif
+
 static struct dns_response *parse_dns_response(const u_char *, int);
 static struct dns_query *parse_dns_qsection(const u_char *, int,
     const u_char **, int);
 static struct dns_rr *parse_dns_rrsection(const u_char *, int, const u_char **,
     int);
+
+#ifdef __TANDEM
+#undef const
+#endif
 
 static void free_dns_query(struct dns_query *);
 static void free_dns_rr(struct dns_rr *);
@@ -375,6 +384,11 @@ freerrset(struct rrsetinfo *rrset)
 	free(rrset);
 }
 
+#ifdef __TANDEM
+/* Bypass NonStop compiler defect */
+#define const
+#endif
+
 /*
  * DNS response parsing routines
  */
@@ -552,6 +566,10 @@ parse_dns_rrsection(const u_char *answer, int size, const u_char **cp,
 
 	return (head);
 }
+
+#ifdef __TANDEM
+#undef const
+#endif
 
 static void
 free_dns_query(struct dns_query *p)

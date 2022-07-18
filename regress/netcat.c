@@ -43,6 +43,10 @@
 #include <netinet/tcp.h>
 #include <netinet/ip.h>
 
+#ifdef __TANDEM
+#include <arpa/inet.h>
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>

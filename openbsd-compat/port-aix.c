@@ -249,7 +249,7 @@ sys_auth_allowed_user(struct passwd *pw, struct sshbuf *loginmsg)
 	 * logins via ssh) or if running as non-root user (since
 	 * loginrestrictions will always fail due to insufficient privilege).
 	 */
-	if (pw->pw_uid == 0 || geteuid() != 0) {
+	if (pw->pw_uid == ROOT_UID || geteuid() != ROOT_UID) {
 		debug3("%s: not checking", __func__);
 		return 1;
 	}
@@ -316,7 +316,7 @@ void
 record_failed_login(struct ssh *ssh, const char *user, const char *hostname,
     const char *ttyname)
 {
-	if (geteuid() != 0)
+	if (geteuid() != ROOT_UID)
 		return;
 
 	aix_setauthdb(user);

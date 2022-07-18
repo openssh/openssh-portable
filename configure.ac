@@ -56,6 +56,7 @@ AC_PATH_PROG([NROFF], [nroff awf])
 AC_PATH_PROG([MANDOC], [mandoc])
 AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
 AC_SUBST([TEST_SHELL], [sh])
+AC_SUBST([LINK_OBJECT_EXT],[lo])
 
 dnl select manpage formatter to be used to build "cat" format pages.
 if test "x$MANDOC" != "x" ; then
@@ -1047,6 +1048,39 @@ mips-sony-bsd|mips-sony-newsos4)
 	    [syslog_r function is safe to use in in a signal handler])
 	TEST_MALLOC_OPTIONS="AFGJPRX"
 	;;
+*-tandem-*)
+	CPPFLAGS="$CPPFLAGS -Wextensions -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1 -Wnowarn=262,1252 -DNSIG=32"
+	AC_DEFINE([HAVE_STRUCT_IN6_ADDR], [1], [struct in6_addr actually defined])
+	AC_DEFINE([HAVE_STRUCT_SOCKADDR_IN6], [1], [struct sockaddr_in6 actually defined])
+	AC_DEFINE([HAVE__GETSHORT], [1], [decl exists but impl is missing])
+	# Force this to 0 no matter what configure finds
+	AC_CHECK_DECL([_getshort],
+		AC_DEFINE([HAVE_DECL__GETSHORT],[0],[missing implementation on NonStop]),
+		AC_DEFINE([HAVE_DECL__GETSHORT],[0],[missing implementation on NonStop]))
+	AC_DEFINE([HAVE__GETLONG], [1], [decl exists but impl is missing])
+	# Force this to 0 no matter what configure finds
+	AC_CHECK_DECL([_getlong],
+		AC_DEFINE([HAVE_DECL__GETLONG],[0],[missing implementation on NonStop]),
+		AC_DEFINE([HAVE_DECL__GETLONG],[0],[missing implementation on NonStop]))
+	# Force this to 0 no matter what configure finds
+	AC_CHECK_DECL([ftruncate],
+		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonStop]),
+		AC_DEFINE([HAVE_DECL_FTRUNCATE],[0],[missing declaration on NonStop]))
+	AC_SUBST([LINK_OBJECT_EXT],[o])
+	AC_SEARCH_LIBS([dlopen], [rld])
+	SHAREDFLAG="$SHAREFLAG -Wshared"
+	# Variant specific options
+	case $host in
+	nsx-tandem*)
+		SHAREDFLAG="$SHAREDFLAG -Wxld=-export_all"
+		;;
+	nse-tandem*)
+		SHAREDFLAG="$SHAREDFLAG -Weld=-export_all"
+		;;
+	*)
+		;;
+	esac
+	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
 		rpath_opt="-R"
@@ -1825,6 +1859,18 @@ AC_COMPILE_IFELSE(
     PICFLAG=""; ])
 CFLAGS="$SAVED_CFLAGS"
 AC_SUBST([PICFLAG])
+
+AC_MSG_CHECKING([whether -shared is accepted])
+SAVED_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -shared"
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM( [[ #include <stdlib.h> ]], [[ exit(0); ]] )],
+   [AC_MSG_RESULT([yes])
+    SHAREDFLAG="$SHAREDFLAG -shared"; ],
+   [AC_MSG_RESULT([no])
+    SHAREDFLAG="$SHAREDFLAG"; ])
+CFLAGS="$SAVED_CFLAGS"
+AC_SUBST([SHAREDFLAG])
 
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS([ \

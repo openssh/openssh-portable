@@ -18,12 +18,32 @@
 
 #include "config.h"
 
+#ifndef __TANDEM
+/* Standard UNIX root ids. */
+#define ROOT_UID 0
+#define ROOT_GID 0
+#else
+/* SUPER ids on NonStop systems. */
+#define ROOT_UID 65535
+#define ROOT_GID 255
+#endif
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE /* activate extra prototypes for glibc */
 #endif
 
+#ifndef __TANDEM
 #include <sys/types.h>
+#endif
 #include <sys/socket.h> /* For CMSG_* */
+#ifdef __TANDEM
+/*
+ * NonStop needs types to come first from socket.h for platform historical
+ * reasons.
+ */
+#include <netinet/in6.h>
+#include <sys/types.h>
+#endif
 
 #ifdef HAVE_LIMITS_H
 # include <limits.h> /* For PATH_MAX, _POSIX_HOST_NAME_MAX */

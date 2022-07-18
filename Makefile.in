@@ -48,6 +48,7 @@ CFLAGS=@CFLAGS@
 CFLAGS_NOPIE=@CFLAGS_NOPIE@
 CPPFLAGS=-I. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
 PICFLAG=@PICFLAG@
+SHAREDFLAG=@SHAREDFLAG@
 LIBS=@LIBS@
 K5LIBS=@K5LIBS@
 GSSLIBS=@GSSLIBS@
@@ -66,7 +67,7 @@ EXEEXT=@EXEEXT@
 MANFMT=@MANFMT@
 MKDIR_P=@MKDIR_P@
 
-.SUFFIXES: .lo
+.SUFFIXES: @LINK_OBJECT_EXT@
 
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-pkcs11-helper$(EXEEXT) ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT) sftp$(EXEEXT) ssh-sk-helper$(EXEEXT)
 
@@ -677,17 +678,40 @@ regress/unittests/utf8/test_utf8$(EXEEXT): \
 
 # These all need to be compiled -fPIC, so they are treated differently.
 SK_DUMMY_OBJS=\
-	regress/misc/sk-dummy/sk-dummy.lo \
-	regress/misc/sk-dummy/fatal.lo \
-	ed25519.lo hash.lo ge25519.lo fe25519.lo sc25519.lo verify.lo
+	regress/misc/sk-dummy/sk-dummy.@LINK_OBJECT_EXT@ \
+	regress/misc/sk-dummy/fatal.@LINK_OBJECT_EXT@ \
+	ed25519.@LINK_OBJECT_EXT@ \
+	hash.@LINK_OBJECT_EXT@ \
+	ge25519.@LINK_OBJECT_EXT@ \
+	fe25519.@LINK_OBJECT_EXT@ \
+	sc25519.@LINK_OBJECT_EXT@ \
+	verify.@LINK_OBJECT_EXT@
 
 SK_DUMMY_LIBRARY=@SK_DUMMY_LIBRARY@
 
 .c.lo: Makefile.in config.h
 	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
 
+# Added in case LINK_OBJECT_EXT is something other than .lo
+regress/misc/sk-dummy/sk-dummy.@LINK_OBJECT_EXT@: regress/misc/sk-dummy/sk-dummy.c Makefile.in config.h
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
+regress/misc/sk-dummy/fatal.@LINK_OBJECT_EXT@: regress/misc/sk-dummy/fatal.c Makefile.in config.h
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
+ed25519.@LINK_OBJECT_EXT@: ed25519.c Makefile.in config.h
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
+hash.@LINK_OBJECT_EXT@: hash.c Makefile.in config.h
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
+ge25519.@LINK_OBJECT_EXT@: ge25519.c Makefile.in config.h
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
+fe25519.@LINK_OBJECT_EXT@: fe25519.c Makefile.in config.h
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
+sc25519.@LINK_OBJECT_EXT@: sc25519.c Makefile.in config.h
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
+verify.@LINK_OBJECT_EXT@: verify.c Makefile.in config.h
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
+
 regress/misc/sk-dummy/sk-dummy.so: $(SK_DUMMY_OBJS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(PICFLAG) -shared -o $@ $(SK_DUMMY_OBJS) \
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(PICFLAG) $(SHAREDFLAG) -o $@ $(SK_DUMMY_OBJS) \
 	    -L. -Lopenbsd-compat -lopenbsd-compat $(LDFLAGS_NOPIE) $(LIBS)
 
 regress-binaries: regress-prep $(LIBCOMPAT) \

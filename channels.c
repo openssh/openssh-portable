@@ -2327,7 +2327,7 @@ channel_post_mux_listener(struct ssh *ssh, Channel *c)
 		close(newsock);
 		return;
 	}
-	if ((euid != 0) && (getuid() != euid)) {
+	if ((euid != ROOT_UID) && (getuid() != euid)) {
 		error("multiplex uid mismatch: peer euid %u != uid %u",
 		    (u_int)euid, (u_int)getuid());
 		close(newsock);

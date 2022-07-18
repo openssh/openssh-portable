@@ -1758,7 +1758,7 @@ handle_socket_read(u_int socknum)
 		close(fd);
 		return -1;
 	}
-	if ((euid != 0) && (getuid() != euid)) {
+	if ((euid != ROOT_UID) && (getuid() != euid)) {
 		error("uid mismatch: peer euid %u != uid %u",
 		    (u_int) euid, (u_int) getuid());
 		close(fd);
@@ -2147,10 +2147,15 @@ main(int ac, char **av)
 	 * a few spare for libc / stack protectors / sanitisers, etc.
 	 */
 #define SSH_AGENT_MIN_FDS (3+1+1+1+4)
+#ifndef __TANDEM
 	if (rlim.rlim_cur < SSH_AGENT_MIN_FDS)
 		fatal("%s: file descriptor rlimit %lld too low (minimum %u)",
 		    __progname, (long long)rlim.rlim_cur, SSH_AGENT_MIN_FDS);
 	maxfds = rlim.rlim_cur - SSH_AGENT_MIN_FDS;
+#else
+	/* NonStop does not implement rlim but there is no configure knob */
+	maxfds = SSH_AGENT_MIN_FDS;
+#endif
 
 	parent_pid = getpid();
 

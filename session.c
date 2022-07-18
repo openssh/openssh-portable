@@ -2158,7 +2158,12 @@ session_signal_req(struct ssh *ssh, Session *s)
 
 	debug_f("signal %s, killpg(%ld, %d)", signame, (long)s->pid, sig);
 	temporarily_use_uid(s->pw);
+#ifndef __TANDEM
 	r = killpg(s->pid, sig);
+#else
+	/* NonStop does not implement killpg() */
+	r = kill(s->pid, sig);
+#endif
 	restore_uid();
 	if (r != 0) {
 		error_f("killpg(%ld, %d): %s", (long)s->pid,
@@ -2275,7 +2280,7 @@ session_pty_cleanup2(Session *s)
 		record_logout(s->pid, s->tty, s->pw->pw_name);
 
 	/* Release the pseudo-tty. */
-	if (getuid() == 0)
+	if (getuid() == ROOT_UID)
 		pty_release(s->tty);
 
 	/*
