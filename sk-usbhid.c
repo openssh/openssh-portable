@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.39 2022/04/29 03:16:48 dtucker Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.40 2022/07/20 03:29:14 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -398,7 +398,7 @@ sk_try(const struct sk_usbhid *sk, const char *application,
 	/* generate an invalid signature on FIDO2 tokens */
 	if ((r = fido_assert_set_clientdata(assert, message,
 	    sizeof(message))) != FIDO_OK) {
-		skdebug(__func__, "fido_assert_set_clientdata_hash: %s",
+		skdebug(__func__, "fido_assert_set_clientdata: %s",
 		    fido_strerr(r));
 		goto out;
 	}
@@ -764,6 +764,60 @@ check_enroll_options(struct sk_option **options, char **devicep,
 	return 0;
 }
 
+static int
+key_lookup(fido_dev_t *dev, const char *application, const uint8_t *user_id,
+    size_t user_id_len, const char *pin)
+{
+	fido_assert_t *assert = NULL;
+	uint8_t message[32];
+	int r = FIDO_ERR_INTERNAL;
+	size_t i;
+
+	memset(message, '\0', sizeof(message));
+	if (pin == NULL) {
+		skdebug(__func__, "NULL pin");
+		goto out;
+	}
+	if ((assert = fido_assert_new()) == NULL) {
+		skdebug(__func__, "fido_assert_new failed");
+		goto out;
+	}
+	/* generate an invalid signature on FIDO2 tokens */
+	if ((r = fido_assert_set_clientdata(assert, message,
+	    sizeof(message))) != FIDO_OK) {
+		skdebug(__func__, "fido_assert_set_clientdata: %s",
+		    fido_strerr(r));
+		goto out;
+	}
+	if ((r = fido_assert_set_rp(assert, application)) != FIDO_OK) {
+		skdebug(__func__, "fido_assert_set_rp: %s", fido_strerr(r));
+		goto out;
+	}
+	if ((r = fido_assert_set_up(assert, FIDO_OPT_FALSE)) != FIDO_OK) {
+		skdebug(__func__, "fido_assert_up: %s", fido_strerr(r));
+		goto out;
+	}
+	if ((r = fido_dev_get_assert(dev, assert, pin)) != FIDO_OK) {
+		skdebug(__func__, "fido_dev_get_assert: %s", fido_strerr(r));
+		goto out;
+	}
+	r = FIDO_ERR_NO_CREDENTIALS;
+	skdebug(__func__, "%zu signatures returned", fido_assert_count(assert));
+	for (i = 0; i < fido_assert_count(assert); i++) {
+		if (fido_assert_user_id_len(assert, i) == user_id_len &&
+		    memcmp(fido_assert_user_id_ptr(assert, i), user_id,
+		    user_id_len) == 0) {
+			skdebug(__func__, "credential exists");
+			r = FIDO_OK;
+			goto out;
+		}
+	}
+ out:
+	fido_assert_free(&assert);
+
+	return r;
+}
+
 int
 sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags, const char *pin,
@@ -817,6 +871,19 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 		goto out;
 	}
 	skdebug(__func__, "using device %s", sk->path);
+	if ((flags & SSH_SK_RESIDENT_KEY) != 0 &&
+	    (flags & SSH_SK_FORCE_OPERATION) == 0 &&
+	    (r = key_lookup(sk->dev, application, user_id, sizeof(user_id),
+	    pin)) != FIDO_ERR_NO_CREDENTIALS) {
+		if (r != FIDO_OK) {
+			ret = SSH_SK_ERR_GENERAL;
+			skdebug(__func__, "key_lookup failed");
+		} else {
+			ret = SSH_SK_ERR_CREDENTIAL_EXISTS;
+			skdebug(__func__, "key exists");
+		}
+		goto out;
+	}
 	if ((cred = fido_cred_new()) == NULL) {
 		skdebug(__func__, "fido_cred_new failed");
 		goto out;

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.455 2022/07/20 03:13:04 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.456 2022/07/20 03:29:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3216,6 +3216,24 @@ save_attestation(struct sshbuf *attest, const char *path)
 		    "%s\n", path);
 }
 
+static int
+confirm_sk_overwrite(const char *application, const char *user)
+{
+	char yesno[3];
+
+	printf("A resident key scoped to '%s' with user id '%s' already "
+	    "exists.\n", application == NULL ? "ssh:" : application,
+	    user == NULL ? "null" : user);
+	printf("Overwrite key in token (y/n)? ");
+	fflush(stdout);
+	if (fgets(yesno, sizeof(yesno), stdin) == NULL)
+		return 0;
+	if (yesno[0] != 'y' && yesno[0] != 'Y')
+		return 0;
+	printf("Touch your authenticator to authorize key generation.\n");
+	return 1;
+}
+
 static void
 usage(void)
 {
@@ -3803,6 +3821,13 @@ main(int argc, char **argv)
 			    &private, attest);
 			if (r == 0)
 				break;
+			if (r == SSH_ERR_KEY_BAD_PERMISSIONS &&
+			    (sk_flags & SSH_SK_RESIDENT_KEY) != 0 &&
+			    (sk_flags & SSH_SK_FORCE_OPERATION) == 0 &&
+			    confirm_sk_overwrite(sk_application, sk_user)) {
+				sk_flags |= SSH_SK_FORCE_OPERATION;
+				continue;
+			}
 			if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 				fatal_r(r, "Key enrollment failed");
 			else if (passphrase != NULL) {

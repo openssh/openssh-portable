@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.38 2022/01/14 03:35:10 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.39 2022/07/20 03:29:14 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -354,6 +354,8 @@ skerr_to_ssherr(int skerr)
 		return SSH_ERR_KEY_WRONG_PASSPHRASE;
 	case SSH_SK_ERR_DEVICE_NOT_FOUND:
 		return SSH_ERR_DEVICE_NOT_FOUND;
+	case SSH_SK_ERR_CREDENTIAL_EXISTS:
+		return SSH_ERR_KEY_BAD_PERMISSIONS;
 	case SSH_SK_ERR_GENERAL:
 	default:
 		return SSH_ERR_INVALID_FORMAT;
