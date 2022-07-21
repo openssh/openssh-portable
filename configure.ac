@@ -3224,26 +3224,6 @@ AC_CHECK_FUNCS([ \
 	arc4random_stir \
 	arc4random_uniform \
 ])
-
-saved_LIBS="$LIBS"
-AC_CHECK_LIB([iaf], [ia_openinfo], [
-	LIBS="$LIBS -liaf"
-	AC_CHECK_FUNCS([set_id], [SSHDLIBS="$SSHDLIBS -liaf"
-				AC_DEFINE([HAVE_LIBIAF], [1],
-			[Define if system has libiaf that supports set_id])
-				])
-])
-LIBS="$saved_LIBS"
-
-# Check for crypt() in libcrypt.  If we have it, we only need it for sshd.
-saved_LIBS="$LIBS"
-AC_CHECK_LIB([crypt], [crypt], [
-	LIBS="-lcrypt $LIBS"
-	SSHDLIBS="-lcrypt $SSHDLIBS"
-])
-AC_CHECK_FUNCS([crypt])
-LIBS="$saved_LIBS"
-
 ### Configure cryptographic random number support
 
 # Check whether OpenSSL seeds itself
@@ -3360,6 +3340,26 @@ elif test "x$openssl" = "xno" ; then
 else
 	AC_MSG_ERROR([OpenSSH has no source of random numbers. Please configure OpenSSL with an entropy source or re-run configure using one of the --with-prngd-port or --with-prngd-socket options])
 fi
+
+
+saved_LIBS="$LIBS"
+AC_CHECK_LIB([iaf], [ia_openinfo], [
+	LIBS="$LIBS -liaf"
+	AC_CHECK_FUNCS([set_id], [SSHDLIBS="$SSHDLIBS -liaf"
+				AC_DEFINE([HAVE_LIBIAF], [1],
+			[Define if system has libiaf that supports set_id])
+				])
+])
+LIBS="$saved_LIBS"
+
+# Check for crypt() in libcrypt.  If we have it, we only need it for sshd.
+saved_LIBS="$LIBS"
+AC_CHECK_LIB([crypt], [crypt], [
+	LIBS="-lcrypt $LIBS"
+	SSHDLIBS="-lcrypt $SSHDLIBS"
+])
+AC_CHECK_FUNCS([crypt])
+LIBS="$saved_LIBS"
 
 # Check for PAM libs
 PAM_MSG="no"
