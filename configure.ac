@@ -1388,18 +1388,21 @@ AC_ARG_WITH([zlib],
 	fi ]
 )
 
+# These libraries are needed for anything that links in the channel code.
+CHANNELLIBS=""
 AC_MSG_CHECKING([for zlib])
 if test "x${zlib}" = "xno"; then
 	AC_MSG_RESULT([no])
 else
-	AC_MSG_RESULT([yes])
-	AC_DEFINE([WITH_ZLIB], [1], [Enable zlib])
+    saved_LIBS="$LIBS"
+    CHANNELLIBS="$CHANNELLIBS -lz"
+    AC_MSG_RESULT([yes])
+    AC_DEFINE([WITH_ZLIB], [1], [Enable zlib])
     AC_CHECK_HEADER([zlib.h], ,[AC_MSG_ERROR([*** zlib.h missing - please install first or check config.log ***])])
-    AC_CHECK_LIB([z], [deflate], ,
+    AC_CHECK_LIB([z], [deflate], [],
 	[
 		saved_CPPFLAGS="$CPPFLAGS"
 		saved_LDFLAGS="$LDFLAGS"
-		save_LIBS="$LIBS"
 		dnl Check default zlib install dir
 		if test -n "${rpath_opt}"; then
 			LDFLAGS="-L/usr/local/lib ${rpath_opt}/usr/local/lib ${saved_LDFLAGS}"
@@ -1407,7 +1410,6 @@ else
 			LDFLAGS="-L/usr/local/lib ${saved_LDFLAGS}"
 		fi
 		CPPFLAGS="-I/usr/local/include ${saved_CPPFLAGS}"
-		LIBS="$LIBS -lz"
 		AC_TRY_LINK_FUNC([deflate], [AC_DEFINE([HAVE_LIBZ])],
 			[
 				AC_MSG_ERROR([*** zlib missing - please install first or check config.log ***])
@@ -1464,6 +1466,7 @@ See http://www.gzip.org/zlib/ for details.])
 	],
 	[	AC_MSG_WARN([cross compiling: not checking zlib version]) ]
     )
+    LIBS="$saved_LIBS"
 fi
 
 dnl UnixWare 2.x
@@ -4778,6 +4781,7 @@ AC_ARG_WITH([kerberos5],
 )
 AC_SUBST([GSSLIBS])
 AC_SUBST([K5LIBS])
+AC_SUBST([CHANNELLIBS])
 
 # Looking for programs, paths and files
 
