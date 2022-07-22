@@ -455,8 +455,6 @@ main(int argc, char **argv)
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 
-	seed_rng();
-
 	msetlocale();
 
 	/* Copy argv, because we modify it */
