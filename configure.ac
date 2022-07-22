@@ -2702,8 +2702,10 @@ AC_ARG_WITH([ssl-engine],
 	]
 )
 
+nocrypto_saved_LIBS="$LIBS"
 if test "x$openssl" = "xyes" ; then
 	LIBS="-lcrypto $LIBS"
+	CHANNELLIBS="-lcrypto $CHANNELLIBS"
 	AC_TRY_LINK_FUNC([RAND_add], ,
 	    [AC_MSG_ERROR([*** working libcrypto not found, check config.log])])
 	AC_CHECK_HEADER([openssl/opensslv.h], ,
@@ -2874,7 +2876,6 @@ if test "x$openssl" = "xyes" ; then
 		],
 		[
 			AC_MSG_RESULT([no])
-			saved_LIBS="$LIBS"
 			LIBS="$LIBS -ldl"
 			AC_MSG_CHECKING([if programs using OpenSSL need -ldl])
 			AC_LINK_IFELSE(
@@ -2882,10 +2883,10 @@ if test "x$openssl" = "xyes" ; then
 				[[ ERR_load_crypto_strings(); ]])],
 				[
 					AC_MSG_RESULT([yes])
+					CHANNELLIBS="$CHANNELLIBS -ldl"
 				],
 				[
 					AC_MSG_RESULT([no])
-					LIBS="$saved_LIBS"
 				]
 			)
 		]
@@ -3340,7 +3341,7 @@ elif test "x$openssl" = "xno" ; then
 else
 	AC_MSG_ERROR([OpenSSH has no source of random numbers. Please configure OpenSSL with an entropy source or re-run configure using one of the --with-prngd-port or --with-prngd-socket options])
 fi
-
+LIBS="$nocrypto_saved_LIBS"
 
 saved_LIBS="$LIBS"
 AC_CHECK_LIB([iaf], [ia_openinfo], [
