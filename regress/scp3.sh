@@ -14,6 +14,17 @@ cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.scp
 chmod 755 ${OBJ}/scp-ssh-wrapper.scp
 export SCP # used in scp-ssh-wrapper.scp
 
+
+scp_path=$(which -a hpnscp)
+if [ -x "$scp_path" ] || [ $scp_path == "*openssh-portable*" ]; then
+	echo "*****************"
+	echo "Required hpnscp binary not found in path. Skipping scp3 test."
+	echo "You can rerun this test after installation with"
+	echo "'make tests LTESTS=scp3'"
+	echo "*****************"
+	exit
+fi
+
 scpclean() {
 	rm -rf ${COPY} ${COPY2} ${DIR} ${DIR2}
 	mkdir ${DIR} ${DIR2}
