@@ -320,7 +320,7 @@ export SSH_PKCS11_HELPER SSH_SK_HELPER
 #echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER $SCP
 
 # Portable specific functions
-have_prog()
+which()
 {
 	saved_IFS="$IFS"
 	IFS=":"
@@ -328,11 +328,19 @@ have_prog()
 	do
 		if [ -x $i/$1 ]; then
 			IFS="$saved_IFS"
+			echo "$i/$1"
 			return 0
 		fi
 	done
 	IFS="$saved_IFS"
+	echo "$i/$1"
 	return 1
+}
+
+have_prog()
+{
+	which "$1" >/dev/null 2>&1
+	return $?
 }
 
 jot() {
