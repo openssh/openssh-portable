@@ -2892,7 +2892,6 @@ if test "x$openssl" = "xyes" ; then
 		BN_is_prime_ex \
 		DES_crypt \
 		DSA_generate_parameters_ex \
-		EVP_CIPHER_CTX_ctrl \
 		EVP_DigestFinal_ex \
 		EVP_DigestInit_ex \
 		EVP_MD_CTX_cleanup \
@@ -3006,35 +3005,6 @@ if test "x$openssl" = "xyes" ; then
 		],
 		[
 			AC_MSG_RESULT([no])
-		]
-	)
-
-	# Check for OpenSSL with EVP_aes_*gcm
-	AC_MSG_CHECKING([whether OpenSSL has AES GCM via EVP])
-	AC_LINK_IFELSE(
-		[AC_LANG_PROGRAM([[
-	#include <stdlib.h>
-	#include <string.h>
-	#include <openssl/evp.h>
-		]], [[
-		exit(EVP_aes_128_gcm() == NULL ||
-		    EVP_aes_256_gcm() == NULL ||
-		    EVP_CTRL_GCM_SET_IV_FIXED == 0 ||
-		    EVP_CTRL_GCM_IV_GEN == 0 ||
-		    EVP_CTRL_GCM_SET_TAG == 0 ||
-		    EVP_CTRL_GCM_GET_TAG == 0 ||
-		    EVP_CIPHER_CTX_ctrl(NULL, 0, 0, NULL) == 0);
-		]])],
-		[
-			AC_MSG_RESULT([yes])
-			AC_DEFINE([OPENSSL_HAVE_EVPGCM], [1],
-			    [libcrypto has EVP AES GCM])
-		],
-		[
-			AC_MSG_RESULT([no])
-			unsupported_algorithms="$unsupported_cipers \
-			   aes128-gcm@openssh.com \
-			   aes256-gcm@openssh.com"
 		]
 	)
 
