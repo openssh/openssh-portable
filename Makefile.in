@@ -94,7 +94,7 @@ LIBOPENSSH_OBJS=\
 LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	authfd.o authfile.o \
 	canohost.o channels.o cipher.o cipher-aes.o cipher-aesctr.o \
-	cipher-ctr.o cleanup.o \
+	cleanup.o \
 	compat.o fatal.o hostfile.o \
 	log.o match.o moduli.o nchan.o packet.o \
 	readpass.o ttymodes.o xmalloc.o addr.o addrmatch.o \

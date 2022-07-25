@@ -68,14 +68,6 @@ void ssh_libcrypto_init(void);
 # endif
 #endif
 
-#ifndef OPENSSL_HAVE_EVPCTR
-# define EVP_aes_128_ctr evp_aes_128_ctr
-# define EVP_aes_192_ctr evp_aes_128_ctr
-# define EVP_aes_256_ctr evp_aes_128_ctr
-const EVP_CIPHER *evp_aes_128_ctr(void);
-void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, size_t);
-#endif
-
 /* LibreSSL/OpenSSL 1.1x API compat */
 #ifndef HAVE_DSA_GET0_PQG
 void DSA_get0_pqg(const DSA *d, const BIGNUM **p, const BIGNUM **q,
