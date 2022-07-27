@@ -16,6 +16,14 @@
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([ssh.c])
+
+# Check for stale configure as early as possible.
+for i in $srcdir/configure.ac $srcdir/m4/*.m4; do
+	if test "$i" -nt "$srcdir/configure"; then
+		AC_MSG_ERROR([$i newer than configure, run autoreconf])
+	fi
+done
+
 AC_LANG([C])
 
 AC_CONFIG_HEADERS([config.h])
