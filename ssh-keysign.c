@@ -155,9 +155,10 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret, char **pkalgp,
 
 	debug3_f("fail %d", fail);
 
-	if (fail)
+	if (fail) {
 		sshkey_free(key);
-	else {
+		free(pkalg);
+	} else {
 		if (ret != NULL) {
 			*ret = key;
 			key = NULL;
@@ -167,8 +168,6 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret, char **pkalgp,
 			pkalg = NULL;
 		}
 	}
-	sshkey_free(key);
-	free(pkalg);
 	free(pkblob);
 
 	return (fail ? -1 : 0);
@@ -291,11 +290,13 @@ main(int argc, char **argv)
 		fatal("%s: no matching hostkey found for key %s %s", __progname,
 		    sshkey_type(key), fp ? fp : "");
 	}
+	sshkey_free(key);
 
 	if ((r = sshkey_sign(keys[i], &signature, &slen, data, dlen,
 	    pkalg, NULL, NULL, 0)) != 0)
 		fatal_r(r, "%s: sshkey_sign failed", __progname);
 	free(data);
+	free(pkalg);
 
 	/* send reply */
 	sshbuf_reset(b);
