@@ -956,9 +956,9 @@ sshkey_xmss_encrypt_state(const struct sshkey *k, struct sshbuf *b,
 	if ((r = sshbuf_reserve(encrypted,
 	    encrypted_len + aadlen + authlen, &cp)) != 0 ||
 	    (r = cipher_init(&ciphercontext, cipher, key, keylen,
-	    iv, ivlen, 1)) != 0 ||
+	    iv, ivlen, 1, 0)) != 0 ||
 	    (r = cipher_crypt(ciphercontext, 0, cp, sshbuf_ptr(encoded),
-	    encrypted_len, aadlen, authlen)) != 0)
+	    encrypted_len, aadlen, authlen, 0)) != 0)
 		goto out;
 
 	/* success */
@@ -1049,9 +1049,9 @@ sshkey_xmss_decrypt_state(const struct sshkey *k, struct sshbuf *encoded,
 	/* decrypt private state of key */
 	if ((r = sshbuf_reserve(decrypted, aadlen + encrypted_len, &dp)) != 0 ||
 	    (r = cipher_init(&ciphercontext, cipher, key, keylen,
-	    iv, ivlen, 0)) != 0 ||
+	    iv, ivlen, 0, 0)) != 0 ||
 	    (r = cipher_crypt(ciphercontext, 0, dp, sshbuf_ptr(copy),
-	    encrypted_len, aadlen, authlen)) != 0)
+	    encrypted_len, aadlen, authlen, 0)) != 0)
 		goto out;
 
 	/* there should be no trailing data */

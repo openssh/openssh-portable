@@ -276,7 +276,7 @@ cipher_warning_message(const struct sshcipher_ctx *cc)
 int
 cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
     const u_char *key, u_int keylen, const u_char *iv, u_int ivlen,
-    int do_encrypt)
+    int do_encrypt, int post_auth)
 {
 	struct sshcipher_ctx *cc = NULL;
 	int ret = SSH_ERR_INTERNAL_ERROR;
@@ -285,6 +285,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	int klen;
 #endif
 
+    struct sshcipher_ctx * oldcc = *ccp;
 	*ccp = NULL;
 	if ((cc = calloc(sizeof(*cc), 1)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
@@ -300,7 +301,10 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 
 	cc->cipher = cipher;
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		cc->cp_ctx = chachapoly_new(key, keylen);
+        if(post_auth)
+            cc->cp_ctx = chachapoly_new_mt(oldcc ? oldcc->cp_ctx : NULL, key, keylen);
+        else
+    		cc->cp_ctx = chachapoly_new(key, keylen);
 		ret = cc->cp_ctx != NULL ? 0 : SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
@@ -374,11 +378,15 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
  */
 int
 cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
-   const u_char *src, u_int len, u_int aadlen, u_int authlen)
+   const u_char *src, u_int len, u_int aadlen, u_int authlen, int post_auth)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		return chachapoly_crypt(cc->cp_ctx, seqnr, dest, src,
-		    len, aadlen, authlen, cc->encrypt);
+        if(post_auth)
+    		return chachapoly_crypt_mt(cc->cp_ctx, seqnr, dest, src,
+    		    len, aadlen, authlen, cc->encrypt);
+        else
+    		return chachapoly_crypt(cc->cp_ctx, seqnr, dest, src,
+    		    len, aadlen, authlen, cc->encrypt);
 	}
 	if ((cc->cipher->flags & CFLAG_NONE) != 0) {
 		memcpy(dest, src, aadlen + len);
@@ -437,11 +445,16 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
 /* Extract the packet length, including any decryption necessary beforehand */
 int
 cipher_get_length(struct sshcipher_ctx *cc, u_int *plenp, u_int seqnr,
-    const u_char *cp, u_int len)
+    const u_char *cp, u_int len, int post_auth)
 {
-	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
-		return chachapoly_get_length(cc->cp_ctx, plenp, seqnr,
-		    cp, len);
+	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
+        if(post_auth)
+    		return chachapoly_get_length_mt(cc->cp_ctx, plenp, seqnr,
+    		    cp, len);
+        else
+    		return chachapoly_get_length(cc->cp_ctx, plenp, seqnr,
+    		    cp, len);
+    }
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 	*plenp = PEEK_U32(cp);
@@ -454,7 +467,7 @@ cipher_free(struct sshcipher_ctx *cc)
 	if (cc == NULL)
 		return;
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		chachapoly_free(cc->cp_ctx);
+		chachapoly_free_mt(cc->cp_ctx);
 		cc->cp_ctx = NULL;
 	} else if ((cc->cipher->flags & CFLAG_AESCTR) != 0)
 		explicit_bzero(&cc->ac_ctx, sizeof(cc->ac_ctx));

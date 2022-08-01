@@ -310,9 +310,9 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	state->connection_in = fd_in;
 	state->connection_out = fd_out;
 	if ((r = cipher_init(&state->send_context, none,
-	    (const u_char *)"", 0, NULL, 0, CIPHER_ENCRYPT)) != 0 ||
+	    (const u_char *)"", 0, NULL, 0, CIPHER_ENCRYPT, state->after_authentication)) != 0 ||
 	    (r = cipher_init(&state->receive_context, none,
-	    (const u_char *)"", 0, NULL, 0, CIPHER_DECRYPT)) != 0) {
+	    (const u_char *)"", 0, NULL, 0, CIPHER_DECRYPT, state->after_authentication)) != 0) {
 		error_fr(r, "cipher_init failed");
 		free(ssh); /* XXX need ssh_free_session_state? */
 		return NULL;
@@ -909,11 +909,14 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	}
 	mac->enabled = 1;
 	DBG(debug_f("cipher_init: %s", dir));
-	cipher_free(*ccp);
-	*ccp = NULL;
+    struct sshcipher_ctx *oldccp = *ccp;
 	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len,
-	    enc->iv, enc->iv_len, crypt_type)) != 0)
+	    enc->iv, enc->iv_len, crypt_type, state->after_authentication)) != 0) {
+	    cipher_free(oldccp);
 		return r;
+    } else {
+	    cipher_free(oldccp);
+    }
 	if (!state->cipher_warning_done &&
 	    (wmsg = cipher_warning_message(*ccp)) != NULL) {
 		error("Warning: %s", wmsg);
@@ -1219,7 +1222,7 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 		goto out;
 	if ((r = cipher_crypt(state->send_context, state->p_send.seqnr, cp,
 	    sshbuf_ptr(state->outgoing_packet),
-	    len - aadlen, aadlen, authlen)) != 0)
+	    len - aadlen, aadlen, authlen, state->after_authentication)) != 0)
 		goto out;
 	/* append unencrypted MAC */
 	if (mac && mac->enabled) {
@@ -1544,7 +1547,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	if (aadlen && state->packlen == 0) {
 		if (cipher_get_length(state->receive_context,
 		    &state->packlen, state->p_read.seqnr,
-		    sshbuf_ptr(state->input), sshbuf_len(state->input)) != 0)
+		    sshbuf_ptr(state->input), sshbuf_len(state->input), state->after_authentication) != 0)
 			return 0;
 		if (state->packlen < 1 + 4 ||
 		    state->packlen > PACKET_MAX_SIZE) {
@@ -1570,7 +1573,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			goto out;
 		if ((r = cipher_crypt(state->receive_context,
 		    state->p_send.seqnr, cp, sshbuf_ptr(state->input),
-		    block_size, 0, 0)) != 0)
+		    block_size, 0, 0, state->after_authentication)) != 0)
 			goto out;
 		state->packlen = PEEK_U32(sshbuf_ptr(state->incoming_packet));
 		if (state->packlen < 1 + 4 ||
@@ -1637,7 +1640,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	    &cp)) != 0)
 		goto out;
 	if ((r = cipher_crypt(state->receive_context, state->p_read.seqnr, cp,
-	    sshbuf_ptr(state->input), need, aadlen, authlen)) != 0)
+	    sshbuf_ptr(state->input), need, aadlen, authlen, state->after_authentication)) != 0)
 		goto out;
 	if ((r = sshbuf_consume(state->input, aadlen + need + authlen)) != 0)
 		goto out;
