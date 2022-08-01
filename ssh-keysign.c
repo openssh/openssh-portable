@@ -155,10 +155,7 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret, char **pkalgp,
 
 	debug3_f("fail %d", fail);
 
-	if (fail) {
-		sshkey_free(key);
-		free(pkalg);
-	} else {
+	if (!fail) {
 		if (ret != NULL) {
 			*ret = key;
 			key = NULL;
@@ -168,6 +165,8 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret, char **pkalgp,
 			pkalg = NULL;
 		}
 	}
+	sshkey_free(key);
+	free(pkalg);
 	free(pkblob);
 
 	return (fail ? -1 : 0);
