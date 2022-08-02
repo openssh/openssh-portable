@@ -514,7 +514,6 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 				continue;
 			oerrno = errno;
 			error_f("read: %s", strerror(errno));
-			ssh_digest_free(ctx);
 			errno = oerrno;
 			r = SSH_ERR_SYSTEM_ERROR;
 			goto out;
