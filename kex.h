@@ -70,18 +70,6 @@
 #define	KEX_FRODOKEM_640_SHAKE_SHA256	"frodokem-640-shake-sha256"
 #define	KEX_FRODOKEM_976_SHAKE_SHA384	"frodokem-976-shake-sha384"
 #define	KEX_FRODOKEM_1344_SHAKE_SHA512	"frodokem-1344-shake-sha512"
-#define	KEX_SIDH_P434_SHA256	"sidh-p434-sha256"
-#define	KEX_SIDH_P434_COMPRESSED_SHA256	"sidh-p434-compressed-sha256"
-#define	KEX_SIDH_P610_SHA256	"sidh-p610-sha256"
-#define	KEX_SIDH_P610_COMPRESSED_SHA256	"sidh-p610-compressed-sha256"
-#define	KEX_SIDH_P751_SHA256	"sidh-p751-sha256"
-#define	KEX_SIDH_P751_COMPRESSED_SHA256	"sidh-p751-compressed-sha256"
-#define	KEX_SIKE_P434_SHA256	"sike-p434-sha256"
-#define	KEX_SIKE_P434_COMPRESSED_SHA256	"sike-p434-compressed-sha256"
-#define	KEX_SIKE_P610_SHA256	"sike-p610-sha256"
-#define	KEX_SIKE_P610_COMPRESSED_SHA256	"sike-p610-compressed-sha256"
-#define	KEX_SIKE_P751_SHA256	"sike-p751-sha256"
-#define	KEX_SIKE_P751_COMPRESSED_SHA256	"sike-p751-compressed-sha256"
 #define	KEX_SABER_LIGHTSABER_SHA256	"saber-lightsaber-sha256"
 #define	KEX_SABER_SABER_SHA384	"saber-saber-sha384"
 #define	KEX_SABER_FIRESABER_SHA512	"saber-firesaber-sha512"
@@ -128,18 +116,6 @@
 #define	KEX_FRODOKEM_640_SHAKE_ECDH_NISTP256_SHA256	"ecdh-nistp256-frodokem-640-shake-sha256"
 #define	KEX_FRODOKEM_976_SHAKE_ECDH_NISTP384_SHA384	"ecdh-nistp384-frodokem-976-shake-sha384"
 #define	KEX_FRODOKEM_1344_SHAKE_ECDH_NISTP521_SHA512	"ecdh-nistp521-frodokem-1344-shake-sha512"
-#define	KEX_SIDH_P434_ECDH_NISTP256_SHA256	"ecdh-nistp256-sidh-p434-sha256"
-#define	KEX_SIDH_P434_COMPRESSED_ECDH_NISTP256_SHA256	"ecdh-nistp256-sidh-p434-compressed-sha256"
-#define	KEX_SIDH_P610_ECDH_NISTP384_SHA256	"ecdh-nistp384-sidh-p610-sha256"
-#define	KEX_SIDH_P610_COMPRESSED_ECDH_NISTP384_SHA256	"ecdh-nistp384-sidh-p610-compressed-sha256"
-#define	KEX_SIDH_P751_ECDH_NISTP521_SHA256	"ecdh-nistp521-sidh-p751-sha256"
-#define	KEX_SIDH_P751_COMPRESSED_ECDH_NISTP521_SHA256	"ecdh-nistp521-sidh-p751-compressed-sha256"
-#define	KEX_SIKE_P434_ECDH_NISTP256_SHA256	"ecdh-nistp256-sike-p434-sha256"
-#define	KEX_SIKE_P434_COMPRESSED_ECDH_NISTP256_SHA256	"ecdh-nistp256-sike-p434-compressed-sha256"
-#define	KEX_SIKE_P610_ECDH_NISTP384_SHA256	"ecdh-nistp384-sike-p610-sha256"
-#define	KEX_SIKE_P610_COMPRESSED_ECDH_NISTP384_SHA256	"ecdh-nistp384-sike-p610-compressed-sha256"
-#define	KEX_SIKE_P751_ECDH_NISTP521_SHA256	"ecdh-nistp521-sike-p751-sha256"
-#define	KEX_SIKE_P751_COMPRESSED_ECDH_NISTP521_SHA256	"ecdh-nistp521-sike-p751-compressed-sha256"
 #define	KEX_SABER_LIGHTSABER_ECDH_NISTP256_SHA256	"ecdh-nistp256-saber-lightsaber-sha256"
 #define	KEX_SABER_SABER_ECDH_NISTP384_SHA384	"ecdh-nistp384-saber-saber-sha384"
 #define	KEX_SABER_FIRESABER_ECDH_NISTP521_SHA512	"ecdh-nistp521-saber-firesaber-sha512"
@@ -228,18 +204,6 @@ enum kex_exchange {
 	KEX_KEM_FRODOKEM_640_SHAKE_SHA256,
 	KEX_KEM_FRODOKEM_976_SHAKE_SHA384,
 	KEX_KEM_FRODOKEM_1344_SHAKE_SHA512,
-	KEX_KEM_SIDH_P434_SHA256,
-	KEX_KEM_SIDH_P434_COMPRESSED_SHA256,
-	KEX_KEM_SIDH_P610_SHA256,
-	KEX_KEM_SIDH_P610_COMPRESSED_SHA256,
-	KEX_KEM_SIDH_P751_SHA256,
-	KEX_KEM_SIDH_P751_COMPRESSED_SHA256,
-	KEX_KEM_SIKE_P434_SHA256,
-	KEX_KEM_SIKE_P434_COMPRESSED_SHA256,
-	KEX_KEM_SIKE_P610_SHA256,
-	KEX_KEM_SIKE_P610_COMPRESSED_SHA256,
-	KEX_KEM_SIKE_P751_SHA256,
-	KEX_KEM_SIKE_P751_COMPRESSED_SHA256,
 	KEX_KEM_SABER_LIGHTSABER_SHA256,
 	KEX_KEM_SABER_SABER_SHA384,
 	KEX_KEM_SABER_FIRESABER_SHA512,
@@ -286,18 +250,6 @@ enum kex_exchange {
 	KEX_KEM_FRODOKEM_640_SHAKE_ECDH_NISTP256_SHA256,
 	KEX_KEM_FRODOKEM_976_SHAKE_ECDH_NISTP384_SHA384,
 	KEX_KEM_FRODOKEM_1344_SHAKE_ECDH_NISTP521_SHA512,
-	KEX_KEM_SIDH_P434_ECDH_NISTP256_SHA256,
-	KEX_KEM_SIDH_P434_COMPRESSED_ECDH_NISTP256_SHA256,
-	KEX_KEM_SIDH_P610_ECDH_NISTP384_SHA256,
-	KEX_KEM_SIDH_P610_COMPRESSED_ECDH_NISTP384_SHA256,
-	KEX_KEM_SIDH_P751_ECDH_NISTP521_SHA256,
-	KEX_KEM_SIDH_P751_COMPRESSED_ECDH_NISTP521_SHA256,
-	KEX_KEM_SIKE_P434_ECDH_NISTP256_SHA256,
-	KEX_KEM_SIKE_P434_COMPRESSED_ECDH_NISTP256_SHA256,
-	KEX_KEM_SIKE_P610_ECDH_NISTP384_SHA256,
-	KEX_KEM_SIKE_P610_COMPRESSED_ECDH_NISTP384_SHA256,
-	KEX_KEM_SIKE_P751_ECDH_NISTP521_SHA256,
-	KEX_KEM_SIKE_P751_COMPRESSED_ECDH_NISTP521_SHA256,
 	KEX_KEM_SABER_LIGHTSABER_ECDH_NISTP256_SHA256,
 	KEX_KEM_SABER_SABER_ECDH_NISTP384_SHA384,
 	KEX_KEM_SABER_FIRESABER_ECDH_NISTP521_SHA512,
@@ -495,54 +447,6 @@ int	 kex_kem_frodokem_976_shake_dec(struct kex *, const struct sshbuf *, struct 
 int	 kex_kem_frodokem_1344_shake_keypair(struct kex *);
 int	 kex_kem_frodokem_1344_shake_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_frodokem_1344_shake_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p434 prototypes */
-int	 kex_kem_sidh_p434_keypair(struct kex *);
-int	 kex_kem_sidh_p434_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p434_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p434_compressed prototypes */
-int	 kex_kem_sidh_p434_compressed_keypair(struct kex *);
-int	 kex_kem_sidh_p434_compressed_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p434_compressed_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p610 prototypes */
-int	 kex_kem_sidh_p610_keypair(struct kex *);
-int	 kex_kem_sidh_p610_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p610_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p610_compressed prototypes */
-int	 kex_kem_sidh_p610_compressed_keypair(struct kex *);
-int	 kex_kem_sidh_p610_compressed_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p610_compressed_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p751 prototypes */
-int	 kex_kem_sidh_p751_keypair(struct kex *);
-int	 kex_kem_sidh_p751_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p751_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p751_compressed prototypes */
-int	 kex_kem_sidh_p751_compressed_keypair(struct kex *);
-int	 kex_kem_sidh_p751_compressed_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p751_compressed_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p434 prototypes */
-int	 kex_kem_sike_p434_keypair(struct kex *);
-int	 kex_kem_sike_p434_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p434_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p434_compressed prototypes */
-int	 kex_kem_sike_p434_compressed_keypair(struct kex *);
-int	 kex_kem_sike_p434_compressed_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p434_compressed_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p610 prototypes */
-int	 kex_kem_sike_p610_keypair(struct kex *);
-int	 kex_kem_sike_p610_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p610_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p610_compressed prototypes */
-int	 kex_kem_sike_p610_compressed_keypair(struct kex *);
-int	 kex_kem_sike_p610_compressed_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p610_compressed_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p751 prototypes */
-int	 kex_kem_sike_p751_keypair(struct kex *);
-int	 kex_kem_sike_p751_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p751_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p751_compressed prototypes */
-int	 kex_kem_sike_p751_compressed_keypair(struct kex *);
-int	 kex_kem_sike_p751_compressed_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p751_compressed_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 /* saber_lightsaber prototypes */
 int	 kex_kem_saber_lightsaber_keypair(struct kex *);
 int	 kex_kem_saber_lightsaber_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
@@ -721,54 +625,6 @@ int	 kex_kem_frodokem_976_shake_ecdh_nistp384_dec(struct kex *, const struct ssh
 int	 kex_kem_frodokem_1344_shake_ecdh_nistp521_keypair(struct kex *);
 int	 kex_kem_frodokem_1344_shake_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_frodokem_1344_shake_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p434_nistp256 prototypes */
-int	 kex_kem_sidh_p434_ecdh_nistp256_keypair(struct kex *);
-int	 kex_kem_sidh_p434_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p434_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p434_compressed_nistp256 prototypes */
-int	 kex_kem_sidh_p434_compressed_ecdh_nistp256_keypair(struct kex *);
-int	 kex_kem_sidh_p434_compressed_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p434_compressed_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p610_nistp384 prototypes */
-int	 kex_kem_sidh_p610_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_sidh_p610_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p610_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p610_compressed_nistp384 prototypes */
-int	 kex_kem_sidh_p610_compressed_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_sidh_p610_compressed_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p610_compressed_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p751_nistp521 prototypes */
-int	 kex_kem_sidh_p751_ecdh_nistp521_keypair(struct kex *);
-int	 kex_kem_sidh_p751_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p751_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sidh_p751_compressed_nistp521 prototypes */
-int	 kex_kem_sidh_p751_compressed_ecdh_nistp521_keypair(struct kex *);
-int	 kex_kem_sidh_p751_compressed_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sidh_p751_compressed_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p434_nistp256 prototypes */
-int	 kex_kem_sike_p434_ecdh_nistp256_keypair(struct kex *);
-int	 kex_kem_sike_p434_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p434_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p434_compressed_nistp256 prototypes */
-int	 kex_kem_sike_p434_compressed_ecdh_nistp256_keypair(struct kex *);
-int	 kex_kem_sike_p434_compressed_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p434_compressed_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p610_nistp384 prototypes */
-int	 kex_kem_sike_p610_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_sike_p610_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p610_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p610_compressed_nistp384 prototypes */
-int	 kex_kem_sike_p610_compressed_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_sike_p610_compressed_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p610_compressed_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p751_nistp521 prototypes */
-int	 kex_kem_sike_p751_ecdh_nistp521_keypair(struct kex *);
-int	 kex_kem_sike_p751_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p751_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* sike_p751_compressed_nistp521 prototypes */
-int	 kex_kem_sike_p751_compressed_ecdh_nistp521_keypair(struct kex *);
-int	 kex_kem_sike_p751_compressed_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_sike_p751_compressed_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 /* saber_lightsaber_nistp256 prototypes */
 int	 kex_kem_saber_lightsaber_ecdh_nistp256_keypair(struct kex *);
 int	 kex_kem_saber_lightsaber_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);

@@ -51,30 +51,6 @@
 	"ecdh-nistp384-frodokem-976-shake-sha384," \
 	"frodokem-1344-shake-sha512," \
 	"ecdh-nistp521-frodokem-1344-shake-sha512," \
-	"sidh-p434-sha256," \
-	"ecdh-nistp256-sidh-p434-sha256," \
-	"sidh-p434-compressed-sha256," \
-	"ecdh-nistp256-sidh-p434-compressed-sha256," \
-	"sidh-p610-sha256," \
-	"ecdh-nistp384-sidh-p610-sha256," \
-	"sidh-p610-compressed-sha256," \
-	"ecdh-nistp384-sidh-p610-compressed-sha256," \
-	"sidh-p751-sha256," \
-	"ecdh-nistp521-sidh-p751-sha256," \
-	"sidh-p751-compressed-sha256," \
-	"ecdh-nistp521-sidh-p751-compressed-sha256," \
-	"sike-p434-sha256," \
-	"ecdh-nistp256-sike-p434-sha256," \
-	"sike-p434-compressed-sha256," \
-	"ecdh-nistp256-sike-p434-compressed-sha256," \
-	"sike-p610-sha256," \
-	"ecdh-nistp384-sike-p610-sha256," \
-	"sike-p610-compressed-sha256," \
-	"ecdh-nistp384-sike-p610-compressed-sha256," \
-	"sike-p751-sha256," \
-	"ecdh-nistp521-sike-p751-sha256," \
-	"sike-p751-compressed-sha256," \
-	"ecdh-nistp521-sike-p751-compressed-sha256," \
 	"saber-lightsaber-sha256," \
 	"ecdh-nistp256-saber-lightsaber-sha256," \
 	"saber-saber-sha384," \

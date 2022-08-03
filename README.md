@@ -71,8 +71,6 @@ The following quantum-safe algorithms from liboqs are supported (assuming they h
 - **Kyber**: `kyber-512-sha256`, `kyber-768-sha384`, `kyber-1024-sha512`, `kyber-512-90s-sha256`, `kyber-768-90s-sha384`, `kyber-1024-90s-sha512`
 - **NTRU**: `ntru-hps2048509-sha512`, `ntru-hps2048677-sha512`, `ntru-hps4096821-sha512`, `ntru-hps40961229-sha512`, `ntru-hrss701-sha512`, `ntru-hrss1373-sha512`
 - **NTRU-PRIME**: `ntruprime-ntrulpr653-sha256`, `ntruprime-sntrup653-sha256`, `ntruprime-ntrulpr761-sha384`, `ntruprime-sntrup761-sha384`, `ntruprime-ntrulpr857-sha384`, `ntruprime-sntrup857-sha384`, `ntruprime-ntrulpr1277-sha512`, `ntruprime-sntrup1277-sha512`
-- **SIDH**: `sidh-p434-sha256`, `sidh-p434-compressed-sha256`, `sidh-p610-sha256`, `sidh-p610-compressed-sha256`, `sidh-p751-sha256`, `sidh-p751-compressed-sha256`
-- **SIKE**: `sike-p434-sha256`, `sike-p434-compressed-sha256`, `sike-p610-sha256`, `sike-p610-compressed-sha256`, `sike-p751-sha256`, `sike-p751-compressed-sha256`
 - **Saber**: `saber-lightsaber-sha256`, `saber-saber-sha384`, `saber-firesaber-sha512`
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_KEXS_END -->
 
@@ -92,7 +90,7 @@ The following digital signature algorithms from liboqs are supported (assuming t
 - **Dilithium**: `dilithium2`, `dilithium3`\*, `dilithium5`, `dilithium2aes`\*, `dilithium3aes`, `dilithium5aes`\*
 - **Falcon**: `falcon512`\*, `falcon1024`\*
 - **Picnic**: `picnicL1FS`, `picnicL1UR`, `picnicL1full`\*, `picnicL3FS`\*, `picnicL3UR`, `picnicL3full`, `picnicL5FS`, `picnicL5UR`, `picnicL5full`
-- **Rainbow**: `rainbowIclassic`, `rainbowIcircumzenithal`, `rainbowIcompressed`, `rainbowIIIclassic`, `rainbowIIIcircumzenithal`, `rainbowIIIcompressed`, `rainbowVclassic`, `rainbowVcircumzenithal`, `rainbowVcompressed`
+- **Rainbow**: `rainbowIIIclassic`, `rainbowIIIcircumzenithal`, `rainbowIIIcompressed`, `rainbowVclassic`, `rainbowVcircumzenithal`, `rainbowVcompressed`
 - **SPHINCS**: `sphincsharaka128frobust`, `sphincsharaka128fsimple`\*, `sphincsharaka128srobust`, `sphincsharaka128ssimple`, `sphincssha256128frobust`, `sphincssha256128srobust`, `sphincssha256128fsimple`, `sphincssha256128ssimple`, `sphincsshake256128frobust`, `sphincsshake256128srobust`, `sphincsshake256128fsimple`, `sphincsshake256128ssimple`, `sphincsharaka192frobust`\*, `sphincsharaka192srobust`, `sphincsharaka192fsimple`, `sphincsharaka192ssimple`, `sphincssha256192frobust`, `sphincssha256192srobust`, `sphincssha256192fsimple`, `sphincssha256192ssimple`, `sphincsshake256192frobust`, `sphincsshake256192srobust`, `sphincsshake256192fsimple`, `sphincsshake256192ssimple`, `sphincsharaka256frobust`, `sphincsharaka256srobust`, `sphincsharaka256fsimple`, `sphincsharaka256ssimple`, `sphincssha256256frobust`, `sphincssha256256srobust`, `sphincssha256256fsimple`, `sphincssha256256ssimple`, `sphincsshake256256frobust`, `sphincsshake256256srobust`, `sphincsshake256256fsimple`, `sphincsshake256256ssimple`
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_SIGS_END -->
 

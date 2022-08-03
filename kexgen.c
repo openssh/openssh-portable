@@ -140,42 +140,6 @@ kex_gen_client(struct ssh *ssh)
 	case KEX_KEM_FRODOKEM_1344_SHAKE_SHA512:
 		r = kex_kem_frodokem_1344_shake_keypair(kex);
 		break;
-	case KEX_KEM_SIDH_P434_SHA256:
-		r = kex_kem_sidh_p434_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P434_COMPRESSED_SHA256:
-		r = kex_kem_sidh_p434_compressed_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P610_SHA256:
-		r = kex_kem_sidh_p610_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P610_COMPRESSED_SHA256:
-		r = kex_kem_sidh_p610_compressed_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P751_SHA256:
-		r = kex_kem_sidh_p751_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P751_COMPRESSED_SHA256:
-		r = kex_kem_sidh_p751_compressed_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P434_SHA256:
-		r = kex_kem_sike_p434_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P434_COMPRESSED_SHA256:
-		r = kex_kem_sike_p434_compressed_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P610_SHA256:
-		r = kex_kem_sike_p610_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P610_COMPRESSED_SHA256:
-		r = kex_kem_sike_p610_compressed_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P751_SHA256:
-		r = kex_kem_sike_p751_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P751_COMPRESSED_SHA256:
-		r = kex_kem_sike_p751_compressed_keypair(kex);
-		break;
 	case KEX_KEM_SABER_LIGHTSABER_SHA256:
 		r = kex_kem_saber_lightsaber_keypair(kex);
 		break;
@@ -309,42 +273,6 @@ kex_gen_client(struct ssh *ssh)
 		break;
 	case KEX_KEM_FRODOKEM_1344_SHAKE_ECDH_NISTP521_SHA512:
 		r = kex_kem_frodokem_1344_shake_ecdh_nistp521_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P434_ECDH_NISTP256_SHA256:
-		r = kex_kem_sidh_p434_ecdh_nistp256_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P434_COMPRESSED_ECDH_NISTP256_SHA256:
-		r = kex_kem_sidh_p434_compressed_ecdh_nistp256_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P610_ECDH_NISTP384_SHA256:
-		r = kex_kem_sidh_p610_ecdh_nistp384_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P610_COMPRESSED_ECDH_NISTP384_SHA256:
-		r = kex_kem_sidh_p610_compressed_ecdh_nistp384_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P751_ECDH_NISTP521_SHA256:
-		r = kex_kem_sidh_p751_ecdh_nistp521_keypair(kex);
-		break;
-	case KEX_KEM_SIDH_P751_COMPRESSED_ECDH_NISTP521_SHA256:
-		r = kex_kem_sidh_p751_compressed_ecdh_nistp521_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P434_ECDH_NISTP256_SHA256:
-		r = kex_kem_sike_p434_ecdh_nistp256_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P434_COMPRESSED_ECDH_NISTP256_SHA256:
-		r = kex_kem_sike_p434_compressed_ecdh_nistp256_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P610_ECDH_NISTP384_SHA256:
-		r = kex_kem_sike_p610_ecdh_nistp384_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P610_COMPRESSED_ECDH_NISTP384_SHA256:
-		r = kex_kem_sike_p610_compressed_ecdh_nistp384_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P751_ECDH_NISTP521_SHA256:
-		r = kex_kem_sike_p751_ecdh_nistp521_keypair(kex);
-		break;
-	case KEX_KEM_SIKE_P751_COMPRESSED_ECDH_NISTP521_SHA256:
-		r = kex_kem_sike_p751_compressed_ecdh_nistp521_keypair(kex);
 		break;
 	case KEX_KEM_SABER_LIGHTSABER_ECDH_NISTP256_SHA256:
 		r = kex_kem_saber_lightsaber_ecdh_nistp256_keypair(kex);
@@ -554,42 +482,6 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 	case KEX_KEM_FRODOKEM_1344_SHAKE_SHA512:
 		r = kex_kem_frodokem_1344_shake_dec(kex, server_blob, &shared_secret);
 		break;
-	case KEX_KEM_SIDH_P434_SHA256:
-		r = kex_kem_sidh_p434_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P434_COMPRESSED_SHA256:
-		r = kex_kem_sidh_p434_compressed_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P610_SHA256:
-		r = kex_kem_sidh_p610_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P610_COMPRESSED_SHA256:
-		r = kex_kem_sidh_p610_compressed_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P751_SHA256:
-		r = kex_kem_sidh_p751_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P751_COMPRESSED_SHA256:
-		r = kex_kem_sidh_p751_compressed_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P434_SHA256:
-		r = kex_kem_sike_p434_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P434_COMPRESSED_SHA256:
-		r = kex_kem_sike_p434_compressed_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P610_SHA256:
-		r = kex_kem_sike_p610_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P610_COMPRESSED_SHA256:
-		r = kex_kem_sike_p610_compressed_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P751_SHA256:
-		r = kex_kem_sike_p751_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P751_COMPRESSED_SHA256:
-		r = kex_kem_sike_p751_compressed_dec(kex, server_blob, &shared_secret);
-		break;
 	case KEX_KEM_SABER_LIGHTSABER_SHA256:
 		r = kex_kem_saber_lightsaber_dec(kex, server_blob, &shared_secret);
 		break;
@@ -723,42 +615,6 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 		break;
 	case KEX_KEM_FRODOKEM_1344_SHAKE_ECDH_NISTP521_SHA512:
 		r = kex_kem_frodokem_1344_shake_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P434_ECDH_NISTP256_SHA256:
-		r = kex_kem_sidh_p434_ecdh_nistp256_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P434_COMPRESSED_ECDH_NISTP256_SHA256:
-		r = kex_kem_sidh_p434_compressed_ecdh_nistp256_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P610_ECDH_NISTP384_SHA256:
-		r = kex_kem_sidh_p610_ecdh_nistp384_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P610_COMPRESSED_ECDH_NISTP384_SHA256:
-		r = kex_kem_sidh_p610_compressed_ecdh_nistp384_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P751_ECDH_NISTP521_SHA256:
-		r = kex_kem_sidh_p751_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P751_COMPRESSED_ECDH_NISTP521_SHA256:
-		r = kex_kem_sidh_p751_compressed_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P434_ECDH_NISTP256_SHA256:
-		r = kex_kem_sike_p434_ecdh_nistp256_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P434_COMPRESSED_ECDH_NISTP256_SHA256:
-		r = kex_kem_sike_p434_compressed_ecdh_nistp256_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P610_ECDH_NISTP384_SHA256:
-		r = kex_kem_sike_p610_ecdh_nistp384_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P610_COMPRESSED_ECDH_NISTP384_SHA256:
-		r = kex_kem_sike_p610_compressed_ecdh_nistp384_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P751_ECDH_NISTP521_SHA256:
-		r = kex_kem_sike_p751_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P751_COMPRESSED_ECDH_NISTP521_SHA256:
-		r = kex_kem_sike_p751_compressed_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
 		break;
 	case KEX_KEM_SABER_LIGHTSABER_ECDH_NISTP256_SHA256:
 		r = kex_kem_saber_lightsaber_ecdh_nistp256_dec(kex, server_blob, &shared_secret);
@@ -1025,54 +881,6 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 		r = kex_kem_frodokem_1344_shake_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
 		break;
-	case KEX_KEM_SIDH_P434_SHA256:
-		r = kex_kem_sidh_p434_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P434_COMPRESSED_SHA256:
-		r = kex_kem_sidh_p434_compressed_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P610_SHA256:
-		r = kex_kem_sidh_p610_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P610_COMPRESSED_SHA256:
-		r = kex_kem_sidh_p610_compressed_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P751_SHA256:
-		r = kex_kem_sidh_p751_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P751_COMPRESSED_SHA256:
-		r = kex_kem_sidh_p751_compressed_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P434_SHA256:
-		r = kex_kem_sike_p434_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P434_COMPRESSED_SHA256:
-		r = kex_kem_sike_p434_compressed_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P610_SHA256:
-		r = kex_kem_sike_p610_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P610_COMPRESSED_SHA256:
-		r = kex_kem_sike_p610_compressed_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P751_SHA256:
-		r = kex_kem_sike_p751_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P751_COMPRESSED_SHA256:
-		r = kex_kem_sike_p751_compressed_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
 	case KEX_KEM_SABER_LIGHTSABER_SHA256:
 		r = kex_kem_saber_lightsaber_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
@@ -1249,54 +1057,6 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 		break;
 	case KEX_KEM_FRODOKEM_1344_SHAKE_ECDH_NISTP521_SHA512:
 		r = kex_kem_frodokem_1344_shake_ecdh_nistp521_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P434_ECDH_NISTP256_SHA256:
-		r = kex_kem_sidh_p434_ecdh_nistp256_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P434_COMPRESSED_ECDH_NISTP256_SHA256:
-		r = kex_kem_sidh_p434_compressed_ecdh_nistp256_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P610_ECDH_NISTP384_SHA256:
-		r = kex_kem_sidh_p610_ecdh_nistp384_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P610_COMPRESSED_ECDH_NISTP384_SHA256:
-		r = kex_kem_sidh_p610_compressed_ecdh_nistp384_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P751_ECDH_NISTP521_SHA256:
-		r = kex_kem_sidh_p751_ecdh_nistp521_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIDH_P751_COMPRESSED_ECDH_NISTP521_SHA256:
-		r = kex_kem_sidh_p751_compressed_ecdh_nistp521_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P434_ECDH_NISTP256_SHA256:
-		r = kex_kem_sike_p434_ecdh_nistp256_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P434_COMPRESSED_ECDH_NISTP256_SHA256:
-		r = kex_kem_sike_p434_compressed_ecdh_nistp256_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P610_ECDH_NISTP384_SHA256:
-		r = kex_kem_sike_p610_ecdh_nistp384_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P610_COMPRESSED_ECDH_NISTP384_SHA256:
-		r = kex_kem_sike_p610_compressed_ecdh_nistp384_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P751_ECDH_NISTP521_SHA256:
-		r = kex_kem_sike_p751_ecdh_nistp521_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_SIKE_P751_COMPRESSED_ECDH_NISTP521_SHA256:
-		r = kex_kem_sike_p751_compressed_ecdh_nistp521_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
 		break;
 	case KEX_KEM_SABER_LIGHTSABER_ECDH_NISTP256_SHA256:
