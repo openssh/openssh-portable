@@ -5607,6 +5607,12 @@ echo "    Compiler flags: ${CFLAGS}"
 echo "Preprocessor flags: ${CPPFLAGS}"
 echo "      Linker flags: ${LDFLAGS}"
 echo "         Libraries: ${LIBS}"
+if test ! -z "${CHANNELLIBS}"; then
+echo "     +for channels: ${CHANNELLIBS}"
+fi
+if test ! -z "${LIBFIDO2}"; then
+echo "        +for FIDO2: ${LIBFIDO2}"
+fi
 if test ! -z "${SSHDLIBS}"; then
 echo "         +for sshd: ${SSHDLIBS}"
 fi
