@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.457 2022/07/20 03:33:22 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.458 2022/08/05 05:01:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3288,7 +3288,7 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	char comment[1024], *passphrase;
+	char comment[1024], *passphrase = NULL;
 	char *rr_hostname = NULL, *ep, *fp, *ra;
 	struct sshkey *private, *public;
 	struct passwd *pw;
@@ -3801,13 +3801,6 @@ main(int argc, char **argv)
 		}
 		if ((attest = sshbuf_new()) == NULL)
 			fatal("sshbuf_new failed");
-		if ((sk_flags &
-		    (SSH_SK_USER_VERIFICATION_REQD|SSH_SK_RESIDENT_KEY))) {
-			passphrase = read_passphrase("Enter PIN for "
-			    "authenticator: ", RP_ALLOW_STDIN);
-		} else {
-			passphrase = NULL;
-		}
 		r = 0;
 		for (i = 0 ;;) {
 			if (!quiet) {
