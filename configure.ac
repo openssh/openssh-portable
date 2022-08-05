@@ -1879,6 +1879,7 @@ AC_CHECK_FUNCS([ \
 	futimes \
 	getaddrinfo \
 	getcwd \
+	getentropy \
 	getgrouplist \
 	getline \
 	getnameinfo \
@@ -2110,7 +2111,7 @@ AC_CHECK_DECLS([O_NONBLOCK], , ,
 #endif
 	])
 
-AC_CHECK_DECLS([ftruncate], , ,
+AC_CHECK_DECLS([ftruncate, getentropy], , ,
 	[
 #include <sys/types.h>
 #include <unistd.h>
