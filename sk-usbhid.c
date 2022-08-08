@@ -383,7 +383,7 @@ fido_assert_set_clientdata(fido_assert_t *assert, const u_char *ptr, size_t len)
 
 #ifndef HAVE_FIDO_DEV_IS_WINHELLO
 static bool
-fido_dev_is_winhello(const fido_dev_t *)
+fido_dev_is_winhello(const fido_dev_t *fdev)
 {
 	return false;
 }
