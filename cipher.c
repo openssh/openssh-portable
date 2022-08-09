@@ -174,11 +174,19 @@ cipher_ctx_name(const struct sshcipher_ctx *cc)
 void
 cipher_reset_multithreaded(void)
 {
+	/* OpenSSL 3.0 introduced a new way of interacting with the EVP
+	 * that makes our method of doing a cipher switch simply not work.
+	 * We believe that rewriting it as a provider will restore this 
+	 * functionality to OSSL 3 but until then we disable it for OSSL 3 
+	 * TODO: Write a provider or figure out another fix. 
+	 */
+#if OPENSSL_VERSION_NUMBER <= 0x10100000UL
 	cipher_by_name("aes128-ctr")->evptype = evp_aes_ctr_mt;
 	cipher_by_name("aes192-ctr")->evptype = evp_aes_ctr_mt;
 	cipher_by_name("aes256-ctr")->evptype = evp_aes_ctr_mt;
-}
 #endif
+}
+#endif /*WITH_OPENSSL*/
 
 u_int
 cipher_blocksize(const struct sshcipher *c)
