@@ -99,6 +99,7 @@ jobs:
       run: ./.github/run_test.sh ${{ matrix.configs }}
       env:
         TEST_SSH_UNSAFE_PERMISSIONS: 1
+        TEST_SSH_HOSTBASED_AUTH: yes
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@v2
