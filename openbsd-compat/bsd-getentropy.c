@@ -41,7 +41,7 @@
 #include "log.h"
 
 int
-getentropy(void *s, size_t len)
+_ssh_compat_getentropy(void *s, size_t len)
 {
 #ifdef WITH_OPENSSL
 	if (RAND_bytes(s, len) <= 0)
