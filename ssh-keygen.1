@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.223 2022/06/03 03:17:42 dtucker Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.224 2022/08/11 01:56:51 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: June 3 2022 $
+.Dd $Mdocdate: August 11 2022 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -511,8 +511,11 @@ Print the full public key to standard output after signature verification.
 .It Cm verify-time Ns = Ns Ar timestamp
 Specifies a time to use when validating signatures instead of the current
 time.
-The time may be specified as a date in YYYYMMDD format or a time
-in YYYYMMDDHHMM[SS] format.
+The time may be specified as a date or time in the YYYYMMDD[Z] or
+in YYYYMMDDHHMM[SS][Z] formats.
+Dates and times will be interpreted in the current system time zone unless
+suffixed with a Z character, which causes them to be interpreted in the
+UTC time zone.
 .El
 .Pp
 The
@@ -603,31 +606,67 @@ A validity interval may consist of a single time, indicating that the
 certificate is valid beginning now and expiring at that time, or may consist
 of two times separated by a colon to indicate an explicit time interval.
 .Pp
-The start time may be specified as the string
+The start time may be specified as:
+.Bl -bullet -compact
+.It
+The string
 .Dq always
-to indicate the certificate has no specified start time,
-a date in YYYYMMDD format, a time in YYYYMMDDHHMM[SS] format,
-a relative time (to the current time) consisting of a minus sign followed by
-an interval in the format described in the
+to indicate the certificate has no specified start time.
+.It
+A date or time in the system time zone formatted as YYYYMMDD or
+YYYYMMDDHHMM[SS].
+.It
+A date or time in the UTC time zone as YYYYMMDDZ or YYYYMMDDHHMM[SS]Z.
+.It
+A relative time before the current system time consisting of a minus sign
+followed by an interval in the format described in the
 TIME FORMATS section of
 .Xr sshd_config 5 .
+.It
+A raw seconds since epoch (Jan 1 1970 00:00:00 UTC) as a hexadecimal
+number beginning with
+.Dq 0x .
+.El
 .Pp
-The end time may be specified as a YYYYMMDD date, a YYYYMMDDHHMM[SS] time,
-a relative time starting with a plus character or the string
+The end time may be specified similarly to the start time:
+.Bl -bullet -compact
+.It
+The string
 .Dq forever
-to indicate that the certificate has no expiry date.
+to indicate the certificate has no specified end time.
+.It
+A date or time in the system time zone formatted as YYYYMMDD or
+YYYYMMDDHHMM[SS].
+.It
+A date or time in the UTC time zone as YYYYMMDDZ or YYYYMMDDHHMM[SS]Z.
+.It
+A relative time after the current system time consisting of a plus sign
+followed by an interval in the format described in the
+TIME FORMATS section of
+.Xr sshd_config 5 .
+.It
+A raw seconds since epoch (Jan 1 1970 00:00:00 UTC) as a hexadecimal
+number beginning with
+.Dq 0x .
+.El
 .Pp
 For example:
-.Dq +52w1d
-(valid from now to 52 weeks and one day from now),
-.Dq -4w:+4w
-(valid from four weeks ago to four weeks from now),
-.Dq 20100101123000:20110101123000
-(valid from 12:30 PM, January 1st, 2010 to 12:30 PM, January 1st, 2011),
-.Dq -1d:20110101
-(valid from yesterday to midnight, January 1st, 2011),
-.Dq -1m:forever
-(valid from one minute ago and never expiring).
+.Bl -tag -width Ds
+.It +52w1d
+Valid from now to 52 weeks and one day from now.
+.It -4w:+4w
+Valid from four weeks ago to four weeks from now.
+.It 20100101123000:20110101123000
+Valid from 12:30 PM, January 1st, 2010 to 12:30 PM, January 1st, 2011.
+.It 20100101123000Z:20110101123000Z
+Similar, but interpreted in the UTC time zone rather than the system time zone.
+.It -1d:20110101
+Valid from yesterday to midnight, January 1st, 2011.
+.It 0x1:0x2000000000
+Valid from roughly early 1970 to May 2033.
+.It -1m:forever
+Valid from one minute ago and never expiring.
+.El
 .It Fl v
 Verbose mode.
 Causes
@@ -1206,7 +1245,10 @@ signature object and presented on the verification command-line must
 match the specified list before the key will be considered acceptable.
 .It Cm valid-after Ns = Ns "timestamp"
 Indicates that the key is valid for use at or after the specified timestamp,
-which may be a date in YYYYMMDD format or a time in YYYYMMDDHHMM[SS] format.
+which may be a date or time in the YYYYMMDD[Z] or YYYYMMDDHHMM[SS][Z] formats.
+Dates and times will be interpreted in the current system time zone unless
+suffixed with a Z character, which causes them to be interpreted in the UTC
+time zone.
 .It Cm valid-before Ns = Ns "timestamp"
 Indicates that the key is valid for use at or before the specified timestamp.
 .El
