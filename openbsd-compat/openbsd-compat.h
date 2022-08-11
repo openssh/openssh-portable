@@ -343,6 +343,10 @@ void freezero(void *, size_t);
 struct tm *localtime_r(const time_t *, struct tm *);
 #endif
 
+#ifndef HAVE_TIMEGM
+time_t timegm(struct tm *);
+#endif
+
 char *xcrypt(const char *password, const char *salt);
 char *shadow_pw(struct passwd *pw);
 

@@ -1967,6 +1967,7 @@ AC_CHECK_FUNCS([ \
 	swap32 \
 	sysconf \
 	tcgetpgrp \
+	timegm \
 	timingsafe_bcmp \
 	truncate \
 	unsetenv \

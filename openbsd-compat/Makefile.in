@@ -85,6 +85,7 @@ COMPAT= bsd-asprintf.o \
 	bsd-signal.o \
 	bsd-snprintf.o \
 	bsd-statvfs.o \
+	bsd-timegm.o \
 	bsd-waitpid.o \
 	fake-rfc2553.o \
 	getrrsetbyname-ldns.o \
