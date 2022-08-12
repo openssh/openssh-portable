@@ -3,6 +3,13 @@
  . .github/configs $@
 
 case "`./config.guess`" in
+*cygwin)
+	echo Setting CYGWIN sustem environment variable.
+	setx CYGWIN "binmode"
+	id
+	chmod -R go-rw /cygdrive/d/a
+	umask 077
+	;;
 *-darwin*)
 	brew install automake
 	exit 0

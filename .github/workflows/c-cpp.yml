@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         # First we test all OSes in the default configuration.
-        os: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12]
+        os: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12, windows-2019]
         configs: [default]
         # Then we include any extra configs we want to test for specific VMs.
         # Valgrind slows things down quite a bit, so start them first.
@@ -79,13 +79,21 @@ jobs:
           - { os: macos-12, configs: pam }
     runs-on: ${{ matrix.os }}
     steps:
+    - name: set cygwin git params
+      if: ${{ matrix.configs }} == 'windows-2019'
+      run: git config --global core.autocrlf input
+    - name: install cygwin
+      if: ${{ matrix.configs }} == 'windows-2019'
+      uses: cygwin/cygwin-install-action@master
+      with:
+        packages: autoconf, automake, cygwin-devel, gcc-core, make, openssl-devel, zlib-devel
     - uses: actions/checkout@v2
     - name: setup CI system
-      run: ./.github/setup_ci.sh ${{ matrix.configs }}
+      run: sh ./.github/setup_ci.sh ${{ matrix.configs }}
     - name: autoreconf
-      run: autoreconf
+      run: sh -c autoreconf
     - name: configure
-      run: ./.github/configure.sh ${{ matrix.configs }}
+      run: sh ./.github/configure.sh ${{ matrix.configs }}
     - name: save config
       uses: actions/upload-artifact@v2
       with:
@@ -96,7 +104,7 @@ jobs:
     - name: make
       run: make -j2
     - name: make tests
-      run: ./.github/run_test.sh ${{ matrix.configs }}
+      run: sh ./.github/run_test.sh ${{ matrix.configs }}
       env:
         TEST_SSH_UNSAFE_PERMISSIONS: 1
         TEST_SSH_HOSTBASED_AUTH: yes

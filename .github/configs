@@ -255,10 +255,13 @@ case "${TARGET_HOST}" in
 	;;
 esac
 
-# Unless specified otherwise, build without OpenSSL on Mac OS since
-# modern versions don't ship with libcrypto.
 case "`./config.guess`" in
+*cygwin)
+	SUDO=""
+	;;
 *-darwin*)
+	# Unless specified otherwise, build without OpenSSL on Mac OS since
+	# modern versions don't ship with libcrypto.
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
 	;;
