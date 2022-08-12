@@ -229,7 +229,7 @@ free_threadData(struct threadData * td)
  * Used to initialize a thread data structure so that it's ready to be used to
  * generate keystreams. This implementation is directly based on
  * cipher-chachapoly-libcrypto.c/chachapoly_new().
- * 
+ *
  * @param td The thread data structure to be initialized
  * @param ctx A cipher context from which EVP contexts will be cloned
  * @retval 0 The structure was initialized successfully
@@ -274,7 +274,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 	struct threadData * td;
 	pthread_t self;
 	int threadIndex = -1;
-	
+
 	/* Restrict cancellations to known points to maintain sanity of locks */
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
@@ -500,7 +500,7 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
 
 	/* This is unnecessary because we already zeroed the whole struct. */
 	/* memset(ctx_mt->zeros,0,sizeof(ctx_mt->zeros)); */
-	
+
 	for (int i=0; i<NUMTHREADS; i++)
 		if (initialize_threadData(&(ctx_mt->tds[i]), ctx))
 			goto failthreaddata;
@@ -701,6 +701,17 @@ chachapoly_free_mt(struct chachapoly_ctx *cpctx)
 	chachapoly_free(cpctx);
 }
 
+static inline void
+fastXOR(u_char *dest, const u_char *src1, const u_char *src2, u_int len)
+{
+        typedef __uint128_t chunk;
+        size_t i;
+        for (i=0; i < (len / sizeof(chunk)); i++)
+                ((chunk *)dest)[i]=((chunk *)src1)[i]^((chunk *)src2)[i];
+        for (i=i*(sizeof(chunk) / sizeof(char)); i < len; i++)
+                dest[i]=src1[i]^src2[i];
+}
+
 /*
  * Encrypt or decrypt an SSH packet. Uses the header key (the second half of the
  * key provided during initialization) to encrypt or decrypt 'aadlen' bytes from
@@ -804,9 +815,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 				for (u_int i=0; i<aadlen; i++)
 					dest[i] = ks->headerStream[i] ^ src[i];
 			/* Crypt payload */
-			for (u_int i=0; i<len; i++)
-				dest[aadlen+i] = ks->mainStream[i] ^
-				    src[aadlen+i];
+			fastXOR(dest+aadlen,src+aadlen,ks->mainStream,len);
 			/* calculate and append tag */
 			if (do_encrypt)
 				poly1305_auth(dest+aadlen+len, dest, aadlen+len,

@@ -38,8 +38,8 @@
  * one day.
  */
 struct sshbuf {
-	u_char *d;		/* Data */
-	const u_char *cd;	/* Const data */
+	u_char *d __attribute__((aligned(16)));		/* Data */
+	const u_char *cd __attribute__((aligned(16)));	/* Const data */
 	size_t off;		/* First available byte is buf->d + buf->off */
 	size_t size;		/* Last byte is buf->d + buf->size - 1 */
 	size_t max_size;	/* Maximum size of buffer */
