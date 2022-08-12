@@ -615,6 +615,26 @@ This request is identical to the "copy-data" request documented in:
 
 https://tools.ietf.org/html/draft-ietf-secsh-filexfer-extensions-00#section-7
 
+4.11. sftp: Extension request "home-directory"
+
+This request asks the server to expand the specified user's home directory.
+An empty username implies the current user.  This can be used by the client
+to expand ~/ type paths locally.
+
+	byte		SSH_FXP_EXTENDED
+	uint32		id
+	string		"home-directory"
+	string		username
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
+This provides similar information as the "expand-path@openssh.com" extension.
+
+This request is identical to the "home-directory" request documented in:
+
+https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-extensions-00#section-5
+
 5. Miscellaneous changes
 
 5.1 Public key format
@@ -651,4 +671,4 @@ master instance and later clients.
 OpenSSH extends the usual agent protocol. These changes are documented
 in the PROTOCOL.agent file.
 
-$OpenBSD: PROTOCOL,v 1.45 2022/04/08 05:43:39 dtucker Exp $
+$OpenBSD: PROTOCOL,v 1.46 2022/08/12 05:20:28 djm Exp $
