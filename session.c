@@ -306,7 +306,14 @@ set_fwdpermit_from_authopts(struct ssh *ssh, const struct sshauthopt *opts)
 			if ((host = hpdelim2(&cp, NULL)) == NULL)
 				fatal_f("internal error: hpdelim");
 			host = cleanhostname(host);
-			if (cp == NULL || (port = permitopen_port(cp)) < 0)
+			if (host && !strcmp(host, "unix")) {
+				if (cp == NULL)
+					fatal("%s: internal error: permitopen socket path",
+					    __func__);
+				debug3_f("Okay for local socket %s", cp);
+				channel_add_permission(ssh,
+					FORWARD_USER, FORWARD_LOCAL, cp, -1);
+			} else if (cp == NULL || (port = permitopen_port(cp)) < 0)
 				fatal_f("internal error: permitopen port");
 			channel_add_permission(ssh,
 			    FORWARD_USER, FORWARD_LOCAL, host, port);
@@ -321,7 +328,13 @@ set_fwdpermit_from_authopts(struct ssh *ssh, const struct sshauthopt *opts)
 			if ((host = hpdelim(&cp)) == NULL)
 				fatal_f("internal error: hpdelim");
 			host = cleanhostname(host);
-			if (cp == NULL || (port = permitopen_port(cp)) < 0)
+			if (host && !strcmp(host, "unix")) {
+				if (cp == NULL)
+				fatal_f("internal error: permitlisten socket path");
+				debug3_f("Okay for remote socket %s", cp);
+				channel_add_permission(ssh,
+					FORWARD_USER, FORWARD_REMOTE, cp, -1);
+			} else if (cp == NULL || (port = permitopen_port(cp)) < 0)
 				fatal_f("internal error: permitlisten port");
 			channel_add_permission(ssh,
 			    FORWARD_USER, FORWARD_REMOTE, host, port);

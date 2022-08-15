@@ -283,24 +283,25 @@ handle_permit(const char **optsp, int allow_bare_port,
 	cp = tmp;
 	/* validate syntax before recording it. */
 	host = hpdelim2(&cp, NULL);
-	if (host == NULL || strlen(host) >= NI_MAXHOST) {
-		free(tmp);
-		free(opt);
-		*errstrp = "invalid permission hostname";
-		return -1;
+	if (host == NULL || strcmp(host, "unix")) {
+		if (host == NULL || strlen(host) >= NI_MAXHOST) {
+			free(tmp);
+			free(opt);
+			*errstrp = "invalid permission hostname";
+			return -1;
+		}
+		/*
+		 * don't want to use permitopen_port to avoid
+		 * dependency on channels.[ch] here.
+		 */
+		if (cp == NULL ||
+		    (strcmp(cp, "*") != 0 && a2port(cp) <= 0)) {
+			free(tmp);
+			free(opt);
+			*errstrp = "invalid permission port";
+			return -1;
+		}
 	}
-	/*
-	 * don't want to use permitopen_port to avoid
-	 * dependency on channels.[ch] here.
-	 */
-	if (cp == NULL ||
-	    (strcmp(cp, "*") != 0 && a2port(cp) <= 0)) {
-		free(tmp);
-		free(opt);
-		*errstrp = "invalid permission port";
-		return -1;
-	}
-	/* XXX - add streamlocal support */
 	free(tmp);
 	/* Record it */
 	if ((permits = recallocarray(permits, npermits, npermits + 1,

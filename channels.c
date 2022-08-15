@@ -3964,9 +3964,9 @@ remote_open_match(struct permission *allowed_open, struct Forward *fwd)
 	int ret;
 	char *lhost;
 
-	/* XXX add ACLs for streamlocal */
-	if (fwd->listen_path != NULL)
-		return 1;
+	if (fwd->listen_path != NULL && allowed_open->listen_path != NULL) {
+		return strcmp(fwd->listen_path, allowed_open->listen_path) ? 0 : 1;
+	}
 
 	if (fwd->listen_host == NULL || allowed_open->listen_host == NULL)
 		return 0;
@@ -4309,9 +4309,15 @@ channel_add_permission(struct ssh *ssh, int who, int where,
 	 * Remote forwards set listen_host/port, local forwards set
 	 * host/port_to_connect.
 	 */
-	permission_set_add(ssh, who, where,
-	    local ? host : 0, local ? port : 0,
-	    local ? NULL : host, NULL, local ? 0 : port, NULL);
+	if (port == -1) {
+		debug3("Allowing socket %s", host);
+		permission_set_add(ssh, who, where,
+		    NULL, 0, NULL, host, NULL, NULL);
+	} else {
+		permission_set_add(ssh, who, where,
+		    local ? host : 0, local ? port : 0,
+		    local ? NULL : host, NULL, local ? 0 : port, NULL);
+	}
 	pset->all_permitted = 0;
 }
 
