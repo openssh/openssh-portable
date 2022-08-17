@@ -867,15 +867,10 @@ sshpam_query(void *ctx, char **name, char **info,
 			return (0);
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
-			/* accumulate messages */
-			len = plen + mlen + 2;
-			**prompts = xreallocarray(**prompts, 1, len);
-			strlcpy(**prompts + plen, msg, len - plen);
-			plen += mlen;
-			strlcat(**prompts + plen, "\n", len - plen);
-			plen++;
-			free(msg);
-			break;
+			*num = 2;
++			free(*info);
++			xasprintf(info, "%s\n", msg);
+			return (0);
 		case PAM_ACCT_EXPIRED:
 		case PAM_MAXTRIES:
 			if (type == PAM_ACCT_EXPIRED)
@@ -982,6 +977,10 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 		break;
 	default:
 		return (-1);
+	}
+	if (num == 2){
+		// returning one here continues, useful for PAM_TEXT_INFO and PAM_ERROR_MSG
+		return (1);
 	}
 	if (num != 1) {
 		error("PAM: expected one response, got %u", num);
