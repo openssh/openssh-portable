@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.41 2022/07/20 03:31:42 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.42 2022/08/17 06:01:57 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -564,7 +564,7 @@ out:
 
 static struct sk_usbhid *
 sk_probe(const char *application, const uint8_t *key_handle,
-    size_t key_handle_len)
+    size_t key_handle_len, int probe_resident)
 {
 	struct sk_usbhid *sk;
 	fido_dev_info_t *devlist;
@@ -872,7 +872,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	if (device != NULL)
 		sk = sk_open(device);
 	else
-		sk = sk_probe(NULL, NULL, 0);
+		sk = sk_probe(NULL, NULL, 0, 0);
 	if (sk == NULL) {
 		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "failed to find sk");
@@ -1174,9 +1174,9 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	if (device != NULL)
 		sk = sk_open(device);
 	else if (pin != NULL || (flags & SSH_SK_USER_VERIFICATION_REQD))
-		sk = sk_probe(NULL, NULL, 0);
+		sk = sk_probe(NULL, NULL, 0, 0);
 	else
-		sk = sk_probe(application, key_handle, key_handle_len);
+		sk = sk_probe(application, key_handle, key_handle_len, 0);
 	if (sk == NULL) {
 		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "failed to find sk");
@@ -1448,7 +1448,7 @@ sk_load_resident_keys(const char *pin, struct sk_option **options,
 	if (device != NULL)
 		sk = sk_open(device);
 	else
-		sk = sk_probe(NULL, NULL, 0);
+		sk = sk_probe(NULL, NULL, 0, 1);
 	if (sk == NULL) {
 		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "failed to find sk");
