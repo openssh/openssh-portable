@@ -141,7 +141,7 @@ extern struct sshauthopt *auth_opts;
 extern char *tun_fwd_ifnames; /* serverloop.c */
 
 /* original command from peer. */
-const char *original_command = NULL;
+static const char *original_command = NULL;
 
 /* data */
 static int sessions_first_unused = -1;
