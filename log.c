@@ -70,7 +70,7 @@ extern char *__progname;
 
 /* textual representation of log-facilities/levels */
 
-static struct {
+static const struct {
 	const char *name;
 	SyslogFacility val;
 } log_facilities[] = {
@@ -91,7 +91,7 @@ static struct {
 	{ NULL,		SYSLOG_FACILITY_NOT_SET }
 };
 
-static struct {
+static const struct {
 	const char *name;
 	LogLevel val;
 } log_levels[] =
