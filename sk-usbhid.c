@@ -571,6 +571,10 @@ sk_probe(const char *application, const uint8_t *key_handle,
 	size_t ndevs;
 	int r;
 
+#ifdef HAVE_CYGWIN
+	if (!probe_resident && (sk = sk_open("windows://hello")) != NULL)
+		return sk;
+#endif /* HAVE_CYGWIN */
 	if ((devlist = fido_dev_info_new(MAX_FIDO_DEVICES)) == NULL) {
 		skdebug(__func__, "fido_dev_info_new failed");
 		return NULL;
