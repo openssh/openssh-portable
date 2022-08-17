@@ -611,7 +611,7 @@ fakepw(void)
 {
 	static int done = 0;
 	static struct passwd fake;
-	const char hashchars[] = "./ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	static const char hashchars[] = "./ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	    "abcdefghijklmnopqrstuvwxyz0123456789"; /* from bcrypt.c */
 	char *cp;
 
