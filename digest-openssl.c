@@ -55,7 +55,7 @@ struct ssh_digest {
 };
 
 /* NB. Indexed directly by algorithm number */
-const struct ssh_digest digests[] = {
+static const struct ssh_digest digests[] = {
 	{ SSH_DIGEST_MD5,	"MD5",		16,	EVP_md5 },
 	{ SSH_DIGEST_SHA1,	"SHA1",		20,	EVP_sha1 },
 	{ SSH_DIGEST_SHA256,	"SHA256",	32,	EVP_sha256 },
