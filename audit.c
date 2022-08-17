@@ -83,7 +83,7 @@ const char *
 audit_event_lookup(ssh_audit_event_t ev)
 {
 	int i;
-	static struct event_lookup_struct {
+	static const struct event_lookup_struct {
 		ssh_audit_event_t event;
 		const char *name;
 	} event_lookup[] = {
