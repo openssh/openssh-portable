@@ -1549,10 +1549,30 @@ main(int ac, char **av)
 		timeout_ms = options.connection_timeout * 1000;
 
 	/* Open a connection to the remote host. */
+	/* we try initially on the default hpnssh port returned by
+	 * default_ssh_port() which now returns HPNSSH_DEFAULT_PORT
+	 * if that fails we reset the port to SSH_DEFAULT_PORT
+	 * -cjr 8/17/2022
+	 */
+tryagain:
 	if (ssh_connect(ssh, host, host_arg, addrs, &hostaddr, options.port,
-	    options.connection_attempts,
-	    &timeout_ms, options.tcp_keep_alive) != 0)
+	    options.connection_attempts, &timeout_ms,
+	    options.tcp_keep_alive) != 0) {
+		/* could not connect. If the port requested is the same as
+		 * hpnssh default port then fallback. Otherwise, exit */
+		if (options.port == default_ssh_port()) {
+			fprintf(stderr, "HPNSSH server not available on default port %d\n",
+				default_ssh_port());
+			fprintf(stderr, "Falling back to OpenSSH default port %d\n",
+				SSH_DEFAULT_PORT);
+			addrs = resolve_host(host, SSH_DEFAULT_PORT, 1,
+					     cname, sizeof(cname));
+			goto tryagain;
+		} else {
+			exit(255);
+		}
 		exit(255);
+	}
 
 	if (addrs != NULL)
 		freeaddrinfo(addrs);
@@ -2177,7 +2197,7 @@ ssh_session2_open(struct ssh *ssh)
 	if (options.hpn_buffer_limit)
 		c->hpn_buffer_limit = 1;
 
-		
+
 	debug3_f("channel_new: %d", c->self);
 
 	channel_send_open(ssh, c->self);

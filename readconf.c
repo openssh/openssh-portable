@@ -528,7 +528,7 @@ default_ssh_port(void)
 
 	if (port == 0) {
 		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
-		port = sp ? ntohs(sp->s_port) : SSH_DEFAULT_PORT;
+		port = sp ? ntohs(sp->s_port) : HPNSSH_DEFAULT_PORT;
 	}
 	return port;
 }
