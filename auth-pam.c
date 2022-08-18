@@ -868,8 +868,8 @@ sshpam_query(void *ctx, char **name, char **info,
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
 			*num = 2;
-+			free(*info);
-+			xasprintf(info, "%s\n", msg);
+			free(*info);
+			xasprintf(info, "%s\n", msg);
 			return (0);
 		case PAM_ACCT_EXPIRED:
 		case PAM_MAXTRIES:
