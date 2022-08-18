@@ -1560,12 +1560,18 @@ tryagain:
 	    options.tcp_keep_alive) != 0) {
 		/* could not connect. If the port requested is the same as
 		 * hpnssh default port then fallback. Otherwise, exit */
-		if (options.port == default_ssh_port()) {
+		if ((options.port == default_ssh_port()) && options.fallback) {
+			int port = options.fallback_port;
+			options.port = port;
 			fprintf(stderr, "HPNSSH server not available on default port %d\n",
 				default_ssh_port());
-			fprintf(stderr, "Falling back to OpenSSH default port %d\n",
-				SSH_DEFAULT_PORT);
-			addrs = resolve_host(host, SSH_DEFAULT_PORT, 1,
+			if (port == 22)
+				fprintf(stderr, "Falling back to OpenSSH default port %d\n",
+					port);
+			else
+				fprintf(stderr, "Falling back to user defined port %d\n",
+					port);
+			addrs = resolve_host(host, port, 1,
 					     cname, sizeof(cname));
 			goto tryagain;
 		} else {

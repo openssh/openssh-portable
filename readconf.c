@@ -170,7 +170,7 @@ typedef enum {
 	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
 	oNoneEnabled, oNoneMacEnabled, oNoneSwitch,
 	oDisableMTAES, oHPNBufferLimit,
-	oMetrics, oMetricsPath, oMetricsInterval,
+	oMetrics, oMetricsPath, oMetricsInterval, oFallback, oFallbackPort,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType, oStdinNull,
 	oForkAfterAuthentication, oIgnoreUnknown, oProxyUseFdpass,
@@ -311,6 +311,8 @@ static struct {
 	{ "metrics", oMetrics },
 	{ "metricspath", oMetricsPath },
 	{ "metricsinterval", oMetricsInterval },
+	{ "fallback", oFallback },
+	{ "fallbackport", oFallbackPort },
 	{ "sessiontype", oSessionType },
 	{ "stdinnull", oStdinNull },
 	{ "forkafterauthentication", oForkAfterAuthentication },
@@ -1192,7 +1194,15 @@ parse_time:
 		options->metrics = 1;
 		goto parse_string;
 
-	 /*
+	case oFallback:
+		intptr = &options->fallback;
+		goto parse_flag;
+
+	case oFallbackPort:
+		intptr = &options->fallback_port;
+		goto parse_int;
+
+	/*
 	 * We check to see if the command comes from the command
 	 * line or not. If it does then enable it otherwise fail.
 	 *  NONE should never be a default configuration.
@@ -2509,6 +2519,8 @@ initialize_options(Options * options)
 	options->hpn_disabled = -1;
 	options->hpn_buffer_size = -1;
 	options->hpn_buffer_limit = -1;
+	options->fallback = -1;
+	options->fallback_port = -1;
 	options->tcp_rcv_buf_poll = -1;
 	options->tcp_rcv_buf = -1;
 	options->session_type = -1;
@@ -2721,6 +2733,10 @@ fill_default_options(Options * options)
 		options->metrics_interval = 5;
 	if (options->control_master == -1)
 		options->control_master = 0;
+	if (options->fallback == -1)
+		options->fallback = 1;
+	if (options->fallback_port == -1)
+		options->fallback_port = SSH_DEFAULT_PORT;
 	if (options->control_persist == -1) {
 		options->control_persist = 0;
 		options->control_persist_timeout = 0;

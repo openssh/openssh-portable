@@ -125,12 +125,14 @@ typedef struct {
 	int64_t rekey_limit;
 	int     none_switch;    /* Use none cipher */
 	int     none_enabled;   /* Allow none to be used */
-	int     nonemac_enabled;   /* Allow none to be used */	
+	int     nonemac_enabled;   /* Allow none to be used */
 	int     disable_multithreaded; /*disable multithreaded aes-ctr*/
         int     metrics; /* enable metrics */
         int     metrics_interval; /* time in seconds between polls */
         char   *metrics_path; /* path for the metrics files */
-        int	rekey_interval;
+	int     fallback; /* en|disable fallback port (def: true) */
+	int     fallback_port; /* port to fallback to (def: 22) */
+	int	rekey_interval;
 
 	int	no_host_authentication_for_localhost;
 	int	identities_only;
