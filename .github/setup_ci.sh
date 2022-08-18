@@ -19,7 +19,17 @@ export DEBIAN_FRONTEND=noninteractive
 
 set -ex
 
-lsb_release -a
+if [ -x "`which lsb_release 2>&1`" ]; then
+	lsb_release -a
+fi
+
+# Ubuntu 22.04 defaults to private home dirs which prevent the
+# agent-getpeerid test from running ssh-add as nobody.  See
+# https://github.com/actions/runner-images/issues/6106
+if [ ! -z "$SUDO" ] && ! "$SUDO" -u nobody test -x ~; then
+	echo ~ is not executable by nobody, adding perms.
+	chmod go+x ~
+fi
 
 if [ "${TARGETS}" = "kitchensink" ]; then
 	TARGETS="krb5 libedit pam sk selinux"
