@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.42 2022/08/17 06:01:57 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.43 2022/08/19 05:53:28 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -786,10 +786,6 @@ key_lookup(fido_dev_t *dev, const char *application, const uint8_t *user_id,
 	size_t i;
 
 	memset(message, '\0', sizeof(message));
-	if (pin == NULL) {
-		skdebug(__func__, "NULL pin");
-		goto out;
-	}
 	if ((assert = fido_assert_new()) == NULL) {
 		skdebug(__func__, "fido_assert_new failed");
 		goto out;
