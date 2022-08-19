@@ -80,10 +80,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - name: set cygwin git params
-      if: ${{ matrix.configs == 'windows-2019' }}
+      if: ${{ matrix.os == 'windows-2019' }}
       run: git config --global core.autocrlf input
     - name: install cygwin
-      if: ${{ matrix.configs == 'windows-2019' }}
+      if: ${{ matrix.os == 'windows-2019' }}
       uses: cygwin/cygwin-install-action@master
       with:
         packages: autoconf, automake, cygwin-devel, gcc-core, make, openssl-devel, zlib-devel
