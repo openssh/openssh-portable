@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.359 2022/07/01 03:39:44 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.360 2022/08/19 06:07:47 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1235,7 +1235,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat, const char *alg)
 {
 	struct sshkey *sign_key = NULL, *prv = NULL;
-	int retried = 0, r = SSH_ERR_INTERNAL_ERROR;
+	int is_agent = 0, retried = 0, r = SSH_ERR_INTERNAL_ERROR;
 	struct notifier_ctx *notifier = NULL;
 	char *fp = NULL, *pin = NULL, *prompt = NULL;
 
@@ -1255,6 +1255,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	if (id->key != NULL &&
 	    (id->isprivate || (id->key->flags & SSHKEY_FLAG_EXT))) {
 		sign_key = id->key;
+		is_agent = 1;
 	} else {
 		/* Load the private key from the file. */
 		if ((prv = load_identity_file(id)) == NULL)
@@ -1266,34 +1267,31 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 			goto out;
 		}
 		sign_key = prv;
-		if (sshkey_is_sk(sign_key)) {
-			if ((sign_key->sk_flags &
-			    SSH_SK_USER_VERIFICATION_REQD)) {
+	}
  retry_pin:
-				xasprintf(&prompt, "Enter PIN for %s key %s: ",
-				    sshkey_type(sign_key), id->filename);
-				pin = read_passphrase(prompt, 0);
-			}
-			if ((sign_key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
-				/* XXX should batch mode just skip these? */
-				if ((fp = sshkey_fingerprint(sign_key,
-				    options.fingerprint_hash,
-				    SSH_FP_DEFAULT)) == NULL)
-					fatal_f("fingerprint failed");
-				notifier = notify_start(options.batch_mode,
-				    "Confirm user presence for key %s %s",
-				    sshkey_type(sign_key), fp);
-				free(fp);
-			}
-		}
+	/* Prompt for touch for non-agent FIDO keys that request UP */
+	if (!is_agent && sshkey_is_sk(sign_key) &&
+	    (sign_key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
+		/* XXX should batch mode just skip these? */
+		if ((fp = sshkey_fingerprint(sign_key,
+		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+			fatal_f("fingerprint failed");
+		notifier = notify_start(options.batch_mode,
+		    "Confirm user presence for key %s %s",
+		    sshkey_type(sign_key), fp);
+		free(fp);
 	}
 	if ((r = sshkey_sign(sign_key, sigp, lenp, data, datalen,
 	    alg, options.sk_provider, pin, compat)) != 0) {
 		debug_fr(r, "sshkey_sign");
-		if (pin == NULL && !retried && sshkey_is_sk(sign_key) &&
+		if (!retried && pin == NULL && !is_agent &&
+		    sshkey_is_sk(sign_key) &&
 		    r == SSH_ERR_KEY_WRONG_PASSPHRASE) {
 			notify_complete(notifier, NULL);
 			notifier = NULL;
+			xasprintf(&prompt, "Enter PIN for %s key %s: ",
+			    sshkey_type(sign_key), id->filename);
+			pin = read_passphrase(prompt, 0);
 			retried = 1;
 			goto retry_pin;
 		}
