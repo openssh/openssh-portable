@@ -4,11 +4,13 @@
 
 case "`./config.guess`" in
 *cygwin)
+	set -x
 	echo Setting CYGWIN sustem environment variable.
 	setx CYGWIN "binmode"
 	id
 	chmod -R go-rw /cygdrive/d/a
 	umask 077
+	set +x
 	;;
 *-darwin*)
 	brew install automake
