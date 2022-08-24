@@ -1,4 +1,4 @@
-OQS-OpenSSH snapshot 2022-01
+OQS-OpenSSH snapshot 2022-08
 ============================
 
 About
@@ -13,21 +13,25 @@ The **Open Quantum Safe (OQS) project** has the goal of developing and prototypi
 Release notes
 =============
 
-This is the 2022-01 snapshot release of OQS-OpenSSH, released on January 6, 2022. This release is intended to be used with liboqs version 0.7.1.
+This is the 2022-08 snapshot release of OQS-OpenSSH, released on August 23, 2022. This release is intended to be used with liboqs version 0.7.2.
 
 What's New
 ----------
 
-This is the sixth snapshot release of the OQS fork of OpenSSH.  It is based on OpenSSH 8.6 portable 1.
+This is the seventh snapshot release of the OQS fork of OpenSSH.  It is based on OpenSSH 8.9 portable 1.
 
-- Add NTRU and NTRU Prime level 5 KEMs.
+- Update to upstream v8.9p1.
+- Remove Rainbow level 1 and SIKE/SIDH.
 
 ---
 
 Detailed changelog
 ------------------
 
-* added s/ntrup1277 by @baentsch in https://github.com/open-quantum-safe/openssh/pull/112
-* adding NTRU hrss1373 and hps40961229 by @baentsch in https://github.com/open-quantum-safe/openssh/pull/113
+* Use mpint representation for shared_secret when deriving keys in pure-PQ key exchange, and some other bug fixes; fixes #119 by @kevinmkane in https://github.com/open-quantum-safe/openssh/pull/120
+* V_8_9_P1 upgrade by @christianpaquin in https://github.com/open-quantum-safe/openssh/pull/121
+* bring testing and documentation in line by @baentsch in https://github.com/open-quantum-safe/openssh/pull/123
+* remove rainbowI, sike/sidh by @baentsch in https://github.com/open-quantum-safe/openssh/pull/126
 
-**Full Changelog**: https://github.com/open-quantum-safe/openssh/compare/OQS-OpenSSH-snapshot-2021-08...OQS-OpenSSH-snapshot-2022-01
+
+**Full Changelog**: https://github.com/open-quantum-safe/openssh/compare/OQS-OpenSSH-snapshot-2022-01...OQS-OpenSSH-snapshot-2022-08
