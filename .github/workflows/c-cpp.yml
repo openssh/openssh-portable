@@ -20,6 +20,7 @@ jobs:
         # Then we include any extra configs we want to test for specific VMs.
         # Valgrind slows things down quite a bit, so start them first.
         include:
+          - { os: windows-2019, configs: cygwin-release }
           - { os: ubuntu-20.04, configs: valgrind-1 }
           - { os: ubuntu-20.04, configs: valgrind-2 }
           - { os: ubuntu-20.04, configs: valgrind-3 }
@@ -85,8 +86,6 @@ jobs:
     - name: install cygwin
       if: ${{ matrix.os == 'windows-2019' }}
       uses: cygwin/cygwin-install-action@master
-      with:
-        packages: autoconf, automake, cygwin-devel, gcc-core, make, openssl-devel, zlib-devel
     - uses: actions/checkout@v2
     - name: setup CI system
       run: sh ./.github/setup_ci.sh ${{ matrix.configs }}

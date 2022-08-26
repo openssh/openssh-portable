@@ -1,26 +1,30 @@
 #!/bin/sh
 
+PACKAGES=""
+
  . .github/configs $@
 
 case "`./config.guess`" in
 *cygwin)
-	set -x
+	PACKAGER=setup
 	echo Setting CYGWIN sustem environment variable.
 	setx CYGWIN "binmode"
-	id
 	chmod -R go-rw /cygdrive/d/a
 	umask 077
-	set +x
+	PACKAGES="$PACKAGES,autoconf,automake,cygwin-devel,gcc-core"
+	PACKAGES="$PACKAGES,make,openssl-devel,zlib-devel"
 	;;
 *-darwin*)
+	PACKAGER=brew
 	brew install automake
 	exit 0
 	;;
+*)
+	PACKAGER=apt
 esac
 
 TARGETS=$@
 
-PACKAGES=""
 INSTALL_FIDO_PPA="no"
 export DEBIAN_FRONTEND=noninteractive
 
@@ -46,18 +50,21 @@ fi
 
 for flag in $CONFIGFLAGS; do
     case "$flag" in
-    --with-pam)		PACKAGES="${PACKAGES} libpam0g-dev" ;;
-    --with-libedit)	PACKAGES="${PACKAGES} libedit-dev" ;;
+    --with-pam)		TARGETS="${TARGETS} pam" ;;
+    --with-libedit)	TARGETS="${TARGETS} libedit" ;;
     esac
 done
 
 for TARGET in $TARGETS; do
     case $TARGET in
-    default|without-openssl|without-zlib|c89|libedit|*pam)
+    default|without-openssl|without-zlib|c89)
         # nothing to do
         ;;
     clang-sanitize*)
         PACKAGES="$PACKAGES clang-12"
+        ;;
+    cygwin-release)
+        PACKAGES="$PACKAGES libfido2-devel libkrb5-devel"
         ;;
     gcc-sanitize*)
         ;;
@@ -70,6 +77,15 @@ for TARGET in $TARGETS; do
 	;;
     heimdal)
         PACKAGES="$PACKAGES heimdal-dev"
+        ;;
+    libedit)
+	case "$PACKAGER" in
+	setup)	PACKAGES="$PACKAGES libedit-devel" ;;
+	apt)	PACKAGES="$PACKAGES libedit-dev" ;;
+	esac
+        ;;
+    *pam)
+        PACKAGES="$PACKAGES libpam0g-dev"
         ;;
     sk)
         INSTALL_FIDO_PPA="yes"
@@ -123,9 +139,16 @@ if [ "yes" = "$INSTALL_FIDO_PPA" ]; then
     sudo apt-add-repository -y ppa:yubico/stable
 fi
 
-if [ "x" != "x$PACKAGES" ]; then 
-    sudo apt update -qq
-    sudo apt install -qy $PACKAGES
+if [ "x" != "x$PACKAGES" ]; then
+    case "$PACKAGER" in
+    apt)
+	sudo apt update -qq
+	sudo apt install -qy $PACKAGES
+	;;
+    setup)
+	/cygdrive/c/setup.exe -q -P `echo "$PACKAGES" | tr ' ' ,`
+	;;
+    esac
 fi
 
 if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then

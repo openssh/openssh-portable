@@ -34,7 +34,9 @@ case "$config" in
 	TEST_TARGET=t-exec
 	;;
     cygwin-release)
-	CONFIGFLAGS="--with-libedit --with-xauth=/usr/bin/xauth --disable-strip --with-security-key-builtin"
+	# See https://cygwin.com/git/?p=git/cygwin-packages/openssh.git;a=blob;f=openssh.cygport;hb=HEAD
+	CONFIGFLAGS="--with-xauth=/usr/bin/xauth --with-security-key-builtin"
+	CONFIGFLAGS="$CONFIGFLAGS --with-kerberos5=/usr --with-libedit --disable-strip"
 	;;
    clang-12-Werror)
 	CC="clang-12"
