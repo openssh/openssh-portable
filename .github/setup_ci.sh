@@ -64,7 +64,7 @@ for TARGET in $TARGETS; do
         PACKAGES="$PACKAGES clang-12"
         ;;
     cygwin-release)
-        PACKAGES="$PACKAGES libfido2-devel libkrb5-devel"
+        PACKAGES="$PACKAGES libcrypt-devel libfido2-devel libkrb5-devel"
         ;;
     gcc-sanitize*)
         ;;
