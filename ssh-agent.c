@@ -726,6 +726,7 @@ process_sign_request2(SocketEntry *e)
 	size_t slen = 0;
 	u_int compat = 0, flags;
 	int r, ok = -1, retried = 0;
+	int is_uv_device = 0, is_cpin_device = 0;
 	char *fp = NULL, *pin = NULL, *prompt = NULL, *notify_text = NULL;
 	char *user = NULL, *sig_dest = NULL;
 	const char *fwd_host = NULL, *dest_host = NULL;
@@ -815,11 +816,14 @@ process_sign_request2(SocketEntry *e)
 			/* error already logged */
 			goto send;
 		}
+		is_uv_device = (sshsk_test_option (id->sk_provider, "uv") == 0);
+		is_cpin_device = (sshsk_test_option (id->sk_provider,
+		    "clientPin") == 0);
 		/*
 		 * Prompt for touch for FIDO keys that request UP or
 		 * UV on "uv" devices.
 		 */
-		if ((sshsk_test_option (id->sk_provider, "uv") == 0) &&
+		if (is_uv_device &&
 		    (id->key->sk_flags & SSH_SK_USER_VERIFICATION_REQD))
 			notify_text = "Verify user";
 		else if ((id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD) &&
@@ -837,7 +841,9 @@ process_sign_request2(SocketEntry *e)
 	    id->sk_provider, pin, compat)) != 0) {
 		debug_fr(r, "sshkey_sign");
 		if (pin == NULL && !retried && sshkey_is_sk(id->key) &&
-		    r == SSH_ERR_KEY_WRONG_PASSPHRASE) {
+		    (r == SSH_ERR_KEY_WRONG_PASSPHRASE ||
+		     (r == SSH_ERR_INVALID_FORMAT &&
+		      is_uv_device && is_cpin_device))) {
 			notify_complete(notifier, NULL);
 			notifier = NULL;
 			/* XXX include sig_dest */
