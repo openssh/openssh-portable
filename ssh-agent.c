@@ -90,6 +90,7 @@
 #include "ssherr.h"
 #include "pathnames.h"
 #include "ssh-pkcs11.h"
+#include "ssh-sk.h"
 #include "sk-api.h"
 #include "myproposal.h"
 
@@ -725,7 +726,7 @@ process_sign_request2(SocketEntry *e)
 	size_t slen = 0;
 	u_int compat = 0, flags;
 	int r, ok = -1, retried = 0;
-	char *fp = NULL, *pin = NULL, *prompt = NULL;
+	char *fp = NULL, *pin = NULL, *prompt = NULL, *notify_text = NULL;
 	char *user = NULL, *sig_dest = NULL;
 	const char *fwd_host = NULL, *dest_host = NULL;
 	struct sshbuf *msg = NULL, *data = NULL, *sid = NULL;
@@ -814,13 +815,21 @@ process_sign_request2(SocketEntry *e)
 			/* error already logged */
 			goto send;
 		}
-		if (id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD) {
-			notifier = notify_start(0,
-			    "Confirm user presence for key %s %s%s%s",
-			    sshkey_type(id->key), fp,
+		/*
+		 * Prompt for touch for FIDO keys that request UP or
+		 * UV on "uv" devices.
+		 */
+		if ((sshsk_test_option (id->sk_provider, "uv") == 0) &&
+		    (id->key->sk_flags & SSH_SK_USER_VERIFICATION_REQD))
+			notify_text = "Verify user";
+		else if ((id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD) &&
+			 !(id->key->sk_flags & SSH_SK_USER_VERIFICATION_REQD))
+			notify_text = "Confirm user presence";
+		if (notify_text)
+			notifier = notify_start(0, "%s for key %s %s%s%s",
+			    notify_text, sshkey_type(id->key), fp,
 			    sig_dest == NULL ? "" : "\n",
 			    sig_dest == NULL ? "" : sig_dest);
-		}
 	}
  retry_pin:
 	if ((r = sshkey_sign(id->key, &signature, &slen,
