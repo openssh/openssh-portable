@@ -1242,7 +1242,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	struct sshkey *sign_key = NULL, *prv = NULL;
 	int is_agent = 0, retried = 0, r = SSH_ERR_INTERNAL_ERROR;
 	struct notifier_ctx *notifier = NULL;
-	char *fp = NULL, *pin = NULL, *prompt = NULL;
+	char *fp = NULL, *pin = NULL, *prompt = NULL, *notify_text = NULL;
 
 	*sigp = NULL;
 	*lenp = 0;
@@ -1273,19 +1273,29 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 		}
 		sign_key = prv;
 	}
- retry_pin:
-	/* Prompt for touch for non-agent FIDO keys that request UP */
-	if (!is_agent && sshkey_is_sk(sign_key) &&
-	    (sign_key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
-		/* XXX should batch mode just skip these? */
-		if ((fp = sshkey_fingerprint(sign_key,
-		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
-			fatal_f("fingerprint failed");
-		notifier = notify_start(options.batch_mode,
-		    "Confirm user presence for key %s %s",
-		    sshkey_type(sign_key), fp);
-		free(fp);
+	/*
+	 * Prompt for touch for non-agent FIDO keys that request UP or
+	 * UV on "uv" devices.
+	 */
+	if (sshkey_is_sk(sign_key)) {
+		if ((sshsk_test_option (options.sk_provider, "uv") == 0) &&
+		    (sign_key->sk_flags & SSH_SK_USER_VERIFICATION_REQD))
+			notify_text = "Verify user";
+		else if ((sign_key->sk_flags & SSH_SK_USER_PRESENCE_REQD) &&
+			!(sign_key->sk_flags & SSH_SK_USER_VERIFICATION_REQD))
+			notify_text = "Confirm user presence";
+		if (!is_agent && notify_text) {
+			/* XXX should batch mode just skip these? */
+			if ((fp = sshkey_fingerprint(sign_key,
+			    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+				fatal_f("fingerprint failed");
+			notifier = notify_start(options.batch_mode,
+			    "%s for key %s %s", notify_text,
+			    sshkey_type(sign_key), fp);
+			free(fp);
+		}
 	}
+ retry_pin:
 	if ((r = sshkey_sign(sign_key, sigp, lenp, data, datalen,
 	    alg, options.sk_provider, pin, compat)) != 0) {
 		debug_fr(r, "sshkey_sign");
@@ -1294,7 +1304,9 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 		    r == SSH_ERR_KEY_WRONG_PASSPHRASE) {
 			notify_complete(notifier, NULL);
 			notifier = NULL;
-			xasprintf(&prompt, "Enter PIN for %s key %s: ",
+			xasprintf(&prompt, "Enter PIN%sfor %s key %s: ",
+			    (sign_key->sk_flags & SSH_SK_USER_PRESENCE_REQD) ?
+			    " and confirm user presence " : " ",
 			    sshkey_type(sign_key), id->filename);
 			pin = read_passphrase(prompt, 0);
 			retried = 1;
