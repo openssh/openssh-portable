@@ -291,6 +291,34 @@ sshsk_sign(const char *provider, struct sshkey *key,
 }
 
 int
+sshsk_test_option(const char *provider_path, const char *option)
+{
+	int oerrno, r = SSH_ERR_INTERNAL_ERROR;
+	struct sshbuf *req = NULL, *resp = NULL;
+
+	if ((req = sshbuf_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((r = sshbuf_put_cstring(req, provider_path)) != 0 ||
+	    (r = sshbuf_put_cstring(req, option)) != 0) {
+		error_fr(r, "compose");
+		goto out;
+	}
+
+	if ((r = client_converse(req, &resp, SSH_SK_HELPER_TEST_OPTION)) != 0)
+		goto out;
+
+	r = 0;
+ out:
+	oerrno = errno;
+	sshbuf_free(req);
+	sshbuf_free(resp);
+	errno = oerrno;
+	return r;
+}
+
+int
 sshsk_enroll(int type, const char *provider_path, const char *device,
     const char *application, const char *userid, uint8_t flags,
     const char *pin, struct sshbuf *challenge_buf,

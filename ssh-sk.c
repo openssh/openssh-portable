@@ -61,6 +61,9 @@ struct sshsk_provider {
 	/* Return the version of the middleware API */
 	uint32_t (*sk_api_version)(void);
 
+	/* Return if a requested device option is supported */
+	int (*sk_test_option)(const char *test_option);
+
 	/* Enroll a U2F key (private key generation) */
 	int (*sk_enroll)(int alg, const uint8_t *challenge,
 	    size_t challenge_len, const char *application, uint8_t flags,
@@ -80,6 +83,7 @@ struct sshsk_provider {
 };
 
 /* Built-in version */
+int ssh_sk_test_option(const char *test_option);
 int ssh_sk_enroll(int alg, const uint8_t *challenge,
     size_t challenge_len, const char *application, uint8_t flags,
     const char *pin, struct sk_option **opts,
@@ -124,6 +128,7 @@ sshsk_open(const char *path)
 	/* Skip the rest if we're using the linked in middleware */
 	if (strcasecmp(ret->path, "internal") == 0) {
 #ifdef ENABLE_SK_INTERNAL
+		ret->sk_test_option = ssh_sk_test_option;
 		ret->sk_enroll = ssh_sk_enroll;
 		ret->sk_sign = ssh_sk_sign;
 		ret->sk_load_resident_keys = ssh_sk_load_resident_keys;
@@ -150,6 +155,11 @@ sshsk_open(const char *path)
 		error("Provider \"%s\" implements unsupported "
 		    "version 0x%08lx (supported: 0x%08lx)",
 		    path, (u_long)version, (u_long)SSH_SK_VERSION_MAJOR);
+		goto fail;
+	}
+	if ((ret->sk_test_option = dlsym(ret->dlhandle, "sk_test_option")) == NULL) {
+		error("Provider \"%s\" dlsym(sk_test_option) failed: %s",
+		    path, dlerror());
 		goto fail;
 	}
 	if ((ret->sk_enroll = dlsym(ret->dlhandle, "sk_enroll")) == NULL) {
@@ -455,6 +465,34 @@ fill_attestation_blob(const struct sk_enroll_response *resp,
 	}
 	/* success */
 	return 0;
+}
+
+int
+sshsk_test_option(const char *provider_path, const char *option)
+{
+	struct sshsk_provider *skp = NULL;
+	int r = SSH_ERR_INTERNAL_ERROR;
+
+	debug_f("provider \"%s\", option \"%s\"", provider_path, option);
+
+	if (provider_path == NULL) {
+		error_f("missing provider");
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
+	if ((skp = sshsk_open(provider_path)) == NULL) {
+		r = SSH_ERR_INVALID_FORMAT; /* XXX sshsk_open return code? */
+		goto out;
+	}
+	if ((r = skp->sk_test_option(option)) != 0) {
+		debug_f("option \"%s\" failure %d", option, r);
+		r = skerr_to_ssherr(r);
+		goto out;
+	}
+	r = 0;
+ out:
+	sshsk_free(skp);
+	return r;
 }
 
 int

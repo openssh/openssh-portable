@@ -84,6 +84,7 @@
  * This must be done before including sk-api.h.
  */
 # define sk_api_version		ssh_sk_api_version
+# define sk_test_option		ssh_sk_test_option
 # define sk_enroll		ssh_sk_enroll
 # define sk_sign		ssh_sk_sign
 # define sk_load_resident_keys	ssh_sk_load_resident_keys
@@ -123,6 +124,8 @@ struct sk_usbhid {
 
 /* Return the version of the middleware API */
 uint32_t sk_api_version(void);
+
+int sk_test_option(const char *test_option);
 
 /* Enroll a U2F key (private key generation) */
 int sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
@@ -1147,6 +1150,33 @@ check_sign_load_resident_options(struct sk_option **options, char **devicep)
 		}
 	}
 	return 0;
+}
+
+int
+sk_test_option(const char *test_option)
+{
+	struct sk_usbhid *sk = NULL;
+	int ret = SSH_SK_ERR_GENERAL, internal_uv;
+
+	fido_init(SSH_FIDO_INIT_ARG);
+
+	sk = sk_probe(NULL, NULL, 0, 0);
+	if (sk == NULL) {
+		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
+		skdebug(__func__, "failed to find sk");
+		goto out;
+	}
+	if (check_sk_options(sk->dev, test_option, &internal_uv) < 0 ||
+	    internal_uv != 1) {
+		skdebug(__func__, "check_sk_options uv");
+		ret = SSH_SK_ERR_UNSUPPORTED;
+		goto out;
+	}
+	ret = 0;
+
+ out:
+	sk_close(sk);
+	return ret;
 }
 
 int

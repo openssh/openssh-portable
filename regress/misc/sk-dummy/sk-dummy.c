@@ -488,6 +488,12 @@ sig_ed25519(const uint8_t *message, size_t message_len,
 }
 
 int
+sk_test_option(const char *test_option)
+{
+	return 0;
+}
+
+int
 sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, const char *pin, struct sk_option **options,

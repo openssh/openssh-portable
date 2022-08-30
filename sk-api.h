@@ -85,6 +85,9 @@ struct sk_option {
 /* Return the version of the middleware API */
 uint32_t sk_api_version(void);
 
+/* Return if a requested device option is supported */
+int sk_test_option(const char *test_option);
+
 /* Enroll a U2F key (private key generation) */
 int sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags, const char *pin,

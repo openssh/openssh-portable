@@ -89,6 +89,36 @@ null_empty(char **s)
 }
 
 static struct sshbuf *
+process_test_option(struct sshbuf *req)
+{
+	int r = SSH_ERR_INTERNAL_ERROR;
+	struct sshbuf *resp;
+	char *provider = NULL, *option = NULL;
+
+	if ((r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &option, NULL)) != 0)
+		fatal_r(r, "%s: parse", __progname);
+	if (sshbuf_len(req) != 0)
+		fatal("%s: trailing data in request", __progname);
+
+	if ((r = sshsk_test_option(provider, option)) != 0) {
+		resp = reply_error(r, "Option failed: %s", ssh_err(r));
+		goto out;
+	}
+
+	if ((resp = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __progname);
+
+	if ((r = sshbuf_put_u32(resp, SSH_SK_HELPER_TEST_OPTION)) != 0 ||
+	    (r = sshbuf_put_u32(resp, r)) != 0)
+		fatal_r(r, "%s: compose", __progname);
+ out:
+	free(provider);
+	free(option);
+	return resp;
+}
+
+static struct sshbuf *
 process_sign(struct sshbuf *req)
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
@@ -342,6 +372,9 @@ main(int argc, char **argv)
 		break;
 	case SSH_SK_HELPER_LOAD_RESIDENT:
 		resp = process_load_resident(req);
+		break;
+	case SSH_SK_HELPER_TEST_OPTION:
+		resp = process_test_option(req);
 		break;
 	default:
 		fatal("%s: unsupported request type %u", __progname, rtype);
