@@ -610,7 +610,12 @@ ssh_conn_info_free(struct ssh_conn_info *cinfo)
 	free(cinfo->locuser);
 	free(cinfo);
 }
-
+#ifdef FERRUM
+void on_ferrum_exit(){
+	fprintf(stderr,"%s\n","ferrum_exit:");
+	//fflush(stdout);
+}
+#endif
 /*
  * Main program for the ssh client.
  */
@@ -631,6 +636,12 @@ main(int ac, char **av)
 	size_t n, len;
 	u_int j;
 	struct ssh_conn_info *cinfo = NULL;
+
+	#ifdef FERRUM
+	atexit(on_ferrum_exit);
+	fprintf(stderr,"ferrum_pid:%d\n",getpid());
+	//fflush(stdout);
+	#endif
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -1844,10 +1855,15 @@ ssh_stdio_confirm(struct ssh *ssh, int id, int success, void *arg)
 	if (!success)
 		fatal("stdio forwarding failed");
 }
+#ifdef FERRUM
+//we need to save opened tun name
+static char opened_tun_ifname[64];
+#endif
 
 static void
 ssh_tun_confirm(struct ssh *ssh, int id, int success, void *arg)
 {
+
 	if (!success) {
 		error("Tunnel forwarding failed");
 		if (options.exit_on_forward_failure)
@@ -1855,7 +1871,13 @@ ssh_tun_confirm(struct ssh *ssh, int id, int success, void *arg)
 	}
 
 	debug_f("tunnel forward established, id=%d", id);
+
 	forwarding_success();
+	#ifdef FERRUM
+	fprintf(stderr,"ferrum_tunnel_opened:%s\n",opened_tun_ifname);
+	//fflush(stdout);
+	#endif
+	
 }
 
 static void
@@ -2104,8 +2126,14 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 	/* XXX should be pre-session */
 	if (!options.control_persist)
 		ssh_init_stdio_forwarding(ssh);
-
+	
 	ssh_init_forwarding(ssh, &tun_fwd_ifname);
+	#ifdef FERRUM
+	//after finishing created tunnel we need to copy tunnel interface name
+	memset(opened_tun_ifname,0,sizeof(opened_tun_ifname));
+	if(tun_fwd_ifname &&  strlen(tun_fwd_ifname))
+	strncpy(opened_tun_ifname,tun_fwd_ifname,sizeof(opened_tun_ifname)-1);
+	#endif
 
 	if (options.local_command != NULL) {
 		debug3("expanding LocalCommand: %s", options.local_command);
