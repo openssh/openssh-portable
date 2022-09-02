@@ -783,7 +783,7 @@ key_lookup(fido_dev_t *dev, const char *application, const uint8_t *user_id,
 	fido_assert_t *assert = NULL;
 	uint8_t message[32];
 	int r = FIDO_ERR_INTERNAL;
-	int sk_supports_uv, uv;
+	int sk_supports_uv, uv, sk_supports_pin;
 	size_t i;
 
 	memset(message, '\0', sizeof(message));
@@ -807,9 +807,22 @@ key_lookup(fido_dev_t *dev, const char *application, const uint8_t *user_id,
 		goto out;
 	}
 	uv = FIDO_OPT_OMIT;
-	if (pin == NULL && check_sk_options(dev, "uv", &sk_supports_uv) == 0 &&
-	    sk_supports_uv != -1)
-		uv = FIDO_OPT_TRUE;
+	if (pin == NULL) {
+		if (check_sk_options(dev, "uv", &sk_supports_uv) == 0 &&
+		    sk_supports_uv != -1)
+			uv = FIDO_OPT_TRUE;
+		else if (check_sk_options(dev, "clientPin",
+			 &sk_supports_pin) == 0 && sk_supports_pin != -1) {
+			if (sk_supports_pin != 1) {
+				skdebug(__func__, "PIN not set");
+				r = FIDO_ERR_PIN_NOT_SET;
+			} else {
+				skdebug(__func__, "PIN required");
+				r = FIDO_ERR_PIN_REQUIRED;
+			}
+			goto out;
+		}
+	}
 	if ((r = fido_assert_set_uv(assert, uv)) != FIDO_OK) {
 		skdebug(__func__, "fido_assert_set_uv: %s", fido_strerr(r));
 		goto out;
