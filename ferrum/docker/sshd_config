@@ -1,65 +1,3 @@
-# getting started
-This is a fork of openssh server to create a secure tunnel between users, devices etc..
-This version implements new authentication protocols like oauth2,SSO, active directory etc...
-
-
-## prepare
-
-```bash
-sudo apt install zlib1g-dev
-sudo apt install libssl-dev
-sudo apt install libpam0g-dev
-
-
-```
-
-### openssl static compile
-./config -static --static --prefix=$(pwd)/../opensslbuild
-
-## doc
-you can open documents under doc folder with [app.diagrams.net](https://app.diagrams.net)
-## compile
-
-```bash
-aclocal
-autoconf
-autoreconf
-./configure --prefix=$(pwd)/build --disable-strip CFLAGS="-W -O0 -g -ggdb -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD -I$(pwd)/external/libs/include" CXXFLAGS="-W -O0 -g -ggdb -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD" LDFLAGS="-L$(pwd)/external/libs/lib -l:libhiredis.a" --with-pam
-
-
-#### prod
-./configure --prefix=$(pwd)/build CFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD -I$(pwd)/external/libs/include" CXXFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD" LDFLAGS="-L$(pwd)/external/libs/lib -l:libhiredis.a " --with-pam --with-ssl-dir=./external/libs
-
-# compile with NO_SSH_LASTLOG
-make
-make install
-
-FERRUM_DEBUG flags is for support SSH with none cipher
-
-```
-
-## run
-
-edit ./build/etc/sshd_config and replace port to 3333
-> sudo $(pwd)/build/sbin/sshd -D  -f $(pwd)/build/etc/sshd_config
-
-for log 
-> tail -f /var/log/auth.log
-
-for client  connection
-> ssh user@localhost -p3333
-
-
-## ssh server run
-> REDIS_HOST=192.168.88.253 LOGIN_URL=http://localhost:4200/login $(pwd)/sshd -D  -f ../etc/sshd_config
-
-## ssh client run
-> ./ssh -c none -N -F ../etc/ssh_config -w any  sshd@192.168.88.243 -p3333
-## sample sshd_config
-
-
-```html
-
 #	$OpenBSD: sshd_config,v 1.104 2021/07/02 05:11:21 dtucker Exp $
 
 # This is the sshd server system-wide configuration file.  See
@@ -76,25 +14,25 @@ Port 3333
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-HostKey /root/build/etc/ssh_host_rsa_key
-#HostKey /work/projects/ferrum/secure.server/build/etc/ssh_host_ecdsa_key
-#HostKey /work/projects/ferrum/secure.server/build/etc/ssh_host_ed25519_key
+HostKey /ferrum/etc/ssh_host_rsa_key
+#HostKey /ferrum/etc/ssh_host_ecdsa_key
+#HostKey /ferrum/etc/ssh_host_ed25519_key
 
 # Ciphers and keying
-Ciphers aes128-cbc,none
+#Ciphers aes128-cbc,none
 #RekeyLimit default none
 
 # Logging
 SyslogFacility AUTH
-LogLevel DEBUG3
+#LogLevel DEBUG3
 
 # Authentication:
 
-#LoginGraceTime 2m
+LoginGraceTime 2m
 PermitRootLogin yes
 #StrictModes yes
-#MaxAuthTries 6
-#MaxSessions 10
+MaxAuthTries 16
+MaxSessions 1
 
 #PubkeyAuthentication yes
 
@@ -144,9 +82,7 @@ KbdInteractiveAuthentication yes
 UsePAM yes
 
 AllowAgentForwarding no
-# disable local and remote forward
 AllowTcpForwarding no
-# disable remote forward
 GatewayPorts no
 X11Forwarding no
 #X11DisplayOffset 10
@@ -156,7 +92,7 @@ PermitTTY no #this must be no
 #PrintLastLog yes
 #TCPKeepAlive yes
 #PermitUserEnvironment no
-Compression no #delayed
+Compression yes
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
 #UseDNS no
@@ -178,7 +114,4 @@ PermitTunnel yes
 #	AllowTcpForwarding no
 #	PermitTTY no
 #	ForceCommand cvs server
-### disables remote and local forwardings 
 DisableForwarding yes
-
-```

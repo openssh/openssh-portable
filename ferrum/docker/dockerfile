@@ -1,0 +1,75 @@
+### part 1 #########################
+FROM  debian:11-slim as builder
+RUN locale
+RUN apt update &&\
+    apt install --assume-yes --no-install-recommends build-essential \
+    automake autoconf libtool cmake zlib1g-dev libpam0g-dev unzip
+
+RUN mkdir /cores
+WORKDIR /ferrum
+
+
+COPY . .
+RUN rm -rf build
+WORKDIR /ferrum/external
+RUN ls /usr/local/lib
+RUN ls /usr/local/include
+RUN cat prepare.libs.sh
+RUN bash prepare.libs.sh
+RUN ls libs/lib
+RUN ls /usr/local/lib
+RUN ls /usr/local/include
+WORKDIR /ferrum
+RUN aclocal && autoconf && autoreconf
+RUN ./configure --prefix=$(pwd)/build \
+    CFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD -I$(pwd)/external/libs/include" \
+    CXXFLAGS="-W -DFERRUM_DEBUG2 -DFERRUM -DFERRUM_PROD" \
+    LDFLAGS="-L$(pwd)/external/libs/lib -l:libhiredis.a " --with-pam --with-ssl-dir=/usr/local/lib
+RUN make clean && make && make install-nokeys
+RUN cp build/sbin/sshd build/sbin/secure.server
+WORKDIR /ferrum/ferrum/pam
+RUN make clean && make all
+
+##### part 2    ###################################
+################ for testing  #######################
+### building from stratch takes  a lot time
+### because of this, first only enable part1
+### then run 
+### bash ferrum/docker/docker.build.sh -i secure.image.cached
+### and build image then disable part1 and enable part2 ,part3
+### then run 
+### bash ferrum/docker/docker.build.sh
+### as you want, building will be fast
+#FROM  secure.server.cached as builder
+#WORKDIR /ferrum
+#RUN ls -al /usr/local/lib
+
+
+
+#### part 3 ####################################
+FROM debian:11
+RUN locale
+RUN apt update && \ 
+    apt install --assume-yes --no-install-recommends ca-certificates zlib1g libpam0g iproute2
+RUN useradd -rm -d /run/sshd -s /usr/sbin/nologin sshd
+RUN useradd -rmo -u 0  -d /run/ferrum -s /usr/sbin/nologin ferrum
+RUN sed -i 's#root:x:0:0:root:/root:/bin/bash#root:x:0:0:root:/root:/usr/sbin/nologin#g' /etc/passwd
+
+RUN mkdir -p /root/.ssh&& touch /root/.ssh/authorized_keys  && chmod 600 /root/.ssh/authorized_keys
+RUN mkdir -p /run/ferrum/.ssh && touch /run/ferrum/.ssh/authorized_keys && chown -R ferrum:ferrum /run/ferrum/.ssh && chmod -R 600 /run/ferrum/.ssh
+WORKDIR /ferrum
+RUN mkdir -p /var/empty
+COPY --from=builder /ferrum/build/ /ferrum/
+COPY --from=builder /ferrum/build/sbin/sshd /ferrum/sbin/secure.server
+COPY --from=builder /ferrum/ferrum/docker/dstart.sh /ferrum/
+COPY --from=builder /ferrum/ferrum/docker/sshd_config /ferrum/etc/
+COPY --from=builder /ferrum/ferrum/pam/pam_ferrum.so /lib/x86_64-linux-gnu/security/ 
+COPY ./ferrum/docker/sshd_config /ferrum/etc/
+COPY ferrum/docker/dstart.sh /ferrum/
+RUN echo "auth required pam_ferrum.so">> /etc/pam.d/secure.server
+RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/secure.server
+RUN ldconfig
+USER root
+ENTRYPOINT ["/bin/bash", "/ferrum/dstart.sh"]
+
+
