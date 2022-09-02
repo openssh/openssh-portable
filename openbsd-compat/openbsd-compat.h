@@ -218,17 +218,16 @@ int writev(int, struct iovec *, int);
 int getpeereid(int , uid_t *, gid_t *);
 #endif
 
-#ifdef HAVE_ARC4RANDOM
-# ifndef HAVE_ARC4RANDOM_STIR
-#  define arc4random_stir()
-# endif
-#else
-unsigned int arc4random(void);
-void arc4random_stir(void);
+#ifndef HAVE_ARC4RANDOM
+uint32_t arc4random(void);
 #endif /* !HAVE_ARC4RANDOM */
 
 #ifndef HAVE_ARC4RANDOM_BUF
 void arc4random_buf(void *, size_t);
+#endif
+
+#ifndef HAVE_ARC4RANDOM_STIR
+# define arc4random_stir()
 #endif
 
 #ifndef HAVE_ARC4RANDOM_UNIFORM
