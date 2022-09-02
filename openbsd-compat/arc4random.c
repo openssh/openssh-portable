@@ -52,8 +52,6 @@
 # define getentropy(x, y) (_ssh_compat_getentropy((x), (y)))
 #endif
 
-#define DEF_WEAK(x)
-
 #include "log.h"
 
 #define KEYSTREAM_ONLY
