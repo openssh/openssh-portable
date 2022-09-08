@@ -536,11 +536,14 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 		 * so we repoint the define to the multithreaded evp. To start the threads we
 		 * then force a rekey
 		 */
+		/* We now explicitly call the mt cipher in cipher.c so we don't need
+		 * the cipher_reset_multithreaded() anymore. We just need to
+		 * force a rekey -cjr 09/08/2022 */
 		const void *cc = ssh_packet_get_send_context(ssh);
 		/* only do this for the ctr cipher. otherwise gcm mode breaks. */
 		if (strstr(cipher_ctx_name(cc), "ctr")) {
 			debug("Single to Multithread CTR cipher swap - client request");
-			cipher_reset_multithreaded();
+			/* cipher_reset_multithreaded(); */
 			packet_request_rekeying();
 		}
 	}

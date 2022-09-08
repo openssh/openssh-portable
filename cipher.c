@@ -52,6 +52,13 @@
 
 #include "openbsd-compat/openssl-compat.h"
 
+/* for provider functions */
+#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#include <openssl/err.h>
+#include <openssl/params.h>
+#include <openssl/provider.h>
+#endif
+
 #ifndef WITH_OPENSSL
 #define EVP_CIPHER_CTX void
 #endif
@@ -97,7 +104,7 @@ static struct sshcipher ciphers[] = {
 	{ "aes256-cbc",		16, 32, 0, 0, CFLAG_CBC, EVP_aes_256_cbc },
 	{ "aes128-ctr",		16, 16, 0, 0, 0, EVP_aes_128_ctr },
 	{ "aes192-ctr",		16, 24, 0, 0, 0, EVP_aes_192_ctr },
-	{ "aes256-ctr",		16, 32, 0, 0, 0, EVP_aes_256_ctr }, 
+	{ "aes256-ctr",		16, 32, 0, 0, 0, EVP_aes_256_ctr },
 
 # ifdef OPENSSL_HAVE_EVPGCM
 	{ "aes128-gcm@openssh.com",
@@ -170,23 +177,26 @@ cipher_ctx_name(const struct sshcipher_ctx *cc)
  * we set the initial pre-auth aes-ctr cipher to the default OpenSSH cipher
  * post auth we set them to the new evp as defined by cipher-ctr-mt
  */
-#ifdef WITH_OPENSSL
-void
-cipher_reset_multithreaded(void)
-{
-	/* OpenSSL 3.0 introduced a new way of interacting with the EVP
-	 * that makes our method of doing a cipher switch simply not work.
-	 * We believe that rewriting it as a provider will restore this 
-	 * functionality to OSSL 3 but until then we disable it for OSSL 3 
-	 * TODO: Write a provider or figure out another fix. 
-	 */
-#if OPENSSL_VERSION_NUMBER <= 0x10100000UL
-	cipher_by_name("aes128-ctr")->evptype = evp_aes_ctr_mt;
-	cipher_by_name("aes192-ctr")->evptype = evp_aes_ctr_mt;
-	cipher_by_name("aes256-ctr")->evptype = evp_aes_ctr_mt;
-#endif
-}
-#endif /*WITH_OPENSSL*/
+/* we don't need this anymore for the cipher swap. We can just explicitly 
+ * give the EVPInit this type -cjr 09/08/2022 
+ * function commented out but not deleted to make sure we have a record of it */
+/* #ifdef WITH_OPENSSL */
+/* void */
+/* cipher_reset_multithreaded(void) */
+/* { */
+/* 	/\* OpenSSL 3.0 introduced a new way of interacting with the EVP */
+/* 	 * that makes our method of doing a cipher switch simply not work. */
+/* 	 * We believe that rewriting it as a provider will restore this  */
+/* 	 * functionality to OSSL 3 but until then we disable it for OSSL 3  */
+/* 	 * TODO: Write a provider or figure out another fix.  */
+/* 	 *\/ */
+/* #if OPENSSL_VERSION_NUMBER <= 0x10100000UL */
+/* 	cipher_by_name("aes128-ctr")->evptype = evp_aes_ctr_mt; */
+/* 	cipher_by_name("aes192-ctr")->evptype = evp_aes_ctr_mt; */
+/* 	cipher_by_name("aes256-ctr")->evptype = evp_aes_ctr_mt; */
+/* #endif */
+/* } */
+/* #endif /\*WITH_OPENSSL*\/ */
 
 u_int
 cipher_blocksize(const struct sshcipher *c)
@@ -284,7 +294,7 @@ cipher_warning_message(const struct sshcipher_ctx *cc)
 int
 cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
     const u_char *key, u_int keylen, const u_char *iv, u_int ivlen,
-    int do_encrypt)
+	    int do_encrypt, int post_auth)
 {
 	struct sshcipher_ctx *cc = NULL;
 	int ret = SSH_ERR_INTERNAL_ERROR;
@@ -331,6 +341,47 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
+	/* the following block is for AES-CTR-MT cipher switching 
+	 * if we are using the ctr cipher and we are post-auth then
+	 * start the threaded cipher. If OSSL supports providers (OSSL 3.0+) then
+	 * we load our hpnssh provider. If it doesn't (OSSL < 1.1) then we use the
+	 * _meth_new process found in cipher-ctr-mt.c */
+	if (strstr(cc->cipher->name, "ctr") && post_auth) {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+		/* this version of openssl uses providers */
+		OSSL_LIB_CTX *aes_lib = NULL; /* probably not needed */
+		OSSL_PROVIDER *aes_mt_provider = NULL;
+
+		if (OSSL_PROVIDER_add_builtin(aes_lib, "hpnssh",
+					      OSSL_provider_init) != 1) {
+			fatal("Failed to add HPNSSH provider for AES-CTR");
+		}
+		aes_mt_provider = OSSL_PROVIDER_load(aes_lib, "hpnssh");
+
+		if (aes_mt_provider != NULL) {
+			/* use the previous key length to determine which cipher to load */
+			if (cipher->key_len == 32)
+				type = EVP_CIPHER_fetch(aes_lib, "aes_ctr_mt_256", NULL);
+			if (cipher->key_len == 24)
+				type = EVP_CIPHER_fetch(aes_lib, "aes_ctr_mt_192", NULL);
+			if (cipher->key_len == 16)
+				type = EVP_CIPHER_fetch(aes_lib, "aes_ctr_mt_128", NULL);
+			if (type == NULL) {
+				ERR_print_errors_fp(stderr);
+				fatal("FAILED TO LOAD aes_ctr_mt");
+			} else {
+				debug("LOADED aes_ctr_mt");
+			}
+		}
+		else {
+			ERR_print_errors_fp(stderr);
+			fatal("Failed to load HPN-SSH AES-CTR-MT provider.");
+		}
+#else
+		/* this version doesn't */
+		type = (*evp_aes_ctr_mt)(); /* see cipher-ctr-mt.c */
+#endif /* OPENSSL_VERSION_NUMBER */
+	} /* if (strstr()) */
 	if (EVP_CipherInit(cc->evp, type, NULL, (u_char *)iv,
 	    (do_encrypt == CIPHER_ENCRYPT)) == 0) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;

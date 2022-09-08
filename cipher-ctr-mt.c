@@ -24,6 +24,7 @@
 #include "includes.h"
 
 #if defined(WITH_OPENSSL)
+#if OPENSSL_VERSION_NUMBER < 0x30000000UL
 #include <sys/types.h>
 
 #include <stdarg.h>
@@ -663,7 +664,7 @@ evp_aes_ctr_mt(void)
 #  endif /*SSH_OLD_EVP*/
 	return (aes_ctr);
 # else /*earlier versions of openssl*/
-	static EVP_CIPHER aes_ctr;
+	static EVP_CIPHER *aes_ctr;
 	memset(&aes_ctr, 0, sizeof(EVP_CIPHER));
 	aes_ctr.nid = NID_undef;
 	aes_ctr.block_size = AES_BLOCK_SIZE;
@@ -677,7 +678,8 @@ evp_aes_ctr_mt(void)
 		EVP_CIPH_ALWAYS_CALL_INIT | EVP_CIPH_CUSTOM_IV;
 #  endif /*SSH_OLD_EVP*/
         return &aes_ctr;
-# endif /*OPENSSH_VERSION_NUMBER*/
+# endif /*OPENSSH_VERSION_NUMBER >= Ox10100000UL */
 }
 
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000UL */
 #endif /* defined(WITH_OPENSSL) */

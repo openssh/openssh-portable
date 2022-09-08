@@ -1,16 +1,16 @@
-# HPNSSH: Based on Portable OpenSSH Version 
+# HPNSSH: Based on Portable OpenSSH
 
-Starting with version HPN17v0 there will be significant changes to the naming convention used for executables and installation locations. The last version that does not include these changes is HPN16v1 corresponding to the HPN-8_8_P1 tag on the master branch. 
+Starting with version HPN17v0 there will be significant changes to the naming convention used for executables and installation locations. The last version that does not include these changes is HPN16v1 corresponding to the HPN-8_8_P1 tag on the master branch.
 
-HPNSSH is a variant of OpenSSH. It a complete implementation of the SSH protocol (version 2) for secure remote login, command execution and file transfer. It includes a client ``hpnssh`` and server ``hpnsshd``, file transfer utilities ``hpnscp`` and ``hpnsftp`` as well as tools for key generation (``hpnssh-keygen``), run-time key storage (``hpnssh-agent``) and a number of supporting programs. It includes numerous performance and functionality enhancements focused on high performance networks and computing envrironments. Complete information can be found in the HPN-README file. 
+HPNSSH is a variant of OpenSSH. It a complete implementation of the SSH protocol (version 2) for secure remote login, command execution and file transfer. It includes a client ``hpnssh`` and server ``hpnsshd``, file transfer utilities ``hpnscp`` and ``hpnsftp`` as well as tools for key generation (``hpnssh-keygen``), run-time key storage (``hpnssh-agent``) and a number of supporting programs. It includes numerous performance and functionality enhancements focused on high performance networks and computing envrironments. Complete information can be found in the HPN-README file.
 
 It is fully compatible with all compliant implementations of the SSH protocol and OpenSSH in particular.
 
-This version of HPNSSH reprsen a departure in the naming of executables and installation locations. This means that all of the executabels are now prefixed with ``hpn``. So ``ssh`` becomes ``hpnssh`` and ``scp`` is now ``hpnscp``. Configuation files and host keys can no be found in ``/etc/hpnssh``. By default ``hpnsshd`` runs on port 2222 but this is configurable. This change was made in order to prevent installations of hpnssh, particularly from package distributions, from interfering with default installations of OpenSSH. HPNSSH is backwards compatible with all versions of OpenSSH including configuration files, keys, and run time options. 
+This version of HPNSSH is significant departure in terms of naming executables and installation locations. Specifically, all executables are now prefixed with ``hpn``. So ``ssh`` becomes ``hpnssh`` and ``scp`` is now ``hpnscp``. Configuation files and host keys can now be found in ``/etc/hpnssh``. By default ``hpnsshd`` now runs on port 2222 but this is configurable. This change was made in order to prevent installations of hpnssh, particularly from package distributions, from interfering with default installations of OpenSSH. HPNSSH is backwards compatible with all versions of OpenSSH including configuration files, keys, and run time options. Additionally, the client will, by default attempt to connect to port 2222 but will automatically fall back to port 22. This is also user configurable.
 
 HPNSSH is based on OpenSSH portable. This is a port of OpenBSD's [OpenSSH](https://openssh.com) to most Unix-like operating systems, including Linux, OS X and Cygwin. Portable OpenSSH polyfills OpenBSD APIs that are not available elsewhere, adds sshd sandboxing for more operating systems and includes support for OS-native authentication and auditing (e.g. using PAM).
 
-This document will be changing over time to reflect new changes and features. This document is built off of the OpenSSH README.md 
+This document will be changing over time to reflect new changes and features. This document is built off of the OpenSSH README.md
 
 ## Documentation
 
