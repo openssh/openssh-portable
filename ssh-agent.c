@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.288 2022/04/29 03:13:32 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.289 2022/09/09 03:31:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -837,10 +837,8 @@ process_sign_request2(SocketEntry *e)
 		debug_fr(r, "sshkey_sign");
 		if (pin == NULL && !retried && sshkey_is_sk(id->key) &&
 		    r == SSH_ERR_KEY_WRONG_PASSPHRASE) {
-			if (notifier) {
-				notify_complete(notifier, NULL);
-				notifier = NULL;
-			}
+			notify_complete(notifier, NULL);
+			notifier = NULL;
 			/* XXX include sig_dest */
 			xasprintf(&prompt, "Enter PIN%sfor %s key %s: ",
 			    (id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD) ?
