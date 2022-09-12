@@ -18,11 +18,11 @@ jobs:
         # Then we include any extra configs we want to test for specific VMs.
         # Valgrind slows things down quite a bit, so start them first.
         include:
-          - { os: ubuntu-20.04, configs: valgrind-1 }
-          - { os: ubuntu-20.04, configs: valgrind-2 }
-          - { os: ubuntu-20.04, configs: valgrind-3 }
-          - { os: ubuntu-20.04, configs: valgrind-4 }
-          - { os: ubuntu-20.04, configs: valgrind-unit }
+#          - { os: ubuntu-20.04, configs: valgrind-1 }
+#          - { os: ubuntu-20.04, configs: valgrind-2 }
+#          - { os: ubuntu-20.04, configs: valgrind-3 }
+#          - { os: ubuntu-20.04, configs: valgrind-4 }
+#          - { os: ubuntu-20.04, configs: valgrind-unit }
           - { os: ubuntu-20.04, configs: c89 }
           - { os: ubuntu-20.04, configs: clang-6.0 }
           - { os: ubuntu-20.04, configs: clang-8 }
@@ -88,10 +88,10 @@ jobs:
       run: make clean
     - name: make
       run: make -j2
-    - name: make tests
-      run: ./.github/run_test.sh ${{ matrix.configs }}
-      env:
-        TEST_SSH_UNSAFE_PERMISSIONS: 1
+#    - name: make tests
+#      run: ./.github/run_test.sh ${{ matrix.configs }}
+#      env:
+#        TEST_SSH_UNSAFE_PERMISSIONS: 1
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@v2
