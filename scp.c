@@ -131,7 +131,9 @@
 #include "misc.h"
 #include "progressmeter.h"
 #include "utf8.h"
+#ifdef WITH_OPENSSL 
 #include <openssl/evp.h>
+#endif
 #include "sftp.h"
 
 #include "sftp-common.h"
@@ -194,6 +196,11 @@ int resume_flag = 0; /* 0 is off, 1 is on */
 /* we want the host name for debugging purposes */
 char hostname[HOST_NAME_MAX + 1];
 
+/* defines for the resume function. Need them even if not supported */
+#define HASH_LEN 128               /*40 sha1, 64 blake2s256 128 blake2b512*/
+#define BUF_AND_HASH HASH_LEN + 64 /* length of the hash and other data to get size of buffer */
+#define HASH_BUFLEN 8192	   /* 8192 seems to be a good balance between freads 
+				    * and the digest func*/
 static void
 killchild(int signo)
 {
@@ -590,10 +597,11 @@ main(int argc, char **argv)
 			addargs(&remote_remote_args, "-q");
 			showprogress = 0;
 			break;
+#ifdef WITH_OPENSSL			
 		case 'Z':
 			resume_flag = 1;
 			break;
-
+#endif
 		/* Server options. */
 		case 'd':
 			targetshouldbedirectory = 1;
@@ -1295,12 +1303,9 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
  * fragments match. There may be a more efficient process for the hashing 
  * TODO: I'd like to XXHash for the hashing but that requires that both
  * ends have xxhash installed and then dealing with fallbacks */
+#ifdef WITH_OPENSSL
 void calculate_hash(char *filename, char *output, off_t length)
 {
-#define HASH_LEN 128               /*40 sha1, 64 blake2s256 128 blake2b512*/
-#define BUF_AND_HASH HASH_LEN + 64 /* length of the hash and other data to get size of buffer */
-#define HASH_BUFLEN 8192	   /* 8192 seems to be a good balance between freads 
-				    * and the digest func*/
 	int n, md_len;
 	EVP_MD_CTX *c;
 	const EVP_MD *md;
@@ -1349,6 +1354,12 @@ void calculate_hash(char *filename, char *output, off_t length)
 #endif
 	fclose(file_ptr);
 }
+#else
+void calculate_hash(char *filename, char *output, off_t length)
+{
+  /* empty function for builds without openssl */
+}
+#endif /* WITH_OPENSSL */
 
 #define TYPE_OVERFLOW(type, val) \
 	((sizeof(type) == 4 && (val) > INT32_MAX) || \
@@ -2606,12 +2617,22 @@ response(void)
 void
 usage(void)
 {
+#ifdef WITH_OPENSSL
 	(void) fprintf(stderr,
 	    "usage: hpnscp [-346ABCOpqRrsTvZ] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
 	    "              [-i identity_file] [-J destination] [-l limit]\n"
 	    "              [-o ssh_option] [-P port] [-z filepath of remote scp]" 
 	    "              [-S program] source ... target\n");
 	exit(1);
+#else
+	(void) fprintf(stderr,
+	    "usage: hpnscp [-346ABCOpqRrsTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
+	    "              [-i identity_file] [-J destination] [-l limit]\n"
+	    "              [-o ssh_option] [-P port]" 
+	    "              [-S program] source ... target\n");
+	exit(1);
+#endif
+	
 }
 
 void
