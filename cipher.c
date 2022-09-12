@@ -61,10 +61,10 @@
 
 #ifndef WITH_OPENSSL
 #define EVP_CIPHER_CTX void
-#endif
-
+#else 
 /* for multi-threaded aes-ctr cipher */
 extern const EVP_CIPHER *evp_aes_ctr_mt(void);
+#endif
 
 struct sshcipher_ctx {
 	int	plaintext;
