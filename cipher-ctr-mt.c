@@ -649,7 +649,11 @@ ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 const EVP_CIPHER *
 evp_aes_ctr_mt(void)
 {
-# if OPENSSL_VERSION_NUMBER >= 0x10100000UL
+  /* libreSSL doesn't support meth_new functions
+   * and is reported as OSSL V number 2. So we
+   * explicitly check that. 
+   */
+# if OPENSSL_VERSION_NUMBER >= 0x10100000UL && OPENSSL_VERSION_NUMBER != 0x20000000
 	static EVP_CIPHER *aes_ctr;
 	aes_ctr = EVP_CIPHER_meth_new(NID_undef, 16/*block*/, 16/*key*/);
 	EVP_CIPHER_meth_set_iv_length(aes_ctr, AES_BLOCK_SIZE);
@@ -664,7 +668,7 @@ evp_aes_ctr_mt(void)
 #  endif /*SSH_OLD_EVP*/
 	return (aes_ctr);
 # else /*earlier versions of openssl*/
-	static EVP_CIPHER *aes_ctr;
+	static EVP_CIPHER aes_ctr;
 	memset(&aes_ctr, 0, sizeof(EVP_CIPHER));
 	aes_ctr.nid = NID_undef;
 	aes_ctr.block_size = AES_BLOCK_SIZE;
@@ -678,7 +682,7 @@ evp_aes_ctr_mt(void)
 		EVP_CIPH_ALWAYS_CALL_INIT | EVP_CIPH_CUSTOM_IV;
 #  endif /*SSH_OLD_EVP*/
         return &aes_ctr;
-# endif /*OPENSSH_VERSION_NUMBER >= Ox10100000UL */
+# endif /*OPENSSH_VERSION_NUMBER >= Ox10100000UL || ... */
 }
 
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000UL */
