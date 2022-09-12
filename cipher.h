@@ -50,8 +50,6 @@
 struct sshcipher;
 struct sshcipher_ctx;
 
-void ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx); // defined in cipher-ctr-mt.c
-void ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx);
 struct sshcipher *cipher_by_name(const char *);
 const char *cipher_warning_message(const struct sshcipher_ctx *);
 int	 ciphers_valid(const char *);
