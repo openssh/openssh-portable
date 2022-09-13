@@ -28,6 +28,7 @@
 /* includes */
 #include "includes.h" /* needed to get version number */
 #include <sys/types.h>
+#include <pthread.h>
 #include "cipher-aesctr.h"
 
 #ifndef USE_BUILTIN_RIJNDAEL

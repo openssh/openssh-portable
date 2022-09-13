@@ -668,6 +668,11 @@ evp_aes_ctr_mt(void)
 #  endif /*SSH_OLD_EVP*/
 	return (aes_ctr);
 # else /*earlier versions of openssl*/
+	/* starting with libressl 3.5 I can't seem to declare 
+	 * the aes_ctr struct as an actual struct. Maybe they
+	 * have made the structure opaque? I think that's 
+	 * what has happened but they don't support _meth_new
+	 * so I might just drop libressl support cjr - 9/13/2022 */
 	static EVP_CIPHER aes_ctr;
 	memset(&aes_ctr, 0, sizeof(EVP_CIPHER));
 	aes_ctr.nid = NID_undef;
