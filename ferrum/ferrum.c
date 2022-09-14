@@ -157,6 +157,10 @@ int32_t ferrum_create(ferrum_t **ferrum) {
     snprintf(tmp->login.url, FERRUM_LOGIN_URL_LEN - 1, "%s",
              login_url ? login_url : "http://localhost/login");
 
+    char *host_id = getenv("HOST_ID");
+    snprintf(tmp->host.id, FERRUM_HOST_ID_LEN - 1, "%s",
+             host_id ? host_id : "000000000000");
+
     *ferrum = tmp;
     return FERRUM_SUCCESS;
 }

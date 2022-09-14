@@ -51,7 +51,7 @@ for client  connection
 
 
 ## ssh server run
-> REDIS_HOST=192.168.88.253 LOGIN_URL=http://localhost:4200/login $(pwd)/sshd -D  -f ../etc/sshd_config
+> REDIS_HOST=192.168.88.10 HOST_ID=123456789ABC LOGIN_URL=http://localhost:4200/login $(pwd)/sshd -D  -f ../etc/sshd_config
 
 ## ssh client run
 > ./ssh -c none -N -F ../etc/ssh_config -w any  sshd@192.168.88.243 -p3333
