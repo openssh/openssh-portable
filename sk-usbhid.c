@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.44 2022/09/02 04:20:02 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.45 2022/09/14 00:14:37 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -847,7 +847,6 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	struct sk_enroll_response *response = NULL;
 	size_t len;
 	int credprot;
-	int internal_uv;
 	int cose_alg;
 	int ret = SSH_SK_ERR_GENERAL;
 	int r;
@@ -980,13 +979,6 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 		goto out;
 	}
 	response->flags = flags;
-	if ((flags & SSH_SK_USER_VERIFICATION_REQD)) {
-		if (check_sk_options(sk->dev, "uv", &internal_uv) == 0 &&
-		    internal_uv != -1) {
-			/* user verification handled by token */
-			response->flags &= ~SSH_SK_USER_VERIFICATION_REQD;
-		}
-	}
 	if (pack_public_key(alg, cred, response) != 0) {
 		skdebug(__func__, "pack_public_key failed");
 		goto out;
