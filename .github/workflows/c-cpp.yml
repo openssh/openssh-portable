@@ -29,16 +29,16 @@ jobs:
           - { os: ubuntu-20.04, configs: clang-9 }
           - { os: ubuntu-20.04, configs: clang-10 }
           - { os: ubuntu-20.04, configs: clang-11 }
-          - { os: ubuntu-20.04, configs: clang-12-Werror }
+#          - { os: ubuntu-20.04, configs: clang-12-Werror }
           - { os: ubuntu-20.04, configs: gcc-7 }
           - { os: ubuntu-20.04, configs: gcc-8 }
           - { os: ubuntu-20.04, configs: gcc-10 }
-          - { os: ubuntu-20.04, configs: gcc-11-Werror }
+#          - { os: ubuntu-20.04, configs: gcc-11-Werror }
           - { os: ubuntu-20.04, configs: pam }
           - { os: ubuntu-20.04, configs: kitchensink }
           - { os: ubuntu-20.04, configs: hardenedmalloc }
           - { os: ubuntu-20.04, configs: tcmalloc }
-          - { os: ubuntu-20.04, configs: musl }
+#          - { os: ubuntu-20.04, configs: musl }
           - { os: ubuntu-latest, configs: libressl-master }
           - { os: ubuntu-latest, configs: libressl-2.2.9 }
           - { os: ubuntu-latest, configs: libressl-2.8.3 }
@@ -46,7 +46,7 @@ jobs:
           - { os: ubuntu-latest, configs: libressl-3.2.6 }
           - { os: ubuntu-latest, configs: libressl-3.3.4 }
           - { os: ubuntu-latest, configs: libressl-3.4.1 }
-          - { os: ubuntu-latest, configs: libressl-3.5.0 }
+#          - { os: ubuntu-latest, configs: libressl-3.5.0 }
           - { os: ubuntu-latest, configs: openssl-master }
           - { os: ubuntu-latest, configs: openssl-noec }
           - { os: ubuntu-latest, configs: openssl-1.0.1 }
@@ -88,10 +88,10 @@ jobs:
       run: make clean
     - name: make
       run: make -j2
-#    - name: make tests
-#      run: ./.github/run_test.sh ${{ matrix.configs }}
-#      env:
-#        TEST_SSH_UNSAFE_PERMISSIONS: 1
+    - name: make tests
+      run: ./.github/run_test.sh ${{ matrix.configs }}
+      env:
+        TEST_SSH_UNSAFE_PERMISSIONS: 1
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@v2
