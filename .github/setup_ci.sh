@@ -14,7 +14,6 @@ TARGETS=$@
 PACKAGES=""
 INSTALL_FIDO_PPA="no"
 export DEBIAN_FRONTEND=noninteractive
-sudo useradd -s /usr/sbin/nologin -d /run/hpnsshd -g 65534 hpnsshd
 
 #echo "Setting up for '$TARGETS'"
 

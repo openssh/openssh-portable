@@ -17,5 +17,5 @@ if [ "x$LDFLAGS" != "x" ]; then
 	printf "LDFLAGS='$LDFLAGS' "
 fi
 
-echo ./configure ${CONFIGFLAGS}
-./configure ${CONFIGFLAGS}
+echo ./configure ${CONFIGFLAGS} --with-privsep-user=sshd
+./configure ${CONFIGFLAGS} --with-privsep-user=sshd
