@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.289 2022/09/09 03:31:42 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.290 2022/09/14 00:02:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -813,16 +813,7 @@ process_sign_request2(SocketEntry *e)
 			/* error already logged */
 			goto send;
 		}
-		if ((id->key->sk_flags & SSH_SK_USER_VERIFICATION_REQD)) {
-			/* XXX include sig_dest */
-			xasprintf(&prompt, "Enter PIN%sfor %s key %s: ",
-			    (id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD) ?
-			    " and confirm user presence " : " ",
-			    sshkey_type(id->key), fp);
-			pin = read_passphrase(prompt, RP_USE_ASKPASS);
-			free(prompt);
-			prompt = NULL;
-		} else if ((id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
+		if (id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD) {
 			notifier = notify_start(0,
 			    "Confirm user presence for key %s %s%s%s",
 			    sshkey_type(id->key), fp,
