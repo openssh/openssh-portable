@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.218 2022/06/28 06:09:14 jmc Exp $ */
+/* $OpenBSD: sftp.c,v 1.219 2022/09/16 03:13:34 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2143,7 +2143,7 @@ complete(EditLine *el, int ch)
 		if (carg > 1 && line[cursor-1] != ' ')
 			filematch = argv[carg - 1];
 
-		if (remote != 0 &&
+		if ((remote == REMOTE || remote == LOCAL) &&
 		    complete_match(el, complete_ctx->conn,
 		    *complete_ctx->remote_pathp, filematch,
 		    remote, carg == argc, quote, terminated) != 0)
