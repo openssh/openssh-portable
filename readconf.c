@@ -175,7 +175,7 @@ typedef enum {
 	oFingerprintHash, oUpdateHostkeys, oHostbasedAcceptedAlgorithms,
 	oPubkeyAcceptedAlgorithms, oCASignatureAlgorithms, oProxyJump,
 	oSecurityKeyProvider, oKnownHostsCommand,
-	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
+	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported, oUseMPTCP
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -320,6 +320,7 @@ static struct {
 	{ "proxyjump", oProxyJump },
 	{ "securitykeyprovider", oSecurityKeyProvider },
 	{ "knownhostscommand", oKnownHostsCommand },
+	{ "usemptcp", oUseMPTCP},
 
 	{ NULL, oBadOption }
 };
@@ -2176,6 +2177,10 @@ parse_pubkey_algos:
 			*charptr = xstrdup(arg);
 		break;
 
+	case oUseMPTCP:
+		intptr = &options->use_mptcp;
+		goto parse_flag;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -2423,6 +2428,7 @@ initialize_options(Options * options)
 	options->hostbased_accepted_algos = NULL;
 	options->pubkey_accepted_algos = NULL;
 	options->known_hosts_command = NULL;
+	options->use_mptcp = -1;
 }
 
 /*
@@ -2612,6 +2618,8 @@ fill_default_options(Options * options)
 		options->canonicalize_hostname = SSH_CANONICALISE_NO;
 	if (options->fingerprint_hash == -1)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
+	if (options->use_mptcp == -1)
+		options->use_mptcp = 0;
 #ifdef ENABLE_SK_INTERNAL
 	if (options->sk_provider == NULL)
 		options->sk_provider = xstrdup("internal");
@@ -3300,6 +3308,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oVerifyHostKeyDNS, o->verify_host_key_dns);
 	dump_cfg_fmtint(oVisualHostKey, o->visual_host_key);
 	dump_cfg_fmtint(oUpdateHostkeys, o->update_hostkeys);
+	dump_cfg_fmtint(oUseMPTCP, o->use_mptcp);
 
 	/* Integer options */
 	dump_cfg_int(oCanonicalizeMaxDots, o->canonicalize_max_dots);

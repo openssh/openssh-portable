@@ -1047,7 +1047,7 @@ listen_on_addrs(struct listenaddr *la)
 		}
 		/* Create socket for listening. */
 		listen_sock = socket(ai->ai_family, ai->ai_socktype,
-		    ai->ai_protocol);
+			options.use_mptcp ? IPPROTO_MPTCP : ai->ai_protocol);
 		if (listen_sock == -1) {
 			/* kernel may not support ipv6 */
 			verbose("socket: %.100s", strerror(errno));

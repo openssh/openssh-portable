@@ -195,6 +195,7 @@ initialize_server_options(ServerOptions *options)
 	options->fingerprint_hash = -1;
 	options->disable_forwarding = -1;
 	options->expose_userauth_info = -1;
+	options->use_mptcp = -1;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -441,6 +442,8 @@ fill_default_server_options(ServerOptions *options)
 		options->expose_userauth_info = 0;
 	if (options->sk_provider == NULL)
 		options->sk_provider = xstrdup("internal");
+	if (options->use_mptcp == -1)
+		options->use_mptcp = 0;
 
 	assemble_algorithms(options);
 
@@ -517,7 +520,7 @@ typedef enum {
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
-	sDeprecated, sIgnore, sUnsupported
+	sDeprecated, sIgnore, sUnsupported, sUseMPTCP
 } ServerOpCodes;
 
 #define SSHCFG_GLOBAL		0x01	/* allowed in main section of config */
@@ -676,6 +679,7 @@ static struct {
 	{ "rdomain", sRDomain, SSHCFG_ALL },
 	{ "casignaturealgorithms", sCASignatureAlgorithms, SSHCFG_ALL },
 	{ "securitykeyprovider", sSecurityKeyProvider, SSHCFG_GLOBAL },
+	{ "usemptcp", sUseMPTCP, SSHCFG_GLOBAL},
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2438,6 +2442,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			*charptr = xstrdup(arg);
 		break;
 
+	case sUseMPTCP:
+		intptr = &options->use_mptcp;
+		goto parse_flag;
+
 	case sDeprecated:
 	case sIgnore:
 	case sUnsupported:
@@ -2920,6 +2928,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(sFingerprintHash, o->fingerprint_hash);
 	dump_cfg_fmtint(sExposeAuthInfo, o->expose_userauth_info);
+	dump_cfg_fmtint(sUseMPTCP, o->use_mptcp);
 
 	/* string arguments */
 	dump_cfg_string(sPidFile, o->pid_file);
