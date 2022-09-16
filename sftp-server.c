@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.141 2022/08/12 05:20:28 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.142 2022/09/16 06:55:37 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1701,7 +1701,7 @@ process_extended_home_directory(u_int32_t id)
 
 	debug3("request %u: home-directory \"%s\"", id, username);
 	if ((user_pw = getpwnam(username)) == NULL) {
-		send_status(id, errno_to_portable(errno));
+		send_status(id, SSH2_FX_FAILURE);
 		goto out;
 	}
 
