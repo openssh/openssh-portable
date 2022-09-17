@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.590 2022/07/01 05:08:23 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.591 2022/09/17 10:34:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1869,6 +1869,13 @@ main(int ac, char **av)
 			if ((r = sshkey_from_private(key, &pubkey)) != 0)
 				fatal_r(r, "Could not demote key: \"%s\"",
 				    options.host_key_files[i]);
+		}
+		if (pubkey != NULL && (r = sshkey_check_rsa_length(pubkey,
+		    options.required_rsa_size)) != 0) {
+			error_fr(r, "Host key %s", options.host_key_files[i]);
+			sshkey_free(pubkey);
+			sshkey_free(key);
+			continue;
 		}
 		sensitive_data.host_keys[i] = key;
 		sensitive_data.host_pubkeys[i] = pubkey;
