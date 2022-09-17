@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.360 2022/08/19 06:07:47 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.361 2022/09/17 10:33:18 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -96,6 +96,11 @@ static const struct ssh_conn_info *xxx_conn_info;
 static int
 verify_host_key_callback(struct sshkey *hostkey, struct ssh *ssh)
 {
+	int r;
+
+	if ((r = sshkey_check_rsa_length(hostkey,
+	    options.required_rsa_size)) != 0)
+		fatal_r(r, "Bad server host key");
 	if (verify_host_key(xxx_host, xxx_hostaddr, hostkey,
 	    xxx_conn_info) == -1)
 		fatal("Host key verification failed.");
@@ -1606,6 +1611,13 @@ load_identity_file(Identity *id)
 			private = NULL;
 			quit = 1;
 		}
+		if (!quit && (r = sshkey_check_rsa_length(private,
+		    options.required_rsa_size)) != 0) {
+			debug_fr(r, "Skipping key %s", id->filename);
+			sshkey_free(private);
+			private = NULL;
+			quit = 1;
+		}
 		if (!quit && private != NULL && id->agent_fd == -1 &&
 		    !(id->key && id->isprivate))
 			maybe_add_key_to_agent(id->filename, private, comment,
@@ -1752,6 +1764,12 @@ pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 	/* list of keys supported by the agent */
 	if ((r = get_agent_identities(ssh, &agent_fd, &idlist)) == 0) {
 		for (j = 0; j < idlist->nkeys; j++) {
+			if ((r = sshkey_check_rsa_length(idlist->keys[j],
+			    options.required_rsa_size)) != 0) {
+				debug_fr(r, "ignoring %s agent key",
+				    sshkey_ssh_name(idlist->keys[j]));
+				continue;
+			}
 			found = 0;
 			TAILQ_FOREACH(id, &files, next) {
 				/*
