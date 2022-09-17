@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.291 2022/09/14 00:13:13 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.292 2022/09/17 10:11:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -808,7 +808,8 @@ process_sign_request2(SocketEntry *e)
 		goto send;
 	}
 	if (sshkey_is_sk(id->key)) {
-		if (strncmp(id->key->sk_application, "ssh:", 4) != 0 &&
+		if (restrict_websafe &&
+		    strncmp(id->key->sk_application, "ssh:", 4) != 0 &&
 		    !check_websafe_message_contents(key, data)) {
 			/* error already logged */
 			goto send;
