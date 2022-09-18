@@ -7,12 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/random.h>
+#include <errno.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
+#include <sys/random.h>
 #include "../external/libs/include/hiredis/hiredis.h"
 #include "../log.h"
 #include "../ssherr.h"
@@ -146,5 +147,8 @@ int32_t ferrum_util_addr_to_ferrum_addr(const struct sockaddr *addr,
 
 // gets current time UTC in micro seconds
 int64_t ferrum_util_micro_time();
+
+// fill with random characters
+void ferrum_util_fill_random(char *dest,size_t len);
 
 #endif

@@ -11,7 +11,8 @@
     "files.associations": {
         "servconf.h": "c",
         "sshbuf.h": "c",
-        "hiredis.h": "c"
+        "hiredis.h": "c",
+        "cerrno": "c"
     },
     "redis-console.host": "localhost",
     "redis-console.port": 6379,

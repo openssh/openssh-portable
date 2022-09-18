@@ -145,6 +145,14 @@ static void test_ferrum_util_resolve(void **start){
 
 }
 
+static void test_ferrum_util_fill_random(void **start){
+    unused(start);
+    char test[16]={0};
+    ferrum_util_fill_random(test,15);
+    assert_true(strlen(test));
+    
+}
+
 
 
 int32_t test_ferrum(void)
@@ -157,6 +165,7 @@ int32_t test_ferrum(void)
         cmocka_unit_test(test_ferrum_util_addr_to_ipport_string),
         cmocka_unit_test(test_ferrum_util_addr_to_ferrum_addr),
         cmocka_unit_test(test_ferrum_util_resolve),
+        cmocka_unit_test(ferrum_util_fill_random),
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

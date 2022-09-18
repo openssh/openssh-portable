@@ -1,8 +1,6 @@
 #include "ferrum.h"
 
-static int32_t srand_initted = 0;
-static const char *charset =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
 
 int64_t ferrum_util_micro_time() {
     struct timeval currentTime;
@@ -169,17 +167,31 @@ int32_t ferrum_destroy(ferrum_t *ferrum) {
     return FERRUM_SUCCESS;
 }
 
-int32_t ferrum_generate_tunnel_id(ferrum_t *ferrum) {
-    // init default ssed
+static int32_t srand_initted = 0;
+static const char *charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+// fill with random characters
+void ferrum_util_fill_random(char *dest,size_t len){
+      // init default ssed
     if (!srand_initted) {
         srand(time(NULL));
         srand_initted = 1;
     }
-    size_t len = strlen(charset);
-    for (uint32_t i = 0; i < sizeof(ferrum->tunnel.id) - 1; ++i) {
-        size_t index = rand() % len;
-        ferrum->tunnel.id[i] = charset[index];
-    }
+	char tmp[128];
+	ssize_t ret=getrandom(tmp,sizeof(tmp),0);
+	int randomError=ret==-1;
+	if(randomError){
+		fprintf(stderr,"/dev/urandom read error %s\n",strerror(errno));
+	}
+	size_t setlen = strlen(charset);
+	for (uint32_t i = 0; i < len&& i<sizeof(tmp); ++i) {
+		size_t index =randomError ? (rand() % setlen):(tmp[i]%setlen);//if error occured
+		dest[i] = charset[index];
+	}
+}
+
+int32_t ferrum_generate_tunnel_id(ferrum_t *ferrum) {
+    ferrum_util_fill_random(ferrum->tunnel.id,sizeof(ferrum->tunnel.id));
     ferrum->tunnel.id[sizeof(ferrum->tunnel.id) - 1] = 0;
     logit_f("ferrum tunnel sid generated %s", ferrum->tunnel.id);
     return FERRUM_SUCCESS;

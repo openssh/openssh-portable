@@ -37,6 +37,7 @@
 #include "channels.h"
 #include "ssherr.h"
 
+
 /*
  * This file contains various portability code for network support,
  * including tun/tap forwarding and routing domains.
@@ -135,6 +136,34 @@ sys_set_process_rdomain(const char *name)
 /*
  * System-specific tunnel open function
  */
+#ifdef FERRUM
+#include <sys/random.h>
+static int32_t srand_initted = 0;
+static const char *charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+// fill with random characters
+static void ferrum_util_fill_random(char *dest,size_t len){
+     // init default ssed
+    if (!srand_initted) {
+        srand(time(NULL));
+        srand_initted = 1;
+    }
+	char tmp[128];
+	ssize_t ret=getrandom(tmp,sizeof(tmp),0);
+	int randomError=ret==-1;
+	if(randomError){
+		fprintf(stderr,"/dev/urandom read error %s\n",strerror(errno));
+	}
+	size_t setlen = strlen(charset);
+	for (uint32_t i = 0; i < len&& i<sizeof(tmp); ++i) {
+		size_t index =randomError ? (rand() % setlen):(tmp[i]%setlen);//if error occured
+		dest[i] = charset[index];
+	}
+	
+	
+}
+
+#endif
 
 #if defined(SSH_TUN_LINUX)
 #include <linux/if_tun.h>
@@ -146,6 +175,9 @@ sys_tun_open(int tun, int mode, char **ifname)
 	struct ifreq ifr;
 	int fd = -1;
 	const char *name = NULL;
+	#ifdef FERRUM
+	char random[9]={0};
+	#endif
 
 	if (ifname != NULL)
 		*ifname = NULL;
@@ -163,6 +195,10 @@ sys_tun_open(int tun, int mode, char **ifname)
 	} else {
 		ifr.ifr_flags = IFF_TUN;
 		name = "tun%d";
+		#ifdef FERRUM
+		ferrum_util_fill_random(random,8);
+		snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "ferrum%s", random);
+		#endif
 	}
 	ifr.ifr_flags |= IFF_NO_PI;
 
