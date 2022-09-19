@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.143 2022/09/19 10:40:52 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.144 2022/09/19 10:41:58 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1161,7 +1161,8 @@ process_readdir(u_int32_t id)
 				continue;
 			stat_to_attrib(&st, &(stats[count].attrib));
 			stats[count].name = xstrdup(dp->d_name);
-			stats[count].long_name = ls_file(dp->d_name, &st, 0, 0);
+			stats[count].long_name = ls_file(dp->d_name, &st,
+			    0, 0, NULL, NULL);
 			count++;
 			/* send up to 100 entries in one message */
 			/* XXX check packet size instead */
