@@ -1,5 +1,10 @@
 Notes:
 
+LibreSSL Support:
+Changes in LibreSSL version 3.5 and 3.6 prevent the use of the threaded AES CTR cipher. 
+In those cases HPNSSH will fallback to the serial versionof the AES CTR cipher. A warning
+is printed to stderr. 
+
 Automatic Port Fallback (in version 17v3)
 The hpnssh client now uses TCP port 2222 to connect automatically as this is the
 default hpnsshd port. However, we understand that many users will be end up connecting

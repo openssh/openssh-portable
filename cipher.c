@@ -378,8 +378,16 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 			fatal("Failed to load HPN-SSH AES-CTR-MT provider.");
 		}
 #else
-		/* this version doesn't */
+		/* this version doesn't so check to see if we are in the
+		 * LibreSSL hole that doesn't support this at all  otherwise
+		 * load the MT cipher */
+#if LIBRESSL_VERSION_NUMBER ==  0x3060000fL || LIBRESSL_VERSION_NUMBER ==  0x3050000fL
+		fprintf(stderr, "LibreSSL 3.5 & 3.6 do not support the threaded AES CTR cipher.");
+		fprintf(stderr, " Falling back to serial.\n");
+		type = (*cipher->evptype)();
+#else
 		type = (*evp_aes_ctr_mt)(); /* see cipher-ctr-mt.c */
+#endif
 #endif /* OPENSSL_VERSION_NUMBER */
 	} /* if (strstr()) */
 	if (EVP_CipherInit(cc->evp, type, NULL, (u_char *)iv,

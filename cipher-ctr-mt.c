@@ -646,33 +646,47 @@ ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 }
 
 /* <friedl> */
+/* this has become more and more confusing over time as we try
+ * acocunt for different versions of OpenSSL and LibreSSL. 
+ * Why do we do it this way? Earlier versions of OpenSSL had an
+ * accessible EVP_CIPHER struct. In that situation we coud simply
+ * redefine the function pointers to our custom functions. However, 
+ * starting 1.1 the EVP_CIPHER was made opaque and the only way to
+ * change the function pointers was through the _meth_new and _meth_set
+ * functions. At the very same time LibreSSL - up to version 3.5
+ * had an accessible EVP_CIPHER struct. Then they changed it to an opaque
+ * struct but didn't implement any _meth_new _meth_set functions for
+ * EVP_CIPHER. The LibreSSL developers has said that it will be introduced
+ * in LSSL 3.7. So we have a hole were we can't support this in 
+ * LibreSSL. */
+
 const EVP_CIPHER *
 evp_aes_ctr_mt(void)
 {
-  /* libreSSL doesn't support meth_new functions
-   * and is reported as OSSL V number 2. So we
-   * explicitly check that. 
-   */
-# if OPENSSL_VERSION_NUMBER >= 0x10100000UL && OPENSSL_VERSION_NUMBER != 0x20000000
-	static EVP_CIPHER *aes_ctr;
-	aes_ctr = EVP_CIPHER_meth_new(NID_undef, 16/*block*/, 16/*key*/);
-	EVP_CIPHER_meth_set_iv_length(aes_ctr, AES_BLOCK_SIZE);
-	EVP_CIPHER_meth_set_init(aes_ctr, ssh_aes_ctr_init);
-	EVP_CIPHER_meth_set_cleanup(aes_ctr, ssh_aes_ctr_cleanup);
-	EVP_CIPHER_meth_set_do_cipher(aes_ctr, ssh_aes_ctr);
-#  ifndef SSH_OLD_EVP
-	EVP_CIPHER_meth_set_flags(aes_ctr, EVP_CIPH_CBC_MODE
-				      | EVP_CIPH_VARIABLE_LENGTH
-				      | EVP_CIPH_ALWAYS_CALL_INIT
-				      | EVP_CIPH_CUSTOM_IV);
-#  endif /*SSH_OLD_EVP*/
-	return (aes_ctr);
-# else /*earlier versions of openssl*/
-	/* starting with libressl 3.5 I can't seem to declare 
-	 * the aes_ctr struct as an actual struct. Maybe they
-	 * have made the structure opaque? I think that's 
-	 * what has happened but they don't support _meth_new
-	 * so I might just drop libressl support cjr - 9/13/2022 */
+/* this determines if the struct is opaque or not */
+#if (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x3050000fL)
+#define EVP_CIPHER_ACCESSIBLE
+#endif
+#if OPENSSL_VERSION_NUMBER < 0x10100000UL
+#define EVP_CIPHER_ACCESSIBLE
+#endif
+/* LibreSSL reports the OSSL version number as 2. So we need to 
+ * check that as well as the LibreSSL version */
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000UL && OPENSSL_VERSION_NUMBER != 0x20000000UL) \
+	|| LIBRESSL_VERSION_NUMBER > 0x3060000fL
+#define EVP_CIPHER_OPAQUE
+#endif
+
+/* this should never happen */
+#if !defined(EVP_CIPHER_ACCESSIBLE) && !defined(EVP_CIPHER_OPAQUE)
+	fatal_f("The installed version of libcrypto does not support the threaded AES CTR cipher. Exiting.");
+#endif
+/* neither should this */
+#if defined(EVP_CIPHER_ACCESSIBLE) && defined(EVP_CIPHER_OPAQUE)
+	fatal_f("The installed version of libcrypto does not support the threaded AES CTR cipher. Exiting.");
+#endif
+	
+#if defined(EVP_CIPHER_ACCESSIBLE) && !defined(EVP_CIPHER_OPAQUE)
 	static EVP_CIPHER aes_ctr;
 	memset(&aes_ctr, 0, sizeof(EVP_CIPHER));
 	aes_ctr.nid = NID_undef;
@@ -687,7 +701,23 @@ evp_aes_ctr_mt(void)
 		EVP_CIPH_ALWAYS_CALL_INIT | EVP_CIPH_CUSTOM_IV;
 #  endif /*SSH_OLD_EVP*/
         return &aes_ctr;
-# endif /*OPENSSH_VERSION_NUMBER >= Ox10100000UL || ... */
+#endif /*EVP CIPHER ACCESSIBLE */
+
+#if defined(EVP_CIPHER_OPAQUE) && !defined(EVP_CIPHER_ACCESSIBLE)
+	static EVP_CIPHER *aes_ctr;
+	aes_ctr = EVP_CIPHER_meth_new(NID_undef, 16/*block*/, 16/*key*/);
+	EVP_CIPHER_meth_set_iv_length(aes_ctr, AES_BLOCK_SIZE);
+	EVP_CIPHER_meth_set_init(aes_ctr, ssh_aes_ctr_init);
+	EVP_CIPHER_meth_set_cleanup(aes_ctr, ssh_aes_ctr_cleanup);
+	EVP_CIPHER_meth_set_do_cipher(aes_ctr, ssh_aes_ctr);
+#  ifndef SSH_OLD_EVP
+	EVP_CIPHER_meth_set_flags(aes_ctr, EVP_CIPH_CBC_MODE
+				      | EVP_CIPH_VARIABLE_LENGTH
+				      | EVP_CIPH_ALWAYS_CALL_INIT
+				      | EVP_CIPH_CUSTOM_IV);
+#  endif /*SSH_OLD_EVP*/
+	return aes_ctr;
+#endif /* EVP CIPHER OPAQUE */
 }
 
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000UL */
