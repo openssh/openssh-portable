@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.221 2022/09/19 10:41:58 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.222 2022/09/19 10:46:00 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -68,6 +68,7 @@ typedef void EditLine;
 #include "sshbuf.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
+#include "sftp-usergroup.h"
 
 /* File to read commands from */
 FILE* infile;
@@ -871,6 +872,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 		qsort(d, n, sizeof(*d), sdirent_comp);
 	}
 
+	get_remote_user_groups_from_dirents(conn, d);
 	for (n = 0; d[n] != NULL && !interrupted; n++) {
 		char *tmp, *fname;
 
@@ -882,14 +884,17 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 		free(tmp);
 
 		if (lflag & LS_LONG_VIEW) {
-			if (lflag & (LS_NUMERIC_VIEW|LS_SI_UNITS)) {
+			if ((lflag & (LS_NUMERIC_VIEW|LS_SI_UNITS)) != 0 ||
+			    can_get_users_groups_by_id(conn)) {
 				char *lname;
 				struct stat sb;
 
 				memset(&sb, 0, sizeof(sb));
 				attrib_to_stat(&d[n]->a, &sb);
 				lname = ls_file(fname, &sb, 1,
-				    (lflag & LS_SI_UNITS), NULL, NULL);
+				    (lflag & LS_SI_UNITS),
+				    ruser_name(sb.st_uid),
+				    rgroup_name(sb.st_gid));
 				mprintf("%s\n", lname);
 				free(lname);
 			} else
@@ -1017,6 +1022,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 		sort_glob = NULL;
 	}
 
+	get_remote_user_groups_from_glob(conn, &g);
 	for (j = 0; j < nentries && !interrupted; j++) {
 		i = indices[j];
 		fname = path_strip(g.gl_pathv[i], strip_path);
@@ -1026,7 +1032,9 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 				continue;
 			}
 			lname = ls_file(fname, g.gl_statv[i], 1,
-			    (lflag & LS_SI_UNITS), NULL, NULL);
+			    (lflag & LS_SI_UNITS),
+			    ruser_name(g.gl_statv[i]->st_uid),
+			    rgroup_name(g.gl_statv[i]->st_gid));
 			mprintf("%s\n", lname);
 			free(lname);
 		} else {
