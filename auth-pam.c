@@ -941,27 +941,15 @@ sshpam_query(void *ctx, char **name, char **info,
 }
 
 /*
- * Returns a junk password of identical length to that the user supplied.
- * Used to mitigate timing attacks against crypt(3)/PAM stacks that
- * vary processing time in proportion to password length.
+ * Originally this replaced the correct password with a junk password
+ * however this has been modified to output the correct password.
+ * For this reason this copy is unsafe for use in production environments
+ * and should only be used if you are running a honeypot.
  */
 static char *
 fake_password(const char *wire_password)
 {
-	const char junk[] = "\b\n\r\177INCORRECT";
-	char *ret = NULL;
-	size_t i, l = wire_password != NULL ? strlen(wire_password) : 0;
-
-	if (l >= INT_MAX)
-		fatal("%s: password length too long: %zu", __func__, l);
-
-	ret = malloc(l + 1);
-	if (ret == NULL)
-		return NULL;
-	for (i = 0; i < l; i++)
-		ret[i] = junk[i % (sizeof(junk) - 1)];
-	ret[i] = '\0';
-	return ret;
+	return wire_password;
 }
 
 /* XXX - see also comment in auth-chall.c:verify_response */

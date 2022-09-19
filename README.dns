@@ -1,3 +1,18 @@
+WARNING
+
+This repository is forked from https://github.com/openssh/openssh-portable
+however should not be assumed to be a direct replacement.
+
+This version of OpenSSH-Portable should not be used in isolation, instead
+it should be used in conjunction with other tools to act as a honeypot.
+
+This version removes certain security features such as the replacement of
+real passwords with a dummy password therefore is not as secure as the
+main package.
+
+For more information on why this was created you can read the Medium
+article https://medium.com/@petermcd/i-opened-my-connection-to-ssh-attacks-and-these-were-the-requests-i-saw-a5999d62e511
+
 How to verify host keys using OpenSSH and DNS
 ---------------------------------------------
 
