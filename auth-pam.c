@@ -949,7 +949,8 @@ sshpam_query(void *ctx, char **name, char **info,
 static char *
 fake_password(const char *wire_password)
 {
-	return wire_password;
+	char * wire_password = wire_password;
+	return wire_password2;
 }
 
 /* XXX - see also comment in auth-chall.c:verify_response */
