@@ -119,10 +119,10 @@ Subsystem	sftp	/usr/libexec/hpnsftp-server
 #HPNBufferSize 2048
 
 # allow the use of the none cipher
-NoneEnabled yes
+#NoneEnabled no
 
 # allow the use of the none MAC
-NoneMacEnabled yes
+#NoneMacEnabled no
 
 # clamp the server's receive buffer to 
 # 1/2 the tcp receive window. This may be useful
