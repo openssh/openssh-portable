@@ -54,7 +54,7 @@ Where a constraint consists of:
 	string		to_hostname
 	keyspec[]	to_hostkeys
 
-An a keyspec consists of:
+And a keyspec consists of:
 
 	string		keyblob
 	bool		is_ca
