@@ -1,5 +1,5 @@
 /* $OpenBSD: sc25519.h,v 1.3 2013/12/09 11:03:45 markus Exp $ */
-
+# KAMPANAT THUMWONG
 /*
  * Public Domain, Authors: Daniel J. Bernstein, Niels Duif, Tanja Lange,
  * Peter Schwabe, Bo-Yin Yang.
