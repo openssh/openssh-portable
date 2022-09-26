@@ -80,8 +80,8 @@ Step 8: Set up the hpnsshd user.
 This user is part of the privilege separation routines used in the 
 pre-authentication sandbox. I suggest using the following command: 
 
-sudo useradd --system --shell /usr/sbin/nologin --comment="Privilege separated HPNSSH User" 
-\ --home=/run/hpnsshd hpnsshd
+sudo useradd --system --shell /usr/sbin/nologin --comment="Privilege separated HPNSSH User" \ 
+--home=/run/hpnsshd hpnsshd
 
 Alternatively, you can use vipw to add the user manually. 
 
@@ -318,7 +318,7 @@ exit 0
 Step 10: Working with SELinux. 
 
 If you are using SELinux you’ll need to run a few more commands in order to grant hpnssh the 
-necessary exceptions to open sockets, files, read keys and so forth. Run the following commands 
+necessary exceptions to open sockets, files, read keys, and so forth. Run the following commands 
 to allow this. Note, I’m not sure every single one of these is needed so if someone knows better 
 please let me know. Again, double check the paths of the files being updated. 
 
@@ -347,3 +347,4 @@ restorecon /usr/bin/hpnssh
 restorecon /usr/bin/hpnssh-agent
 restorecon /usr/bin/hpnssh-keygen
 restorecon /etc/pam.d/hpnsshd
+

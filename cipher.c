@@ -351,7 +351,8 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 		/* this version of openssl uses providers */
 		OSSL_LIB_CTX *aes_lib = NULL; /* probably not needed */
 		OSSL_PROVIDER *aes_mt_provider = NULL;
-
+		type = NULL;
+		
 		if (OSSL_PROVIDER_add_builtin(aes_lib, "hpnssh",
 					      OSSL_provider_init) != 1) {
 			fatal("Failed to add HPNSSH provider for AES-CTR");
