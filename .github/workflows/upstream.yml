@@ -2,7 +2,7 @@ name: Upstream self-hosted
 
 on:
   push:
-    branches: [ master, ci ]
+    branches: [ master ]
     paths: [ '**.c', '**.h', '.github/**' ]
 
 jobs:
