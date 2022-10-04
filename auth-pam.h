@@ -43,5 +43,6 @@ int sshpam_auth_passwd(Authctxt *, const char *);
 int sshpam_get_maxtries_reached(void);
 void sshpam_set_maxtries_reached(int);
 int is_pam_session_open(void);
+char *sshpam_get_runtime_directory(void);
 
 #endif /* USE_PAM */

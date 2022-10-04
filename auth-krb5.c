@@ -45,6 +45,8 @@
 #include "uidswap.h"
 #include "hostfile.h"
 #include "auth.h"
+#include "channels.h"
+#include "session.h"
 
 #ifdef KRB5
 #include <errno.h>
@@ -242,11 +244,14 @@ krb5_cleanup_proc(Authctxt *authctxt)
 krb5_error_code
 ssh_krb5_cc_gen(krb5_context ctx, krb5_ccache *ccache) {
 	int tmpfd, ret, oerrno;
-	char ccname[40];
+	char ccname[PATH_MAX] = {0};
+	char *path;
 	mode_t old_umask;
 
+	path = session_get_runtime_directory();
 	ret = snprintf(ccname, sizeof(ccname),
-	    "FILE:/tmp/krb5cc_%d_XXXXXXXXXX", geteuid());
+	    "FILE:%s/krb5cc_%d_XXXXXXXXXX", path, geteuid());
+	free(path);
 	if (ret < 0 || (size_t)ret >= sizeof(ccname))
 		return ENOMEM;
 

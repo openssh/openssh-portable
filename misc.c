@@ -1777,6 +1777,49 @@ bandwidth_limit(struct bwlimit *bw, size_t read_len)
 	monotime_tv(&bw->bwstart);
 }
 
+#define RUNTIME_SUBDIR "/openssh"
+
+/* Creates private runtime directory in the dir argument. It is either
+ * a under $XDG_RUNTIME_DIRECTORY or under /tmp, which needs to be removed
+ * when it is no longer needed (the second argument).
+ */
+int
+create_private_runtime_directory(char *dir, size_t len, int *need_rm)
+{
+	int r;
+	const char *v = NULL;
+
+	if (need_rm == NULL)
+		return -1;
+
+	*need_rm = 0;
+
+	v = getenv("XDG_RUNTIME_DIR");
+	if (v && *v != '\0') {
+		struct stat st;
+
+		r = snprintf(dir, len, "%s"RUNTIME_SUBDIR, v);
+		if (r > 0) {
+			r = stat(dir, &st);
+			if (r < 0 && errno == ENOENT) {
+				r = mkdir(dir, 0700);
+				if (r == 0) {
+					return 0;
+				}
+			} else if (r == 0) {
+				return 0;
+			}
+		}
+	}
+	mktemp_proto(dir, len);
+	if (mkdtemp(dir) == NULL) {
+		perror("mkdtemp: private socket directory");
+		exit(1);
+	}
+	*need_rm = 1;
+	return 0;
+}
+
 /* Make a template filename for mk[sd]temp() */
 void
 mktemp_proto(char *s, size_t len)
@@ -1784,7 +1827,8 @@ mktemp_proto(char *s, size_t len)
 	const char *tmpdir;
 	int r;
 
-	if ((tmpdir = getenv("TMPDIR")) != NULL) {
+	tmpdir = getenv("TMPDIR");
+	if (tmpdir && *tmpdir != '\0') {
 		r = snprintf(s, len, "%s/ssh-XXXXXXXXXXXX", tmpdir);
 		if (r > 0 && (size_t)r < len)
 			return;

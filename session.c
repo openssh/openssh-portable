@@ -166,6 +166,7 @@ static char *auth_info_file = NULL;
 /* Name and directory of socket for authentication agent forwarding. */
 static char *auth_sock_name = NULL;
 static char *auth_sock_dir = NULL;
+static int remove_auth_sock_dir = 1;
 
 /* removes the agent forwarding socket */
 
@@ -175,8 +176,13 @@ auth_sock_cleanup_proc(struct passwd *pw)
 	if (auth_sock_name != NULL) {
 		temporarily_use_uid(pw);
 		unlink(auth_sock_name);
-		rmdir(auth_sock_dir);
+		free(auth_sock_name);
 		auth_sock_name = NULL;
+
+		if (remove_auth_sock_dir)
+			rmdir(auth_sock_dir);
+		free(auth_sock_dir);
+		auth_sock_dir = NULL;
 		restore_uid();
 	}
 }
@@ -185,6 +191,7 @@ static int
 auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 {
 	Channel *nc;
+	char *path;
 	int sock = -1;
 
 	if (auth_sock_name != NULL) {
@@ -195,17 +202,25 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 	/* Temporarily drop privileged uid for mkdir/bind. */
 	temporarily_use_uid(pw);
 
-	/* Allocate a buffer for the socket name, and format the name. */
-	auth_sock_dir = xstrdup("/tmp/ssh-XXXXXXXXXX");
+	path = session_get_runtime_directory();
+	if (strcmp(path, "/tmp") == 0) {
+		/* Allocate a buffer for the socket name, and format the name. */
+		auth_sock_dir = xstrdup("/tmp/ssh-XXXXXXXXXX");
 
-	/* Create private directory for socket */
-	if (mkdtemp(auth_sock_dir) == NULL) {
-		ssh_packet_send_debug(ssh, "Agent forwarding disabled: "
-		    "mkdtemp() failed: %.100s", strerror(errno));
-		restore_uid();
-		free(auth_sock_dir);
-		auth_sock_dir = NULL;
-		goto authsock_err;
+		/* Create private directory for socket */
+		if (mkdtemp(auth_sock_dir) == NULL) {
+			ssh_packet_send_debug("Agent forwarding disabled: "
+			    "mkdtemp() failed: %.100s", strerror(errno));
+			restore_uid();
+			free(auth_sock_dir);
+			auth_sock_dir = NULL;
+			goto authsock_err;
+		}
+		free(path);
+	} else {
+		/* This is already private directory */
+		auth_sock_dir = path;
+		remove_auth_sock_dir = 0;
 	}
 
 	xasprintf(&auth_sock_name, "%s/agent.%ld",
@@ -233,7 +248,8 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 	free(auth_sock_name);
 	if (auth_sock_dir != NULL) {
 		temporarily_use_uid(pw);
-		rmdir(auth_sock_dir);
+		if (remove_auth_sock_dir)
+			rmdir(auth_sock_dir);
 		restore_uid();
 		free(auth_sock_dir);
 	}
@@ -257,16 +273,34 @@ display_loginmsg(void)
 	sshbuf_reset(loginmsg);
 }
 
+char *
+session_get_runtime_directory(void)
+{
+	char *auth_info_file = NULL;
+
+#ifdef USE_PAM
+	auth_info_file = sshpam_get_runtime_directory();
+	if (auth_info_file != NULL)
+		return auth_info_file;
+#endif /* USE_PAM */
+	return xstrdup("/tmp");
+}
+
+#define SSH_AUTH_TEMPLATE "sshauth.XXXXXXXXXXXXXXX"
+
 static void
 prepare_auth_info_file(struct passwd *pw, struct sshbuf *info)
 {
 	int fd = -1, success = 0;
+	char *path = NULL;
 
 	if (!options.expose_userauth_info || info == NULL)
 		return;
 
 	temporarily_use_uid(pw);
-	auth_info_file = xstrdup("/tmp/sshauth.XXXXXXXXXXXXXXX");
+	path = session_get_runtime_directory();
+	xasprintf(&auth_info_file, "%s/" SSH_AUTH_TEMPLATE, path);
+	free(path);
 	if ((fd = mkstemp(auth_info_file)) == -1) {
 		error_f("mkstemp: %s", strerror(errno));
 		goto out;

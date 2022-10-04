@@ -175,6 +175,8 @@ int parse_ipqos(const char *);
 const char *iptos2str(int);
 void mktemp_proto(char *, size_t);
 
+int create_private_runtime_directory(char *dir, size_t len, int *need_rm);
+
 void	 child_set_env(char ***envp, u_int *envsizep, const char *name,
 	    const char *value);
 const char *lookup_env_in_list(const char *env,

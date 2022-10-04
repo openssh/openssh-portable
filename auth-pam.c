@@ -1394,4 +1394,36 @@ sshpam_set_maxtries_reached(int reached)
 	options.password_authentication = 0;
 	options.kbd_interactive_authentication = 0;
 }
+
+#define RUNTIME_SUBDIR "/openssh"
+
+char *
+sshpam_get_runtime_directory(void)
+{
+	int r;
+	const char *v = NULL;
+
+	if (!options.use_pam || sshpam_handle == NULL)
+		return NULL;
+
+	v = pam_getenv(sshpam_handle, "XDG_RUNTIME_DIR");
+	if (v && *v != '\0') {
+		char *s = NULL;
+		struct stat st;
+
+		r = asprintf(&s, "%s"RUNTIME_SUBDIR, v);
+		if (r > 0) {
+			r = stat(s, &st);
+			if (r < 0 && errno == ENOENT) {
+				r = mkdir(s, 0700);
+				if (r == 0)
+					return s;
+			} else if (r == 0) {
+				return s;
+			}
+			free(s);
+		}
+	}
+	return NULL;
+}
 #endif /* USE_PAM */

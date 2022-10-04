@@ -292,6 +292,7 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 	static char proto[512], data[512];
 	FILE *f;
 	int got_data = 0, generated = 0, do_unlink = 0, r;
+	int remove_xauthdir = 1;
 	struct stat st;
 	u_int now, x11_timeout_real;
 
@@ -335,17 +336,17 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 			 * ssh's willingness to forward X11 connections to
 			 * avoid nasty fail-open behaviour in the X server.
 			 */
-			mktemp_proto(xauthdir, sizeof(xauthdir));
-			if (mkdtemp(xauthdir) == NULL) {
-				error_f("mkdtemp: %s", strerror(errno));
-				return -1;
-			}
+			if (create_private_runtime_directory(xauthdir,
+			    sizeof(xauthdir), &remove_xauthdir) != 0)
+				error("%s: Failed to create runtime directory",
+				    __func__);
 			do_unlink = 1;
 			if ((r = snprintf(xauthfile, sizeof(xauthfile),
 			    "%s/xauthfile", xauthdir)) < 0 ||
 			    (size_t)r >= sizeof(xauthfile)) {
 				error_f("xauthfile path too long");
-				rmdir(xauthdir);
+				if (remove_xauthdir)
+					rmdir(xauthdir);
 				return -1;
 			}
 
@@ -411,7 +412,8 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 
 	if (do_unlink) {
 		unlink(xauthfile);
-		rmdir(xauthdir);
+		if (remove_xauthdir)
+			rmdir(xauthdir);
 	}
 
 	/* Don't fall back to fake X11 data for untrusted forwarding */
