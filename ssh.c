@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.576 2022/09/17 10:33:18 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.577 2022/10/06 22:42:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -679,7 +679,7 @@ main(int ac, char **av)
 	 * writable only by the owner, which is ok for all files for which we
 	 * don't set the modes explicitly.
 	 */
-	umask(022);
+	umask(022 | umask(077));
 
 	msetlocale();
 
