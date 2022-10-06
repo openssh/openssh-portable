@@ -53,6 +53,7 @@ jobs:
           - { os: ubuntu-latest, configs: libressl-3.3.6 }
           - { os: ubuntu-latest, configs: libressl-3.4.3 }
           - { os: ubuntu-latest, configs: libressl-3.5.3 }
+          - { os: ubuntu-latest, configs: libressl-3.6.0 }
           - { os: ubuntu-latest, configs: openssl-master }
           - { os: ubuntu-latest, configs: openssl-noec }
           - { os: ubuntu-latest, configs: openssl-1.0.1 }
@@ -62,7 +63,7 @@ jobs:
           - { os: ubuntu-latest, configs: openssl-1.1.1 }
           - { os: ubuntu-latest, configs: openssl-1.1.1k }
           - { os: ubuntu-latest, configs: openssl-1.1.1n }
-          - { os: ubuntu-latest, configs: openssl-1.1.1p }
+          - { os: ubuntu-latest, configs: openssl-1.1.1q }
           - { os: ubuntu-latest, configs: openssl-3.0.0 }
           - { os: ubuntu-latest, configs: openssl-3.0.5 }
           - { os: ubuntu-latest, configs: openssl-1.1.1_stable } # stable branch
