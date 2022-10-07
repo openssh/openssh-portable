@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.74 2022/10/07 04:06:26 djm Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.75 2022/10/07 06:00:58 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -106,15 +106,15 @@ Kill the current agent (given by the
 environment variable).
 .It Fl O Ar option
 Specify an option when starting
-.Xr ssh-agent 1 .
+.Nm .
 Currently only one option is supported:
 .Cm no-restrict-websafe .
 This instructs
-.Xr ssh-agent 1
+.Nm
 to permit signatures using FIDO keys that might be web authentication
 requests.
 By default,
-.Xr ssh-agent 1
+.Nm
 refuses signature requests for FIDO keys where the key application string
 does not start with
 .Dq ssh:
