@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.121 2022/05/05 01:04:14 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.122 2022/09/17 10:30:45 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2365,18 +2365,24 @@ cert_parse(struct sshbuf *b, struct sshkey *key, struct sshbuf *certbuf)
 	return ret;
 }
 
-#ifdef WITH_OPENSSL
-static int
-check_rsa_length(const RSA *rsa)
+int
+sshkey_check_rsa_length(const struct sshkey *k, int min_size)
 {
+#ifdef WITH_OPENSSL
 	const BIGNUM *rsa_n;
+	int nbits;
 
-	RSA_get0_key(rsa, &rsa_n, NULL, NULL);
-	if (BN_num_bits(rsa_n) < SSH_RSA_MINIMUM_MODULUS_SIZE)
+	if (k == NULL || k->rsa == NULL ||
+	    (k->type != KEY_RSA && k->type != KEY_RSA_CERT))
+		return 0;
+	RSA_get0_key(k->rsa, &rsa_n, NULL, NULL);
+	nbits = BN_num_bits(rsa_n);
+	if (nbits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
+	    (min_size > 0 && nbits < min_size))
 		return SSH_ERR_KEY_LENGTH;
+#endif /* WITH_OPENSSL */
 	return 0;
 }
-#endif
 
 static int
 sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
@@ -2439,7 +2445,7 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 			goto out;
 		}
 		rsa_n = rsa_e = NULL; /* transferred */
-		if ((ret = check_rsa_length(key->rsa)) != 0)
+		if ((ret = sshkey_check_rsa_length(key, 0)) != 0)
 			goto out;
 #ifdef DEBUG_PK
 		RSA_print_fp(stderr, key->rsa, 8);
@@ -3642,7 +3648,7 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 			goto out;
 		}
 		rsa_p = rsa_q = NULL; /* transferred */
-		if ((r = check_rsa_length(k->rsa)) != 0)
+		if ((r = sshkey_check_rsa_length(k, 0)) != 0)
 			goto out;
 		if ((r = ssh_rsa_complete_crt_parameters(k, rsa_iqmp)) != 0)
 			goto out;
@@ -4644,7 +4650,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 			r = SSH_ERR_LIBCRYPTO_ERROR;
 			goto out;
 		}
-		if ((r = check_rsa_length(prv->rsa)) != 0)
+		if ((r = sshkey_check_rsa_length(prv, 0)) != 0)
 			goto out;
 	} else if (EVP_PKEY_base_id(pk) == EVP_PKEY_DSA &&
 	    (type == KEY_UNSPEC || type == KEY_DSA)) {

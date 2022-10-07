@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.147 2022/06/03 04:30:47 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.148 2022/09/17 10:33:18 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -175,6 +175,8 @@ typedef struct {
 	char   *jump_extra;
 
 	char   *known_hosts_command;
+
+	int	required_rsa_size;	/* minimum size of RSA keys */
 
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;

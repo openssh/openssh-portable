@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/crypt/arc4random_uniform.c */
-
 /*	$OpenBSD: arc4random_uniform.c,v 1.3 2019/01/20 02:59:07 bcook Exp $	*/
 
 /*
@@ -17,6 +15,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/crypto/arc4random_uniform.c */
 
 #include "includes.h"
 

@@ -2,10 +2,8 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master, ci, V_9_0 ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', 'Makefile.in', 'configure.ac' ]
   pull_request:
-    branches: [ master ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', 'Makefile.in', 'configure.ac' ]
 
 jobs:
@@ -15,11 +13,13 @@ jobs:
       fail-fast: false
       matrix:
         # First we test all OSes in the default configuration.
-        os: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12]
+        os: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12, windows-2019, windows-2022]
         configs: [default]
         # Then we include any extra configs we want to test for specific VMs.
         # Valgrind slows things down quite a bit, so start them first.
         include:
+          - { os: windows-2019, configs: cygwin-release }
+          - { os: windows-2022, configs: cygwin-release }
           - { os: ubuntu-20.04, configs: valgrind-1 }
           - { os: ubuntu-20.04, configs: valgrind-2 }
           - { os: ubuntu-20.04, configs: valgrind-3 }
@@ -53,6 +53,7 @@ jobs:
           - { os: ubuntu-latest, configs: libressl-3.3.6 }
           - { os: ubuntu-latest, configs: libressl-3.4.3 }
           - { os: ubuntu-latest, configs: libressl-3.5.3 }
+          - { os: ubuntu-latest, configs: libressl-3.6.0 }
           - { os: ubuntu-latest, configs: openssl-master }
           - { os: ubuntu-latest, configs: openssl-noec }
           - { os: ubuntu-latest, configs: openssl-1.0.1 }
@@ -62,7 +63,7 @@ jobs:
           - { os: ubuntu-latest, configs: openssl-1.1.1 }
           - { os: ubuntu-latest, configs: openssl-1.1.1k }
           - { os: ubuntu-latest, configs: openssl-1.1.1n }
-          - { os: ubuntu-latest, configs: openssl-1.1.1p }
+          - { os: ubuntu-latest, configs: openssl-1.1.1q }
           - { os: ubuntu-latest, configs: openssl-3.0.0 }
           - { os: ubuntu-latest, configs: openssl-3.0.5 }
           - { os: ubuntu-latest, configs: openssl-1.1.1_stable } # stable branch
@@ -79,13 +80,19 @@ jobs:
           - { os: macos-12, configs: pam }
     runs-on: ${{ matrix.os }}
     steps:
+    - name: set cygwin git params
+      if: ${{ startsWith(matrix.os, 'windows') }}
+      run: git config --global core.autocrlf input
+    - name: install cygwin
+      if: ${{ startsWith(matrix.os, 'windows') }}
+      uses: cygwin/cygwin-install-action@master
     - uses: actions/checkout@v2
     - name: setup CI system
-      run: ./.github/setup_ci.sh ${{ matrix.configs }}
+      run: sh ./.github/setup_ci.sh ${{ matrix.configs }}
     - name: autoreconf
-      run: autoreconf
+      run: sh -c autoreconf
     - name: configure
-      run: ./.github/configure.sh ${{ matrix.configs }}
+      run: sh ./.github/configure.sh ${{ matrix.configs }}
     - name: save config
       uses: actions/upload-artifact@v2
       with:
@@ -96,7 +103,7 @@ jobs:
     - name: make
       run: make -j2
     - name: make tests
-      run: ./.github/run_test.sh ${{ matrix.configs }}
+      run: sh ./.github/run_test.sh ${{ matrix.configs }}
       env:
         TEST_SSH_UNSAFE_PERMISSIONS: 1
         TEST_SSH_HOSTBASED_AUTH: yes

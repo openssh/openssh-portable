@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.37 2022/05/13 06:31:50 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.38 2022/09/19 10:43:12 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
@@ -182,6 +182,15 @@ int crossload_dir(struct sftp_conn *from, struct sftp_conn *to,
     const char *from_path, const char *to_path,
     Attrib *dirattrib, int preserve_flag, int print_flag,
     int follow_link_flag);
+
+/*
+ * User/group ID to name translation.
+ */
+int can_get_users_groups_by_id(struct sftp_conn *conn);
+int do_get_users_groups_by_id(struct sftp_conn *conn,
+    const u_int *uids, u_int nuids,
+    const u_int *gids, u_int ngids,
+    char ***usernamesp, char ***groupnamesp);
 
 /* Concatenate paths, taking care of slashes. Caller must free result. */
 char *path_append(const char *, const char *);

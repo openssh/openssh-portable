@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.164 2022/05/15 23:47:21 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.165 2022/09/19 10:43:12 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -95,15 +95,16 @@ struct sftp_conn {
 	u_int num_requests;
 	u_int version;
 	u_int msg_id;
-#define SFTP_EXT_POSIX_RENAME	0x00000001
-#define SFTP_EXT_STATVFS	0x00000002
-#define SFTP_EXT_FSTATVFS	0x00000004
-#define SFTP_EXT_HARDLINK	0x00000008
-#define SFTP_EXT_FSYNC		0x00000010
-#define SFTP_EXT_LSETSTAT	0x00000020
-#define SFTP_EXT_LIMITS		0x00000040
-#define SFTP_EXT_PATH_EXPAND	0x00000080
-#define SFTP_EXT_COPY_DATA	0x00000100
+#define SFTP_EXT_POSIX_RENAME		0x00000001
+#define SFTP_EXT_STATVFS		0x00000002
+#define SFTP_EXT_FSTATVFS		0x00000004
+#define SFTP_EXT_HARDLINK		0x00000008
+#define SFTP_EXT_FSYNC			0x00000010
+#define SFTP_EXT_LSETSTAT		0x00000020
+#define SFTP_EXT_LIMITS			0x00000040
+#define SFTP_EXT_PATH_EXPAND		0x00000080
+#define SFTP_EXT_COPY_DATA		0x00000100
+#define SFTP_EXT_GETUSERSGROUPS_BY_ID	0x00000200
 	u_int exts;
 	u_int64_t limit_kbps;
 	struct bwlimit bwlimit_in, bwlimit_out;
@@ -538,6 +539,11 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 		} else if (strcmp(name, "copy-data") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
 			ret->exts |= SFTP_EXT_COPY_DATA;
+			known = 1;
+		} else if (strcmp(name,
+		    "users-groups-by-id@openssh.com") == 0 &&
+		    strcmp((char *)value, "1") == 0) {
+			ret->exts |= SFTP_EXT_GETUSERSGROUPS_BY_ID;
 			known = 1;
 		}
 		if (known) {
@@ -2750,6 +2756,120 @@ crossload_dir(struct sftp_conn *from, struct sftp_conn *to,
 	    dirattrib, preserve_flag, print_flag, follow_link_flag);
 	free(from_path_canon);
 	return ret;
+}
+
+int
+can_get_users_groups_by_id(struct sftp_conn *conn)
+{
+	return (conn->exts & SFTP_EXT_GETUSERSGROUPS_BY_ID) != 0;
+}
+
+int
+do_get_users_groups_by_id(struct sftp_conn *conn,
+    const u_int *uids, u_int nuids,
+    const u_int *gids, u_int ngids,
+    char ***usernamesp, char ***groupnamesp)
+{
+	struct sshbuf *msg, *uidbuf, *gidbuf;
+	u_int i, expected_id, id;
+	char *name, **usernames = NULL, **groupnames = NULL;
+	u_char type;
+	int r;
+
+	*usernamesp = *groupnamesp = NULL;
+	if (!can_get_users_groups_by_id(conn))
+		return SSH_ERR_FEATURE_UNSUPPORTED;
+
+	if ((msg = sshbuf_new()) == NULL ||
+	    (uidbuf = sshbuf_new()) == NULL ||
+	    (gidbuf = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	expected_id = id = conn->msg_id++;
+	debug2("Sending SSH2_FXP_EXTENDED(users-groups-by-id@openssh.com)");
+	for (i = 0; i < nuids; i++) {
+		if ((r = sshbuf_put_u32(uidbuf, uids[i])) != 0)
+			fatal_fr(r, "compose uids");
+	}
+	for (i = 0; i < ngids; i++) {
+		if ((r = sshbuf_put_u32(gidbuf, gids[i])) != 0)
+			fatal_fr(r, "compose gids");
+	}
+	if ((r = sshbuf_put_u8(msg, SSH2_FXP_EXTENDED)) != 0 ||
+	    (r = sshbuf_put_u32(msg, id)) != 0 ||
+	    (r = sshbuf_put_cstring(msg,
+	    "users-groups-by-id@openssh.com")) != 0 ||
+	    (r = sshbuf_put_stringb(msg, uidbuf)) != 0 ||
+	    (r = sshbuf_put_stringb(msg, gidbuf)) != 0)
+		fatal_fr(r, "compose");
+	send_msg(conn, msg);
+	get_msg(conn, msg);
+	if ((r = sshbuf_get_u8(msg, &type)) != 0 ||
+	    (r = sshbuf_get_u32(msg, &id)) != 0)
+		fatal_fr(r, "parse");
+	if (id != expected_id)
+		fatal("ID mismatch (%u != %u)", id, expected_id);
+	if (type == SSH2_FXP_STATUS) {
+		u_int status;
+		char *errmsg;
+
+		if ((r = sshbuf_get_u32(msg, &status)) != 0 ||
+		    (r = sshbuf_get_cstring(msg, &errmsg, NULL)) != 0)
+			fatal_fr(r, "parse status");
+		error("users-groups-by-id %s",
+		    *errmsg == '\0' ? fx2txt(status) : errmsg);
+		free(errmsg);
+		sshbuf_free(msg);
+		sshbuf_free(uidbuf);
+		sshbuf_free(gidbuf);
+		return -1;
+	} else if (type != SSH2_FXP_EXTENDED_REPLY)
+		fatal("Expected SSH2_FXP_EXTENDED_REPLY(%u) packet, got %u",
+		    SSH2_FXP_EXTENDED_REPLY, type);
+
+	/* reuse */
+	sshbuf_free(uidbuf);
+	sshbuf_free(gidbuf);
+	uidbuf = gidbuf = NULL;
+	if ((r = sshbuf_froms(msg, &uidbuf)) != 0 ||
+	    (r = sshbuf_froms(msg, &gidbuf)) != 0)
+		fatal_fr(r, "parse response");
+	if (nuids > 0) {
+		usernames = xcalloc(nuids, sizeof(*usernames));
+		for (i = 0; i < nuids; i++) {
+			if ((r = sshbuf_get_cstring(uidbuf, &name, NULL)) != 0)
+				fatal_fr(r, "parse user name");
+			/* Handle unresolved names */
+			if (*name == '\0') {
+				free(name);
+				name = NULL;
+			}
+			usernames[i] = name;
+		}
+	}
+	if (ngids > 0) {
+		groupnames = xcalloc(ngids, sizeof(*groupnames));
+		for (i = 0; i < ngids; i++) {
+			if ((r = sshbuf_get_cstring(gidbuf, &name, NULL)) != 0)
+				fatal_fr(r, "parse user name");
+			/* Handle unresolved names */
+			if (*name == '\0') {
+				free(name);
+				name = NULL;
+			}
+			groupnames[i] = name;
+		}
+	}
+	if (sshbuf_len(uidbuf) != 0)
+		fatal_f("unexpected extra username data");
+	if (sshbuf_len(gidbuf) != 0)
+		fatal_f("unexpected extra groupname data");
+	sshbuf_free(uidbuf);
+	sshbuf_free(gidbuf);
+	sshbuf_free(msg);
+	/* success */
+	*usernamesp = usernames;
+	*groupnamesp = groupnames;
+	return 0;
 }
 
 char *

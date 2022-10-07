@@ -2,7 +2,6 @@ name: C/C++ CI self-hosted
 
 on:
   push:
-    branches: [ master, ci, V_9_0 ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', 'Makefile.in', 'configure.ac' ]
 
 jobs:
