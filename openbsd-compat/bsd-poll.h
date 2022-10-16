@@ -35,7 +35,7 @@
 # include <poll.h>
 #elif HAVE_SYS_POLL_H
 # include <sys/poll.h>
-#else
+#endif
 
 #ifndef HAVE_STRUCT_POLLFD_FD
 typedef struct pollfd {
@@ -44,12 +44,25 @@ typedef struct pollfd {
 	short	revents;
 } pollfd_t;
 
-#define	POLLIN		0x0001
-#define	POLLPRI		0x0002
-#define	POLLOUT		0x0004
-#define	POLLERR		0x0008
-#define	POLLHUP		0x0010
-#define	POLLNVAL	0x0020
+#ifndef POLLIN
+# define POLLIN		0x0001
+#endif
+#ifndef POLLPRI
+# define POLLPRI	0x0002
+#endif
+#ifndef POLLOUT
+# define POLLOUT	0x0004
+#endif
+#ifndef POLLERR
+# define POLLERR	0x0008
+#endif
+#ifndef POLLHUP
+# define POLLHUP	0x0010
+#endif
+#ifndef POLLNVAL
+# define POLLNVAL	0x0020
+#endif
+
 #if 0
 /* the following are currently not implemented */
 #define	POLLRDNORM	0x0040
@@ -73,5 +86,5 @@ int   poll(struct pollfd *, nfds_t, int);
 #ifndef HAVE_PPOLL
 int   ppoll(struct pollfd *, nfds_t, const struct timespec *, const sigset_t *);
 #endif
-#endif /* !HAVE_POLL_H && !HAVE_SYS_POLL_H */
+
 #endif /* !_COMPAT_POLL_H_ */
