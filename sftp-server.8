@@ -38,6 +38,7 @@
 .Op Fl P Ar denied_requests
 .Op Fl p Ar allowed_requests
 .Op Fl u Ar umask
+.Op Fl t Ar session_timeout
 .Ek
 .Nm
 .Fl Q Ar protocol_feature
@@ -138,6 +139,9 @@ Sets an explicit
 .Xr umask 2
 to be applied to newly-created files and directories, instead of the
 user's default mask.
+.It Fl t Ar session_timeout
+Sets a timeout for idle connections in seconds. Specify 0 to disable the
+timeout.
 .El
 .Pp
 On some systems,

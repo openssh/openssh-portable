@@ -1892,7 +1892,7 @@ sftp_server_usage(void)
 	fprintf(stderr,
 	    "usage: %s [-ehR] [-d start_directory] [-f log_facility] "
 	    "[-l log_level]\n\t[-P denied_requests] "
-	    "[-p allowed_requests] [-u umask]\n"
+	    "[-p allowed_requests] [-u umask] [-t session_timeout]\n"
 	    "       %s -Q protocol_feature\n",
 	    __progname, __progname);
 	exit(1);
@@ -1906,6 +1906,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	char *cp, *homedir = NULL, uidstr[32], buf[4*4096];
 	long mask;
+	long timeout = -1;
 
 	extern char *optarg;
 	extern char *__progname;
@@ -1916,7 +1917,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	pw = pwcopy(user_pw);
 
 	while (!skipargs && (ch = getopt(argc, argv,
-	    "d:f:l:P:p:Q:u:cehR")) != -1) {
+	    "d:f:l:P:p:Q:u:cehRt:")) != -1) {
 		switch (ch) {
 		case 'Q':
 			if (strcasecmp(optarg, "requests") != 0) {
@@ -1977,6 +1978,15 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 			    cp == optarg || (mask == 0 && errno != 0))
 				fatal("Invalid umask \"%s\"", optarg);
 			(void)umask((mode_t)mask);
+			break;
+		case 't':
+			timeout = strtol(optarg, &cp, 10);
+			if (*cp != '\0' || timeout < 0 || timeout > INT_MAX / 1000)
+				fatal("Invalid timeout \"%s\"", optarg);
+			if (timeout == 0)
+				timeout = -1;
+			else
+				timeout *= 1000;
 			break;
 		case 'h':
 		default:
@@ -2057,11 +2067,14 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 			pfd[1].events = POLLOUT;
 		}
 
-		if (poll(pfd, 2, -1) == -1) {
+		if ((r = poll(pfd, 2, (int)timeout)) == -1) {
 			if (errno == EINTR)
 				continue;
 			error("poll: %s", strerror(errno));
 			sftp_server_cleanup_exit(2);
+		} else if (r == 0) {
+			logit("session timed out");
+			sftp_server_cleanup_exit(0);
 		}
 
 		/* copy stdin to iqueue */
