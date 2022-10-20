@@ -39,19 +39,38 @@
 #include "err.h"
 #include "num.h"
 
+/* note regarding threads and queues */
+/* initially this cipher was written in a way that
+ * the key stream was generated in a per cipher block
+ * loop. For example, if the key stream queue length was
+ * 16k and the cipher block size was 16 bytes it would
+ * fill the queue 16 bytes at a time. Mitch Dorrell pointed
+ * out that we could fill the queue in once call eliminating
+ * loop and multiple calls to EVP_EncryptUpdate. Doing so
+ * dramatically reduced CPU load in the threads and indicated
+ * that we could also eliminate most of the threads and queues
+ * as it would take far less time for a queue to ebter KQ_FULL
+ * state. As such, we've reduced the default number of threads
+ * and queues from 2 and 8 (respectively) to 1 and 2. We've also
+ * elimnated the need to determine the physical number of cores on
+ * the system and, if the user desires, can spin up more threads
+ * using an environment variable. Additionally, queues is now fixed
+ * at thread_count + 1.
+ * cjr 10/19/2022 */
+
 /*-------------------- TUNABLES --------------------*/
 /* Number of pregen threads to use */
 /* this is a default value. The actual number is
  * determined during init as a function of the number
  * of available cores */
-int cipher_threads = 2;
+int cipher_threads = 1;
 
 /* Number of keystream queues */
 /* ideally this should be large enough so that there is
  * always a key queue for a thread to work on
  * so maybe double of the number of threads. Again this
  * is a default and the actual value is determined in init*/
-int numkq = 8;
+int numkq = 2;
 /*-------------------- END TUNABLES --------------------*/
 
 /* globals */
@@ -59,15 +78,6 @@ int numkq = 8;
 int global_struct_id = 0;
 
 /* private functions */
-static void
-ssh_ctr_inc(u_char *ctr, size_t len)
-{
-	int i;
-
-	for (i = len - 1; i >= 0; i--)
-		if (++ctr[i])	/* continue on overflow */
-			return;
-}
 
 /*
  * Add num to counter 'ctr'
@@ -150,66 +160,32 @@ stop_and_join_pregen_threads(struct aes_mt_ctx_st *aes_mt_ctx)
 	}
 }
 
-/* get the number of cores in the system
- * peak performance seems to come with assigning half the number of
- * physical cores in the system. This was determined by interating
- * over the variables
- * tests on a 32 physical core system indicates that more than 6 cores
- * is either a waste or hurts performance -cjr 10/14/21
+/* determine the number of threads to use
+ * Testing indicates that in most all situations the optimal number of
+ * threads is 1 meaning 1 for inbound and 1 for outbound. The optimal
+ * queue count has also been determined to be thread_count + 1.
  * note this function updates two globals - numkq and cipher_threads
  * it returns the value of cipher_threads but it doesn't need to */
-static int get_core_count() {
-#ifdef __linux__
-	int divisor; /* Wouldn't it be nice if linux had sysctlbyname? Yes. */
-	FILE *fp;
-	int status = 0;
-	/* determine is hyperthreading is enabled */
-	fp = fopen("/sys/devices/system/cpu/smt/active", "r");
-	/* can't find the file so assume that it does not exist */
-	if (fp != NULL) {
-		fscanf(fp, "%d", &status);
-		fclose(fp);
-	}
-	/* 1 for HT on 0 for HT off */
-	if (status == 1)
-		divisor = 4;
-	else
-		divisor = 2;
-	cipher_threads = sysconf(_SC_NPROCESSORS_ONLN) / divisor;
-#endif  /*__linux__*/
-#ifdef  __APPLE__
-	int count;
-	size_t count_len = sizeof(count);
-	sysctlbyname("hw.physicalcpu", &count, &count_len, NULL, 0);
-	cipher_threads = count / 2;
-#endif  /*__APPLE__*/
-#ifdef  __FREEBSD__
-	int threads_per_core;
-	int cores;
-	size_t cores_len = sizeof(cores);
-	size_t tpc_len = sizeof(threads_per_core);
-	sysctlbyname("kern.smp.threads_per_core", &threads_per_core, &tpc_len, NULL, 0);
-	sysctlbyname("kern.smp.cores", &cores, &cores_len, NULL, 0);
-	cipher_threads = cores / threads_per_core;
-#endif  /*__FREEBSD__*/
-	
-	/* done finding the number of physical cores */
+static int get_thread_count() {
 
- 	/* if they have less than 4 cores spin up 2 threads anyway */
-	if (cipher_threads < 2)
- 		cipher_threads = 2;
-	
+	char * aes_threads = getenv("SSH_CIPHER_THREADS");
+	debug_f ("SSH thread count is %s", aes_threads);
+        if (aes_threads != NULL && strlen(aes_threads) != 0)
+		cipher_threads = atoi(aes_threads);
+	else
+		cipher_threads = 1;
+
+	if (cipher_threads < 1)
+ 		cipher_threads = 1;
+
 	if (cipher_threads > MAX_THREADS)
 		cipher_threads = MAX_THREADS;
-	
-	/* set the number of keystream queues. 4 for each thread
-	 * this seems to reduce waiting in the cipher process for queues
-	 * to fill up */
-	numkq = cipher_threads * 4;
-	
+
+	numkq = cipher_threads + 1;
+
 	if (numkq > MAX_NUMKQ)
 		numkq = MAX_NUMKQ;
-	
+
 	debug_f ("Starting %d threads and %d queues\n", cipher_threads, numkq);
 
 	return (cipher_threads);
@@ -227,12 +203,11 @@ thread_loop(void *job)
 	EVP_CIPHER_CTX *evp_ctx;
 	struct aes_mt_ctx_st *aes_mt_ctx = job;
 	struct kq *q;
-	int i;
 	int qidx;
 	pthread_t first_tid;
 	int outlen;
-	u_char mynull[AES_BLOCK_SIZE];
-	memset(&mynull, 0, AES_BLOCK_SIZE);
+	u_char mynull[KQLEN * AES_BLOCK_SIZE];
+	memset(&mynull, 0, KQLEN * AES_BLOCK_SIZE);
 
 	/* get the thread id to see if this is the first one */
 	pthread_rwlock_rdlock(&aes_mt_ctx->tid_lock);
@@ -250,9 +225,8 @@ thread_loop(void *job)
 		EVP_EncryptInit_ex(evp_ctx, EVP_aes_128_ctr(), NULL, aes_mt_ctx->orig_key, NULL);
 	else if (aes_mt_ctx->keylen == 192)
 		EVP_EncryptInit_ex(evp_ctx, EVP_aes_192_ctr(), NULL, aes_mt_ctx->orig_key, NULL);
-	else {
+	else
 		fatal("Invalid key length of %d in AES CTR MT. Exiting", aes_mt_ctx->keylen);
-	}
 
 	/*
 	 * Handle the special case of startup, one thread must fill
@@ -266,15 +240,13 @@ thread_loop(void *job)
 		if (q->qstate == KQINIT) {
 			/* set the initial counter */
 			EVP_EncryptInit_ex(evp_ctx, NULL, NULL, NULL, q->ctr);
-			for (i = 0; i < KQLEN; i++) {
-				/* encypher a block sized null string (mynull) with the key. This
-				 * returns the keystream because xoring the keystream
-				 * against null returns the keystream. Store that in the appropriate queue */
-				EVP_EncryptUpdate(evp_ctx, q->keys[i], &outlen, mynull, AES_BLOCK_SIZE);
-				/* increment the counter */
-				ssh_ctr_inc(q->ctr, AES_BLOCK_SIZE);
-			}
-			ssh_ctr_add(q->ctr, KQLEN * (numkq - 1), AES_BLOCK_SIZE);
+			/* encypher a block sized null string (mynull) with the key. This
+			 * returns the keystream because xoring the keystream
+			 * against null returns the keystream. Store that in the appropriate queue */
+			EVP_EncryptUpdate(evp_ctx, q->keys[0], &outlen, mynull, KQLEN * AES_BLOCK_SIZE);
+			/* Update the aes counter */
+			ssh_ctr_add(q->ctr, KQLEN * numkq, AES_BLOCK_SIZE);
+			/* since this is the first thread set it to draining */
 			q->qstate = KQDRAINING;
 			pthread_cond_broadcast(&q->cond);
 		}
@@ -326,14 +298,11 @@ thread_loop(void *job)
 		EVP_EncryptInit_ex(evp_ctx, NULL, NULL, NULL, q->ctr);
 
 		/* see coresponding block above for useful comments */
-		for (i = 0; i < KQLEN; i++) {
-			EVP_EncryptUpdate(evp_ctx, q->keys[i], &outlen, mynull, AES_BLOCK_SIZE);
-			ssh_ctr_inc(q->ctr, AES_BLOCK_SIZE);
-		}
+		EVP_EncryptUpdate(evp_ctx, q->keys[0], &outlen, mynull, KQLEN * AES_BLOCK_SIZE);
 
 		/* Re-lock, mark full and signal consumer */
 		pthread_mutex_lock(&q->lock);
-		ssh_ctr_add(q->ctr, KQLEN * (numkq - 1), AES_BLOCK_SIZE);
+		ssh_ctr_add(q->ctr, KQLEN * numkq, AES_BLOCK_SIZE);
 		q->qstate = KQFULL;
 		pthread_cond_broadcast(&q->cond);
 		pthread_mutex_unlock(&q->lock);
@@ -343,10 +312,10 @@ thread_loop(void *job)
 }
 
 
-/* Our version of the EVP functions 
+/* Our version of the EVP functions
  * these are public as they are used by the provider */
 
-/* instantiate the cipher context. 
+/* instantiate the cipher context.
  * in this we create the EVP ctx and the AES ctx, setup the AES ctx
  * initialize the EVP and then attach the AES ctx to the EVP ctx.
  * The *only* difference between aes_mt_newctx_256|192|128 is the
@@ -354,29 +323,29 @@ thread_loop(void *job)
  * parameters: provider context
  * returns: EVP context
  */
-/* honestly the way this works makes me think that there has to be 
- * a better way of doing this however, I've yet to find one that doesn't 
+/* honestly the way this works makes me think that there has to be
+ * a better way of doing this however, I've yet to find one that doesn't
  * involve more madness. I think that's mostly becase I don't understand
  * how params work properly. I feel like I shoudl be able to use them
- * to specify the key length but... also, I'd think I'd be able to 
- * set aes_mt_ctx_st->keylen to the keylength but that doesn't seem to 
- * work either. That said, this does work even if it's a bit clunky. 
+ * to specify the key length but... also, I'd think I'd be able to
+ * set aes_mt_ctx_st->keylen to the keylength but that doesn't seem to
+ * work either. That said, this does work even if it's a bit clunky.
  * -cjr 09/08/2022 */
 void *aes_mt_newctx_256(void *provctx)
 {
 	struct aes_mt_ctx_st *aes_mt_ctx = malloc(sizeof(*aes_mt_ctx));
 	EVP_CIPHER_CTX *evp_ctx = EVP_CIPHER_CTX_new();
-	
+
 	if ((aes_mt_ctx != NULL) && (evp_ctx != NULL)) {
-		get_core_count(); /* update cipher_threads and numkq */
+		get_thread_count(); /* update cipher_threads and numkq */
 		pthread_rwlock_init(&aes_mt_ctx->tid_lock, NULL);
 #ifdef __APPLE__
 		pthread_rwlock_init(&aes_mt_ctx->stop_lock, NULL);
 		aes_mt_ctx->exit_flag = FALSE;
 #endif /* __APPLE__ */
-		
+
 		aes_mt_ctx->state = HAVE_NONE;
-		
+
 		/* initialize the mutexs and conditions for each lock in our struct */
 		for (int i = 0; i < numkq; i++) {
 			pthread_mutex_init(&aes_mt_ctx->q[i].lock, NULL);
@@ -394,17 +363,17 @@ void *aes_mt_newctx_192(void *provctx)
 {
 	struct aes_mt_ctx_st *aes_mt_ctx = malloc(sizeof(*aes_mt_ctx));
 	EVP_CIPHER_CTX *evp_ctx = EVP_CIPHER_CTX_new();
-	
+
 	if ((aes_mt_ctx != NULL) && (evp_ctx != NULL)) {
-		get_core_count(); /* update cipher_threads and numkq */
+		get_thread_count(); /* update cipher_threads and numkq */
 		pthread_rwlock_init(&aes_mt_ctx->tid_lock, NULL);
 #ifdef __APPLE__
 		pthread_rwlock_init(&aes_mt_ctx->stop_lock, NULL);
 		aes_mt_ctx->exit_flag = FALSE;
 #endif /* __APPLE__ */
-		
+
 		aes_mt_ctx->state = HAVE_NONE;
-		
+
 		/* initialize the mutexs and conditions for each lock in our struct */
 		for (int i = 0; i < numkq; i++) {
 			pthread_mutex_init(&aes_mt_ctx->q[i].lock, NULL);
@@ -422,17 +391,17 @@ void *aes_mt_newctx_128(void *provctx)
 {
 	struct aes_mt_ctx_st *aes_mt_ctx = malloc(sizeof(*aes_mt_ctx));
 	EVP_CIPHER_CTX *evp_ctx = EVP_CIPHER_CTX_new();
-	
+
 	if ((aes_mt_ctx != NULL) && (evp_ctx != NULL)) {
-		get_core_count(); /* update cipher_threads and numkq */
+		get_thread_count(); /* update cipher_threads and numkq */
 		pthread_rwlock_init(&aes_mt_ctx->tid_lock, NULL);
 #ifdef __APPLE__
 		pthread_rwlock_init(&aes_mt_ctx->stop_lock, NULL);
 		aes_mt_ctx->exit_flag = FALSE;
 #endif /* __APPLE__ */
-		
+
 		aes_mt_ctx->state = HAVE_NONE;
-		
+
 		/* initialize the mutexs and conditions for each lock in our struct */
 		for (int i = 0; i < numkq; i++) {
 			pthread_mutex_init(&aes_mt_ctx->q[i].lock, NULL);
@@ -447,16 +416,16 @@ void *aes_mt_newctx_128(void *provctx)
 }
 
 /* this function expects a void but we need the actual context
- * to get the app_data. 
+ * to get the app_data.
  */
 void aes_mt_freectx(void *vevp_ctx)
 {
 	EVP_CIPHER_CTX *evp_ctx = vevp_ctx;
 	struct aes_mt_ctx_st *aes_mt_ctx;
-	 
+
 	if ((aes_mt_ctx = EVP_CIPHER_CTX_get_app_data(evp_ctx)) != NULL) {
 		stop_and_join_pregen_threads(aes_mt_ctx);
-		
+
 		memset(aes_mt_ctx, 0, sizeof(*aes_mt_ctx));
 		free(aes_mt_ctx);
 		EVP_CIPHER_CTX_set_app_data(evp_ctx, NULL);
@@ -472,7 +441,7 @@ int aes_mt_start_threads(void *vevp_ctx, const u_char *key,
 	EVP_CIPHER_CTX *evp_ctx = vevp_ctx;
 	struct aes_mt_ctx_st *aes_mt_ctx;
 
-	
+
 	/* get the initial state of aes_mt_ctx (our cipher stream struct) */
  	if ((aes_mt_ctx = EVP_CIPHER_CTX_get_app_data(evp_ctx)) == NULL) {
 		fatal("Missing AES MT context data!");
@@ -484,12 +453,12 @@ int aes_mt_start_threads(void *vevp_ctx, const u_char *key,
 	if (aes_mt_ctx->state == (HAVE_KEY | HAVE_IV)) {
 		/* tell the pregen threads to exit */
 		stop_and_join_pregen_threads(aes_mt_ctx);
-		
+
 #ifdef __APPLE__
 		/* reset the exit flag */
 		aes_mt_ctx->exit_flag = FALSE;
 #endif /* __APPLE__ */
-		
+
 		/* Start over getting key & iv */
 		aes_mt_ctx->state = HAVE_NONE;
 	}
@@ -523,7 +492,7 @@ int aes_mt_start_threads(void *vevp_ctx, const u_char *key,
 		}
 		aes_mt_ctx->qidx = 0;
 		aes_mt_ctx->ridx = 0;
-		
+
 		/* Start threads */
 		for (int i = 0; i < cipher_threads; i++) {
 			pthread_rwlock_wrlock(&aes_mt_ctx->tid_lock);

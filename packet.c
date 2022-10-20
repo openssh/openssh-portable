@@ -952,7 +952,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	 * and using a blocksize larger that 16 doesn't work (dunno why)
 	 * so this seems to be a good limit for now - CJR 10/16/2020*/
 	if (ssh->none == 1) {
-		*max_blocks = (u_int64_t)1 << (16*2);
+		*max_blocks = (u_int64_t)1 << (31*2);
 	} else {
 		if (enc->block_size >= 16)
 			*max_blocks = (u_int64_t)1 << (enc->block_size*2);

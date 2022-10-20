@@ -41,14 +41,14 @@
 
 /*-------------------- TUNABLES --------------------*/
 /* maximum number of threads and queues */
-#define MAX_THREADS      6
-#define MAX_NUMKQ        (MAX_THREADS * 4)
+#define MAX_THREADS      32
+#define MAX_NUMKQ        (MAX_THREADS + 1)
 
-/* one queue holds 64KB of key data
+/* one queue holds 8192 * 4 * 16B (512KB)  of key data 
  * being that the queues are destroyed after a rekey
  * and at leats one has to be fully filled prior to
  * enciphering data we don't want this to be too large */
-#define KQLEN 8192
+#define KQLEN (8192 * 4)
 
 /* Processor cacheline length */
 #define CACHELINE_LEN	64
@@ -88,7 +88,7 @@ struct provider_ctx_st {
 
 /* Keystream Queue struct */
 struct kq {
-	u_char		keys[KQLEN][AES_BLOCK_SIZE]; /* 8192 x 16B */
+	u_char		keys[KQLEN][AES_BLOCK_SIZE]; /* [32768][16B] */
 	u_char		ctr[AES_BLOCK_SIZE]; /* 16B */
 	u_char          pad0[CACHELINE_LEN];
 	pthread_mutex_t	lock;
@@ -105,13 +105,13 @@ struct aes_mt_ctx_st {
 	int		state;
 	int		qidx;
 	int		ridx;
-	int             id[MAX_THREADS]; /* 6 */
+	int             id[MAX_THREADS]; /* 32 */
 	AES_KEY         aes_key;
 	const u_char    *orig_key;
 	u_char		aes_counter[AES_BLOCK_SIZE]; /* 16B */
-	pthread_t	tid[MAX_THREADS]; /* 6 */
+	pthread_t	tid[MAX_THREADS]; /* 32 */
 	pthread_rwlock_t tid_lock;
-	struct kq	q[MAX_NUMKQ]; /* 24 */
+	struct kq	q[MAX_NUMKQ]; /* 33 */
 #ifdef __APPLE__
 	pthread_rwlock_t stop_lock;
 	int		exit_flag;

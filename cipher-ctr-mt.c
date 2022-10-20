@@ -50,30 +50,49 @@
 #include <sys/sysctl.h>
 #endif
 
+/* note regarding threads and queues */
+/* initially this cipher was written in a way that
+ * the key stream was generated in a per cipher block
+ * loop. For example, if the key stream queue length was
+ * 16k and the cipher block size was 16 bytes it would
+ * fill the queue 16 bytes at a time. Mitch Dorrell pointed
+ * out that we could fill the queue in once call eliminating
+ * loop and multiple calls to EVP_EncryptUpdate. Doing so
+ * dramatically reduced CPU load in the threads and indicated
+ * that we could also eliminate most of the threads and queues
+ * as it would take far less time for a queue to ebter KQ_FULL
+ * state. As such, we've reduced the default number of threads
+ * and queues from 2 and 8 (respectively) to 1 and 2. We've also
+ * elimnated the need to determine the physical number of cores on
+ * the system and, if the user desires, can spin up more threads
+ * using an environment variable. Additionally, queues is now fixed
+ * at thread_count + 1.
+ * cjr 10/19/2022 */
+
 /*-------------------- TUNABLES --------------------*/
 /* maximum number of threads and queues */
-#define MAX_THREADS      6
-#define MAX_NUMKQ        (MAX_THREADS * 4)
+#define MAX_THREADS      32
+#define MAX_NUMKQ        (MAX_THREADS + 1)
 
 /* Number of pregen threads to use */
 /* this is a default value. The actual number is
  * determined during init as a function of the number
  * of available cores */
-int cipher_threads = 2;
+int cipher_threads = 1;
 
 /* Number of keystream queues */
 /* ideally this should be large enough so that there is
  * always a key queue for a thread to work on
  * so maybe double of the number of threads. Again this
  * is a default and the actual value is determined in init*/
-int numkq = 8;
+int numkq = 2;
 
 /* Length of a keystream queue */
-/* one queue holds 64KB of key data
+/* one queue holds 512KB (8192 * 4 * 16) of key data
  * being that the queues are destroyed after a rekey
  * and at leats one has to be fully filled prior to
  * enciphering data we don't want this to be too large */
-#define KQLEN 8192
+#define KQLEN (8192 * 4)
 
 /* Processor cacheline length */
 #define CACHELINE_LEN	64
@@ -108,7 +127,7 @@ enum {
 
 /* Keystream Queue struct */
 struct kq {
-	u_char		keys[KQLEN][AES_BLOCK_SIZE]; /* 8192 x 16B */
+	u_char		keys[KQLEN][AES_BLOCK_SIZE]; /* [32768][16B] */
 	u_char		ctr[AES_BLOCK_SIZE]; /* 16B */
 	u_char          pad0[CACHELINE_LEN];
 	pthread_mutex_t	lock;
@@ -125,13 +144,13 @@ struct ssh_aes_ctr_ctx_mt
 	int		state;
 	int		qidx;
 	int		ridx;
-	int             id[MAX_THREADS]; /* 6 */
+	int             id[MAX_THREADS]; /* 32 */
 	AES_KEY         aes_key;
 	const u_char    *orig_key;
 	u_char		aes_counter[AES_BLOCK_SIZE]; /* 16B */
-	pthread_t	tid[MAX_THREADS]; /* 6 */
+	pthread_t	tid[MAX_THREADS]; /* 32 */
 	pthread_rwlock_t tid_lock;
-	struct kq	q[MAX_NUMKQ]; /* 24 */
+	struct kq	q[MAX_NUMKQ]; /* 33 */
 #ifdef __APPLE__
 	pthread_rwlock_t stop_lock;
 	int		exit_flag;
@@ -255,8 +274,8 @@ thread_loop(void *x)
 	int qidx;
 	pthread_t first_tid;
 	int outlen;
-	u_char mynull[AES_BLOCK_SIZE];
-	memset(&mynull, 0, AES_BLOCK_SIZE);
+	u_char mynull[KQLEN * AES_BLOCK_SIZE];
+	memset(&mynull, 0, KQLEN * AES_BLOCK_SIZE);
 
 	/* get the thread id to see if this is the first one */
 	pthread_rwlock_rdlock(&c->tid_lock);
@@ -292,15 +311,14 @@ thread_loop(void *x)
 		if (q->qstate == KQINIT) {
 			/* set the initial counter */
 			EVP_EncryptInit_ex(aesni_ctx, NULL, NULL, NULL, q->ctr);
-			for (i = 0; i < KQLEN; i++) {
-				/* encypher a block sized null string (mynull) with the key. This
-				 * returns the keystream because xoring the keystream
-				 * against null returns the keystream. Store that in the appropriate queue */
-				EVP_EncryptUpdate(aesni_ctx, q->keys[i], &outlen, mynull, AES_BLOCK_SIZE);
-				/* increment the counter */
-				ssh_ctr_inc(q->ctr, AES_BLOCK_SIZE);
-			}
-			ssh_ctr_add(q->ctr, KQLEN * (numkq - 1), AES_BLOCK_SIZE);
+
+			/* encypher a block sized null string (mynull) with the key. This
+			 * returns the keystream because xoring the keystream
+			 * against null returns the keystream. Store that in the appropriate queue */
+			EVP_EncryptUpdate(aesni_ctx, q->keys[0], &outlen, mynull, KQLEN * AES_BLOCK_SIZE);
+
+			/* add the number of blocks creates to the aes counter */
+			ssh_ctr_add(q->ctr, KQLEN * numkq, AES_BLOCK_SIZE);
 			q->qstate = KQDRAINING;
 			pthread_cond_broadcast(&q->cond);
 		}
@@ -352,14 +370,11 @@ thread_loop(void *x)
 		EVP_EncryptInit_ex(aesni_ctx, NULL, NULL, NULL, q->ctr);
 
 		/* see coresponding block above for useful comments */
-		for (i = 0; i < KQLEN; i++) {
-			EVP_EncryptUpdate(aesni_ctx, q->keys[i], &outlen, mynull, AES_BLOCK_SIZE);
-			ssh_ctr_inc(q->ctr, AES_BLOCK_SIZE);
-		}
+		EVP_EncryptUpdate(aesni_ctx, q->keys[0], &outlen, mynull, KQLEN * AES_BLOCK_SIZE);
 
 		/* Re-lock, mark full and signal consumer */
 		pthread_mutex_lock(&q->lock);
-		ssh_ctr_add(q->ctr, KQLEN * (numkq - 1), AES_BLOCK_SIZE);
+		ssh_ctr_add(q->ctr, KQLEN * numkq, AES_BLOCK_SIZE);
 		q->qstate = KQFULL;
 		pthread_cond_broadcast(&q->cond);
 		pthread_mutex_unlock(&q->lock);
@@ -476,63 +491,19 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	struct ssh_aes_ctr_ctx_mt *c;
 	int i;
 
- 	/* get the number of cores in the system
-	 * peak performance seems to come with assigning half the number of
-	 * physical cores in the system. This was determined by interating
-	 * over the variables */
-	/* tests on a 32 physical core system indicates that more than 6 cores
-	 * is either a waste or hurts performance -cjr 10/14/21 */
-#ifdef __linux__
-	int divisor; /* Wouldn't it be nice if linux had sysctlbyname? Yes. */
-	FILE *fp;
-	int status = 0;
-	/* determine is hyperthreading is enabled */
-	fp = fopen("/sys/devices/system/cpu/smt/active", "r");
-	/* can't find the file so assume that it does not exist */
-	if (fp != NULL) {
-		fscanf(fp, "%d", &status);
-		fclose(fp);
-	}
-	/* 1 for HT on 0 for HT off */
-	if (status == 1)
-		divisor = 4;
+	char * aes_threads = getenv("SSH_CIPHER_THREADS");
+        if (aes_threads != NULL && strlen(aes_threads) != 0)
+		cipher_threads = atoi(aes_threads);
 	else
-		divisor = 2;
-	cipher_threads = sysconf(_SC_NPROCESSORS_ONLN) / divisor;
-#endif  /*__linux__*/
-#ifdef  __APPLE__
-	int count;
-	size_t count_len = sizeof(count);
-	sysctlbyname("hw.physicalcpu", &count, &count_len, NULL, 0);
-	cipher_threads = count / 2;
-#endif  /*__APPLE__*/
-#ifdef  __FREEBSD__
-	int threads_per_core;
-	int cores;
-	size_t cores_len = sizeof(cores);
-	size_t tpc_len = sizeof(threads_per_core);
-	sysctlbyname("kern.smp.threads_per_core", &threads_per_core, &tpc_len, NULL, 0);
-	sysctlbyname("kern.smp.cores", &cores, &cores_len, NULL, 0);
-	cipher_threads = cores / threads_per_core;
-#endif  /*__FREEBSD__*/
+		cipher_threads = 1;
 
- 	/* if they have less than 4 cores spin up 2 threads anyway */
-	if (cipher_threads < 2)
- 		cipher_threads = 2;
-
- 	/* assure that we aren't trying to create more threads */
- 	/* than we have in the struct. cipher_threads is half the */
- 	/* total of allowable threads hence the odd looking math here */
- 	//if (cipher_threads * 2 > MAX_THREADS)
- 	//	cipher_threads = MAX_THREADS / 2;
+	if (cipher_threads < 1)
+ 		cipher_threads = 1;
 
 	if (cipher_threads > MAX_THREADS)
 		cipher_threads = MAX_THREADS;
 
-	/* set the number of keystream queues. 4 for each thread
-	 * this seems to reduce waiting in the cipher process for queues
-	 * to fill up */
-	numkq = cipher_threads * 4;
+	numkq = cipher_threads + 1;
 
 	if (numkq > MAX_NUMKQ)
 		numkq = MAX_NUMKQ;
@@ -647,17 +618,17 @@ ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 
 /* <friedl> */
 /* this has become more and more confusing over time as we try
- * acocunt for different versions of OpenSSL and LibreSSL. 
+ * account for different versions of OpenSSL and LibreSSL.
  * Why do we do it this way? Earlier versions of OpenSSL had an
  * accessible EVP_CIPHER struct. In that situation we coud simply
- * redefine the function pointers to our custom functions. However, 
+ * redefine the function pointers to our custom functions. However,
  * starting 1.1 the EVP_CIPHER was made opaque and the only way to
  * change the function pointers was through the _meth_new and _meth_set
  * functions. At the very same time LibreSSL - up to version 3.5
  * had an accessible EVP_CIPHER struct. Then they changed it to an opaque
  * struct but didn't implement any _meth_new _meth_set functions for
  * EVP_CIPHER. The LibreSSL developers has said that it will be introduced
- * in LSSL 3.7. So we have a hole were we can't support this in 
+ * in LSSL 3.7. So we have a hole were we can't support this in
  * LibreSSL. */
 
 const EVP_CIPHER *
@@ -670,7 +641,7 @@ evp_aes_ctr_mt(void)
 #if OPENSSL_VERSION_NUMBER < 0x10100000UL
 #define EVP_CIPHER_ACCESSIBLE
 #endif
-/* LibreSSL reports the OSSL version number as 2. So we need to 
+/* LibreSSL reports the OSSL version number as 2. So we need to
  * check that as well as the LibreSSL version */
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000UL && OPENSSL_VERSION_NUMBER != 0x20000000UL) \
 	|| LIBRESSL_VERSION_NUMBER > 0x3060000fL
@@ -685,7 +656,7 @@ evp_aes_ctr_mt(void)
 #if defined(EVP_CIPHER_ACCESSIBLE) && defined(EVP_CIPHER_OPAQUE)
 	fatal_f("The installed version of libcrypto does not support the threaded AES CTR cipher. Exiting.");
 #endif
-	
+
 #if defined(EVP_CIPHER_ACCESSIBLE) && !defined(EVP_CIPHER_OPAQUE)
 	static EVP_CIPHER aes_ctr;
 	memset(&aes_ctr, 0, sizeof(EVP_CIPHER));
