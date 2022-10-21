@@ -76,6 +76,14 @@ struct sshbuf *oqueue;
 /* Version of client */
 static u_int version;
 
+/* Force file permissions */
+int permforce = 0;
+long permforcemode;
+
+/* Force directory permissions */
+int permforcedir = 0;
+long permforcedirmode;
+
 /* SSH2_FXP_INIT received */
 static int init_done;
 
@@ -745,6 +753,7 @@ process_open(u_int32_t id)
 	Attrib a;
 	char *name;
 	int r, handle, fd, flags, mode, status = SSH2_FX_FAILURE;
+	mode_t old_umask = 0;
 
 	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0 ||
 	    (r = sshbuf_get_u32(iqueue, &pflags)) != 0 || /* portable flags */
@@ -754,6 +763,10 @@ process_open(u_int32_t id)
 	debug3("request %u: open flags %d", id, pflags);
 	flags = flags_from_portable(pflags);
 	mode = (a.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) ? a.perm : 0666;
+	if (permforce == 1) {   /* Force perm if -m is set */
+		mode = permforcemode;
+		old_umask = umask(0); /* so umask does not interfere */
+	}
 	logit("open \"%s\" flags %s mode 0%o",
 	    name, string_from_portable(pflags), mode);
 	if (readonly &&
@@ -775,6 +788,8 @@ process_open(u_int32_t id)
 			}
 		}
 	}
+	if (permforce == 1)
+		(void) umask(old_umask); /* restore umask to something sane */
 	if (status != SSH2_FX_OK)
 		send_status(id, status);
 	free(name);
@@ -1205,6 +1220,7 @@ process_mkdir(u_int32_t id)
 	Attrib a;
 	char *name;
 	int r, mode, status = SSH2_FX_FAILURE;
+	mode_t old_umask = 0;
 
 	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0 ||
 	    (r = decode_attrib(iqueue, &a)) != 0)
@@ -1212,9 +1228,15 @@ process_mkdir(u_int32_t id)
 
 	mode = (a.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) ?
 	    a.perm & 07777 : 0777;
+	if (permforcedir == 1) {   /* Force perm if -M is set */
+		mode = permforcedirmode;
+		old_umask = umask(0); /* so umask does not interfere */
+	}
 	debug3("request %u: mkdir", id);
 	logit("mkdir name \"%s\" mode 0%o", name, mode);
 	r = mkdir(name, mode);
+	if (permforcedir == 1)
+		(void) umask(old_umask); /* restore umask to something sane */
 	status = (r == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
 	send_status(id, status);
 	free(name);
@@ -1892,7 +1914,8 @@ sftp_server_usage(void)
 	fprintf(stderr,
 	    "usage: %s [-ehR] [-d start_directory] [-f log_facility] "
 	    "[-l log_level]\n\t[-P denied_requests] "
-	    "[-p allowed_requests] [-u umask]\n"
+	    "[-p allowed_requests] [-u umask] "
+	    "[-m force_file_perms] [-M force_directory_perms]\n"
 	    "       %s -Q protocol_feature\n",
 	    __progname, __progname);
 	exit(1);
@@ -1916,7 +1939,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	pw = pwcopy(user_pw);
 
 	while (!skipargs && (ch = getopt(argc, argv,
-	    "d:f:l:P:p:Q:u:cehR")) != -1) {
+	    "d:f:l:P:p:Q:u:m:M:cehR")) != -1) {
 		switch (ch) {
 		case 'Q':
 			if (strcasecmp(optarg, "requests") != 0) {
@@ -1977,6 +2000,24 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 			    cp == optarg || (mask == 0 && errno != 0))
 				fatal("Invalid umask \"%s\"", optarg);
 			(void)umask((mode_t)mask);
+			break;
+		case 'm':
+			/* Force permissions on file received via sftp */
+			permforce = 1;
+			permforcemode = strtol(optarg, &cp, 8);
+			if (permforcemode < 0 || permforcemode > 0777 ||
+			    *cp != '\0' || (permforcemode == 0 &&
+			    errno != 0))
+				fatal("Invalid file mode \"%s\"", optarg);
+			break;
+		case 'M':
+			/* Force permissions on directory received via sftp */
+			permforcedir = 1;
+			permforcedirmode = strtol(optarg, &cp, 8);
+			if (permforcedirmode < 0 || permforcedirmode > 0777 ||
+			    *cp != '\0' || (permforcedirmode == 0 &&
+			    errno != 0))
+				fatal("Invalid directory mode \"%s\"", optarg);
 			break;
 		case 'h':
 		default:
