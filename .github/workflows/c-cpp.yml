@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         # First we test all OSes in the default configuration.
-        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, macos-11.0]
+        os: [ubuntu-20.04, ubuntu-18.04, macos-11.0, macos-11.0, macos-12.0]
         configs: [default]
         # Then we include any extra configs we want to test for specific VMs.
         # Valgrind slows things down quite a bit, so start them first.
@@ -23,7 +23,7 @@ jobs:
 #          - { os: ubuntu-20.04, configs: valgrind-3 }
 #          - { os: ubuntu-20.04, configs: valgrind-4 }
 #          - { os: ubuntu-20.04, configs: valgrind-unit }
-          - { os: ubuntu-20.04, configs: c89 }
+#          - { os: ubuntu-20.04, configs: c89 }
           - { os: ubuntu-20.04, configs: clang-6.0 }
           - { os: ubuntu-20.04, configs: clang-8 }
           - { os: ubuntu-20.04, configs: clang-9 }
@@ -39,7 +39,7 @@ jobs:
           - { os: ubuntu-20.04, configs: hardenedmalloc }
           - { os: ubuntu-20.04, configs: tcmalloc }
 #          - { os: ubuntu-20.04, configs: musl }
-          - { os: ubuntu-latest, configs: libressl-master }
+#          - { os: ubuntu-latest, configs: libressl-master }
           - { os: ubuntu-latest, configs: libressl-2.2.9 }
           - { os: ubuntu-latest, configs: libressl-2.8.3 }
           - { os: ubuntu-latest, configs: libressl-3.0.2 }
@@ -48,7 +48,7 @@ jobs:
           - { os: ubuntu-latest, configs: libressl-3.4.1 }
 #          - { os: ubuntu-latest, configs: libressl-3.5.0 }
           - { os: ubuntu-latest, configs: openssl-master }
-          - { os: ubuntu-latest, configs: openssl-noec }
+#          - { os: ubuntu-latest, configs: openssl-noec }
           - { os: ubuntu-latest, configs: openssl-1.0.1 }
           - { os: ubuntu-latest, configs: openssl-1.0.1u }
           - { os: ubuntu-latest, configs: openssl-1.0.2u }
@@ -68,11 +68,12 @@ jobs:
           - { os: ubuntu-18.04, configs: selinux }
           - { os: ubuntu-18.04, configs: kitchensink }
           - { os: ubuntu-18.04, configs: without-openssl }
-          - { os: macos-10.15,  configs: pam }
+#          - { os: macos-10.15,  configs: pam }
           - { os: macos-11.0,   configs: pam }
+          - { os: macos-12.0,   configs: pam }
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: setup CI system
       run: ./.github/setup_ci.sh ${{ matrix.configs }}
     - name: autoreconf
@@ -80,7 +81,7 @@ jobs:
     - name: configure
       run: ./.github/configure.sh ${{ matrix.configs }}
     - name: save config
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.os }}-${{ matrix.configs }}-config
         path: config.h
@@ -94,7 +95,7 @@ jobs:
         TEST_SSH_UNSAFE_PERMISSIONS: 1
     - name: save logs
       if: failure()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.os }}-${{ matrix.configs }}-logs
         path: |
