@@ -91,13 +91,12 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	u_char expected_tag[POLY1305_TAGLEN], poly_key[POLY1305_KEYLEN];
 
 	/* using the EVP_MAC interface for poly1305 is significantly
-	 * faster than the versionb bundled with OpenSSH. However,
+	 * faster than the version bundled with OpenSSH. However,
 	 * this interface is only available in OpenSSL 3.0+
-	 * -cjr 10/21/2022
-	 */
+	 * -cjr 10/21/2022 */
 #if OPENSSL_VERSION_NUMBER >= 0x30000000UL
 	EVP_MAC_CTX *poly_ctx = NULL;
-	EVP_MAC *mac = EVP_MAC_fetch(NULL, "POLY1305", NULL);
+	EVP_MAC *mac = NULL;
 	size_t poly_out_len;
 #endif
 	/*
@@ -115,18 +114,22 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	}
 
 #if OPENSSL_VERSION_NUMBER >= 0x30000000UL
-	/* create and initialize the context */
-	poly_ctx = EVP_MAC_CTX_new(mac);
-	EVP_MAC_init(poly_ctx, (const u_char *)poly_key, POLY1305_KEYLEN, NULL);
+	/* fetch the mac and create and initialize the context */
+	if ((mac = EVP_MAC_fetch(NULL, "POLY1305", NULL)) == NULL ||
+	    (poly_ctx = EVP_MAC_CTX_new(mac)) == NULL ||
+	    !EVP_MAC_init(poly_ctx, (const u_char *)poly_key, POLY1305_KEYLEN, NULL)) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
 #endif
 
 	/* If decrypting, check tag before anything else */
 	if (!do_encrypt) {
 		const u_char *tag = src + aadlen + len;
 #if OPENSSL_VERSION_NUMBER >= 0x30000000UL
-		/* update doesn't put the poly_mac into a buffer */
+		/* EVP_MAC_update doesn't put the poly_mac into a buffer 
+		 * we need EVP_MAC_final for that */
 		EVP_MAC_update(poly_ctx, src, aadlen + len);
-		/* we need final for that */
 		EVP_MAC_final(poly_ctx, expected_tag, &poly_out_len, (size_t)POLY1305_TAGLEN);
 #else
 		poly1305_auth(expected_tag, src, aadlen + len, poly_key);
