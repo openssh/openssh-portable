@@ -34,6 +34,7 @@
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "cipher-chachapoly.h"
+#include "poly1305-opt.h"
 
 struct chachapoly_ctx {
 	EVP_CIPHER_CTX *main_evp, *header_evp;
@@ -90,6 +91,16 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	int r = SSH_ERR_INTERNAL_ERROR;
 	u_char expected_tag[POLY1305_TAGLEN], poly_key[POLY1305_KEYLEN];
 
+	/* using the EVP_MAC interface for poly1305 is significantly
+	 * faster than the versionb bundled with OpenSSH. However,
+	 * this interface is only available in OpenSSL 3.0+
+	 * -cjr 10/21/2022
+	 */
+#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+	EVP_MAC_CTX *poly_ctx = NULL;
+	EVP_MAC *mac = EVP_MAC_fetch(NULL, "POLY1305", NULL);
+	size_t poly_out_len;
+#endif
 	/*
 	 * Run ChaCha20 once to generate the Poly1305 key. The IV is the
 	 * packet sequence number.
@@ -104,11 +115,23 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 		goto out;
 	}
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+	/* create and initialize the context */
+	poly_ctx = EVP_MAC_CTX_new(mac);
+	EVP_MAC_init(poly_ctx, (const u_char *)poly_key, POLY1305_KEYLEN, NULL);
+#endif
+
 	/* If decrypting, check tag before anything else */
 	if (!do_encrypt) {
 		const u_char *tag = src + aadlen + len;
-
+#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+		/* update doesn't put the poly_mac into a buffer */
+		EVP_MAC_update(poly_ctx, src, aadlen + len);
+		/* we need final for that */
+		EVP_MAC_final(poly_ctx, expected_tag, &poly_out_len, (size_t)POLY1305_TAGLEN);
+#else
 		poly1305_auth(expected_tag, src, aadlen + len, poly_key);
+#endif
 		if (timingsafe_bcmp(expected_tag, tag, POLY1305_TAGLEN) != 0) {
 			r = SSH_ERR_MAC_INVALID;
 			goto out;
@@ -134,8 +157,13 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 
 	/* If encrypting, calculate and append tag */
 	if (do_encrypt) {
-		poly1305_auth(dest + aadlen + len, dest, aadlen + len,
-		    poly_key);
+#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+	  EVP_MAC_update(poly_ctx, dest, aadlen + len);
+	  EVP_MAC_final(poly_ctx, dest + aadlen + len, &poly_out_len, (size_t)POLY1305_TAGLEN);
+#else
+	  poly1305_auth(dest + aadlen + len, dest, aadlen + len,
+			poly_key);
+#endif
 	}
 	r = 0;
  out:
