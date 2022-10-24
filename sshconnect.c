@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.358 2022/08/26 08:16:27 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.359 2022/10/24 22:43:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -935,7 +935,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 	char *ip = NULL, *host = NULL;
 	char hostline[1000], *hostp, *fp, *ra;
 	char msg[1024];
-	const char *type, *fail_reason;
+	const char *type, *fail_reason = NULL;
 	const struct hostkey_entry *host_found = NULL, *ip_found = NULL;
 	int len, cancelled_forwarding = 0, confirmed;
 	int local = sockaddr_is_local(hostaddr);
@@ -1017,6 +1017,13 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 	if (!readonly && (num_user_hostfiles == 0 ||
 	    (host_found != NULL && host_found->note != 0)))
 		readonly = RDONLY;
+
+	/* Don't ever try to write an invalid name to a known hosts file */
+	if (!valid_domain(hostname, 0, &fail_reason)) {
+		debug_f("invalid hostname \"%s\"; will not record: %s",
+		    hostname, fail_reason);
+		readonly = RDONLY;
+	}
 
 	/*
 	 * Also perform check for the ip address, skip the check if we are
