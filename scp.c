@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.248 2022/05/13 06:31:50 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.249 2022/10/24 21:51:55 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1505,13 +1505,28 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	}
 
 	debug3_f("copying remote %s to local %s", abs_src, dst);
-	if ((r = remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
+	if ((r = remote_glob(conn, abs_src, GLOB_NOCHECK|GLOB_MARK,
+	    NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
 			error("%s: too many glob matches", src);
 		else
 			error("%s: %s", src, strerror(ENOENT));
 		err = -1;
 		goto out;
+	}
+
+	/* Did we actually get any matches back from the glob? */
+	if (g.gl_matchc == 0 && g.gl_pathc == 1 && g.gl_pathv[0] != 0) {
+		/*
+		 * If nothing matched but a path returned, then it's probably
+		 * a GLOB_NOCHECK result. Check whether the unglobbed path
+		 * exists so we can give a nice error message early.
+		 */
+		if (do_stat(conn, g.gl_pathv[0], 1) == NULL) {
+			error("%s: %s", src, strerror(ENOENT));
+			err = -1;
+			goto out;
+		}
 	}
 
 	if ((r = stat(dst, &st)) != 0)
@@ -1731,7 +1746,8 @@ sink(int argc, char **argv, const char *src)
 		}
 		if (npatterns > 0) {
 			for (n = 0; n < npatterns; n++) {
-				if (fnmatch(patterns[n], cp, 0) == 0)
+				if (strcmp(patterns[n], cp) == 0 ||
+				    fnmatch(patterns[n], cp, 0) == 0)
 					break;
 			}
 			if (n >= npatterns)
@@ -1922,13 +1938,28 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 	}
 
 	debug3_f("copying remote %s to remote %s", abs_src, target);
-	if ((r = remote_glob(from, abs_src, GLOB_MARK, NULL, &g)) != 0) {
+	if ((r = remote_glob(from, abs_src, GLOB_NOCHECK|GLOB_MARK,
+	    NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
 			error("%s: too many glob matches", src);
 		else
 			error("%s: %s", src, strerror(ENOENT));
 		err = -1;
 		goto out;
+	}
+
+	/* Did we actually get any matches back from the glob? */
+	if (g.gl_matchc == 0 && g.gl_pathc == 1 && g.gl_pathv[0] != 0) {
+		/*
+		 * If nothing matched but a path returned, then it's probably
+		 * a GLOB_NOCHECK result. Check whether the unglobbed path
+		 * exists so we can give a nice error message early.
+		 */
+		if (do_stat(from, g.gl_pathv[0], 1) == NULL) {
+			error("%s: %s", src, strerror(ENOENT));
+			err = -1;
+			goto out;
+		}
 	}
 
 	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
