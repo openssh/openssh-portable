@@ -2932,6 +2932,11 @@ if test "x$openssl" = "xyes" ; then
 		EVP_chacha20 \
 	])
 
+	# OpenSSL 3.0 API
+	# Does OpenSSL support the EVP_MAC functions?
+	AC_CHECK_FUNCS(EVP_MAC_fetch,
+		[AC_DEFINE([OPENSSL_HAVE_EVP_MAC], [1], [EVP_MAC Functions])])
+
 	if test "x$openssl_engine" = "xyes" ; then
 		AC_MSG_CHECKING([for OpenSSL ENGINE support])
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[

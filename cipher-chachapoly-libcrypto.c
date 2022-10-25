@@ -35,9 +35,14 @@
 #include "ssherr.h"
 #include "cipher-chachapoly.h"
 
+
+/* using the EVP_MAC interface for poly1305 is significantly
+ * faster than the version bundled with OpenSSH. However,
+ * this interface is only available in OpenSSL 3.0+
+ * -cjr 10/21/2022 */
 struct chachapoly_ctx {
 	EVP_CIPHER_CTX *main_evp, *header_evp;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef OPENSSL_HAVE_EVP_MAC
 	EVP_MAC_CTX *poly_ctx;
 #endif
 };
@@ -61,7 +66,7 @@ chachapoly_new(const u_char *key, u_int keylen)
 		goto fail;
 	if (EVP_CIPHER_CTX_iv_length(ctx->header_evp) != 16)
 		goto fail;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef OPENSSL_HAVE_EVP_MAC
 	if ((mac = EVP_MAC_fetch(NULL, "POLY1305", NULL)) == NULL)
 		goto fail;
 	if ((ctx->poly_ctx = EVP_MAC_CTX_new(mac)) == NULL)
@@ -80,7 +85,7 @@ chachapoly_free(struct chachapoly_ctx *cpctx)
 		return;
 	EVP_CIPHER_CTX_free(cpctx->main_evp);
 	EVP_CIPHER_CTX_free(cpctx->header_evp);
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef HAVE_OPENSSL_EVP_MAC
 	EVP_MAC_CTX_free(cpctx->poly_ctx);
 #endif
 	freezero(cpctx, sizeof(*cpctx));
@@ -103,13 +108,6 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	int r = SSH_ERR_INTERNAL_ERROR;
 	u_char expected_tag[POLY1305_TAGLEN], poly_key[POLY1305_KEYLEN];
 
-	/* using the EVP_MAC interface for poly1305 is significantly
-	 * faster than the version bundled with OpenSSH. However,
-	 * this interface is only available in OpenSSL 3.0+
-	 * -cjr 10/21/2022 */
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
-	size_t poly_out_len;
-#endif
 	/*
 	 * Run ChaCha20 once to generate the Poly1305 key. The IV is the
 	 * packet sequence number.
@@ -124,7 +122,8 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 		goto out;
 	}
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef OPENSSL_HAVE_EVP_MAC
+	size_t poly_out_len;
 	/* init the MAC each time to get the new key */
 	if(!EVP_MAC_init(ctx->poly_ctx, (const u_char *)poly_key, POLY1305_KEYLEN, NULL)) {
 		r = SSH_ERR_LIBCRYPTO_ERROR;
@@ -135,7 +134,7 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	/* If decrypting, check tag before anything else */
 	if (!do_encrypt) {
 		const u_char *tag = src + aadlen + len;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef OPENSSL_HAVE_EVP_MAC
 		/* EVP_MAC_update doesn't put the poly_mac into a buffer
 		 * we need EVP_MAC_final for that */
 		EVP_MAC_update(ctx->poly_ctx, src, aadlen + len);
@@ -168,7 +167,7 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 
 	/* If encrypting, calculate and append tag */
 	if (do_encrypt) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef OPENSSL_HAVE_EVP_MAC
 	  EVP_MAC_update(ctx->poly_ctx, dest, aadlen + len);
 	  EVP_MAC_final(ctx->poly_ctx, dest + aadlen + len, &poly_out_len, (size_t)POLY1305_TAGLEN);
 #else
