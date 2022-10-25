@@ -51,7 +51,6 @@ struct chachapoly_ctx *
 chachapoly_new(const u_char *key, u_int keylen)
 {
 	struct chachapoly_ctx *ctx;
-	EVP_MAC *mac = NULL;
 
 	if (keylen != (32 + 32)) /* 2 x 256 bit keys */
 		return NULL;
@@ -67,6 +66,7 @@ chachapoly_new(const u_char *key, u_int keylen)
 	if (EVP_CIPHER_CTX_iv_length(ctx->header_evp) != 16)
 		goto fail;
 #ifdef OPENSSL_HAVE_EVP_MAC
+	EVP_MAC *mac = NULL;
 	if ((mac = EVP_MAC_fetch(NULL, "POLY1305", NULL)) == NULL)
 		goto fail;
 	if ((ctx->poly_ctx = EVP_MAC_CTX_new(mac)) == NULL)
