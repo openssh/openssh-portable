@@ -43,7 +43,9 @@
 struct chachapoly_ctx {
 	EVP_CIPHER_CTX *main_evp, *header_evp;
 #ifdef OPENSSL_HAVE_EVP_MAC
-	EVP_MAC_CTX *poly_ctx;
+	EVP_MAC_CTX    *poly_ctx;
+#else
+	char           *poly_ctx;
 #endif
 };
 
@@ -71,6 +73,8 @@ chachapoly_new(const u_char *key, u_int keylen)
 		goto fail;
 	if ((ctx->poly_ctx = EVP_MAC_CTX_new(mac)) == NULL)
 		goto fail;
+#else
+	ctx->poly_ctx = NULL;
 #endif
 	return ctx;
  fail:
@@ -85,7 +89,7 @@ chachapoly_free(struct chachapoly_ctx *cpctx)
 		return;
 	EVP_CIPHER_CTX_free(cpctx->main_evp);
 	EVP_CIPHER_CTX_free(cpctx->header_evp);
-#ifdef HAVE_OPENSSL_EVP_MAC
+#ifdef OPENSSL_HAVE_EVP_MAC
 	EVP_MAC_CTX_free(cpctx->poly_ctx);
 #endif
 	freezero(cpctx, sizeof(*cpctx));
@@ -122,26 +126,10 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 		goto out;
 	}
 
-#ifdef OPENSSL_HAVE_EVP_MAC
-	size_t poly_out_len;
-	/* init the MAC each time to get the new key */
-	if(!EVP_MAC_init(ctx->poly_ctx, (const u_char *)poly_key, POLY1305_KEYLEN, NULL)) {
-		r = SSH_ERR_LIBCRYPTO_ERROR;
-		goto out;
-	}
-#endif
-
 	/* If decrypting, check tag before anything else */
 	if (!do_encrypt) {
 		const u_char *tag = src + aadlen + len;
-#ifdef OPENSSL_HAVE_EVP_MAC
-		/* EVP_MAC_update doesn't put the poly_mac into a buffer
-		 * we need EVP_MAC_final for that */
-		EVP_MAC_update(ctx->poly_ctx, src, aadlen + len);
-		EVP_MAC_final(ctx->poly_ctx, expected_tag, &poly_out_len, (size_t)POLY1305_TAGLEN);
-#else
-		poly1305_auth(expected_tag, src, aadlen + len, poly_key);
-#endif
+		poly1305_auth(ctx->poly_ctx, expected_tag, src, aadlen + len, poly_key);
 		if (timingsafe_bcmp(expected_tag, tag, POLY1305_TAGLEN) != 0) {
 			r = SSH_ERR_MAC_INVALID;
 			goto out;
@@ -167,13 +155,8 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 
 	/* If encrypting, calculate and append tag */
 	if (do_encrypt) {
-#ifdef OPENSSL_HAVE_EVP_MAC
-	  EVP_MAC_update(ctx->poly_ctx, dest, aadlen + len);
-	  EVP_MAC_final(ctx->poly_ctx, dest + aadlen + len, &poly_out_len, (size_t)POLY1305_TAGLEN);
-#else
-	  poly1305_auth(dest + aadlen + len, dest, aadlen + len,
+	  poly1305_auth(ctx->poly_ctx, dest + aadlen + len, dest, aadlen + len,
 			poly_key);
-#endif
 	}
 	r = 0;
  out:
