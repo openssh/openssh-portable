@@ -13,7 +13,7 @@
 #define POLY1305_KEYLEN		32
 #define POLY1305_TAGLEN		16
 
-#ifdef OPENSSL_HAVE_EVP_MAC
+#ifdef OPENSSL_HAVE_POLY_EVP
 #include <openssl/evp.h>
 
 void poly1305_auth(EVP_MAC_CTX *poly_key, u_char out[POLY1305_TAGLEN], const u_char *m, size_t inlen,

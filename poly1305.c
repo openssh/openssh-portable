@@ -13,8 +13,9 @@
 #endif
 
 #include "poly1305.h"
+#include "log.h"
 
-#ifdef OPENSSL_HAVE_EVP_MAC
+#ifdef OPENSSL_HAVE_POLY_EVP
 void
 poly1305_auth(EVP_MAC_CTX *poly_ctx, unsigned char out[POLY1305_TAGLEN], const unsigned char *m, size_t inlen, const unsigned char key[POLY1305_KEYLEN]) {
 	size_t poly_out_len;
@@ -168,4 +169,4 @@ poly1305_donna_finish:
 	U32TO8_LE(&out[ 8], f2); f3 += (f2 >> 32);
 	U32TO8_LE(&out[12], f3);
 }
-#endif /* OPENSSL_HAVE_EVP_MAC */
+#endif /* OPENSSL_HAVE_POLY_EVP */

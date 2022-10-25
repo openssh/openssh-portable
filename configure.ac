@@ -2791,7 +2791,8 @@ if test "x$openssl" = "xyes" ; then
 			200*)   ;; # LibreSSL
 			300*)   ;; # OpenSSL 3
 			301*)   ;; # OpenSSL development branch.
-		        *)
+			302*)   ;; # OpenSSL master branch
+			*)
 				AC_MSG_ERROR([Unknown/unsupported OpenSSL version ("$ssl_library_ver")])
 		                ;;
 			esac
@@ -2933,9 +2934,28 @@ if test "x$openssl" = "xyes" ; then
 	])
 
 	# OpenSSL 3.0 API
-	# Does OpenSSL support the EVP_MAC functions?
-	AC_CHECK_FUNCS(EVP_MAC_fetch,
-		[AC_DEFINE([OPENSSL_HAVE_EVP_MAC], [1], [EVP_MAC Functions])])
+	# Does OpenSSL support the EVP_MAC functions for Poly1305?
+	AC_MSG_CHECKING([whether OpenSSL supports Poly1305 MAC EVP])
+	AC_RUN_IFELSE(
+		[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <openssl/evp.h>
+		]], [[
+		EVP_MAC *mac = EVP_MAC_fetch(NULL, "poly1305", NULL);
+		if (mac == NULL)
+		   exit(1);
+		]])],
+		[
+			AC_MSG_RESULT([yes])
+			AC_DEFINE([OPENSSL_HAVE_POLY_EVP], [1],
+			    [Libcrypto supports Poly1305 MAC EVP])
+		],
+		[
+			AC_MSG_RESULT([no])
+		]
+	)
+
 
 	if test "x$openssl_engine" = "xyes" ; then
 		AC_MSG_CHECKING([for OpenSSL ENGINE support])
@@ -2951,6 +2971,8 @@ if test "x$openssl" = "xyes" ; then
 			], [ AC_MSG_ERROR([OpenSSL ENGINE support not found])
 		])
 	fi
+
+
 
 	# Check for OpenSSL without EVP_aes_{192,256}_cbc
 	AC_MSG_CHECKING([whether OpenSSL has crippled AES support])

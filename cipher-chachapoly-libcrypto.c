@@ -42,7 +42,7 @@
  * -cjr 10/21/2022 */
 struct chachapoly_ctx {
 	EVP_CIPHER_CTX *main_evp, *header_evp;
-#ifdef OPENSSL_HAVE_EVP_MAC
+#ifdef OPENSSL_HAVE_POLY_EVP
 	EVP_MAC_CTX    *poly_ctx;
 #else
 	char           *poly_ctx;
@@ -67,7 +67,7 @@ chachapoly_new(const u_char *key, u_int keylen)
 		goto fail;
 	if (EVP_CIPHER_CTX_iv_length(ctx->header_evp) != 16)
 		goto fail;
-#ifdef OPENSSL_HAVE_EVP_MAC
+#ifdef OPENSSL_HAVE_POLY_EVP
 	EVP_MAC *mac = NULL;
 	if ((mac = EVP_MAC_fetch(NULL, "POLY1305", NULL)) == NULL)
 		goto fail;
@@ -89,7 +89,7 @@ chachapoly_free(struct chachapoly_ctx *cpctx)
 		return;
 	EVP_CIPHER_CTX_free(cpctx->main_evp);
 	EVP_CIPHER_CTX_free(cpctx->header_evp);
-#ifdef OPENSSL_HAVE_EVP_MAC
+#ifdef OPENSSL_HAVE_POLY_EVP
 	EVP_MAC_CTX_free(cpctx->poly_ctx);
 #endif
 	freezero(cpctx, sizeof(*cpctx));
