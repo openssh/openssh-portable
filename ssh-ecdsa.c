@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa.c,v 1.20 2022/10/28 00:39:29 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa.c,v 1.21 2022/10/28 00:41:17 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -123,6 +123,18 @@ ssh_ecdsa_generate(struct sshkey *k, int bits)
 	}
 	EC_KEY_set_asn1_flag(private, OPENSSL_EC_NAMED_CURVE);
 	k->ecdsa = private;
+	return 0;
+}
+
+static int
+ssh_ecdsa_copy_public(const struct sshkey *from, struct sshkey *to)
+{
+	to->ecdsa_nid = from->ecdsa_nid;
+	if ((to->ecdsa = EC_KEY_new_by_curve_name(from->ecdsa_nid)) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if (EC_KEY_set_public_key(to->ecdsa,
+	    EC_KEY_get0_public_key(from->ecdsa)) != 1)
+		return SSH_ERR_LIBCRYPTO_ERROR; /* caller will free k->ecdsa */
 	return 0;
 }
 
@@ -286,6 +298,7 @@ const struct sshkey_impl_funcs sshkey_ecdsa_funcs = {
 	/* .equal = */		ssh_ecdsa_equal,
 	/* .ssh_serialize_public = */ ssh_ecdsa_serialize_public,
 	/* .generate = */	ssh_ecdsa_generate,
+	/* .copy_public = */	ssh_ecdsa_copy_public,
 };
 
 const struct sshkey_impl sshkey_ecdsa_nistp256_impl = {

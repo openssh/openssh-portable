@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.12 2022/10/28 00:39:29 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.13 2022/10/28 00:41:17 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -93,6 +93,18 @@ ssh_ecdsa_sk_serialize_public(const struct sshkey *key, struct sshbuf *b,
 	if ((r = sshkey_serialize_sk(key, b)) != 0)
 		return r;
 
+	return 0;
+}
+
+static int
+ssh_ecdsa_sk_copy_public(const struct sshkey *from, struct sshkey *to)
+{
+	int r;
+
+	if ((r = sshkey_ecdsa_funcs.copy_public(from, to)) != 0)
+		return r;
+	if ((r = sshkey_copy_public_sk(from, to)) != 0)
+		return r;
 	return 0;
 }
 
@@ -363,6 +375,7 @@ static const struct sshkey_impl_funcs sshkey_ecdsa_sk_funcs = {
 	/* .equal = */		ssh_ecdsa_sk_equal,
 	/* .ssh_serialize_public = */ ssh_ecdsa_sk_serialize_public,
 	/* .generate = */	NULL,
+	/* .copy_public = */	ssh_ecdsa_sk_copy_public,
 };
 
 const struct sshkey_impl sshkey_ecdsa_sk_impl = {

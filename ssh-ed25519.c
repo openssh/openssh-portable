@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519.c,v 1.14 2022/10/28 00:39:29 djm Exp $ */
+/* $OpenBSD: ssh-ed25519.c,v 1.15 2022/10/28 00:41:17 djm Exp $ */
 /*
  * Copyright (c) 2013 Markus Friedl <markus@openbsd.org>
  *
@@ -73,6 +73,17 @@ ssh_ed25519_generate(struct sshkey *k, int bits)
 	    (k->ed25519_sk = malloc(ED25519_SK_SZ)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	crypto_sign_ed25519_keypair(k->ed25519_pk, k->ed25519_sk);
+	return 0;
+}
+
+static int
+ssh_ed25519_copy_public(const struct sshkey *from, struct sshkey *to)
+{
+	if (from->ed25519_pk == NULL)
+		return 0; /* XXX SSH_ERR_INTERNAL_ERROR ? */
+	if ((to->ed25519_pk = malloc(ED25519_PK_SZ)) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	memcpy(to->ed25519_pk, from->ed25519_pk, ED25519_PK_SZ);
 	return 0;
 }
 
@@ -211,6 +222,7 @@ const struct sshkey_impl_funcs sshkey_ed25519_funcs = {
 	/* .equal = */		ssh_ed25519_equal,
 	/* .ssh_serialize_public = */ ssh_ed25519_serialize_public,
 	/* .generate = */	ssh_ed25519_generate,
+	/* .copy_public = */	ssh_ed25519_copy_public,
 };
 
 const struct sshkey_impl sshkey_ed25519_impl = {

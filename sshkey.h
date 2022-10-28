@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.56 2022/10/28 00:39:29 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.57 2022/10/28 00:41:17 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -172,6 +172,7 @@ struct sshkey_impl_funcs {
 	int (*serialize_public)(const struct sshkey *, struct sshbuf *,
 	    const char *, enum sshkey_serialize_rep);
 	int (*generate)(struct sshkey *, int);	/* optional */
+	int (*copy_public)(const struct sshkey *, struct sshkey *);
 };
 
 struct sshkey_impl {
@@ -313,6 +314,7 @@ void	 sshkey_sig_details_free(struct sshkey_sig_details *);
 int	sshkey_sk_fields_equal(const struct sshkey *a, const struct sshkey *b);
 void	sshkey_sk_cleanup(struct sshkey *k);
 int	sshkey_serialize_sk(const struct sshkey *key, struct sshbuf *b);
+int	sshkey_copy_public_sk(const struct sshkey *from, struct sshkey *to);
 
 int ssh_rsa_sign(const struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
