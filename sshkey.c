@@ -653,7 +653,6 @@ sshkey_free_contents(struct sshkey *k)
 		cert_free(k->cert);
 	freezero(k->shielded_private, k->shielded_len);
 	freezero(k->shield_prekey, k->shield_prekey_len);
-	freezero(k, sizeof(*k));
 }
 
 void
