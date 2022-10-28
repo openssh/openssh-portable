@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-dss.c,v 1.46 2022/10/28 00:43:08 djm Exp $ */
+/* $OpenBSD: ssh-dss.c,v 1.47 2022/10/28 00:44:17 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -120,6 +120,24 @@ ssh_dss_serialize_public(const struct sshkey *key, struct sshbuf *b,
 	    (r = sshbuf_put_bignum2(b, dsa_q)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, dsa_g)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, dsa_pub_key)) != 0)
+		return r;
+
+	return 0;
+}
+
+static int
+ssh_dss_serialize_private(const struct sshkey *key, struct sshbuf *b,
+    enum sshkey_serialize_rep opts)
+{
+	int r;
+	const BIGNUM *dsa_priv_key;
+
+	DSA_get0_key(key->dsa, NULL, &dsa_priv_key);
+	if (!sshkey_is_cert(key)) {
+		if ((r = ssh_dss_serialize_public(key, b, opts)) != 0)
+			return r;
+	}
+	if ((r = sshbuf_put_bignum2(b, dsa_priv_key)) != 0)
 		return r;
 
 	return 0;
@@ -384,6 +402,7 @@ static const struct sshkey_impl_funcs sshkey_dss_funcs = {
 	/* .equal = */		ssh_dss_equal,
 	/* .ssh_serialize_public = */ ssh_dss_serialize_public,
 	/* .ssh_deserialize_public = */ ssh_dss_deserialize_public,
+	/* .ssh_serialize_private = */ ssh_dss_serialize_private,
 	/* .generate = */	ssh_dss_generate,
 	/* .copy_public = */	ssh_dss_copy_public,
 	/* .sign = */		ssh_dss_sign,

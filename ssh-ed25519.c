@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519.c,v 1.17 2022/10/28 00:43:08 djm Exp $ */
+/* $OpenBSD: ssh-ed25519.c,v 1.18 2022/10/28 00:44:17 djm Exp $ */
 /*
  * Copyright (c) 2013 Markus Friedl <markus@openbsd.org>
  *
@@ -60,6 +60,19 @@ ssh_ed25519_serialize_public(const struct sshkey *key, struct sshbuf *b,
 	if (key->ed25519_pk == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
 	if ((r = sshbuf_put_string(b, key->ed25519_pk, ED25519_PK_SZ)) != 0)
+		return r;
+
+	return 0;
+}
+
+static int
+ssh_ed25519_serialize_private(const struct sshkey *key, struct sshbuf *b,
+    enum sshkey_serialize_rep opts)
+{
+	int r;
+
+	if ((r = sshbuf_put_string(b, key->ed25519_pk, ED25519_PK_SZ)) != 0 ||
+	    (r = sshbuf_put_string(b, key->ed25519_sk, ED25519_SK_SZ)) != 0)
 		return r;
 
 	return 0;
@@ -242,6 +255,7 @@ const struct sshkey_impl_funcs sshkey_ed25519_funcs = {
 	/* .equal = */		ssh_ed25519_equal,
 	/* .ssh_serialize_public = */ ssh_ed25519_serialize_public,
 	/* .ssh_deserialize_public = */ ssh_ed25519_deserialize_public,
+	/* .ssh_serialize_private = */ ssh_ed25519_serialize_private,
 	/* .generate = */	ssh_ed25519_generate,
 	/* .copy_public = */	ssh_ed25519_copy_public,
 	/* .sign = */		ssh_ed25519_sign,

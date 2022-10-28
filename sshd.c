@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.591 2022/09/17 10:34:29 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.592 2022/10/28 00:44:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1514,7 +1514,7 @@ accumulate_host_timing_secret(struct sshbuf *server_cfg,
 	if ((buf = sshbuf_new()) == NULL)
 		fatal_f("could not allocate buffer");
 	if ((r = sshkey_private_serialize(key, buf)) != 0)
-		fatal_fr(r, "decode key");
+		fatal_fr(r, "encode %s key", sshkey_ssh_name(key));
 	if (ssh_digest_update(ctx, sshbuf_ptr(buf), sshbuf_len(buf)) != 0)
 		fatal_f("ssh_digest_update");
 	sshbuf_reset(buf);

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.75 2022/10/28 00:43:08 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.76 2022/10/28 00:44:17 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -118,6 +118,32 @@ ssh_rsa_serialize_public(const struct sshkey *key, struct sshbuf *b,
 	RSA_get0_key(key->rsa, &rsa_n, &rsa_e, NULL);
 	if ((r = sshbuf_put_bignum2(b, rsa_e)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, rsa_n)) != 0)
+		return r;
+
+	return 0;
+}
+
+static int
+ssh_rsa_serialize_private(const struct sshkey *key, struct sshbuf *b,
+    enum sshkey_serialize_rep opts)
+{
+	int r;
+	const BIGNUM *rsa_n, *rsa_e, *rsa_d, *rsa_iqmp, *rsa_p, *rsa_q;
+
+	RSA_get0_key(key->rsa, &rsa_n, &rsa_e, &rsa_d);
+	RSA_get0_factors(key->rsa, &rsa_p, &rsa_q);
+	RSA_get0_crt_params(key->rsa, NULL, NULL, &rsa_iqmp);
+
+	if (!sshkey_is_cert(key)) {
+		/* Note: can't reuse ssh_rsa_serialize_public: e, n vs. n, e */
+		if ((r = sshbuf_put_bignum2(b, rsa_n)) != 0 ||
+		    (r = sshbuf_put_bignum2(b, rsa_e)) != 0)
+			return r;
+	}
+	if ((r = sshbuf_put_bignum2(b, rsa_d)) != 0 ||
+	    (r = sshbuf_put_bignum2(b, rsa_iqmp)) != 0 ||
+	    (r = sshbuf_put_bignum2(b, rsa_p)) != 0 ||
+	    (r = sshbuf_put_bignum2(b, rsa_q)) != 0)
 		return r;
 
 	return 0;
@@ -625,6 +651,7 @@ static const struct sshkey_impl_funcs sshkey_rsa_funcs = {
 	/* .equal = */		ssh_rsa_equal,
 	/* .ssh_serialize_public = */ ssh_rsa_serialize_public,
 	/* .ssh_deserialize_public = */ ssh_rsa_deserialize_public,
+	/* .ssh_serialize_private = */ ssh_rsa_serialize_private,
 	/* .generate = */	ssh_rsa_generate,
 	/* .copy_public = */	ssh_rsa_copy_public,
 	/* .sign = */		ssh_rsa_sign,

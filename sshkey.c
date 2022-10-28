@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.131 2022/10/28 00:43:30 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.132 2022/10/28 00:44:17 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2397,6 +2397,21 @@ sshkey_format_cert_validity(const struct sshkey_cert *cert, char *s, size_t l)
 	return strlcpy(s, ret, l);
 }
 
+/* Common serialization for FIDO private keys */
+int
+sshkey_serialize_private_sk(const struct sshkey *key, struct sshbuf *b)
+{
+	int r;
+
+	if ((r = sshbuf_put_cstring(b, key->sk_application)) != 0 ||
+	    (r = sshbuf_put_u8(b, key->sk_flags)) != 0 ||
+	    (r = sshbuf_put_stringb(b, key->sk_key_handle)) != 0 ||
+	    (r = sshbuf_put_stringb(b, key->sk_reserved)) != 0)
+		return r;
+
+	return 0;
+}
+
 int
 sshkey_private_serialize_opt(struct sshkey *key, struct sshbuf *buf,
     enum sshkey_serialize_rep opts)
@@ -2404,185 +2419,28 @@ sshkey_private_serialize_opt(struct sshkey *key, struct sshbuf *buf,
 	int r = SSH_ERR_INTERNAL_ERROR;
 	int was_shielded = sshkey_is_shielded(key);
 	struct sshbuf *b = NULL;
-#ifdef WITH_OPENSSL
-	const BIGNUM *rsa_n, *rsa_e, *rsa_d, *rsa_iqmp, *rsa_p, *rsa_q;
-	const BIGNUM *dsa_p, *dsa_q, *dsa_g, *dsa_pub_key, *dsa_priv_key;
-#endif /* WITH_OPENSSL */
+	const struct sshkey_impl *impl;
 
+	if ((impl = sshkey_impl_from_key(key)) == NULL)
+		return SSH_ERR_INTERNAL_ERROR;
 	if ((r = sshkey_unshield_private(key)) != 0)
 		return r;
 	if ((b = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshbuf_put_cstring(b, sshkey_ssh_name(key))) != 0)
 		goto out;
-	switch (key->type) {
-#ifdef WITH_OPENSSL
-	case KEY_RSA:
-		RSA_get0_key(key->rsa, &rsa_n, &rsa_e, &rsa_d);
-		RSA_get0_factors(key->rsa, &rsa_p, &rsa_q);
-		RSA_get0_crt_params(key->rsa, NULL, NULL, &rsa_iqmp);
-		if ((r = sshbuf_put_bignum2(b, rsa_n)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, rsa_e)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, rsa_d)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, rsa_iqmp)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, rsa_p)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, rsa_q)) != 0)
-			goto out;
-		break;
-	case KEY_RSA_CERT:
-		if (key->cert == NULL || sshbuf_len(key->cert->certblob) == 0) {
+	if (sshkey_is_cert(key)) {
+		if (key->cert == NULL ||
+		    sshbuf_len(key->cert->certblob) == 0) {
 			r = SSH_ERR_INVALID_ARGUMENT;
 			goto out;
 		}
-		RSA_get0_key(key->rsa, NULL, NULL, &rsa_d);
-		RSA_get0_factors(key->rsa, &rsa_p, &rsa_q);
-		RSA_get0_crt_params(key->rsa, NULL, NULL, &rsa_iqmp);
-		if ((r = sshbuf_put_stringb(b, key->cert->certblob)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, rsa_d)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, rsa_iqmp)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, rsa_p)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, rsa_q)) != 0)
+		if ((r = sshbuf_put_stringb(b, key->cert->certblob)) != 0)
 			goto out;
-		break;
-	case KEY_DSA:
-		DSA_get0_pqg(key->dsa, &dsa_p, &dsa_q, &dsa_g);
-		DSA_get0_key(key->dsa, &dsa_pub_key, &dsa_priv_key);
-		if ((r = sshbuf_put_bignum2(b, dsa_p)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, dsa_q)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, dsa_g)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, dsa_pub_key)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, dsa_priv_key)) != 0)
-			goto out;
-		break;
-	case KEY_DSA_CERT:
-		if (key->cert == NULL || sshbuf_len(key->cert->certblob) == 0) {
-			r = SSH_ERR_INVALID_ARGUMENT;
-			goto out;
-		}
-		DSA_get0_key(key->dsa, NULL, &dsa_priv_key);
-		if ((r = sshbuf_put_stringb(b, key->cert->certblob)) != 0 ||
-		    (r = sshbuf_put_bignum2(b, dsa_priv_key)) != 0)
-			goto out;
-		break;
-# ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA:
-		if ((r = sshbuf_put_cstring(b,
-		    sshkey_curve_nid_to_name(key->ecdsa_nid))) != 0 ||
-		    (r = sshbuf_put_eckey(b, key->ecdsa)) != 0 ||
-		    (r = sshbuf_put_bignum2(b,
-		    EC_KEY_get0_private_key(key->ecdsa))) != 0)
-			goto out;
-		break;
-	case KEY_ECDSA_CERT:
-		if (key->cert == NULL || sshbuf_len(key->cert->certblob) == 0) {
-			r = SSH_ERR_INVALID_ARGUMENT;
-			goto out;
-		}
-		if ((r = sshbuf_put_stringb(b, key->cert->certblob)) != 0 ||
-		    (r = sshbuf_put_bignum2(b,
-		    EC_KEY_get0_private_key(key->ecdsa))) != 0)
-			goto out;
-		break;
-	case KEY_ECDSA_SK:
-		if ((r = sshbuf_put_cstring(b,
-		    sshkey_curve_nid_to_name(key->ecdsa_nid))) != 0 ||
-		    (r = sshbuf_put_eckey(b, key->ecdsa)) != 0 ||
-		    (r = sshbuf_put_cstring(b, key->sk_application)) != 0 ||
-		    (r = sshbuf_put_u8(b, key->sk_flags)) != 0 ||
-		    (r = sshbuf_put_stringb(b, key->sk_key_handle)) != 0 ||
-		    (r = sshbuf_put_stringb(b, key->sk_reserved)) != 0)
-			goto out;
-		break;
-	case KEY_ECDSA_SK_CERT:
-		if (key->cert == NULL || sshbuf_len(key->cert->certblob) == 0) {
-			r = SSH_ERR_INVALID_ARGUMENT;
-			goto out;
-		}
-		if ((r = sshbuf_put_stringb(b, key->cert->certblob)) != 0 ||
-		    (r = sshbuf_put_cstring(b, key->sk_application)) != 0 ||
-		    (r = sshbuf_put_u8(b, key->sk_flags)) != 0 ||
-		    (r = sshbuf_put_stringb(b, key->sk_key_handle)) != 0 ||
-		    (r = sshbuf_put_stringb(b, key->sk_reserved)) != 0)
-			goto out;
-		break;
-# endif /* OPENSSL_HAS_ECC */
-#endif /* WITH_OPENSSL */
-	case KEY_ED25519:
-		if ((r = sshbuf_put_string(b, key->ed25519_pk,
-		    ED25519_PK_SZ)) != 0 ||
-		    (r = sshbuf_put_string(b, key->ed25519_sk,
-		    ED25519_SK_SZ)) != 0)
-			goto out;
-		break;
-	case KEY_ED25519_CERT:
-		if (key->cert == NULL || sshbuf_len(key->cert->certblob) == 0) {
-			r = SSH_ERR_INVALID_ARGUMENT;
-			goto out;
-		}
-		if ((r = sshbuf_put_stringb(b, key->cert->certblob)) != 0 ||
-		    (r = sshbuf_put_string(b, key->ed25519_pk,
-		    ED25519_PK_SZ)) != 0 ||
-		    (r = sshbuf_put_string(b, key->ed25519_sk,
-		    ED25519_SK_SZ)) != 0)
-			goto out;
-		break;
-	case KEY_ED25519_SK:
-		if ((r = sshbuf_put_string(b, key->ed25519_pk,
-		    ED25519_PK_SZ)) != 0 ||
-		    (r = sshbuf_put_cstring(b, key->sk_application)) != 0 ||
-		    (r = sshbuf_put_u8(b, key->sk_flags)) != 0 ||
-		    (r = sshbuf_put_stringb(b, key->sk_key_handle)) != 0 ||
-		    (r = sshbuf_put_stringb(b, key->sk_reserved)) != 0)
-			goto out;
-		break;
-	case KEY_ED25519_SK_CERT:
-		if (key->cert == NULL || sshbuf_len(key->cert->certblob) == 0) {
-			r = SSH_ERR_INVALID_ARGUMENT;
-			goto out;
-		}
-		if ((r = sshbuf_put_stringb(b, key->cert->certblob)) != 0 ||
-		    (r = sshbuf_put_string(b, key->ed25519_pk,
-		    ED25519_PK_SZ)) != 0 ||
-		    (r = sshbuf_put_cstring(b, key->sk_application)) != 0 ||
-		    (r = sshbuf_put_u8(b, key->sk_flags)) != 0 ||
-		    (r = sshbuf_put_stringb(b, key->sk_key_handle)) != 0 ||
-		    (r = sshbuf_put_stringb(b, key->sk_reserved)) != 0)
-			goto out;
-		break;
-#ifdef WITH_XMSS
-	case KEY_XMSS:
-		if (key->xmss_name == NULL) {
-			r = SSH_ERR_INVALID_ARGUMENT;
-			goto out;
-		}
-		if ((r = sshbuf_put_cstring(b, key->xmss_name)) != 0 ||
-		    (r = sshbuf_put_string(b, key->xmss_pk,
-		    sshkey_xmss_pklen(key))) != 0 ||
-		    (r = sshbuf_put_string(b, key->xmss_sk,
-		    sshkey_xmss_sklen(key))) != 0 ||
-		    (r = sshkey_xmss_serialize_state_opt(key, b, opts)) != 0)
-			goto out;
-		break;
-	case KEY_XMSS_CERT:
-		if (key->cert == NULL || sshbuf_len(key->cert->certblob) == 0 ||
-		    key->xmss_name == NULL) {
-			r = SSH_ERR_INVALID_ARGUMENT;
-			goto out;
-		}
-		if ((r = sshbuf_put_stringb(b, key->cert->certblob)) != 0 ||
-		    (r = sshbuf_put_cstring(b, key->xmss_name)) != 0 ||
-		    (r = sshbuf_put_string(b, key->xmss_pk,
-		    sshkey_xmss_pklen(key))) != 0 ||
-		    (r = sshbuf_put_string(b, key->xmss_sk,
-		    sshkey_xmss_sklen(key))) != 0 ||
-		    (r = sshkey_xmss_serialize_state_opt(key, b, opts)) != 0)
-			goto out;
-		break;
-#endif /* WITH_XMSS */
-	default:
-		r = SSH_ERR_INVALID_ARGUMENT;
-		goto out;
 	}
+	if ((r = impl->funcs->serialize_private(key, b, opts)) != 0)
+		goto out;
+
 	/*
 	 * success (but we still need to append the output to buf after
 	 * possibly re-shielding the private key)

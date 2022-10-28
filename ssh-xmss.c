@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-xmss.c,v 1.12 2022/10/28 00:43:08 djm Exp $*/
+/* $OpenBSD: ssh-xmss.c,v 1.13 2022/10/28 00:44:17 djm Exp $*/
 /*
  * Copyright (c) 2017 Stefan-Lukas Gazdag.
  * Copyright (c) 2017 Markus Friedl.
@@ -76,6 +76,26 @@ ssh_xmss_serialize_public(const struct sshkey *key, struct sshbuf *b,
 	    (r = sshbuf_put_string(b, key->xmss_pk,
 	    sshkey_xmss_pklen(key))) != 0 ||
 	    (r = sshkey_xmss_serialize_pk_info(key, b, opts)) != 0)
+		return r;
+
+	return 0;
+}
+
+static int
+ssh_xmss_serialize_private(const struct sshkey *key, struct sshbuf *b,
+    enum sshkey_serialize_rep opts)
+{
+	int r;
+
+	if (key->xmss_name == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+	/* Note: can't reuse ssh_xmss_serialize_public because of sk order */
+	if ((r = sshbuf_put_cstring(b, key->xmss_name)) != 0 ||
+	    (r = sshbuf_put_string(b, key->xmss_pk,
+	    sshkey_xmss_pklen(key))) != 0 ||
+	    (r = sshbuf_put_string(b, key->xmss_sk,
+	    sshkey_xmss_sklen(key))) != 0 ||
+	    (r = sshkey_xmss_serialize_state_opt(key, b, opts)) != 0)
 		return r;
 
 	return 0;
@@ -296,6 +316,7 @@ static const struct sshkey_impl_funcs sshkey_xmss_funcs = {
 	/* .equal = */		ssh_xmss_equal,
 	/* .ssh_serialize_public = */ ssh_xmss_serialize_public,
 	/* .ssh_deserialize_public = */ ssh_xmss_deserialize_public,
+	/* .ssh_serialize_private = */ ssh_xmss_serialize_private,
 	/* .generate = */	sshkey_xmss_generate_private_key,
 	/* .copy_public = */	ssh_xmss_copy_public,
 	/* .sign = */		ssh_xmss_sign,
