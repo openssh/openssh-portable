@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-xmss.c,v 1.5 2022/04/20 15:59:18 millert Exp $*/
+/* $OpenBSD: ssh-xmss.c,v 1.6 2022/10/28 00:35:40 djm Exp $*/
 /*
  * Copyright (c) 2017 Stefan-Lukas Gazdag.
  * Copyright (c) 2017 Markus Friedl.
@@ -36,6 +36,20 @@
 #include "ssh.h"
 
 #include "xmss_fast.h"
+
+static void
+ssh_xmss_cleanup(struct sshkey *k)
+{
+	freezero(k->xmss_pk, sshkey_xmss_pklen(k));
+	freezero(k->xmss_sk, sshkey_xmss_sklen(k));
+	sshkey_xmss_free_state(k);
+	free(k->xmss_name);
+	free(k->xmss_filename);
+	k->xmss_pk = NULL;
+	k->xmss_sk = NULL;
+	k->xmss_name = NULL;
+	k->xmss_filename = NULL;
+}
 
 int
 ssh_xmss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
@@ -184,4 +198,34 @@ ssh_xmss_verify(const struct sshkey *key,
 	free(ktype);
 	return r;
 }
+
+static const struct sshkey_impl_funcs sshkey_xmss_funcs = {
+	/* .size = */		NULL,
+	/* .alloc = */		NULL,
+	/* .cleanup = */	ssh_xmss_cleanup,
+};
+
+const struct sshkey_impl sshkey_xmss_impl = {
+	/* .name = */		"ssh-xmss@openssh.com",
+	/* .shortname = */	"XMSS",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_XMSS,
+	/* .nid = */		0,
+	/* .cert = */		0,
+	/* .sigonly = */	0,
+	/* .keybits = */	256,
+	/* .funcs = */		&sshkey_xmss_funcs,
+};
+
+const struct sshkey_impl sshkey_xmss_cert_impl = {
+	/* .name = */		"ssh-xmss-cert-v01@openssh.com",
+	/* .shortname = */	"XMSS-CERT",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_XMSS_CERT,
+	/* .nid = */		0,
+	/* .cert = */		1,
+	/* .sigonly = */	0,
+	/* .keybits = */	256,
+	/* .funcs = */		&sshkey_xmss_funcs,
+};
 #endif /* WITH_XMSS */

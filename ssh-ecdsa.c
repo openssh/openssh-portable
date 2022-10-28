@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa.c,v 1.16 2019/01/21 09:54:11 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa.c,v 1.17 2022/10/28 00:35:40 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -44,6 +44,30 @@
 #include "sshkey.h"
 
 #include "openbsd-compat/openssl-compat.h"
+
+static u_int
+ssh_ecdsa_size(const struct sshkey *key)
+{
+	switch (key->ecdsa_nid) {
+	case NID_X9_62_prime256v1:
+		return 256;
+	case NID_secp384r1:
+		return 384;
+#ifdef OPENSSL_HAS_NISTP521
+	case NID_secp521r1:
+		return 521;
+#endif
+	default:
+		return 0;
+	}
+}
+
+static void
+ssh_ecdsa_cleanup(struct sshkey *k)
+{
+	EC_KEY_free(k->ecdsa);
+	k->ecdsa = NULL;
+}
 
 /* ARGSUSED */
 int
@@ -196,5 +220,85 @@ ssh_ecdsa_verify(const struct sshkey *key,
 	free(ktype);
 	return ret;
 }
+
+static const struct sshkey_impl_funcs sshkey_ecdsa_funcs = {
+	/* .size = */		ssh_ecdsa_size,
+	/* .alloc = */		NULL,
+	/* .cleanup = */	ssh_ecdsa_cleanup,
+};
+
+const struct sshkey_impl sshkey_ecdsa_nistp256_impl = {
+	/* .name = */		"ecdsa-sha2-nistp256",
+	/* .shortname = */	"ECDSA",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA,
+	/* .nid = */		NID_X9_62_prime256v1,
+	/* .cert = */		0,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_ecdsa_funcs,
+};
+
+const struct sshkey_impl sshkey_ecdsa_nistp256_cert_impl = {
+	/* .name = */		"ecdsa-sha2-nistp256-cert-v01@openssh.com",
+	/* .shortname = */	"ECDSA-CERT",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA_CERT,
+	/* .nid = */		NID_X9_62_prime256v1,
+	/* .cert = */		1,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_ecdsa_funcs,
+};
+
+const struct sshkey_impl sshkey_ecdsa_nistp384_impl = {
+	/* .name = */		"ecdsa-sha2-nistp384",
+	/* .shortname = */	"ECDSA",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA,
+	/* .nid = */		NID_secp384r1,
+	/* .cert = */		0,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_ecdsa_funcs,
+};
+
+const struct sshkey_impl sshkey_ecdsa_nistp384_cert_impl = {
+	/* .name = */		"ecdsa-sha2-nistp384-cert-v01@openssh.com",
+	/* .shortname = */	"ECDSA-CERT",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA_CERT,
+	/* .nid = */		NID_secp384r1,
+	/* .cert = */		1,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_ecdsa_funcs,
+};
+
+#ifdef OPENSSL_HAS_NISTP521
+const struct sshkey_impl sshkey_ecdsa_nistp521_impl = {
+	/* .name = */		"ecdsa-sha2-nistp521",
+	/* .shortname = */	"ECDSA",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA,
+	/* .nid = */		NID_secp521r1,
+	/* .cert = */		0,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_ecdsa_funcs,
+};
+
+const struct sshkey_impl sshkey_ecdsa_nistp521_cert_impl = {
+	/* .name = */		"ecdsa-sha2-nistp521-cert-v01@openssh.com",
+	/* .shortname = */	"ECDSA-CERT",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA_CERT,
+	/* .nid = */		NID_secp521r1,
+	/* .cert = */		1,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_ecdsa_funcs,
+};
+#endif
 
 #endif /* WITH_OPENSSL && OPENSSL_HAS_ECC */

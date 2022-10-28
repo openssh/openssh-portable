@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.52 2022/09/17 10:30:45 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.53 2022/10/28 00:35:40 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -162,6 +162,24 @@ struct sshkey {
 struct sshkey_sig_details {
 	uint32_t sk_counter;	/* U2F signature counter */
 	uint8_t sk_flags;	/* U2F signature flags; see ssh-sk.h */
+};
+
+struct sshkey_impl_funcs {
+	u_int (*size)(const struct sshkey *);	/* optional */
+	int (*alloc)(struct sshkey *);		/* optional */
+	void (*cleanup)(struct sshkey *);	/* optional */
+};
+
+struct sshkey_impl {
+	const char *name;
+	const char *shortname;
+	const char *sigalg;
+	int type;
+	int nid;
+	int cert;
+	int sigonly;
+	int keybits;
+	const struct sshkey_impl_funcs *funcs;
 };
 
 struct sshkey	*sshkey_new(int);

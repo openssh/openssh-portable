@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.67 2018/07/03 11:39:54 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.69 2022/10/28 00:35:40 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -38,6 +38,32 @@
 #include "openbsd-compat/openssl-compat.h"
 
 static int openssh_RSA_verify(int, u_char *, size_t, u_char *, size_t, RSA *);
+
+static u_int
+ssh_rsa_size(const struct sshkey *key)
+{
+	const BIGNUM *rsa_n;
+
+	if (key->rsa == NULL)
+		return 0;
+	RSA_get0_key(key->rsa, &rsa_n, NULL, NULL);
+	return BN_num_bits(rsa_n);
+}
+
+static int
+ssh_rsa_alloc(struct sshkey *k)
+{
+	if ((k->rsa = RSA_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	return 0;
+}
+
+static void
+ssh_rsa_cleanup(struct sshkey *k)
+{
+	RSA_free(k->rsa);
+	k->rsa = NULL;
+}
 
 static const char *
 rsa_hash_alg_ident(int hash_alg)
@@ -446,4 +472,84 @@ done:
 	freezero(decrypted, rsasize);
 	return ret;
 }
+
+static const struct sshkey_impl_funcs sshkey_rsa_funcs = {
+	/* .size = */		ssh_rsa_size,
+	/* .alloc = */		ssh_rsa_alloc,
+	/* .cleanup = */	ssh_rsa_cleanup,
+};
+
+const struct sshkey_impl sshkey_rsa_impl = {
+	/* .name = */		"ssh-rsa",
+	/* .shortname = */	"RSA",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_RSA,
+	/* .nid = */		0,
+	/* .cert = */		0,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_rsa_funcs,
+};
+
+const struct sshkey_impl sshkey_rsa_cert_impl = {
+	/* .name = */		"ssh-rsa-cert-v01@openssh.com",
+	/* .shortname = */	"RSA-CERT",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_RSA_CERT,
+	/* .nid = */		0,
+	/* .cert = */		1,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_rsa_funcs,
+};
+
+/* SHA2 signature algorithms */
+
+const struct sshkey_impl sshkey_rsa_sha256_impl = {
+	/* .name = */		"rsa-sha2-256",
+	/* .shortname = */	"RSA",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_RSA,
+	/* .nid = */		0,
+	/* .cert = */		0,
+	/* .sigonly = */	1,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_rsa_funcs,
+};
+
+const struct sshkey_impl sshkey_rsa_sha512_impl = {
+	/* .name = */		"rsa-sha2-512",
+	/* .shortname = */	"RSA",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_RSA,
+	/* .nid = */		0,
+	/* .cert = */		0,
+	/* .sigonly = */	1,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_rsa_funcs,
+};
+
+const struct sshkey_impl sshkey_rsa_sha256_cert_impl = {
+	/* .name = */		"rsa-sha2-256-cert-v01@openssh.com",
+	/* .shortname = */	"RSA-CERT",
+	/* .sigalg = */		"rsa-sha2-256",
+	/* .type = */		KEY_RSA_CERT,
+	/* .nid = */		0,
+	/* .cert = */		1,
+	/* .sigonly = */	1,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_rsa_funcs,
+};
+
+const struct sshkey_impl sshkey_rsa_sha512_cert_impl = {
+	/* .name = */		"rsa-sha2-512-cert-v01@openssh.com",
+	/* .shortname = */	"RSA-CERT",
+	/* .sigalg = */		"rsa-sha2-512",
+	/* .type = */		KEY_RSA_CERT,
+	/* .nid = */		0,
+	/* .cert = */		1,
+	/* .sigonly = */	1,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_rsa_funcs,
+};
 #endif /* WITH_OPENSSL */

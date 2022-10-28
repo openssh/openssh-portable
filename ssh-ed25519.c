@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519.c,v 1.10 2022/08/26 08:12:56 djm Exp $ */
+/* $OpenBSD: ssh-ed25519.c,v 1.11 2022/10/28 00:35:40 djm Exp $ */
 /*
  * Copyright (c) 2013 Markus Friedl <markus@openbsd.org>
  *
@@ -31,6 +31,15 @@
 #include "sshkey.h"
 #include "ssherr.h"
 #include "ssh.h"
+
+static void
+ssh_ed25519_cleanup(struct sshkey *k)
+{
+	freezero(k->ed25519_pk, ED25519_PK_SZ);
+	freezero(k->ed25519_sk, ED25519_SK_SZ);
+	k->ed25519_pk = NULL;
+	k->ed25519_sk = NULL;
+}
 
 int
 ssh_ed25519_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
@@ -158,3 +167,33 @@ ssh_ed25519_verify(const struct sshkey *key,
 	free(ktype);
 	return r;
 }
+
+static const struct sshkey_impl_funcs sshkey_ed25519_funcs = {
+	/* .size = */		NULL,
+	/* .alloc = */		NULL,
+	/* .cleanup = */	ssh_ed25519_cleanup,
+};
+
+const struct sshkey_impl sshkey_ed25519_impl = {
+	/* .name = */		"ssh-ed25519",
+	/* .shortname = */	"ED25519",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ED25519,
+	/* .nid = */		0,
+	/* .cert = */		0,
+	/* .sigonly = */	0,
+	/* .keybits = */	256,
+	/* .funcs = */		&sshkey_ed25519_funcs,
+};
+
+const struct sshkey_impl sshkey_ed25519_cert_impl = {
+	/* .name = */		"ssh-ed25519-cert-v01@openssh.com",
+	/* .shortname = */	"ED25519-CERT",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ED25519_CERT,
+	/* .nid = */		0,
+	/* .cert = */		1,
+	/* .sigonly = */	0,
+	/* .keybits = */	256,
+	/* .funcs = */		&sshkey_ed25519_funcs,
+};

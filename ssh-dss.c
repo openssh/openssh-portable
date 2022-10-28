@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-dss.c,v 1.39 2020/02/26 13:40:09 jsg Exp $ */
+/* $OpenBSD: ssh-dss.c,v 1.40 2022/10/28 00:35:40 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -47,6 +47,32 @@
 
 #define INTBLOB_LEN	20
 #define SIGBLOB_LEN	(2*INTBLOB_LEN)
+
+static u_int
+ssh_dss_size(const struct sshkey *key)
+{
+	const BIGNUM *dsa_p;
+
+	if (key->dsa == NULL)
+		return 0;
+	DSA_get0_pqg(key->dsa, &dsa_p, NULL, NULL);
+	return BN_num_bits(dsa_p);
+}
+
+static int
+ssh_dss_alloc(struct sshkey *k)
+{
+	if ((k->dsa = DSA_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	return 0;
+}
+
+static void
+ssh_dss_cleanup(struct sshkey *k)
+{
+	DSA_free(k->dsa);
+	k->dsa = NULL;
+}
 
 int
 ssh_dss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
@@ -204,4 +230,34 @@ ssh_dss_verify(const struct sshkey *key,
 		freezero(sigblob, len);
 	return ret;
 }
+
+static const struct sshkey_impl_funcs sshkey_dss_funcs = {
+	/* .size = */		ssh_dss_size,
+	/* .alloc = */		ssh_dss_alloc,
+	/* .cleanup = */	ssh_dss_cleanup,
+};
+
+const struct sshkey_impl sshkey_dss_impl = {
+	/* .name = */		"ssh-dss",
+	/* .shortname = */	"DSA",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_DSA,
+	/* .nid = */		0,
+	/* .cert = */		0,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_dss_funcs,
+};
+
+const struct sshkey_impl sshkey_dsa_cert_impl = {
+	/* .name = */		"ssh-dss-cert-v01@openssh.com",
+	/* .shortname = */	"DSA-CERT",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_DSA_CERT,
+	/* .nid = */		0,
+	/* .cert = */		1,
+	/* .sigonly = */	0,
+	/* .keybits = */	0,
+	/* .funcs = */		&sshkey_dss_funcs,
+};
 #endif /* WITH_OPENSSL */

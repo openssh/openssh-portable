@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.8 2020/06/22 23:44:27 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.9 2022/10/28 00:35:40 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -60,6 +60,16 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	return SSH_ERR_FEATURE_UNSUPPORTED;
 }
 #else /* OPENSSL_HAS_ECC */
+
+static void
+ssh_ecdsa_sk_cleanup(struct sshkey *k)
+{
+	free(k->sk_application);
+	sshbuf_free(k->sk_key_handle);
+	sshbuf_free(k->sk_reserved);
+	EC_KEY_free(k->ecdsa);
+	k->ecdsa = NULL;
+}
 
 /*
  * Check FIDO/W3C webauthn signatures clientData field against the expected
@@ -320,5 +330,47 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	free(ktype);
 	return ret;
 }
+
+static const struct sshkey_impl_funcs sshkey_ecdsa_sk_funcs = {
+	/* .size = */		NULL,
+	/* .alloc = */		NULL,
+	/* .cleanup = */	ssh_ecdsa_sk_cleanup,
+};
+
+const struct sshkey_impl sshkey_ecdsa_sk_impl = {
+	/* .name = */		"sk-ecdsa-sha2-nistp256@openssh.com",
+	/* .shortname = */	"ECDSA-SK",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA_SK,
+	/* .nid = */		NID_X9_62_prime256v1,
+	/* .cert = */		0,
+	/* .sigonly = */	0,
+	/* .keybits = */	256,
+	/* .funcs = */		&sshkey_ecdsa_sk_funcs,
+};
+
+const struct sshkey_impl sshkey_ecdsa_sk_cert_impl = {
+	/* .name = */		"sk-ecdsa-sha2-nistp256-cert-v01@openssh.com",
+	/* .shortname = */	"ECDSA-SK-CERT",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA_SK_CERT,
+	/* .nid = */		NID_X9_62_prime256v1,
+	/* .cert = */		1,
+	/* .sigonly = */	0,
+	/* .keybits = */	256,
+	/* .funcs = */		&sshkey_ecdsa_sk_funcs,
+};
+
+const struct sshkey_impl sshkey_ecdsa_sk_webauthn_impl = {
+	/* .name = */		"webauthn-sk-ecdsa-sha2-nistp256@openssh.com",
+	/* .shortname = */	"ECDSA-SK",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA_SK,
+	/* .nid = */		NID_X9_62_prime256v1,
+	/* .cert = */		0,
+	/* .sigonly = */	1,
+	/* .keybits = */	256,
+	/* .funcs = */		&sshkey_ecdsa_sk_funcs,
+};
 
 #endif /* OPENSSL_HAS_ECC */
