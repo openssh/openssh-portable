@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.132 2022/10/28 00:44:17 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.133 2022/10/28 00:44:44 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2463,24 +2463,33 @@ sshkey_private_serialize(struct sshkey *key, struct sshbuf *b)
 	    SSHKEY_SERIALIZE_DEFAULT);
 }
 
+/* Shared deserialization of FIDO private key components */
+int
+sshkey_private_deserialize_sk(struct sshbuf *buf, struct sshkey *k)
+{
+	int r;
+
+	if ((k->sk_key_handle = sshbuf_new()) == NULL ||
+	    (k->sk_reserved = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_get_cstring(buf, &k->sk_application, NULL)) != 0 ||
+	    (r = sshbuf_get_u8(buf, &k->sk_flags)) != 0 ||
+	    (r = sshbuf_get_stringb(buf, k->sk_key_handle)) != 0 ||
+	    (r = sshbuf_get_stringb(buf, k->sk_reserved)) != 0)
+		return r;
+
+	return 0;
+}
+
 int
 sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 {
-	char *tname = NULL, *curve = NULL, *xmss_name = NULL;
+	const struct sshkey_impl *impl;
+	char *tname = NULL;
 	char *expect_sk_application = NULL;
-	struct sshkey *k = NULL;
-	size_t pklen = 0, sklen = 0;
-	int type, r = SSH_ERR_INTERNAL_ERROR;
-	u_char *ed25519_pk = NULL, *ed25519_sk = NULL;
 	u_char *expect_ed25519_pk = NULL;
-	u_char *xmss_pk = NULL, *xmss_sk = NULL;
-#ifdef WITH_OPENSSL
-	BIGNUM *exponent = NULL;
-	BIGNUM *rsa_n = NULL, *rsa_e = NULL, *rsa_d = NULL;
-	BIGNUM *rsa_iqmp = NULL, *rsa_p = NULL, *rsa_q = NULL;
-	BIGNUM *dsa_p = NULL, *dsa_q = NULL, *dsa_g = NULL;
-	BIGNUM *dsa_pub_key = NULL, *dsa_priv_key = NULL;
-#endif /* WITH_OPENSSL */
+	struct sshkey *k = NULL;
+	int type, r = SSH_ERR_INTERNAL_ERROR;
 
 	if (kp != NULL)
 		*kp = NULL;
@@ -2513,227 +2522,21 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 		expect_ed25519_pk = k->ed25519_pk;
 		k->sk_application = NULL;
 		k->ed25519_pk = NULL;
+		/* XXX xmss too or refactor */
 	} else {
 		if ((k = sshkey_new(type)) == NULL) {
 			r = SSH_ERR_ALLOC_FAIL;
 			goto out;
 		}
 	}
-	switch (type) {
-#ifdef WITH_OPENSSL
-	case KEY_DSA:
-		if ((r = sshbuf_get_bignum2(buf, &dsa_p)) != 0 ||
-		    (r = sshbuf_get_bignum2(buf, &dsa_q)) != 0 ||
-		    (r = sshbuf_get_bignum2(buf, &dsa_g)) != 0 ||
-		    (r = sshbuf_get_bignum2(buf, &dsa_pub_key)) != 0)
-			goto out;
-		if (!DSA_set0_pqg(k->dsa, dsa_p, dsa_q, dsa_g)) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		dsa_p = dsa_q = dsa_g = NULL; /* transferred */
-		if (!DSA_set0_key(k->dsa, dsa_pub_key, NULL)) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		dsa_pub_key = NULL; /* transferred */
-		/* FALLTHROUGH */
-	case KEY_DSA_CERT:
-		if ((r = sshbuf_get_bignum2(buf, &dsa_priv_key)) != 0)
-			goto out;
-		if (!DSA_set0_key(k->dsa, NULL, dsa_priv_key)) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		dsa_priv_key = NULL; /* transferred */
-		break;
-# ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA:
-		if ((k->ecdsa_nid = sshkey_ecdsa_nid_from_name(tname)) == -1) {
-			r = SSH_ERR_INVALID_ARGUMENT;
-			goto out;
-		}
-		if ((r = sshbuf_get_cstring(buf, &curve, NULL)) != 0)
-			goto out;
-		if (k->ecdsa_nid != sshkey_curve_name_to_nid(curve)) {
-			r = SSH_ERR_EC_CURVE_MISMATCH;
-			goto out;
-		}
-		k->ecdsa = EC_KEY_new_by_curve_name(k->ecdsa_nid);
-		if (k->ecdsa  == NULL) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		if ((r = sshbuf_get_eckey(buf, k->ecdsa)) != 0)
-			goto out;
-		/* FALLTHROUGH */
-	case KEY_ECDSA_CERT:
-		if ((r = sshbuf_get_bignum2(buf, &exponent)) != 0)
-			goto out;
-		if (EC_KEY_set_private_key(k->ecdsa, exponent) != 1) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		if ((r = sshkey_ec_validate_public(EC_KEY_get0_group(k->ecdsa),
-		    EC_KEY_get0_public_key(k->ecdsa))) != 0 ||
-		    (r = sshkey_ec_validate_private(k->ecdsa)) != 0)
-			goto out;
-		break;
-	case KEY_ECDSA_SK:
-		if ((k->ecdsa_nid = sshkey_ecdsa_nid_from_name(tname)) == -1) {
-			r = SSH_ERR_INVALID_ARGUMENT;
-			goto out;
-		}
-		if ((r = sshbuf_get_cstring(buf, &curve, NULL)) != 0)
-			goto out;
-		if (k->ecdsa_nid != sshkey_curve_name_to_nid(curve)) {
-			r = SSH_ERR_EC_CURVE_MISMATCH;
-			goto out;
-		}
-		if ((k->sk_key_handle = sshbuf_new()) == NULL ||
-		    (k->sk_reserved = sshbuf_new()) == NULL) {
-			r = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		k->ecdsa = EC_KEY_new_by_curve_name(k->ecdsa_nid);
-		if (k->ecdsa  == NULL) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		if ((r = sshbuf_get_eckey(buf, k->ecdsa)) != 0 ||
-		    (r = sshbuf_get_cstring(buf, &k->sk_application,
-		    NULL)) != 0 ||
-		    (r = sshbuf_get_u8(buf, &k->sk_flags)) != 0 ||
-		    (r = sshbuf_get_stringb(buf, k->sk_key_handle)) != 0 ||
-		    (r = sshbuf_get_stringb(buf, k->sk_reserved)) != 0)
-			goto out;
-		if ((r = sshkey_ec_validate_public(EC_KEY_get0_group(k->ecdsa),
-		    EC_KEY_get0_public_key(k->ecdsa))) != 0)
-			goto out;
-		break;
-	case KEY_ECDSA_SK_CERT:
-		if ((k->sk_key_handle = sshbuf_new()) == NULL ||
-		    (k->sk_reserved = sshbuf_new()) == NULL) {
-			r = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		if ((r = sshbuf_get_cstring(buf, &k->sk_application,
-		    NULL)) != 0 ||
-		    (r = sshbuf_get_u8(buf, &k->sk_flags)) != 0 ||
-		    (r = sshbuf_get_stringb(buf, k->sk_key_handle)) != 0 ||
-		    (r = sshbuf_get_stringb(buf, k->sk_reserved)) != 0)
-			goto out;
-		if ((r = sshkey_ec_validate_public(EC_KEY_get0_group(k->ecdsa),
-		    EC_KEY_get0_public_key(k->ecdsa))) != 0)
-			goto out;
-		break;
-# endif /* OPENSSL_HAS_ECC */
-	case KEY_RSA:
-		if ((r = sshbuf_get_bignum2(buf, &rsa_n)) != 0 ||
-		    (r = sshbuf_get_bignum2(buf, &rsa_e)) != 0)
-			goto out;
-		if (!RSA_set0_key(k->rsa, rsa_n, rsa_e, NULL)) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		rsa_n = rsa_e = NULL; /* transferred */
-		/* FALLTHROUGH */
-	case KEY_RSA_CERT:
-		if ((r = sshbuf_get_bignum2(buf, &rsa_d)) != 0 ||
-		    (r = sshbuf_get_bignum2(buf, &rsa_iqmp)) != 0 ||
-		    (r = sshbuf_get_bignum2(buf, &rsa_p)) != 0 ||
-		    (r = sshbuf_get_bignum2(buf, &rsa_q)) != 0)
-			goto out;
-		if (!RSA_set0_key(k->rsa, NULL, NULL, rsa_d)) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		rsa_d = NULL; /* transferred */
-		if (!RSA_set0_factors(k->rsa, rsa_p, rsa_q)) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		rsa_p = rsa_q = NULL; /* transferred */
-		if ((r = sshkey_check_rsa_length(k, 0)) != 0)
-			goto out;
-		if ((r = ssh_rsa_complete_crt_parameters(k, rsa_iqmp)) != 0)
-			goto out;
-		break;
-#endif /* WITH_OPENSSL */
-	case KEY_ED25519:
-	case KEY_ED25519_CERT:
-		if ((r = sshbuf_get_string(buf, &ed25519_pk, &pklen)) != 0 ||
-		    (r = sshbuf_get_string(buf, &ed25519_sk, &sklen)) != 0)
-			goto out;
-		if (pklen != ED25519_PK_SZ || sklen != ED25519_SK_SZ) {
-			r = SSH_ERR_INVALID_FORMAT;
-			goto out;
-		}
-		k->ed25519_pk = ed25519_pk;
-		k->ed25519_sk = ed25519_sk;
-		ed25519_pk = ed25519_sk = NULL; /* transferred */
-		break;
-	case KEY_ED25519_SK:
-	case KEY_ED25519_SK_CERT:
-		if ((r = sshbuf_get_string(buf, &ed25519_pk, &pklen)) != 0)
-			goto out;
-		if (pklen != ED25519_PK_SZ) {
-			r = SSH_ERR_INVALID_FORMAT;
-			goto out;
-		}
-		if ((k->sk_key_handle = sshbuf_new()) == NULL ||
-		    (k->sk_reserved = sshbuf_new()) == NULL) {
-			r = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		if ((r = sshbuf_get_cstring(buf, &k->sk_application,
-		    NULL)) != 0 ||
-		    (r = sshbuf_get_u8(buf, &k->sk_flags)) != 0 ||
-		    (r = sshbuf_get_stringb(buf, k->sk_key_handle)) != 0 ||
-		    (r = sshbuf_get_stringb(buf, k->sk_reserved)) != 0)
-			goto out;
-		k->ed25519_pk = ed25519_pk;
-		ed25519_pk = NULL; /* transferred */
-		break;
-#ifdef WITH_XMSS
-	case KEY_XMSS:
-	case KEY_XMSS_CERT:
-		if ((r = sshbuf_get_cstring(buf, &xmss_name, NULL)) != 0 ||
-		    (r = sshbuf_get_string(buf, &xmss_pk, &pklen)) != 0 ||
-		    (r = sshbuf_get_string(buf, &xmss_sk, &sklen)) != 0)
-			goto out;
-		if (type == KEY_XMSS &&
-		    (r = sshkey_xmss_init(k, xmss_name)) != 0)
-			goto out;
-		if (pklen != sshkey_xmss_pklen(k) ||
-		    sklen != sshkey_xmss_sklen(k)) {
-			r = SSH_ERR_INVALID_FORMAT;
-			goto out;
-		}
-		k->xmss_pk = xmss_pk;
-		k->xmss_sk = xmss_sk;
-		xmss_pk = xmss_sk = NULL;
-		/* optional internal state */
-		if ((r = sshkey_xmss_deserialize_state_opt(k, buf)) != 0)
-			goto out;
-		break;
-#endif /* WITH_XMSS */
-	default:
-		r = SSH_ERR_KEY_TYPE_UNKNOWN;
+	if ((impl = sshkey_impl_from_type(type)) == NULL) {
+		r = SSH_ERR_INTERNAL_ERROR;
 		goto out;
 	}
-#ifdef WITH_OPENSSL
-	/* enable blinding */
-	switch (k->type) {
-	case KEY_RSA:
-	case KEY_RSA_CERT:
-		if (RSA_blinding_on(k->rsa, NULL) != 1) {
-			r = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-		break;
-	}
-#endif /* WITH_OPENSSL */
+	if ((r = impl->funcs->deserialize_private(tname, buf, k)) != 0)
+		goto out;
+
+	/* XXX xmss too or refactor */
 	if ((expect_sk_application != NULL && (k->sk_application == NULL ||
 	    strcmp(expect_sk_application, k->sk_application) != 0)) ||
 	    (expect_ed25519_pk != NULL && (k->ed25519_pk == NULL ||
@@ -2749,27 +2552,7 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 	}
  out:
 	free(tname);
-	free(curve);
-#ifdef WITH_OPENSSL
-	BN_clear_free(exponent);
-	BN_clear_free(dsa_p);
-	BN_clear_free(dsa_q);
-	BN_clear_free(dsa_g);
-	BN_clear_free(dsa_pub_key);
-	BN_clear_free(dsa_priv_key);
-	BN_clear_free(rsa_n);
-	BN_clear_free(rsa_e);
-	BN_clear_free(rsa_d);
-	BN_clear_free(rsa_p);
-	BN_clear_free(rsa_q);
-	BN_clear_free(rsa_iqmp);
-#endif /* WITH_OPENSSL */
 	sshkey_free(k);
-	freezero(ed25519_pk, pklen);
-	freezero(ed25519_sk, sklen);
-	free(xmss_name);
-	freezero(xmss_pk, pklen);
-	freezero(xmss_sk, sklen);
 	free(expect_sk_application);
 	free(expect_ed25519_pk);
 	return r;

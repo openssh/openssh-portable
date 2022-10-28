@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-xmss.c,v 1.13 2022/10/28 00:44:17 djm Exp $*/
+/* $OpenBSD: ssh-xmss.c,v 1.14 2022/10/28 00:44:44 djm Exp $*/
 /*
  * Copyright (c) 2017 Stefan-Lukas Gazdag.
  * Copyright (c) 2017 Markus Friedl.
@@ -156,6 +156,43 @@ ssh_xmss_deserialize_public(const char *ktype, struct sshbuf *b,
 	free(xmss_name);
 	freezero(pk, len);
 	return ret;
+}
+
+static int
+ssh_xmss_deserialize_private(const char *ktype, struct sshbuf *b,
+    struct sshkey *key)
+{
+	int r;
+	char *xmss_name = NULL;
+	size_t pklen = 0, sklen = 0;
+	u_char *xmss_pk = NULL, *xmss_sk = NULL;
+
+	/* Note: can't reuse ssh_xmss_deserialize_public because of sk order */
+	if ((r = sshbuf_get_cstring(b, &xmss_name, NULL)) != 0 ||
+	    (r = sshbuf_get_string(b, &xmss_pk, &pklen)) != 0 ||
+	    (r = sshbuf_get_string(b, &xmss_sk, &sklen)) != 0)
+		goto out;
+	if (!sshkey_is_cert(key) &&
+	    (r = sshkey_xmss_init(key, xmss_name)) != 0)
+		goto out;
+	if (pklen != sshkey_xmss_pklen(key) ||
+	    sklen != sshkey_xmss_sklen(key)) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	key->xmss_pk = xmss_pk;
+	key->xmss_sk = xmss_sk;
+	xmss_pk = xmss_sk = NULL;
+	/* optional internal state */
+	if ((r = sshkey_xmss_deserialize_state_opt(key, b)) != 0)
+		goto out;
+	/* success */
+	r = 0;
+ out:
+	free(xmss_name);
+	freezero(xmss_pk, pklen);
+	freezero(xmss_sk, sklen);
+	return r;
 }
 
 static int
@@ -317,6 +354,7 @@ static const struct sshkey_impl_funcs sshkey_xmss_funcs = {
 	/* .ssh_serialize_public = */ ssh_xmss_serialize_public,
 	/* .ssh_deserialize_public = */ ssh_xmss_deserialize_public,
 	/* .ssh_serialize_private = */ ssh_xmss_serialize_private,
+	/* .ssh_deserialize_private = */ ssh_xmss_deserialize_private,
 	/* .generate = */	sshkey_xmss_generate_private_key,
 	/* .copy_public = */	ssh_xmss_copy_public,
 	/* .sign = */		ssh_xmss_sign,

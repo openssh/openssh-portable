@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.76 2022/10/28 00:44:17 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.77 2022/10/28 00:44:44 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -231,6 +231,60 @@ ssh_rsa_deserialize_public(const char *ktype, struct sshbuf *b,
 	BN_clear_free(rsa_n);
 	BN_clear_free(rsa_e);
 	return ret;
+}
+
+static int
+ssh_rsa_deserialize_private(const char *ktype, struct sshbuf *b,
+    struct sshkey *key)
+{
+	int r;
+	BIGNUM *rsa_n = NULL, *rsa_e = NULL, *rsa_d = NULL;
+	BIGNUM *rsa_iqmp = NULL, *rsa_p = NULL, *rsa_q = NULL;
+
+	/* Note: can't reuse ssh_rsa_deserialize_public: e, n vs. n, e */
+	if (!sshkey_is_cert(key)) {
+		if ((r = sshbuf_get_bignum2(b, &rsa_n)) != 0 ||
+		    (r = sshbuf_get_bignum2(b, &rsa_e)) != 0)
+			goto out;
+		if (!RSA_set0_key(key->rsa, rsa_n, rsa_e, NULL)) {
+			r = SSH_ERR_LIBCRYPTO_ERROR;
+			goto out;
+		}
+		rsa_n = rsa_e = NULL; /* transferred */
+	}
+	if ((r = sshbuf_get_bignum2(b, &rsa_d)) != 0 ||
+	    (r = sshbuf_get_bignum2(b, &rsa_iqmp)) != 0 ||
+	    (r = sshbuf_get_bignum2(b, &rsa_p)) != 0 ||
+	    (r = sshbuf_get_bignum2(b, &rsa_q)) != 0)
+		goto out;
+	if (!RSA_set0_key(key->rsa, NULL, NULL, rsa_d)) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	rsa_d = NULL; /* transferred */
+	if (!RSA_set0_factors(key->rsa, rsa_p, rsa_q)) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	rsa_p = rsa_q = NULL; /* transferred */
+	if ((r = sshkey_check_rsa_length(key, 0)) != 0)
+		goto out;
+	if ((r = ssh_rsa_complete_crt_parameters(key, rsa_iqmp)) != 0)
+		goto out;
+	if (RSA_blinding_on(key->rsa, NULL) != 1) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	/* success */
+	r = 0;
+ out:
+	BN_clear_free(rsa_n);
+	BN_clear_free(rsa_e);
+	BN_clear_free(rsa_d);
+	BN_clear_free(rsa_p);
+	BN_clear_free(rsa_q);
+	BN_clear_free(rsa_iqmp);
+	return r;
 }
 
 static const char *
@@ -652,6 +706,7 @@ static const struct sshkey_impl_funcs sshkey_rsa_funcs = {
 	/* .ssh_serialize_public = */ ssh_rsa_serialize_public,
 	/* .ssh_deserialize_public = */ ssh_rsa_deserialize_public,
 	/* .ssh_serialize_private = */ ssh_rsa_serialize_private,
+	/* .ssh_deserialize_private = */ ssh_rsa_deserialize_private,
 	/* .generate = */	ssh_rsa_generate,
 	/* .copy_public = */	ssh_rsa_copy_public,
 	/* .sign = */		ssh_rsa_sign,

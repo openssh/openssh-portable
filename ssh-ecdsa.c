@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa.c,v 1.24 2022/10/28 00:44:17 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa.c,v 1.25 2022/10/28 00:44:44 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -157,50 +157,69 @@ static int
 ssh_ecdsa_deserialize_public(const char *ktype, struct sshbuf *b,
     struct sshkey *key)
 {
-	int ret = SSH_ERR_INTERNAL_ERROR;
+	int r;
 	char *curve = NULL;
-	EC_POINT *q = NULL;
 
-	key->ecdsa_nid = sshkey_ecdsa_nid_from_name(ktype);
-	if (sshbuf_get_cstring(b, &curve, NULL) != 0) {
-		ret = SSH_ERR_INVALID_FORMAT;
+	if ((key->ecdsa_nid = sshkey_ecdsa_nid_from_name(ktype)) == -1)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if ((r = sshbuf_get_cstring(b, &curve, NULL)) != 0)
 		goto out;
-	}
 	if (key->ecdsa_nid != sshkey_curve_name_to_nid(curve)) {
-		ret = SSH_ERR_EC_CURVE_MISMATCH;
+		r = SSH_ERR_EC_CURVE_MISMATCH;
 		goto out;
 	}
 	EC_KEY_free(key->ecdsa);
+	key->ecdsa = NULL;
 	if ((key->ecdsa = EC_KEY_new_by_curve_name(key->ecdsa_nid)) == NULL) {
-		ret = SSH_ERR_EC_CURVE_INVALID;
+		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
-	if ((q = EC_POINT_new(EC_KEY_get0_group(key->ecdsa))) == NULL) {
-		ret = SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_get_eckey(b, key->ecdsa)) != 0)
+		goto out;
+	if (sshkey_ec_validate_public(EC_KEY_get0_group(key->ecdsa),
+	    EC_KEY_get0_public_key(key->ecdsa)) != 0) {
+		r = SSH_ERR_KEY_INVALID_EC_VALUE;
 		goto out;
 	}
-	if (sshbuf_get_ec(b, q, EC_KEY_get0_group(key->ecdsa)) != 0) {
-		ret = SSH_ERR_INVALID_FORMAT;
-		goto out;
-	}
-	if (sshkey_ec_validate_public(EC_KEY_get0_group(key->ecdsa), q) != 0) {
-		ret = SSH_ERR_KEY_INVALID_EC_VALUE;
-		goto out;
-	}
-	if (EC_KEY_set_public_key(key->ecdsa, q) != 1) {
-		/* XXX assume it is a allocation error */
-		ret = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-#ifdef DEBUG_PK
-	sshkey_dump_ec_point(EC_KEY_get0_group(key->ecdsa), q);
-#endif
 	/* success */
-	ret = 0;
+	r = 0;
+#ifdef DEBUG_PK
+	sshkey_dump_ec_point(EC_KEY_get0_group(key->ecdsa),
+	    EC_KEY_get0_public_key(key->ecdsa));
+#endif
  out:
 	free(curve);
-	EC_POINT_free(q);
-	return ret;
+	if (r != 0) {
+		EC_KEY_free(key->ecdsa);
+		key->ecdsa = NULL;
+	}
+	return r;
+}
+
+static int
+ssh_ecdsa_deserialize_private(const char *ktype, struct sshbuf *b,
+    struct sshkey *key)
+{
+	int r;
+	BIGNUM *exponent = NULL;
+
+	if (!sshkey_is_cert(key)) {
+		if ((r = ssh_ecdsa_deserialize_public(ktype, b, key)) != 0)
+			return r;
+	}
+	if ((r = sshbuf_get_bignum2(b, &exponent)) != 0)
+		goto out;
+	if (EC_KEY_set_private_key(key->ecdsa, exponent) != 1) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	if ((r = sshkey_ec_validate_private(key->ecdsa)) != 0)
+		goto out;
+	/* success */
+	r = 0;
+ out:
+	BN_clear_free(exponent);
+	return r;
 }
 
 /* ARGSUSED */
@@ -367,6 +386,7 @@ const struct sshkey_impl_funcs sshkey_ecdsa_funcs = {
 	/* .ssh_serialize_public = */ ssh_ecdsa_serialize_public,
 	/* .ssh_deserialize_public = */ ssh_ecdsa_deserialize_public,
 	/* .ssh_serialize_private = */ ssh_ecdsa_serialize_private,
+	/* .ssh_deserialize_private = */ ssh_ecdsa_deserialize_private,
 	/* .generate = */	ssh_ecdsa_generate,
 	/* .copy_public = */	ssh_ecdsa_copy_public,
 	/* .sign = */		ssh_ecdsa_sign,
