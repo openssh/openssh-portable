@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-xmss.c,v 1.7 2022/10/28 00:36:31 djm Exp $*/
+/* $OpenBSD: ssh-xmss.c,v 1.8 2022/10/28 00:37:24 djm Exp $*/
 /*
  * Copyright (c) 2017 Stefan-Lukas Gazdag.
  * Copyright (c) 2017 Markus Friedl.
@@ -61,6 +61,25 @@ ssh_xmss_equal(const struct sshkey *a, const struct sshkey *b)
 	if (memcmp(a->xmss_pk, b->xmss_pk, sshkey_xmss_pklen(a)) != 0)
 		return 0;
 	return 1;
+}
+
+static int
+ssh_xmss_serialize_public(const struct sshkey *key, struct sshbuf *b,
+    const char *typename, enum sshkey_serialize_rep opts)
+{
+	int r;
+
+	if (key->xmss_name == NULL || key->xmss_pk == NULL ||
+	    sshkey_xmss_pklen(key) == 0)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if ((r = sshbuf_put_cstring(b, typename)) != 0 ||
+	    (r = sshbuf_put_cstring(b, key->xmss_name)) != 0 ||
+	    (r = sshbuf_put_string(b, key->xmss_pk,
+	    sshkey_xmss_pklen(key))) != 0 ||
+	    (r = sshkey_xmss_serialize_pk_info(key, b, opts)) != 0)
+		return r;
+
+	return 0;
 }
 
 int
@@ -216,6 +235,7 @@ static const struct sshkey_impl_funcs sshkey_xmss_funcs = {
 	/* .alloc = */		NULL,
 	/* .cleanup = */	ssh_xmss_cleanup,
 	/* .equal = */		ssh_xmss_equal,
+	/* .ssh_serialize_public = */ ssh_xmss_serialize_public,
 };
 
 const struct sshkey_impl sshkey_xmss_impl = {

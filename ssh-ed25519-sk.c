@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519-sk.c,v 1.8 2022/10/28 00:36:31 djm Exp $ */
+/* $OpenBSD: ssh-ed25519-sk.c,v 1.9 2022/10/28 00:37:24 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -53,6 +53,21 @@ ssh_ed25519_sk_equal(const struct sshkey *a, const struct sshkey *b)
 	if (!sshkey_ed25519_funcs.equal(a, b))
 		return 0;
 	return 1;
+}
+
+static int
+ssh_ed25519_sk_serialize_public(const struct sshkey *key, struct sshbuf *b,
+    const char *typename, enum sshkey_serialize_rep opts)
+{
+	int r;
+
+	if ((r = sshkey_ed25519_funcs.serialize_public(key, b,
+	    typename, opts)) != 0)
+		return r;
+	if ((r = sshkey_serialize_sk(key, b)) != 0)
+		return r;
+
+	return 0;
 }
 
 int
@@ -187,6 +202,7 @@ static const struct sshkey_impl_funcs sshkey_ed25519_sk_funcs = {
 	/* .alloc = */		NULL,
 	/* .cleanup = */	ssh_ed25519_sk_cleanup,
 	/* .equal = */		ssh_ed25519_sk_equal,
+	/* .ssh_serialize_public = */ ssh_ed25519_sk_serialize_public,
 };
 
 const struct sshkey_impl sshkey_ed25519_sk_impl = {

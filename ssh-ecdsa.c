@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa.c,v 1.18 2022/10/28 00:36:31 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa.c,v 1.19 2022/10/28 00:37:24 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -87,7 +87,25 @@ ssh_ecdsa_equal(const struct sshkey *a, const struct sshkey *b)
 		return 0;
 	if (EC_POINT_cmp(grp_a, pub_a, pub_b, NULL) != 0)
 		return 0;
+
 	return 1;
+}
+
+static int
+ssh_ecdsa_serialize_public(const struct sshkey *key, struct sshbuf *b,
+    const char *typename, enum sshkey_serialize_rep opts)
+{
+	int r;
+
+	if (key->ecdsa == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if ((r = sshbuf_put_cstring(b, typename)) != 0 ||
+	    (r = sshbuf_put_cstring(b,
+	    sshkey_curve_nid_to_name(key->ecdsa_nid))) != 0 ||
+	    (r = sshbuf_put_eckey(b, key->ecdsa)) != 0)
+		return r;
+
+	return 0;
 }
 
 /* ARGSUSED */
@@ -248,6 +266,7 @@ const struct sshkey_impl_funcs sshkey_ecdsa_funcs = {
 	/* .alloc = */		NULL,
 	/* .cleanup = */	ssh_ecdsa_cleanup,
 	/* .equal = */		ssh_ecdsa_equal,
+	/* .ssh_serialize_public = */ ssh_ecdsa_serialize_public,
 };
 
 const struct sshkey_impl sshkey_ecdsa_nistp256_impl = {

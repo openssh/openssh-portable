@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.124 2022/10/28 00:36:31 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.125 2022/10/28 00:37:24 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -679,116 +679,47 @@ sshkey_equal(const struct sshkey *a, const struct sshkey *b)
 	return sshkey_equal_public(a, b);
 }
 
+
+/* Serialise common FIDO key parts */
+int
+sshkey_serialize_sk(const struct sshkey *key, struct sshbuf *b)
+{
+	int r;
+
+	if ((r = sshbuf_put_cstring(b, key->sk_application)) != 0)
+		return r;
+
+	return 0;
+}
+
 static int
 to_blob_buf(const struct sshkey *key, struct sshbuf *b, int force_plain,
   enum sshkey_serialize_rep opts)
 {
 	int type, ret = SSH_ERR_INTERNAL_ERROR;
 	const char *typename;
-#ifdef WITH_OPENSSL
-	const BIGNUM *rsa_n, *rsa_e, *dsa_p, *dsa_q, *dsa_g, *dsa_pub_key;
-#endif /* WITH_OPENSSL */
+	const struct sshkey_impl *impl;
 
 	if (key == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
 
-	if (sshkey_is_cert(key)) {
+	type = force_plain ? sshkey_type_plain(key->type) : key->type;
+
+	if (sshkey_type_is_cert(type)) {
 		if (key->cert == NULL)
 			return SSH_ERR_EXPECTED_CERT;
 		if (sshbuf_len(key->cert->certblob) == 0)
 			return SSH_ERR_KEY_LACKS_CERTBLOB;
-	}
-	type = force_plain ? sshkey_type_plain(key->type) : key->type;
-	typename = sshkey_ssh_name_from_type_nid(type, key->ecdsa_nid);
-
-	switch (type) {
-#ifdef WITH_OPENSSL
-	case KEY_DSA_CERT:
-	case KEY_ECDSA_CERT:
-	case KEY_ECDSA_SK_CERT:
-	case KEY_RSA_CERT:
-#endif /* WITH_OPENSSL */
-	case KEY_ED25519_CERT:
-	case KEY_ED25519_SK_CERT:
-#ifdef WITH_XMSS
-	case KEY_XMSS_CERT:
-#endif /* WITH_XMSS */
 		/* Use the existing blob */
-		/* XXX modified flag? */
 		if ((ret = sshbuf_putb(b, key->cert->certblob)) != 0)
 			return ret;
-		break;
-#ifdef WITH_OPENSSL
-	case KEY_DSA:
-		if (key->dsa == NULL)
-			return SSH_ERR_INVALID_ARGUMENT;
-		DSA_get0_pqg(key->dsa, &dsa_p, &dsa_q, &dsa_g);
-		DSA_get0_key(key->dsa, &dsa_pub_key, NULL);
-		if ((ret = sshbuf_put_cstring(b, typename)) != 0 ||
-		    (ret = sshbuf_put_bignum2(b, dsa_p)) != 0 ||
-		    (ret = sshbuf_put_bignum2(b, dsa_q)) != 0 ||
-		    (ret = sshbuf_put_bignum2(b, dsa_g)) != 0 ||
-		    (ret = sshbuf_put_bignum2(b, dsa_pub_key)) != 0)
-			return ret;
-		break;
-# ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA:
-	case KEY_ECDSA_SK:
-		if (key->ecdsa == NULL)
-			return SSH_ERR_INVALID_ARGUMENT;
-		if ((ret = sshbuf_put_cstring(b, typename)) != 0 ||
-		    (ret = sshbuf_put_cstring(b,
-		    sshkey_curve_nid_to_name(key->ecdsa_nid))) != 0 ||
-		    (ret = sshbuf_put_eckey(b, key->ecdsa)) != 0)
-			return ret;
-		if (type == KEY_ECDSA_SK) {
-			if ((ret = sshbuf_put_cstring(b,
-			    key->sk_application)) != 0)
-				return ret;
-		}
-		break;
-# endif
-	case KEY_RSA:
-		if (key->rsa == NULL)
-			return SSH_ERR_INVALID_ARGUMENT;
-		RSA_get0_key(key->rsa, &rsa_n, &rsa_e, NULL);
-		if ((ret = sshbuf_put_cstring(b, typename)) != 0 ||
-		    (ret = sshbuf_put_bignum2(b, rsa_e)) != 0 ||
-		    (ret = sshbuf_put_bignum2(b, rsa_n)) != 0)
-			return ret;
-		break;
-#endif /* WITH_OPENSSL */
-	case KEY_ED25519:
-	case KEY_ED25519_SK:
-		if (key->ed25519_pk == NULL)
-			return SSH_ERR_INVALID_ARGUMENT;
-		if ((ret = sshbuf_put_cstring(b, typename)) != 0 ||
-		    (ret = sshbuf_put_string(b,
-		    key->ed25519_pk, ED25519_PK_SZ)) != 0)
-			return ret;
-		if (type == KEY_ED25519_SK) {
-			if ((ret = sshbuf_put_cstring(b,
-			    key->sk_application)) != 0)
-				return ret;
-		}
-		break;
-#ifdef WITH_XMSS
-	case KEY_XMSS:
-		if (key->xmss_name == NULL || key->xmss_pk == NULL ||
-		    sshkey_xmss_pklen(key) == 0)
-			return SSH_ERR_INVALID_ARGUMENT;
-		if ((ret = sshbuf_put_cstring(b, typename)) != 0 ||
-		    (ret = sshbuf_put_cstring(b, key->xmss_name)) != 0 ||
-		    (ret = sshbuf_put_string(b,
-		    key->xmss_pk, sshkey_xmss_pklen(key))) != 0 ||
-		    (ret = sshkey_xmss_serialize_pk_info(key, b, opts)) != 0)
-			return ret;
-		break;
-#endif /* WITH_XMSS */
-	default:
-		return SSH_ERR_KEY_TYPE_UNKNOWN;
+		return 0;
 	}
-	return 0;
+	if ((impl = sshkey_impl_from_type(type)) == NULL)
+		return SSH_ERR_KEY_TYPE_UNKNOWN;
+
+	typename = sshkey_ssh_name_from_type_nid(type, key->ecdsa_nid);
+	return impl->funcs->serialize_public(key, b, typename, opts);
 }
 
 int
