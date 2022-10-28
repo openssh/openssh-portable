@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519-sk.c,v 1.12 2022/10/28 00:41:52 djm Exp $ */
+/* $OpenBSD: ssh-ed25519-sk.c,v 1.13 2022/10/28 00:43:08 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -94,10 +94,10 @@ ssh_ed25519_sk_deserialize_public(const char *ktype, struct sshbuf *b,
 	return 0;
 }
 
-int
+static int
 ssh_ed25519_sk_verify(const struct sshkey *key,
-    const u_char *signature, size_t signaturelen,
-    const u_char *data, size_t datalen, u_int compat,
+    const u_char *sig, size_t siglen,
+    const u_char *data, size_t dlen, const char *alg, u_int compat,
     struct sshkey_sig_details **detailsp)
 {
 	struct sshbuf *b = NULL;
@@ -122,10 +122,10 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 	if (key == NULL ||
 	    sshkey_type_plain(key->type) != KEY_ED25519_SK ||
 	    key->ed25519_pk == NULL ||
-	    signature == NULL || signaturelen == 0)
+	    sig == NULL || siglen == 0)
 		return SSH_ERR_INVALID_ARGUMENT;
 
-	if ((b = sshbuf_from(signature, signaturelen)) == NULL)
+	if ((b = sshbuf_from(sig, siglen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if (sshbuf_get_cstring(b, &ktype, NULL) != 0 ||
 	    sshbuf_get_string_direct(b, &sigblob, &len) != 0 ||
@@ -156,7 +156,7 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 	}
 	if (ssh_digest_memory(SSH_DIGEST_SHA256, key->sk_application,
 	    strlen(key->sk_application), apphash, sizeof(apphash)) != 0 ||
-	    ssh_digest_memory(SSH_DIGEST_SHA256, data, datalen,
+	    ssh_digest_memory(SSH_DIGEST_SHA256, data, dlen,
 	    msghash, sizeof(msghash)) != 0) {
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
@@ -230,6 +230,8 @@ static const struct sshkey_impl_funcs sshkey_ed25519_sk_funcs = {
 	/* .ssh_deserialize_public = */ ssh_ed25519_sk_deserialize_public,
 	/* .generate = */	NULL,
 	/* .copy_public = */	ssh_ed25519_sk_copy_public,
+	/* .sign = */		NULL,
+	/* .verify = */		ssh_ed25519_sk_verify,
 };
 
 const struct sshkey_impl sshkey_ed25519_sk_impl = {

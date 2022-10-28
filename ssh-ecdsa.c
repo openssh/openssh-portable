@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa.c,v 1.22 2022/10/28 00:41:52 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa.c,v 1.23 2022/10/28 00:43:08 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -188,15 +188,17 @@ ssh_ecdsa_deserialize_public(const char *ktype, struct sshbuf *b,
 }
 
 /* ARGSUSED */
-int
-ssh_ecdsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
-    const u_char *data, size_t datalen, u_int compat)
+static int
+ssh_ecdsa_sign(struct sshkey *key,
+    u_char **sigp, size_t *lenp,
+    const u_char *data, size_t dlen,
+    const char *alg, const char *sk_provider, const char *sk_pin, u_int compat)
 {
-	ECDSA_SIG *sig = NULL;
+	ECDSA_SIG *esig = NULL;
 	const BIGNUM *sig_r, *sig_s;
 	int hash_alg;
 	u_char digest[SSH_DIGEST_MAX_LENGTH];
-	size_t len, dlen;
+	size_t len, hlen;
 	struct sshbuf *b = NULL, *bb = NULL;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 
@@ -210,13 +212,13 @@ ssh_ecdsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 		return SSH_ERR_INVALID_ARGUMENT;
 
 	if ((hash_alg = sshkey_ec_nid_to_hash_alg(key->ecdsa_nid)) == -1 ||
-	    (dlen = ssh_digest_bytes(hash_alg)) == 0)
+	    (hlen = ssh_digest_bytes(hash_alg)) == 0)
 		return SSH_ERR_INTERNAL_ERROR;
-	if ((ret = ssh_digest_memory(hash_alg, data, datalen,
+	if ((ret = ssh_digest_memory(hash_alg, data, dlen,
 	    digest, sizeof(digest))) != 0)
 		goto out;
 
-	if ((sig = ECDSA_do_sign(digest, dlen, key->ecdsa)) == NULL) {
+	if ((esig = ECDSA_do_sign(digest, hlen, key->ecdsa)) == NULL) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
@@ -225,7 +227,7 @@ ssh_ecdsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	ECDSA_SIG_get0(sig, &sig_r, &sig_s);
+	ECDSA_SIG_get0(esig, &sig_r, &sig_s);
 	if ((ret = sshbuf_put_bignum2(bb, sig_r)) != 0 ||
 	    (ret = sshbuf_put_bignum2(bb, sig_s)) != 0)
 		goto out;
@@ -247,36 +249,37 @@ ssh_ecdsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	explicit_bzero(digest, sizeof(digest));
 	sshbuf_free(b);
 	sshbuf_free(bb);
-	ECDSA_SIG_free(sig);
+	ECDSA_SIG_free(esig);
 	return ret;
 }
 
 /* ARGSUSED */
-int
+static int
 ssh_ecdsa_verify(const struct sshkey *key,
-    const u_char *signature, size_t signaturelen,
-    const u_char *data, size_t datalen, u_int compat)
+    const u_char *sig, size_t siglen,
+    const u_char *data, size_t dlen, const char *alg, u_int compat,
+    struct sshkey_sig_details **detailsp)
 {
-	ECDSA_SIG *sig = NULL;
+	ECDSA_SIG *esig = NULL;
 	BIGNUM *sig_r = NULL, *sig_s = NULL;
 	int hash_alg;
 	u_char digest[SSH_DIGEST_MAX_LENGTH];
-	size_t dlen;
+	size_t hlen;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL, *sigbuf = NULL;
 	char *ktype = NULL;
 
 	if (key == NULL || key->ecdsa == NULL ||
 	    sshkey_type_plain(key->type) != KEY_ECDSA ||
-	    signature == NULL || signaturelen == 0)
+	    sig == NULL || siglen == 0)
 		return SSH_ERR_INVALID_ARGUMENT;
 
 	if ((hash_alg = sshkey_ec_nid_to_hash_alg(key->ecdsa_nid)) == -1 ||
-	    (dlen = ssh_digest_bytes(hash_alg)) == 0)
+	    (hlen = ssh_digest_bytes(hash_alg)) == 0)
 		return SSH_ERR_INTERNAL_ERROR;
 
 	/* fetch signature */
-	if ((b = sshbuf_from(signature, signaturelen)) == NULL)
+	if ((b = sshbuf_from(sig, siglen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if (sshbuf_get_cstring(b, &ktype, NULL) != 0 ||
 	    sshbuf_froms(b, &sigbuf) != 0) {
@@ -298,11 +301,11 @@ ssh_ecdsa_verify(const struct sshkey *key,
 		ret = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if ((sig = ECDSA_SIG_new()) == NULL) {
+	if ((esig = ECDSA_SIG_new()) == NULL) {
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if (!ECDSA_SIG_set0(sig, sig_r, sig_s)) {
+	if (!ECDSA_SIG_set0(esig, sig_r, sig_s)) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
@@ -312,11 +315,11 @@ ssh_ecdsa_verify(const struct sshkey *key,
 		ret = SSH_ERR_UNEXPECTED_TRAILING_DATA;
 		goto out;
 	}
-	if ((ret = ssh_digest_memory(hash_alg, data, datalen,
+	if ((ret = ssh_digest_memory(hash_alg, data, dlen,
 	    digest, sizeof(digest))) != 0)
 		goto out;
 
-	switch (ECDSA_do_verify(digest, dlen, sig, key->ecdsa)) {
+	switch (ECDSA_do_verify(digest, hlen, esig, key->ecdsa)) {
 	case 1:
 		ret = 0;
 		break;
@@ -332,7 +335,7 @@ ssh_ecdsa_verify(const struct sshkey *key,
 	explicit_bzero(digest, sizeof(digest));
 	sshbuf_free(sigbuf);
 	sshbuf_free(b);
-	ECDSA_SIG_free(sig);
+	ECDSA_SIG_free(esig);
 	BN_clear_free(sig_r);
 	BN_clear_free(sig_s);
 	free(ktype);
@@ -349,6 +352,8 @@ const struct sshkey_impl_funcs sshkey_ecdsa_funcs = {
 	/* .ssh_deserialize_public = */ ssh_ecdsa_deserialize_public,
 	/* .generate = */	ssh_ecdsa_generate,
 	/* .copy_public = */	ssh_ecdsa_copy_public,
+	/* .sign = */		ssh_ecdsa_sign,
+	/* .verify = */		ssh_ecdsa_verify,
 };
 
 const struct sshkey_impl sshkey_ecdsa_nistp256_impl = {

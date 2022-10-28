@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519.c,v 1.16 2022/10/28 00:41:52 djm Exp $ */
+/* $OpenBSD: ssh-ed25519.c,v 1.17 2022/10/28 00:43:08 djm Exp $ */
 /*
  * Copyright (c) 2013 Markus Friedl <markus@openbsd.org>
  *
@@ -104,9 +104,11 @@ ssh_ed25519_deserialize_public(const char *ktype, struct sshbuf *b,
 	return 0;
 }
 
-int
-ssh_ed25519_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
-    const u_char *data, size_t datalen, u_int compat)
+static int
+ssh_ed25519_sign(struct sshkey *key,
+    u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen,
+    const char *alg, const char *sk_provider, const char *sk_pin, u_int compat)
 {
 	u_char *sig = NULL;
 	size_t slen = 0, len;
@@ -161,10 +163,11 @@ ssh_ed25519_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	return r;
 }
 
-int
+static int
 ssh_ed25519_verify(const struct sshkey *key,
-    const u_char *signature, size_t signaturelen,
-    const u_char *data, size_t datalen, u_int compat)
+    const u_char *sig, size_t siglen,
+    const u_char *data, size_t dlen, const char *alg, u_int compat,
+    struct sshkey_sig_details **detailsp)
 {
 	struct sshbuf *b = NULL;
 	char *ktype = NULL;
@@ -177,11 +180,11 @@ ssh_ed25519_verify(const struct sshkey *key,
 	if (key == NULL ||
 	    sshkey_type_plain(key->type) != KEY_ED25519 ||
 	    key->ed25519_pk == NULL ||
-	    datalen >= INT_MAX - crypto_sign_ed25519_BYTES ||
-	    signature == NULL || signaturelen == 0)
+	    dlen >= INT_MAX - crypto_sign_ed25519_BYTES ||
+	    sig == NULL || siglen == 0)
 		return SSH_ERR_INVALID_ARGUMENT;
 
-	if ((b = sshbuf_from(signature, signaturelen)) == NULL)
+	if ((b = sshbuf_from(sig, siglen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshbuf_get_cstring(b, &ktype, NULL)) != 0 ||
 	    (r = sshbuf_get_string_direct(b, &sigblob, &len)) != 0)
@@ -198,23 +201,23 @@ ssh_ed25519_verify(const struct sshkey *key,
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if (datalen >= SIZE_MAX - len) {
+	if (dlen >= SIZE_MAX - len) {
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
-	smlen = len + datalen;
+	smlen = len + dlen;
 	mlen = smlen;
 	if ((sm = malloc(smlen)) == NULL || (m = malloc(mlen)) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
 	memcpy(sm, sigblob, len);
-	memcpy(sm+len, data, datalen);
+	memcpy(sm+len, data, dlen);
 	if ((ret = crypto_sign_ed25519_open(m, &mlen, sm, smlen,
 	    key->ed25519_pk)) != 0) {
 		debug2_f("crypto_sign_ed25519_open failed: %d", ret);
 	}
-	if (ret != 0 || mlen != datalen) {
+	if (ret != 0 || mlen != dlen) {
 		r = SSH_ERR_SIGNATURE_INVALID;
 		goto out;
 	}
@@ -241,6 +244,8 @@ const struct sshkey_impl_funcs sshkey_ed25519_funcs = {
 	/* .ssh_deserialize_public = */ ssh_ed25519_deserialize_public,
 	/* .generate = */	ssh_ed25519_generate,
 	/* .copy_public = */	ssh_ed25519_copy_public,
+	/* .sign = */		ssh_ed25519_sign,
+	/* .verify = */		ssh_ed25519_verify,
 };
 
 const struct sshkey_impl sshkey_ed25519_impl = {

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.74 2022/10/28 00:41:52 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.75 2022/10/28 00:43:08 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -328,14 +328,16 @@ ssh_rsa_complete_crt_parameters(struct sshkey *key, const BIGNUM *iqmp)
 }
 
 /* RSASSA-PKCS1-v1_5 (PKCS #1 v2.0 signature) with SHA1 */
-int
-ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
-    const u_char *data, size_t datalen, const char *alg_ident)
+static int
+ssh_rsa_sign(struct sshkey *key,
+    u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen,
+    const char *alg, const char *sk_provider, const char *sk_pin, u_int compat)
 {
 	const BIGNUM *rsa_n;
 	u_char digest[SSH_DIGEST_MAX_LENGTH], *sig = NULL;
 	size_t slen = 0;
-	u_int dlen, len;
+	u_int hlen, len;
 	int nid, hash_alg, ret = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL;
 
@@ -344,10 +346,10 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	if (sigp != NULL)
 		*sigp = NULL;
 
-	if (alg_ident == NULL || strlen(alg_ident) == 0)
+	if (alg == NULL || strlen(alg) == 0)
 		hash_alg = SSH_DIGEST_SHA1;
 	else
-		hash_alg = rsa_hash_id_from_keyname(alg_ident);
+		hash_alg = rsa_hash_id_from_keyname(alg);
 	if (key == NULL || key->rsa == NULL || hash_alg == -1 ||
 	    sshkey_type_plain(key->type) != KEY_RSA)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -360,7 +362,7 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 
 	/* hash the data */
 	nid = rsa_hash_alg_nid(hash_alg);
-	if ((dlen = ssh_digest_bytes(hash_alg)) == 0)
+	if ((hlen = ssh_digest_bytes(hash_alg)) == 0)
 		return SSH_ERR_INTERNAL_ERROR;
 	if ((ret = ssh_digest_memory(hash_alg, data, datalen,
 	    digest, sizeof(digest))) != 0)
@@ -371,7 +373,7 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 		goto out;
 	}
 
-	if (RSA_sign(nid, digest, dlen, sig, &len, key->rsa) != 1) {
+	if (RSA_sign(nid, digest, hlen, sig, &len, key->rsa) != 1) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
@@ -409,15 +411,16 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	return ret;
 }
 
-int
+static int
 ssh_rsa_verify(const struct sshkey *key,
-    const u_char *sig, size_t siglen, const u_char *data, size_t datalen,
-    const char *alg)
+    const u_char *sig, size_t siglen,
+    const u_char *data, size_t dlen, const char *alg, u_int compat,
+    struct sshkey_sig_details **detailsp)
 {
 	const BIGNUM *rsa_n;
 	char *sigtype = NULL;
 	int hash_alg, want_alg, ret = SSH_ERR_INTERNAL_ERROR;
-	size_t len = 0, diff, modlen, dlen;
+	size_t len = 0, diff, modlen, hlen;
 	struct sshbuf *b = NULL;
 	u_char digest[SSH_DIGEST_MAX_LENGTH], *osigblob, *sigblob = NULL;
 
@@ -478,15 +481,15 @@ ssh_rsa_verify(const struct sshkey *key,
 		explicit_bzero(sigblob, diff);
 		len = modlen;
 	}
-	if ((dlen = ssh_digest_bytes(hash_alg)) == 0) {
+	if ((hlen = ssh_digest_bytes(hash_alg)) == 0) {
 		ret = SSH_ERR_INTERNAL_ERROR;
 		goto out;
 	}
-	if ((ret = ssh_digest_memory(hash_alg, data, datalen,
+	if ((ret = ssh_digest_memory(hash_alg, data, dlen,
 	    digest, sizeof(digest))) != 0)
 		goto out;
 
-	ret = openssh_RSA_verify(hash_alg, digest, dlen, sigblob, len,
+	ret = openssh_RSA_verify(hash_alg, digest, hlen, sigblob, len,
 	    key->rsa);
  out:
 	freezero(sigblob, len);
@@ -624,6 +627,8 @@ static const struct sshkey_impl_funcs sshkey_rsa_funcs = {
 	/* .ssh_deserialize_public = */ ssh_rsa_deserialize_public,
 	/* .generate = */	ssh_rsa_generate,
 	/* .copy_public = */	ssh_rsa_copy_public,
+	/* .sign = */		ssh_rsa_sign,
+	/* .verify = */		ssh_rsa_verify,
 };
 
 const struct sshkey_impl sshkey_rsa_impl = {

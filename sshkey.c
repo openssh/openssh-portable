@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.129 2022/10/28 00:41:52 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.130 2022/10/28 00:43:08 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2042,6 +2042,7 @@ sshkey_sign(struct sshkey *key,
 {
 	int was_shielded = sshkey_is_shielded(key);
 	int r2, r = SSH_ERR_INTERNAL_ERROR;
+	const struct sshkey_impl *impl;
 
 	if (sigp != NULL)
 		*sigp = NULL;
@@ -2049,45 +2050,20 @@ sshkey_sign(struct sshkey *key,
 		*lenp = 0;
 	if (datalen > SSH_KEY_MAX_SIGN_DATA_SIZE)
 		return SSH_ERR_INVALID_ARGUMENT;
+	if ((impl = sshkey_impl_from_key(key)) == NULL)
+		return SSH_ERR_KEY_TYPE_UNKNOWN;
 	if ((r = sshkey_unshield_private(key)) != 0)
 		return r;
-	switch (key->type) {
-#ifdef WITH_OPENSSL
-	case KEY_DSA_CERT:
-	case KEY_DSA:
-		r = ssh_dss_sign(key, sigp, lenp, data, datalen, compat);
-		break;
-# ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA_CERT:
-	case KEY_ECDSA:
-		r = ssh_ecdsa_sign(key, sigp, lenp, data, datalen, compat);
-		break;
-# endif /* OPENSSL_HAS_ECC */
-	case KEY_RSA_CERT:
-	case KEY_RSA:
-		r = ssh_rsa_sign(key, sigp, lenp, data, datalen, alg);
-		break;
-#endif /* WITH_OPENSSL */
-	case KEY_ED25519:
-	case KEY_ED25519_CERT:
-		r = ssh_ed25519_sign(key, sigp, lenp, data, datalen, compat);
-		break;
-	case KEY_ED25519_SK:
-	case KEY_ED25519_SK_CERT:
-	case KEY_ECDSA_SK_CERT:
-	case KEY_ECDSA_SK:
+	if (sshkey_is_sk(key)) {
 		r = sshsk_sign(sk_provider, key, sigp, lenp, data,
 		    datalen, compat, sk_pin);
-		break;
-#ifdef WITH_XMSS
-	case KEY_XMSS:
-	case KEY_XMSS_CERT:
-		r = ssh_xmss_sign(key, sigp, lenp, data, datalen, compat);
-		break;
-#endif /* WITH_XMSS */
-	default:
-		r = SSH_ERR_KEY_TYPE_UNKNOWN;
-		break;
+	} else {
+		if (impl->funcs->sign == NULL)
+			r = SSH_ERR_SIGN_ALG_UNSUPPORTED;
+		else {
+			r = impl->funcs->sign(key, sigp, lenp, data, datalen,
+			    alg, sk_provider, sk_pin, compat);
+		 }
 	}
 	if (was_shielded && (r2 = sshkey_shield_private(key)) != 0)
 		return r2;
@@ -2104,43 +2080,16 @@ sshkey_verify(const struct sshkey *key,
     const u_char *data, size_t dlen, const char *alg, u_int compat,
     struct sshkey_sig_details **detailsp)
 {
+	const struct sshkey_impl *impl;
+
 	if (detailsp != NULL)
 		*detailsp = NULL;
 	if (siglen == 0 || dlen > SSH_KEY_MAX_SIGN_DATA_SIZE)
 		return SSH_ERR_INVALID_ARGUMENT;
-	switch (key->type) {
-#ifdef WITH_OPENSSL
-	case KEY_DSA_CERT:
-	case KEY_DSA:
-		return ssh_dss_verify(key, sig, siglen, data, dlen, compat);
-# ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA_CERT:
-	case KEY_ECDSA:
-		return ssh_ecdsa_verify(key, sig, siglen, data, dlen, compat);
-	case KEY_ECDSA_SK_CERT:
-	case KEY_ECDSA_SK:
-		return ssh_ecdsa_sk_verify(key, sig, siglen, data, dlen,
-		    compat, detailsp);
-# endif /* OPENSSL_HAS_ECC */
-	case KEY_RSA_CERT:
-	case KEY_RSA:
-		return ssh_rsa_verify(key, sig, siglen, data, dlen, alg);
-#endif /* WITH_OPENSSL */
-	case KEY_ED25519:
-	case KEY_ED25519_CERT:
-		return ssh_ed25519_verify(key, sig, siglen, data, dlen, compat);
-	case KEY_ED25519_SK:
-	case KEY_ED25519_SK_CERT:
-		return ssh_ed25519_sk_verify(key, sig, siglen, data, dlen,
-		    compat, detailsp);
-#ifdef WITH_XMSS
-	case KEY_XMSS:
-	case KEY_XMSS_CERT:
-		return ssh_xmss_verify(key, sig, siglen, data, dlen, compat);
-#endif /* WITH_XMSS */
-	default:
+	if ((impl = sshkey_impl_from_key(key)) == NULL)
 		return SSH_ERR_KEY_TYPE_UNKNOWN;
-	}
+	return impl->funcs->verify(key, sig, siglen, data, dlen,
+	    alg, compat, detailsp);
 }
 
 /* Convert a plain key to their _CERT equivalent */

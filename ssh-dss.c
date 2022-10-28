@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-dss.c,v 1.45 2022/10/28 00:41:52 djm Exp $ */
+/* $OpenBSD: ssh-dss.c,v 1.46 2022/10/28 00:43:08 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -217,9 +217,11 @@ ssh_dss_deserialize_public(const char *ktype, struct sshbuf *b,
 	return ret;
 }
 
-int
-ssh_dss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
-    const u_char *data, size_t datalen, u_int compat)
+static int
+ssh_dss_sign(struct sshkey *key,
+    u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen,
+    const char *alg, const char *sk_provider, const char *sk_pin, u_int compat)
 {
 	DSA_SIG *sig = NULL;
 	const BIGNUM *sig_r, *sig_s;
@@ -285,28 +287,29 @@ ssh_dss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	return ret;
 }
 
-int
+static int
 ssh_dss_verify(const struct sshkey *key,
-    const u_char *signature, size_t signaturelen,
-    const u_char *data, size_t datalen, u_int compat)
+    const u_char *sig, size_t siglen,
+    const u_char *data, size_t dlen, const char *alg, u_int compat,
+    struct sshkey_sig_details **detailsp)
 {
-	DSA_SIG *sig = NULL;
+	DSA_SIG *dsig = NULL;
 	BIGNUM *sig_r = NULL, *sig_s = NULL;
 	u_char digest[SSH_DIGEST_MAX_LENGTH], *sigblob = NULL;
-	size_t len, dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
+	size_t len, hlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
 	int ret = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL;
 	char *ktype = NULL;
 
 	if (key == NULL || key->dsa == NULL ||
 	    sshkey_type_plain(key->type) != KEY_DSA ||
-	    signature == NULL || signaturelen == 0)
+	    sig == NULL || siglen == 0)
 		return SSH_ERR_INVALID_ARGUMENT;
-	if (dlen == 0)
+	if (hlen == 0)
 		return SSH_ERR_INTERNAL_ERROR;
 
 	/* fetch signature */
-	if ((b = sshbuf_from(signature, signaturelen)) == NULL)
+	if ((b = sshbuf_from(sig, siglen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if (sshbuf_get_cstring(b, &ktype, NULL) != 0 ||
 	    sshbuf_get_string(b, &sigblob, &len) != 0) {
@@ -328,7 +331,7 @@ ssh_dss_verify(const struct sshkey *key,
 	}
 
 	/* parse signature */
-	if ((sig = DSA_SIG_new()) == NULL ||
+	if ((dsig = DSA_SIG_new()) == NULL ||
 	    (sig_r = BN_new()) == NULL ||
 	    (sig_s = BN_new()) == NULL) {
 		ret = SSH_ERR_ALLOC_FAIL;
@@ -339,18 +342,18 @@ ssh_dss_verify(const struct sshkey *key,
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
-	if (!DSA_SIG_set0(sig, sig_r, sig_s)) {
+	if (!DSA_SIG_set0(dsig, sig_r, sig_s)) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
 	sig_r = sig_s = NULL; /* transferred */
 
 	/* sha1 the data */
-	if ((ret = ssh_digest_memory(SSH_DIGEST_SHA1, data, datalen,
+	if ((ret = ssh_digest_memory(SSH_DIGEST_SHA1, data, dlen,
 	    digest, sizeof(digest))) != 0)
 		goto out;
 
-	switch (DSA_do_verify(digest, dlen, sig, key->dsa)) {
+	switch (DSA_do_verify(digest, hlen, dsig, key->dsa)) {
 	case 1:
 		ret = 0;
 		break;
@@ -364,7 +367,7 @@ ssh_dss_verify(const struct sshkey *key,
 
  out:
 	explicit_bzero(digest, sizeof(digest));
-	DSA_SIG_free(sig);
+	DSA_SIG_free(dsig);
 	BN_clear_free(sig_r);
 	BN_clear_free(sig_s);
 	sshbuf_free(b);
@@ -383,6 +386,8 @@ static const struct sshkey_impl_funcs sshkey_dss_funcs = {
 	/* .ssh_deserialize_public = */ ssh_dss_deserialize_public,
 	/* .generate = */	ssh_dss_generate,
 	/* .copy_public = */	ssh_dss_copy_public,
+	/* .sign = */		ssh_dss_sign,
+	/* .verify = */		ssh_dss_verify,
 };
 
 const struct sshkey_impl sshkey_dss_impl = {
