@@ -33,9 +33,9 @@
 #define _ARC4_ATFORK(f)
 
 static inline void
-_getentropy_fail(void)
+_getentropy_fail(int err)
 {
-	fatal("getentropy failed");
+	fatal("getentropy failed with error: %s", strerror(err));
 }
 
 static volatile sig_atomic_t _rs_forked;

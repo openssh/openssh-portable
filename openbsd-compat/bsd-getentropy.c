@@ -18,8 +18,6 @@
 
 #include "includes.h"
 
-#ifndef HAVE_GETENTROPY
-
 #ifndef SSH_RANDOM_DEV
 # define SSH_RANDOM_DEV "/dev/urandom"
 #endif /* SSH_RANDOM_DEV */
@@ -79,4 +77,3 @@ _ssh_compat_getentropy(void *s, size_t len)
 #endif /* WITH_OPENSSL */
 	return 0;
 }
-#endif /* WITH_GETENTROPY */

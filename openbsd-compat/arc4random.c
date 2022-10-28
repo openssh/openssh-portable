@@ -49,8 +49,11 @@
  * a system that has a native getentropy OpenSSL cannot call the wrong one.
  */
 #ifndef HAVE_GETENTROPY
-# define getentropy(x, y) (_ssh_compat_getentropy((x), (y)))
+#define _getentropy(x, y) (_ssh_compat_getentropy((x), (y)))
+#else
+#define _getentropy getentropy
 #endif
+
 
 #include "log.h"
 
@@ -111,8 +114,16 @@ _rs_stir(void)
 	u_char rnd[KEYSZ + IVSZ];
 	uint32_t rekey_fuzz = 0;
 
-	if (getentropy(rnd, sizeof rnd) == -1)
-		_getentropy_fail();
+	if (_getentropy(rnd, sizeof(rnd)) == -1)
+	{
+		int save_errno = errno;
+
+		if (save_errno != ENOSYS)
+			_getentropy_fail(save_errno);
+
+		if (_ssh_compat_getentropy(rnd, sizeof(rnd)) == -1)
+			_getentropy_fail(errno);
+	}
 
 	if (!rs)
 		_rs_init(rnd, sizeof(rnd));
