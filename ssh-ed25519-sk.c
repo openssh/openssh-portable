@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519-sk.c,v 1.7 2022/10/28 00:35:40 djm Exp $ */
+/* $OpenBSD: ssh-ed25519-sk.c,v 1.8 2022/10/28 00:36:31 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -35,16 +35,24 @@
 #include "ssh.h"
 #include "digest.h"
 
+/* Reuse some ED25519 internals */
+extern struct sshkey_impl_funcs sshkey_ed25519_funcs;
+
 static void
 ssh_ed25519_sk_cleanup(struct sshkey *k)
 {
-	free(k->sk_application);
-	sshbuf_free(k->sk_key_handle);
-	sshbuf_free(k->sk_reserved);
-	freezero(k->ed25519_pk, ED25519_PK_SZ);
-	freezero(k->ed25519_sk, ED25519_SK_SZ);
-	k->ed25519_pk = NULL;
-	k->ed25519_sk = NULL;
+	sshkey_sk_cleanup(k);
+	sshkey_ed25519_funcs.cleanup(k);
+}
+
+static int
+ssh_ed25519_sk_equal(const struct sshkey *a, const struct sshkey *b)
+{
+	if (!sshkey_sk_fields_equal(a, b))
+		return 0;
+	if (!sshkey_ed25519_funcs.equal(a, b))
+		return 0;
+	return 1;
 }
 
 int
@@ -178,6 +186,7 @@ static const struct sshkey_impl_funcs sshkey_ed25519_sk_funcs = {
 	/* .size = */		NULL,
 	/* .alloc = */		NULL,
 	/* .cleanup = */	ssh_ed25519_sk_cleanup,
+	/* .equal = */		ssh_ed25519_sk_equal,
 };
 
 const struct sshkey_impl sshkey_ed25519_sk_impl = {

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa.c,v 1.17 2022/10/28 00:35:40 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa.c,v 1.18 2022/10/28 00:36:31 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -67,6 +67,27 @@ ssh_ecdsa_cleanup(struct sshkey *k)
 {
 	EC_KEY_free(k->ecdsa);
 	k->ecdsa = NULL;
+}
+
+static int
+ssh_ecdsa_equal(const struct sshkey *a, const struct sshkey *b)
+{
+	const EC_GROUP *grp_a, *grp_b;
+	const EC_POINT *pub_a, *pub_b;
+
+	if (a->ecdsa == NULL || b->ecdsa == NULL)
+		return 0;
+	if ((grp_a = EC_KEY_get0_group(a->ecdsa)) == NULL ||
+	    (grp_b = EC_KEY_get0_group(b->ecdsa)) == NULL)
+		return 0;
+	if ((pub_a = EC_KEY_get0_public_key(a->ecdsa)) == NULL ||
+	    (pub_b = EC_KEY_get0_public_key(b->ecdsa)) == NULL)
+		return 0;
+	if (EC_GROUP_cmp(grp_a, grp_b, NULL) != 0)
+		return 0;
+	if (EC_POINT_cmp(grp_a, pub_a, pub_b, NULL) != 0)
+		return 0;
+	return 1;
 }
 
 /* ARGSUSED */
@@ -221,10 +242,12 @@ ssh_ecdsa_verify(const struct sshkey *key,
 	return ret;
 }
 
-static const struct sshkey_impl_funcs sshkey_ecdsa_funcs = {
+/* NB. not static; used by ECDSA-SK */
+const struct sshkey_impl_funcs sshkey_ecdsa_funcs = {
 	/* .size = */		ssh_ecdsa_size,
 	/* .alloc = */		NULL,
 	/* .cleanup = */	ssh_ecdsa_cleanup,
+	/* .equal = */		ssh_ecdsa_equal,
 };
 
 const struct sshkey_impl sshkey_ecdsa_nistp256_impl = {

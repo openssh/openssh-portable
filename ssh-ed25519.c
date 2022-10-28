@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519.c,v 1.11 2022/10/28 00:35:40 djm Exp $ */
+/* $OpenBSD: ssh-ed25519.c,v 1.12 2022/10/28 00:36:31 djm Exp $ */
 /*
  * Copyright (c) 2013 Markus Friedl <markus@openbsd.org>
  *
@@ -39,6 +39,16 @@ ssh_ed25519_cleanup(struct sshkey *k)
 	freezero(k->ed25519_sk, ED25519_SK_SZ);
 	k->ed25519_pk = NULL;
 	k->ed25519_sk = NULL;
+}
+
+static int
+ssh_ed25519_equal(const struct sshkey *a, const struct sshkey *b)
+{
+	if (a->ed25519_pk == NULL || b->ed25519_pk == NULL)
+		return 0;
+	if (memcmp(a->ed25519_pk, b->ed25519_pk, ED25519_PK_SZ) != 0)
+		return 0;
+	return 1;
 }
 
 int
@@ -168,10 +178,12 @@ ssh_ed25519_verify(const struct sshkey *key,
 	return r;
 }
 
-static const struct sshkey_impl_funcs sshkey_ed25519_funcs = {
+/* NB. not static; used by ED25519-SK */
+const struct sshkey_impl_funcs sshkey_ed25519_funcs = {
 	/* .size = */		NULL,
 	/* .alloc = */		NULL,
 	/* .cleanup = */	ssh_ed25519_cleanup,
+	/* .equal = */		ssh_ed25519_equal,
 };
 
 const struct sshkey_impl sshkey_ed25519_impl = {

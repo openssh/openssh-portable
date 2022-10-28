@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-dss.c,v 1.40 2022/10/28 00:35:40 djm Exp $ */
+/* $OpenBSD: ssh-dss.c,v 1.41 2022/10/28 00:36:31 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -72,6 +72,34 @@ ssh_dss_cleanup(struct sshkey *k)
 {
 	DSA_free(k->dsa);
 	k->dsa = NULL;
+}
+
+static int
+ssh_dss_equal(const struct sshkey *a, const struct sshkey *b)
+{
+	const BIGNUM *dsa_p_a, *dsa_q_a, *dsa_g_a, *dsa_pub_key_a;
+	const BIGNUM *dsa_p_b, *dsa_q_b, *dsa_g_b, *dsa_pub_key_b;
+
+	if (a->dsa == NULL || b->dsa == NULL)
+		return 0;
+	DSA_get0_pqg(a->dsa, &dsa_p_a, &dsa_q_a, &dsa_g_a);
+	DSA_get0_pqg(b->dsa, &dsa_p_b, &dsa_q_b, &dsa_g_b);
+	DSA_get0_key(a->dsa, &dsa_pub_key_a, NULL);
+	DSA_get0_key(b->dsa, &dsa_pub_key_b, NULL);
+	if (dsa_p_a == NULL || dsa_p_b == NULL ||
+	    dsa_q_a == NULL || dsa_q_b == NULL ||
+	    dsa_g_a == NULL || dsa_g_b == NULL ||
+	    dsa_pub_key_a == NULL || dsa_pub_key_b == NULL)
+		return 0;
+	if (BN_cmp(dsa_p_a, dsa_p_b) != 0)
+		return 0;
+	if (BN_cmp(dsa_q_a, dsa_q_b) != 0)
+		return 0;
+	if (BN_cmp(dsa_g_a, dsa_g_b) != 0)
+		return 0;
+	if (BN_cmp(dsa_pub_key_a, dsa_pub_key_b) != 0)
+		return 0;
+	return 1;
 }
 
 int
@@ -235,6 +263,7 @@ static const struct sshkey_impl_funcs sshkey_dss_funcs = {
 	/* .size = */		ssh_dss_size,
 	/* .alloc = */		ssh_dss_alloc,
 	/* .cleanup = */	ssh_dss_cleanup,
+	/* .equal = */		ssh_dss_equal,
 };
 
 const struct sshkey_impl sshkey_dss_impl = {

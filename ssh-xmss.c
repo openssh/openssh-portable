@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-xmss.c,v 1.6 2022/10/28 00:35:40 djm Exp $*/
+/* $OpenBSD: ssh-xmss.c,v 1.7 2022/10/28 00:36:31 djm Exp $*/
 /*
  * Copyright (c) 2017 Stefan-Lukas Gazdag.
  * Copyright (c) 2017 Markus Friedl.
@@ -49,6 +49,18 @@ ssh_xmss_cleanup(struct sshkey *k)
 	k->xmss_sk = NULL;
 	k->xmss_name = NULL;
 	k->xmss_filename = NULL;
+}
+
+static int
+ssh_xmss_equal(const struct sshkey *a, const struct sshkey *b)
+{
+	if (a->xmss_pk == NULL || b->xmss_pk == NULL)
+		return 0;
+	if (sshkey_xmss_pklen(a) != sshkey_xmss_pklen(b))
+		return 0;
+	if (memcmp(a->xmss_pk, b->xmss_pk, sshkey_xmss_pklen(a)) != 0)
+		return 0;
+	return 1;
 }
 
 int
@@ -203,6 +215,7 @@ static const struct sshkey_impl_funcs sshkey_xmss_funcs = {
 	/* .size = */		NULL,
 	/* .alloc = */		NULL,
 	/* .cleanup = */	ssh_xmss_cleanup,
+	/* .equal = */		ssh_xmss_equal,
 };
 
 const struct sshkey_impl sshkey_xmss_impl = {

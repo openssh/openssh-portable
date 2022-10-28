@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.123 2022/10/28 00:35:40 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.124 2022/10/28 00:36:31 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -596,6 +596,17 @@ sshkey_new(int type)
 	return k;
 }
 
+/* Frees common FIDO fields */
+void
+sshkey_sk_cleanup(struct sshkey *k)
+{
+	free(k->sk_application);
+	sshbuf_free(k->sk_key_handle);
+	sshbuf_free(k->sk_reserved);
+	k->sk_application = NULL;
+	k->sk_key_handle = k->sk_reserved = NULL;
+}
+
 void
 sshkey_free(struct sshkey *k)
 {
@@ -628,6 +639,17 @@ cert_compare(struct sshkey_cert *a, struct sshkey_cert *b)
 	return 1;
 }
 
+/* Compares FIDO-specific pubkey fields only */
+int
+sshkey_sk_fields_equal(const struct sshkey *a, const struct sshkey *b)
+{
+	if (a->sk_application == NULL || b->sk_application == NULL)
+		return 0;
+	if (strcmp(a->sk_application, b->sk_application) != 0)
+		return 0;
+	return 1;
+}
+
 /*
  * Compare public portions of key only, allowing comparisons between
  * certificates and plain keys too.
@@ -635,84 +657,14 @@ cert_compare(struct sshkey_cert *a, struct sshkey_cert *b)
 int
 sshkey_equal_public(const struct sshkey *a, const struct sshkey *b)
 {
-#if defined(WITH_OPENSSL)
-	const BIGNUM *rsa_e_a, *rsa_n_a;
-	const BIGNUM *rsa_e_b, *rsa_n_b;
-	const BIGNUM *dsa_p_a, *dsa_q_a, *dsa_g_a, *dsa_pub_key_a;
-	const BIGNUM *dsa_p_b, *dsa_q_b, *dsa_g_b, *dsa_pub_key_b;
-#endif /* WITH_OPENSSL */
+	const struct sshkey_impl *impl;
 
 	if (a == NULL || b == NULL ||
 	    sshkey_type_plain(a->type) != sshkey_type_plain(b->type))
 		return 0;
-
-	switch (a->type) {
-#ifdef WITH_OPENSSL
-	case KEY_RSA_CERT:
-	case KEY_RSA:
-		if (a->rsa == NULL || b->rsa == NULL)
-			return 0;
-		RSA_get0_key(a->rsa, &rsa_n_a, &rsa_e_a, NULL);
-		RSA_get0_key(b->rsa, &rsa_n_b, &rsa_e_b, NULL);
-		return BN_cmp(rsa_e_a, rsa_e_b) == 0 &&
-		    BN_cmp(rsa_n_a, rsa_n_b) == 0;
-	case KEY_DSA_CERT:
-	case KEY_DSA:
-		if (a->dsa == NULL || b->dsa == NULL)
-			return 0;
-		DSA_get0_pqg(a->dsa, &dsa_p_a, &dsa_q_a, &dsa_g_a);
-		DSA_get0_pqg(b->dsa, &dsa_p_b, &dsa_q_b, &dsa_g_b);
-		DSA_get0_key(a->dsa, &dsa_pub_key_a, NULL);
-		DSA_get0_key(b->dsa, &dsa_pub_key_b, NULL);
-		return BN_cmp(dsa_p_a, dsa_p_b) == 0 &&
-		    BN_cmp(dsa_q_a, dsa_q_b) == 0 &&
-		    BN_cmp(dsa_g_a, dsa_g_b) == 0 &&
-		    BN_cmp(dsa_pub_key_a, dsa_pub_key_b) == 0;
-# ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA_SK:
-	case KEY_ECDSA_SK_CERT:
-		if (a->sk_application == NULL || b->sk_application == NULL)
-			return 0;
-		if (strcmp(a->sk_application, b->sk_application) != 0)
-			return 0;
-		/* FALLTHROUGH */
-	case KEY_ECDSA_CERT:
-	case KEY_ECDSA:
-		if (a->ecdsa == NULL || b->ecdsa == NULL ||
-		    EC_KEY_get0_public_key(a->ecdsa) == NULL ||
-		    EC_KEY_get0_public_key(b->ecdsa) == NULL)
-			return 0;
-		if (EC_GROUP_cmp(EC_KEY_get0_group(a->ecdsa),
-		    EC_KEY_get0_group(b->ecdsa), NULL) != 0 ||
-		    EC_POINT_cmp(EC_KEY_get0_group(a->ecdsa),
-		    EC_KEY_get0_public_key(a->ecdsa),
-		    EC_KEY_get0_public_key(b->ecdsa), NULL) != 0)
-			return 0;
-		return 1;
-# endif /* OPENSSL_HAS_ECC */
-#endif /* WITH_OPENSSL */
-	case KEY_ED25519_SK:
-	case KEY_ED25519_SK_CERT:
-		if (a->sk_application == NULL || b->sk_application == NULL)
-			return 0;
-		if (strcmp(a->sk_application, b->sk_application) != 0)
-			return 0;
-		/* FALLTHROUGH */
-	case KEY_ED25519:
-	case KEY_ED25519_CERT:
-		return a->ed25519_pk != NULL && b->ed25519_pk != NULL &&
-		    memcmp(a->ed25519_pk, b->ed25519_pk, ED25519_PK_SZ) == 0;
-#ifdef WITH_XMSS
-	case KEY_XMSS:
-	case KEY_XMSS_CERT:
-		return a->xmss_pk != NULL && b->xmss_pk != NULL &&
-		    sshkey_xmss_pklen(a) == sshkey_xmss_pklen(b) &&
-		    memcmp(a->xmss_pk, b->xmss_pk, sshkey_xmss_pklen(a)) == 0;
-#endif /* WITH_XMSS */
-	default:
+	if ((impl = sshkey_impl_from_type(a->type)) == NULL)
 		return 0;
-	}
-	/* NOTREACHED */
+	return impl->funcs->equal(a, b);
 }
 
 int

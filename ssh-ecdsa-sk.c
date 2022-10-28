@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.9 2022/10/28 00:35:40 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.10 2022/10/28 00:36:31 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -61,14 +61,24 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 }
 #else /* OPENSSL_HAS_ECC */
 
+/* Reuse some ECDSA internals */
+extern struct sshkey_impl_funcs sshkey_ecdsa_funcs;
+
 static void
 ssh_ecdsa_sk_cleanup(struct sshkey *k)
 {
-	free(k->sk_application);
-	sshbuf_free(k->sk_key_handle);
-	sshbuf_free(k->sk_reserved);
-	EC_KEY_free(k->ecdsa);
-	k->ecdsa = NULL;
+	sshkey_sk_cleanup(k);
+	sshkey_ecdsa_funcs.cleanup(k);
+}
+
+static int
+ssh_ecdsa_sk_equal(const struct sshkey *a, const struct sshkey *b)
+{
+	if (!sshkey_sk_fields_equal(a, b))
+		return 0;
+	if (!sshkey_ecdsa_funcs.equal(a, b))
+		return 0;
+	return 1;
 }
 
 /*
@@ -335,6 +345,7 @@ static const struct sshkey_impl_funcs sshkey_ecdsa_sk_funcs = {
 	/* .size = */		NULL,
 	/* .alloc = */		NULL,
 	/* .cleanup = */	ssh_ecdsa_sk_cleanup,
+	/* .equal = */		ssh_ecdsa_sk_equal,
 };
 
 const struct sshkey_impl sshkey_ecdsa_sk_impl = {
