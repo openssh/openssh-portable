@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.13 2022/10/28 00:41:17 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.14 2022/10/28 00:41:52 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -83,12 +83,11 @@ ssh_ecdsa_sk_equal(const struct sshkey *a, const struct sshkey *b)
 
 static int
 ssh_ecdsa_sk_serialize_public(const struct sshkey *key, struct sshbuf *b,
-    const char *typename, enum sshkey_serialize_rep opts)
+    enum sshkey_serialize_rep opts)
 {
 	int r;
 
-	if ((r = sshkey_ecdsa_funcs.serialize_public(key, b,
-	    typename, opts)) != 0)
+	if ((r = sshkey_ecdsa_funcs.serialize_public(key, b, opts)) != 0)
 		return r;
 	if ((r = sshkey_serialize_sk(key, b)) != 0)
 		return r;
@@ -104,6 +103,19 @@ ssh_ecdsa_sk_copy_public(const struct sshkey *from, struct sshkey *to)
 	if ((r = sshkey_ecdsa_funcs.copy_public(from, to)) != 0)
 		return r;
 	if ((r = sshkey_copy_public_sk(from, to)) != 0)
+		return r;
+	return 0;
+}
+
+static int
+ssh_ecdsa_sk_deserialize_public(const char *ktype, struct sshbuf *b,
+    struct sshkey *key)
+{
+	int r;
+
+	if ((r = sshkey_ecdsa_funcs.deserialize_public(ktype, b, key)) != 0)
+		return r;
+	if ((r = sshkey_deserialize_sk(b, key)) != 0)
 		return r;
 	return 0;
 }
@@ -374,6 +386,7 @@ static const struct sshkey_impl_funcs sshkey_ecdsa_sk_funcs = {
 	/* .cleanup = */	ssh_ecdsa_sk_cleanup,
 	/* .equal = */		ssh_ecdsa_sk_equal,
 	/* .ssh_serialize_public = */ ssh_ecdsa_sk_serialize_public,
+	/* .ssh_deserialize_public = */ ssh_ecdsa_sk_deserialize_public,
 	/* .generate = */	NULL,
 	/* .copy_public = */	ssh_ecdsa_sk_copy_public,
 };

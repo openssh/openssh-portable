@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519.c,v 1.15 2022/10/28 00:41:17 djm Exp $ */
+/* $OpenBSD: ssh-ed25519.c,v 1.16 2022/10/28 00:41:52 djm Exp $ */
 /*
  * Copyright (c) 2013 Markus Friedl <markus@openbsd.org>
  *
@@ -53,14 +53,13 @@ ssh_ed25519_equal(const struct sshkey *a, const struct sshkey *b)
 
 static int
 ssh_ed25519_serialize_public(const struct sshkey *key, struct sshbuf *b,
-    const char *typename, enum sshkey_serialize_rep opts)
+    enum sshkey_serialize_rep opts)
 {
 	int r;
 
 	if (key->ed25519_pk == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
-	if ((r = sshbuf_put_cstring(b, typename)) != 0 ||
-	    (r = sshbuf_put_string(b, key->ed25519_pk, ED25519_PK_SZ)) != 0)
+	if ((r = sshbuf_put_string(b, key->ed25519_pk, ED25519_PK_SZ)) != 0)
 		return r;
 
 	return 0;
@@ -84,6 +83,24 @@ ssh_ed25519_copy_public(const struct sshkey *from, struct sshkey *to)
 	if ((to->ed25519_pk = malloc(ED25519_PK_SZ)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	memcpy(to->ed25519_pk, from->ed25519_pk, ED25519_PK_SZ);
+	return 0;
+}
+
+static int
+ssh_ed25519_deserialize_public(const char *ktype, struct sshbuf *b,
+    struct sshkey *key)
+{
+	u_char *pk = NULL;
+	size_t len = 0;
+	int r;
+
+	if ((r = sshbuf_get_string(b, &pk, &len)) != 0)
+		return r;
+	if (len != ED25519_PK_SZ) {
+		freezero(pk, len);
+		return SSH_ERR_INVALID_FORMAT;
+	}
+	key->ed25519_pk = pk;
 	return 0;
 }
 
@@ -221,6 +238,7 @@ const struct sshkey_impl_funcs sshkey_ed25519_funcs = {
 	/* .cleanup = */	ssh_ed25519_cleanup,
 	/* .equal = */		ssh_ed25519_equal,
 	/* .ssh_serialize_public = */ ssh_ed25519_serialize_public,
+	/* .ssh_deserialize_public = */ ssh_ed25519_deserialize_public,
 	/* .generate = */	ssh_ed25519_generate,
 	/* .copy_public = */	ssh_ed25519_copy_public,
 };

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-dss.c,v 1.44 2022/10/28 00:41:17 djm Exp $ */
+/* $OpenBSD: ssh-dss.c,v 1.45 2022/10/28 00:41:52 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -104,7 +104,7 @@ ssh_dss_equal(const struct sshkey *a, const struct sshkey *b)
 
 static int
 ssh_dss_serialize_public(const struct sshkey *key, struct sshbuf *b,
-    const char *typename, enum sshkey_serialize_rep opts)
+    enum sshkey_serialize_rep opts)
 {
 	int r;
 	const BIGNUM *dsa_p, *dsa_q, *dsa_g, *dsa_pub_key;
@@ -116,8 +116,7 @@ ssh_dss_serialize_public(const struct sshkey *key, struct sshbuf *b,
 	if (dsa_p == NULL || dsa_q == NULL ||
 	    dsa_g == NULL || dsa_pub_key == NULL)
 		return SSH_ERR_INTERNAL_ERROR;
-	if ((r = sshbuf_put_cstring(b, typename)) != 0 ||
-	    (r = sshbuf_put_bignum2(b, dsa_p)) != 0 ||
+	if ((r = sshbuf_put_bignum2(b, dsa_p)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, dsa_q)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, dsa_g)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, dsa_pub_key)) != 0)
@@ -179,6 +178,43 @@ ssh_dss_copy_public(const struct sshkey *from, struct sshkey *to)
 	BN_clear_free(dsa_g_dup);
 	BN_clear_free(dsa_pub_key_dup);
 	return r;
+}
+
+static int
+ssh_dss_deserialize_public(const char *ktype, struct sshbuf *b,
+    struct sshkey *key)
+{
+	int ret = SSH_ERR_INTERNAL_ERROR;
+	BIGNUM *dsa_p = NULL, *dsa_q = NULL, *dsa_g = NULL, *dsa_pub_key = NULL;
+
+	if (sshbuf_get_bignum2(b, &dsa_p) != 0 ||
+	    sshbuf_get_bignum2(b, &dsa_q) != 0 ||
+	    sshbuf_get_bignum2(b, &dsa_g) != 0 ||
+	    sshbuf_get_bignum2(b, &dsa_pub_key) != 0) {
+		ret = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if (!DSA_set0_pqg(key->dsa, dsa_p, dsa_q, dsa_g)) {
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	dsa_p = dsa_q = dsa_g = NULL; /* transferred */
+	if (!DSA_set0_key(key->dsa, dsa_pub_key, NULL)) {
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	dsa_pub_key = NULL; /* transferred */
+#ifdef DEBUG_PK
+	DSA_print_fp(stderr, key->dsa, 8);
+#endif
+	/* success */
+	ret = 0;
+ out:
+	BN_clear_free(dsa_p);
+	BN_clear_free(dsa_q);
+	BN_clear_free(dsa_g);
+	BN_clear_free(dsa_pub_key);
+	return ret;
 }
 
 int
@@ -344,6 +380,7 @@ static const struct sshkey_impl_funcs sshkey_dss_funcs = {
 	/* .cleanup = */	ssh_dss_cleanup,
 	/* .equal = */		ssh_dss_equal,
 	/* .ssh_serialize_public = */ ssh_dss_serialize_public,
+	/* .ssh_deserialize_public = */ ssh_dss_deserialize_public,
 	/* .generate = */	ssh_dss_generate,
 	/* .copy_public = */	ssh_dss_copy_public,
 };
