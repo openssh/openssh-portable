@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.133 2022/10/28 00:44:44 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.134 2022/10/28 02:47:04 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1317,6 +1317,25 @@ sshkey_cert_type(const struct sshkey *k)
 	default:
 		return "unknown";
 	}
+}
+
+int
+sshkey_check_rsa_length(const struct sshkey *k, int min_size)
+{
+#ifdef WITH_OPENSSL
+	const BIGNUM *rsa_n;
+	int nbits;
+
+	if (k == NULL || k->rsa == NULL ||
+	    (k->type != KEY_RSA && k->type != KEY_RSA_CERT))
+		return 0;
+	RSA_get0_key(k->rsa, &rsa_n, NULL, NULL);
+	nbits = BN_num_bits(rsa_n);
+	if (nbits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
+	    (min_size > 0 && nbits < min_size))
+		return SSH_ERR_KEY_LENGTH;
+#endif /* WITH_OPENSSL */
+	return 0;
 }
 
 #ifdef WITH_OPENSSL
