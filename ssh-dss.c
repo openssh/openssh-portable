@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-dss.c,v 1.42 2022/10/28 00:37:24 djm Exp $ */
+/* $OpenBSD: ssh-dss.c,v 1.43 2022/10/28 00:39:29 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -123,6 +123,24 @@ ssh_dss_serialize_public(const struct sshkey *key, struct sshbuf *b,
 	    (r = sshbuf_put_bignum2(b, dsa_pub_key)) != 0)
 		return r;
 
+	return 0;
+}
+
+static int
+ssh_dss_generate(struct sshkey *k, int bits)
+{
+	DSA *private;
+
+	if (bits != 1024)
+		return SSH_ERR_KEY_LENGTH;
+	if ((private = DSA_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if (!DSA_generate_parameters_ex(private, bits, NULL, 0, NULL,
+	    NULL, NULL) || !DSA_generate_key(private)) {
+		DSA_free(private);
+		return SSH_ERR_LIBCRYPTO_ERROR;
+	}
+	k->dsa = private;
 	return 0;
 }
 
@@ -289,6 +307,7 @@ static const struct sshkey_impl_funcs sshkey_dss_funcs = {
 	/* .cleanup = */	ssh_dss_cleanup,
 	/* .equal = */		ssh_dss_equal,
 	/* .ssh_serialize_public = */ ssh_dss_serialize_public,
+	/* .generate = */	ssh_dss_generate,
 };
 
 const struct sshkey_impl sshkey_dss_impl = {

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519-sk.c,v 1.9 2022/10/28 00:37:24 djm Exp $ */
+/* $OpenBSD: ssh-ed25519-sk.c,v 1.10 2022/10/28 00:39:29 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -203,6 +203,7 @@ static const struct sshkey_impl_funcs sshkey_ed25519_sk_funcs = {
 	/* .cleanup = */	ssh_ed25519_sk_cleanup,
 	/* .equal = */		ssh_ed25519_sk_equal,
 	/* .ssh_serialize_public = */ ssh_ed25519_sk_serialize_public,
+	/* .generate = */	NULL,
 };
 
 const struct sshkey_impl sshkey_ed25519_sk_impl = {

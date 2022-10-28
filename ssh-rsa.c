@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.71 2022/10/28 00:37:24 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.72 2022/10/28 00:39:29 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -102,6 +102,34 @@ ssh_rsa_serialize_public(const struct sshkey *key, struct sshbuf *b,
 		return r;
 
 	return 0;
+}
+
+static int
+ssh_rsa_generate(struct sshkey *k, int bits)
+{
+	RSA *private = NULL;
+	BIGNUM *f4 = NULL;
+	int ret = SSH_ERR_INTERNAL_ERROR;
+
+	if (bits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
+	    bits > SSHBUF_MAX_BIGNUM * 8)
+		return SSH_ERR_KEY_LENGTH;
+	if ((private = RSA_new()) == NULL || (f4 = BN_new()) == NULL) {
+		ret = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (!BN_set_word(f4, RSA_F4) ||
+	    !RSA_generate_key_ex(private, bits, f4, NULL)) {
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	k->rsa = private;
+	private = NULL;
+	ret = 0;
+ out:
+	RSA_free(private);
+	BN_free(f4);
+	return ret;
 }
 
 static const char *
@@ -518,6 +546,7 @@ static const struct sshkey_impl_funcs sshkey_rsa_funcs = {
 	/* .cleanup = */	ssh_rsa_cleanup,
 	/* .equal = */		ssh_rsa_equal,
 	/* .ssh_serialize_public = */ ssh_rsa_serialize_public,
+	/* .generate = */	ssh_rsa_generate,
 };
 
 const struct sshkey_impl sshkey_rsa_impl = {

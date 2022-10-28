@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-xmss.c,v 1.8 2022/10/28 00:37:24 djm Exp $*/
+/* $OpenBSD: ssh-xmss.c,v 1.9 2022/10/28 00:39:29 djm Exp $*/
 /*
  * Copyright (c) 2017 Stefan-Lukas Gazdag.
  * Copyright (c) 2017 Markus Friedl.
@@ -236,6 +236,7 @@ static const struct sshkey_impl_funcs sshkey_xmss_funcs = {
 	/* .cleanup = */	ssh_xmss_cleanup,
 	/* .equal = */		ssh_xmss_equal,
 	/* .ssh_serialize_public = */ ssh_xmss_serialize_public,
+	/* .generate = */	sshkey_xmss_generate_private_key,
 };
 
 const struct sshkey_impl sshkey_xmss_impl = {
