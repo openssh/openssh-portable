@@ -1,22 +1,21 @@
-#	$OpenBSD: scp.sh,v 1.14 2022/05/15 23:48:07 djm Exp $
+#	$OpenBSD: scp.sh,v 1.16 2022/10/30 18:42:07 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="scp"
 
 #set -x
 
-# Figure out if diff understands "-N"
-if diff -N ${SRC}/scp.sh ${SRC}/scp.sh 2>/dev/null; then
-	DIFFOPT="-rN"
-else
-	DIFFOPT="-r"
-fi
-
 COPY2=${OBJ}/copy2
 DIR=${COPY}.dd
 DIR2=${COPY}.dd2
 COPY3=${OBJ}/copy.glob[123]
 DIR3=${COPY}.dd.glob[456]
+DIFFOPT="-rN"
+
+# Figure out if diff does not understand "-N"
+if ! diff -N ${SRC}/scp.sh ${SRC}/scp.sh 2>/dev/null; then
+	DIFFOPT="-r"
+fi
 
 SRC=`dirname ${SCRIPT}`
 cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.scp
@@ -131,13 +130,13 @@ for mode in scp sftp ; do
 	cp ${DATA} ${DIR}/copy
 	cp ${DATA} ${DIR}/copy.glob[1234]
 	$SCP $scpopts -r ${DIR} somehost:${DIR3} || fail "copy failed"
-	diff -rN ${DIR} ${DIR3} || fail "corrupted copy"
+	diff ${DIFFOPT} ${DIR} ${DIR3} || fail "corrupted copy"
 
 	verbose "$tag: unmatched glob dir recursive remote->local"
 	# NB. no clean
 	rm -rf ${DIR2}
 	$SCP $scpopts -r somehost:${DIR3} ${DIR2} || fail "copy failed"
-	diff -rN ${DIR} ${DIR2} || fail "corrupted copy"
+	diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
 
 	verbose "$tag: shell metacharacters"
 	scpclean
