@@ -4325,6 +4325,16 @@ AC_CHECK_MEMBER([struct __res_state.retrans], [], [AC_DEFINE([__res_state], [sta
 #include <resolv.h>
 ]])
 
+AC_CHECK_MEMBER([struct sockaddr_in.sin_len],
+    [AC_DEFINE([SOCK_HAS_LEN], [1], [sockaddr_in has sin_len])],
+    [],
+    [AC_LANG_SOURCE([[
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+    ]])]
+)
+
 AC_CACHE_CHECK([for ss_family field in struct sockaddr_storage],
 		ac_cv_have_ss_family_in_struct_ss, [
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
