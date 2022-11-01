@@ -31,11 +31,13 @@ The official documentation for OpenSSH are the man pages for each tool:
 
 HPNSSH is built using autoconf and make. It requires a working C compiler, standard library and headers.
 
-``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) may also be used, but OpenSSH may be built without it supporting a subset of crypto algorithms.
+``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) may also be used.  OpenSSH may be built without either of these, but the resulting binaries will have only a subset of the cryptographic algorithms normally available.
 
 [zlib](https://www.zlib.net/) is optional; without it transport compression is not supported.
 
-FIDO security token support needs [libfido2](https://github.com/Yubico/libfido2) and its dependencies. Also, certain platforms and build-time options may require additional dependencies; see README.platform for details.
+FIDO security token support needs [libfido2](https://github.com/Yubico/libfido2) and its dependencies.
+
+In addition, certain platforms and build-time options may require additional dependencies; see README.platform for details about your platform.
 
 ### Building a release
 
@@ -66,7 +68,7 @@ make && make tests
 
 There are many build-time customisation options available. All Autoconf destination path flags (e.g. ``--prefix``) are supported (and are usually required if you want to install OpenSSH).
 
-For a full list of available flags, run ``configure --help`` but a few of the more frequently-used ones are described below. Some of these flags will require additional libraries and/or headers be installed.
+For a full list of available flags, run ``./configure --help`` but a few of the more frequently-used ones are described below. Some of these flags will require additional libraries and/or headers be installed.
 
 Flag | Meaning
 --- | ---

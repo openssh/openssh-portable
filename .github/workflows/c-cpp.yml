@@ -3,8 +3,10 @@ name: C/C++ CI
 on:
   push:
     branches: [ master, pre-stage ]
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', 'Makefile.in', 'configure.ac' ]
   pull_request:
     branches: [ master ]
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', 'Makefile.in', 'configure.ac' ]
 
 jobs:
   ci:
@@ -35,8 +37,8 @@ jobs:
           - { os: ubuntu-22.04, configs: libressl-3.0.2 }
           - { os: ubuntu-22.04, configs: libressl-3.2.6 }
           - { os: ubuntu-22.04, configs: libressl-3.3.4 }
-          - { os: ubuntu-22.04, configs: libressl-3.4.1 }
-#          - { os: ubuntu-latest, configs: libressl-3.5.0 }
+          - { os: ubuntu-22.04, configs: libressl-3.4.3 }
+#          - { os: ubuntu-latest, configs: libressl-3.5.3 }
 #          - { os: ubuntu-latest, configs: libressl-master }
           - { os: ubuntu-latest, configs: openssl-master }
           - { os: ubuntu-latest, configs: openssl-1.0.1 }
@@ -69,11 +71,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: setup CI system
-      run: ./.github/setup_ci.sh ${{ matrix.configs }}
+      run: sh ./.github/setup_ci.sh ${{ matrix.configs }}
     - name: autoreconf
-      run: autoreconf
+      run: sh -c autoreconf
     - name: configure
-      run: ./.github/configure.sh ${{ matrix.configs }}
+      run: sh ./.github/configure.sh ${{ matrix.configs }}
     - name: save config
       uses: actions/upload-artifact@v3
       with:
@@ -84,9 +86,10 @@ jobs:
     - name: make
       run: make -j2
     - name: make tests
-      run: ./.github/run_test.sh ${{ matrix.configs }}
+      run: sh ./.github/run_test.sh ${{ matrix.configs }}
       env:
         TEST_SSH_UNSAFE_PERMISSIONS: 1
+        TEST_SSH_HOSTBASED_AUTH: yes
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@v3
@@ -97,3 +100,5 @@ jobs:
           config.log
           regress/*.log
           regress/valgrind-out/
+          regress/asan.log.*
+          regress/msan.log.*

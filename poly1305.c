@@ -13,7 +13,6 @@
 #endif
 
 #include "poly1305.h"
-#include "log.h"
 
 #ifdef OPENSSL_HAVE_POLY_EVP
 void
