@@ -339,6 +339,7 @@ struct tm *localtime_r(const time_t *, struct tm *);
 #endif
 
 #ifndef HAVE_TIMEGM
+#include <time.h>
 time_t timegm(struct tm *);
 #endif
 
