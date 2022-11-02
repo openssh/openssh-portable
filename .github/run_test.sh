@@ -46,3 +46,6 @@ if [ ! -z "${SSHD_CONFOPTS}" ]; then
         make t-exec SKIP_LTESTS="${SKIP_LTESTS}" LTESTS="${LTESTS}" TEST_SSH_SSHD_CONFOPTS="${SSHD_CONFOPTS}"
     fi
 fi
+
+echo
+(cd openbsd-compat/regress && make)
