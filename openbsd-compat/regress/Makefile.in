@@ -10,7 +10,7 @@ CFLAGS=@CFLAGS@
 CPPFLAGS=-I. -I.. -I../.. -I$(srcdir) -I$(srcdir)/.. -I$(srcdir)/../.. @CPPFLAGS@ @DEFS@
 EXEEXT=@EXEEXT@
 LIBCOMPAT=../libopenbsd-compat.a
-LIBS=@LIBS@
+LIBS=@LIBS@ @CHANNELLIBS@
 LDFLAGS=@LDFLAGS@ $(LIBCOMPAT)
 
 TESTPROGS=closefromtest$(EXEEXT) snprintftest$(EXEEXT) strduptest$(EXEEXT) \
