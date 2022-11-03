@@ -8,6 +8,7 @@ jobs:
   selfhosted:
     if: github.repository == 'openssh/openssh-portable-selfhosted'
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 600
     env:
       TARGET_HOST: ${{ matrix.os }}
     strategy:
