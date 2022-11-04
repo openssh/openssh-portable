@@ -26,47 +26,47 @@ jobs:
           - { os: ubuntu-20.04, configs: clang-10 }
           - { os: ubuntu-20.04, configs: clang-11 }
           - { os: ubuntu-20.04, configs: gcc-7 }
-          - { os: ubuntu-20.04, configs: gcc-8 }
-          - { os: ubuntu-20.04, configs: gcc-10 }
-          - { os: ubuntu-20.04, configs: pam }
-          - { os: ubuntu-20.04, configs: kitchensink }
-          - { os: ubuntu-20.04, configs: hardenedmalloc }
-          - { os: ubuntu-20.04, configs: tcmalloc }
-          - { os: ubuntu-22.04, configs: libressl-2.2.9 }
-          - { os: ubuntu-22.04, configs: libressl-2.8.3 }
-          - { os: ubuntu-22.04, configs: libressl-3.0.2 }
-          - { os: ubuntu-22.04, configs: libressl-3.2.6 }
-          - { os: ubuntu-22.04, configs: libressl-3.3.4 }
-          - { os: ubuntu-22.04, configs: libressl-3.4.3 }
+#          - { os: ubuntu-20.04, configs: gcc-8 }
+#          - { os: ubuntu-20.04, configs: gcc-10 }
+#          - { os: ubuntu-20.04, configs: pam }
+#          - { os: ubuntu-20.04, configs: kitchensink }
+#          - { os: ubuntu-20.04, configs: hardenedmalloc }
+#          - { os: ubuntu-20.04, configs: tcmalloc }
+#          - { os: ubuntu-22.04, configs: libressl-2.2.9 }
+#          - { os: ubuntu-22.04, configs: libressl-2.8.3 }
+#          - { os: ubuntu-22.04, configs: libressl-3.0.2 }
+#          - { os: ubuntu-22.04, configs: libressl-3.2.6 }
+#          - { os: ubuntu-22.04, configs: libressl-3.3.4 }
+#          - { os: ubuntu-22.04, configs: libressl-3.4.3 }
 #          - { os: ubuntu-latest, configs: libressl-3.5.3 }
 #          - { os: ubuntu-latest, configs: libressl-master }
-          - { os: ubuntu-latest, configs: openssl-master }
-          - { os: ubuntu-latest, configs: openssl-1.0.1 }
-          - { os: ubuntu-latest, configs: openssl-1.0.1u }
-          - { os: ubuntu-latest, configs: openssl-1.0.2u }
-          - { os: ubuntu-latest, configs: openssl-1.1.0h }
-          - { os: ubuntu-latest, configs: openssl-1.1.1 }
-          - { os: ubuntu-latest, configs: openssl-1.1.1k }
-          - { os: ubuntu-latest, configs: openssl-1.1.1m }
-          - { os: ubuntu-22.04, configs: openssl-3.0.0 }
-          - { os: ubuntu-22.04, configs: openssl-3.0.1 }
-          - { os: ubuntu-22.04, configs: openssl-3.0.2 }
-          - { os: ubuntu-22.04, configs: openssl-3.0.3 }
-          - { os: ubuntu-22.04, configs: openssl-3.0.4 }
-          - { os: ubuntu-22.04, configs: openssl-3.0.5 }
-          - { os: ubuntu-22.04, configs: openssl-3.0.6 }
-          - { os: ubuntu-22.04, configs: openssl-1.1.1_stable } # stable branch
-          - { os: ubuntu-22.04, configs: openssl-3.0 }          # stable branch
-          - { os: ubuntu-18.04, configs: pam }
-          - { os: ubuntu-18.04, configs: krb5 }
-          - { os: ubuntu-18.04, configs: heimdal }
-          - { os: ubuntu-18.04, configs: libedit }
-          - { os: ubuntu-18.04, configs: sk }
-          - { os: ubuntu-18.04, configs: selinux }
-          - { os: ubuntu-18.04, configs: kitchensink }
-          - { os: ubuntu-18.04, configs: without-openssl }
-          - { os: macos-11,   configs: pam }
-          - { os: macos-12,   configs: pam }
+#          - { os: ubuntu-latest, configs: openssl-master }
+#          - { os: ubuntu-latest, configs: openssl-1.0.1 }
+#          - { os: ubuntu-latest, configs: openssl-1.0.1u }
+#          - { os: ubuntu-latest, configs: openssl-1.0.2u }
+#          - { os: ubuntu-latest, configs: openssl-1.1.0h }
+#          - { os: ubuntu-latest, configs: openssl-1.1.1 }
+#          - { os: ubuntu-latest, configs: openssl-1.1.1k }
+#          - { os: ubuntu-latest, configs: openssl-1.1.1m }
+#          - { os: ubuntu-22.04, configs: openssl-3.0.0 }
+#          - { os: ubuntu-22.04, configs: openssl-3.0.1 }
+#          - { os: ubuntu-22.04, configs: openssl-3.0.2 }
+#          - { os: ubuntu-22.04, configs: openssl-3.0.3 }
+#          - { os: ubuntu-22.04, configs: openssl-3.0.4 }
+#          - { os: ubuntu-22.04, configs: openssl-3.0.5 }
+#          - { os: ubuntu-22.04, configs: openssl-3.0.6 }
+#          - { os: ubuntu-22.04, configs: openssl-1.1.1_stable } # stable branch
+#          - { os: ubuntu-22.04, configs: openssl-3.0 }          # stable branch
+#          - { os: ubuntu-18.04, configs: pam }
+#          - { os: ubuntu-18.04, configs: krb5 }
+#          - { os: ubuntu-18.04, configs: heimdal }
+#          - { os: ubuntu-18.04, configs: libedit }
+#          - { os: ubuntu-18.04, configs: sk }
+#          - { os: ubuntu-18.04, configs: selinux }
+#          - { os: ubuntu-18.04, configs: kitchensink }
+#          - { os: ubuntu-18.04, configs: without-openssl }
+#          - { os: macos-11,   configs: pam }
+#          - { os: macos-12,   configs: pam }
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
