@@ -11,7 +11,7 @@ if [ ! -z "$SUDO" ] && [ ! -z "$TEST_SSH_HOSTBASED_AUTH" ]; then
     sshconf=/usr/local/etc/hpnssh
     $SUDO mkdir -p $sshconf
     hostname | $SUDO tee $sshconf/shosts.equiv >/dev/null
-    echo "EnableSSHKeysign yes" | $SUDO tee $sshconf/hpnssh/ssh_config >/dev/null
+    echo "EnableSSHKeysign yes" | $SUDO tee $sshconf/ssh_config >/dev/null
     cat $sshconf/ssh_config
     $SUDO cp -p /etc/ssh_host*key* $sshconf
     ls $sshconf
