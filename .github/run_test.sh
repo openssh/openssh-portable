@@ -8,11 +8,11 @@ set -ex
 
 # If we want to test hostbased auth, set up the host for it.
 if [ ! -z "$SUDO" ] && [ ! -z "$TEST_SSH_HOSTBASED_AUTH" ]; then
-    sshconf=/usr/local/etc
+    sshconf=/usr/local/etc/hpnssh
     hostname | $SUDO tee $sshconf/shosts.equiv >/dev/null
     echo "EnableSSHKeysign yes" | $SUDO tee $sshconf/ssh_config >/dev/null
     $SUDO mkdir -p $sshconf
-    $SUDO cp -p /etc/ssh/ssh_host*key* $sshconf
+    $SUDO cp -p /etc/hpnssh/ssh_host*key* $sshconf
     $SUDO make install
     for key in $sshconf/ssh_host*key*.pub; do
         echo `hostname` `cat $key` | \
