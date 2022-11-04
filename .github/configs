@@ -12,7 +12,7 @@ config=$1
 
 unset CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
 
-TEST_TARGET="tests"
+TEST_TARGET="tests compat-tests"
 LTESTS=""
 SKIP_LTESTS=""
 SUDO=sudo	# run with sudo by default
@@ -260,6 +260,8 @@ esac
 case "`./config.guess`" in
 *cygwin)
 	SUDO=""
+	# Don't run compat tests on cygwin as they don't currently compile.
+	TEST_TARGET="tests"
 	;;
 *-darwin*)
 	# Unless specified otherwise, build without OpenSSL on Mac OS since
