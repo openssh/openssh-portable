@@ -2373,6 +2373,9 @@ if test ! -z "$check_for_openpty_ctty_bug"; then
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifdef HAVE_PTY_H
+# include <pty.h>
+#endif
 #include <sys/fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
