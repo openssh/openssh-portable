@@ -713,7 +713,7 @@ case "$host" in
 	AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <mach-o/dyld.h>
 #include <stdlib.h>
-int main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
+int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		exit(0);
 	else
 		exit(1);
@@ -1658,7 +1658,7 @@ AC_ARG_WITH(ldns,
 # include <stdint.h>
 #endif
 #include <ldns/ldns.h>
-int main() { ldns_status status = ldns_verify_trusted(NULL, NULL, NULL, NULL); status=LDNS_STATUS_OK; exit(0); }
+int main(void) { ldns_status status = ldns_verify_trusted(NULL, NULL, NULL, NULL); status=LDNS_STATUS_OK; exit(0); }
 			]])
 		],
 			[AC_MSG_RESULT(yes)],
@@ -4262,7 +4262,7 @@ dnl test snprintf (broken on SCO w/gcc)
 #include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_SNPRINTF
-int main()
+int main(void)
 {
 	char buf[50];
 	char expected_out[50];
@@ -4279,7 +4279,7 @@ int main()
 	exit(0);
 }
 #else
-int main() { exit(0); }
+int main(void) { exit(0); }
 #endif
 		]])], [ true ], [ AC_DEFINE([BROKEN_SNPRINTF]) ],
 		AC_MSG_WARN([cross compiling: Assuming working snprintf()])
