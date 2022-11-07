@@ -1,5 +1,10 @@
 name: CIFuzz
-on: [pull_request]
+on:
+  push:
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
+  pull_request:
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
+
 jobs:
   Fuzzing:
     runs-on: ubuntu-latest
