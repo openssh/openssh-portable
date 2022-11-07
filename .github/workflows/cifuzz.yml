@@ -5,9 +5,9 @@ on:
   pull_request:
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
 
-
 jobs:
   Fuzzing:
+    if: github.repository != 'openssh/openssh-portable-selfhosted'
     runs-on: ubuntu-latest
     steps:
     - name: Build Fuzzers
