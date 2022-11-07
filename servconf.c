@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.387 2022/11/07 10:02:59 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.388 2022/11/07 10:05:39 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2501,7 +2501,7 @@ load_server_config(const char *filename, struct sshbuf *conf)
 	char *line = NULL, *cp;
 	size_t linesize = 0;
 	FILE *f;
-	int r, lineno = 0;
+	int r;
 
 	debug2_f("filename %s", filename);
 	if ((f = fopen(filename, "r")) == NULL) {
@@ -2514,7 +2514,6 @@ load_server_config(const char *filename, struct sshbuf *conf)
 	    (r = sshbuf_allocate(conf, st.st_size)) != 0)
 		fatal_fr(r, "allocate");
 	while (getline(&line, &linesize, f) != -1) {
-		lineno++;
 		/*
 		 * Strip whitespace
 		 * NB - preserve newlines, they are needed to reproduce
