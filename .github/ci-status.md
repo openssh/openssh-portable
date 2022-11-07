@@ -1,14 +1,8 @@
 master :
-<<<<<<< HEAD
-[![C/C++ CI](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml)
-[![C/C++ CI self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml/badge.svg)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml)
-[![Upstream self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/upstream.yml/badge.svg)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/upstream.yml)
-[![CIFuzz](https://github.com/openssh/openssh-portable/actions/workflows/cifuzz.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/cifuzz.yml)
-=======
 [![C/C++ CI](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml?query=branch:master)
 [![C/C++ CI self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml/badge.svg)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml?query=branch:master)
 [![Upstream self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/upstream.yml/badge.svg)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/upstream.yml?query=branch:master)
->>>>>>> 7bc8b8e5 (Have status badge links for master link to it.)
+[![CIFuzz](https://github.com/openssh/openssh-portable/actions/workflows/cifuzz.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/cifuzz.yml)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/openssh.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:openssh)
 
 9.1 :
