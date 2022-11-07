@@ -88,7 +88,7 @@ jobs:
     - name: install cygwin
       if: ${{ startsWith(matrix.os, 'windows') }}
       uses: cygwin/cygwin-install-action@master
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@main
     - name: setup CI system
       run: sh ./.github/setup_ci.sh ${{ matrix.configs }}
     - name: autoreconf
@@ -96,7 +96,7 @@ jobs:
     - name: configure
       run: sh ./.github/configure.sh ${{ matrix.configs }}
     - name: save config
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@main
       with:
         name: ${{ matrix.os }}-${{ matrix.configs }}-config
         path: config.h
@@ -111,7 +111,7 @@ jobs:
         TEST_SSH_HOSTBASED_AUTH: yes
     - name: save logs
       if: failure()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@main
       with:
         name: ${{ matrix.os }}-${{ matrix.configs }}-logs
         path: |

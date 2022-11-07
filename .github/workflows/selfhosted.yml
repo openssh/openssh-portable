@@ -74,7 +74,7 @@ jobs:
     steps:
     - name: shutdown VM if running
       run: vmshutdown
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@main
     - name: autoreconf
       run: autoreconf
     - name: startup VM
@@ -82,7 +82,7 @@ jobs:
     - name: configure
       run: vmrun ./.github/configure.sh ${{ matrix.configs }}
     - name: save config
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@main
       with:
         name: ${{ matrix.os }}-${{ matrix.configs }}-config
         path: config.h
@@ -95,7 +95,7 @@ jobs:
       timeout-minutes: 600
     - name: save logs
       if: failure()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@main
       with:
         name: ${{ matrix.os }}-${{ matrix.configs }}-logs
         path: |
