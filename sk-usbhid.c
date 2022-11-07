@@ -862,6 +862,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	struct sk_enroll_response *response = NULL;
 	size_t len;
 	int credprot;
+	int sk_has_pin, sk_has_uv;
 	int cose_alg;
 	int ret = SSH_SK_ERR_GENERAL;
 	int r;
@@ -962,6 +963,15 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 			credprot = FIDO_CRED_PROT_UV_REQUIRED;
 		else
 			credprot = FIDO_CRED_PROT_UV_OPTIONAL_WITH_ID;
+
+		if ((flags & SSH_SK_FORCE_OPERATION) == 0 &&
+		    check_sk_options(sk->dev, "uv", &sk_has_uv) == 0 &&
+		    check_sk_options(sk->dev, "clientPin", &sk_has_pin) == 0 &&
+		    sk_has_uv != 1 && sk_has_pin == 0) {
+			skdebug(__func__, "PIN not set");
+			ret = SSH_SK_ERR_PIN_NOT_SET;
+			goto out;
+		}
 
 		if ((r = fido_cred_set_prot(cred, credprot)) != FIDO_OK) {
 			skdebug(__func__, "fido_cred_set_prot: %s",
