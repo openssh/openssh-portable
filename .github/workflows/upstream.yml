@@ -20,6 +20,7 @@ jobs:
     - uses: actions/checkout@main
     - name: shutdown VM if running
       run: vmshutdown
+      working-directory: ${{ runner.temp }}
     - name: startup VM
       run: vmstartup
     - name: update source
@@ -45,3 +46,4 @@ jobs:
     - name: shutdown VM
       if: always()
       run: vmshutdown
+      working-directory: ${{ runner.temp }}

@@ -74,6 +74,7 @@ jobs:
     steps:
     - name: shutdown VM if running
       run: vmshutdown
+      working-directory: ${{ runner.temp }}
     - uses: actions/checkout@main
     - name: autoreconf
       run: autoreconf
@@ -106,3 +107,4 @@ jobs:
     - name: shutdown VM
       if: always()
       run: vmshutdown
+      working-directory: ${{ runner.temp }}
