@@ -12,7 +12,7 @@ config=$1
 
 unset CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
 
-TEST_TARGET="tests"
+TEST_TARGET="tests compat-tests"
 LTESTS=""
 SKIP_LTESTS=""
 SUDO=sudo	# run with sudo by default
@@ -152,7 +152,7 @@ case "$config" in
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
 	;;
-    valgrind-[1-4]|valgrind-unit)
+    valgrind-[1-5]|valgrind-unit)
 	# rlimit sandbox and FORTIFY_SOURCE confuse Valgrind.
 	CONFIGFLAGS="--without-sandbox --without-hardening"
 	CONFIGFLAGS="$CONFIGFLAGS --with-cppflags=-D_FORTIFY_SOURCE=0"
@@ -161,16 +161,17 @@ case "$config" in
 	export TEST_SSH_ELAPSED_TIMES
 	# Valgrind slows things down enough that the agent timeout test
 	# won't reliably pass, and the unit tests run longer than allowed
-	# by github so split into three separate tests.
-	tests2="rekey integrity try-ciphers"
+	# by github so split into separate tests.
+	tests2="integrity try-ciphers"
 	tests3="krl forward-control sshsig agent-restrict kextype sftp"
 	tests4="cert-userkey cert-hostkey kextype sftp-perm keygen-comment percent"
+	tests5="rekey"
 	case "$config" in
 	    valgrind-1)
 		# All tests except agent-timeout (which is flaky under valgrind)
 		# and hostbased (since valgrind won't let ssh exec keysign).
 		# Slow ones are run separately to increase parallelism.
-		SKIP_LTESTS="agent-timeout hostbased ${tests2} ${tests3} ${tests4}"
+		SKIP_LTESTS="agent-timeout hostbased ${tests2} ${tests3} ${tests4} ${tests5}"
 		;;
 	    valgrind-2)
 		LTESTS="${tests2}"
@@ -180,6 +181,9 @@ case "$config" in
 		;;
 	    valgrind-4)
 		LTESTS="${tests4}"
+		;;
+	    valgrind-5)
+		LTESTS="${tests5}"
 		;;
 	    valgrind-unit)
 		TEST_TARGET="unit USE_VALGRIND=1"
@@ -260,6 +264,8 @@ esac
 case "`./config.guess`" in
 *cygwin)
 	SUDO=""
+	# Don't run compat tests on cygwin as they don't currently compile.
+	TEST_TARGET="tests"
 	;;
 *-darwin*)
 	# Unless specified otherwise, build without OpenSSL on Mac OS since

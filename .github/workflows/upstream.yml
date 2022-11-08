@@ -17,9 +17,10 @@ jobs:
         os: [ obsdsnap, obsdsnap-i386 ]
         configs: [ default, without-openssl, ubsan ]
     steps:
-    - uses: actions/checkout@v2
     - name: shutdown VM if running
       run: vmshutdown
+      working-directory: ${{ runner.temp }}
+    - uses: actions/checkout@main
     - name: startup VM
       run: vmstartup
     - name: update source
@@ -37,7 +38,7 @@ jobs:
       timeout-minutes: 300
     - name: save logs
       if: failure()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@main
       with:
         name: ${{ matrix.os }}-${{ matrix.configs }}-logs
         path: |
@@ -45,3 +46,4 @@ jobs:
     - name: shutdown VM
       if: always()
       run: vmshutdown
+      working-directory: ${{ runner.temp }}
