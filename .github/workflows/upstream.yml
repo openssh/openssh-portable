@@ -17,10 +17,10 @@ jobs:
         os: [ obsdsnap, obsdsnap-i386 ]
         configs: [ default, without-openssl, ubsan ]
     steps:
-    - uses: actions/checkout@main
     - name: shutdown VM if running
       run: vmshutdown
       working-directory: ${{ runner.temp }}
+    - uses: actions/checkout@main
     - name: startup VM
       run: vmstartup
     - name: update source
