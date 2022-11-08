@@ -1580,8 +1580,6 @@ main(int ac, char **av)
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 
-	seed_rng();
-
 	/* Initialize configuration options to their default values. */
 	initialize_server_options(&options);
 
@@ -1702,6 +1700,8 @@ main(int ac, char **av)
 		closefrom(REEXEC_MIN_FREE_FD);
 	else
 		closefrom(REEXEC_DEVCRYPTO_RESERVED_FD);
+
+	seed_rng();
 
 	/* If requested, redirect the logs to the specified logfile. */
 	if (logfile != NULL)
