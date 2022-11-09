@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.380 2022/06/03 04:30:46 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.381 2022/11/09 01:37:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1792,7 +1792,7 @@ struct hostkeys_update_ctx {
 	 * Keys received from the server and a flag for each indicating
 	 * whether they already exist in known_hosts.
 	 * keys_match is filled in by hostkeys_find() and later (for new
-	 * keys) by client_global_hostkeys_private_confirm().
+	 * keys) by client_global_hostkeys_prove_confirm().
 	 */
 	struct sshkey **keys;
 	u_int *keys_match;	/* mask of HKF_MATCH_* from hostfile.h */
@@ -2100,7 +2100,7 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 }
 
 static void
-client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
+client_global_hostkeys_prove_confirm(struct ssh *ssh, int type,
     u_int32_t seq, void *_ctx)
 {
 	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
@@ -2407,7 +2407,7 @@ client_input_hostkeys(struct ssh *ssh)
 	if ((r = sshpkt_send(ssh)) != 0)
 		fatal_fr(r, "send hostkeys-prove");
 	client_register_global_confirm(
-	    client_global_hostkeys_private_confirm, ctx);
+	    client_global_hostkeys_prove_confirm, ctx);
 	ctx = NULL;  /* will be freed in callback */
 
 	/* Success */
