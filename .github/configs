@@ -141,6 +141,11 @@ case "$config" in
 	;;
     openssl-*)
 	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/openssl --with-rpath=-Wl,-rpath,"
+	# OpenSSL 1.1.1 specifically has a bug in its RNG that breaks reexec
+	# fallback.  See https://bugzilla.mindrot.org/show_bug.cgi?id=3483
+	if [ "$config" = "openssl-1.1.1" ]; then
+		SKIP_LTESTS="reexec"
+	fi
 	;;
     selinux)
 	CONFIGFLAGS="--with-selinux"
