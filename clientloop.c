@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.381 2022/11/09 01:37:44 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.382 2022/11/10 23:03:10 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -846,8 +846,15 @@ process_cmdline(struct ssh *ssh)
 		}
 		logit("Canceled forwarding.");
 	} else {
-		if (!parse_forward(&fwd, s, dynamic, remote)) {
-			logit("Bad forwarding specification.");
+		/* -R specs can be both dynamic or not, so check both. */
+		if (remote) {
+			if (!parse_forward(&fwd, s, 0, remote) &&
+			    !parse_forward(&fwd, s, 1, remote)) {
+				logit("Bad remote forwarding specification.");
+				goto out;
+			}
+		} else if (!parse_forward(&fwd, s, dynamic, remote)) {
+			logit("Bad local forwarding specification.");
 			goto out;
 		}
 		if (local || dynamic) {
