@@ -27,6 +27,7 @@ jobs:
           - dfly48
           - dfly58
           - dfly60
+          - dfly62
           - fbsd10
           - fbsd12
           - fbsd13
@@ -59,6 +60,7 @@ jobs:
           - { os: dfly48, configs: pam }
           - { os: dfly58, configs: pam }
           - { os: dfly60, configs: pam }
+          - { os: dfly62, configs: pam }
           - { os: fbsd10, configs: pam }
           - { os: fbsd12, configs: pam }
           - { os: fbsd13, configs: pam }
