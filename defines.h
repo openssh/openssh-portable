@@ -702,7 +702,7 @@ struct winsize {
 
 #ifndef GETPGRP_VOID
 # include <unistd.h>
-# define getpgrp() getpgrp(0)
+# define getpgrp() getpgrp()
 #endif
 
 #ifdef USE_BSM_AUDIT
