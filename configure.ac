@@ -417,6 +417,14 @@ AC_ARG_WITH([Werror],
 	]
 )
 
+dnl On some old platforms, sys/stat.h requires sys/types.h, but autoconf-2.71's
+dnl AC_CHECK_INCLUDES_DEFAULT checks for them in the opposite order.  If we
+dnl haven't detected it, recheck.
+if test "x$ac_cv_header_sys_stat_h" != "xyes"; then
+	unset ac_cv_header_sys_stat_h
+	AC_CHECK_HEADERS([sys/stat.h])
+fi
+
 AC_CHECK_HEADERS([ \
 	blf.h \
 	bstring.h \
@@ -475,7 +483,6 @@ AC_CHECK_HEADERS([ \
 	sys/ptrace.h \
 	sys/random.h \
 	sys/select.h \
-	sys/stat.h \
 	sys/stream.h \
 	sys/stropts.h \
 	sys/strtio.h \
