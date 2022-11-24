@@ -80,6 +80,8 @@ XMSS_OBJS=\
 	xmss_hash_address.o \
 	xmss_wots.o
 
+SKOBJS=	ssh-sk-client.o
+
 LIBOPENSSH_OBJS=\
 	ssh_api.o \
 	ssherr.o \
@@ -90,7 +92,8 @@ LIBOPENSSH_OBJS=\
 	sshbuf-getput-crypto.o \
 	krl.o \
 	bitmap.o \
-	${XMSS_OBJS}
+	${XMSS_OBJS} \
+	${SKOBJS}
 
 LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	authfd.o authfile.o \
@@ -113,10 +116,8 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	sftp-realpath.o platform-pledge.o platform-tracing.o platform-misc.o \
 	sshbuf-io.o
 
-SKOBJS=	ssh-sk-client.o
-
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
-	sshconnect.o sshconnect2.o mux.o $(SKOBJS)
+	sshconnect.o sshconnect2.o mux.o
 
 SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	audit.o audit-bsm.o audit-linux.o platform.o \
@@ -131,25 +132,25 @@ SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	srclimit.o sftp-server.o sftp-common.o \
 	sandbox-null.o sandbox-rlimit.o sandbox-systrace.o sandbox-darwin.o \
 	sandbox-seccomp-filter.o sandbox-capsicum.o sandbox-pledge.o \
-	sandbox-solaris.o uidswap.o $(SKOBJS)
+	sandbox-solaris.o uidswap.o
 
 SFTP_CLIENT_OBJS=sftp-common.o sftp-client.o sftp-glob.o
 
 SCP_OBJS=	scp.o progressmeter.o $(SFTP_CLIENT_OBJS)
 
-SSHADD_OBJS=	ssh-add.o $(SKOBJS)
+SSHADD_OBJS=	ssh-add.o
 
-SSHAGENT_OBJS=	ssh-agent.o ssh-pkcs11-client.o $(SKOBJS)
+SSHAGENT_OBJS=	ssh-agent.o ssh-pkcs11-client.o
 
-SSHKEYGEN_OBJS=	ssh-keygen.o sshsig.o $(SKOBJS)
+SSHKEYGEN_OBJS=	ssh-keygen.o sshsig.o
 
-SSHKEYSIGN_OBJS=ssh-keysign.o readconf.o uidswap.o $(SKOBJS)
+SSHKEYSIGN_OBJS=ssh-keysign.o readconf.o uidswap.o
 
-P11HELPER_OBJS=	ssh-pkcs11-helper.o ssh-pkcs11.o $(SKOBJS)
+P11HELPER_OBJS=	ssh-pkcs11-helper.o ssh-pkcs11.o
 
 SKHELPER_OBJS=	ssh-sk-helper.o ssh-sk.o sk-usbhid.o
 
-SSHKEYSCAN_OBJS=ssh-keyscan.o $(SKOBJS)
+SSHKEYSCAN_OBJS=ssh-keyscan.o
 
 SFTPSERVER_OBJS=sftp-common.o sftp-server.o sftp-server-main.o
 
@@ -562,8 +563,7 @@ UNITTESTS_TEST_SSHKEY_OBJS=\
 	regress/unittests/sshkey/tests.o \
 	regress/unittests/sshkey/common.o \
 	regress/unittests/sshkey/test_file.o \
-	regress/unittests/sshkey/test_sshkey.o \
-	$(SKOBJS)
+	regress/unittests/sshkey/test_sshkey.o
 
 regress/unittests/sshkey/test_sshkey$(EXEEXT): ${UNITTESTS_TEST_SSHKEY_OBJS} \
     regress/unittests/test_helper/libtest_helper.a libssh.a
@@ -573,8 +573,7 @@ regress/unittests/sshkey/test_sshkey$(EXEEXT): ${UNITTESTS_TEST_SSHKEY_OBJS} \
 
 UNITTESTS_TEST_SSHSIG_OBJS=\
 	sshsig.o \
-	regress/unittests/sshsig/tests.o \
-	$(SKOBJS)
+	regress/unittests/sshsig/tests.o
 
 regress/unittests/sshsig/test_sshsig$(EXEEXT): ${UNITTESTS_TEST_SSHSIG_OBJS} \
     regress/unittests/test_helper/libtest_helper.a libssh.a
@@ -593,8 +592,7 @@ regress/unittests/bitmap/test_bitmap$(EXEEXT): ${UNITTESTS_TEST_BITMAP_OBJS} \
 
 UNITTESTS_TEST_AUTHOPT_OBJS=\
 	regress/unittests/authopt/tests.o \
-	auth-options.o \
-	$(SKOBJS)
+	auth-options.o
 
 regress/unittests/authopt/test_authopt$(EXEEXT): \
     ${UNITTESTS_TEST_AUTHOPT_OBJS} \
@@ -615,8 +613,7 @@ regress/unittests/conversion/test_conversion$(EXEEXT): \
 
 UNITTESTS_TEST_KEX_OBJS=\
 	regress/unittests/kex/tests.o \
-	regress/unittests/kex/test_kex.o \
-	$(SKOBJS)
+	regress/unittests/kex/test_kex.o
 
 regress/unittests/kex/test_kex$(EXEEXT): ${UNITTESTS_TEST_KEX_OBJS} \
     regress/unittests/test_helper/libtest_helper.a libssh.a
@@ -626,8 +623,7 @@ regress/unittests/kex/test_kex$(EXEEXT): ${UNITTESTS_TEST_KEX_OBJS} \
 
 UNITTESTS_TEST_HOSTKEYS_OBJS=\
 	regress/unittests/hostkeys/tests.o \
-	regress/unittests/hostkeys/test_iterate.o \
-	$(SKOBJS)
+	regress/unittests/hostkeys/test_iterate.o
 
 regress/unittests/hostkeys/test_hostkeys$(EXEEXT): \
     ${UNITTESTS_TEST_HOSTKEYS_OBJS} \
