@@ -70,9 +70,6 @@
 #define	KEX_FRODOKEM_640_SHAKE_SHA256	"frodokem-640-shake-sha256"
 #define	KEX_FRODOKEM_976_SHAKE_SHA384	"frodokem-976-shake-sha384"
 #define	KEX_FRODOKEM_1344_SHAKE_SHA512	"frodokem-1344-shake-sha512"
-#define	KEX_SABER_LIGHTSABER_SHA256	"saber-lightsaber-sha256"
-#define	KEX_SABER_SABER_SHA384	"saber-saber-sha384"
-#define	KEX_SABER_FIRESABER_SHA512	"saber-firesaber-sha512"
 #define	KEX_KYBER_512_SHA256	"kyber-512-sha256"
 #define	KEX_KYBER_768_SHA384	"kyber-768-sha384"
 #define	KEX_KYBER_1024_SHA512	"kyber-1024-sha512"
@@ -100,14 +97,6 @@
 #define	KEX_HQC_128_SHA256	"hqc-128-sha256"
 #define	KEX_HQC_192_SHA384	"hqc-192-sha384"
 #define	KEX_HQC_256_SHA512	"hqc-256-sha512"
-#define	KEX_NTRUPRIME_NTRULPR653_SHA256	"ntruprime-ntrulpr653-sha256"
-#define	KEX_NTRUPRIME_SNTRUP653_SHA256	"ntruprime-sntrup653-sha256"
-#define	KEX_NTRUPRIME_NTRULPR761_SHA384	"ntruprime-ntrulpr761-sha384"
-#define	KEX_NTRUPRIME_SNTRUP761_SHA384	"ntruprime-sntrup761-sha384"
-#define	KEX_NTRUPRIME_NTRULPR857_SHA384	"ntruprime-ntrulpr857-sha384"
-#define	KEX_NTRUPRIME_SNTRUP857_SHA384	"ntruprime-sntrup857-sha384"
-#define	KEX_NTRUPRIME_NTRULPR1277_SHA512	"ntruprime-ntrulpr1277-sha512"
-#define	KEX_NTRUPRIME_SNTRUP1277_SHA512	"ntruprime-sntrup1277-sha512"
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 #define	KEX_FRODOKEM_640_AES_ECDH_NISTP256_SHA256	"ecdh-nistp256-frodokem-640-aes-sha256"
@@ -116,9 +105,6 @@
 #define	KEX_FRODOKEM_640_SHAKE_ECDH_NISTP256_SHA256	"ecdh-nistp256-frodokem-640-shake-sha256"
 #define	KEX_FRODOKEM_976_SHAKE_ECDH_NISTP384_SHA384	"ecdh-nistp384-frodokem-976-shake-sha384"
 #define	KEX_FRODOKEM_1344_SHAKE_ECDH_NISTP521_SHA512	"ecdh-nistp521-frodokem-1344-shake-sha512"
-#define	KEX_SABER_LIGHTSABER_ECDH_NISTP256_SHA256	"ecdh-nistp256-saber-lightsaber-sha256"
-#define	KEX_SABER_SABER_ECDH_NISTP384_SHA384	"ecdh-nistp384-saber-saber-sha384"
-#define	KEX_SABER_FIRESABER_ECDH_NISTP521_SHA512	"ecdh-nistp521-saber-firesaber-sha512"
 #define	KEX_KYBER_512_ECDH_NISTP256_SHA256	"ecdh-nistp256-kyber-512-sha256"
 #define	KEX_KYBER_768_ECDH_NISTP384_SHA384	"ecdh-nistp384-kyber-768-sha384"
 #define	KEX_KYBER_1024_ECDH_NISTP521_SHA512	"ecdh-nistp521-kyber-1024-sha512"
@@ -146,14 +132,6 @@
 #define	KEX_HQC_128_ECDH_NISTP256_SHA256	"ecdh-nistp256-hqc-128-sha256"
 #define	KEX_HQC_192_ECDH_NISTP384_SHA384	"ecdh-nistp384-hqc-192-sha384"
 #define	KEX_HQC_256_ECDH_NISTP521_SHA512	"ecdh-nistp521-hqc-256-sha512"
-#define	KEX_NTRUPRIME_NTRULPR653_ECDH_NISTP256_SHA256	"ecdh-nistp256-ntruprime-ntrulpr653-sha256"
-#define	KEX_NTRUPRIME_SNTRUP653_ECDH_NISTP256_SHA256	"ecdh-nistp256-ntruprime-sntrup653-sha256"
-#define	KEX_NTRUPRIME_NTRULPR761_ECDH_NISTP384_SHA384	"ecdh-nistp384-ntruprime-ntrulpr761-sha384"
-#define	KEX_NTRUPRIME_SNTRUP761_ECDH_NISTP384_SHA384	"ecdh-nistp384-ntruprime-sntrup761-sha384"
-#define	KEX_NTRUPRIME_NTRULPR857_ECDH_NISTP384_SHA384	"ecdh-nistp384-ntruprime-ntrulpr857-sha384"
-#define	KEX_NTRUPRIME_SNTRUP857_ECDH_NISTP384_SHA384	"ecdh-nistp384-ntruprime-sntrup857-sha384"
-#define	KEX_NTRUPRIME_NTRULPR1277_ECDH_NISTP521_SHA512	"ecdh-nistp521-ntruprime-ntrulpr1277-sha512"
-#define	KEX_NTRUPRIME_SNTRUP1277_ECDH_NISTP521_SHA512	"ecdh-nistp521-ntruprime-sntrup1277-sha512"
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEX_PRETTY_NAMES_END
@@ -204,9 +182,6 @@ enum kex_exchange {
 	KEX_KEM_FRODOKEM_640_SHAKE_SHA256,
 	KEX_KEM_FRODOKEM_976_SHAKE_SHA384,
 	KEX_KEM_FRODOKEM_1344_SHAKE_SHA512,
-	KEX_KEM_SABER_LIGHTSABER_SHA256,
-	KEX_KEM_SABER_SABER_SHA384,
-	KEX_KEM_SABER_FIRESABER_SHA512,
 	KEX_KEM_KYBER_512_SHA256,
 	KEX_KEM_KYBER_768_SHA384,
 	KEX_KEM_KYBER_1024_SHA512,
@@ -234,14 +209,6 @@ enum kex_exchange {
 	KEX_KEM_HQC_128_SHA256,
 	KEX_KEM_HQC_192_SHA384,
 	KEX_KEM_HQC_256_SHA512,
-	KEX_KEM_NTRUPRIME_NTRULPR653_SHA256,
-	KEX_KEM_NTRUPRIME_SNTRUP653_SHA256,
-	KEX_KEM_NTRUPRIME_NTRULPR761_SHA384,
-	KEX_KEM_NTRUPRIME_SNTRUP761_SHA384,
-	KEX_KEM_NTRUPRIME_NTRULPR857_SHA384,
-	KEX_KEM_NTRUPRIME_SNTRUP857_SHA384,
-	KEX_KEM_NTRUPRIME_NTRULPR1277_SHA512,
-	KEX_KEM_NTRUPRIME_SNTRUP1277_SHA512,
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 	KEX_KEM_FRODOKEM_640_AES_ECDH_NISTP256_SHA256,
@@ -250,9 +217,6 @@ enum kex_exchange {
 	KEX_KEM_FRODOKEM_640_SHAKE_ECDH_NISTP256_SHA256,
 	KEX_KEM_FRODOKEM_976_SHAKE_ECDH_NISTP384_SHA384,
 	KEX_KEM_FRODOKEM_1344_SHAKE_ECDH_NISTP521_SHA512,
-	KEX_KEM_SABER_LIGHTSABER_ECDH_NISTP256_SHA256,
-	KEX_KEM_SABER_SABER_ECDH_NISTP384_SHA384,
-	KEX_KEM_SABER_FIRESABER_ECDH_NISTP521_SHA512,
 	KEX_KEM_KYBER_512_ECDH_NISTP256_SHA256,
 	KEX_KEM_KYBER_768_ECDH_NISTP384_SHA384,
 	KEX_KEM_KYBER_1024_ECDH_NISTP521_SHA512,
@@ -280,14 +244,6 @@ enum kex_exchange {
 	KEX_KEM_HQC_128_ECDH_NISTP256_SHA256,
 	KEX_KEM_HQC_192_ECDH_NISTP384_SHA384,
 	KEX_KEM_HQC_256_ECDH_NISTP521_SHA512,
-	KEX_KEM_NTRUPRIME_NTRULPR653_ECDH_NISTP256_SHA256,
-	KEX_KEM_NTRUPRIME_SNTRUP653_ECDH_NISTP256_SHA256,
-	KEX_KEM_NTRUPRIME_NTRULPR761_ECDH_NISTP384_SHA384,
-	KEX_KEM_NTRUPRIME_SNTRUP761_ECDH_NISTP384_SHA384,
-	KEX_KEM_NTRUPRIME_NTRULPR857_ECDH_NISTP384_SHA384,
-	KEX_KEM_NTRUPRIME_SNTRUP857_ECDH_NISTP384_SHA384,
-	KEX_KEM_NTRUPRIME_NTRULPR1277_ECDH_NISTP521_SHA512,
-	KEX_KEM_NTRUPRIME_SNTRUP1277_ECDH_NISTP521_SHA512,
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_ADD_KEX_ENUMS_END
@@ -447,18 +403,6 @@ int	 kex_kem_frodokem_976_shake_dec(struct kex *, const struct sshbuf *, struct 
 int	 kex_kem_frodokem_1344_shake_keypair(struct kex *);
 int	 kex_kem_frodokem_1344_shake_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_frodokem_1344_shake_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* saber_lightsaber prototypes */
-int	 kex_kem_saber_lightsaber_keypair(struct kex *);
-int	 kex_kem_saber_lightsaber_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_saber_lightsaber_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* saber_saber prototypes */
-int	 kex_kem_saber_saber_keypair(struct kex *);
-int	 kex_kem_saber_saber_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_saber_saber_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* saber_firesaber prototypes */
-int	 kex_kem_saber_firesaber_keypair(struct kex *);
-int	 kex_kem_saber_firesaber_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_saber_firesaber_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 /* kyber_512 prototypes */
 int	 kex_kem_kyber_512_keypair(struct kex *);
 int	 kex_kem_kyber_512_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
@@ -567,38 +511,6 @@ int	 kex_kem_hqc_192_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 int	 kex_kem_hqc_256_keypair(struct kex *);
 int	 kex_kem_hqc_256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_hqc_256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_ntrulpr653 prototypes */
-int	 kex_kem_ntruprime_ntrulpr653_keypair(struct kex *);
-int	 kex_kem_ntruprime_ntrulpr653_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_ntrulpr653_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_sntrup653 prototypes */
-int	 kex_kem_ntruprime_sntrup653_keypair(struct kex *);
-int	 kex_kem_ntruprime_sntrup653_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_sntrup653_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_ntrulpr761 prototypes */
-int	 kex_kem_ntruprime_ntrulpr761_keypair(struct kex *);
-int	 kex_kem_ntruprime_ntrulpr761_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_ntrulpr761_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_sntrup761 prototypes */
-int	 kex_kem_ntruprime_sntrup761_keypair(struct kex *);
-int	 kex_kem_ntruprime_sntrup761_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_sntrup761_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_ntrulpr857 prototypes */
-int	 kex_kem_ntruprime_ntrulpr857_keypair(struct kex *);
-int	 kex_kem_ntruprime_ntrulpr857_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_ntrulpr857_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_sntrup857 prototypes */
-int	 kex_kem_ntruprime_sntrup857_keypair(struct kex *);
-int	 kex_kem_ntruprime_sntrup857_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_sntrup857_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_ntrulpr1277 prototypes */
-int	 kex_kem_ntruprime_ntrulpr1277_keypair(struct kex *);
-int	 kex_kem_ntruprime_ntrulpr1277_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_ntrulpr1277_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_sntrup1277 prototypes */
-int	 kex_kem_ntruprime_sntrup1277_keypair(struct kex *);
-int	 kex_kem_ntruprime_sntrup1277_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_sntrup1277_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 /* frodokem_640_aes_nistp256 prototypes */
@@ -625,18 +537,6 @@ int	 kex_kem_frodokem_976_shake_ecdh_nistp384_dec(struct kex *, const struct ssh
 int	 kex_kem_frodokem_1344_shake_ecdh_nistp521_keypair(struct kex *);
 int	 kex_kem_frodokem_1344_shake_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_frodokem_1344_shake_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* saber_lightsaber_nistp256 prototypes */
-int	 kex_kem_saber_lightsaber_ecdh_nistp256_keypair(struct kex *);
-int	 kex_kem_saber_lightsaber_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_saber_lightsaber_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* saber_saber_nistp384 prototypes */
-int	 kex_kem_saber_saber_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_saber_saber_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_saber_saber_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* saber_firesaber_nistp521 prototypes */
-int	 kex_kem_saber_firesaber_ecdh_nistp521_keypair(struct kex *);
-int	 kex_kem_saber_firesaber_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_saber_firesaber_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 /* kyber_512_nistp256 prototypes */
 int	 kex_kem_kyber_512_ecdh_nistp256_keypair(struct kex *);
 int	 kex_kem_kyber_512_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
@@ -745,38 +645,6 @@ int	 kex_kem_hqc_192_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, stru
 int	 kex_kem_hqc_256_ecdh_nistp521_keypair(struct kex *);
 int	 kex_kem_hqc_256_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_hqc_256_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_ntrulpr653_nistp256 prototypes */
-int	 kex_kem_ntruprime_ntrulpr653_ecdh_nistp256_keypair(struct kex *);
-int	 kex_kem_ntruprime_ntrulpr653_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_ntrulpr653_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_sntrup653_nistp256 prototypes */
-int	 kex_kem_ntruprime_sntrup653_ecdh_nistp256_keypair(struct kex *);
-int	 kex_kem_ntruprime_sntrup653_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_sntrup653_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_ntrulpr761_nistp384 prototypes */
-int	 kex_kem_ntruprime_ntrulpr761_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_ntruprime_ntrulpr761_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_ntrulpr761_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_sntrup761_nistp384 prototypes */
-int	 kex_kem_ntruprime_sntrup761_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_ntruprime_sntrup761_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_sntrup761_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_ntrulpr857_nistp384 prototypes */
-int	 kex_kem_ntruprime_ntrulpr857_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_ntruprime_ntrulpr857_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_ntrulpr857_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_sntrup857_nistp384 prototypes */
-int	 kex_kem_ntruprime_sntrup857_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_ntruprime_sntrup857_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_sntrup857_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_ntrulpr1277_nistp521 prototypes */
-int	 kex_kem_ntruprime_ntrulpr1277_ecdh_nistp521_keypair(struct kex *);
-int	 kex_kem_ntruprime_ntrulpr1277_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_ntrulpr1277_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* ntruprime_sntrup1277_nistp521 prototypes */
-int	 kex_kem_ntruprime_sntrup1277_ecdh_nistp521_keypair(struct kex *);
-int	 kex_kem_ntruprime_sntrup1277_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_ntruprime_sntrup1277_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_DECLARE_KEX_PROTOTYPES_END

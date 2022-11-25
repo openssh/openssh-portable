@@ -51,12 +51,6 @@
 	"ecdh-nistp384-frodokem-976-shake-sha384," \
 	"frodokem-1344-shake-sha512," \
 	"ecdh-nistp521-frodokem-1344-shake-sha512," \
-	"saber-lightsaber-sha256," \
-	"ecdh-nistp256-saber-lightsaber-sha256," \
-	"saber-saber-sha384," \
-	"ecdh-nistp384-saber-saber-sha384," \
-	"saber-firesaber-sha512," \
-	"ecdh-nistp521-saber-firesaber-sha512," \
 	"kyber-512-sha256," \
 	"ecdh-nistp256-kyber-512-sha256," \
 	"kyber-768-sha384," \
@@ -110,23 +104,7 @@
 	"hqc-192-sha384," \
 	"ecdh-nistp384-hqc-192-sha384," \
 	"hqc-256-sha512," \
-	"ecdh-nistp521-hqc-256-sha512," \
-	"ntruprime-ntrulpr653-sha256," \
-	"ecdh-nistp256-ntruprime-ntrulpr653-sha256," \
-	"ntruprime-sntrup653-sha256," \
-	"ecdh-nistp256-ntruprime-sntrup653-sha256," \
-	"ntruprime-ntrulpr761-sha384," \
-	"ecdh-nistp384-ntruprime-ntrulpr761-sha384," \
-	"ntruprime-sntrup761-sha384," \
-	"ecdh-nistp384-ntruprime-sntrup761-sha384," \
-	"ntruprime-ntrulpr857-sha384," \
-	"ecdh-nistp384-ntruprime-ntrulpr857-sha384," \
-	"ntruprime-sntrup857-sha384," \
-	"ecdh-nistp384-ntruprime-sntrup857-sha384," \
-	"ntruprime-ntrulpr1277-sha512," \
-	"ecdh-nistp521-ntruprime-ntrulpr1277-sha512," \
-	"ntruprime-sntrup1277-sha512," \
-	"ecdh-nistp521-ntruprime-sntrup1277-sha512"
+	"ecdh-nistp521-hqc-256-sha512"
 /*/// OQS_TEMPLATE_FRAGMENT_ADD_SERVER_KEXS_END */
 
 #define KEX_CLIENT_KEX KEX_SERVER_KEX

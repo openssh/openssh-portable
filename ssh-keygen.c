@@ -229,9 +229,6 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		  case KEY_ECDSA_NISTP521_DILITHIUM_5_AES:
 		    *bitsp = 521;
 		    break;
-		  case KEY_ECDSA_NISTP384_PICNIC_L3_FS:
-		    *bitsp = 384;
-		    break;
 		  case KEY_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST:
 		    *bitsp = 384;
 		    break;
@@ -347,12 +344,6 @@ ask_filename(struct passwd *pw, const char *prompt)
 		  case KEY_DILITHIUM_5_AES:
 		    name = _PATH_SSH_CLIENT_ID_DILITHIUM_5_AES;
 		    break;
-		  case KEY_PICNIC_L1_FULL:
-		    name = _PATH_SSH_CLIENT_ID_PICNIC_L1_FULL;
-		    break;
-		  case KEY_PICNIC_L3_FS:
-		    name = _PATH_SSH_CLIENT_ID_PICNIC_L3_FS;
-		    break;
 		  case KEY_SPHINCS_HARAKA_128F_SIMPLE:
 		    name = _PATH_SSH_CLIENT_ID_SPHINCS_HARAKA_128F_SIMPLE;
 		    break;
@@ -365,9 +356,6 @@ ask_filename(struct passwd *pw, const char *prompt)
 		    break;
 		  case KEY_RSA3072_DILITHIUM_2_AES:
 		    name = _PATH_SSH_CLIENT_ID_RSA3072_DILITHIUM_2_AES;
-		    break;
-		  case KEY_RSA3072_PICNIC_L1_FULL:
-		    name = _PATH_SSH_CLIENT_ID_RSA3072_PICNIC_L1_FULL;
 		    break;
 		  case KEY_RSA3072_SPHINCS_HARAKA_128F_SIMPLE:
 		    name = _PATH_SSH_CLIENT_ID_RSA3072_SPHINCS_HARAKA_128F_SIMPLE;
@@ -387,12 +375,6 @@ ask_filename(struct passwd *pw, const char *prompt)
 		    break;
 		  case KEY_ECDSA_NISTP521_DILITHIUM_5_AES:
 		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP521_DILITHIUM_5_AES;
-		    break;
-		  case KEY_ECDSA_NISTP256_PICNIC_L1_FULL:
-		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_PICNIC_L1_FULL;
-		    break;
-		  case KEY_ECDSA_NISTP384_PICNIC_L3_FS:
-		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP384_PICNIC_L3_FS;
 		    break;
 		  case KEY_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE:
 		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE;
@@ -1167,14 +1149,11 @@ do_gen_all_hostkeys(struct passwd *pw)
 		{ "dilithium3", "DILITHIUM_3", _PATH_HOST_DILITHIUM_3_KEY_FILE },
 		{ "dilithium2aes", "DILITHIUM_2_AES", _PATH_HOST_DILITHIUM_2_AES_KEY_FILE },
 		{ "dilithium5aes", "DILITHIUM_5_AES", _PATH_HOST_DILITHIUM_5_AES_KEY_FILE },
-		{ "picnicL1full", "PICNIC_L1_FULL", _PATH_HOST_PICNIC_L1_FULL_KEY_FILE },
-		{ "picnicL3FS", "PICNIC_L3_FS", _PATH_HOST_PICNIC_L3_FS_KEY_FILE },
 		{ "sphincsharaka128fsimple", "SPHINCS_HARAKA_128F_SIMPLE", _PATH_HOST_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE },
 		{ "sphincsharaka192frobust", "SPHINCS_HARAKA_192F_ROBUST", _PATH_HOST_SPHINCS_HARAKA_192F_ROBUST_KEY_FILE },
 #ifdef WITH_OPENSSL
 		{ "rsa3072_falcon512", "RSA3072_FALCON_512", _PATH_HOST_RSA3072_FALCON_512_KEY_FILE },
 		{ "rsa3072_dilithium2aes", "RSA3072_DILITHIUM_2_AES", _PATH_HOST_RSA3072_DILITHIUM_2_AES_KEY_FILE },
-		{ "rsa3072_picnicL1full", "RSA3072_PICNIC_L1_FULL", _PATH_HOST_RSA3072_PICNIC_L1_FULL_KEY_FILE },
 		{ "rsa3072_sphincsharaka128fsimple", "RSA3072_SPHINCS_HARAKA_128F_SIMPLE", _PATH_HOST_RSA3072_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE },
 #ifdef OPENSSL_HAS_ECC
 		{ "ecdsa_nistp256_falcon512", "ECDSA_NISTP256_FALCON_512", _PATH_HOST_ECDSA_NISTP256_FALCON_512_KEY_FILE },
@@ -1182,8 +1161,6 @@ do_gen_all_hostkeys(struct passwd *pw)
 		{ "ecdsa_nistp384_dilithium3", "ECDSA_NISTP384_DILITHIUM_3", _PATH_HOST_ECDSA_NISTP384_DILITHIUM_3_KEY_FILE },
 		{ "ecdsa_nistp256_dilithium2aes", "ECDSA_NISTP256_DILITHIUM_2_AES", _PATH_HOST_ECDSA_NISTP256_DILITHIUM_2_AES_KEY_FILE },
 		{ "ecdsa_nistp521_dilithium5aes", "ECDSA_NISTP521_DILITHIUM_5_AES", _PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_AES_KEY_FILE },
-		{ "ecdsa_nistp256_picnicL1full", "ECDSA_NISTP256_PICNIC_L1_FULL", _PATH_HOST_ECDSA_NISTP256_PICNIC_L1_FULL_KEY_FILE },
-		{ "ecdsa_nistp384_picnicL3FS", "ECDSA_NISTP384_PICNIC_L3_FS", _PATH_HOST_ECDSA_NISTP384_PICNIC_L3_FS_KEY_FILE },
 		{ "ecdsa_nistp256_sphincsharaka128fsimple", "ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE", _PATH_HOST_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE },
 		{ "ecdsa_nistp384_sphincsharaka192frobust", "ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST", _PATH_HOST_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST_KEY_FILE },
 #endif /* OPENSSL_HAS_ECC */
@@ -1680,14 +1657,11 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	    private->type != KEY_DILITHIUM_3 &&
 	    private->type != KEY_DILITHIUM_2_AES &&
 	    private->type != KEY_DILITHIUM_5_AES &&
-	    private->type != KEY_PICNIC_L1_FULL &&
-	    private->type != KEY_PICNIC_L3_FS &&
 	    private->type != KEY_SPHINCS_HARAKA_128F_SIMPLE &&
 	    private->type != KEY_SPHINCS_HARAKA_192F_ROBUST &&
 #ifdef WITH_OPENSSL
 	    private->type != KEY_RSA3072_FALCON_512 &&
 	    private->type != KEY_RSA3072_DILITHIUM_2_AES &&
-	    private->type != KEY_RSA3072_PICNIC_L1_FULL &&
 	    private->type != KEY_RSA3072_SPHINCS_HARAKA_128F_SIMPLE &&
 #ifdef OPENSSL_HAS_ECC
 	    private->type != KEY_ECDSA_NISTP256_FALCON_512 &&
@@ -1695,8 +1669,6 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	    private->type != KEY_ECDSA_NISTP384_DILITHIUM_3 &&
 	    private->type != KEY_ECDSA_NISTP256_DILITHIUM_2_AES &&
 	    private->type != KEY_ECDSA_NISTP521_DILITHIUM_5_AES &&
-	    private->type != KEY_ECDSA_NISTP256_PICNIC_L1_FULL &&
-	    private->type != KEY_ECDSA_NISTP384_PICNIC_L3_FS &&
 	    private->type != KEY_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE &&
 	    private->type != KEY_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST &&
 #endif /* OPENSSL_HAS_ECC */
@@ -3878,21 +3850,6 @@ main(int argc, char **argv)
 			    print_generic);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_AES_KEY_FILE, rr_hostname,
-			    print_generic);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_PICNIC_L1_FULL_KEY_FILE, rr_hostname,
-			    print_generic);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_RSA3072_PICNIC_L1_FULL_KEY_FILE, rr_hostname,
-			    print_generic);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_ECDSA_NISTP256_PICNIC_L1_FULL_KEY_FILE, rr_hostname,
-			    print_generic);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_PICNIC_L3_FS_KEY_FILE, rr_hostname,
-			    print_generic);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_ECDSA_NISTP384_PICNIC_L3_FS_KEY_FILE, rr_hostname,
 			    print_generic);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, rr_hostname,

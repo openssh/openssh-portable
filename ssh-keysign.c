@@ -180,7 +180,7 @@ main(int argc, char **argv)
 	struct sshbuf *b;
 	Options options;
 ///// OQS_TEMPLATE_FRAGMENT_COUNT_KEYTYPES_START
-#define NUM_KEYTYPES 5 + 22
+#define NUM_KEYTYPES 5 + 17
 ///// OQS_TEMPLATE_FRAGMENT_COUNT_KEYTYPES_END
 	struct sshkey *keys[NUM_KEYTYPES], *key = NULL;
 	struct passwd *pw;
@@ -219,11 +219,6 @@ main(int argc, char **argv)
 	key_fd[i++] = open(_PATH_HOST_ECDSA_NISTP256_DILITHIUM_2_AES_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_DILITHIUM_5_AES_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_AES_KEY_FILE, O_RDONLY);
-	key_fd[i++] = open(_PATH_HOST_PICNIC_L1_FULL_KEY_FILE, O_RDONLY);
-	key_fd[i++] = open(_PATH_HOST_RSA3072_PICNIC_L1_FULL_KEY_FILE, O_RDONLY);
-	key_fd[i++] = open(_PATH_HOST_ECDSA_NISTP256_PICNIC_L1_FULL_KEY_FILE, O_RDONLY);
-	key_fd[i++] = open(_PATH_HOST_PICNIC_L3_FS_KEY_FILE, O_RDONLY);
-	key_fd[i++] = open(_PATH_HOST_ECDSA_NISTP384_PICNIC_L3_FS_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_RSA3072_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, O_RDONLY);

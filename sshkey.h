@@ -88,11 +88,6 @@ enum sshkey_types {
 	KEY_ECDSA_NISTP256_DILITHIUM_2_AES,
 	KEY_DILITHIUM_5_AES,
 	KEY_ECDSA_NISTP521_DILITHIUM_5_AES,
-	KEY_PICNIC_L1_FULL,
-	KEY_RSA3072_PICNIC_L1_FULL,
-	KEY_ECDSA_NISTP256_PICNIC_L1_FULL,
-	KEY_PICNIC_L3_FS,
-	KEY_ECDSA_NISTP384_PICNIC_L3_FS,
 	KEY_SPHINCS_HARAKA_128F_SIMPLE,
 	KEY_RSA3072_SPHINCS_HARAKA_128F_SIMPLE,
 	KEY_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE,
@@ -364,10 +359,6 @@ int ssh_dilithium2aes_sign(const struct sshkey *key, u_char **sigp, size_t *lenp
 int ssh_dilithium2aes_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
 int ssh_dilithium5aes_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
 int ssh_dilithium5aes_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
-int ssh_picnicL1full_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
-int ssh_picnicL1full_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
-int ssh_picnicL3FS_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
-int ssh_picnicL3FS_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
 int ssh_sphincsharaka128fsimple_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
 int ssh_sphincsharaka128fsimple_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
 int ssh_sphincsharaka192frobust_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
