@@ -9,6 +9,9 @@
 # LTESTS
 
 config=$1
+if [ "$config" = "" ]; then
+	config="default"
+fi
 
 unset CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
 
