@@ -8,13 +8,13 @@ on:
 jobs:
   selfhosted:
     if: github.repository == 'openssh/openssh-portable-selfhosted'
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.target }}
     env:
-      TARGET_HOST: ${{ matrix.os }}
+      TARGET_HOST: ${{ matrix.target }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ obsdsnap, obsdsnap-i386 ]
+        target: [ obsdsnap, obsdsnap-i386 ]
         configs: [ default, without-openssl, ubsan ]
     steps:
     - name: shutdown VM if running
@@ -40,7 +40,7 @@ jobs:
       if: failure()
       uses: actions/upload-artifact@main
       with:
-        name: ${{ matrix.os }}-${{ matrix.configs }}-logs
+        name: ${{ matrix.target }}-${{ matrix.configs }}-logs
         path: |
           /usr/obj/regress/usr.bin/ssh/*.log
     - name: shutdown VM

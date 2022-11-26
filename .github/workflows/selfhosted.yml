@@ -7,16 +7,17 @@ on:
 jobs:
   selfhosted:
     if: github.repository == 'openssh/openssh-portable-selfhosted'
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.target }}
     timeout-minutes: 600
     env:
-      TARGET_HOST: ${{ matrix.os }}
+      TARGET_HOST: ${{ matrix.target }}
     strategy:
       fail-fast: false
       # We use a matrix in two parts: firstly all of the VMs are tested with the
-      # default config.  "os" corresponds to a label associated with the worker.
+      # default config.  "target" corresponds to a label associated with the
+      # worker.
       matrix:
-        os:
+        target:
           - aix51
           - ARM
           - ARM64
@@ -47,25 +48,27 @@ jobs:
           - sol10
           - sol11
           - win10
+        configs:
+          - default
         # Then we include any extra configs we want to test for specific VMs.
         include:
-          - { os: ARM64,  configs: pam }
-          - { os: debian-i386, configs: pam }
-          - { os: dfly30, configs: without-openssl}
-          - { os: dfly48, configs: pam }
-          - { os: dfly58, configs: pam }
-          - { os: dfly60, configs: pam }
-          - { os: dfly62, configs: pam }
-          - { os: fbsd10, configs: pam }
-          - { os: fbsd12, configs: pam }
-          - { os: fbsd13, configs: pam }
-          - { os: nbsd8,  configs: pam }
-          - { os: nbsd9,  configs: pam }
-          - { os: openindiana, configs: pam }
-          - { os: sol10,  configs: pam }
-          - { os: sol11,  configs: pam-krb5 }
-          - { os: sol11,  configs: sol64 }
-          - { os: win10,  configs: cygwin-release }
+          - { target: ARM64,  configs: pam }
+          - { target: debian-i386, configs: pam }
+          - { target: dfly30, configs: without-openssl}
+          - { target: dfly48, configs: pam }
+          - { target: dfly58, configs: pam }
+          - { target: dfly60, configs: pam }
+          - { target: dfly62, configs: pam }
+          - { target: fbsd10, configs: pam }
+          - { target: fbsd12, configs: pam }
+          - { target: fbsd13, configs: pam }
+          - { target: nbsd8,  configs: pam }
+          - { target: nbsd9,  configs: pam }
+          - { target: openindiana, configs: pam }
+          - { target: sol10,  configs: pam }
+          - { target: sol11,  configs: pam-krb5 }
+          - { target: sol11,  configs: sol64 }
+          - { target: win10,  configs: cygwin-release }
     steps:
     - name: shutdown VM if running
       run: vmshutdown
@@ -80,7 +83,7 @@ jobs:
     - name: save config
       uses: actions/upload-artifact@main
       with:
-        name: ${{ matrix.os }}-${{ matrix.configs }}-config
+        name: ${{ matrix.target }}-${{ matrix.configs }}-config
         path: config.h
     - name: make clean
       run: vmrun make clean
@@ -93,7 +96,7 @@ jobs:
       if: failure()
       uses: actions/upload-artifact@main
       with:
-        name: ${{ matrix.os }}-${{ matrix.configs }}-logs
+        name: ${{ matrix.target }}-${{ matrix.configs }}-logs
         path: |
           config.h
           config.log
