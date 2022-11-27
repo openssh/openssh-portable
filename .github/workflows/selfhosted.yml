@@ -7,25 +7,21 @@ on:
 jobs:
   selfhosted:
     if: github.repository == 'openssh/openssh-portable-selfhosted'
-    runs-on: ${{ matrix.target }}
+    runs-on: ${{ matrix.host }}
     timeout-minutes: 600
     env:
-      TARGET_TYPE: ${{ matrix.type }}
+      HOST: ${{ matrix.host }}
       TARGET_HOST: ${{ matrix.target }}
       TARGET_CONFIG: ${{ matrix.config }}
     strategy:
       fail-fast: false
       # We use a matrix in two parts: firstly all of the VMs are tested with the
       # default config.  "target" corresponds to a label associated with the
-      # worker.
+      # worker.  The default is an ephemeral VM running under libvirt.
       matrix:
         target:
-          - aix51
-          - ARM
-          - ARM64
           - alpine
           - debian-i386
-          - debian-riscv64
           - dfly30
           - dfly48
           - dfly58
@@ -43,35 +39,43 @@ jobs:
           - obsd67
           - obsd69
           - obsd70
-          - obsdsnap
           - openindiana
-          - openwrt-mips
-          - openwrt-mipsel
           - sol10
           - sol11
-          - win10
         config:
           - default
-        # Then we include any extra configs we want to test for specific VMs.
+        host:
+          - libvirt
         include:
-          - { target: ARM64,  config: pam }
-          - { target: debian-i386, config: pam }
-          - { target: dfly30, config: default, type: libvirt }
-          - { target: dfly30, config: without-openssl}
-          - { target: dfly48, config: pam }
-          - { target: dfly58, config: pam }
-          - { target: dfly60, config: pam }
-          - { target: dfly62, config: pam }
-          - { target: fbsd10, config: pam }
-          - { target: fbsd12, config: pam }
-          - { target: fbsd13, config: pam }
-          - { target: nbsd8,  config: pam }
-          - { target: nbsd9,  config: pam }
-          - { target: openindiana, config: pam }
-          - { target: sol10,  config: pam }
-          - { target: sol11,  config: pam-krb5 }
-          - { target: sol11,  config: sol64 }
-          - { target: win10,  config: cygwin-release }
+          # Then we include extra libvirt test configs.
+          - { target: aix51, config: default, host: libvirt }
+          - { target: debian-i386, config: pam, host: libvirt }
+          - { target: dfly30, config: without-openssl, host: libvirt}
+          - { target: dfly48, config: pam ,host: libvirt }
+          - { target: dfly58, config: pam, host: libvirt }
+          - { target: dfly60, config: pam, host: libvirt }
+          - { target: dfly62, config: pam, host: libvirt }
+          - { target: fbsd10, config: pam, host: libvirt }
+          - { target: fbsd12, config: pam, host: libvirt }
+          - { target: fbsd13, config: pam, host: libvirt }
+          - { target: nbsd8,  config: pam, host: libvirt }
+          - { target: nbsd9,  config: pam, host: libvirt }
+          - { target: openindiana, config: pam, host: libvirt }
+          - { target: sol10,  config: pam, host: libvirt }
+          - { target: sol11,  config: pam-krb5, host: libvirt }
+          - { target: sol11,  config: sol64, host: libvirt }
+          # VMs with persistent disks that have their own runner.
+          - { target: obsdsnap, config: default, host: obsdsnap }
+          - { target: obsdsnap-i386, config: default, host: obsdsnap-i386 }
+          - { target: win10, config: default, host: win10 }
+          - { target: win10, config: cygwin-release, host: win10 }
+          # Physical hosts, with either native runners or remote via ssh.
+          - { target: ARM, config: default, host: ARM }
+          - { target: ARM64, config: default, host: ARM64 }
+          - { target: ARM64, config: pam, host: ARM64 }
+          - { target: debian-riscv64, config: default, host: debian-riscv64 }
+          - { target: openwrt-mips, config: default, host: openwrt-mips }
+          - { target: openwrt-mipsel, config: default, host: openwrt-mipsel }
     steps:
     - name: shutdown VM if running
       run: vmshutdown
