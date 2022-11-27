@@ -25,6 +25,7 @@ jobs:
     - uses: actions/checkout@main
     - name: startup VM
       run: vmstartup
+      working-directory: ${{ runner.temp }}
     - name: update source
       run: vmrun "cd /usr/src && cvs up -dPA usr.bin/ssh regress/usr.bin/ssh"
     - name: make clean

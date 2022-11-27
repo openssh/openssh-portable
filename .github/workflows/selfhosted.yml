@@ -81,6 +81,7 @@ jobs:
       run: autoreconf
     - name: startup VM
       run: vmstartup
+      working-directory: ${{ runner.temp }}
     - name: configure
       run: vmrun ./.github/configure.sh ${{ matrix.config }}
     - name: save config
