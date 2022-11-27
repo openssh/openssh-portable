@@ -10,6 +10,7 @@ jobs:
     runs-on: ${{ matrix.target }}
     timeout-minutes: 600
     env:
+      TARGET_TYPE: ${{ matrix.type }}
       TARGET_HOST: ${{ matrix.target }}
     strategy:
       fail-fast: false
@@ -54,6 +55,7 @@ jobs:
         include:
           - { target: ARM64,  configs: pam }
           - { target: debian-i386, configs: pam }
+          - { target: dfly30, configs: default, type: libvirt }
           - { target: dfly30, configs: without-openssl}
           - { target: dfly48, configs: pam }
           - { target: dfly58, configs: pam }
