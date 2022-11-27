@@ -10,12 +10,14 @@ jobs:
     if: github.repository == 'openssh/openssh-portable-selfhosted'
     runs-on: ${{ matrix.target }}
     env:
+      TARGET_TYPE: ${{ matrix.type }}
       TARGET_HOST: ${{ matrix.target }}
+      TARGET_CONFIG: ${{ matrix.config }}
     strategy:
       fail-fast: false
       matrix:
         target: [ obsdsnap, obsdsnap-i386 ]
-        configs: [ default, without-openssl, ubsan ]
+        config: [ default, without-openssl, ubsan ]
     steps:
     - name: shutdown VM if running
       run: vmshutdown
@@ -28,11 +30,11 @@ jobs:
     - name: make clean
       run: vmrun "cd /usr/src/usr.bin/ssh && make obj && make clean && cd /usr/src/regress/usr.bin/ssh && make obj && make clean"
     - name: make
-      run: vmrun "cd /usr/src/usr.bin/ssh && case ${{ matrix.configs }} in without-openssl) make OPENSSL=no;; ubsan) make DEBUG='-fsanitize-minimal-runtime -fsanitize=undefined';; *) make; esac"
+      run: vmrun "cd /usr/src/usr.bin/ssh && case ${{ matrix.config }} in without-openssl) make OPENSSL=no;; ubsan) make DEBUG='-fsanitize-minimal-runtime -fsanitize=undefined';; *) make; esac"
     - name: make install
       run: vmrun "cd /usr/src/usr.bin/ssh && sudo make install"
     - name: make tests`
-      run: vmrun "cd /usr/src/regress/usr.bin/ssh && case ${{ matrix.configs }} in without-openssl) make OPENSSL=no;; ubsan) make DEBUG='-fsanitize-minimal-runtime -fsanitize=undefined';; *) make; esac"
+      run: vmrun "cd /usr/src/regress/usr.bin/ssh && case ${{ matrix.config }} in without-openssl) make OPENSSL=no;; ubsan) make DEBUG='-fsanitize-minimal-runtime -fsanitize=undefined';; *) make; esac"
       env:
         SUDO: sudo
       timeout-minutes: 300
@@ -40,7 +42,7 @@ jobs:
       if: failure()
       uses: actions/upload-artifact@main
       with:
-        name: ${{ matrix.target }}-${{ matrix.configs }}-logs
+        name: ${{ matrix.target }}-${{ matrix.config }}-logs
         path: |
           /usr/obj/regress/usr.bin/ssh/*.log
     - name: shutdown VM
