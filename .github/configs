@@ -222,6 +222,10 @@ case "${TARGET_HOST}" in
 	TEST_TARGET="t-exec TEST_SHELL=bash"
 	SKIP_LTESTS="rekey sftp"
 	;;
+    debian-riscv64)
+	# This machine is fairly slow, so skip the unit tests.
+	TEST_TARGET="t-exec"
+	;;
     dfly58*|dfly60*)
 	# scp 3-way connection hangs on these so skip until sorted.
 	SKIP_LTESTS=scp3
