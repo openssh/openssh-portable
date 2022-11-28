@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.382 2022/11/10 23:03:10 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.383 2022/11/28 01:37:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -887,6 +887,7 @@ out:
 #define SUPPRESS_MUXCLIENT	1	/* don't show in mux client sessions */
 #define SUPPRESS_MUXMASTER	2	/* don't show in mux master sessions */
 #define SUPPRESS_SYSLOG		4	/* don't show when logging to syslog */
+#define SUPPRESS_NOCMDLINE	8	/* don't show when cmdline disabled*/
 struct escape_help_text {
 	const char *cmd;
 	const char *text;
@@ -897,7 +898,7 @@ static struct escape_help_text esc_txt[] = {
     {".",  "terminate connection (and any multiplexed sessions)",
 	SUPPRESS_MUXCLIENT},
     {"B",  "send a BREAK to the remote system", SUPPRESS_NEVER},
-    {"C",  "open a command line", SUPPRESS_MUXCLIENT},
+    {"C",  "open a command line", SUPPRESS_MUXCLIENT|SUPPRESS_NOCMDLINE},
     {"R",  "request rekey", SUPPRESS_NEVER},
     {"V/v",  "decrease/increase verbosity (LogLevel)", SUPPRESS_MUXCLIENT},
     {"^Z", "suspend ssh", SUPPRESS_MUXCLIENT},
@@ -921,7 +922,8 @@ print_escape_help(struct sshbuf *b, int escape_char, int mux_client,
 	suppress_flags =
 	    (mux_client ? SUPPRESS_MUXCLIENT : 0) |
 	    (mux_client ? 0 : SUPPRESS_MUXMASTER) |
-	    (using_stderr ? 0 : SUPPRESS_SYSLOG);
+	    (using_stderr ? 0 : SUPPRESS_SYSLOG) |
+	    (options.enable_escape_commandline == 0 ? SUPPRESS_NOCMDLINE : 0);
 
 	for (i = 0; i < sizeof(esc_txt)/sizeof(esc_txt[0]); i++) {
 		if (esc_txt[i].flags & suppress_flags)
@@ -1115,6 +1117,12 @@ process_escapes(struct ssh *ssh, Channel *c,
 			case 'C':
 				if (c && c->ctl_chan != -1)
 					goto noescape;
+				if (options.enable_escape_commandline == 0) {
+					if ((r = sshbuf_putf(berr,
+					    "commandline disabled\r\n")) != 0)
+						fatal_fr(r, "sshbuf_putf");
+					continue;
+				}
 				process_cmdline(ssh);
 				continue;
 
