@@ -267,14 +267,14 @@ thread_loop(void *job)
 		pthread_testcancel();
 
 		/* Check if we should exit as well */
-		thread_loop_check_exit(c);
+		thread_loop_check_exit(aes_mt_ctx);
 
 		/* Lock queue and block if its draining */
 		q = &aes_mt_ctx->q[qidx];
 		pthread_mutex_lock(&q->lock);
 		pthread_cleanup_push(thread_loop_cleanup, &q->lock);
 		while (q->qstate == KQDRAINING || q->qstate == KQINIT) {
-			thread_loop_check_exit(c);
+			thread_loop_check_exit(aes_mt_ctx);
 			pthread_cond_wait(&q->cond, &q->lock);
 		}
 		pthread_cleanup_pop(0);
