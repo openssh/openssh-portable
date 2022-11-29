@@ -1511,7 +1511,7 @@ tohex(const void *vp, size_t l)
  * Extended strings are heap allocated.
  */
 void
-xextendf(char **sp, const char *sep, const char *fmt, ...)
+xextendf(char **sp, const char *sep, const char *__restrict fmt, ...)
 {
 	va_list ap;
 	char *tmp1, *tmp2;

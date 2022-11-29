@@ -41,8 +41,8 @@
 #include "digest.h"
 #include "ssherr.h"
 
-static int input_kex_gen_init(int, u_int32_t, struct ssh *);
-static int input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh);
+static int input_kex_gen_init(int, u_int32_t, struct ssh *__restrict);
+static int input_kex_gen_reply(int type, u_int32_t seq, struct ssh *__restrict ssh);
 
 static int
 kex_gen_hash(
@@ -55,7 +55,7 @@ kex_gen_hash(
     const struct sshbuf *client_pub,
     const struct sshbuf *server_pub,
     const struct sshbuf *shared_secret,
-    u_char *hash, size_t *hashlen)
+    u_char *__restrict hash, size_t *__restrict hashlen)
 {
 	struct sshbuf *b;
 	int r;
@@ -96,7 +96,7 @@ kex_gen_hash(
 }
 
 int
-kex_gen_client(struct ssh *ssh)
+kex_gen_client(struct ssh *__restrict ssh)
 {
 	struct kex *kex = ssh->kex;
 	int r;
@@ -136,7 +136,7 @@ kex_gen_client(struct ssh *ssh)
 }
 
 static int
-input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
+input_kex_gen_reply(int type, u_int32_t seq, struct ssh *__restrict ssh)
 {
 	struct kex *kex = ssh->kex;
 	struct sshkey *server_host_key = NULL;
@@ -255,7 +255,7 @@ out:
 }
 
 int
-kex_gen_server(struct ssh *ssh)
+kex_gen_server(struct ssh *__restrict ssh)
 {
 	debug("expecting SSH2_MSG_KEX_ECDH_INIT");
 	ssh_dispatch_set(ssh, SSH2_MSG_KEX_ECDH_INIT, &input_kex_gen_init);
@@ -263,7 +263,7 @@ kex_gen_server(struct ssh *ssh)
 }
 
 static int
-input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
+input_kex_gen_init(int type, u_int32_t seq, struct ssh *__restrict ssh)
 {
 	struct kex *kex = ssh->kex;
 	struct sshkey *server_host_private, *server_host_public;

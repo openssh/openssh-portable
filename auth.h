@@ -145,7 +145,7 @@ int	 auth2_key_already_used(Authctxt *, const struct sshkey *);
  */
 void	 auth2_authctxt_reset_info(Authctxt *);
 void	 auth2_record_key(Authctxt *, int, const struct sshkey *);
-void	 auth2_record_info(Authctxt *authctxt, const char *, ...)
+void	 auth2_record_info(Authctxt *authctxt, const char *__restrict, ...)
 	    __attribute__((__format__ (printf, 2, 3)))
 	    __attribute__((__nonnull__ (2)));
 void	 auth2_update_session_info(Authctxt *, const char *, const char *);
@@ -217,7 +217,7 @@ void	 auth_restrict_session(struct ssh *);
 void	 auth_log_authopts(const char *, const struct sshauthopt *, int);
 
 /* debug messages during authentication */
-void	 auth_debug_add(const char *fmt,...)
+void	 auth_debug_add(const char *__restrict fmt,...)
     __attribute__((format(printf, 1, 2)));
 void	 auth_debug_send(struct ssh *);
 void	 auth_debug_reset(void);

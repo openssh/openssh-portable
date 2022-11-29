@@ -34,7 +34,7 @@ fail(const char *m)
 	failed = 1;
 }
 
-int x_snprintf(char *str, size_t count, const char *fmt, ...)
+int x_snprintf(char *str, size_t count, const char *__restrict fmt, ...)
 {
 	size_t ret;
 	va_list ap;

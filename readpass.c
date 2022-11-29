@@ -196,7 +196,7 @@ read_passphrase(const char *prompt, int flags)
 }
 
 int
-ask_permission(const char *fmt, ...)
+ask_permission(const char *__restrict fmt, ...)
 {
 	va_list args;
 	char *p, prompt[1024];
@@ -236,7 +236,7 @@ struct notifier_ctx {
 };
 
 struct notifier_ctx *
-notify_start(int force_askpass, const char *fmt, ...)
+notify_start(int force_askpass, const char *__restrict fmt, ...)
 {
 	va_list args;
 	char *prompt = NULL;
@@ -298,7 +298,7 @@ notify_start(int force_askpass, const char *fmt, ...)
 }
 
 void
-notify_complete(struct notifier_ctx *ctx, const char *fmt, ...)
+notify_complete(struct notifier_ctx *__restrict ctx, const char *__restrict fmt, ...)
 {
 	int ret;
 	char *msg = NULL;
@@ -316,7 +316,10 @@ notify_complete(struct notifier_ctx *ctx, const char *fmt, ...)
 		free(msg);
 	}
 
-	if (ctx == NULL || ctx->pid <= 0) {
+	if (ctx == NULL)
+		return;
+
+	if (ctx->pid <= 0) {
 		free(ctx);
 		return;
 	}

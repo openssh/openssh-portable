@@ -50,7 +50,7 @@
  * If *stringp is NULL, strsep returns NULL.
  */
 char *
-strsep(char **stringp, const char *delim)
+strsep(char **__restrict stringp, const char *__restrict delim)
 {
 	char *s;
 	const char *spanp;

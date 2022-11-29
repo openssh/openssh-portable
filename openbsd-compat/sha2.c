@@ -520,7 +520,7 @@ SHA256Transform(u_int32_t state[8], const u_int8_t data[SHA256_BLOCK_LENGTH])
 DEF_WEAK(SHA256Transform);
 
 void
-SHA256Update(SHA2_CTX *context, const u_int8_t *data, size_t len)
+SHA256Update(SHA2_CTX * __restrict context, const u_int8_t * __restrict data, size_t len)
 {
 	u_int64_t	freespace, usedspace;
 
@@ -567,7 +567,7 @@ SHA256Update(SHA2_CTX *context, const u_int8_t *data, size_t len)
 DEF_WEAK(SHA256Update);
 
 void
-SHA256Pad(SHA2_CTX *context)
+SHA256Pad(SHA2_CTX * __restrict context)
 {
 	unsigned int	usedspace;
 
@@ -801,7 +801,7 @@ SHA512Transform(u_int64_t state[8], const u_int8_t data[SHA512_BLOCK_LENGTH])
 DEF_WEAK(SHA512Transform);
 
 void
-SHA512Update(SHA2_CTX *context, const u_int8_t *data, size_t len)
+SHA512Update(SHA2_CTX * __restrict context, const u_int8_t * __restrict data, size_t len)
 {
 	size_t	freespace, usedspace;
 
@@ -848,7 +848,7 @@ SHA512Update(SHA2_CTX *context, const u_int8_t *data, size_t len)
 DEF_WEAK(SHA512Update);
 
 void
-SHA512Pad(SHA2_CTX *context)
+SHA512Pad(SHA2_CTX * __restrict context)
 {
 	unsigned int	usedspace;
 
@@ -892,7 +892,7 @@ SHA512Pad(SHA2_CTX *context)
 DEF_WEAK(SHA512Pad);
 
 void
-SHA512Final(u_int8_t digest[SHA512_DIGEST_LENGTH], SHA2_CTX *context)
+SHA512Final(u_int8_t digest[SHA512_DIGEST_LENGTH], SHA2_CTX * __restrict context)
 {
 	SHA512Pad(context);
 
@@ -913,7 +913,7 @@ DEF_WEAK(SHA512Final);
 
 /*** SHA-384: *********************************************************/
 void
-SHA384Init(SHA2_CTX *context)
+SHA384Init(SHA2_CTX * __restrict context)
 {
 	memcpy(context->state.st64, sha384_initial_hash_value,
 	    sizeof(sha384_initial_hash_value));
@@ -937,19 +937,19 @@ SHA384Transform(u_int64_t state[8], const u_int8_t data[SHA512_BLOCK_LENGTH])
 }
 
 void
-SHA384Update(SHA2_CTX *context, const u_int8_t *data, size_t len)
+SHA384Update(SHA2_CTX * __restrict context, const u_int8_t * __restrict data, size_t len)
 {
 	SHA512Update(context, data, len);
 }
 
 void
-SHA384Pad(SHA2_CTX *context)
+SHA384Pad(SHA2_CTX * __restrict context)
 {
 	SHA512Pad(context);
 }
 
 void
-SHA384Final(u_int8_t digest[SHA384_DIGEST_LENGTH], SHA2_CTX *context)
+SHA384Final(u_int8_t digest[SHA384_DIGEST_LENGTH], SHA2_CTX * __restrict context)
 {
 	SHA384Pad(context);
 

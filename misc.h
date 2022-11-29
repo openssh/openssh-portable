@@ -78,7 +78,7 @@ char	*dollar_expand(int *, const char *string, ...);
 char	*percent_expand(const char *, ...) __attribute__((__sentinel__));
 char	*percent_dollar_expand(const char *, ...) __attribute__((__sentinel__));
 char	*tohex(const void *, size_t);
-void	 xextendf(char **s, const char *sep, const char *fmt, ...)
+void	 xextendf(char **s, const char *sep, const char *__restrict fmt, ...)
     __attribute__((__format__ (printf, 3, 4))) __attribute__((__nonnull__ (3)));
 void	 sanitise_stdfd(void);
 void	 ms_subtract_diff(struct timeval *, int *);
@@ -230,7 +230,7 @@ char	*read_passphrase(const char *, int);
 int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
 struct notifier_ctx *notify_start(int, const char *, ...)
 	__attribute__((format(printf, 2, 3)));
-void	notify_complete(struct notifier_ctx *, const char *, ...)
+void	notify_complete(struct notifier_ctx *__restrict, const char *__restrict, ...)
 	__attribute__((format(printf, 2, 3)));
 
 #define MINIMUM(a, b)	(((a) < (b)) ? (a) : (b))

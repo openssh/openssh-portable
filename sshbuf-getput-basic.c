@@ -344,7 +344,7 @@ sshbuf_putb(struct sshbuf *buf, const struct sshbuf *v)
 }
 
 int
-sshbuf_putf(struct sshbuf *buf, const char *fmt, ...)
+sshbuf_putf(struct sshbuf *__restrict buf, const char *__restrict fmt, ...)
 {
 	va_list ap;
 	int r;
@@ -356,7 +356,7 @@ sshbuf_putf(struct sshbuf *buf, const char *fmt, ...)
 }
 
 int
-sshbuf_putfv(struct sshbuf *buf, const char *fmt, va_list ap)
+sshbuf_putfv(struct sshbuf *__restrict buf, const char *__restrict fmt, va_list ap)
 {
 	va_list ap2;
 	int r, len;

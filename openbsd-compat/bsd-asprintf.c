@@ -38,7 +38,7 @@
 #define INIT_SZ	128
 
 int
-vasprintf(char **str, const char *fmt, va_list ap)
+vasprintf(char **__restrict str, const char *__restrict fmt, va_list ap)
 {
 	int ret = -1;
 	va_list ap2;
@@ -84,7 +84,7 @@ fail:
 #endif
 
 #ifndef HAVE_ASPRINTF
-int asprintf(char **str, const char *fmt, ...)
+int asprintf(char **__restrict str, const char *__restrict fmt, ...)
 {
 	va_list ap;
 	int ret;

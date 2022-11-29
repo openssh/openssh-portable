@@ -101,7 +101,7 @@ grow_dst(char **dst, size_t *sz, size_t maxsz, char **dp, size_t need)
  */
 
 int
-vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
+vasnmprintf(char **str, size_t maxsz, int *wp, const char *__restrict fmt, va_list ap)
 {
 	char	*src;	/* Source string returned from vasprintf. */
 	char	*sp;	/* Pointer into src. */
@@ -237,7 +237,7 @@ fail:
 }
 
 int
-snmprintf(char *str, size_t sz, int *wp, const char *fmt, ...)
+snmprintf(char *str, size_t sz, int *wp, const char *__restrict fmt, ...)
 {
 	va_list	 ap;
 	char	*cp = NULL;
@@ -255,7 +255,7 @@ snmprintf(char *str, size_t sz, int *wp, const char *fmt, ...)
 }
 
 int
-asmprintf(char **outp, size_t sz, int *wp, const char *fmt, ...)
+asmprintf(char **outp, size_t sz, int *wp, const char *__restrict fmt, ...)
 {
 	va_list	 ap;
 	int	 ret;
@@ -274,7 +274,7 @@ asmprintf(char **outp, size_t sz, int *wp, const char *fmt, ...)
  */
 
 int
-vfmprintf(FILE *stream, const char *fmt, va_list ap)
+vfmprintf(FILE *stream, const char *__restrict fmt, va_list ap)
 {
 	char	*str = NULL;
 	int	 ret;
@@ -290,7 +290,7 @@ vfmprintf(FILE *stream, const char *fmt, va_list ap)
 }
 
 int
-fmprintf(FILE *stream, const char *fmt, ...)
+fmprintf(FILE *stream, const char *__restrict fmt, ...)
 {
 	va_list	 ap;
 	int	 ret;
@@ -302,7 +302,7 @@ fmprintf(FILE *stream, const char *fmt, ...)
 }
 
 int
-mprintf(const char *fmt, ...)
+mprintf(const char *__restrict fmt, ...)
 {
 	va_list	 ap;
 	int	 ret;

@@ -64,7 +64,7 @@ sigemptyset (sigset_t *mask)
 }
 
 int
-sigprocmask (int mode, sigset_t *mask, sigset_t *omask)
+sigprocmask (int mode, sigset_t * __restrict mask, sigset_t *__restrict omask)
 {
 	sigset_t current = sigsetmask(0);
 

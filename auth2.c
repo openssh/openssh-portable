@@ -729,7 +729,7 @@ void auth2_authctxt_reset_info(Authctxt *authctxt)
 
 /* Record auth method-specific information for logs */
 void
-auth2_record_info(Authctxt *authctxt, const char *fmt, ...)
+auth2_record_info(Authctxt *authctxt, const char *__restrict fmt, ...)
 {
 	va_list ap;
 	int i;

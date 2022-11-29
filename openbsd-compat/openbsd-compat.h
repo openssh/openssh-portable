@@ -127,12 +127,12 @@ int setenv(register const char *name, register const char *value, int rewrite);
 #endif
 
 #ifndef HAVE_STRMODE
-void strmode(int mode, char *p);
+void strmode(mode_t mode, char *p);
 #endif
 
 #ifndef HAVE_STRPTIME
 #include  <time.h>
-char *strptime(const char *buf, const char *fmt, struct tm *tm);
+char *strptime(const char *buf, const char *__restrict fmt, struct tm *tm);
 #endif
 
 #if !defined(HAVE_MKDTEMP)
@@ -178,7 +178,7 @@ char *strsep(char **stringp, const char *delim);
 #endif
 
 #ifndef HAVE_SETPROCTITLE
-void setproctitle(const char *fmt, ...);
+void setproctitle(const char *__restrict fmt, ...);
 void compat_init_setproctitle(int argc, char *argv[]);
 #endif
 
@@ -234,7 +234,7 @@ uint32_t arc4random_uniform(uint32_t);
 #endif
 
 #ifndef HAVE_ASPRINTF
-int asprintf(char **, const char *, ...);
+int asprintf(char **__restrict, const char *__restrict, ...);
 #endif
 
 #ifndef HAVE_OPENPTY
@@ -243,23 +243,23 @@ int openpty(int *, int *, char *, struct termios *, struct winsize *);
 #endif /* HAVE_OPENPTY */
 
 #ifndef HAVE_SNPRINTF
-int snprintf(char *, size_t, SNPRINTF_CONST char *, ...);
+int snprintf(char *__restrict, size_t, SNPRINTF_CONST char *__restrict, ...);
 #endif
 
 #ifndef HAVE_STRTOLL
-long long strtoll(const char *, char **, int);
+long long strtoll(const char *__restrict, char **__restrict, int);
 #endif
 
 #ifndef HAVE_STRTOUL
-unsigned long strtoul(const char *, char **, int);
+unsigned long strtoul(const char *__restrict, char **__restrict, int);
 #endif
 
 #ifndef HAVE_STRTOULL
-unsigned long long strtoull(const char *, char **, int);
+unsigned long long strtoull(const char *__restrict, char **__restrict, int);
 #endif
 
 #ifndef HAVE_STRTONUM
-long long strtonum(const char *, long long, long long, const char **);
+long long strtonum(const char *__restrict, long long, long long, const char **__restrict);
 #endif
 
 /* multibyte character support */

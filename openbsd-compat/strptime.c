@@ -53,18 +53,18 @@
 #define	_LEGAL_ALT(x)		{ if (alt_format & ~(x)) return (0); }
 
 
-static	int _conv_num(const unsigned char **, int *, int, int);
-static	char *_strptime(const char *, const char *, struct tm *, int);
+static	int _conv_num(const unsigned char **__restrict, int *__restrict, int, int);
+static	char *_strptime(const char *__restrict, const char *__restrict, struct tm *__restrict, int);
 
 
 char *
-strptime(const char *buf, const char *fmt, struct tm *tm)
+strptime(const char *__restrict buf, const char *__restrict fmt, struct tm *__restrict tm)
 {
 	return(_strptime(buf, fmt, tm, 1));
 }
 
 static char *
-_strptime(const char *buf, const char *fmt, struct tm *tm, int initialize)
+_strptime(const char *__restrict buf, const char *__restrict fmt, struct tm *__restrict tm, int initialize)
 {
 	unsigned char c;
 	const unsigned char *bp;
@@ -375,7 +375,7 @@ literal:
 
 
 static int
-_conv_num(const unsigned char **buf, int *dest, int llim, int ulim)
+_conv_num(const unsigned char **__restrict buf, int *__restrict dest, int llim, int ulim)
 {
 	int result = 0;
 	int rulim = ulim;

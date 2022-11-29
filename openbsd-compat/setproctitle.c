@@ -121,7 +121,7 @@ compat_init_setproctitle(int argc, char *argv[])
 
 #ifndef HAVE_SETPROCTITLE
 void
-setproctitle(const char *fmt, ...)
+setproctitle(const char *__restrict fmt, ...)
 {
 #if SPT_TYPE != SPT_NONE
 	va_list ap;

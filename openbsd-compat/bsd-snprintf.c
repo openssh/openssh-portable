@@ -167,17 +167,17 @@
 		(pos)++; \
 	} while (0)
 
-static int dopr(char *buffer, size_t maxlen, const char *format,
+static int dopr(char *__restrict buffer, size_t maxlen, const char *__restrict format, 
     va_list args_in);
-static int fmtstr(char *buffer, size_t *currlen, size_t maxlen,
-    char *value, int flags, int min, int max);
-static int fmtint(char *buffer, size_t *currlen, size_t maxlen,
+static int fmtstr(char *__restrict buffer, size_t *__restrict currlen, size_t maxlen,
+    char *__restrict value, int flags, int min, int max);
+static int fmtint(char *__restrict buffer, size_t *__restrict currlen, size_t maxlen,
     intmax_t value, int base, int min, int max, int flags);
-static int fmtfp(char *buffer, size_t *currlen, size_t maxlen,
+static int fmtfp(char *__restrict buffer, size_t *__restrict currlen, size_t maxlen,
     LDOUBLE fvalue, int min, int max, int flags);
 
 static int
-dopr(char *buffer, size_t maxlen, const char *format, va_list args_in)
+dopr(char *__restrict buffer, size_t maxlen, const char *__restrict format, va_list args_in)
 {
 	char ch;
 	intmax_t value;
@@ -502,8 +502,8 @@ dopr(char *buffer, size_t maxlen, const char *format, va_list args_in)
 }
 
 static int
-fmtstr(char *buffer, size_t *currlen, size_t maxlen,
-    char *value, int flags, int min, int max)
+fmtstr(char *__restrict buffer, size_t *__restrict currlen, size_t maxlen,
+    char *__restrict value, int flags, int min, int max)
 {
 	int padlen, strln;     /* amount to pad */
 	int cnt = 0;
@@ -703,7 +703,7 @@ static double my_modf(double x0, double *iptr)
 
 
 static int
-fmtfp (char *buffer, size_t *currlen, size_t maxlen,
+fmtfp (char *__restrict buffer, size_t *__restrict currlen, size_t maxlen,
     LDOUBLE fvalue, int min, int max, int flags)
 {
 	int signvalue = 0;
@@ -862,7 +862,7 @@ fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 
 #if !defined(HAVE_VSNPRINTF)
 int
-vsnprintf (char *str, size_t count, const char *fmt, va_list args)
+vsnprintf (char *__restrict str, size_t count, const char *__restrict fmt, va_list args)
 {
 	return dopr(str, count, fmt, args);
 }
@@ -870,7 +870,7 @@ vsnprintf (char *str, size_t count, const char *fmt, va_list args)
 
 #if !defined(HAVE_SNPRINTF)
 int
-snprintf(char *str, size_t count, SNPRINTF_CONST char *fmt, ...)
+snprintf(char *__restrict str, size_t count, SNPRINTF_CONST char *__restrict fmt, ...)
 {
 	size_t ret;
 	va_list ap;

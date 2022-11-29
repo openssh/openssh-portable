@@ -35,7 +35,7 @@
 
 #ifndef HAVE_ERR
 void
-err(int r, const char *fmt, ...)
+err(int r, const char *__restrict fmt, ...)
 {
 	va_list args;
 
@@ -50,7 +50,7 @@ err(int r, const char *fmt, ...)
 
 #ifndef HAVE_ERRX
 void
-errx(int r, const char *fmt, ...)
+errx(int r, const char *__restrict fmt, ...)
 {
 	va_list args;
 
@@ -64,7 +64,7 @@ errx(int r, const char *fmt, ...)
 
 #ifndef HAVE_WARN
 void
-warn(const char *fmt, ...)
+warn(const char *__restrict fmt, ...)
 {
 	va_list args;
 

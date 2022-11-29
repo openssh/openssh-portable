@@ -57,7 +57,7 @@ kexgex_hash(
     const BIGNUM *client_dh_pub,
     const BIGNUM *server_dh_pub,
     const u_char *shared_secret, size_t secretlen,
-    u_char *hash, size_t *hashlen)
+    u_char *__restrict hash, size_t *__restrict hashlen)
 {
 	struct sshbuf *b;
 	int r;

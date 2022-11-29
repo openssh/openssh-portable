@@ -45,7 +45,7 @@
  * alphabets and digits are each contiguous.
  */
 unsigned long
-strtoul(const char *nptr, char **endptr, int base)
+strtoul(const char *__restrict nptr, char **__restrict endptr, int base)
 {
 	const char *s;
 	unsigned long acc, cutoff;

@@ -433,10 +433,10 @@ typedef struct {
 BUF *allocbuf(BUF *, int, int);
 void lostconn(int);
 int okname(char *);
-void run_err(const char *,...)
+void run_err(const char *__restrict,...)
     __attribute__((__format__ (printf, 1, 2)))
     __attribute__((__nonnull__ (1)));
-int note_err(const char *,...)
+int note_err(const char *__restrict,...)
     __attribute__((__format__ (printf, 1, 2)));
 void verifydir(char *);
 
@@ -2108,7 +2108,7 @@ usage(void)
 }
 
 void
-run_err(const char *fmt,...)
+run_err(const char *__restrict fmt,...)
 {
 	static FILE *fp;
 	va_list ap;
@@ -2138,7 +2138,7 @@ run_err(const char *fmt,...)
  * any active error at the end of the transfer.
  */
 int
-note_err(const char *fmt, ...)
+note_err(const char *__restrict fmt, ...)
 {
 	static char *emsg;
 	va_list ap;

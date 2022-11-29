@@ -104,7 +104,7 @@ struct ssh_krl {
 
 /* Return equal if a and b overlap */
 static int
-serial_cmp(struct revoked_serial *a, struct revoked_serial *b)
+serial_cmp(struct revoked_serial *__restrict a, struct revoked_serial *__restrict b)
 {
 	if (a->hi >= b->lo && a->lo <= b->hi)
 		return 0;
@@ -112,13 +112,13 @@ serial_cmp(struct revoked_serial *a, struct revoked_serial *b)
 }
 
 static int
-key_id_cmp(struct revoked_key_id *a, struct revoked_key_id *b)
+key_id_cmp(struct revoked_key_id *__restrict a, struct revoked_key_id *__restrict b)
 {
 	return strcmp(a->key_id, b->key_id);
 }
 
 static int
-blob_cmp(struct revoked_blob *a, struct revoked_blob *b)
+blob_cmp(struct revoked_blob *__restrict a, struct revoked_blob *__restrict b)
 {
 	int r;
 
@@ -145,7 +145,7 @@ ssh_krl_init(void)
 }
 
 static void
-revoked_certs_free(struct revoked_certs *rc)
+revoked_certs_free(struct revoked_certs *__restrict rc)
 {
 	struct revoked_serial *rs, *trs;
 	struct revoked_key_id *rki, *trki;
@@ -163,7 +163,7 @@ revoked_certs_free(struct revoked_certs *rc)
 }
 
 void
-ssh_krl_free(struct ssh_krl *krl)
+ssh_krl_free(struct ssh_krl *__restrict krl)
 {
 	struct revoked_blob *rb, *trb;
 	struct revoked_certs *rc, *trc;
@@ -195,13 +195,13 @@ ssh_krl_free(struct ssh_krl *krl)
 }
 
 void
-ssh_krl_set_version(struct ssh_krl *krl, u_int64_t version)
+ssh_krl_set_version(struct ssh_krl *__restrict krl, u_int64_t version)
 {
 	krl->krl_version = version;
 }
 
 int
-ssh_krl_set_comment(struct ssh_krl *krl, const char *comment)
+ssh_krl_set_comment(struct ssh_krl *__restrict krl, const char *comment)
 {
 	free(krl->comment);
 	if ((krl->comment = strdup(comment)) == NULL)
@@ -214,8 +214,8 @@ ssh_krl_set_comment(struct ssh_krl *krl, const char *comment)
  * create a new one in the tree if one did not exist already.
  */
 static int
-revoked_certs_for_ca_key(struct ssh_krl *krl, const struct sshkey *ca_key,
-    struct revoked_certs **rcp, int allow_create)
+revoked_certs_for_ca_key(struct ssh_krl *__restrict krl, const struct sshkey *__restrict ca_key,
+    struct revoked_certs **__restrict rcp, int allow_create)
 {
 	struct revoked_certs *rc;
 	int r;
@@ -248,7 +248,7 @@ revoked_certs_for_ca_key(struct ssh_krl *krl, const struct sshkey *ca_key,
 }
 
 static int
-insert_serial_range(struct revoked_serial_tree *rt, u_int64_t lo, u_int64_t hi)
+insert_serial_range(struct revoked_serial_tree *__restrict rt, u_int64_t lo, u_int64_t hi)
 {
 	struct revoked_serial rs, *ers, *crs, *irs;
 
@@ -318,15 +318,15 @@ insert_serial_range(struct revoked_serial_tree *rt, u_int64_t lo, u_int64_t hi)
 }
 
 int
-ssh_krl_revoke_cert_by_serial(struct ssh_krl *krl, const struct sshkey *ca_key,
+ssh_krl_revoke_cert_by_serial(struct ssh_krl *__restrict krl, const struct sshkey *__restrict ca_key,
     u_int64_t serial)
 {
 	return ssh_krl_revoke_cert_by_serial_range(krl, ca_key, serial, serial);
 }
 
 int
-ssh_krl_revoke_cert_by_serial_range(struct ssh_krl *krl,
-    const struct sshkey *ca_key, u_int64_t lo, u_int64_t hi)
+ssh_krl_revoke_cert_by_serial_range(struct ssh_krl *__restrict krl,
+    const struct sshkey *__restrict ca_key, u_int64_t lo, u_int64_t hi)
 {
 	struct revoked_certs *rc;
 	int r;
@@ -339,8 +339,8 @@ ssh_krl_revoke_cert_by_serial_range(struct ssh_krl *krl,
 }
 
 int
-ssh_krl_revoke_cert_by_key_id(struct ssh_krl *krl, const struct sshkey *ca_key,
-    const char *key_id)
+ssh_krl_revoke_cert_by_key_id(struct ssh_krl *__restrict krl, const struct sshkey *__restrict ca_key,
+    const char *__restrict key_id)
 {
 	struct revoked_key_id *rki, *erki;
 	struct revoked_certs *rc;
@@ -365,7 +365,7 @@ ssh_krl_revoke_cert_by_key_id(struct ssh_krl *krl, const struct sshkey *ca_key,
 
 /* Convert "key" to a public key blob without any certificate information */
 static int
-plain_key_blob(const struct sshkey *key, u_char **blob, size_t *blen)
+plain_key_blob(const struct sshkey *__restrict key, u_char **__restrict blob, size_t *__restrict blen)
 {
 	struct sshkey *kcopy;
 	int r;
@@ -385,7 +385,7 @@ plain_key_blob(const struct sshkey *key, u_char **blob, size_t *blen)
 
 /* Revoke a key blob. Ownership of blob is transferred to the tree */
 static int
-revoke_blob(struct revoked_blob_tree *rbt, u_char *blob, size_t len)
+revoke_blob(struct revoked_blob_tree *__restrict rbt, u_char *__restrict blob, size_t len)
 {
 	struct revoked_blob *rb, *erb;
 
@@ -402,7 +402,7 @@ revoke_blob(struct revoked_blob_tree *rbt, u_char *blob, size_t len)
 }
 
 int
-ssh_krl_revoke_key_explicit(struct ssh_krl *krl, const struct sshkey *key)
+ssh_krl_revoke_key_explicit(struct ssh_krl *__restrict krl, const struct sshkey *__restrict key)
 {
 	u_char *blob;
 	size_t len;
@@ -415,7 +415,7 @@ ssh_krl_revoke_key_explicit(struct ssh_krl *krl, const struct sshkey *key)
 }
 
 static int
-revoke_by_hash(struct revoked_blob_tree *target, const u_char *p, size_t len)
+revoke_by_hash(struct revoked_blob_tree *__restrict target, const u_char *__restrict p, size_t len)
 {
 	u_char *blob;
 	int r;
@@ -432,7 +432,7 @@ revoke_by_hash(struct revoked_blob_tree *target, const u_char *p, size_t len)
 }
 
 int
-ssh_krl_revoke_key_sha1(struct ssh_krl *krl, const u_char *p, size_t len)
+ssh_krl_revoke_key_sha1(struct ssh_krl *__restrict krl, const u_char *__restrict p, size_t len)
 {
 	debug3_f("revoke by sha1");
 	if (len != 20)
@@ -441,7 +441,7 @@ ssh_krl_revoke_key_sha1(struct ssh_krl *krl, const u_char *p, size_t len)
 }
 
 int
-ssh_krl_revoke_key_sha256(struct ssh_krl *krl, const u_char *p, size_t len)
+ssh_krl_revoke_key_sha256(struct ssh_krl *__restrict krl, const u_char *__restrict p, size_t len)
 {
 	debug3_f("revoke by sha256");
 	if (len != 32)
@@ -450,7 +450,7 @@ ssh_krl_revoke_key_sha256(struct ssh_krl *krl, const u_char *p, size_t len)
 }
 
 int
-ssh_krl_revoke_key(struct ssh_krl *krl, const struct sshkey *key)
+ssh_krl_revoke_key(struct ssh_krl *__restrict krl, const struct sshkey *__restrict key)
 {
 	/* XXX replace with SHA256? */
 	if (!sshkey_is_cert(key))
@@ -476,7 +476,7 @@ ssh_krl_revoke_key(struct ssh_krl *krl, const struct sshkey *key)
  */
 static int
 choose_next_state(int current_state, u_int64_t contig, int final,
-    u_int64_t last_gap, u_int64_t next_gap, int *force_new_section)
+    u_int64_t last_gap, u_int64_t next_gap, int *__restrict force_new_section)
 {
 	int new_state;
 	u_int64_t cost, cost_list, cost_range, cost_bitmap, cost_bitmap_restart;
@@ -551,7 +551,7 @@ choose_next_state(int current_state, u_int64_t contig, int final,
 }
 
 static int
-put_bitmap(struct sshbuf *buf, struct bitmap *bitmap)
+put_bitmap(struct sshbuf *__restrict buf, struct bitmap *__restrict bitmap)
 {
 	size_t len;
 	u_char *blob;
@@ -571,7 +571,7 @@ put_bitmap(struct sshbuf *buf, struct bitmap *bitmap)
 
 /* Generate a KRL_SECTION_CERTIFICATES KRL section */
 static int
-revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
+revoked_certs_generate(struct revoked_certs *__restrict rc, struct sshbuf *__restrict buf)
 {
 	int final, force_new_sect, r = SSH_ERR_INTERNAL_ERROR;
 	u_int64_t i, contig, gap, last = 0, bitmap_start = 0;
@@ -729,8 +729,8 @@ revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
 }
 
 int
-ssh_krl_to_blob(struct ssh_krl *krl, struct sshbuf *buf,
-    struct sshkey **sign_keys, u_int nsign_keys)
+ssh_krl_to_blob(struct ssh_krl *__restrict krl, struct sshbuf *__restrict buf,
+    struct sshkey **__restrict sign_keys, u_int nsign_keys)
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
 	struct revoked_certs *rc;
@@ -825,7 +825,7 @@ ssh_krl_to_blob(struct ssh_krl *krl, struct sshbuf *buf,
 }
 
 static void
-format_timestamp(u_int64_t timestamp, char *ts, size_t nts)
+format_timestamp(u_int64_t timestamp, char *__restrict ts, size_t nts)
 {
 	time_t t;
 	struct tm *tm;
@@ -954,7 +954,7 @@ parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 }
 
 static int
-blob_section(struct sshbuf *sect, struct revoked_blob_tree *target_tree,
+blob_section(struct sshbuf *__restrict sect, struct revoked_blob_tree *__restrict target_tree,
     size_t expected_len)
 {
 	u_char *rdata = NULL;
@@ -979,8 +979,8 @@ blob_section(struct sshbuf *sect, struct revoked_blob_tree *target_tree,
 
 /* Attempt to parse a KRL, checking its signature (if any) with sign_ca_keys. */
 int
-ssh_krl_from_blob(struct sshbuf *buf, struct ssh_krl **krlp,
-    const struct sshkey **sign_ca_keys, size_t nsign_ca_keys)
+ssh_krl_from_blob(struct sshbuf *__restrict buf, struct ssh_krl **__restrict krlp,
+    const struct sshkey **__restrict sign_ca_keys, size_t nsign_ca_keys)
 {
 	struct sshbuf *copy = NULL, *sect = NULL;
 	struct ssh_krl *krl = NULL;
@@ -1215,7 +1215,7 @@ ssh_krl_from_blob(struct sshbuf *buf, struct ssh_krl **krlp,
 
 /* Checks certificate serial number and key ID revocation */
 static int
-is_cert_revoked(const struct sshkey *key, struct revoked_certs *rc)
+is_cert_revoked(const struct sshkey *__restrict key, struct revoked_certs *__restrict rc)
 {
 	struct revoked_serial rs, *ers;
 	struct revoked_key_id rki, *erki;
@@ -1249,7 +1249,7 @@ is_cert_revoked(const struct sshkey *key, struct revoked_certs *rc)
 
 /* Checks whether a given key/cert is revoked. Does not check its CA */
 static int
-is_key_revoked(struct ssh_krl *krl, const struct sshkey *key)
+is_key_revoked(struct ssh_krl *__restrict krl, const struct sshkey *__restrict key)
 {
 	struct revoked_blob rb, *erb;
 	struct revoked_certs *rc;
@@ -1312,7 +1312,7 @@ is_key_revoked(struct ssh_krl *krl, const struct sshkey *key)
 }
 
 int
-ssh_krl_check_key(struct ssh_krl *krl, const struct sshkey *key)
+ssh_krl_check_key(struct ssh_krl *__restrict krl, const struct sshkey *__restrict key)
 {
 	int r;
 
@@ -1329,7 +1329,7 @@ ssh_krl_check_key(struct ssh_krl *krl, const struct sshkey *key)
 }
 
 int
-ssh_krl_file_contains_key(const char *path, const struct sshkey *key)
+ssh_krl_file_contains_key(const char *__restrict path, const struct sshkey *__restrict key)
 {
 	struct sshbuf *krlbuf = NULL;
 	struct ssh_krl *krl = NULL;
@@ -1354,7 +1354,7 @@ ssh_krl_file_contains_key(const char *path, const struct sshkey *key)
 }
 
 int
-krl_dump(struct ssh_krl *krl, FILE *f)
+krl_dump(struct ssh_krl *__restrict krl, FILE *__restrict f)
 {
 	struct sshkey *key = NULL;
 	struct revoked_blob *rb;

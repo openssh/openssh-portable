@@ -108,7 +108,7 @@ DEF_WEAK(SHA1Transform);
  * SHA1Init - Initialize new context
  */
 void
-SHA1Init(SHA1_CTX *context)
+SHA1Init(SHA1_CTX * __restrict context)
 {
 
 	/* SHA1 initialization constants */
@@ -126,7 +126,7 @@ DEF_WEAK(SHA1Init);
  * Run your data through this.
  */
 void
-SHA1Update(SHA1_CTX *context, const u_int8_t *data, size_t len)
+SHA1Update(SHA1_CTX *__restrict context, const u_int8_t *__restrict data, size_t len)
 {
 	size_t i, j;
 
@@ -150,7 +150,7 @@ DEF_WEAK(SHA1Update);
  * Add padding and return the message digest.
  */
 void
-SHA1Pad(SHA1_CTX *context)
+SHA1Pad(SHA1_CTX *__restrict context)
 {
 	u_int8_t finalcount[8];
 	u_int i;
@@ -167,7 +167,7 @@ SHA1Pad(SHA1_CTX *context)
 DEF_WEAK(SHA1Pad);
 
 void
-SHA1Final(u_int8_t digest[SHA1_DIGEST_LENGTH], SHA1_CTX *context)
+SHA1Final(u_int8_t digest[SHA1_DIGEST_LENGTH], SHA1_CTX *__restrict context)
 {
 	u_int i;
 

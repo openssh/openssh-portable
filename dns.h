@@ -54,6 +54,6 @@ enum sshfp_hashes {
 
 int	verify_host_key_dns(const char *, struct sockaddr *,
     struct sshkey *, int *);
-int	export_dns_rr(const char *, struct sshkey *, FILE *, int, int);
+int	export_dns_rr(const char *__restrict, struct sshkey *__restrict, FILE *__restrict, int, int);
 
 #endif /* DNS_H */

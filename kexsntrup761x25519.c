@@ -40,7 +40,7 @@
 #include "ssherr.h"
 
 int
-kex_kem_sntrup761x25519_keypair(struct kex *kex)
+kex_kem_sntrup761x25519_keypair(struct kex *__restrict kex)
 {
 	struct sshbuf *buf = NULL;
 	u_char *cp = NULL;
@@ -229,13 +229,13 @@ struct sshbuf;
 struct sshkey;
 
 int
-kex_kem_sntrup761x25519_keypair(struct kex *kex)
+kex_kem_sntrup761x25519_keypair(struct kex *__restrict kex)
 {
 	return SSH_ERR_SIGN_ALG_UNSUPPORTED;
 }
 
 int
-kex_kem_sntrup761x25519_enc(struct kex *kex,
+kex_kem_sntrup761x25519_enc(struct kex *__restrict kex,
    const struct sshbuf *client_blob, struct sshbuf **server_blobp,
    struct sshbuf **shared_secretp)
 {
