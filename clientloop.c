@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.384 2022/11/28 01:38:22 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.385 2022/11/29 22:41:14 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -776,8 +776,8 @@ can_update_hostkeys(void)
 	return 1;
 }
 
-void
-client_repledge()
+static void
+client_repledge(void)
 {
 	debug3_f("enter");
 
