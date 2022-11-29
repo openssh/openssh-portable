@@ -2926,7 +2926,7 @@ private2_uudecode(struct sshbuf *blob, struct sshbuf **decodedp)
 
 	/* check magic */
 	if (sshbuf_len(decoded) < sizeof(AUTH_MAGIC) ||
-	    memcmp(sshbuf_ptr(decoded), AUTH_MAGIC, sizeof(AUTH_MAGIC))) {
+	    memcmp(sshbuf_ptr(decoded), AUTH_MAGIC, sizeof(AUTH_MAGIC)) != 0) {
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}

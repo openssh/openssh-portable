@@ -342,7 +342,7 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 	struct pollfd *pfd = NULL;
 	u_int npfd_alloc = 0, npfd_active = 0;
 	int r, conn_in_ready, conn_out_ready;
-	u_int connection_in, connection_out;
+	int connection_in, connection_out;
 	sigset_t bsigset, osigset;
 
 	debug("Entering interactive session for SSH2.");

@@ -652,7 +652,7 @@ list_starts_with(const char *methods, const char *method,
 			return MATCH_PARTIAL;
 		l = strlen(submethod);
 		p += 1;
-		if (strncmp(submethod, p, l))
+		if (strncmp(submethod, p, l) != 0)
 			return MATCH_NONE;
 		p += l;
 		match = MATCH_BOTH;

@@ -1518,8 +1518,8 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 	u_int16_t dest_port;
 	char dest_addr[255+1], ntop[INET6_ADDRSTRLEN];
 	const u_char *p;
-	u_int have, need, i, found, nmethods, addrlen, af;
-	int r;
+	u_int have, need, i, nmethods, addrlen;
+	int found, af, r;
 
 	debug2("channel %d: decode socks5", c->self);
 	p = sshbuf_ptr(input);
@@ -1579,7 +1579,7 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 		af = AF_INET6;
 		break;
 	default:
-		debug2("channel %d: bad socks5 atyp %d", c->self, s5_req.atyp);
+		debug2("channel %d: bad socks5 atyp %u", c->self, s5_req.atyp);
 		return -1;
 	}
 	need = sizeof(s5_req) + addrlen + 2;
@@ -4619,8 +4619,7 @@ connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
 		 * channel_connect_ctx_free() must check ai_family
 		 * and use free() not freeaddirinfo() for AF_UNIX.
 		 */
-		ai = xmalloc(sizeof(*ai) + sizeof(*sunaddr));
-		memset(ai, 0, sizeof(*ai) + sizeof(*sunaddr));
+		ai = xcalloc(1, sizeof(*ai) + sizeof(*sunaddr));
 		ai->ai_addr = (struct sockaddr *)(ai + 1);
 		ai->ai_addrlen = sizeof(*sunaddr);
 		ai->ai_family = AF_UNIX;
@@ -5227,7 +5226,8 @@ x11_request_forwarding_with_spoofing(struct ssh *ssh, int client_session_id,
 	u_int i, value;
 	const char *cp;
 	char *new_data;
-	int r, screen_number;
+	int r;
+	u_int screen_number;
 
 	if (sc->x11_saved_display == NULL)
 		sc->x11_saved_display = xstrdup(disp);

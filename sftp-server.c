@@ -1327,7 +1327,8 @@ process_rename(u_int32_t id)
 static void
 process_readlink(u_int32_t id)
 {
-	int r, len;
+	int r;
+	ssize_t len;
 	char buf[PATH_MAX];
 	char *path;
 
@@ -1336,7 +1337,7 @@ process_readlink(u_int32_t id)
 
 	debug3("request %u: readlink", id);
 	verbose("readlink \"%s\"", path);
-	if ((len = readlink(path, buf, sizeof(buf) - 1)) == -1)
+	if ((len = readlink(path, buf, sizeof(buf) - 1)) < 0)
 		send_status(id, errno_to_portable(errno));
 	else {
 		Stat s;

@@ -2049,7 +2049,7 @@ mux_client_request_session(int fd)
 		debug2("Control master terminated unexpectedly");
 		exitval = 255;
 	} else
-		debug2("Received exit status from master %d", exitval);
+		debug2("Received exit status from master %u", exitval);
 
 	if (tty_flag && options.log_level >= SYSLOG_LEVEL_INFO)
 		fprintf(stderr, "Shared connection to %s closed.\r\n", host);

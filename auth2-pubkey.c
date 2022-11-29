@@ -748,7 +748,8 @@ int
 user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
     int auth_attempt, struct sshauthopt **authoptsp)
 {
-	u_int success = 0, i;
+	int success = 0;
+	u_int i;
 	char *file;
 	struct sshauthopt *opts = NULL;
 	const char *remote_ip = ssh_remote_ipaddr(ssh);

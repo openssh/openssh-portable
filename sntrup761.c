@@ -1227,7 +1227,7 @@ static int Ciphertexts_diff_mask(const unsigned char *c,const unsigned char *c2)
   uint16 differentbits = 0;
   int len = Ciphertexts_bytes+Confirm_bytes;
 
-  while (len-- > 0) differentbits |= (*c++)^(*c2++);
+  for (;len>0;len--) differentbits |= (*c++)^(*c2++);
   return (1&((differentbits-1)>>8))-1;
 }
 

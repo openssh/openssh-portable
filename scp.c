@@ -1390,7 +1390,7 @@ source(int argc, char **argv)
 	size_t amt, nr;
 	int fd = -1, haderr, indx;
 	char *last, *name, buf[PATH_MAX + 128], encname[PATH_MAX];
-	int len;
+	size_t len;
 
 	for (indx = 0; indx < argc; ++indx) {
 		name = argv[indx];

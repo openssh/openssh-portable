@@ -836,7 +836,7 @@ static void poly_hash(uhash_ctx_t hc, UINT32 data_in[])
     UINT64 *data=(UINT64*)data_in;
 
     for (i = 0; i < STREAMS; i++) {
-        if ((UINT32)(data[i] >> 32) == 0xfffffffful) {
+        if ((UINT32)(data[i] >> 32) == 0xffffffffUL) {
             hc->poly_accum[i] = poly64(hc->poly_accum[i],
                                        hc->poly_key_8[i], p64 - 1);
             hc->poly_accum[i] = poly64(hc->poly_accum[i],
@@ -977,7 +977,7 @@ static void uhash_init(uhash_ctx_t ahc, aes_int_key prf_key)
         memcpy(ahc->poly_key_8+i, buf+24*i, 8);
         endian_convert_if_le(ahc->poly_key_8+i, 8, 8);
         /* Mask the 64-bit keys to their special domain */
-        ahc->poly_key_8[i] &= ((UINT64)0x01ffffffu << 32) + 0x01ffffffu;
+        ahc->poly_key_8[i] &= ((UINT64)0x01ffffffU << 32) | 0x01ffffffU;
         ahc->poly_accum[i] = 1;  /* Our polyhash prepends a non-zero word */
     }
 

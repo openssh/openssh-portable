@@ -1835,7 +1835,7 @@ main(int ac, char **av)
 	    sizeof(struct sshkey *));
 
 	if (options.host_key_agent) {
-		if (strcmp(options.host_key_agent, SSH_AUTHSOCKET_ENV_NAME))
+		if (strcmp(options.host_key_agent, SSH_AUTHSOCKET_ENV_NAME) != 0)
 			setenv(SSH_AUTHSOCKET_ENV_NAME,
 			    options.host_key_agent, 1);
 		if ((r = ssh_get_authentication_socket(NULL)) == 0)

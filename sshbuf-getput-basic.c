@@ -298,7 +298,7 @@ sshbuf_get_cstring(struct sshbuf *buf, char **valp, size_t *lenp)
 		(*valp)[len] = '\0';
 	}
 	if (lenp != NULL)
-		*lenp = (size_t)len;
+		*lenp = len;
 	return 0;
 }
 

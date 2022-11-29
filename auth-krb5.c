@@ -77,7 +77,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 #endif
 	krb5_error_code problem;
 	krb5_ccache ccache = NULL;
-	int len;
+	size_t len;
 	char *client, *platform_client;
 	const char *errmsg;
 
