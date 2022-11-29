@@ -133,11 +133,11 @@ int sk_sign(uint32_t alg, const uint8_t *data, size_t data_len,
 int sk_load_resident_keys(const char *pin, struct sk_option **options,
     struct sk_resident_key ***rks, size_t *nrks);
 
-static void skdebug(const char *func, const char *fmt, ...)
+static void skdebug(const char *__restrict func, const char *__restrict fmt, ...)
     __attribute__((__format__ (printf, 2, 3)));
 
 static void
-skdebug(const char *func, const char *fmt, ...)
+skdebug(const char *__restrict func, const char *__restrict fmt, ...)
 {
 #if !defined(SK_STANDALONE)
 	char *msg;

@@ -95,7 +95,7 @@ xstrdup(const char *str)
 }
 
 int
-xvasprintf(char **ret, const char *fmt, va_list ap)
+xvasprintf(char **__restrict ret, const char *__restrict fmt, va_list ap)
 {
 	int i;
 
@@ -106,7 +106,7 @@ xvasprintf(char **ret, const char *fmt, va_list ap)
 }
 
 int
-xasprintf(char **ret, const char *fmt, ...)
+xasprintf(char **__restrict ret, const char *__restrict fmt, ...)
 {
 	va_list ap;
 	int i;

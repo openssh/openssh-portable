@@ -1271,7 +1271,7 @@ sshkey_to_base64(const struct sshkey *key, char **b64p)
 }
 
 int
-sshkey_format_text(const struct sshkey *key, struct sshbuf *b)
+sshkey_format_text(const struct sshkey *__restrict key, struct sshbuf *__restrict b)
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
 	char *uu = NULL;

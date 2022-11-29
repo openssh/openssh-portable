@@ -195,11 +195,11 @@ static struct global_confirms global_confirms =
     TAILQ_HEAD_INITIALIZER(global_confirms);
 
 void ssh_process_session2_setup(int, int, int, struct sshbuf *);
-static void quit_message(const char *fmt, ...)
+static void quit_message(const char *__restrict fmt, ...)
     __attribute__((__format__ (printf, 1, 2)));
 
 static void
-quit_message(const char *fmt, ...)
+quit_message(const char *__restrict fmt, ...)
 {
 	char *msg;
 	va_list args;

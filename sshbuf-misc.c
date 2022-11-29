@@ -37,7 +37,7 @@
 #include "sshbuf.h"
 
 void
-sshbuf_dump_data(const void *s, size_t len, FILE *f)
+sshbuf_dump_data(const void *__restrict s, size_t len, FILE *__restrict f)
 {
 	size_t i, j;
 	const u_char *p = (const u_char *)s;
@@ -64,7 +64,7 @@ sshbuf_dump_data(const void *s, size_t len, FILE *f)
 }
 
 void
-sshbuf_dump(const struct sshbuf *buf, FILE *f)
+sshbuf_dump(const struct sshbuf *__restrict buf, FILE *__restrict f)
 {
 	fprintf(f, "buffer len = %zu\n", sshbuf_len(buf));
 	sshbuf_dump_data(sshbuf_ptr(buf), sshbuf_len(buf), f);
