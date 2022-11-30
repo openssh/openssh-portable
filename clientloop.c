@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.382 2022/11/10 23:03:10 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.385 2022/11/29 22:41:14 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -160,6 +160,8 @@ static int need_rekeying;	/* Set to non-zero if rekeying is requested. */
 static int session_closed;	/* In SSH2: login session closed. */
 static u_int x11_refuse_time;	/* If >0, refuse x11 opens after this time. */
 static time_t server_alive_time;	/* Time to do server_alive_check */
+static int hostkeys_update_complete;
+static int session_setup_complete;
 
 static void client_init_dispatch(struct ssh *ssh);
 int	session_ident = -1;
@@ -757,6 +759,72 @@ client_register_global_confirm(global_confirm_cb *cb, void *ctx)
 	TAILQ_INSERT_TAIL(&global_confirms, gc, entry);
 }
 
+/*
+ * Returns non-zero if the client is able to handle a hostkeys-00@openssh.com
+ * hostkey update request.
+ */
+static int
+can_update_hostkeys(void)
+{
+	if (hostkeys_update_complete)
+		return 0;
+	if (options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK &&
+	    options.batch_mode)
+		return 0; /* won't ask in batchmode, so don't even try */
+	if (!options.update_hostkeys || options.num_user_hostfiles <= 0)
+		return 0;
+	return 1;
+}
+
+static void
+client_repledge(void)
+{
+	debug3_f("enter");
+
+	/* Might be able to tighten pledge now that session is established */
+	if (options.control_master || options.control_path != NULL ||
+	    options.forward_x11 || options.fork_after_authentication ||
+	    can_update_hostkeys() ||
+	    (session_ident != -1 && !session_setup_complete)) {
+		/* Can't tighten */
+		return;
+	}
+	/*
+	 * LocalCommand and UpdateHostkeys have finished, so can get rid of
+	 * filesystem.
+	 *
+	 * XXX protocol allows a server can to change hostkeys during the
+	 *     connection at rekey time that could trigger a hostkeys update
+	 *     but AFAIK no implementations support this. Could improve by
+	 *     forcing known_hosts to be read-only or via unveil(2).
+	 */
+	if (options.num_local_forwards != 0 ||
+	    options.num_remote_forwards != 0 ||
+	    options.num_permitted_remote_opens != 0 ||
+	    options.enable_escape_commandline != 0) {
+		/* rfwd needs inet */
+		debug("pledge: network");
+		if (pledge("stdio unix inet dns proc tty", NULL) == -1)
+			fatal_f("pledge(): %s", strerror(errno));
+	} else if (options.forward_agent != 0) {
+		/* agent forwarding needs to open $SSH_AUTH_SOCK at will */
+		debug("pledge: agent");
+		if (pledge("stdio unix proc tty", NULL) == -1)
+			fatal_f("pledge(): %s", strerror(errno));
+	} else {
+		debug("pledge: fork");
+		if (pledge("stdio proc tty", NULL) == -1)
+			fatal_f("pledge(): %s", strerror(errno));
+	}
+	/* XXX further things to do:
+	 *
+	 * - might be able to get rid of proc if we kill ~^Z
+	 * - ssh -N (no session)
+	 * - stdio forwarding
+	 * - sessions without tty
+	 */
+}
+
 static void
 process_cmdline(struct ssh *ssh)
 {
@@ -887,6 +955,7 @@ out:
 #define SUPPRESS_MUXCLIENT	1	/* don't show in mux client sessions */
 #define SUPPRESS_MUXMASTER	2	/* don't show in mux master sessions */
 #define SUPPRESS_SYSLOG		4	/* don't show when logging to syslog */
+#define SUPPRESS_NOCMDLINE	8	/* don't show when cmdline disabled*/
 struct escape_help_text {
 	const char *cmd;
 	const char *text;
@@ -897,7 +966,7 @@ static struct escape_help_text esc_txt[] = {
     {".",  "terminate connection (and any multiplexed sessions)",
 	SUPPRESS_MUXCLIENT},
     {"B",  "send a BREAK to the remote system", SUPPRESS_NEVER},
-    {"C",  "open a command line", SUPPRESS_MUXCLIENT},
+    {"C",  "open a command line", SUPPRESS_MUXCLIENT|SUPPRESS_NOCMDLINE},
     {"R",  "request rekey", SUPPRESS_NEVER},
     {"V/v",  "decrease/increase verbosity (LogLevel)", SUPPRESS_MUXCLIENT},
     {"^Z", "suspend ssh", SUPPRESS_MUXCLIENT},
@@ -921,7 +990,8 @@ print_escape_help(struct sshbuf *b, int escape_char, int mux_client,
 	suppress_flags =
 	    (mux_client ? SUPPRESS_MUXCLIENT : 0) |
 	    (mux_client ? 0 : SUPPRESS_MUXMASTER) |
-	    (using_stderr ? 0 : SUPPRESS_SYSLOG);
+	    (using_stderr ? 0 : SUPPRESS_SYSLOG) |
+	    (options.enable_escape_commandline == 0 ? SUPPRESS_NOCMDLINE : 0);
 
 	for (i = 0; i < sizeof(esc_txt)/sizeof(esc_txt[0]); i++) {
 		if (esc_txt[i].flags & suppress_flags)
@@ -1115,6 +1185,12 @@ process_escapes(struct ssh *ssh, Channel *c,
 			case 'C':
 				if (c && c->ctl_chan != -1)
 					goto noescape;
+				if (options.enable_escape_commandline == 0) {
+					if ((r = sshbuf_putf(berr,
+					    "commandline disabled\r\n")) != 0)
+						fatal_fr(r, "sshbuf_putf");
+					continue;
+				}
 				process_cmdline(ssh);
 				continue;
 
@@ -1230,6 +1306,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	int conn_in_ready, conn_out_ready;
 
 	debug("Entering interactive session.");
+	session_ident = ssh2_chan_id;
 
 	if (options.control_master &&
 	    !option_clear_or_none(options.control_path)) {
@@ -1261,6 +1338,9 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		if (pledge("stdio unix inet dns proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 	}
+
+	/* might be able to tighten now */
+	client_repledge();
 
 	start_time = monotime_double();
 
@@ -1295,7 +1375,6 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	if (have_pty)
 		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
-	session_ident = ssh2_chan_id;
 	if (session_ident != -1) {
 		if (escape_char_arg != SSH_ESCAPECHAR_NONE) {
 			channel_register_filter(ssh, session_ident,
@@ -2201,6 +2280,8 @@ client_global_hostkeys_prove_confirm(struct ssh *ssh, int type,
 	update_known_hosts(ctx);
  out:
 	hostkeys_update_ctx_free(ctx);
+	hostkeys_update_complete = 1;
+	client_repledge();
 }
 
 /*
@@ -2234,7 +2315,7 @@ client_input_hostkeys(struct ssh *ssh)
 	size_t i, len = 0;
 	struct sshbuf *buf = NULL;
 	struct sshkey *key = NULL, **tmp;
-	int r;
+	int r, prove_sent = 0;
 	char *fp;
 	static int hostkeys_seen = 0; /* XXX use struct ssh */
 	extern struct sockaddr_storage hostaddr; /* XXX from ssh.c */
@@ -2243,11 +2324,9 @@ client_input_hostkeys(struct ssh *ssh)
 
 	if (hostkeys_seen)
 		fatal_f("server already sent hostkeys");
-	if (options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK &&
-	    options.batch_mode)
-		return 1; /* won't ask in batchmode, so don't even try */
-	if (!options.update_hostkeys || options.num_user_hostfiles <= 0)
+	if (!can_update_hostkeys())
 		return 1;
+	hostkeys_seen = 1;
 
 	ctx = xcalloc(1, sizeof(*ctx));
 	while (ssh_packet_remaining(ssh) > 0) {
@@ -2416,12 +2495,18 @@ client_input_hostkeys(struct ssh *ssh)
 	client_register_global_confirm(
 	    client_global_hostkeys_prove_confirm, ctx);
 	ctx = NULL;  /* will be freed in callback */
+	prove_sent = 1;
 
 	/* Success */
  out:
 	hostkeys_update_ctx_free(ctx);
 	sshkey_free(key);
 	sshbuf_free(buf);
+	if (!prove_sent) {
+		/* UpdateHostkeys handling completed */
+		hostkeys_update_complete = 1;
+		client_repledge();
+	}
 	/*
 	 * NB. Return success for all cases. The server doesn't need to know
 	 * what the client does with its hosts file.
@@ -2577,6 +2662,9 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		if ((r = sshpkt_send(ssh)) != 0)
 			fatal_fr(r, "send shell");
 	}
+
+	session_setup_complete = 1;
+	client_repledge();
 }
 
 static void

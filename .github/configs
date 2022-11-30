@@ -9,6 +9,9 @@
 # LTESTS
 
 config=$1
+if [ "$config" = "" ]; then
+	config="default"
+fi
 
 unset CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
 
@@ -218,6 +221,10 @@ case "${TARGET_HOST}" in
 	# with sh or ksh so specify bash for now.
 	TEST_TARGET="t-exec TEST_SHELL=bash"
 	SKIP_LTESTS="rekey sftp"
+	;;
+    debian-riscv64)
+	# This machine is fairly slow, so skip the unit tests.
+	TEST_TARGET="t-exec"
 	;;
     dfly58*|dfly60*)
 	# scp 3-way connection hangs on these so skip until sorted.
