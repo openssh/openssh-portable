@@ -172,6 +172,22 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([[int main(void) { return 0; }]])],
 CFLAGS="$saved_CFLAGS"
 
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
+	AC_MSG_CHECKING([gcc version])
+	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`
+	case "$GCC_VER" in
+		1.*) no_attrib_nonnull=1 ;;
+		2.8* | 2.9*)
+		     no_attrib_nonnull=1
+		     ;;
+		2.*) no_attrib_nonnull=1 ;;
+		*) ;;
+	esac
+	AC_MSG_RESULT([$GCC_VER])
+
+	AC_MSG_CHECKING([clang version])
+	CLANG_VER=`$CC -v 2>&1 | $AWK '/clang version /{print $3}'`
+	AC_MSG_RESULT([$CLANG_VER])
+
 	OSSH_CHECK_CFLAG_COMPILE([-pipe])
 	OSSH_CHECK_CFLAG_COMPILE([-Wunknown-warning-option])
 	OSSH_CHECK_CFLAG_COMPILE([-Wno-error=format-truncation])
@@ -203,20 +219,15 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	# actually links. The test program compiled/linked includes a number
 	# of integer operations that should exercise this.
 	OSSH_CHECK_CFLAG_LINK([-ftrapv])
-	OSSH_CHECK_CFLAG_COMPILE([-fzero-call-used-regs=all])
+	# clang 15 seems to have a big in -fzero-call-used-regs=all.  See
+	# https://bugzilla.mindrot.org/show_bug.cgi?id=3475 and
+	# https://github.com/llvm/llvm-project/issues/59242
+	case "$CLANG_VER" in
+	15.*) OSSH_CHECK_CFLAG_COMPILE([-fzero-call-used-regs=used]) ;;
+	*)    OSSH_CHECK_CFLAG_COMPILE([-fzero-call-used-regs=all]) ;;
+	esac
 	OSSH_CHECK_CFLAG_COMPILE([-ftrivial-auto-var-init=zero])
     fi
-	AC_MSG_CHECKING([gcc version])
-	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`
-	case $GCC_VER in
-		1.*) no_attrib_nonnull=1 ;;
-		2.8* | 2.9*)
-		     no_attrib_nonnull=1
-		     ;;
-		2.*) no_attrib_nonnull=1 ;;
-		*) ;;
-	esac
-	AC_MSG_RESULT([$GCC_VER])
 
 	AC_MSG_CHECKING([if $CC accepts -fno-builtin-memset])
 	saved_CFLAGS="$CFLAGS"
