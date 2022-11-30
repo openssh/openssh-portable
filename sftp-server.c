@@ -819,7 +819,7 @@ process_read(u_int32_t id)
 	}
 	if (len > buflen) {
 		debug3_f("allocate %zu => %u", buflen, len);
-		if ((buf = realloc(NULL, len)) == NULL)
+		if ((buf = realloc(buf, len)) == NULL)
 			fatal_f("realloc failed");
 		buflen = len;
 	}
