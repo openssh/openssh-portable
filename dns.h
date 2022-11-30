@@ -34,7 +34,8 @@ enum sshfp_types {
 	SSHFP_KEY_DSA = 2,
 	SSHFP_KEY_ECDSA = 3,
 	SSHFP_KEY_ED25519 = 4,
-	SSHFP_KEY_XMSS = 5
+	SSHFP_KEY_XMSS = 5,
+	SSHFP_KEY_MAX = 6
 };
 
 enum sshfp_hashes {
@@ -44,13 +45,24 @@ enum sshfp_hashes {
 	SSHFP_HASH_MAX = 3
 };
 
+typedef struct s_sshfp_record {
+	u_int8_t dnskey_algorithm;
+	u_int8_t dnskey_digest_type;
+	u_char *dnskey_digest;
+	size_t dnskey_digest_len;
+} t_sshfp_record;
+
 #define DNS_RDATACLASS_IN	1
 #define DNS_RDATATYPE_SSHFP	44
 
-#define DNS_VERIFY_FOUND	0x00000001
-#define DNS_VERIFY_MATCH	0x00000002
-#define DNS_VERIFY_SECURE	0x00000004
-#define DNS_VERIFY_FAILED	0x00000008
+#define DNS_MAX_RECORDS		256
+
+#define DNS_VERIFY_FOUND			0x00000001
+#define DNS_VERIFY_MATCH 			0x00000002
+#define DNS_VERIFY_SECURE			0x00000004
+#define DNS_VERIFY_FAILED			0x00000008
+#define DNS_VERIFY_MATCH_SHA1		0x00000010
+#define DNS_VERIFY_MATCH_SHA256		0x00000020
 
 int	verify_host_key_dns(const char *, struct sockaddr *,
     struct sshkey *, int *);

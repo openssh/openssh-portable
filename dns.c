@@ -141,8 +141,37 @@ dns_read_rdata(u_int8_t *algorithm, u_int8_t *digest_type,
 	*digest_type = SSHFP_HASH_RESERVED;
 
 	if (rdata_len >= 2) {
-		*algorithm = rdata[0];
-		*digest_type = rdata[1];
+		switch (rdata[0]) {
+		case SSHFP_KEY_RSA:
+			*algorithm = SSHFP_KEY_RSA;
+			break;
+		case SSHFP_KEY_DSA:
+			*algorithm = SSHFP_KEY_DSA;
+			break;
+		case SSHFP_KEY_ECDSA:
+			*algorithm = SSHFP_KEY_ECDSA;
+			break;
+		case SSHFP_KEY_ED25519:
+			*algorithm = SSHFP_KEY_ED25519;
+			break;
+		case SSHFP_KEY_XMSS:
+			*algorithm = SSHFP_KEY_XMSS;
+			break;
+		default:
+			return 0; /* invalid value */
+		}
+
+		switch (rdata[1]) {
+		case SSHFP_HASH_SHA1:
+			*digest_type = SSHFP_HASH_SHA1;
+			break;
+		case SSHFP_HASH_SHA256:
+			*digest_type = SSHFP_HASH_SHA256;
+			break;
+		default:
+			return 0; /* invalid value */
+		}
+
 		*digest_len = rdata_len - 2;
 
 		if (*digest_len > 0) {
@@ -200,14 +229,14 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	int result;
 	struct rrsetinfo *fingerprints = NULL;
 
+	u_int sshfp_records_length;
+	t_sshfp_record *sshfp_records = NULL;
+	u_int sshfp_records_counter;
+	u_int sshfp_records_digest_types;
+
 	u_int8_t hostkey_algorithm;
 	u_char *hostkey_digest;
 	size_t hostkey_digest_len;
-
-	u_int8_t dnskey_algorithm;
-	u_int8_t dnskey_digest_type;
-	u_char *dnskey_digest;
-	size_t dnskey_digest_len;
 
 	*flags = 0;
 
@@ -236,50 +265,102 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 		    fingerprints->rri_nrdatas);
 	}
 
-	if (fingerprints->rri_nrdatas)
+	if (fingerprints->rri_nrdatas && fingerprints->rri_nrdatas > 0 && fingerprints->rri_nrdatas < DNS_MAX_RECORDS) {
 		*flags |= DNS_VERIFY_FOUND;
+	} else {
+		debug("Too few or too many SSHFP records found.", DNS_MAX_RECORDS);
+		freerrset(fingerprints);
+		return -1;
+	}
 
+
+
+	sshfp_records_counter = 0;
+	sshfp_records_digest_types = 0;
+	sshfp_records_length = fingerprints->rri_nrdatas * sizeof(t_sshfp_record);
+	sshfp_records = xmalloc(sshfp_records_length);
+	if(!sshfp_records) {
+		fatal("Failed to allocate memory.");
+		freerrset(fingerprints);
+		return -1;
+	}
+	memset(sshfp_records,0, sshfp_records_length);
+
+	// Parse all SSHFP records
 	for (counter = 0; counter < fingerprints->rri_nrdatas; counter++) {
-		/*
-		 * Extract the key from the answer. Ignore any badly
-		 * formatted fingerprints.
-		 */
-		if (!dns_read_rdata(&dnskey_algorithm, &dnskey_digest_type,
-		    &dnskey_digest, &dnskey_digest_len,
+		// Extract key information from the DNS answers. Ignore SSHFP records with invalid values.
+		if (!dns_read_rdata(&sshfp_records[sshfp_records_counter].dnskey_algorithm, &sshfp_records[sshfp_records_counter].dnskey_digest_type,
+		    &sshfp_records[sshfp_records_counter].dnskey_digest, &sshfp_records[sshfp_records_counter].dnskey_digest_len,
 		    fingerprints->rri_rdatas[counter].rdi_data,
 		    fingerprints->rri_rdatas[counter].rdi_length)) {
 			verbose("Error parsing fingerprint from DNS.");
 			continue;
 		}
-		debug3_f("checking SSHFP type %d fptype %d", dnskey_algorithm,
-		    dnskey_digest_type);
+		debug_f("Found SSHFP record with type %d fptype %d", sshfp_records[sshfp_records_counter].dnskey_algorithm,
+		    sshfp_records[sshfp_records_counter].dnskey_digest_type);
 
-		/* Calculate host key fingerprint. */
-		if (!dns_read_key(&hostkey_algorithm, &dnskey_digest_type,
-		    &hostkey_digest, &hostkey_digest_len, hostkey)) {
-			error("Error calculating key fingerprint.");
-			freerrset(fingerprints);
-			return -1;
-		}
+		sshfp_records_digest_types |= (1 << sshfp_records[sshfp_records_counter].dnskey_digest_type);
 
-		/* Check if the current key is the same as the given key */
-		if (hostkey_algorithm == dnskey_algorithm &&
-		    hostkey_digest_len == dnskey_digest_len) {
-			if (timingsafe_bcmp(hostkey_digest, dnskey_digest,
-			    hostkey_digest_len) == 0) {
-				debug_f("matched SSHFP type %d fptype %d",
-				    dnskey_algorithm, dnskey_digest_type);
-				*flags |= DNS_VERIFY_MATCH;
-			} else {
-				debug_f("failed SSHFP type %d fptype %d",
-				    dnskey_algorithm, dnskey_digest_type);
-				*flags |= DNS_VERIFY_FAILED;
-			}
-		}
-		free(dnskey_digest);
-		free(hostkey_digest); /* from sshkey_fingerprint_raw() */
+		sshfp_records_counter++;
 	}
 
+	for(u_int8_t digest_type = 0; digest_type < SSHFP_HASH_MAX; digest_type++) {
+		// Skip digest types that we have not seen in the DNS.
+		if(! (sshfp_records_digest_types & (1 << digest_type))) {
+			continue;
+		}
+
+		// Calculate host key fingerprint for the given digest type.
+		if (!dns_read_key(&hostkey_algorithm, &digest_type,
+		    &hostkey_digest, &hostkey_digest_len, hostkey)) {
+			debug_f("Error calculating key fingerprint for digest %d.", digest_type);
+			continue;
+		}
+
+		// Find matching SSHFP fingerprint
+		for(counter = 0; counter < sshfp_records_counter; counter++) {
+			if (digest_type != sshfp_records[counter].dnskey_digest_type ||
+				hostkey_algorithm != sshfp_records[counter].dnskey_algorithm ||
+				hostkey_digest_len != sshfp_records[counter].dnskey_digest_len) {
+				continue;
+			}
+			if (timingsafe_bcmp(hostkey_digest, sshfp_records[counter].dnskey_digest,
+			    hostkey_digest_len) == 0) {
+				debug_f("matched SSHFP type %d fptype %d",
+				    sshfp_records[counter].dnskey_algorithm, sshfp_records[counter].dnskey_digest_type);
+
+				switch(digest_type) {
+					case SSHFP_HASH_SHA1:
+						*flags |= DNS_VERIFY_MATCH_SHA1;
+						break;
+					case SSHFP_HASH_SHA256:
+						*flags |= DNS_VERIFY_MATCH_SHA256;
+						break;
+					default:
+						*flags |= DNS_VERIFY_FAILED;
+				}
+			} else {
+				debug_f("mismatched SSHFP type %d fptype %d",
+				    sshfp_records[counter].dnskey_algorithm, sshfp_records[counter].dnskey_digest_type);
+			}
+		}
+		free(hostkey_digest);
+	}
+
+	// If we found SHA1 matches, require SHA256 as well as discussed in bz#3322.
+	if( ((*flags & DNS_VERIFY_MATCH_SHA1)&&
+		(*flags & DNS_VERIFY_MATCH_SHA256)) ||
+		(*flags & DNS_VERIFY_MATCH_SHA256)) {
+		*flags |= DNS_VERIFY_MATCH;
+	} else {
+		*flags |= DNS_VERIFY_FAILED;
+	}
+
+	// free SSHFP records digests.
+	for(counter = 0; counter < sshfp_records_counter; counter++) {
+		free(sshfp_records[counter].dnskey_digest);
+	}
+	free(sshfp_records);
 	freerrset(fingerprints);
 
 	/* If any fingerprint failed to validate, return failure. */
