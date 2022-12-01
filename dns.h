@@ -34,6 +34,11 @@ enum sshfp_types {
 	SSHFP_KEY_DSA = 2,
 	SSHFP_KEY_ECDSA = 3,
 	SSHFP_KEY_ED25519 = 4,
+	/* FIXME: This is not RFC-compliant. 
+	* 5 is unassigned
+	www.iana.org/assignments/dns-sshfp-rr-parameters/dns-sshfp-rr-parameters.txt
+	* RFC 8709 defines 6 as ED448.
+	*/
 	SSHFP_KEY_XMSS = 5,
 	SSHFP_KEY_MAX = 6
 };
