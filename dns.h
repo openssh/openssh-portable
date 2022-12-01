@@ -50,7 +50,7 @@ typedef struct s_sshfp_record {
 	u_int8_t dnskey_digest_type;
 	u_char *dnskey_digest;
 	size_t dnskey_digest_len;
-} t_sshfp_record;
+} sshfp_record_t;
 
 #define DNS_RDATACLASS_IN	1
 #define DNS_RDATATYPE_SSHFP	44
@@ -59,10 +59,10 @@ typedef struct s_sshfp_record {
 
 #define DNS_VERIFY_FOUND			0x00000001
 #define DNS_VERIFY_MATCH 			0x00000002
-#define DNS_VERIFY_SECURE			0x00000004
-#define DNS_VERIFY_FAILED			0x00000008
-#define DNS_VERIFY_MATCH_SHA1		0x00000010
-#define DNS_VERIFY_MATCH_SHA256		0x00000020
+#define DNS_VERIFY_MATCH_SHA1		0x00000004
+#define DNS_VERIFY_MATCH_SHA256		0x00000008
+#define DNS_VERIFY_SECURE			0x00000010
+#define DNS_VERIFY_FAILED			0x00000020
 
 int	verify_host_key_dns(const char *, struct sockaddr *,
     struct sshkey *, int *);
