@@ -31,6 +31,17 @@
 
 #define BUF_WATERSHED 256*1024
 
+#ifdef SSHBUF_DEBUG
+# define SSHBUF_TELL(what) do { \
+		printf("%s:%d %s: %s size %zu alloc %zu off %zu max %zu\n", \
+		    __FILE__, __LINE__, __func__, what, \
+		    buf->size, buf->alloc, buf->off, buf->max_alloc); \
+		fflush(stdout); \
+	} while (0)
+#else
+# define SSHBUF_TELL(what)
+#endif
+
 static inline int
 sshbuf_check_sanity(const struct sshbuf *buf)
 {
@@ -39,8 +50,9 @@ sshbuf_check_sanity(const struct sshbuf *buf)
 	    (!buf->readonly && buf->d != buf->cd) ||
 	    buf->refcount < 1 || buf->refcount > SSHBUF_REFS_MAX ||
 	    buf->cd == NULL ||
-	    buf->max_size > SSHBUF_SIZE_MAX ||
-	    buf->alloc > buf->max_size ||
+	    buf->max_alloc > SSHBUF_ALLOC_MAX ||
+	    (!buf->readonly && (buf->max_alloc & 1) != 0) ||
+	    buf->alloc > buf->max_alloc ||
 	    buf->size > buf->alloc ||
 	    buf->off > buf->size)) {
 		/* Do not try to recover from corrupted buffer internals */
@@ -76,7 +88,7 @@ sshbuf_new(void)
 	if ((ret = calloc(sizeof(*ret), 1)) == NULL)
 		return NULL;
 	ret->alloc = SSHBUF_SIZE_INIT;
-	ret->max_size = SSHBUF_SIZE_MAX;
+	ret->max_alloc = SSHBUF_ALLOC_MAX;
 	ret->readonly = 0;
 	ret->refcount = 1;
 	ret->parent = NULL;
@@ -95,7 +107,7 @@ sshbuf_from(const void *blob, size_t len)
 	if (blob == NULL || len > SSHBUF_SIZE_MAX ||
 	    (ret = calloc(sizeof(*ret), 1)) == NULL)
 		return NULL;
-	ret->alloc = ret->size = ret->max_size = len;
+	ret->alloc = ret->size = ret->max_alloc = len;
 	ret->readonly = 1;
 	ret->refcount = 1;
 	ret->parent = NULL;
@@ -198,7 +210,7 @@ sshbuf_reset(struct sshbuf *buf)
 size_t
 sshbuf_max_size(const struct sshbuf *buf)
 {
-	return buf->max_size;
+	return buf->max_alloc / 2;
 }
 
 size_t
@@ -220,30 +232,43 @@ sshbuf_refcount(const struct sshbuf *buf)
 }
 
 int
-sshbuf_set_max_size(struct sshbuf *buf, size_t max_size)
+sshbuf_set_max_size(struct sshbuf *buf, size_t requested_size)
 {
-	size_t rlen;
+	size_t rlen, max_alloc = requested_size * 2;
 	u_char *dp;
 	int r;
 
-	SSHBUF_DBG(("set max buf = %p len = %zu", buf, max_size));
+	/*
+	 * Note that we set the actual allocation limit to be 2x the requested
+	 * size. This is to avoid some pathological compaction behaviour later
+	 * when a buffer is at capacity and has small drains/fills on it.
+	 */
+	SSHBUF_DBG(("set max buf = %p requested = %zu", buf, requested_size));
 	if ((r = sshbuf_check_sanity(buf)) != 0)
 		return r;
-	if (max_size == buf->max_size)
+	if (max_alloc == buf->max_alloc)
 		return 0;
 	if (buf->readonly || buf->refcount > 1)
 		return SSH_ERR_BUFFER_READ_ONLY;
-	if (max_size > SSHBUF_SIZE_MAX)
+	if (requested_size > SSHBUF_SIZE_MAX || max_alloc > SSHBUF_ALLOC_MAX)
 		return SSH_ERR_NO_BUFFER_SPACE;
-	/* pack and realloc if necessary */
-	sshbuf_maybe_pack(buf, max_size < buf->size);
-	if (max_size < buf->alloc && max_size > buf->size) {
+	/*
+	 * Always pack as it makes everything that follows easier.
+	 * Potentially expensive, but this should seldom be called on buffers
+	 * that already contain data.
+	 */
+	sshbuf_maybe_pack(buf, 1);
+	/* Refuse setting a maximum below current amount of data in buffer */
+	if (requested_size < buf->size)
+		return SSH_ERR_NO_BUFFER_SPACE;
+	/* Shrink alloc if the existing allocation is larger than requested */
+	if (requested_size < buf->alloc) {
 		if (buf->size < SSHBUF_SIZE_INIT)
 			rlen = SSHBUF_SIZE_INIT;
 		else
 			rlen = ROUNDUP(buf->size, SSHBUF_SIZE_INC);
-		if (rlen > max_size)
-			rlen = max_size;
+		if (rlen > max_alloc)
+			rlen = max_alloc;
 		SSHBUF_DBG(("new alloc = %zu", rlen));
 		if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL)
 			return SSH_ERR_ALLOC_FAIL;
@@ -251,9 +276,7 @@ sshbuf_set_max_size(struct sshbuf *buf, size_t max_size)
 		buf->alloc = rlen;
 	}
 	SSHBUF_TELL("new-max");
-	if (max_size < buf->alloc)
-		return SSH_ERR_NO_BUFFER_SPACE;
-	buf->max_size = max_size;
+	buf->max_alloc = max_alloc;
 	return 0;
 }
 
@@ -270,7 +293,7 @@ sshbuf_avail(const struct sshbuf *buf)
 {
 	if (sshbuf_check_sanity(buf) != 0 || buf->readonly || buf->refcount > 1)
 		return 0;
-	return buf->max_size - (buf->size - buf->off);
+	return (buf->max_alloc / 2) - (buf->size - buf->off);
 }
 
 const u_char *
@@ -299,8 +322,9 @@ sshbuf_check_reserve(const struct sshbuf *buf, size_t len)
 	if (buf->readonly || buf->refcount > 1)
 		return SSH_ERR_BUFFER_READ_ONLY;
 	SSHBUF_TELL("check");
-	/* Check that len is reasonable and that max_size + available < len */
-	if (len > buf->max_size || buf->max_size - len < buf->size - buf->off)
+	/* Check that len is reasonable and that max size + available < len */
+	if (len > (buf->max_alloc / 2) ||
+	    (buf->max_alloc / 2) - len < buf->size - buf->off)
 		return SSH_ERR_NO_BUFFER_SPACE;
 	return 0;
 }
@@ -316,17 +340,17 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	if ((r = sshbuf_check_reserve(buf, len)) != 0)
 		return r;
 	/*
-	 * If the requested allocation appended would push us past max_size
+	 * If the requested allocation appended would push us past max_alloc
 	 * then pack the buffer, zeroing buf->off.
 	 */
-	sshbuf_maybe_pack(buf, buf->size + len > buf->max_size);
+	sshbuf_maybe_pack(buf, buf->size + len > buf->max_alloc);
 	SSHBUF_TELL("allocate");
 	if (len + buf->size <= buf->alloc)
 		return 0; /* already have it. */
 
 	/*
 	 * Prefer to alloc in SSHBUF_SIZE_INC units, but
-	 * allocate less if doing so would overflow max_size.
+	 * allocate less if doing so would overflow max_alloc.
 	 */
 	need = len + buf->size - buf->alloc;
 	rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
@@ -347,23 +371,27 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * buf->alloc) is greater than window_max we skip it.
 	 */
 	if (rlen > BUF_WATERSHED && buf->window_max !=0 && buf->alloc < buf->window_max) {
-		// debug("*********** prior rlen %zu and need %zu buf_alloc is %zu", rlen, need, buf->alloc);
+		/*debug_f ("prior rlen %zu and need %zu buf_alloc is %zu", rlen, need, buf->alloc); */
 		/* set need to the the max window size less the current allocation */
-		need = buf->window_max;
+		need = len + buf->window_max - buf->alloc;
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
-		/* in some cases, like a very high rtt with a large receive buffer
-		 * rlen can exceed buf->max size. So clamp it if necessary */
-		if (rlen > buf->max_size)
-			rlen = buf->max_size;
-		//debug ("***********************************  rlen is %zu need is %zu window max is %zu max_size is %zu", rlen, need, buf->window_max, buf->max_size);
+		/* debug_f ("rlen is %zu need is %zu window max is %zu max_size is %zu", */
+		/* 	 rlen, need, buf->window_max, buf->max_alloc); */
 	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
-	if (rlen > buf->max_size)
+
+	/* there is a buffer that needs to grow quickly but doesn't seem to count as 
+	 * input or output so we check to make sure that window_max isn't set
+	 * before we do. In this case we set it immediately to the maximum 
+	 * allocated buffer size which shoudl be about 32MB 
+	 * this likely isn't the right way to do this but it works for now
+	 * TODO: Come up with a better solution -cjr 12/1/2022 */
+	if (rlen > BUF_WATERSHED && buf->window_max == 0) 
+		rlen = buf->max_alloc;
+	/* with the above this line might not be necessary but maintain it
+	 * until we have a better handle on things -cjr 12/1/2022*/
+	if (rlen > buf->max_alloc)
 		rlen = buf->alloc + need;
-	/* be sure to include log.h if you uncomment the debug
-	 * this debug helped identify the buffer growth issue in v8.9
-	 * see the git log about it. search for sshbuf_read -cjr */
-	/* debug("adjusted rlen: %zu, len: %lu for %p", rlen, len, buf); */
 	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {
 		SSHBUF_DBG(("realloc fail"));

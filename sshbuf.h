@@ -29,24 +29,24 @@
 #endif /* WITH_OPENSSL */
 
 #define SSHBUF_SIZE_MAX		0xF000000	/* Hard maximum size 256MB */
+#define SSHBUF_ALLOC_MAX        (SSHBUF_SIZE_MAX*2)     /* Max alloc size */
 #define SSHBUF_REFS_MAX		0x100000	/* Max child buffers */
 #define SSHBUF_MAX_BIGNUM	(16384 / 8)	/* Max bignum *bytes* */
 #define SSHBUF_MAX_ECPOINT	((528 * 2 / 8) + 1) /* Max EC point *bytes* */
 
 /*
- * NB. do not depend on the internals of this. It will be made opaque
- * one day.
- */
+* NB. do not depend on the internals of this. It will be made opaque
+* one day.
+*/
 struct sshbuf {
 	u_char *d;		/* Data */
 	const u_char *cd;	/* Const data */
 	size_t off;		/* First available byte is buf->d + buf->off */
 	size_t size;		/* Last byte is buf->d + buf->size - 1 */
-	size_t max_size;	/* Maximum size of buffer */
+	size_t max_alloc;	/* Maximum allocatable size of buffer */
 	size_t window_max;      /* channel window max */
 	size_t alloc;		/* Total bytes allocated to buf->d */
 	int readonly;		/* Refers to external, const data */
-	int dont_free;		/* Kludge to support sshbuf_init */
 	u_int refcount;		/* Tracks self and number of child buffers */
 	struct sshbuf *parent;	/* If child, pointer to parent */
 };
@@ -91,12 +91,13 @@ void	sshbuf_free(struct sshbuf *buf);
 void	sshbuf_reset(struct sshbuf *buf);
 
 /*
- * Return the maximum size of buf
+ * Return the maximum usable size of buf
  */
 size_t	sshbuf_max_size(const struct sshbuf *buf);
 
 /*
- * Set the maximum size of buf
+ * Set the maximum usable size of buf. Note that the buffer may consume up
+ * to 2x this memory plus bookkeeping overhead.
  * Returns 0 on success, or a negative SSH_ERR_* error code on failure.
  */
 int	sshbuf_set_max_size(struct sshbuf *buf, size_t max_size);
@@ -395,12 +396,6 @@ u_int	sshbuf_refcount(const struct sshbuf *buf);
 # endif
 
 # ifdef SSHBUF_DEBUG
-#  define SSHBUF_TELL(what) do { \
-		printf("%s:%d %s: %s size %zu alloc %zu off %zu max %zu\n", \
-		    __FILE__, __LINE__, __func__, what, \
-		    buf->size, buf->alloc, buf->off, buf->max_size); \
-		fflush(stdout); \
-	} while (0)
 #  define SSHBUF_DBG(x) do { \
 		printf("%s:%d %s: ", __FILE__, __LINE__, __func__); \
 		printf x; \
@@ -408,7 +403,6 @@ u_int	sshbuf_refcount(const struct sshbuf *buf);
 		fflush(stdout); \
 	} while (0)
 # else
-#  define SSHBUF_TELL(what)
 #  define SSHBUF_DBG(x)
 # endif
 #endif /* SSHBUF_INTERNAL */
