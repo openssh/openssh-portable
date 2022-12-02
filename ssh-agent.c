@@ -87,7 +87,6 @@
 #include "ssherr.h"
 #include "match.h"
 #include "msg.h"
-#include "ssherr.h"
 #include "pathnames.h"
 #include "ssh-pkcs11.h"
 #include "sk-api.h"

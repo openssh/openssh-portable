@@ -43,7 +43,6 @@
 #include "sshbuf.h"
 #include "msg.h"
 #include "uidswap.h"
-#include "sshkey.h"
 #include "ssherr.h"
 #include "ssh-sk.h"
 
