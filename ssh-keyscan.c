@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.147 2022/10/28 02:29:34 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.148 2022/12/04 23:50:49 cheloha Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -807,7 +807,6 @@ main(int argc, char **argv)
 		case '6':
 			IPv4or6 = AF_INET6;
 			break;
-		case '?':
 		default:
 			usage();
 		}
