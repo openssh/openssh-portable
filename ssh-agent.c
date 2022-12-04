@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.293 2022/10/07 06:00:58 jmc Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.294 2022/12/04 11:03:11 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -87,7 +87,6 @@
 #include "ssherr.h"
 #include "match.h"
 #include "msg.h"
-#include "ssherr.h"
 #include "pathnames.h"
 #include "ssh-pkcs11.h"
 #include "sk-api.h"
