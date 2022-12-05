@@ -27,7 +27,7 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 #include "misc.h"
-/* #include "log.h" */
+#include "log.h"
 
 #define BUF_WATERSHED 256*1024
 
@@ -74,6 +74,7 @@ sshbuf_maybe_pack(struct sshbuf *buf, int force)
 	if (force ||
 	    (buf->off >= SSHBUF_PACK_MIN && buf->off >= buf->size / 2)) {
 		memmove(buf->d, buf->d + buf->off, buf->size - buf->off);
+		//debug_f("%p, offset %zu, size %zu, diff %zu", buf, buf->off, buf->size, buf->size - buf->off);
 		buf->size -= buf->off;
 		buf->off = 0;
 		SSHBUF_TELL("packed");
@@ -370,13 +371,13 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * what we need (the size of window_max) so if the current allocation (in
 	 * buf->alloc) is greater than window_max we skip it.
 	 */
-	if (rlen > BUF_WATERSHED && buf->window_max !=0 && buf->alloc < buf->window_max) {
-		/*debug_f ("prior rlen %zu and need %zu buf_alloc is %zu", rlen, need, buf->alloc); */
+	if (rlen > BUF_WATERSHED && buf->window_max !=0  && buf->alloc < buf->window_max) {
+		debug_f ("%p, prior rlen %zu and need %zu buf_alloc is %zu", buf, rlen, need, buf->alloc);
 		/* set need to the the max window size less the current allocation */
-		need = len + buf->window_max - buf->alloc;
+		need = buf->window_max;
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
-		/* debug_f ("rlen is %zu need is %zu window max is %zu max_size is %zu", */
-		/* 	 rlen, need, buf->window_max, buf->max_alloc); */
+		debug_f ("%p, rlen is %zu need is %zu window max is %zu max_size is %zu",
+			 buf, rlen, need, buf->window_max, buf->max_alloc); 
 	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 
@@ -386,16 +387,22 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * allocated buffer size which shoudl be about 32MB 
 	 * this likely isn't the right way to do this but it works for now
 	 * TODO: Come up with a better solution -cjr 12/1/2022 */
-	if (rlen > BUF_WATERSHED && buf->window_max == 0) 
-		rlen = buf->max_alloc;
+	if (rlen > BUF_WATERSHED && buf->window_max == 0) {
+		rlen = (64*1024*1024);
+		debug_f("**************************** %p, set rlen to %zu", buf, rlen);
+	}
 	/* with the above this line might not be necessary but maintain it
 	 * until we have a better handle on things -cjr 12/1/2022*/
-	if (rlen > buf->max_alloc)
+	if (rlen > buf->max_alloc) {
 		rlen = buf->alloc + need;
+		debug_f("********************************************** %p, reset rlen to %zu", buf, rlen);
+	}
 	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {
 		SSHBUF_DBG(("realloc fail"));
 		return SSH_ERR_ALLOC_FAIL;
+	} else {
+		//debug_f("%p, reallloced to %zu", buf, rlen);
 	}
 	buf->alloc = rlen;
 	buf->cd = buf->d = dp;
