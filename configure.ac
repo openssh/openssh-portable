@@ -219,7 +219,7 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	# actually links. The test program compiled/linked includes a number
 	# of integer operations that should exercise this.
 	OSSH_CHECK_CFLAG_LINK([-ftrapv])
-	# clang 15 seems to have a big in -fzero-call-used-regs=all.  See
+	# clang 15 seems to have a bug in -fzero-call-used-regs=all.  See
 	# https://bugzilla.mindrot.org/show_bug.cgi?id=3475 and
 	# https://github.com/llvm/llvm-project/issues/59242
 	case "$CLANG_VER" in
