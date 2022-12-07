@@ -23,7 +23,7 @@
  * E.g.
  *   auditctl -a task,always -F uid=<privsep uid>
  */
-#define SANDBOX_SECCOMP_FILTER_DEBUG 1
+/* #define SANDBOX_SECCOMP_FILTER_DEBUG 1 */
 
 #if 0
 /*
