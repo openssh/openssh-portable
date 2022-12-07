@@ -111,7 +111,7 @@ case "$config" in
     kitchensink)
 	CONFIGFLAGS="--with-kerberos5 --with-libedit --with-pam"
 	CONFIGFLAGS="${CONFIGFLAGS} --with-security-key-builtin --with-selinux"
-	CONFIGFLAGS="${CONFIGFLAGS} --with-cflags=-DSK_DEBUG"
+	CFLAGS="-DSK_DEBUG -DSANDBOX_SECCOMP_FILTER_DEBUG"
 	;;
     hardenedmalloc)
 	CONFIGFLAGS="--with-ldflags=-lhardened_malloc"
