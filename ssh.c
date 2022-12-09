@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.580 2022/11/09 00:15:59 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.581 2022/12/09 00:22:29 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1581,6 +1581,8 @@ main(int ac, char **av)
 	sensitive_data.nkeys = 0;
 	sensitive_data.keys = NULL;
 	if (options.hostbased_authentication) {
+		int loaded = 0;
+
 		sensitive_data.nkeys = 10;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(*sensitive_data.keys));
@@ -1591,18 +1593,22 @@ main(int ac, char **av)
 		fatal_f("pubkey out of array bounds"); \
 	check_load(sshkey_load_public(p, &(sensitive_data.keys[o]), NULL), \
 	    &(sensitive_data.keys[o]), p, "pubkey"); \
-	if (sensitive_data.keys[o] != NULL) \
+	if (sensitive_data.keys[o] != NULL) { \
 		debug2("hostbased key %d: %s key from \"%s\"", o, \
 		    sshkey_ssh_name(sensitive_data.keys[o]), p); \
+		loaded++; \
+	} \
 } while (0)
 #define L_CERT(p,o) do { \
 	if ((o) >= sensitive_data.nkeys) \
 		fatal_f("cert out of array bounds"); \
 	check_load(sshkey_load_cert(p, &(sensitive_data.keys[o])), \
 	    &(sensitive_data.keys[o]), p, "cert"); \
-	if (sensitive_data.keys[o] != NULL) \
+	if (sensitive_data.keys[o] != NULL) { \
 		debug2("hostbased key %d: %s cert from \"%s\"", o, \
 		    sshkey_ssh_name(sensitive_data.keys[o]), p); \
+		loaded++; \
+	} \
 } while (0)
 
 		if (options.hostbased_authentication == 1) {
@@ -1616,6 +1622,9 @@ main(int ac, char **av)
 			L_PUBKEY(_PATH_HOST_DSA_KEY_FILE, 7);
 			L_CERT(_PATH_HOST_XMSS_KEY_FILE, 8);
 			L_PUBKEY(_PATH_HOST_XMSS_KEY_FILE, 9);
+			if (loaded == 0)
+				debug("HostbasedAuthentication enabled but no "
+				   "local public host keys could be loaded.");
 		}
 	}
 
