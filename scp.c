@@ -607,15 +607,21 @@ main(int argc, char **argv)
 			/* Please keep in sync with sftp.c -X */
 			if (strncmp(optarg, "buffer=", 7) == 0) {
 				sftp_copy_buflen = strtol(optarg + 7, &cp, 10);
-				if (sftp_copy_buflen == 0 || *cp != '\0') {
+				if (sftp_copy_buflen <= 0 || *cp != '\0') {
 					fatal("Invalid buffer size \"%s\"",
 					      optarg + 7);
 				}
+				if (sftp_copy_buflen > (255*1024)) {
+					fatal("Buffer must be less than 255KB.");
+				}
 			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
 				sftp_nrequests = strtol(optarg + 10, &cp, 10);
-				if (sftp_nrequests == 0 || *cp != '\0') {
+				if (sftp_nrequests <= 0 || *cp != '\0') {
 					fatal("Invalid number of requests "
 					      "\"%s\"", optarg + 10);
+				}
+				if (sftp_nrequests > 10000) {
+					fatal("Maximum number of requests is 10000.");
 				}
 			} else {
 				fatal("Invalid -X option");
