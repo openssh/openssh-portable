@@ -2546,6 +2546,24 @@ main(int argc, char **argv)
 			ssh_program = optarg;
 			replacearg(&args, 0, "%s", ssh_program);
 			break;
+		case 'X':
+			/* Please keep in sync with ssh.c -X */
+			if (strncmp(optarg, "buffer=", 7) == 0) {
+				copy_buffer_len = strtol(optarg + 7, &cp, 10);
+				if (copy_buffer_len == 0 || *cp != '\0') {
+					fatal("Invalid buffer size \"%s\"",
+					     optarg + 7);
+				}
+			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
+				num_requests = strtol(optarg + 10, &cp, 10);
+				if (num_requests == 0 || *cp != '\0') {
+					fatal("Invalid number of requests "
+					    "\"%s\"", optarg + 10);
+				}
+			} else {
+				fatal("Invalid -X option");
+			}
+			break;
 		case 'h':
 		default:
 			usage();

@@ -184,6 +184,10 @@ char *remote_path;
 pid_t do_cmd_pid = -1;
 pid_t do_cmd_pid2 = -1;
 
+/* SFTP copy parameters */
+size_t sftp_copy_buflen = 32768;
+size_t sftp_nrequests = 1024;
+
 /* Needed for sftp */
 volatile sig_atomic_t interrupted = 0;
 
@@ -469,7 +473,7 @@ int
 main(int argc, char **argv)
 {
 	int ch, fflag, tflag, status, n;
-	char **newargv, *argv0;
+	char **newargv, *argv0, *cp;
 	const char *errstr;
 	extern char *optarg;
 	extern int optind;
@@ -511,7 +515,7 @@ main(int argc, char **argv)
 
 	fflag = Tflag = tflag = 0;
 	while ((ch = getopt(argc, argv,
-	    "12346ABCTdfOpqRrstvZz:D:F:J:M:P:S:c:i:l:o:")) != -1) {
+	    "12346ABCTdfOpqRrstvZ:D:F:J:M:P:S:c:i:l:o:X:")) != -1) {
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
@@ -578,9 +582,6 @@ main(int argc, char **argv)
 		case 'S':
 			ssh_program = xstrdup(optarg);
 			break;
-		case 'z':
-			remote_path = xstrdup(optarg);
-			break;
 		case 'v':
 			addargs(&args, "-v");
 			addargs(&remote_remote_args, "-v");
@@ -597,9 +598,29 @@ main(int argc, char **argv)
 			break;
 #ifdef WITH_OPENSSL			
 		case 'Z':
+			/* currently resume only works in SCP mode */
 			resume_flag = 1;
+			mode = MODE_SCP;
 			break;
 #endif
+		case 'X':
+			/* Please keep in sync with sftp.c -X */
+			if (strncmp(optarg, "buffer=", 7) == 0) {
+				sftp_copy_buflen = strtol(optarg + 7, &cp, 10);
+				if (sftp_copy_buflen == 0 || *cp != '\0') {
+					fatal("Invalid buffer size \"%s\"",
+					      optarg + 7);
+				}
+			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
+				sftp_nrequests = strtol(optarg + 10, &cp, 10);
+				if (sftp_nrequests == 0 || *cp != '\0') {
+					fatal("Invalid number of requests "
+					      "\"%s\"", optarg + 10);
+				}
+			} else {
+				fatal("Invalid -X option");
+			}
+			break;
 		/* Server options. */
 		case 'd':
 			targetshouldbedirectory = 1;
@@ -671,12 +692,9 @@ main(int argc, char **argv)
 	remin = remout = -1;
 	do_cmd_pid = -1;
 	/* Command to be executed on remote system using "ssh". */
-	/* the command uses the first scp in the users
-	 * path. This isn't necessarily going to be the 'right' scp to use.
-	 * So the current solution is to give the user the option of
-	 * entering the path to correct scp. If they don't then it defaults
-	 * to whatever scp is first in their path -cjr */
-	/* TODO: Rethink this in light renaming the binaries */
+	/* In the event of an hpn to hpn connection the scp
+	 * command is rewritten to hpnscp. This happens in 
+	 * clientloop.c -cjr 12/12/2022 */
 	
 	(void) snprintf(cmd, sizeof cmd, "%s%s%s%s%s%s",
 			remote_path ? remote_path : "scp",
@@ -1023,7 +1041,8 @@ do_sftp_connect(char *host, char *user, int port, char *sftp_direct,
 		    reminp, remoutp, pidp) < 0)
 			return NULL;
 	}
-	return do_init(*reminp, *remoutp, 32768, 64, limit_kbps);
+	return do_init(*reminp, *remoutp,
+	    sftp_copy_buflen, sftp_nrequests, limit_kbps);
 }
 
 void
