@@ -8,7 +8,7 @@ on:
 jobs:
   selfhosted:
     if: github.repository == 'openssh/openssh-portable-selfhosted'
-    runs-on: ${{ matrix.target }}
+    runs-on: 'libvirt'
     env:
       HOST: 'libvirt'
       TARGET_HOST: ${{ matrix.target }}
