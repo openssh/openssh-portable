@@ -10,6 +10,7 @@ jobs:
     if: github.repository == 'openssh/openssh-portable-selfhosted'
     runs-on: ${{ matrix.target }}
     env:
+      HOST: 'libvirt'
       TARGET_HOST: ${{ matrix.target }}
       TARGET_CONFIG: ${{ matrix.config }}
     strategy:
