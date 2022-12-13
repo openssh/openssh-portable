@@ -2431,7 +2431,7 @@ main(int argc, char **argv)
 	struct sftp_conn *conn;
 	size_t copy_buffer_len = 0;
 	size_t num_requests = 0;
-	long long limit_kbps = 0;
+	long long llv, limit_kbps = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -2449,7 +2449,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246AafhNpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:")) != -1) {
+	    "1246AafhNpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:X:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case 'A':
@@ -2547,19 +2547,31 @@ main(int argc, char **argv)
 			replacearg(&args, 0, "%s", ssh_program);
 			break;
 		case 'X':
-			/* Please keep in sync with ssh.c -X */
+			/* Please keep in sync with scp.c -X */
 			if (strncmp(optarg, "buffer=", 7) == 0) {
-				copy_buffer_len = strtol(optarg + 7, &cp, 10);
-				if (copy_buffer_len == 0 || *cp != '\0') {
-					fatal("Invalid buffer size \"%s\"",
-					     optarg + 7);
+				r = scan_scaled(optarg + 7, &llv);
+				/* don't ask for a buffer larger than the maximum
+				 * size that SFTP can handle */
+				if (r == 0 && (llv <= 0 || llv > (SFTP_MAX_MSG_LENGTH - 1024))) {
+					r = -1;
+					errno = EINVAL;
 				}
+				if (r == -1) {
+					fatal("Invalid buffer size. Must be between 1B and 255KB."
+					      "\"%s\": %s", optarg + 7, strerror(errno));
+				}
+				copy_buffer_len = (size_t)llv;
 			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
-				num_requests = strtol(optarg + 10, &cp, 10);
-				if (num_requests == 0 || *cp != '\0') {
-					fatal("Invalid number of requests "
-					    "\"%s\"", optarg + 10);
+				/* more than 10k to 15k requests starts stalling the connection
+				 * 8192 * default buffer size is 256MB of outstanding data.
+				 * if users need more then they need to up the buffer size */
+				llv = strtonum(optarg + 10, 1, 8 * 1024,
+					       &errstr);
+				if (errstr != NULL) {
+					fatal("Invalid number of requests. Must be between 1 and 8192. "
+					      "\"%s\": %s", optarg + 10, errstr);
 				}
+				num_requests = (size_t)llv;
 			} else {
 				fatal("Invalid -X option");
 			}

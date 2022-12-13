@@ -185,8 +185,8 @@ pid_t do_cmd_pid = -1;
 pid_t do_cmd_pid2 = -1;
 
 /* SFTP copy parameters */
-size_t sftp_copy_buflen = 32768;
-size_t sftp_nrequests = 1024;
+size_t sftp_copy_buflen;
+size_t sftp_nrequests;
 
 /* Needed for sftp */
 volatile sig_atomic_t interrupted = 0;
@@ -472,13 +472,14 @@ void throughlocal_sftp(struct sftp_conn *, struct sftp_conn *,
 int
 main(int argc, char **argv)
 {
-	int ch, fflag, tflag, status, n;
-	char **newargv, *argv0, *cp;
+	int ch, fflag, tflag, status, r, n;
+	char **newargv, *argv0;
 	const char *errstr;
 	extern char *optarg;
 	extern int optind;
 	enum scp_mode_e mode = MODE_SFTP;
 	char *sftp_direct = NULL;
+	long long llv;
 
 	/* we use this to prepend the debugging statements
 	 * so we know which side is saying what */
@@ -606,23 +607,29 @@ main(int argc, char **argv)
 		case 'X':
 			/* Please keep in sync with sftp.c -X */
 			if (strncmp(optarg, "buffer=", 7) == 0) {
-				sftp_copy_buflen = strtol(optarg + 7, &cp, 10);
-				if (sftp_copy_buflen <= 0 || *cp != '\0') {
-					fatal("Invalid buffer size \"%s\"",
-					      optarg + 7);
+				r = scan_scaled(optarg + 7, &llv);
+				/* don't ask for a buffer larger than the maximum
+				 * size that SFTP can handle */
+				if (r == 0 && (llv <= 0 || llv > (SFTP_MAX_MSG_LENGTH - 1024))) {
+					r = -1;
+					errno = EINVAL;
 				}
-				if (sftp_copy_buflen > (255*1024)) {
-					fatal("Buffer must be less than 255KB.");
+				if (r == -1) {
+					fatal("Invalid buffer size. Must be between 1B and 255KB."
+					      "\"%s\": %s", optarg + 7, strerror(errno));
 				}
+				sftp_copy_buflen = (size_t)llv;
 			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
-				sftp_nrequests = strtol(optarg + 10, &cp, 10);
-				if (sftp_nrequests <= 0 || *cp != '\0') {
-					fatal("Invalid number of requests "
-					      "\"%s\"", optarg + 10);
+				/* more than 10k to 15k requests starts stalling the connection
+				 * 8192 * default buffer size is 256MB of outstanding data.
+				 * if users need more then they need to up the buffer size */
+				llv = strtonum(optarg + 10, 1, 8 * 1024,
+					       &errstr);
+				if (errstr != NULL) {
+					fatal("Invalid number of requests. Must be between 1 and 8192. "
+					      "\"%s\": %s", optarg + 10, errstr);
 				}
-				if (sftp_nrequests > 10000) {
-					fatal("Maximum number of requests is 10000.");
-				}
+				sftp_nrequests = (size_t)llv;
 			} else {
 				fatal("Invalid -X option");
 			}
