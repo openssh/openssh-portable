@@ -39,6 +39,8 @@ jobs:
           - obsd67
           - obsd69
           - obsd70
+          - obsdsnap
+          - obsdsnap-i386
           - openindiana
           - sol10
           - sol11
@@ -65,8 +67,6 @@ jobs:
           - { target: sol11,  config: pam-krb5, host: libvirt }
           - { target: sol11,  config: sol64, host: libvirt }
           # VMs with persistent disks that have their own runner.
-          - { target: obsdsnap, config: default, host: obsdsnap }
-          - { target: obsdsnap-i386, config: default, host: obsdsnap-i386 }
           - { target: win10, config: default, host: win10 }
           - { target: win10, config: cygwin-release, host: win10 }
           # Physical hosts, with either native runners or remote via ssh.
