@@ -8,7 +8,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.111 2022/12/16 03:40:03 djm Exp $
+.\" $OpenBSD: scp.1,v 1.112 2022/12/16 07:13:22 djm Exp $
 .\"
 .Dd $Mdocdate: December 16 2022 $
 .Dt SCP 1
@@ -34,10 +34,11 @@
 .Nm
 copies files between hosts on a network.
 .Pp
-It uses
+.Nm
+uses the SFTP protocol over a
 .Xr ssh 1
-for data transfer, and uses the same authentication and provides the
-same security as a login session.
+connection for data transfer, and uses the same authentication and provides
+the same security as a login session.
 .Pp
 .Nm
 will ask for passwords or passphrases if they are needed for
@@ -111,9 +112,7 @@ Selects the cipher to use for encrypting the data transfer.
 This option is directly passed to
 .Xr ssh 1 .
 .It Fl D Ar sftp_server_path
-When using the SFTP protocol support via
-.Fl M ,
-connect directly to a local SFTP server program rather than a
+Connect directly to a local SFTP server program rather than a
 remote one via
 .Xr ssh 1 .
 This option may be useful in debugging the client and server.
