@@ -9,10 +9,13 @@
 # LTESTS
 
 config=$1
+if [ "$config" = "" ]; then
+	config="default"
+fi
 
 unset CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
 
-TEST_TARGET="tests"
+TEST_TARGET="tests compat-tests"
 LTESTS=""
 SKIP_LTESTS=""
 SUDO=sudo	# run with sudo by default
@@ -108,7 +111,7 @@ case "$config" in
     kitchensink)
 	CONFIGFLAGS="--with-kerberos5 --with-libedit --with-pam"
 	CONFIGFLAGS="${CONFIGFLAGS} --with-security-key-builtin --with-selinux"
-	CONFIGFLAGS="${CONFIGFLAGS} --with-cflags=-DSK_DEBUG"
+	CFLAGS="-DSK_DEBUG -DSANDBOX_SECCOMP_FILTER_DEBUG"
 	;;
     hardenedmalloc)
 	CONFIGFLAGS="--with-ldflags=-lhardened_malloc"
@@ -141,6 +144,11 @@ case "$config" in
 	;;
     openssl-*)
 	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/openssl --with-rpath=-Wl,-rpath,"
+	# OpenSSL 1.1.1 specifically has a bug in its RNG that breaks reexec
+	# fallback.  See https://bugzilla.mindrot.org/show_bug.cgi?id=3483
+	if [ "$config" = "openssl-1.1.1" ]; then
+		SKIP_LTESTS="reexec"
+	fi
 	;;
     selinux)
 	CONFIGFLAGS="--with-selinux"
@@ -213,6 +221,10 @@ case "${TARGET_HOST}" in
 	# with sh or ksh so specify bash for now.
 	TEST_TARGET="t-exec TEST_SHELL=bash"
 	SKIP_LTESTS="rekey sftp"
+	;;
+    debian-riscv64)
+	# This machine is fairly slow, so skip the unit tests.
+	TEST_TARGET="t-exec"
 	;;
     dfly58*|dfly60*)
 	# scp 3-way connection hangs on these so skip until sorted.
