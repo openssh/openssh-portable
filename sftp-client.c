@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.165 2022/09/19 10:43:12 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.166 2022/12/16 03:40:03 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -68,10 +68,10 @@
 extern volatile sig_atomic_t interrupted;
 extern int showprogress;
 
-/* Default size of buffer for up/download */
+/* Default size of buffer for up/download (fix sftp.1 scp.1 if changed) */
 #define DEFAULT_COPY_BUFLEN	32768
 
-/* Default number of concurrent outstanding requests */
+/* Default number of concurrent xfer requests (fix sftp.1 scp.1 if changed) */
 #define DEFAULT_NUM_REQUESTS	64
 
 /* Minimum amount of data to read at a time */
