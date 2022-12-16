@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.250 2022/12/16 03:40:03 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.251 2022/12/16 06:52:48 jmc Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -2078,8 +2078,8 @@ usage(void)
 {
 	(void) fprintf(stderr,
 	    "usage: scp [-346ABCOpqRrsTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
-	    "           [-i identity_file] [-J destination] [-l limit]\n"
-	    "           [-o ssh_option] [-P port] [-S program] source ... target\n");
+	    "           [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
+	    "           [-P port] [-S program] [-X sftp_option] source ... target\n");
 	exit(1);
 }
 

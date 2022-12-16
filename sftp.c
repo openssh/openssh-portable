@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.223 2022/12/16 03:40:03 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.224 2022/12/16 06:52:48 jmc Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2410,7 +2410,7 @@ usage(void)
 	    "          [-D sftp_server_command] [-F ssh_config] [-i identity_file]\n"
 	    "          [-J destination] [-l limit] [-o ssh_option] [-P port]\n"
 	    "          [-R num_requests] [-S program] [-s subsystem | sftp_server]\n"
-	    "          destination\n",
+	    "          [-X sftp_option] destination\n",
 	    __progname);
 	exit(1);
 }
