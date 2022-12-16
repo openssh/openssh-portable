@@ -69,7 +69,6 @@ The following quantum-safe algorithms from liboqs are supported (assuming they h
 - **FrodoKEM**: `frodokem-640-aes-sha256`, `frodokem-976-aes-sha384`, `frodokem-1344-aes-sha512`, `frodokem-640-shake-sha256`, `frodokem-976-shake-sha384`, `frodokem-1344-shake-sha512`
 - **HQC**: `hqc-128-sha256`, `hqc-192-sha384`, `hqc-256-sha512`†
 - **Kyber**: `kyber-512-sha256`, `kyber-768-sha384`, `kyber-1024-sha512`, `kyber-512-90s-sha256`, `kyber-768-90s-sha384`, `kyber-1024-90s-sha512`
-- **NTRU**: `ntru-hps2048509-sha512`, `ntru-hps2048677-sha512`, `ntru-hps4096821-sha512`, `ntru-hps40961229-sha512`, `ntru-hrss701-sha512`, `ntru-hrss1373-sha512`
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_KEXS_END -->
 
 For each `<KEX>` listed above, the following hybrid algorithms are made available as follows:

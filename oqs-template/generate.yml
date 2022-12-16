@@ -113,54 +113,6 @@ kexs:
         name: 'nistp384'
         openssl_nid: 'NID_secp384r1'
   -
-    family: 'NTRU'
-    name: 'ntru_hps2048509'
-    hash: 'sha512'
-    mix_with:
-      -
-        name: 'nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'NTRU'
-    name: 'ntru_hps2048677'
-    hash: 'sha512'
-    mix_with:
-      -
-        name: 'nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'NTRU'
-    name: 'ntru_hps4096821'
-    hash: 'sha512'
-    mix_with:
-      -
-        name: 'nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'NTRU'
-    name: 'ntru_hps40961229'
-    hash: 'sha512'
-    mix_with:
-      -
-        name: 'nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'NTRU'
-    name: 'ntru_hrss701'
-    hash: 'sha512'
-    mix_with:
-      -
-        name: 'nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'NTRU'
-    name: 'ntru_hrss1373'
-    hash: 'sha512'
-    mix_with:
-      -
-        name: 'nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
     family: 'ClassicMcEliece'
     name: 'classic_mceliece_348864'
     hash: 'sha256'

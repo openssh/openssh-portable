@@ -164,24 +164,6 @@ kex_gen_client(struct ssh *ssh)
 	case KEX_KEM_BIKE_L3_SHA512:
 		r = kex_kem_bike_l3_keypair(kex);
 		break;
-	case KEX_KEM_NTRU_HPS2048509_SHA512:
-		r = kex_kem_ntru_hps2048509_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HPS2048677_SHA512:
-		r = kex_kem_ntru_hps2048677_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HPS4096821_SHA512:
-		r = kex_kem_ntru_hps4096821_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HPS40961229_SHA512:
-		r = kex_kem_ntru_hps40961229_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HRSS701_SHA512:
-		r = kex_kem_ntru_hrss701_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HRSS1373_SHA512:
-		r = kex_kem_ntru_hrss1373_keypair(kex);
-		break;
 	case KEX_KEM_CLASSIC_MCELIECE_348864_SHA256:
 		r = kex_kem_classic_mceliece_348864_keypair(kex);
 		break;
@@ -264,24 +246,6 @@ kex_gen_client(struct ssh *ssh)
 		break;
 	case KEX_KEM_BIKE_L3_ECDH_NISTP384_SHA512:
 		r = kex_kem_bike_l3_ecdh_nistp384_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HPS2048509_ECDH_NISTP256_SHA512:
-		r = kex_kem_ntru_hps2048509_ecdh_nistp256_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HPS2048677_ECDH_NISTP384_SHA512:
-		r = kex_kem_ntru_hps2048677_ecdh_nistp384_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HPS4096821_ECDH_NISTP521_SHA512:
-		r = kex_kem_ntru_hps4096821_ecdh_nistp521_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HPS40961229_ECDH_NISTP521_SHA512:
-		r = kex_kem_ntru_hps40961229_ecdh_nistp521_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HRSS701_ECDH_NISTP384_SHA512:
-		r = kex_kem_ntru_hrss701_ecdh_nistp384_keypair(kex);
-		break;
-	case KEX_KEM_NTRU_HRSS1373_ECDH_NISTP521_SHA512:
-		r = kex_kem_ntru_hrss1373_ecdh_nistp521_keypair(kex);
 		break;
 	case KEX_KEM_CLASSIC_MCELIECE_348864_ECDH_NISTP256_SHA256:
 		r = kex_kem_classic_mceliece_348864_ecdh_nistp256_keypair(kex);
@@ -440,24 +404,6 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 	case KEX_KEM_BIKE_L3_SHA512:
 		r = kex_kem_bike_l3_dec(kex, server_blob, &shared_secret);
 		break;
-	case KEX_KEM_NTRU_HPS2048509_SHA512:
-		r = kex_kem_ntru_hps2048509_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS2048677_SHA512:
-		r = kex_kem_ntru_hps2048677_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS4096821_SHA512:
-		r = kex_kem_ntru_hps4096821_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS40961229_SHA512:
-		r = kex_kem_ntru_hps40961229_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HRSS701_SHA512:
-		r = kex_kem_ntru_hrss701_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HRSS1373_SHA512:
-		r = kex_kem_ntru_hrss1373_dec(kex, server_blob, &shared_secret);
-		break;
 	case KEX_KEM_CLASSIC_MCELIECE_348864_SHA256:
 		r = kex_kem_classic_mceliece_348864_dec(kex, server_blob, &shared_secret);
 		break;
@@ -540,24 +486,6 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 		break;
 	case KEX_KEM_BIKE_L3_ECDH_NISTP384_SHA512:
 		r = kex_kem_bike_l3_ecdh_nistp384_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS2048509_ECDH_NISTP256_SHA512:
-		r = kex_kem_ntru_hps2048509_ecdh_nistp256_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS2048677_ECDH_NISTP384_SHA512:
-		r = kex_kem_ntru_hps2048677_ecdh_nistp384_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS4096821_ECDH_NISTP521_SHA512:
-		r = kex_kem_ntru_hps4096821_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS40961229_ECDH_NISTP521_SHA512:
-		r = kex_kem_ntru_hps40961229_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HRSS701_ECDH_NISTP384_SHA512:
-		r = kex_kem_ntru_hrss701_ecdh_nistp384_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HRSS1373_ECDH_NISTP521_SHA512:
-		r = kex_kem_ntru_hrss1373_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
 		break;
 	case KEX_KEM_CLASSIC_MCELIECE_348864_ECDH_NISTP256_SHA256:
 		r = kex_kem_classic_mceliece_348864_ecdh_nistp256_dec(kex, server_blob, &shared_secret);
@@ -781,30 +709,6 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 		r = kex_kem_bike_l3_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
 		break;
-	case KEX_KEM_NTRU_HPS2048509_SHA512:
-		r = kex_kem_ntru_hps2048509_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS2048677_SHA512:
-		r = kex_kem_ntru_hps2048677_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS4096821_SHA512:
-		r = kex_kem_ntru_hps4096821_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS40961229_SHA512:
-		r = kex_kem_ntru_hps40961229_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HRSS701_SHA512:
-		r = kex_kem_ntru_hrss701_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HRSS1373_SHA512:
-		r = kex_kem_ntru_hrss1373_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
 	case KEX_KEM_CLASSIC_MCELIECE_348864_SHA256:
 		r = kex_kem_classic_mceliece_348864_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
@@ -913,30 +817,6 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 		break;
 	case KEX_KEM_BIKE_L3_ECDH_NISTP384_SHA512:
 		r = kex_kem_bike_l3_ecdh_nistp384_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS2048509_ECDH_NISTP256_SHA512:
-		r = kex_kem_ntru_hps2048509_ecdh_nistp256_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS2048677_ECDH_NISTP384_SHA512:
-		r = kex_kem_ntru_hps2048677_ecdh_nistp384_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS4096821_ECDH_NISTP521_SHA512:
-		r = kex_kem_ntru_hps4096821_ecdh_nistp521_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HPS40961229_ECDH_NISTP521_SHA512:
-		r = kex_kem_ntru_hps40961229_ecdh_nistp521_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HRSS701_ECDH_NISTP384_SHA512:
-		r = kex_kem_ntru_hrss701_ecdh_nistp384_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_NTRU_HRSS1373_ECDH_NISTP521_SHA512:
-		r = kex_kem_ntru_hrss1373_ecdh_nistp521_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
 		break;
 	case KEX_KEM_CLASSIC_MCELIECE_348864_ECDH_NISTP256_SHA256:
