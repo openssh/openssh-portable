@@ -15,7 +15,7 @@ fi
 
 unset CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
 
-TEST_TARGET="tests compat-tests"
+TEST_TARGET="tests"
 LTESTS=""
 SKIP_LTESTS=""
 SUDO=sudo	# run with sudo by default
