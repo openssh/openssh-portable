@@ -29,7 +29,7 @@ jobs:
     - name: update source
       run: vmrun "cd /usr/src && cvs up -dPA usr.bin/ssh regress/usr.bin/ssh"
     - name: make clean
-      run: vmrun "cd /usr/src/usr.bin/ssh && make obj && make clean && cd /usr/src/regress/usr.bin/ssh && make obj && make clean && chmod -R g-w /usr/src /usr/obj"
+      run: vmrun "cd /usr/src/usr.bin/ssh && make obj && make clean && cd /usr/src/regress/usr.bin/ssh && make obj && make clean && sudo chmod -R g-w /usr/src /usr/obj"
     - name: make
       run: vmrun "cd /usr/src/usr.bin/ssh && case ${{ matrix.config }} in without-openssl) make OPENSSL=no;; ubsan) make DEBUG='-fsanitize-minimal-runtime -fsanitize=undefined';; *) make; esac"
     - name: make install
