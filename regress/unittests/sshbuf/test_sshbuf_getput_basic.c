@@ -575,6 +575,7 @@ sshbuf_getput_basic_tests(void)
 	s2 = sshbuf_dtob16(p1);
 	ASSERT_PTR_NE(s2, NULL);
 	ASSERT_STRING_EQ(s2, "00000000000000000000");
+	free(s2);
 	sshbuf_free(p1);
 	TEST_DONE();
 
@@ -609,6 +610,7 @@ sshbuf_getput_basic_tests(void)
 	s2 = sshbuf_dtob16(p1);
 	ASSERT_PTR_NE(s2, NULL);
 	ASSERT_STRING_EQ(s2, "00000000000000000000");
+	free(s2);
 	sshbuf_free(p1);
 	TEST_DONE();
 
@@ -643,6 +645,7 @@ sshbuf_getput_basic_tests(void)
 	s2 = sshbuf_dtob16(p1);
 	ASSERT_PTR_NE(s2, NULL);
 	ASSERT_STRING_EQ(s2, "00000000000000000000");
+	free(s2);
 	sshbuf_free(p1);
 	TEST_DONE();
 
@@ -673,6 +676,7 @@ sshbuf_getput_basic_tests(void)
 	s2 = sshbuf_dtob16(p1);
 	ASSERT_PTR_NE(s2, NULL);
 	ASSERT_STRING_EQ(s2, "00000000000000000000");
+	free(s2);
 	sshbuf_free(p1);
 	TEST_DONE();
 
@@ -707,6 +711,7 @@ sshbuf_getput_basic_tests(void)
 	s2 = sshbuf_dtob16(p1);
 	ASSERT_PTR_NE(s2, NULL);
 	ASSERT_STRING_EQ(s2, "00000000000000000000");
+	free(s2);
 	sshbuf_free(p1);
 	TEST_DONE();
 }
