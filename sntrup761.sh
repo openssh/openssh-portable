@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: sntrup761.sh,v 1.5 2021/01/08 02:33:13 dtucker Exp $
+#       $OpenBSD: sntrup761.sh,v 1.6 2022/12/26 19:16:03 jmc Exp $
 #       Placed in the Public Domain.
 #
 AUTHOR="supercop-20201130/crypto_kem/sntrup761/ref/implementors"
@@ -45,7 +45,7 @@ for i in $FILES; do
 	#  - remove all includes, we inline everything required.
 	#  - make functions not required elsewhere static.
 	#  - rename the functions we do use.
-	#  - remove unneccesary defines and externs.
+	#  - remove unnecessary defines and externs.
 	sed -e "/#include/d" \
 	    -e "s/crypto_kem_/crypto_kem_sntrup761_/g" \
 	    -e "s/^void /static void /g" \

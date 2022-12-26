@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.148 2022/12/04 23:50:49 cheloha Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.149 2022/12/26 19:16:03 jmc Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -493,7 +493,7 @@ congreet(int s)
 
 	/*
 	 * Read the server banner as per RFC4253 section 4.2.  The "SSH-"
-	 * protocol identification string may be preceeded by an arbitarily
+	 * protocol identification string may be preceeded by an arbitrarily
 	 * large banner which we must read and ignore.  Loop while reading
 	 * newline-terminated lines until we have one starting with "SSH-".
 	 * The ID string cannot be longer than 255 characters although the
