@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.177 2022/08/11 01:56:51 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.178 2022/11/09 09:01:52 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -278,7 +278,7 @@ set_sock_tos(int fd, int tos)
 		debug3_f("set socket %d IP_TOS 0x%02x", fd, tos);
 		if (setsockopt(fd, IPPROTO_IP, IP_TOS,
 		    &tos, sizeof(tos)) == -1) {
-			error("setsockopt socket %d IP_TOS %d: %s:",
+			error("setsockopt socket %d IP_TOS %d: %s",
 			    fd, tos, strerror(errno));
 		}
 # endif /* IP_TOS */
@@ -288,7 +288,7 @@ set_sock_tos(int fd, int tos)
 		debug3_f("set socket %d IPV6_TCLASS 0x%02x", fd, tos);
 		if (setsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS,
 		    &tos, sizeof(tos)) == -1) {
-			error("setsockopt socket %d IPV6_TCLASS %d: %.100s:",
+			error("setsockopt socket %d IPV6_TCLASS %d: %s",
 			    fd, tos, strerror(errno));
 		}
 # endif /* IPV6_TCLASS */

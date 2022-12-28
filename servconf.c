@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.386 2022/09/17 10:34:29 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.388 2022/11/07 10:05:39 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1918,6 +1918,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			    filename, linenum, keyword);
 		else
 			options->max_startups = options->max_startups_begin;
+		if (options->max_startups <= 0 ||
+		    options->max_startups_begin <= 0)
+			fatal("%s line %d: Invalid %s spec.",
+			    filename, linenum, keyword);
 		break;
 
 	case sPerSourceNetBlockSize:
@@ -2497,7 +2501,7 @@ load_server_config(const char *filename, struct sshbuf *conf)
 	char *line = NULL, *cp;
 	size_t linesize = 0;
 	FILE *f;
-	int r, lineno = 0;
+	int r;
 
 	debug2_f("filename %s", filename);
 	if ((f = fopen(filename, "r")) == NULL) {
@@ -2510,7 +2514,6 @@ load_server_config(const char *filename, struct sshbuf *conf)
 	    (r = sshbuf_allocate(conf, st.st_size)) != 0)
 		fatal_fr(r, "allocate");
 	while (getline(&line, &linesize, f) != -1) {
-		lineno++;
 		/*
 		 * Strip whitespace
 		 * NB - preserve newlines, they are needed to reproduce
