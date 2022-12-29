@@ -921,7 +921,7 @@ main(int ac, char **av)
 			options.log_level = SYSLOG_LEVEL_QUIET;
 			break;
 		case 'e':
-			if (optarg[0] == '^' && optarg[2] == 0 &&
+			if (strlen(optarg) > 1 && optarg[0] == '^' && optarg[2] == 0 &&
 			    (u_char) optarg[1] >= 64 &&
 			    (u_char) optarg[1] < 128)
 				options.escape_char = (u_char) optarg[1] & 31;
