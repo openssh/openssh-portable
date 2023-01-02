@@ -1,0 +1,79 @@
+Setting up openssh (9.1p1) ...
+Generating public/private rsa key pair.
+Your identification has been saved in /data/data/com.termux/files/usr/etc/ssh/ssh_host_rsa_key
+Your public key has been saved in /data/data/com.termux/files/usr/etc/ssh/ssh_host_rsa_key.pub
+The key fingerprint is:
+SHA256:3tFtDyqHT2yKPUvhgK8jaIpBA746CDdts6I2LA+KzRY u0_a263@localhost
+The key's randomart image is:
++---[RSA 3072]----+
+|                 |
+|                 |
+|.                |
+|o      .   . .   |
+| + .  . S o . +  |
+|o E +  o + = o o |
+|*o = o  o * *   .|
+|OO= o .. +.B     |
+|XB=. .... +o.    |
++----[SHA256]-----+
+Generating public/private dsa key pair.
+Your identification has been saved in /data/data/com.termux/files/usr/etc/ssh/ssh_host_dsa_key
+Your public key has been saved in /data/data/com.termux/files/usr/etc/ssh/ssh_host_dsa_key.pub
+The key fingerprint is:
+SHA256:af3fkcXC/TwyHQhiWPOSFhrMziiNtP26gnAI01qfsis u0_a263@localhost
+The key's randomart image is:
++---[DSA 1024]----+
+|      o. +       |
+|   .   o= =      |
+| .. = +o * o     |
+|o o+ + oooo ...o |
+|.= .... S .  .o.+|
+|+ o o  o   .  .o=|
+|...o  .     .o =o|
+|E... .       .o.o|
+| ......       . .|
++----[SHA256]-----+
+Generating public/private ecdsa key pair.
+Your identification has been saved in /data/data/com.termux/files/usr/etc/ssh/ssh_host_ecdsa_key
+Your public key has been saved in /data/data/com.termux/files/usr/etc/ssh/ssh_host_ecdsa_key.pub
+The key fingerprint is:
+SHA256:ZrVhebgO1GhF2uZriicUVNInPVLVPxuboYc0OwSZ9KQ u0_a263@localhost
+The key's randomart image is:
++---[ECDSA 256]---+
+|      .o.+=o+o   |
+|      ..+*+*+ .  |
+|     .  =+XEo. . |
+|      .o = = + +.|
+|       .S + o = B|
+|      .o o . = = |
+|     .    +   o  |
+|      ...o       |
+|      .o.        |
++----[SHA256]-----+
+Generating public/private ed25519 key pair.
+Your identification has been saved in /data/data/com.termux/files/usr/etc/ssh/ssh_host_ed25519_key
+Your public key has been saved in /data/data/com.termux/files/usr/etc/ssh/ssh_host_ed25519_key.pub
+The key fingerprint is:
+SHA256:hGpucC58eFTO3TLED61I9e4RbUKDCvSB7vuFGCsKr7M u0_a263@localhost
+The key's randomart image is:
++--[ED25519 256]--+
+|   .... ..o      |
+|    o. =.+ o     |
+|   . .=.= = o    |
+|    .*.= * +     |
+|  ..* + S =      |
+| . O.+ . + .     |
+|. = O.. . .      |
+|oo *.  .         |
+|E+.  ..          |
++----[SHA256]-----+
+Setting up zssh (1.5c) ...
+~/user $ pkg install zssh
+No mirror or mirror group selected. You might want to select one by running 'termux-change-repo'
+Checking availability of current mirror:
+[*] https://mirror.mwt.me/termux/main: ok
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+zssh is already the newest version (1.5c).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
