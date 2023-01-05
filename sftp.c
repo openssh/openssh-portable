@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.224 2022/12/16 06:52:48 jmc Exp $ */
+/* $OpenBSD: sftp.c,v 1.225 2023/01/05 05:49:13 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -275,7 +275,8 @@ sigchld_handler(int sig)
 	while ((pid = waitpid(sshpid, NULL, WNOHANG)) == -1 && errno == EINTR)
 		continue;
 	if (pid == sshpid) {
-		(void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
+		if (!quiet)
+		    (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
 		sshpid = -1;
 	}
 
