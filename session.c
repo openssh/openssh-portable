@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.332 2023/01/06 02:41:49 djm Exp $ */
+/* $OpenBSD: session.c,v 1.333 2023/01/06 02:42:34 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1955,7 +1955,7 @@ session_subsystem_req(struct ssh *ssh, Session *s)
 {
 	struct stat st;
 	int r, success = 0;
-	char *prog, *cmd;
+	char *prog, *cmd, *type;
 	u_int i;
 
 	if ((r = sshpkt_get_cstring(ssh, &s->subsys, NULL)) != 0 ||
@@ -1978,6 +1978,10 @@ session_subsystem_req(struct ssh *ssh, Session *s)
 				s->is_subsystem = SUBSYSTEM_EXT;
 				debug("subsystem: exec() %s", cmd);
 			}
+			xasprintf(&type, "session:subsystem:%s",
+			    options.subsystem_name[i]);
+			channel_set_xtype(ssh, s->chanid, type);
+			free(type);
 			success = do_exec(ssh, s, cmd) == 0;
 			break;
 		}
@@ -2033,6 +2037,9 @@ session_shell_req(struct ssh *ssh, Session *s)
 
 	if ((r = sshpkt_get_end(ssh)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
+
+	channel_set_xtype(ssh, s->chanid, "session:shell");
+
 	return do_exec(ssh, s, NULL) == 0;
 }
 
@@ -2046,6 +2053,8 @@ session_exec_req(struct ssh *ssh, Session *s)
 	if ((r = sshpkt_get_cstring(ssh, &command, NULL)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
+
+	channel_set_xtype(ssh, s->chanid, "session:command");
 
 	success = do_exec(ssh, s, command) == 0;
 	free(command);
