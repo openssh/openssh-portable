@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.331 2023/01/06 02:39:59 djm Exp $ */
+/* $OpenBSD: session.c,v 1.332 2023/01/06 02:41:49 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -222,7 +222,7 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 		goto authsock_err;
 
 	/* Allocate a channel for the authentication agent socket. */
-	nc = channel_new(ssh, "auth socket",
+	nc = channel_new(ssh, "auth-listener",
 	    SSH_CHANNEL_AUTH_SOCKET, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 	    0, "auth socket", 1);

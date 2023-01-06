@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.423 2023/01/06 02:39:59 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.424 2023/01/06 02:41:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1708,7 +1708,7 @@ channel_post_x11_listener(struct ssh *ssh, Channel *c)
 	snprintf(buf, sizeof buf, "X11 connection from %.200s port %d",
 	    remote_ipaddr, remote_port);
 
-	nc = channel_new(ssh, "accepted x11 socket",
+	nc = channel_new(ssh, "x11-connection",
 	    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 	    c->local_window_max, c->local_maxpacket, 0, buf, 1);
 	open_preamble(ssh, __func__, nc, "x11");
@@ -1867,7 +1867,7 @@ channel_post_auth_listener(struct ssh *ssh, Channel *c)
 			c->notbefore = monotime() + 1;
 		return;
 	}
-	nc = channel_new(ssh, "accepted auth socket",
+	nc = channel_new(ssh, "agent-connection",
 	    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 	    c->local_window_max, c->local_maxpacket,
 	    0, "accepted auth socket", 1);
@@ -2348,7 +2348,7 @@ channel_post_mux_listener(struct ssh *ssh, Channel *c)
 		close(newsock);
 		return;
 	}
-	nc = channel_new(ssh, "multiplex client", SSH_CHANNEL_MUX_CLIENT,
+	nc = channel_new(ssh, "mux-control", SSH_CHANNEL_MUX_CLIENT,
 	    newsock, newsock, -1, c->local_window_max,
 	    c->local_maxpacket, 0, "mux-control", 1);
 	nc->mux_rcb = c->mux_rcb;
@@ -2982,7 +2982,7 @@ channel_proxy_downstream(struct ssh *ssh, Channel *downstream)
 			error_fr(r, "parse");
 			goto out;
 		}
-		c = channel_new(ssh, "mux proxy", SSH_CHANNEL_MUX_PROXY,
+		c = channel_new(ssh, "mux-proxy", SSH_CHANNEL_MUX_PROXY,
 		    -1, -1, -1, 0, 0, 0, ctype, 1);
 		c->mux_ctx = downstream;	/* point to mux client */
 		c->mux_downstream_id = id;	/* original downstream id */
@@ -3009,7 +3009,7 @@ channel_proxy_downstream(struct ssh *ssh, Channel *downstream)
 			error_fr(r, "parse");
 			goto out;
 		}
-		c = channel_new(ssh, "mux proxy", SSH_CHANNEL_MUX_PROXY,
+		c = channel_new(ssh, "mux-proxy", SSH_CHANNEL_MUX_PROXY,
 		    -1, -1, -1, 0, 0, 0, "mux-down-connect", 1);
 		c->mux_ctx = downstream;	/* point to mux client */
 		c->mux_downstream_id = id;
@@ -3725,7 +3725,7 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 		}
 
 		/* Allocate a channel number for the socket. */
-		c = channel_new(ssh, "port listener", type, sock, sock, -1,
+		c = channel_new(ssh, "port-listener", type, sock, sock, -1,
 		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
 		    0, "port listener", 1);
 		c->path = xstrdup(host);
@@ -3808,7 +3808,7 @@ channel_setup_fwd_listener_streamlocal(struct ssh *ssh, int type,
 	debug("Local forwarding listening on path %s.", fwd->listen_path);
 
 	/* Allocate a channel number for the socket. */
-	c = channel_new(ssh, "unix listener", type, sock, sock, -1,
+	c = channel_new(ssh, "unix-listener", type, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
 	    0, "unix listener", 1);
 	c->path = xstrdup(path);
@@ -4893,7 +4893,7 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 	*chanids = xcalloc(num_socks + 1, sizeof(**chanids));
 	for (n = 0; n < num_socks; n++) {
 		sock = socks[n];
-		nc = channel_new(ssh, "x11 listener",
+		nc = channel_new(ssh, "x11-listener",
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
 		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 		    0, "X11 inet listener", 1);
