@@ -2696,14 +2696,11 @@ AC_ARG_WITH([ssl-dir],
 			esac
 			if test -d "$withval/lib"; then
 				libcrypto_path="${withval}/lib"
-				openssl_bin="${withval}/bin/openssl"
 			elif test -d "$withval/lib64"; then
 				libcrypto_path="$withval/lib64"
-				openssl_bin="${withval}/bin/openssl"
 			else
 				# Built but not installed
 				libcrypto_path="${withval}"
-				openssl_bin="${withval}/apps/openssl"
 			fi
 			if test -n "${rpath_opt}"; then
 				LDFLAGS="-L${libcrypto_path} ${rpath_opt}${libcrypto_path} ${LDFLAGS}"
@@ -2714,6 +2711,11 @@ AC_ARG_WITH([ssl-dir],
 				CPPFLAGS="-I${withval}/include ${CPPFLAGS}"
 			else
 				CPPFLAGS="-I${withval} ${CPPFLAGS}"
+			fi
+			if test -x "${withval}/bin/openssl"; then
+				openssl_bin="${withval}/bin/openssl"
+			elif test -x "${withval}/apps/openssl"; then
+				openssl_bin="${withval}/apps/openssl"
 			fi
 		fi
 	]
