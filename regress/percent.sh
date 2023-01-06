@@ -19,6 +19,9 @@ HOSTNAME=`hostname`
 # We also have to explicitly enable it.
 echo "permitlocalcommand yes" >> $OBJ/ssh_proxy
 
+NOOPENSSL=0
+IFS=":";for i in $PATH;do [ -x "$i/openssl" ] && NOOPENSSL=1;done
+
 trial()
 {
 	opt="$1"; arg="$2"
@@ -78,11 +81,13 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	if [ "$i" = "$localcommand" ]; then
 		trial $i '%T' NONE
 	fi
-	# Matches implementation in readconf.c:ssh_connection_hash()
-	HASH=`printf "${HOSTNAME}127.0.0.1${PORT}$REMUSER" |
-	    $OPENSSL_BIN sha1 | cut -f2 -d' '`
+	if [ $NOOPENSSL -eq 1 ]; then
+		# Matches implementation in readconf.c:ssh_connection_hash()
+		HASH=`printf "${HOSTNAME}127.0.0.1${PORT}$REMUSER" |
+		    $OPENSSL_BIN sha1 | cut -f2 -d' '`
+	fi
 	trial $i '%%' '%'
-	trial $i '%C' $HASH
+	if [ $NOOPENSSL -eq 1 ]; then trial $i '%C' $HASH; fi
 	trial $i '%i' $USERID
 	trial $i '%h' 127.0.0.1
 	trial $i '%L' $HOST
@@ -96,8 +101,14 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	# containing %d for UserKnownHostsFile
 	if [ "$i" != "userknownhostsfile" ]; then
 		trial $i '%d' $HOME
-		trial $i '%%/%C/%i/%h/%d/%L/%l/%n/%p/%r/%u' \
-		    "%/$HASH/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
+		# skip tests for '%C' since no openssl in local path
+		if [ $NOOPENSSL -eq 0 ]; then
+			trial $i '%%/%i/%h/%d/%L/%l/%n/%p/%r/%u' \
+				"%/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
+		else
+			trial $i '%%/%C/%i/%h/%d/%L/%l/%n/%p/%r/%u' \
+		    	    "%/$HASH/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
+		fi
 	fi
 done
 
