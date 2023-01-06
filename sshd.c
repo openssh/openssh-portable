@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.594 2022/12/16 06:56:47 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.595 2023/01/06 02:47:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2158,6 +2158,7 @@ main(int ac, char **av)
 	/* Prepare the channels layer */
 	channel_init_channels(ssh);
 	channel_set_af(ssh, options.address_family);
+	process_channel_timeouts(ssh, &options);
 	process_permitopen(ssh, &options);
 
 	/* Set SO_KEEPALIVE if requested. */
