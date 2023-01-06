@@ -130,10 +130,12 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 ])
 
 openssl=yes
+openssl_bin=openssl
 AC_ARG_WITH([openssl],
 	[  --without-openssl       Disable use of OpenSSL; use only limited internal crypto **EXPERIMENTAL** ],
 	[  if test "x$withval" = "xno" ; then
 		openssl=no
+		openssl_bin=""
 	   fi
 	]
 )
@@ -2694,11 +2696,14 @@ AC_ARG_WITH([ssl-dir],
 			esac
 			if test -d "$withval/lib"; then
 				libcrypto_path="${withval}/lib"
+				openssl_bin="${withval}/bin/openssl"
 			elif test -d "$withval/lib64"; then
 				libcrypto_path="$withval/lib64"
+				openssl_bin="${withval}/bin/openssl"
 			else
 				# Built but not installed
 				libcrypto_path="${withval}"
+				openssl_bin="${withval}/apps/openssl"
 			fi
 			if test -n "${rpath_opt}"; then
 				LDFLAGS="-L${libcrypto_path} ${rpath_opt}${libcrypto_path} ${LDFLAGS}"
@@ -2713,6 +2718,7 @@ AC_ARG_WITH([ssl-dir],
 		fi
 	]
 )
+AC_SUBST(OPENSSL_BIN, [${openssl_bin}])
 
 AC_ARG_WITH([openssl-header-check],
 	[  --without-openssl-header-check Disable OpenSSL version consistency check],

@@ -723,6 +723,7 @@ unit: regress-unit-binaries
 interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 	cd $(srcdir)/regress || exit $$?; \
 	EGREP='@EGREP@' \
+	OPENSSL_BIN='@OPENSSL_BIN@' \
 	$(MAKE) \
 		.CURDIR="$(abs_top_srcdir)/regress" \
 		.OBJDIR="$(BUILDDIR)/regress" \
