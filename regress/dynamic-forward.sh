@@ -1,4 +1,4 @@
-#	$OpenBSD: dynamic-forward.sh,v 1.14 2023/01/02 07:03:57 djm Exp $
+#	$OpenBSD: dynamic-forward.sh,v 1.15 2023/01/06 08:50:33 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="dynamic forwarding"
@@ -26,8 +26,9 @@ start_ssh() {
 	(cat $OBJ/ssh_config.orig ; echo "$arg") > $OBJ/ssh_config
 	while [ "$error" -ne 0 -a "$n" -lt 3 ]; do
 		n=`expr $n + 1`
-		${SSH} -F $OBJ/ssh_config -f -$direction $FWDPORT -q \
-		    -oExitOnForwardFailure=yes somehost exec sh -c \
+		${SSH} -F $OBJ/ssh_config -f -vvv -E$TEST_SSH_LOGFILE \
+		    -$direction $FWDPORT -oExitOnForwardFailure=yes \
+		    somehost exec sh -c \
 			\'"echo \$\$ > $OBJ/remote_pid; exec sleep 444"\'
 		error=$?
 		if [ "$error" -ne 0 ]; then
