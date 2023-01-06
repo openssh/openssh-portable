@@ -653,7 +653,8 @@ UNITTESTS_TEST_MISC_OBJS=\
 	regress/unittests/misc/test_convtime.o \
 	regress/unittests/misc/test_argv.o \
 	regress/unittests/misc/test_strdelim.o \
-	regress/unittests/misc/test_hpdelim.o
+	regress/unittests/misc/test_hpdelim.o \
+	regress/unittests/misc/test_ptimeout.o
 
 regress/unittests/misc/test_misc$(EXEEXT): \
     ${UNITTESTS_TEST_MISC_OBJS} \
