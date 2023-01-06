@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.144 2023/01/06 02:38:23 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.145 2023/01/06 02:39:59 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -88,7 +88,7 @@ typedef struct Channel Channel;
 struct fwd_perm_list;
 
 typedef void channel_open_fn(struct ssh *, int, int, void *);
-typedef void channel_callback_fn(struct ssh *, int, void *);
+typedef void channel_callback_fn(struct ssh *, int, int, void *);
 typedef int channel_infilter_fn(struct ssh *, struct Channel *, char *, int);
 typedef void channel_filter_cleanup_fn(struct ssh *, int, void *);
 typedef u_char *channel_outfilter_fn(struct ssh *, struct Channel *,
@@ -281,6 +281,7 @@ void	 channel_set_fds(struct ssh *, int, int, int, int, int,
 void	 channel_free(struct ssh *, Channel *);
 void	 channel_free_all(struct ssh *);
 void	 channel_stop_listening(struct ssh *);
+void	 channel_force_close(struct ssh *, Channel *, int);
 
 void	 channel_send_open(struct ssh *, int);
 void	 channel_request_start(struct ssh *, int, char *, int);

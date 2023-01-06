@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.422 2023/01/06 02:38:23 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.423 2023/01/06 02:39:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1222,6 +1222,29 @@ x11_open_helper(struct ssh *ssh, struct sshbuf *b)
 	return 1;
 }
 
+void
+channel_force_close(struct ssh *ssh, Channel *c, int abandon)
+{
+	debug3_f("channel %d: forcibly closing", c->self);
+	if (c->istate == CHAN_INPUT_OPEN)
+		chan_read_failed(ssh, c);
+	if (c->istate == CHAN_INPUT_WAIT_DRAIN) {
+		sshbuf_reset(c->input);
+		chan_ibuf_empty(ssh, c);
+	}
+	if (c->ostate == CHAN_OUTPUT_OPEN ||
+	    c->ostate == CHAN_OUTPUT_WAIT_DRAIN) {
+		sshbuf_reset(c->output);
+		chan_write_failed(ssh, c);
+	}
+	if (c->detach_user)
+		c->detach_user(ssh, c->self, 1, NULL);
+	if (c->efd != -1)
+		channel_close_fd(ssh, c, &c->efd);
+	if (abandon)
+		c->type = SSH_CHANNEL_ABANDONED;
+}
+
 static void
 channel_pre_x11_open(struct ssh *ssh, Channel *c)
 {
@@ -1233,15 +1256,11 @@ channel_pre_x11_open(struct ssh *ssh, Channel *c)
 		c->type = SSH_CHANNEL_OPEN;
 		channel_pre_open(ssh, c);
 	} else if (ret == -1) {
-		logit("X11 connection rejected because of wrong authentication.");
+		logit("X11 connection rejected because of wrong "
+		    "authentication.");
 		debug2("X11 rejected %d i%d/o%d",
 		    c->self, c->istate, c->ostate);
-		chan_read_failed(ssh, c);
-		sshbuf_reset(c->input);
-		chan_ibuf_empty(ssh, c);
-		sshbuf_reset(c->output);
-		chan_write_failed(ssh, c);
-		debug2("X11 closed %d i%d/o%d", c->self, c->istate, c->ostate);
+		channel_force_close(ssh, c, 0);
 	}
 }
 
@@ -1591,11 +1610,7 @@ static void
 rdynamic_close(struct ssh *ssh, Channel *c)
 {
 	c->type = SSH_CHANNEL_OPEN;
-	chan_read_failed(ssh, c);
-	sshbuf_reset(c->input);
-	chan_ibuf_empty(ssh, c);
-	sshbuf_reset(c->output);
-	chan_write_failed(ssh, c);
+	channel_force_close(ssh, c, 0);
 }
 
 /* reverse dynamic port forwarding */
@@ -2395,7 +2410,7 @@ channel_garbage_collect(struct ssh *ssh, Channel *c)
 			return;
 
 		debug2("channel %d: gc: notify user", c->self);
-		c->detach_user(ssh, c->self, NULL);
+		c->detach_user(ssh, c->self, 0, NULL);
 		/* if we still have a callback */
 		if (c->detach_user != NULL)
 			return;

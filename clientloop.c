@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.386 2023/01/06 02:38:23 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.387 2023/01/06 02:39:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1033,15 +1033,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 				    efc->escape_char)) != 0)
 					fatal_fr(r, "sshbuf_putf");
 				if (c && c->ctl_chan != -1) {
-					chan_read_failed(ssh, c);
-					chan_write_failed(ssh, c);
-					if (c->detach_user) {
-						c->detach_user(ssh,
-						    c->self, NULL);
-					}
-					c->type = SSH_CHANNEL_ABANDONED;
-					sshbuf_reset(c->input);
-					chan_ibuf_empty(ssh, c);
+					channel_force_close(ssh, c, 1);
 					return 0;
 				} else
 					quit_pending = 1;
@@ -1267,7 +1259,7 @@ client_simple_escape_filter(struct ssh *ssh, Channel *c, char *buf, int len)
 }
 
 static void
-client_channel_closed(struct ssh *ssh, int id, void *arg)
+client_channel_closed(struct ssh *ssh, int id, int force, void *arg)
 {
 	channel_cancel_cleanup(ssh, id);
 	session_closed = 1;

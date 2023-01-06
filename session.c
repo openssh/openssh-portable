@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.330 2022/02/08 08:59:12 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.331 2023/01/06 02:39:59 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2335,7 +2335,7 @@ session_close_x11(struct ssh *ssh, int id)
 }
 
 static void
-session_close_single_x11(struct ssh *ssh, int id, void *arg)
+session_close_single_x11(struct ssh *ssh, int id, int force, void *arg)
 {
 	Session *s;
 	u_int i;
@@ -2469,7 +2469,7 @@ session_close_by_pid(struct ssh *ssh, pid_t pid, int status)
  * the session 'child' itself dies
  */
 void
-session_close_by_channel(struct ssh *ssh, int id, void *arg)
+session_close_by_channel(struct ssh *ssh, int id, int force, void *arg)
 {
 	Session *s = session_by_channel(id);
 	u_int i;
@@ -2482,12 +2482,14 @@ session_close_by_channel(struct ssh *ssh, int id, void *arg)
 	if (s->pid != 0) {
 		debug_f("channel %d: has child, ttyfd %d", id, s->ttyfd);
 		/*
-		 * delay detach of session, but release pty, since
-		 * the fd's to the child are already closed
+		 * delay detach of session (unless this is a forced close),
+		 * but release pty, since the fd's to the child are already
+		 * closed
 		 */
 		if (s->ttyfd != -1)
 			session_pty_cleanup(s);
-		return;
+		if (!force)
+			return;
 	}
 	/* detach by removing callback */
 	channel_cancel_cleanup(ssh, s->chanid);
