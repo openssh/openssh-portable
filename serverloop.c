@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.232 2022/04/20 04:19:11 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.233 2023/01/06 02:38:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -168,12 +168,11 @@ client_alive_check(struct ssh *ssh)
 static void
 wait_until_can_do_something(struct ssh *ssh,
     int connection_in, int connection_out, struct pollfd **pfdp,
-    u_int *npfd_allocp, u_int *npfd_activep, u_int64_t max_time_ms,
-    sigset_t *sigsetp, int *conn_in_readyp, int *conn_out_readyp)
+    u_int *npfd_allocp, u_int *npfd_activep, sigset_t *sigsetp,
+    int *conn_in_readyp, int *conn_out_readyp)
 {
-	struct timespec ts, *tsp;
+	struct timespec timeout;
 	int ret;
-	time_t minwait_secs = 0;
 	int client_alive_scheduled = 0;
 	u_int p;
 	/* time we last heard from the client OR sent a keepalive */
@@ -182,14 +181,14 @@ wait_until_can_do_something(struct ssh *ssh,
 	*conn_in_readyp = *conn_out_readyp = 0;
 
 	/* Prepare channel poll. First two pollfd entries are reserved */
-	channel_prepare_poll(ssh, pfdp, npfd_allocp, npfd_activep,
-	    2, &minwait_secs);
+	ptimeout_init(&timeout);
+	channel_prepare_poll(ssh, pfdp, npfd_allocp, npfd_activep, 2, &timeout);
 	if (*npfd_activep < 2)
 		fatal_f("bad npfd %u", *npfd_activep); /* shouldn't happen */
-
-	/* XXX need proper deadline system for rekey/client alive */
-	if (minwait_secs != 0)
-		max_time_ms = MINIMUM(max_time_ms, (u_int)minwait_secs * 1000);
+	if (options.rekey_interval > 0 && !ssh_packet_is_rekeying(ssh)) {
+		ptimeout_deadline_sec(&timeout,
+		    ssh_packet_get_rekey_timeout(ssh));
+	}
 
 	/*
 	 * if using client_alive, set the max timeout accordingly,
@@ -200,15 +199,11 @@ wait_until_can_do_something(struct ssh *ssh,
 	 * analysis more difficult, but we're not doing it yet.
 	 */
 	if (options.client_alive_interval) {
-		uint64_t keepalive_ms =
-		    (uint64_t)options.client_alive_interval * 1000;
-
-		if (max_time_ms == 0 || max_time_ms > keepalive_ms) {
-			max_time_ms = keepalive_ms;
-			client_alive_scheduled = 1;
-		}
 		if (last_client_time == 0)
 			last_client_time = monotime();
+		ptimeout_deadline_sec(&timeout, options.client_alive_interval);
+		/* XXX ? deadline_monotime(last_client_time + alive_interval) */
+		client_alive_scheduled = 1;
 	}
 
 #if 0
@@ -226,19 +221,10 @@ wait_until_can_do_something(struct ssh *ssh,
 	 * from it, then read as much as is available and exit.
 	 */
 	if (child_terminated && ssh_packet_not_very_much_data_to_write(ssh))
-		if (max_time_ms == 0 || client_alive_scheduled)
-			max_time_ms = 100;
-
-	if (max_time_ms == 0)
-		tsp = NULL;
-	else {
-		ts.tv_sec = max_time_ms / 1000;
-		ts.tv_nsec = 1000000 * (max_time_ms % 1000);
-		tsp = &ts;
-	}
+		ptimeout_deadline_ms(&timeout, 100);
 
 	/* Wait for something to happen, or the timeout to expire. */
-	ret = ppoll(*pfdp, *npfd_activep, tsp, sigsetp);
+	ret = ppoll(*pfdp, *npfd_activep, ptimeout_get_tsp(&timeout), sigsetp);
 
 	if (ret == -1) {
 		for (p = 0; p < *npfd_activep; p++)
@@ -251,19 +237,18 @@ wait_until_can_do_something(struct ssh *ssh,
 	*conn_in_readyp = (*pfdp)[0].revents != 0;
 	*conn_out_readyp = (*pfdp)[1].revents != 0;
 
+	/* ClientAliveInterval probing */
 	if (client_alive_scheduled) {
 		time_t now = monotime();
-
-		/*
-		 * If the ppoll timed out, or returned for some other reason
-		 * but we haven't heard from the client in time, send keepalive.
-		 */
-		if (ret == 0 || (last_client_time != 0 && last_client_time +
-		    options.client_alive_interval <= now)) {
+		if (ret == 0 &&
+		    now > last_client_time + options.client_alive_interval) {
+			/* ppoll timed out and we're due to probe */
 			client_alive_check(ssh);
 			last_client_time = now;
-		} else if (*conn_in_readyp)
+		} else if (ret != 0 && *conn_in_readyp) {
+			/* Data from peer; reset probe timer. */
 			last_client_time = now;
+		}
 	}
 }
 
@@ -338,7 +323,6 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 	u_int npfd_alloc = 0, npfd_active = 0;
 	int r, conn_in_ready, conn_out_ready;
 	u_int connection_in, connection_out;
-	u_int64_t rekey_timeout_ms = 0;
 	sigset_t bsigset, osigset;
 
 	debug("Entering interactive session for SSH2.");
@@ -364,13 +348,6 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		if (!ssh_packet_is_rekeying(ssh) &&
 		    ssh_packet_not_very_much_data_to_write(ssh))
 			channel_output_poll(ssh);
-		if (options.rekey_interval > 0 &&
-		    !ssh_packet_is_rekeying(ssh)) {
-			rekey_timeout_ms = ssh_packet_get_rekey_timeout(ssh) *
-			    1000;
-		} else {
-			rekey_timeout_ms = 0;
-		}
 
 		/*
 		 * Block SIGCHLD while we check for dead children, then pass
@@ -381,7 +358,7 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 			error_f("bsigset sigprocmask: %s", strerror(errno));
 		collect_children(ssh);
 		wait_until_can_do_something(ssh, connection_in, connection_out,
-		    &pfd, &npfd_alloc, &npfd_active, rekey_timeout_ms, &osigset,
+		    &pfd, &npfd_alloc, &npfd_active, &osigset,
 		    &conn_in_ready, &conn_out_ready);
 		if (sigprocmask(SIG_UNBLOCK, &bsigset, &osigset) == -1)
 			error_f("osigset sigprocmask: %s", strerror(errno));

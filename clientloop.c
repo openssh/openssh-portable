@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.385 2022/11/29 22:41:14 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.386 2023/01/06 02:38:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -518,16 +518,15 @@ client_wait_until_can_do_something(struct ssh *ssh, struct pollfd **pfdp,
     u_int *npfd_allocp, u_int *npfd_activep, int rekeying,
     int *conn_in_readyp, int *conn_out_readyp)
 {
-	int timeout_secs, pollwait;
-	time_t minwait_secs = 0, now = monotime();
+	struct timespec timeout;
 	int ret;
 	u_int p;
 
 	*conn_in_readyp = *conn_out_readyp = 0;
 
 	/* Prepare channel poll. First two pollfd entries are reserved */
-	channel_prepare_poll(ssh, pfdp, npfd_allocp, npfd_activep, 2,
-	    &minwait_secs);
+	ptimeout_init(&timeout);
+	channel_prepare_poll(ssh, pfdp, npfd_allocp, npfd_activep, 2, &timeout);
 	if (*npfd_activep < 2)
 		fatal_f("bad npfd %u", *npfd_activep); /* shouldn't happen */
 
@@ -551,30 +550,17 @@ client_wait_until_can_do_something(struct ssh *ssh, struct pollfd **pfdp,
 	 * some polled descriptor can be read, written, or has some other
 	 * event pending, or a timeout expires.
 	 */
-
-	timeout_secs = INT_MAX; /* we use INT_MAX to mean no timeout */
-	if (options.server_alive_interval > 0)
-		timeout_secs = MAXIMUM(server_alive_time - now, 0);
-	if (options.rekey_interval > 0 && !rekeying)
-		timeout_secs = MINIMUM(timeout_secs,
-		    ssh_packet_get_rekey_timeout(ssh));
 	set_control_persist_exit_time(ssh);
-	if (control_persist_exit_time > 0) {
-		timeout_secs = MINIMUM(timeout_secs,
-			control_persist_exit_time - now);
-		if (timeout_secs < 0)
-			timeout_secs = 0;
+	if (control_persist_exit_time > 0)
+		ptimeout_deadline_monotime(&timeout, control_persist_exit_time);
+	if (options.server_alive_interval > 0)
+		ptimeout_deadline_monotime(&timeout, server_alive_time);
+	if (options.rekey_interval > 0 && !rekeying) {
+		ptimeout_deadline_sec(&timeout,
+		    ssh_packet_get_rekey_timeout(ssh));
 	}
-	if (minwait_secs != 0)
-		timeout_secs = MINIMUM(timeout_secs, (int)minwait_secs);
-	if (timeout_secs == INT_MAX)
-		pollwait = -1;
-	else if (timeout_secs >= INT_MAX / 1000)
-		pollwait = INT_MAX;
-	else
-		pollwait = timeout_secs * 1000;
 
-	ret = poll(*pfdp, *npfd_activep, pollwait);
+	ret = poll(*pfdp, *npfd_activep, ptimeout_get_ms(&timeout));
 
 	if (ret == -1) {
 		/*
