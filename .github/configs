@@ -243,8 +243,9 @@ case "${TARGET_HOST}" in
 	# test that relies on one.
 	# Also, Minix seems to be very limited in the number of select()
 	# calls that can be operating concurrently, so prune additional tests for that.
-	T="addrmatch agent-restrict brokenkeys cfgmatch cfgmatchlisten cfgparse connect
-	    connect-uri exit-status forward-control forwarding hostkey-agent
+	T="addrmatch agent-restrict brokenkeys cfgmatch cfgmatchlisten cfgparse
+	    connect connect-uri dynamic-forward
+	    exit-status forward-control forwarding hostkey-agent
 	    key-options keyscan knownhosts-command login-timeout multiplex
 	    reconfigure reexec rekey scp scp-uri scp3 sftp sftp-badcmds
 	    sftp-batch sftp-cmds sftp-glob sftp-perm sftp-uri stderr-data
