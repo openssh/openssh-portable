@@ -2683,6 +2683,7 @@ AC_CHECK_FUNCS([getpgrp],[
 # Search for OpenSSL
 saved_CPPFLAGS="$CPPFLAGS"
 saved_LDFLAGS="$LDFLAGS"
+openssl_bin_PATH="$PATH"
 AC_ARG_WITH([ssl-dir],
 	[  --with-ssl-dir=PATH     Specify path to OpenSSL installation ],
 	[
@@ -2712,14 +2713,11 @@ AC_ARG_WITH([ssl-dir],
 			else
 				CPPFLAGS="-I${withval} ${CPPFLAGS}"
 			fi
-			if test -x "${withval}/bin/openssl"; then
-				openssl_bin="${withval}/bin/openssl"
-			elif test -x "${withval}/apps/openssl"; then
-				openssl_bin="${withval}/apps/openssl"
-			fi
+			openssl_bin_PATH="${PATH}${PATH_SEPARATOR}${withval}/bin${PATH_SEPARATOR}${withval}/apps"
 		fi
 	]
 )
+AC_PATH_PROGS([openssl_bin], openssl, [], [$openssl_bin_PATH])
 AC_SUBST(OPENSSL_BIN, [${openssl_bin}])
 
 AC_ARG_WITH([openssl-header-check],
