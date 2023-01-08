@@ -10,6 +10,11 @@ cp $OBJ/ssh_config $OBJ/ssh_config.orig
 proxycmd="$OBJ/netcat -x 127.0.0.1:$FWDPORT -X"
 trace "will use ProxyCommand $proxycmd"
 
+# This is a reasonable proxy for IPv6 support.
+if ! config_defined HAVE_STRUCT_IN6_ADDR ; then
+	SKIP_IPV6=yes
+fi
+
 start_ssh() {
 	direction="$1"
 	arg="$2"
@@ -90,14 +95,16 @@ for d in D R; do
 	stop_ssh
 
 	verbose "PermitRemoteOpen=explicit"
-	start_ssh $d \
-	    PermitRemoteOpen="127.0.0.1:$PORT [::1]:$PORT localhost:$PORT"
+	permit="127.0.0.1:$PORT [::1]:$PORT localhost:$PORT"
+	test -z "$SKIP_IPV6" || permit="127.0.0.1:$PORT localhost:$PORT"
+	start_ssh $d PermitRemoteOpen="$permit"
 	check_socks $d Y
 	stop_ssh
 
 	verbose "PermitRemoteOpen=disallowed"
-	start_ssh $d \
-	    PermitRemoteOpen="127.0.0.1:1 [::1]:1 localhost:1"
+	permit="127.0.0.1:1 [::1]:1 localhost:1"
+	test -z "$SKIP_IPV6" || permit="127.0.0.1:1 localhost:1"
+	start_ssh $d PermitRemoteOpen="$permit"
 	check_socks $d N
 	stop_ssh
 done
