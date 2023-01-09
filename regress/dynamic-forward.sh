@@ -24,7 +24,7 @@ start_ssh() {
 	(cat $OBJ/ssh_config.orig ; echo "$arg") > $OBJ/ssh_config
 	while [ "$error" -ne 0 -a "$n" -lt 3 ]; do
 		n=`expr $n + 1`
-		${SSH} -F $OBJ/ssh_config -f -vvv -E$TEST_SSH_LOGFILE \
+		${REAL_SSH} -F $OBJ/ssh_config -f -vvv -E$TEST_SSH_LOGFILE \
 		    -$direction $FWDPORT -oExitOnForwardFailure=yes \
 		    somehost exec sh -c \
 			\'"echo \$\$ > $OBJ/remote_pid; exec sleep 444"\'
@@ -57,7 +57,7 @@ check_socks() {
 	for s in 4 5; do
 	    for h in 127.0.0.1 localhost; do
 		trace "testing ssh socks version $s host $h (-$direction)"
-		${SSH} -F $OBJ/ssh_config \
+		${REAL_SSH} -q -F $OBJ/ssh_config \
 			-o "ProxyCommand ${proxycmd}${s} $h $PORT 2>/dev/null" \
 			somehost cat ${DATA} > ${COPY}
 		r=$?
