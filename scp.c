@@ -421,6 +421,7 @@ void run_err(const char *,...)
 int note_err(const char *,...)
     __attribute__((__format__ (printf, 1, 2)));
 void verifydir(char *);
+void verify_file_exists(char *);
 
 struct passwd *pwd;
 uid_t userid;
@@ -678,6 +679,7 @@ main(int argc, char **argv)
 	else {
 		if (targetshouldbedirectory)
 			verifydir(argv[argc - 1]);
+		// verify_file_exists(argv[argc - 1]);
 		tolocal(argc, argv, mode, sftp_direct);	/* Dest is local host. */
 	}
 	/*
@@ -1160,6 +1162,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				errs = 1;
 		} else {	/* local to remote */
 			if (mode == MODE_SFTP) {
+				verify_file_exists(argv[i]);
 				if (remin == -1) {
 					/* Connect to remote now */
 					conn = do_sftp_connect(thost, tuser,
@@ -2152,6 +2155,17 @@ verifydir(char *cp)
 	}
 	run_err("%s: %s", cp, strerror(errno));
 	killchild(0);
+}
+
+void
+verify_file_exists(char *cp)
+{
+	struct stat stb;
+
+	if (!stat(cp, &stb)) {
+		return;
+	}
+	fatal("stat local \"%s\": %s", cp, strerror(errno));
 }
 
 int
