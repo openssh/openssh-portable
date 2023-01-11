@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: sntrup761.sh,v 1.6 2022/12/26 19:16:03 jmc Exp $
+#       $OpenBSD: sntrup761.sh,v 1.7 2023/01/11 02:13:52 djm Exp $
 #       Placed in the Public Domain.
 #
 AUTHOR="supercop-20201130/crypto_kem/sntrup761/ref/implementors"
@@ -54,6 +54,7 @@ for i in $FILES; do
 	    -e "/^extern /d" \
 	    -e '/CRYPTO_NAMESPACE/d' \
 	    -e "/^#define int32 crypto_int32/d" \
+	    -e 's/[	 ]*$//' \
 	    $i | \
 	case "$i" in
 	# Use int64_t for intermediate values in int32_MINMAX to prevent signed
