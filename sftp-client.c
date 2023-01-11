@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.167 2023/01/11 05:36:50 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.168 2023/01/11 05:39:38 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -570,6 +570,8 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 			    SFTP_MAX_MSG_LENGTH - 1024);
 			ret->upload_buflen = MINIMUM(limits.write_length,
 			    SFTP_MAX_MSG_LENGTH - 1024);
+			ret->download_buflen = MAXIMUM(ret->download_buflen, 64);
+			ret->upload_buflen = MAXIMUM(ret->upload_buflen, 64);
 			debug3("server upload/download buffer sizes "
 			    "%llu / %llu; using %u / %u",
 			    (unsigned long long)limits.write_length,
@@ -581,6 +583,8 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 		if (num_requests == 0 && limits.open_handles) {
 			ret->num_requests =
 			    MINIMUM(DEFAULT_NUM_REQUESTS, limits.open_handles);
+			if (ret->num_requests == 0)
+				ret->num_requests = 1;
 			debug3("server handle limit %llu; using %u",
 			    (unsigned long long)limits.open_handles,
 			    ret->num_requests);
