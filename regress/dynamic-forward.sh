@@ -3,17 +3,17 @@
 
 tid="dynamic forwarding"
 
-FWDPORT=`expr $PORT + 1`
-
-cp $OBJ/ssh_config $OBJ/ssh_config.orig
-
-proxycmd="$OBJ/netcat -x 127.0.0.1:$FWDPORT -X"
-trace "will use ProxyCommand $proxycmd"
-
 # This is a reasonable proxy for IPv6 support.
 if ! config_defined HAVE_STRUCT_IN6_ADDR ; then
 	SKIP_IPV6=yes
 fi
+
+FWDPORT=`expr $PORT + 1`
+make_tmpdir
+CTL=${SSH_REGRESS_TMP}/ctl-sock
+cp $OBJ/ssh_config $OBJ/ssh_config.orig
+proxycmd="$OBJ/netcat -x 127.0.0.1:$FWDPORT -X"
+trace "will use ProxyCommand $proxycmd"
 
 start_ssh() {
 	direction="$1"
@@ -22,32 +22,31 @@ start_ssh() {
 	error="1"
 	trace "start dynamic -$direction forwarding, fork to background"
 	(cat $OBJ/ssh_config.orig ; echo "$arg") > $OBJ/ssh_config
-	while [ "$error" -ne 0 -a "$n" -lt 3 ]; do
-		n=`expr $n + 1`
-		${REAL_SSH} -F $OBJ/ssh_config -f -vvv -E$TEST_SSH_LOGFILE \
-		    -$direction $FWDPORT -oExitOnForwardFailure=yes \
-		    somehost exec sh -c \
-			\'"echo \$\$ > $OBJ/remote_pid; exec sleep 444"\'
-		error=$?
-		if [ "$error" -ne 0 ]; then
-			trace "forward failed attempt $n err $error"
-			sleep $n
-		fi
-	done
-	if [ "$error" -ne 0 ]; then
-		fatal "failed to start dynamic forwarding"
+	${REAL_SSH} -vvvnNfF $OBJ/ssh_config -E$TEST_SSH_LOGFILE \
+	    -$direction $FWDPORT -oExitOnForwardFailure=yes \
+	    -oControlMaster=yes -oControlPath=$CTL somehost
+	r=$?
+	test $r -eq 0 || fatal "failed to start dynamic forwarding $r"
+	if ! ${REAL_SSH} -qF$OBJ/ssh_config -O check \
+	     -oControlPath=$CTL somehost >/dev/null 2>&1 ; then
+		fatal "forwarding ssh process unresponsive"
 	fi
 }
 
 stop_ssh() {
-	if [ -f $OBJ/remote_pid ]; then
-		remote=`cat $OBJ/remote_pid`
-		trace "terminate remote shell, pid $remote"
-		if [ $remote -gt 1 ]; then
-			kill -HUP $remote
-		fi
-	else
-		fail "no pid file: $OBJ/remote_pid"
+	test -S $CTL || return
+	if ! ${REAL_SSH} -qF$OBJ/ssh_config -O exit \
+	     -oControlPath=$CTL >/dev/null somehost >/dev/null ; then
+		fatal "forwarding ssh process did not respond to close"
+	fi
+	n=0
+	while [ "$n" -lt 20 ] ; do
+		test -S $CTL || break
+		sleep 1
+		n=`expr $n + 1`
+	done
+	if test -S $CTL ; then
+		fatal "forwarding ssh process did not exit"
 	fi
 }
 
@@ -75,6 +74,7 @@ check_socks() {
 }
 
 start_sshd
+trap "stop_ssh" EXIT
 
 for d in D R; do
 	verbose "test -$d forwarding"
