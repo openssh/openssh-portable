@@ -180,7 +180,7 @@ pid_t do_cmd_pid = -1;
 pid_t do_cmd_pid2 = -1;
 
 /* SFTP copy parameters */
-size_t sftp_copy_buflen = 32768; /* XXX NetBSD4 hangs with default value */
+size_t sftp_copy_buflen;
 size_t sftp_nrequests;
 
 /* Needed for sftp */
