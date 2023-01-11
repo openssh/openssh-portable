@@ -2148,6 +2148,11 @@ and
 .Cm ProxyJump
 accept the tokens %%, %h, %n, %p, and %r.
 .Sh ENVIRONMENT VARIABLES
+The location of the default ssh configuration file can be overridden by
+setting the
+.Cm SSH_CONFIG
+environment variable.
+.Pp
 Arguments to some keywords can be expanded at runtime from environment
 variables on the client by enclosing them in
 .Ic ${} ,

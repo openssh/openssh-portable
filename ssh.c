@@ -706,6 +706,8 @@ main(int ac, char **av)
 	logfile = NULL;
 	argv0 = av[0];
 
+    config = getenv("SSH_CONFIG");
+
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
 	    "AB:CD:E:F:GI:J:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) { /* HUZdhjruz */
