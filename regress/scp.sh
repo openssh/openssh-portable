@@ -1,4 +1,4 @@
-#	$OpenBSD: scp.sh,v 1.17 2023/01/06 07:18:18 djm Exp $
+#	$OpenBSD: scp.sh,v 1.18 2023/01/13 04:47:34 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="scp"
@@ -16,6 +16,8 @@ DIFFOPT="-rN"
 if ! diff -N ${SRC}/scp.sh ${SRC}/scp.sh 2>/dev/null; then
 	DIFFOPT="-r"
 fi
+
+maybe_add_scp_path_to_sshd
 
 SRC=`dirname ${SCRIPT}`
 cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.scp
