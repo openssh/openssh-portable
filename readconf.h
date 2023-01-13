@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.149 2022/11/28 01:37:36 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.150 2023/01/13 02:58:20 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -28,6 +28,7 @@ struct allowed_cname {
 };
 
 typedef struct {
+	char   *host_arg;	/* Host arg as specified on command line. */
 	int     forward_agent;	/* Forward authentication agent. */
 	char   *forward_agent_sock_path; /* Optional path of the agent. */
 	int     forward_x11;	/* Forward X11 display. */
