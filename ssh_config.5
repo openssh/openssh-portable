@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.376 2022/11/28 01:37:36 djm Exp $
-.Dd $Mdocdate: November 28 2022 $
+.\" $OpenBSD: ssh_config.5,v 1.377 2023/01/13 03:16:29 dtucker Exp $
+.Dd $Mdocdate: January 13 2023 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1965,6 +1965,12 @@ the tokens described in the
 section and environment variables as described in the
 .Sx ENVIRONMENT VARIABLES
 section.
+A value of
+.Cm none
+causes
+.Xr ssh 1
+to ignore any user specific known hosts files.
+.user-specific known hosts files.
 The default is
 .Pa ~/.ssh/known_hosts ,
 .Pa ~/.ssh/known_hosts2 .
