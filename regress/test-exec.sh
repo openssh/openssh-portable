@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.92 2022/07/25 07:12:45 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.93 2023/01/13 04:23:00 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -528,6 +528,13 @@ cat << EOF > $OBJ/sshd_config
 	AcceptEnv		_XXX_TEST
 	Subsystem	sftp	$SFTPSERVER
 EOF
+
+# If we're testing a non-installed scp, add its directory to sshd's PATH
+# so we can test it.
+case "$SCP" in
+/*)	PATH_WITH_SCP="`dirname $SCP`:$PATH"
+	echo "	SetEnv PATH='$PATH_WITH_SCP'" >>$OBJ/sshd_config ;;
+esac
 
 # This may be necessary if /usr/src and/or /usr/obj are group-writable,
 # but if you aren't careful with permissions then the unit tests could
