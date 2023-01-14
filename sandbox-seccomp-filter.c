@@ -312,6 +312,9 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_write
 	SC_ALLOW(__NR_write),
 #endif
+#ifdef __NR_writev
+	SC_ALLOW(__NR_writev),
+#endif
 #ifdef __NR_socketcall
 	SC_ALLOW_ARG(__NR_socketcall, 0, SYS_SHUTDOWN),
 	SC_DENY(__NR_socketcall, EACCES),
