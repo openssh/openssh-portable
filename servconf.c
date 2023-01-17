@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.389 2023/01/06 02:47:18 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.390 2023/01/17 09:44:48 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -198,6 +198,7 @@ initialize_server_options(ServerOptions *options)
 	options->required_rsa_size = -1;
 	options->channel_timeouts = NULL;
 	options->num_channel_timeouts = 0;
+	options->unused_connection_timeout = -1;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -446,6 +447,8 @@ fill_default_server_options(ServerOptions *options)
 		options->sk_provider = xstrdup("internal");
 	if (options->required_rsa_size == -1)
 		options->required_rsa_size = SSH_RSA_MINIMUM_MODULUS_SIZE;
+	if (options->unused_connection_timeout == -1)
+		options->unused_connection_timeout = 0;
 
 	assemble_algorithms(options);
 
@@ -529,7 +532,7 @@ typedef enum {
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
-	sRequiredRSASize, sChannelTimeout,
+	sRequiredRSASize, sChannelTimeout, sUnusedConnectionTimeout,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -691,6 +694,7 @@ static struct {
 	{ "securitykeyprovider", sSecurityKeyProvider, SSHCFG_GLOBAL },
 	{ "requiredrsasize", sRequiredRSASize, SSHCFG_ALL },
 	{ "channeltimeout", sChannelTimeout, SSHCFG_ALL },
+	{ "unusedconnectiontimeout", sUnusedConnectionTimeout, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2537,6 +2541,17 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		}
 		break;
 
+	case sUnusedConnectionTimeout:
+		intptr = &options->unused_connection_timeout;
+		/* peek at first arg for "none" so we can reuse parse_time */
+		if (av[0] != NULL && strcasecmp(av[0], "none") == 0) {
+			(void)argv_next(&ac, &av); /* consume arg */
+			if (*activep)
+				*intptr = 0;
+			break;
+		}
+		goto parse_time;
+
 	case sDeprecated:
 	case sIgnore:
 	case sUnsupported:
@@ -2709,6 +2724,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(rekey_interval);
 	M_CP_INTOPT(log_level);
 	M_CP_INTOPT(required_rsa_size);
+	M_CP_INTOPT(unused_connection_timeout);
 
 	/*
 	 * The bind_mask is a mode_t that may be unsigned, so we can't use
@@ -2861,6 +2877,10 @@ fmt_intarg(ServerOpCodes code, int val)
 static void
 dump_cfg_int(ServerOpCodes code, int val)
 {
+	if (code == sUnusedConnectionTimeout && val == 0) {
+		printf("%s none\n", lookup_opcode_name(code));
+		return;
+	}
 	printf("%s %d\n", lookup_opcode_name(code), val);
 }
 
@@ -2977,6 +2997,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_int(sClientAliveCountMax, o->client_alive_count_max);
 	dump_cfg_int(sRequiredRSASize, o->required_rsa_size);
 	dump_cfg_oct(sStreamLocalBindMask, o->fwd_opts.streamlocal_bind_mask);
+	dump_cfg_int(sUnusedConnectionTimeout, o->unused_connection_timeout);
 
 	/* formatted integer arguments */
 	dump_cfg_fmtint(sPermitRootLogin, o->permit_root_login);
