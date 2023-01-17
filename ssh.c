@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.583 2023/01/13 02:58:20 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.584 2023/01/17 18:52:44 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -886,8 +886,7 @@ main(int ac, char **av)
 		case 'V':
 			fprintf(stderr, "%s, %s\n",
 			    SSH_RELEASE, SSH_OPENSSL_VERSION);
-			if (opt == 'V')
-				exit(0);
+			exit(0);
 			break;
 		case 'w':
 			if (options.tun_open == -1)
