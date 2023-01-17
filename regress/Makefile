@@ -102,7 +102,8 @@ LTESTS= 	connect \
 		knownhosts-command \
 		agent-restrict \
 		hostbased \
-		channel-timeout
+		channel-timeout \
+		connection-timeout
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
