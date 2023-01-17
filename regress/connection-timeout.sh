@@ -1,4 +1,4 @@
-#	$OpenBSD: connection-timeout.sh,v 1.1 2023/01/17 10:02:34 djm Exp $
+#	$OpenBSD: connection-timeout.sh,v 1.2 2023/01/17 10:15:10 djm Exp $
 #	Placed in the Public Domain.
 
 tid="unused connection timeout"
@@ -58,10 +58,17 @@ sleep 8
 check_ssh && fail "ssh unexpectedly present"
 stop_ssh
 
-verbose "timeout after session"
+verbose "session inhibits timeout"
+rm -f $OBJ/copy.1
 start_ssh
-${REAL_SSH} -qoControlPath=$CTL -oControlMaster=no -Fnone somehost "exit 0" ||
-	fail "session failed"
+${REAL_SSH} -qoControlPath=$CTL -oControlMaster=no -Fnone somehost \
+	"sleep 8; touch $OBJ/copy.1" &
+check_ssh || fail "ssh unexpectedly missing"
+wait
+test -f $OBJ/copy.1 || fail "missing result file"
+
+verbose "timeout after session"
+# Session should still be running from previous
 sleep 8
 check_ssh && fail "ssh unexpectedly present"
 stop_ssh
