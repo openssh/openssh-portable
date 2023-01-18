@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.426 2023/01/06 02:47:18 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.427 2023/01/18 02:00:10 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -417,16 +417,19 @@ channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
 		 */
 		if (rfd != -1 && !isatty(rfd) &&
 		    (val = fcntl(rfd, F_GETFL)) != -1 && !(val & O_NONBLOCK)) {
+			c->restore_flags[0] = val;
 			c->restore_block |= CHANNEL_RESTORE_RFD;
 			set_nonblock(rfd);
 		}
 		if (wfd != -1 && !isatty(wfd) &&
 		    (val = fcntl(wfd, F_GETFL)) != -1 && !(val & O_NONBLOCK)) {
+			c->restore_flags[1] = val;
 			c->restore_block |= CHANNEL_RESTORE_WFD;
 			set_nonblock(wfd);
 		}
 		if (efd != -1 && !isatty(efd) &&
 		    (val = fcntl(efd, F_GETFL)) != -1 && !(val & O_NONBLOCK)) {
+			c->restore_flags[2] = val;
 			c->restore_block |= CHANNEL_RESTORE_EFD;
 			set_nonblock(efd);
 		}
@@ -510,10 +513,16 @@ channel_close_fd(struct ssh *ssh, Channel *c, int *fdp)
 	if (fd == -1)
 		return 0;
 
-	if ((*fdp == c->rfd && (c->restore_block & CHANNEL_RESTORE_RFD) != 0) ||
-	   (*fdp == c->wfd && (c->restore_block & CHANNEL_RESTORE_WFD) != 0) ||
-	   (*fdp == c->efd && (c->restore_block & CHANNEL_RESTORE_EFD) != 0))
-		(void)fcntl(*fdp, F_SETFL, 0);	/* restore blocking */
+	/* restore blocking */
+	if (*fdp == c->rfd &&
+	    (c->restore_block & CHANNEL_RESTORE_RFD) != 0)
+		(void)fcntl(*fdp, F_SETFL, c->restore_flags[0]);
+	else if (*fdp == c->wfd &&
+	    (c->restore_block & CHANNEL_RESTORE_WFD) != 0)
+		(void)fcntl(*fdp, F_SETFL, c->restore_flags[1]);
+	else if (*fdp == c->efd &&
+	    (c->restore_block & CHANNEL_RESTORE_EFD) != 0)
+		(void)fcntl(*fdp, F_SETFL, c->restore_flags[2]);
 
 	if (*fdp == c->rfd) {
 		c->io_want &= ~SSH_CHAN_IO_RFD;

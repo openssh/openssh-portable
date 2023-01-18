@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.147 2023/01/06 02:47:18 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.148 2023/01/18 02:00:10 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -153,6 +153,7 @@ struct Channel {
 				 * this way post-IO handlers are not
 				 * accidentally called if a FD gets reused */
 	int	restore_block;	/* fd mask to restore blocking status */
+	int	restore_flags[3];/* flags to restore */
 	struct sshbuf *input;	/* data read from socket, to be sent over
 				 * encrypted connection */
 	struct sshbuf *output;	/* data received over encrypted connection for
