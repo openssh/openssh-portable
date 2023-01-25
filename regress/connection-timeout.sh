@@ -2,6 +2,9 @@
 #	Placed in the Public Domain.
 
 tid="unused connection timeout"
+if config_defined DISABLE_FD_PASSING ; then
+       skip "not supported on this platform"
+fi
 
 CTL=$OBJ/ctl-sock
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy.orig
