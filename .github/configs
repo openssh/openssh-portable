@@ -176,10 +176,12 @@ case "$config" in
 	tests5="rekey"
 	case "$config" in
 	    valgrind-1)
-		# All tests except agent-timeout (which is flaky under valgrind)
+		# All tests except agent-timeout (which is flaky under valgrind),
+		# connection-timeout (which doesn't work since it's so slow)
 		# and hostbased (since valgrind won't let ssh exec keysign).
 		# Slow ones are run separately to increase parallelism.
-		SKIP_LTESTS="agent-timeout hostbased ${tests2} ${tests3} ${tests4} ${tests5}"
+		SKIP_LTESTS="agent-timeout connection-timeout hostbased"
+		SKIP_LTESTS="$SKIP_LTESTS ${tests2} ${tests3} ${tests4} ${tests5}"
 		;;
 	    valgrind-2)
 		LTESTS="${tests2}"
