@@ -3245,7 +3245,7 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" != "xno" ; then
 		    [Enable for built-in U2F/FIDO support])
 		enable_sk="built-in"
 		saved_LIBS="$LIBS"
-		LIBS="$LIBS $LIBFIDO2"
+		LIBS="$LIBFIDO2 $LIBS"
 		AC_CHECK_FUNCS([ \
 			fido_assert_set_clientdata \
 			fido_cred_prot \
