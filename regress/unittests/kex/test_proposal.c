@@ -5,14 +5,18 @@
  * Placed in the public domain
  */
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <signal.h>
 #include <stdio.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
-#include "test_helper.h"
+#include "../test_helper/test_helper.h"
 
 #include "compat.h"
 #include "ssherr.h"

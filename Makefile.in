@@ -616,6 +616,7 @@ regress/unittests/conversion/test_conversion$(EXEEXT): \
 UNITTESTS_TEST_KEX_OBJS=\
 	regress/unittests/kex/tests.o \
 	regress/unittests/kex/test_kex.o \
+	regress/unittests/kex/test_proposal.o \
 	$(SKOBJS)
 
 regress/unittests/kex/test_kex$(EXEEXT): ${UNITTESTS_TEST_KEX_OBJS} \
