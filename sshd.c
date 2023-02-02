@@ -88,6 +88,10 @@
 #include <prot.h>
 #endif
 
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh2.h"
@@ -310,6 +314,10 @@ static void
 sighup_restart(void)
 {
 	logit("Received SIGHUP; restarting.");
+#ifdef HAVE_SYSTEMD
+	/* Signal systemd that we are reloading */
+	sd_notify(0, "RELOADING=1");
+#endif
 	if (options.pid_file != NULL)
 		unlink(options.pid_file);
 	platform_pre_restart();
@@ -2085,6 +2093,11 @@ main(int ac, char **av)
 				fclose(f);
 			}
 		}
+
+#ifdef HAVE_SYSTEMD
+		/* Signal systemd that we are ready to accept connections */
+		sd_notify(0, "READY=1");
+#endif
 
 		/* Accept a connection and return in a forked child */
 		server_accept_loop(&sock_in, &sock_out,
