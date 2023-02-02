@@ -247,6 +247,40 @@ int ssh_falcon1024_verify(const struct sshkey *key,
     return r;
 }
 /*---------------------------------------------------
+ * DILITHIUM_2 METHODS
+ *---------------------------------------------------
+ */
+int ssh_dilithium2_sign(const struct sshkey *key,
+                     u_char **sigp,
+                     size_t *lenp,
+                     const u_char *data,
+                     size_t datalen,
+                     u_int compat)
+{
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_dilithium_2);
+    if (sig == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = ssh_generic_sign(sig, "dilithium2", key, sigp, lenp, data, datalen, compat);
+    OQS_SIG_free(sig);
+    return r;
+}
+int ssh_dilithium2_verify(const struct sshkey *key,
+                       const u_char *signature,
+                       size_t signaturelen,
+                       const u_char *data,
+                       size_t datalen,
+                       u_int compat)
+{
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_dilithium_2);
+    if (sig == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = ssh_generic_verify(sig, "dilithium2", key, signature, signaturelen, data, datalen, compat);
+    OQS_SIG_free(sig);
+    return r;
+}
+/*---------------------------------------------------
  * DILITHIUM_3 METHODS
  *---------------------------------------------------
  */
@@ -281,70 +315,36 @@ int ssh_dilithium3_verify(const struct sshkey *key,
     return r;
 }
 /*---------------------------------------------------
- * DILITHIUM_2_AES METHODS
+ * DILITHIUM_5 METHODS
  *---------------------------------------------------
  */
-int ssh_dilithium2aes_sign(const struct sshkey *key,
+int ssh_dilithium5_sign(const struct sshkey *key,
                      u_char **sigp,
                      size_t *lenp,
                      const u_char *data,
                      size_t datalen,
                      u_int compat)
 {
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_dilithium_2_aes);
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_dilithium_5);
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
-    int r = ssh_generic_sign(sig, "dilithium2aes", key, sigp, lenp, data, datalen, compat);
+    int r = ssh_generic_sign(sig, "dilithium5", key, sigp, lenp, data, datalen, compat);
     OQS_SIG_free(sig);
     return r;
 }
-int ssh_dilithium2aes_verify(const struct sshkey *key,
+int ssh_dilithium5_verify(const struct sshkey *key,
                        const u_char *signature,
                        size_t signaturelen,
                        const u_char *data,
                        size_t datalen,
                        u_int compat)
 {
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_dilithium_2_aes);
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_dilithium_5);
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
-    int r = ssh_generic_verify(sig, "dilithium2aes", key, signature, signaturelen, data, datalen, compat);
-    OQS_SIG_free(sig);
-    return r;
-}
-/*---------------------------------------------------
- * DILITHIUM_5_AES METHODS
- *---------------------------------------------------
- */
-int ssh_dilithium5aes_sign(const struct sshkey *key,
-                     u_char **sigp,
-                     size_t *lenp,
-                     const u_char *data,
-                     size_t datalen,
-                     u_int compat)
-{
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_dilithium_5_aes);
-    if (sig == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = ssh_generic_sign(sig, "dilithium5aes", key, sigp, lenp, data, datalen, compat);
-    OQS_SIG_free(sig);
-    return r;
-}
-int ssh_dilithium5aes_verify(const struct sshkey *key,
-                       const u_char *signature,
-                       size_t signaturelen,
-                       const u_char *data,
-                       size_t datalen,
-                       u_int compat)
-{
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_dilithium_5_aes);
-    if (sig == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = ssh_generic_verify(sig, "dilithium5aes", key, signature, signaturelen, data, datalen, compat);
+    int r = ssh_generic_verify(sig, "dilithium5", key, signature, signaturelen, data, datalen, compat);
     OQS_SIG_free(sig);
     return r;
 }
@@ -383,36 +383,104 @@ int ssh_sphincsharaka128fsimple_verify(const struct sshkey *key,
     return r;
 }
 /*---------------------------------------------------
- * SPHINCS_HARAKA_192F_ROBUST METHODS
+ * SPHINCS_SHA256_128F_SIMPLE METHODS
  *---------------------------------------------------
  */
-int ssh_sphincsharaka192frobust_sign(const struct sshkey *key,
+int ssh_sphincssha256128fsimple_sign(const struct sshkey *key,
                      u_char **sigp,
                      size_t *lenp,
                      const u_char *data,
                      size_t datalen,
                      u_int compat)
 {
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_haraka_192f_robust);
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_128f_simple);
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
-    int r = ssh_generic_sign(sig, "sphincsharaka192frobust", key, sigp, lenp, data, datalen, compat);
+    int r = ssh_generic_sign(sig, "sphincssha256128fsimple", key, sigp, lenp, data, datalen, compat);
     OQS_SIG_free(sig);
     return r;
 }
-int ssh_sphincsharaka192frobust_verify(const struct sshkey *key,
+int ssh_sphincssha256128fsimple_verify(const struct sshkey *key,
                        const u_char *signature,
                        size_t signaturelen,
                        const u_char *data,
                        size_t datalen,
                        u_int compat)
 {
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_haraka_192f_robust);
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_128f_simple);
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
-    int r = ssh_generic_verify(sig, "sphincsharaka192frobust", key, signature, signaturelen, data, datalen, compat);
+    int r = ssh_generic_verify(sig, "sphincssha256128fsimple", key, signature, signaturelen, data, datalen, compat);
+    OQS_SIG_free(sig);
+    return r;
+}
+/*---------------------------------------------------
+ * SPHINCS_SHA256_192S_ROBUST METHODS
+ *---------------------------------------------------
+ */
+int ssh_sphincssha256192srobust_sign(const struct sshkey *key,
+                     u_char **sigp,
+                     size_t *lenp,
+                     const u_char *data,
+                     size_t datalen,
+                     u_int compat)
+{
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_192s_robust);
+    if (sig == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = ssh_generic_sign(sig, "sphincssha256192srobust", key, sigp, lenp, data, datalen, compat);
+    OQS_SIG_free(sig);
+    return r;
+}
+int ssh_sphincssha256192srobust_verify(const struct sshkey *key,
+                       const u_char *signature,
+                       size_t signaturelen,
+                       const u_char *data,
+                       size_t datalen,
+                       u_int compat)
+{
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_192s_robust);
+    if (sig == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = ssh_generic_verify(sig, "sphincssha256192srobust", key, signature, signaturelen, data, datalen, compat);
+    OQS_SIG_free(sig);
+    return r;
+}
+/*---------------------------------------------------
+ * SPHINCS_SHA256_256F_SIMPLE METHODS
+ *---------------------------------------------------
+ */
+int ssh_sphincssha256256fsimple_sign(const struct sshkey *key,
+                     u_char **sigp,
+                     size_t *lenp,
+                     const u_char *data,
+                     size_t datalen,
+                     u_int compat)
+{
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_256f_simple);
+    if (sig == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = ssh_generic_sign(sig, "sphincssha256256fsimple", key, sigp, lenp, data, datalen, compat);
+    OQS_SIG_free(sig);
+    return r;
+}
+int ssh_sphincssha256256fsimple_verify(const struct sshkey *key,
+                       const u_char *signature,
+                       size_t signaturelen,
+                       const u_char *data,
+                       size_t datalen,
+                       u_int compat)
+{
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_256f_simple);
+    if (sig == NULL) {
+        return SSH_ERR_ALLOC_FAIL;
+    }
+    int r = ssh_generic_verify(sig, "sphincssha256256fsimple", key, signature, signaturelen, data, datalen, compat);
     OQS_SIG_free(sig);
     return r;
 }

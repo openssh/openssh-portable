@@ -33,11 +33,13 @@ for fmt in '' RFC4716 PKCS8 PEM; do
 ##### OQS_TEMPLATE_FRAGMENT_EXCLUDE_OQS_ALGS_START
 		*falcon512*) test -z "$oldfmt" || continue ;;
 		*falcon1024*) test -z "$oldfmt" || continue ;;
+		*dilithium2*) test -z "$oldfmt" || continue ;;
 		*dilithium3*) test -z "$oldfmt" || continue ;;
-		*dilithium2aes*) test -z "$oldfmt" || continue ;;
-		*dilithium5aes*) test -z "$oldfmt" || continue ;;
+		*dilithium5*) test -z "$oldfmt" || continue ;;
 		*sphincsharaka128fsimple*) test -z "$oldfmt" || continue ;;
-		*sphincsharaka192frobust*) test -z "$oldfmt" || continue ;;
+		*sphincssha256128fsimple*) test -z "$oldfmt" || continue ;;
+		*sphincssha256192srobust*) test -z "$oldfmt" || continue ;;
+		*sphincssha256256fsimple*) test -z "$oldfmt" || continue ;;
 ##### OQS_TEMPLATE_FRAGMENT_EXCLUDE_OQS_ALGS_END
 		esac
 		comment="foo bar"

@@ -300,37 +300,47 @@ fill_default_server_options(ServerOptions *options)
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_FALCON_1024_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_DILITHIUM_2_KEY_FILE, 0);
+		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_DILITHIUM_3_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_DILITHIUM_2_AES_KEY_FILE, 0);
-		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_DILITHIUM_5_AES_KEY_FILE, 0);
+		    _PATH_HOST_DILITHIUM_5_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_SPHINCS_HARAKA_192F_ROBUST_KEY_FILE, 0);
+		    _PATH_HOST_SPHINCS_SHA256_128F_SIMPLE_KEY_FILE, 0);
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_SPHINCS_SHA256_192S_ROBUST_KEY_FILE, 0);
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_SPHINCS_SHA256_256F_SIMPLE_KEY_FILE, 0);
 #ifdef WITH_OPENSSL
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_RSA3072_FALCON_512_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_RSA3072_DILITHIUM_2_AES_KEY_FILE, 0);
+		    _PATH_HOST_RSA3072_DILITHIUM_2_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_RSA3072_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, 0);
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_RSA3072_SPHINCS_SHA256_128F_SIMPLE_KEY_FILE, 0);
 #ifdef OPENSSL_HAS_ECC
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ECDSA_NISTP256_FALCON_512_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ECDSA_NISTP521_FALCON_1024_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_ECDSA_NISTP256_DILITHIUM_2_KEY_FILE, 0);
+		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ECDSA_NISTP384_DILITHIUM_3_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_ECDSA_NISTP256_DILITHIUM_2_AES_KEY_FILE, 0);
-		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_AES_KEY_FILE, 0);
+		    _PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST_KEY_FILE, 0);
+		    _PATH_HOST_ECDSA_NISTP256_SPHINCS_SHA256_128F_SIMPLE_KEY_FILE, 0);
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_ECDSA_NISTP384_SPHINCS_SHA256_192S_ROBUST_KEY_FILE, 0);
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_ECDSA_NISTP521_SPHINCS_SHA256_256F_SIMPLE_KEY_FILE, 0);
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_SERVER_ADD_HOSTKEYS_END

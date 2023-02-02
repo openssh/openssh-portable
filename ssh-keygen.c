@@ -226,11 +226,14 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		  case KEY_ECDSA_NISTP384_DILITHIUM_3:
 		    *bitsp = 384;
 		    break;
-		  case KEY_ECDSA_NISTP521_DILITHIUM_5_AES:
+		  case KEY_ECDSA_NISTP521_DILITHIUM_5:
 		    *bitsp = 521;
 		    break;
-		  case KEY_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST:
+		  case KEY_ECDSA_NISTP384_SPHINCS_SHA256_192S_ROBUST:
 		    *bitsp = 384;
+		    break;
+		  case KEY_ECDSA_NISTP521_SPHINCS_SHA256_256F_SIMPLE:
+		    *bitsp = 521;
 		    break;
 ///// OQS_TEMPLATE_FRAGMENT_HANDLE_ECDSA_HYBRIDS_END
 		  }
@@ -335,30 +338,39 @@ ask_filename(struct passwd *pw, const char *prompt)
 		  case KEY_FALCON_1024:
 		    name = _PATH_SSH_CLIENT_ID_FALCON_1024;
 		    break;
+		  case KEY_DILITHIUM_2:
+		    name = _PATH_SSH_CLIENT_ID_DILITHIUM_2;
+		    break;
 		  case KEY_DILITHIUM_3:
 		    name = _PATH_SSH_CLIENT_ID_DILITHIUM_3;
 		    break;
-		  case KEY_DILITHIUM_2_AES:
-		    name = _PATH_SSH_CLIENT_ID_DILITHIUM_2_AES;
-		    break;
-		  case KEY_DILITHIUM_5_AES:
-		    name = _PATH_SSH_CLIENT_ID_DILITHIUM_5_AES;
+		  case KEY_DILITHIUM_5:
+		    name = _PATH_SSH_CLIENT_ID_DILITHIUM_5;
 		    break;
 		  case KEY_SPHINCS_HARAKA_128F_SIMPLE:
 		    name = _PATH_SSH_CLIENT_ID_SPHINCS_HARAKA_128F_SIMPLE;
 		    break;
-		  case KEY_SPHINCS_HARAKA_192F_ROBUST:
-		    name = _PATH_SSH_CLIENT_ID_SPHINCS_HARAKA_192F_ROBUST;
+		  case KEY_SPHINCS_SHA256_128F_SIMPLE:
+		    name = _PATH_SSH_CLIENT_ID_SPHINCS_SHA256_128F_SIMPLE;
+		    break;
+		  case KEY_SPHINCS_SHA256_192S_ROBUST:
+		    name = _PATH_SSH_CLIENT_ID_SPHINCS_SHA256_192S_ROBUST;
+		    break;
+		  case KEY_SPHINCS_SHA256_256F_SIMPLE:
+		    name = _PATH_SSH_CLIENT_ID_SPHINCS_SHA256_256F_SIMPLE;
 		    break;
 #ifdef WITH_OPENSSL
 		  case KEY_RSA3072_FALCON_512:
 		    name = _PATH_SSH_CLIENT_ID_RSA3072_FALCON_512;
 		    break;
-		  case KEY_RSA3072_DILITHIUM_2_AES:
-		    name = _PATH_SSH_CLIENT_ID_RSA3072_DILITHIUM_2_AES;
+		  case KEY_RSA3072_DILITHIUM_2:
+		    name = _PATH_SSH_CLIENT_ID_RSA3072_DILITHIUM_2;
 		    break;
 		  case KEY_RSA3072_SPHINCS_HARAKA_128F_SIMPLE:
 		    name = _PATH_SSH_CLIENT_ID_RSA3072_SPHINCS_HARAKA_128F_SIMPLE;
+		    break;
+		  case KEY_RSA3072_SPHINCS_SHA256_128F_SIMPLE:
+		    name = _PATH_SSH_CLIENT_ID_RSA3072_SPHINCS_SHA256_128F_SIMPLE;
 		    break;
 #ifdef OPENSSL_HAS_ECC
 		  case KEY_ECDSA_NISTP256_FALCON_512:
@@ -367,20 +379,26 @@ ask_filename(struct passwd *pw, const char *prompt)
 		  case KEY_ECDSA_NISTP521_FALCON_1024:
 		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP521_FALCON_1024;
 		    break;
+		  case KEY_ECDSA_NISTP256_DILITHIUM_2:
+		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_DILITHIUM_2;
+		    break;
 		  case KEY_ECDSA_NISTP384_DILITHIUM_3:
 		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP384_DILITHIUM_3;
 		    break;
-		  case KEY_ECDSA_NISTP256_DILITHIUM_2_AES:
-		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_DILITHIUM_2_AES;
-		    break;
-		  case KEY_ECDSA_NISTP521_DILITHIUM_5_AES:
-		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP521_DILITHIUM_5_AES;
+		  case KEY_ECDSA_NISTP521_DILITHIUM_5:
+		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP521_DILITHIUM_5;
 		    break;
 		  case KEY_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE:
 		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE;
 		    break;
-		  case KEY_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST:
-		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST;
+		  case KEY_ECDSA_NISTP256_SPHINCS_SHA256_128F_SIMPLE:
+		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP256_SPHINCS_SHA256_128F_SIMPLE;
+		    break;
+		  case KEY_ECDSA_NISTP384_SPHINCS_SHA256_192S_ROBUST:
+		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP384_SPHINCS_SHA256_192S_ROBUST;
+		    break;
+		  case KEY_ECDSA_NISTP521_SPHINCS_SHA256_256F_SIMPLE:
+		    name = _PATH_SSH_CLIENT_ID_ECDSA_NISTP521_SPHINCS_SHA256_256F_SIMPLE;
 		    break;
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
@@ -1146,23 +1164,28 @@ do_gen_all_hostkeys(struct passwd *pw)
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEY_TYPES_START
 		{ "falcon512", "FALCON_512", _PATH_HOST_FALCON_512_KEY_FILE },
 		{ "falcon1024", "FALCON_1024", _PATH_HOST_FALCON_1024_KEY_FILE },
+		{ "dilithium2", "DILITHIUM_2", _PATH_HOST_DILITHIUM_2_KEY_FILE },
 		{ "dilithium3", "DILITHIUM_3", _PATH_HOST_DILITHIUM_3_KEY_FILE },
-		{ "dilithium2aes", "DILITHIUM_2_AES", _PATH_HOST_DILITHIUM_2_AES_KEY_FILE },
-		{ "dilithium5aes", "DILITHIUM_5_AES", _PATH_HOST_DILITHIUM_5_AES_KEY_FILE },
+		{ "dilithium5", "DILITHIUM_5", _PATH_HOST_DILITHIUM_5_KEY_FILE },
 		{ "sphincsharaka128fsimple", "SPHINCS_HARAKA_128F_SIMPLE", _PATH_HOST_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE },
-		{ "sphincsharaka192frobust", "SPHINCS_HARAKA_192F_ROBUST", _PATH_HOST_SPHINCS_HARAKA_192F_ROBUST_KEY_FILE },
+		{ "sphincssha256128fsimple", "SPHINCS_SHA256_128F_SIMPLE", _PATH_HOST_SPHINCS_SHA256_128F_SIMPLE_KEY_FILE },
+		{ "sphincssha256192srobust", "SPHINCS_SHA256_192S_ROBUST", _PATH_HOST_SPHINCS_SHA256_192S_ROBUST_KEY_FILE },
+		{ "sphincssha256256fsimple", "SPHINCS_SHA256_256F_SIMPLE", _PATH_HOST_SPHINCS_SHA256_256F_SIMPLE_KEY_FILE },
 #ifdef WITH_OPENSSL
 		{ "rsa3072_falcon512", "RSA3072_FALCON_512", _PATH_HOST_RSA3072_FALCON_512_KEY_FILE },
-		{ "rsa3072_dilithium2aes", "RSA3072_DILITHIUM_2_AES", _PATH_HOST_RSA3072_DILITHIUM_2_AES_KEY_FILE },
+		{ "rsa3072_dilithium2", "RSA3072_DILITHIUM_2", _PATH_HOST_RSA3072_DILITHIUM_2_KEY_FILE },
 		{ "rsa3072_sphincsharaka128fsimple", "RSA3072_SPHINCS_HARAKA_128F_SIMPLE", _PATH_HOST_RSA3072_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE },
+		{ "rsa3072_sphincssha256128fsimple", "RSA3072_SPHINCS_SHA256_128F_SIMPLE", _PATH_HOST_RSA3072_SPHINCS_SHA256_128F_SIMPLE_KEY_FILE },
 #ifdef OPENSSL_HAS_ECC
 		{ "ecdsa_nistp256_falcon512", "ECDSA_NISTP256_FALCON_512", _PATH_HOST_ECDSA_NISTP256_FALCON_512_KEY_FILE },
 		{ "ecdsa_nistp521_falcon1024", "ECDSA_NISTP521_FALCON_1024", _PATH_HOST_ECDSA_NISTP521_FALCON_1024_KEY_FILE },
+		{ "ecdsa_nistp256_dilithium2", "ECDSA_NISTP256_DILITHIUM_2", _PATH_HOST_ECDSA_NISTP256_DILITHIUM_2_KEY_FILE },
 		{ "ecdsa_nistp384_dilithium3", "ECDSA_NISTP384_DILITHIUM_3", _PATH_HOST_ECDSA_NISTP384_DILITHIUM_3_KEY_FILE },
-		{ "ecdsa_nistp256_dilithium2aes", "ECDSA_NISTP256_DILITHIUM_2_AES", _PATH_HOST_ECDSA_NISTP256_DILITHIUM_2_AES_KEY_FILE },
-		{ "ecdsa_nistp521_dilithium5aes", "ECDSA_NISTP521_DILITHIUM_5_AES", _PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_AES_KEY_FILE },
+		{ "ecdsa_nistp521_dilithium5", "ECDSA_NISTP521_DILITHIUM_5", _PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_KEY_FILE },
 		{ "ecdsa_nistp256_sphincsharaka128fsimple", "ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE", _PATH_HOST_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE },
-		{ "ecdsa_nistp384_sphincsharaka192frobust", "ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST", _PATH_HOST_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST_KEY_FILE },
+		{ "ecdsa_nistp256_sphincssha256128fsimple", "ECDSA_NISTP256_SPHINCS_SHA256_128F_SIMPLE", _PATH_HOST_ECDSA_NISTP256_SPHINCS_SHA256_128F_SIMPLE_KEY_FILE },
+		{ "ecdsa_nistp384_sphincssha256192srobust", "ECDSA_NISTP384_SPHINCS_SHA256_192S_ROBUST", _PATH_HOST_ECDSA_NISTP384_SPHINCS_SHA256_192S_ROBUST_KEY_FILE },
+		{ "ecdsa_nistp521_sphincssha256256fsimple", "ECDSA_NISTP521_SPHINCS_SHA256_256F_SIMPLE", _PATH_HOST_ECDSA_NISTP521_SPHINCS_SHA256_256F_SIMPLE_KEY_FILE },
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_DEFINE_KEY_TYPES_END
@@ -1654,23 +1677,28 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	    ///// OQS_TEMPLATE_FRAGMENT_CHECK_PRIVATE_KEY_TYPE_START
 	    private->type != KEY_FALCON_512 &&
 	    private->type != KEY_FALCON_1024 &&
+	    private->type != KEY_DILITHIUM_2 &&
 	    private->type != KEY_DILITHIUM_3 &&
-	    private->type != KEY_DILITHIUM_2_AES &&
-	    private->type != KEY_DILITHIUM_5_AES &&
+	    private->type != KEY_DILITHIUM_5 &&
 	    private->type != KEY_SPHINCS_HARAKA_128F_SIMPLE &&
-	    private->type != KEY_SPHINCS_HARAKA_192F_ROBUST &&
+	    private->type != KEY_SPHINCS_SHA256_128F_SIMPLE &&
+	    private->type != KEY_SPHINCS_SHA256_192S_ROBUST &&
+	    private->type != KEY_SPHINCS_SHA256_256F_SIMPLE &&
 #ifdef WITH_OPENSSL
 	    private->type != KEY_RSA3072_FALCON_512 &&
-	    private->type != KEY_RSA3072_DILITHIUM_2_AES &&
+	    private->type != KEY_RSA3072_DILITHIUM_2 &&
 	    private->type != KEY_RSA3072_SPHINCS_HARAKA_128F_SIMPLE &&
+	    private->type != KEY_RSA3072_SPHINCS_SHA256_128F_SIMPLE &&
 #ifdef OPENSSL_HAS_ECC
 	    private->type != KEY_ECDSA_NISTP256_FALCON_512 &&
 	    private->type != KEY_ECDSA_NISTP521_FALCON_1024 &&
+	    private->type != KEY_ECDSA_NISTP256_DILITHIUM_2 &&
 	    private->type != KEY_ECDSA_NISTP384_DILITHIUM_3 &&
-	    private->type != KEY_ECDSA_NISTP256_DILITHIUM_2_AES &&
-	    private->type != KEY_ECDSA_NISTP521_DILITHIUM_5_AES &&
+	    private->type != KEY_ECDSA_NISTP521_DILITHIUM_5 &&
 	    private->type != KEY_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE &&
-	    private->type != KEY_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST &&
+	    private->type != KEY_ECDSA_NISTP256_SPHINCS_SHA256_128F_SIMPLE &&
+	    private->type != KEY_ECDSA_NISTP384_SPHINCS_SHA256_192S_ROBUST &&
+	    private->type != KEY_ECDSA_NISTP521_SPHINCS_SHA256_256F_SIMPLE &&
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 ///// OQS_TEMPLATE_FRAGMENT_CHECK_PRIVATE_KEY_TYPE_END
@@ -3831,25 +3859,25 @@ main(int argc, char **argv)
 			    _PATH_HOST_ECDSA_NISTP521_FALCON_1024_KEY_FILE, rr_hostname,
 			    print_generic);
 			n += do_print_resource_record(pw,
+			    _PATH_HOST_DILITHIUM_2_KEY_FILE, rr_hostname,
+			    print_generic);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_RSA3072_DILITHIUM_2_KEY_FILE, rr_hostname,
+			    print_generic);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_ECDSA_NISTP256_DILITHIUM_2_KEY_FILE, rr_hostname,
+			    print_generic);
+			n += do_print_resource_record(pw,
 			    _PATH_HOST_DILITHIUM_3_KEY_FILE, rr_hostname,
 			    print_generic);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_ECDSA_NISTP384_DILITHIUM_3_KEY_FILE, rr_hostname,
 			    print_generic);
 			n += do_print_resource_record(pw,
-			    _PATH_HOST_DILITHIUM_2_AES_KEY_FILE, rr_hostname,
+			    _PATH_HOST_DILITHIUM_5_KEY_FILE, rr_hostname,
 			    print_generic);
 			n += do_print_resource_record(pw,
-			    _PATH_HOST_RSA3072_DILITHIUM_2_AES_KEY_FILE, rr_hostname,
-			    print_generic);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_ECDSA_NISTP256_DILITHIUM_2_AES_KEY_FILE, rr_hostname,
-			    print_generic);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_DILITHIUM_5_AES_KEY_FILE, rr_hostname,
-			    print_generic);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_AES_KEY_FILE, rr_hostname,
+			    _PATH_HOST_ECDSA_NISTP521_DILITHIUM_5_KEY_FILE, rr_hostname,
 			    print_generic);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, rr_hostname,
@@ -3861,10 +3889,25 @@ main(int argc, char **argv)
 			    _PATH_HOST_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE_KEY_FILE, rr_hostname,
 			    print_generic);
 			n += do_print_resource_record(pw,
-			    _PATH_HOST_SPHINCS_HARAKA_192F_ROBUST_KEY_FILE, rr_hostname,
+			    _PATH_HOST_SPHINCS_SHA256_128F_SIMPLE_KEY_FILE, rr_hostname,
 			    print_generic);
 			n += do_print_resource_record(pw,
-			    _PATH_HOST_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST_KEY_FILE, rr_hostname,
+			    _PATH_HOST_RSA3072_SPHINCS_SHA256_128F_SIMPLE_KEY_FILE, rr_hostname,
+			    print_generic);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_ECDSA_NISTP256_SPHINCS_SHA256_128F_SIMPLE_KEY_FILE, rr_hostname,
+			    print_generic);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_SPHINCS_SHA256_192S_ROBUST_KEY_FILE, rr_hostname,
+			    print_generic);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_ECDSA_NISTP384_SPHINCS_SHA256_192S_ROBUST_KEY_FILE, rr_hostname,
+			    print_generic);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_SPHINCS_SHA256_256F_SIMPLE_KEY_FILE, rr_hostname,
+			    print_generic);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_ECDSA_NISTP521_SPHINCS_SHA256_256F_SIMPLE_KEY_FILE, rr_hostname,
 			    print_generic);
 ///// OQS_TEMPLATE_FRAGMENT_PRINT_RESOURCE_RECORDS_END
 			if (n == 0)

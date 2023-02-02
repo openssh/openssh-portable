@@ -81,18 +81,23 @@ enum sshkey_types {
 	KEY_ECDSA_NISTP256_FALCON_512,
 	KEY_FALCON_1024,
 	KEY_ECDSA_NISTP521_FALCON_1024,
+	KEY_DILITHIUM_2,
+	KEY_RSA3072_DILITHIUM_2,
+	KEY_ECDSA_NISTP256_DILITHIUM_2,
 	KEY_DILITHIUM_3,
 	KEY_ECDSA_NISTP384_DILITHIUM_3,
-	KEY_DILITHIUM_2_AES,
-	KEY_RSA3072_DILITHIUM_2_AES,
-	KEY_ECDSA_NISTP256_DILITHIUM_2_AES,
-	KEY_DILITHIUM_5_AES,
-	KEY_ECDSA_NISTP521_DILITHIUM_5_AES,
+	KEY_DILITHIUM_5,
+	KEY_ECDSA_NISTP521_DILITHIUM_5,
 	KEY_SPHINCS_HARAKA_128F_SIMPLE,
 	KEY_RSA3072_SPHINCS_HARAKA_128F_SIMPLE,
 	KEY_ECDSA_NISTP256_SPHINCS_HARAKA_128F_SIMPLE,
-	KEY_SPHINCS_HARAKA_192F_ROBUST,
-	KEY_ECDSA_NISTP384_SPHINCS_HARAKA_192F_ROBUST,
+	KEY_SPHINCS_SHA256_128F_SIMPLE,
+	KEY_RSA3072_SPHINCS_SHA256_128F_SIMPLE,
+	KEY_ECDSA_NISTP256_SPHINCS_SHA256_128F_SIMPLE,
+	KEY_SPHINCS_SHA256_192S_ROBUST,
+	KEY_ECDSA_NISTP384_SPHINCS_SHA256_192S_ROBUST,
+	KEY_SPHINCS_SHA256_256F_SIMPLE,
+	KEY_ECDSA_NISTP521_SPHINCS_SHA256_256F_SIMPLE,
 ///// OQS_TEMPLATE_FRAGMENT_ENUMERATE_KEYTYPES_END
 	KEY_UNSPEC
 };
@@ -353,16 +358,20 @@ int ssh_falcon512_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, co
 int ssh_falcon512_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
 int ssh_falcon1024_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
 int ssh_falcon1024_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
+int ssh_dilithium2_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
+int ssh_dilithium2_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
 int ssh_dilithium3_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
 int ssh_dilithium3_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
-int ssh_dilithium2aes_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
-int ssh_dilithium2aes_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
-int ssh_dilithium5aes_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
-int ssh_dilithium5aes_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
+int ssh_dilithium5_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
+int ssh_dilithium5_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
 int ssh_sphincsharaka128fsimple_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
 int ssh_sphincsharaka128fsimple_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
-int ssh_sphincsharaka192frobust_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
-int ssh_sphincsharaka192frobust_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
+int ssh_sphincssha256128fsimple_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
+int ssh_sphincssha256128fsimple_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
+int ssh_sphincssha256192srobust_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
+int ssh_sphincssha256192srobust_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
+int ssh_sphincssha256256fsimple_sign(const struct sshkey *key, u_char **sigp, size_t *lenp, const u_char *data, size_t datalen, u_int compat);
+int ssh_sphincssha256256fsimple_verify(const struct sshkey *key, const u_char *signature, size_t signaturelen, const u_char *data, size_t datalen, u_int compat);
 ///// OQS_TEMPLATE_FRAGMENT_DECLARE_PROTOTYPES_END
 #endif
 

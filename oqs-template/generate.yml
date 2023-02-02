@@ -242,6 +242,7 @@ sigs:
   -
     family: 'Dilithium'
     name: 'dilithium_2'
+    enable: true
     level: 1
     mix_with:
       -
@@ -262,6 +263,7 @@ sigs:
   -
     family: 'Dilithium'
     name: 'dilithium_5'
+    enable: true
     level: 5
     mix_with:
       -
@@ -270,7 +272,6 @@ sigs:
   -
     family: 'Dilithium'
     name: 'dilithium_2_aes'
-    enable: true
     level: 1
     mix_with:
       -
@@ -290,7 +291,6 @@ sigs:
   -
     family: 'Dilithium'
     name: 'dilithium_5_aes'
-    enable: true
     level: 5
     mix_with:
       -
@@ -366,6 +366,7 @@ sigs:
   -
     family: 'SPHINCS'
     name: 'sphincs_sha256_128f_simple'
+    enable: true
     level: 1
     mix_with:
       -
@@ -432,7 +433,6 @@ sigs:
   -
     family: 'SPHINCS'
     name: 'sphincs_haraka_192f_robust'
-    enable: true
     level: 3
     mix_with:
       -
@@ -473,6 +473,7 @@ sigs:
   -
     family: 'SPHINCS'
     name: 'sphincs_sha256_192s_robust'
+    enable: true
     level: 3
     mix_with:
       -
@@ -577,6 +578,7 @@ sigs:
   -
     family: 'SPHINCS'
     name: 'sphincs_sha256_256f_simple'
+    enable: true
     level: 5
     mix_with:
       -
