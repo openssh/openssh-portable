@@ -58,6 +58,7 @@ addr_match_list(const char *addr, const char *_list)
 		return 0;
 	}
 	if ((o = list = strdup(_list)) == NULL)
+		free(o);
 		return -1;
 	while ((cp = strsep(&list, ",")) != NULL) {
 		neg = *cp == '!';
@@ -118,6 +119,7 @@ addr_match_cidr_list(const char *addr, const char *_list)
 		return 0;
 	}
 	if ((o = list = strdup(_list)) == NULL)
+		free(o);
 		return -1;
 	while ((cp = strsep(&list, ",")) != NULL) {
 		if (*cp == '\0') {
