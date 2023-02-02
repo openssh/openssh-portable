@@ -1,0 +1,85 @@
+#!/sbin/openrc-run
+
+extra_commands="checkconfig"
+extra_started_commands="reload"
+
+: ${SSHD_CONFDIR:=${RC_PREFIX%/}/etc/ssh}
+: ${SSHD_CONFIG:=${SSHD_CONFDIR}/sshd_config}
+: ${SSHD_PIDFILE:=${RC_PREFIX%/}/run/${SVCNAME}.pid}
+: ${SSHD_BINARY:=${RC_PREFIX%/}/usr/sbin/sshd}
+: ${SSHD_KEYGEN_BINARY:=${RC_PREFIX%/}/usr/bin/ssh-keygen}
+
+command="${SSHD_BINARY}"
+pidfile="${SSHD_PIDFILE}"
+command_args="${SSHD_OPTS} -o PidFile=${pidfile} -f ${SSHD_CONFIG}"
+
+# Wait one second (length chosen arbitrarily) to see if sshd actually
+# creates a PID file, or if it crashes for some reason like not being
+# able to bind to the address in ListenAddress (https://bugs.gentoo.org/617596).
+: ${SSHD_SSD_OPTS:=--wait 1000}
+start_stop_daemon_args="${SSHD_SSD_OPTS}"
+
+depend() {
+	# Entropy can be used by ssh-keygen, among other things, but
+	# is not strictly required (https://bugs.gentoo.org/470020).
+	use logger dns entropy
+	if [ "${rc_need+set}" = "set" ] ; then
+		: # Do nothing, the user has explicitly set rc_need
+	else
+		local x warn_addr
+		for x in $(awk '/^ListenAddress/{ print $2 }' "$SSHD_CONFIG" 2>/dev/null) ; do
+			case "${x}" in
+				0.0.0.0|0.0.0.0:*) ;;
+				::|\[::\]*) ;;
+				*) warn_addr="${warn_addr} ${x}" ;;
+			esac
+		done
+		if [ -n "${warn_addr}" ] ; then
+			need net
+			ewarn "You are binding an interface in ListenAddress statement in your sshd_config!"
+			ewarn "You must add rc_need=\"net.FOO\" to your ${RC_PREFIX%/}/etc/conf.d/sshd"
+			ewarn "where FOO is the interface(s) providing the following address(es):"
+			ewarn "${warn_addr}"
+		fi
+	fi
+}
+
+checkconfig() {
+	checkpath --mode 0755 --directory "${RC_PREFIX%/}/var/empty"
+
+	if [ ! -e "${SSHD_CONFIG}" ] ; then
+		eerror "You need an ${SSHD_CONFIG} file to run sshd"
+		eerror "There is a sample file in /usr/share/doc/openssh"
+		return 1
+	fi
+
+	${SSHD_KEYGEN_BINARY} -A || return 2
+
+	"${command}" -t ${command_args} || return 3
+}
+
+start_pre() {
+	# Make sure that the user's config isn't busted before we try
+	# to start the daemon (this will produce better error messages
+	# than if we just try to start it blindly).
+	#
+	# We always need to call checkconfig because this function will
+	# also generate any missing host key and you can start a
+	# non-running service with "restart" argument.
+	checkconfig || return $?
+}
+
+stop_pre() {
+	# If this is a restart, check to make sure the user's config
+	# isn't busted before we stop the running daemon.
+	if [ "${RC_CMD}" = "restart" ] ; then
+		checkconfig || return $?
+	fi
+}
+
+reload() {
+	checkconfig || return $?
+	ebegin "Reloading ${SVCNAME}"
+	start-stop-daemon --signal HUP --pidfile "${pidfile}"
+	eend $?
+}

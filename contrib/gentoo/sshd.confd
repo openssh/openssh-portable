@@ -1,0 +1,33 @@
+# /etc/conf.d/sshd: config file for /etc/init.d/sshd
+
+# Where is your sshd_config file stored?
+
+SSHD_CONFDIR="${RC_PREFIX%/}/etc/ssh"
+
+
+# Any random options you want to pass to sshd.
+# See the sshd(8) manpage for more info.
+
+SSHD_OPTS=""
+
+
+# Wait one second (length chosen arbitrarily) to see if sshd actually
+# creates a PID file, or if it crashes for some reason like not being
+# able to bind to the address in ListenAddress.
+
+#SSHD_SSD_OPTS="--wait 1000"
+
+
+# Pid file to use (needs to be absolute path).
+
+#SSHD_PIDFILE="${RC_PREFIX%/}/run/sshd.pid"
+
+
+# Path to the sshd binary (needs to be absolute path).
+
+#SSHD_BINARY="${RC_PREFIX%/}/usr/sbin/sshd"
+
+
+# Path to the ssh-keygen binary (needs to be absolute path).
+
+#SSHD_KEYGEN_BINARY="${RC_PREFIX%/}/usr/bin/ssh-keygen"
