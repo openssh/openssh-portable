@@ -1,7 +1,7 @@
-#	$OpenBSD: Makefile,v 1.13 2023/01/15 23:35:10 djm Exp $
+#	$OpenBSD: Makefile,v 1.14 2023/02/02 12:12:52 djm Exp $
 
 PROG=test_kex
-SRCS=tests.c test_kex.c
+SRCS=tests.c test_kex.c test_proposal.c
 
 # From usr.bin/ssh
 SRCS+=sshbuf-getput-basic.c sshbuf-getput-crypto.c sshbuf-misc.c sshbuf.c
