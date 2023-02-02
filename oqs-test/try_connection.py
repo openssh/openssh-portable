@@ -107,7 +107,7 @@ def do_handshake(ssh, sshd, test_sig, test_kex):
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT)
 
-    # sshd should locally (hopefully?) start within 1 second. If activating Rainbow, at least an order of magnitude more delay must be considered.
+    # sshd should locally (hopefully?) start within 1 second.
     time.sleep(1)
 
     # Try to connect to it with the client

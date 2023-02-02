@@ -81,7 +81,7 @@ Note that algorithms marked with a dagger (†) have large stack usage and may c
 
 #### Digital Signature
 
-The following digital signature algorithms from liboqs are supported (assuming they have been enabled in liboqs). Note that only select L3 signature variants are enabled by default. In general, algorithms that are enabled by default are marked with an asterisk, and should you wish to enable additional variants, consult [the "Code Generation" section of the documentation in the wiki](https://github.com/open-quantum-safe/openssh/wiki/Using-liboqs-supported-algorithms-in-the-fork#code-generation). Note that enabling Rainbow will introduce a substantial execution delay to all operations. If doing it inadvertently, tests will fail and all kind of headaches occur. You have been warned.
+The following digital signature algorithms from liboqs are supported (assuming they have been enabled in liboqs). Note that only select L3 signature variants are enabled by default. In general, algorithms that are enabled by default are marked with an asterisk, and should you wish to enable additional variants, consult [the "Code Generation" section of the documentation in the wiki](https://github.com/open-quantum-safe/openssh/wiki/Using-liboqs-supported-algorithms-in-the-fork#code-generation).
 
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_SIGS_START -->
 - **Dilithium**: `dilithium2`\*, `dilithium3`\*, `dilithium5`\*, `dilithium2aes`, `dilithium3aes`, `dilithium5aes`

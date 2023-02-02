@@ -103,7 +103,7 @@
 #define DBG(x)
 #endif
 
-// OQS: Increasing for McEliece and Rainbow:
+// OQS: Increasing for McEliece:
 #define PACKET_MAX_SIZE (2500 * 1024)
 
 struct packet_state {
