@@ -174,6 +174,7 @@ static const struct sftp_handler extended_handlers[] = {
 	    process_extended_home_directory, 0 },
 	{ "users-groups-by-id", "users-groups-by-id@openssh.com", 0,
 	    process_extended_get_users_groups_by_id, 0 },
+	{ "copy-file", "copy-file@openssh.com", 0, process_extended_copy_file, 0 },
 	{ NULL, NULL, 0, NULL, 0 }
 };
 
@@ -722,6 +723,7 @@ process_init(void)
 		fatal_fr(r, "compose");
 
 	 /* extension advertisements */
+	compose_extension(msg, "copy-file@openssh.com", "1");
 	compose_extension(msg, "posix-rename@openssh.com", "1");
 	compose_extension(msg, "statvfs@openssh.com", "2");
 	compose_extension(msg, "fstatvfs@openssh.com", "2");
@@ -1386,6 +1388,56 @@ process_extended_posix_rename(u_int32_t id)
 	send_status(id, status);
 	free(oldpath);
 	free(newpath);
+}
+
+static void process_extended_copy_file(u_int32_t id)
+{
+	char *frompath, *topath;
+	int r, status, fromfd, tofd;
+	struct stat stat_buf;	
+	ssize_t remaining;
+
+	if ((r = sshbuf_get_cstring(iqueue, &frompath, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(iqueue, &topath, NULL)) != 0)
+		fatal_fr(r, "parse");
+
+	debug3("request %u: copy file", id);
+	logit("copy file from \"%s\" to \"%s\"", frompath, topath);
+
+	fromfd = open( frompath, O_RDONLY);
+
+	if(fromfd == -1){
+		status = errno_to_portable(errno);
+		send_status(id, status);
+		free(frompath);
+		free(topath);
+		return;
+	}
+
+	fstat(fromfd, &stat_buf);
+	tofd = open( topath, O_WRONLY | O_CREAT, stat_buf.st_mode);
+
+	if(tofd == -1){
+		status = errno_to_portable(errno);
+		send_status(id, status);
+		free(frompath);
+		free(topath);
+		close(fromfd);
+		return;
+	}
+	remaining = stat_buf.st_size;
+    do{
+        r = sendfile(tofd, fromfd, NULL, remaining);
+        if (r > 0)
+          remaining -= r;
+    } while ((r > 0 && remaining > 0) || (r < 0 && errno == EINTR));
+
+	status = (r == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
+	send_status(id, status);
+	free(frompath);
+	free(topath);
+	close(fromfd);
+	close(tofd);
 }
 
 static void

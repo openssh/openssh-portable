@@ -676,6 +676,22 @@ be empty.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
+4.13. sftp: Extension request "copy-file@openssh.com"
+
+This operation provides a copy file operation.
+This request is implemented as a SSH_FXP_EXTENDED request 
+with the following format:
+
+	uint32		id
+	string		"copy-file@openssh.com"
+	string		frompath
+	string		topath
+
+On receiving this request the server will perform the copy file
+operation move(oldpath, newpath) and will respond with a 
+SSH_FXP_STATUS message. 
+This extension is advertised in the SSH_FXP_VERSION hello with version "1".
+
 5. Miscellaneous changes
 
 5.1 Public key format
