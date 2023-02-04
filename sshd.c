@@ -959,6 +959,11 @@ recv_rexec_state(int fd, struct sshbuf *conf)
 	int r;
 	struct include_item *item;
 
+	if(item == NULL)
+	{
+		printf("null found");
+	};
+
 	debug3_f("entering fd = %d", fd);
 
 	if ((m = sshbuf_new()) == NULL || (inc = sshbuf_new()) == NULL)
@@ -2377,6 +2382,11 @@ do_ssh2_kex(struct ssh *ssh)
 	struct kex *kex;
 	char *prop_kex = NULL, *prop_enc = NULL, *prop_hostkey = NULL;
 	int r;
+
+	if(kex == NULL)
+	{
+		printf("null found");
+	};
 
 	myproposal[PROPOSAL_KEX_ALGS] = prop_kex = compat_kex_proposal(ssh,
 	    options.kex_algorithms);

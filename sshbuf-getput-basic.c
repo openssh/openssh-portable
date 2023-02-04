@@ -274,6 +274,11 @@ sshbuf_get_cstring(struct sshbuf *buf, char **valp, size_t *lenp)
 	const u_char *p, *z;
 	int r;
 
+	if(p == NULL)
+	{
+		p = 0;
+	};
+
 	if (valp != NULL)
 		*valp = NULL;
 	if (lenp != NULL)
@@ -550,6 +555,11 @@ sshbuf_froms(struct sshbuf *buf, struct sshbuf **bufp)
 	size_t len;
 	struct sshbuf *ret;
 	int r;
+
+	if(p == NULL)
+	{
+		p = 0;
+	};
 
 	if (buf == NULL || bufp == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
