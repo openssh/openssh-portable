@@ -152,10 +152,10 @@
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
 		offsetof(struct seccomp_data, nr))
 /* Special handling for futex(2) that combines a bitmap and operation number */
-#ifdef __NR_futex
+#if defined(__NR_futex) || defined(__NR_futex_time64)
 #define SC_FUTEX_MASK (FUTEX_PRIVATE_FLAG|FUTEX_CLOCK_REALTIME)
-#define SC_ALLOW_FUTEX_OP(_op) \
-	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_futex, 0, 8), \
+#define SC_ALLOW_FUTEX_OP(_nr, _op) \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, (_nr), 0, 8), \
 	/* load syscall argument, low word */ \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
 	    offsetof(struct seccomp_data, args[1]) + ARG_LO_OFFSET), \
@@ -175,7 +175,15 @@
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW), \
 	/* reload syscall number; all rules expect it in accumulator */ \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, offsetof(struct seccomp_data, nr))
-#endif /* __NR_futex */
+/* Use this for both __NR_futex and __NR_futex_time64 */
+# define SC_FUTEX(_nr) \
+	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_WAIT), \
+	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_WAIT_BITSET), \
+	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_WAKE), \
+	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_WAKE_BITSET), \
+	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_REQUEUE), \
+	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_CMP_REQUEUE)
+#endif /* __NR_futex || __NR_futex_time64 */
 
 /* Syscall filtering set for preauth. */
 static const struct sock_filter preauth_insns[] = {
@@ -255,15 +263,10 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW(__NR_exit_group),
 #endif
 #ifdef __NR_futex
-	SC_ALLOW_FUTEX_OP(FUTEX_WAIT),
-	SC_ALLOW_FUTEX_OP(FUTEX_WAIT_BITSET),
-	SC_ALLOW_FUTEX_OP(FUTEX_WAKE),
-	SC_ALLOW_FUTEX_OP(FUTEX_WAKE_BITSET),
-	SC_ALLOW_FUTEX_OP(FUTEX_REQUEUE),
-	SC_ALLOW_FUTEX_OP(FUTEX_CMP_REQUEUE),
+	SC_FUTEX(__NR_futex),
 #endif
 #ifdef __NR_futex_time64
-	SC_ALLOW(__NR_futex_time64),
+	SC_FUTEX(__NR_futex_time64),
 #endif
 #ifdef __NR_geteuid
 	SC_ALLOW(__NR_geteuid),
