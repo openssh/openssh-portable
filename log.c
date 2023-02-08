@@ -46,6 +46,11 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <errno.h>
+#include "packet.h" /* needed for host and port look ups */
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h> /* to get current time */
+#endif
+
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>
 #endif
@@ -64,6 +69,8 @@ static char **log_verbose;
 static size_t nlog_verbose;
 
 extern char *__progname;
+
+extern struct ssh *active_state;
 
 #define LOG_SYSLOG_VIS	(VIS_CSTYLE|VIS_NL|VIS_TAB|VIS_OCTAL)
 #define LOG_STDERR_VIS	(VIS_SAFE|VIS_OCTAL)

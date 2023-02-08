@@ -63,7 +63,10 @@
 # endif
 #endif
 #ifdef HAVE_ERR_H
-# include <err.h>
+#include <err.h>
+#endif
+#ifdef __APPLE__
+#include "apple_err.h"
 #endif
 #ifdef HAVE_SYS_BYTEORDER_H
 # include <sys/byteorder.h>

@@ -35,14 +35,14 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: February 4 2022 $
-.Dt SSH-ADD 1
+.Dd $Mdocdate: March 24 2022 $
+.Dt HPNSSH-ADD 1
 .Os
 .Sh NAME
-.Nm ssh-add
+.Nm hpnssh-add
 .Nd adds private key identities to the OpenSSH authentication agent
 .Sh SYNOPSIS
-.Nm ssh-add
+.Nm hpnssh-add
 .Op Fl cDdKkLlqvXx
 .Op Fl E Ar fingerprint_hash
 .Op Fl H Ar hostkey_file
@@ -50,11 +50,11 @@
 .Op Fl S Ar provider
 .Op Fl t Ar life
 .Op Ar
-.Nm ssh-add
+.Nm hpnssh-add
 .Fl s Ar pkcs11
-.Nm ssh-add
+.Nm hpnssh-add
 .Fl e Ar pkcs11
-.Nm ssh-add
+.Nm hpnssh-add
 .Fl T
 .Ar pubkey ...
 .Sh DESCRIPTION
@@ -76,6 +76,10 @@ filename obtained by appending
 .Pa -cert.pub
 to the name of the private key file.
 Alternative file names can be given on the command line.
+.Pp
+.Nm
+is binary compatible with OpenSSH's ssh-add and uses the same directives and
+configuration except where noted. 
 .Pp
 If any file requires a passphrase,
 .Nm
@@ -326,11 +330,11 @@ and 2 if
 .Nm
 is unable to contact the authentication agent.
 .Sh SEE ALSO
-.Xr ssh 1 ,
-.Xr ssh-agent 1 ,
-.Xr ssh-askpass 1 ,
-.Xr ssh-keygen 1 ,
-.Xr sshd 8
+.Xr hpnssh 1 ,
+.Xr hpnssh-agent 1 ,
+.Xr hpnssh-askpass 1 ,
+.Xr hpnssh-keygen 1 ,
+.Xr hpnsshd 8
 .Sh AUTHORS
 OpenSSH is a derivative of the original and free
 ssh 1.2.12 release by Tatu Ylonen.

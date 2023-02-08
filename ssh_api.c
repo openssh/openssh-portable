@@ -410,7 +410,7 @@ _ssh_send_banner(struct ssh *ssh, struct sshbuf *banner)
 	char *cp;
 	int r;
 
-	if ((r = sshbuf_putf(banner, "SSH-2.0-%.100s\r\n", SSH_VERSION)) != 0)
+	if ((r = sshbuf_putf(banner, "SSH-2.0-%.100s\r\n", SSH_RELEASE)) != 0)
 		return r;
 	if ((r = sshbuf_putb(ssh_packet_get_output(ssh), banner)) != 0)
 		return r;

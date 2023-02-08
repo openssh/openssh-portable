@@ -2548,24 +2548,29 @@ main(int argc, char **argv)
 			replacearg(&args, 0, "%s", ssh_program);
 			break;
 		case 'X':
-			/* Please keep in sync with ssh.c -X */
+			/* Please keep in sync with scp.c -X */
 			if (strncmp(optarg, "buffer=", 7) == 0) {
 				r = scan_scaled(optarg + 7, &llv);
-				if (r == 0 && (llv <= 0 || llv > 256 * 1024)) {
+				/* don't ask for a buffer larger than the maximum
+				 * size that SFTP can handle */
+				if (r == 0 && (llv <= 0 || llv > (SFTP_MAX_MSG_LENGTH - 1024))) {
 					r = -1;
 					errno = EINVAL;
 				}
 				if (r == -1) {
-					fatal("Invalid buffer size \"%s\": %s",
-					     optarg + 7, strerror(errno));
+					fatal("Invalid buffer size. Must be between 1B and 255KB."
+					      "\"%s\": %s", optarg + 7, strerror(errno));
 				}
 				copy_buffer_len = (size_t)llv;
 			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
-				llv = strtonum(optarg + 10, 1, 256 * 1024,
-				    &errstr);
+				/* more than 10k to 15k requests starts stalling the connection
+				 * 8192 * default buffer size is 256MB of outstanding data.
+				 * if users need more then they need to up the buffer size */
+				llv = strtonum(optarg + 10, 1, 8 * 1024,
+					       &errstr);
 				if (errstr != NULL) {
-					fatal("Invalid number of requests "
-					    "\"%s\": %s", optarg + 10, errstr);
+					fatal("Invalid number of requests. Must be between 1 and 8192. "
+					      "\"%s\": %s", optarg + 10, errstr);
 				}
 				num_requests = (size_t)llv;
 			} else {

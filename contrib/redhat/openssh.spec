@@ -304,7 +304,7 @@ perl -pi -e "s|$RPM_BUILD_ROOT||g" $RPM_BUILD_ROOT%{_mandir}/man*/*
 rm -rf $RPM_BUILD_ROOT
 
 %triggerun server -- ssh-server
-if [ "$1" != 0 -a -r /var/run/sshd.pid ] ; then
+if [ "$1" != 0 -a -r /var/run/hpnsshd.pid ] ; then
 	touch /var/run/sshd.restart
 fi
 

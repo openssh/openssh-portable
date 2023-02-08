@@ -14,6 +14,16 @@
 
 #include "poly1305.h"
 
+#ifdef OPENSSL_HAVE_POLY_EVP
+void
+poly1305_auth(EVP_MAC_CTX *poly_ctx, unsigned char out[POLY1305_TAGLEN], const unsigned char *m, size_t inlen, const unsigned char key[POLY1305_KEYLEN]) {
+	size_t poly_out_len;
+	EVP_MAC_init(poly_ctx, (const u_char *)key, POLY1305_KEYLEN, NULL);
+	EVP_MAC_update(poly_ctx, m, inlen);
+	EVP_MAC_final(poly_ctx, out, &poly_out_len, (size_t)POLY1305_TAGLEN);
+}
+#else
+
 #define mul32x32_64(a,b) ((uint64_t)(a) * (b))
 
 #define U8TO32_LE(p) \
@@ -31,7 +41,7 @@
 	} while (0)
 
 void
-poly1305_auth(unsigned char out[POLY1305_TAGLEN], const unsigned char *m, size_t inlen, const unsigned char key[POLY1305_KEYLEN]) {
+poly1305_auth(char *unused, unsigned char out[POLY1305_TAGLEN], const unsigned char *m, size_t inlen, const unsigned char key[POLY1305_KEYLEN]) {
 	uint32_t t0,t1,t2,t3;
 	uint32_t h0,h1,h2,h3,h4;
 	uint32_t r0,r1,r2,r3,r4;
@@ -158,3 +168,4 @@ poly1305_donna_finish:
 	U32TO8_LE(&out[ 8], f2); f3 += (f2 >> 32);
 	U32TO8_LE(&out[12], f3);
 }
+#endif /* OPENSSL_HAVE_POLY_EVP */

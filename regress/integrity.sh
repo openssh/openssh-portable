@@ -8,6 +8,7 @@ cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 tries=10
 startoffset=2900
 macs=`${SSH} -Q mac`
+
 # The following are not MACs, but ciphers with integrated integrity. They are
 # handled specially below.
 macs="$macs `${SSH} -Q cipher-auth`"
@@ -21,6 +22,12 @@ macs="$macs `${SSH} -Q cipher-auth`"
 cmd="$SUDO env SSH_SK_HELPER="$SSH_SK_HELPER" sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy"
 
 for m in $macs; do
+	# the none mac is now valid but tests against it will succeed when we expect it to
+	# fail. so we need to explicity remove it from the list of macs returned.
+	if [ "$m" = "none" ]; then
+		continue
+	fi
+
 	trace "test $tid: mac $m"
 	elen=0
 	epad=0

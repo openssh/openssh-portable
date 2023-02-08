@@ -49,7 +49,7 @@ for k in $SSH_KEYTYPES ; do
 	fi
 done
 
-SSH_CERTTYPES=`ssh -Q key-sig | grep 'cert-v01@openssh.com'`
+SSH_CERTTYPES=`hpnssh -Q key-sig | grep 'cert-v01@openssh.com'`
 
 # Prepare sshd_proxy for certificates.
 cp $OBJ/sshd_proxy.orig $OBJ/sshd_proxy
@@ -84,4 +84,3 @@ done
 
 trace "kill agent"
 ${SSHAGENT} -k > /dev/null
-

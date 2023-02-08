@@ -173,8 +173,11 @@ struct Channel {
 	u_int	local_window_max;
 	u_int	local_consumed;
 	u_int	local_maxpacket;
+	int	dynamic_window;
+	int     hpn_buffer_limit;
 	int     extended_usage;
 	int	single_connection;
+	/* u_int	tcpwinsz; */
 
 	char   *ctype;		/* const type - NB. not freed on channel_free */
 	char   *xctype;		/* extended type */
@@ -254,7 +257,7 @@ struct Channel {
 #define SSH_CHAN_IO_SOCK		(SSH_CHAN_IO_SOCK_R|SSH_CHAN_IO_SOCK_W)
 
 /* Read buffer size */
-#define CHAN_RBUF	(16*1024)
+#define CHAN_RBUF       CHAN_SES_PACKET_DEFAULT
 
 /* Maximum size for direct reads to buffers */
 #define CHANNEL_MAX_READ	CHAN_SES_PACKET_DEFAULT
@@ -396,4 +399,6 @@ void	 chan_rcvd_ieof(struct ssh *, Channel *);
 void	 chan_write_failed(struct ssh *, Channel *);
 void	 chan_obuf_empty(struct ssh *, Channel *);
 
+/* hpn handler */
+void     channel_set_hpn(int, int);
 #endif

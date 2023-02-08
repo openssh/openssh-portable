@@ -2,8 +2,10 @@ name: C/C++ CI
 
 on:
   push:
+    branches: [ master, pre-stage ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
   pull_request:
+    branches: [ master ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
 
 jobs:
@@ -16,16 +18,7 @@ jobs:
         target: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12, windows-2019, windows-2022]
         config: [default]
         # Then we include any extra configs we want to test for specific VMs.
-        # Valgrind slows things down quite a bit, so start them first.
         include:
-          - { target: windows-2019, config: cygwin-release }
-          - { target: windows-2022, config: cygwin-release }
-          - { target: ubuntu-20.04, config: valgrind-1 }
-          - { target: ubuntu-20.04, config: valgrind-2 }
-          - { target: ubuntu-20.04, config: valgrind-3 }
-          - { target: ubuntu-20.04, config: valgrind-4 }
-          - { target: ubuntu-20.04, config: valgrind-5 }
-          - { target: ubuntu-20.04, config: valgrind-unit }
           - { target: ubuntu-20.04, config: c89 }
           - { target: ubuntu-20.04, config: clang-6.0 }
           - { target: ubuntu-20.04, config: clang-8 }
@@ -45,22 +38,8 @@ jobs:
           - { target: ubuntu-20.04, config: kitchensink }
           - { target: ubuntu-20.04, config: hardenedmalloc }
           - { target: ubuntu-20.04, config: tcmalloc }
-          - { target: ubuntu-20.04, config: musl }
-          - { target: ubuntu-latest, config: libressl-master }
-          - { target: ubuntu-latest, config: libressl-2.2.9 }
-          - { target: ubuntu-latest, config: libressl-2.8.3 }
-          - { target: ubuntu-latest, config: libressl-3.0.2 }
-          - { target: ubuntu-latest, config: libressl-3.2.6 }
-          - { target: ubuntu-latest, config: libressl-3.3.6 }
-          - { target: ubuntu-latest, config: libressl-3.4.3 }
-          - { target: ubuntu-latest, config: libressl-3.5.3 }
-          - { target: ubuntu-latest, config: libressl-3.6.1 }
-          - { target: ubuntu-latest, config: libressl-3.7.0 }
           - { target: ubuntu-latest, config: openssl-master }
           - { target: ubuntu-latest, config: openssl-noec }
-          - { target: ubuntu-latest, config: openssl-1.0.1 }
-          - { target: ubuntu-latest, config: openssl-1.0.1u }
-          - { target: ubuntu-latest, config: openssl-1.0.2u }
           - { target: ubuntu-latest, config: openssl-1.1.0h }
           - { target: ubuntu-latest, config: openssl-1.1.1 }
           - { target: ubuntu-latest, config: openssl-1.1.1k }
@@ -84,12 +63,6 @@ jobs:
           - { target: macos-12, config: pam }
     runs-on: ${{ matrix.target }}
     steps:
-    - name: set cygwin git params
-      if: ${{ startsWith(matrix.target, 'windows') }}
-      run: git config --global core.autocrlf input
-    - name: install cygwin
-      if: ${{ startsWith(matrix.target, 'windows') }}
-      uses: cygwin/cygwin-install-action@master
     - uses: actions/checkout@main
     - name: setup CI system
       run: sh ./.github/setup_ci.sh ${{ matrix.config }}
