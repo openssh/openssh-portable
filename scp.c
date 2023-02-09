@@ -1927,7 +1927,7 @@ sink(int argc, char **argv, const char *src)
 	char outbuf[BUF_AND_HASH];
 	char match;
 	int bad_match_flag = 0;
-	np = '\0';
+	np = NULL; /* this was originally '/0' but that's wrong */
 	np_tmp = NULL;
 	
 	
