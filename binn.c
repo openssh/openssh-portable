@@ -922,7 +922,6 @@ BINN_PRIVATE BOOL AddValue(binn *item, int type, void *pvalue, int size) {
       case BINN_STORAGE_BLOB:
       case BINN_STORAGE_STRING:
         if (size == 0) break; // the 2 above are allowed to have 0 length
-	/* fall through */
       default:
         return FALSE;
     }
@@ -2066,7 +2065,6 @@ BINN_PRIVATE BOOL GetWriteConvertedData(int *ptype, void **ppvalue, int *psize) 
       case BINN_STRING:
       case BINN_BLOB:
         if (*psize == 0) break;
-	/* fall through */
       default:
         return FALSE;
     }
@@ -2329,7 +2327,7 @@ BINN_PRIVATE BOOL copy_int_value(void *psource, void *pdest, int source_type, in
 
 /*************************************************************************************/
 
-BINN_PRIVATE BOOL copy_float_value(void *psource, void *pdest, int source_type, int dest_type) {
+BINN_PRIVATE BOOL copy_float_value(void *psource, void *pdest, int source_type) {
 
   switch (source_type) {
   case BINN_FLOAT32:
@@ -2390,7 +2388,7 @@ BINN_PRIVATE BOOL copy_value(void *psource, void *pdest, int source_type, int de
   if ((type_family(source_type) == BINN_FAMILY_INT) && (source_type != dest_type)) {
     return copy_int_value(psource, pdest, source_type, dest_type);
   } else if ((type_family(source_type) == BINN_FAMILY_FLOAT) && (source_type != dest_type)) {
-    return copy_float_value(psource, pdest, source_type, dest_type);
+    return copy_float_value(psource, pdest, source_type);
   } else {
     return copy_raw_value(psource, pdest, data_store);
   }
@@ -3093,7 +3091,6 @@ binn * APIENTRY binn_value(int type, void *pvalue, int size, binn_mem_free freef
       break;
     case BINN_STORAGE_STRING:
       if (size == 0) size = strlen((char*)pvalue) + 1;
-      /* fall through */
     case BINN_STORAGE_BLOB:
     case BINN_STORAGE_CONTAINER:
       if (freefn == BINN_TRANSIENT) {
@@ -3267,6 +3264,21 @@ loc_false:
 
 }
 
+float
+binn_cvt_int2float (int value) {
+  return (float)value;
+}
+
+float
+binn_cvt_long2float (long int value) {
+  return (float)value;
+}
+
+float
+binn_cvt_long2dbl (long int value) {
+  return (long long int)value;
+}
+
 /*************************************************************************************/
 
 BOOL APIENTRY binn_get_int32(binn *value, int *pint) {
@@ -3279,7 +3291,7 @@ BOOL APIENTRY binn_get_int32(binn *value, int *pint) {
 
   switch (value->type) {
   case BINN_FLOAT:
-    if ((value->vfloat < INT32_MIN) || (value->vfloat > INT32_MAX)) return FALSE;
+    if ((value->vfloat < binn_cvt_int2float(INT32_MIN)) || (value->vfloat > binn_cvt_int2float(INT32_MAX))) return FALSE;
     *pint = roundval(value->vfloat);
     break;
   case BINN_DOUBLE:
@@ -3316,11 +3328,11 @@ BOOL APIENTRY binn_get_int64(binn *value, int64 *pint) {
 
   switch (value->type) {
   case BINN_FLOAT:
-    if ((value->vfloat < INT64_MIN) || (value->vfloat > INT64_MAX)) return FALSE;
+    if ((value->vfloat < binn_cvt_long2float(INT64_MIN)) || (value->vfloat > binn_cvt_long2float(INT64_MAX))) return FALSE;
     *pint = roundval(value->vfloat);
     break;
   case BINN_DOUBLE:
-    if ((value->vdouble < INT64_MIN) || (value->vdouble > INT64_MAX)) return FALSE;
+    if ((value->vdouble < binn_cvt_long2dbl(INT64_MIN)) || (value->vdouble > binn_cvt_long2dbl(INT64_MAX))) return FALSE;
     *pint = roundval(value->vdouble);
     break;
   case BINN_STRING:
@@ -3428,7 +3440,6 @@ char * APIENTRY binn_get_str(binn *value) {
   switch (value->type) {
   case BINN_FLOAT:
     value->vdouble = value->vfloat;
-    /* fall through */
   case BINN_DOUBLE:
     snprintf(buf, sizeof buf, "%g", value->vdouble);
     goto loc_convert_value;
