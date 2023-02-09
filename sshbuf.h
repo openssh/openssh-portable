@@ -346,6 +346,9 @@ int sshbuf_read(int, struct sshbuf *, size_t, size_t *)
 		((u_char *)(p))[1] = __v & 0xff; \
 	} while (0)
 
+
+void sshbuf_set_window_max(struct sshbuf *buf , size_t len);
+
 /* Internal definitions follow. Exposed for regress tests */
 #ifdef SSHBUF_INTERNAL
 

@@ -626,35 +626,35 @@ main(int argc, char **argv)
 		case 'X':
 			/* Please keep in sync with sftp.c -X */
 			if (strncmp(optarg, "buffer=", 7) == 0) {
-				r = scan_scaled(optarg + 7, &llv);
-				/* don't ask for a buffer larger than the maximum
-				 * size that SFTP can handle */
-				if (r == 0 && (llv <= 0 || llv > (SFTP_MAX_MSG_LENGTH - 1024))) {
-					r = -1;
-					errno = EINVAL;
-				}
-				if (r == -1) {
-					fatal("Invalid buffer size. Must be between 1B and 255KB."
-					      "\"%s\": %s", optarg + 7, strerror(errno));
-				}
-				sftp_copy_buflen = (size_t)llv;
-			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
-				/* more than 10k to 15k requests starts stalling the connection
-				 * 8192 * default buffer size is 256MB of outstanding data.
-				 * if users need more then they need to up the buffer size */
-				llv = strtonum(optarg + 10, 1, 8 * 1024,
-					       &errstr);
-				if (errstr != NULL) {
-					fatal("Invalid number of requests. Must be between 1 and 8192. "
-					      "\"%s\": %s", optarg + 10, errstr);
->>>>>>> master
-				sftp_nrequests = (size_t)llv;
-			} else {
-				fatal("Invalid -X option");
-			}
-			break;
+                                r = scan_scaled(optarg + 7, &llv);
+                                /* don't ask for a buffer larger than the maximum
+                                 * size that SFTP can handle */
+                                if (r == 0 && (llv <= 0 || llv > (SFTP_MAX_MSG_LENGTH - 1024))) {
+                                        r = -1;
+                                        errno = EINVAL;
+                                }
+                                if (r == -1) {
+                                        fatal("Invalid buffer size. Must be between 1B and 255KB."
+                                              "\"%s\": %s", optarg + 7, strerror(errno));
+                                }
+                                sftp_copy_buflen = (size_t)llv;
+                        } else if (strncmp(optarg, "nrequests=", 10) == 0) {
+                                /* more than 10k to 15k requests starts stalling the connection
+                                 * 8192 * default buffer size is 256MB of outstanding data.
+                                 * if users need more then they need to up the buffer size */
+                                llv = strtonum(optarg + 10, 1, 8 * 1024,
+                                               &errstr);
+                                if (errstr != NULL) {
+                                        fatal("Invalid number of requests. Must be between 1 and 8192. "
+                                              "\"%s\": %s", optarg + 10, errstr);
+                                }
+                                sftp_nrequests = (size_t)llv;
+                        } else {
+                                fatal("Invalid -X option");
+                        }
+                        break;
 
-		/* Server options. */
+			/* Server options. */
 		case 'd':
 			targetshouldbedirectory = 1;
 			break;
@@ -2700,15 +2700,16 @@ usage(void)
 {
 #ifdef WITH_OPENSSL
 	(void) fprintf(stderr,
-	    "usage: hpnscp [-346ABCOpqRrsTvZ] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
-	    "              [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
-	    "              [-P port] [-S program] [-X sftp_option] source ... target\n");
+	    "usage: scp [-346ABCOpqRrsTvZ] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
+	    "           [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
+	    "           [-P port] [-S program] [-X sftp_option] source ... target\n");
 	exit(1);
 #else
 	(void) fprintf(stderr,
 	    "usage: hpnscp [-346ABCOpqRrsTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
-	    "              [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
-	    "              [-P port] [-S program] [-X sftp_option] source ... target\n");
+	    "              [-i identity_file] [-J destination] [-l limit]\n"
+	    "              [-o ssh_option] [-P port]" 
+	    "              [-S program] source ... target\n");
 	exit(1);
 #endif
 	
