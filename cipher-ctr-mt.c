@@ -617,64 +617,15 @@ ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 }
 
 /* <friedl> */
-/* this has become more and more confusing over time as we try
- * account for different versions of OpenSSL and LibreSSL.
- * Why do we do it this way? Earlier versions of OpenSSL had an
- * accessible EVP_CIPHER struct. In that situation we coud simply
- * redefine the function pointers to our custom functions. However,
- * starting 1.1 the EVP_CIPHER was made opaque and the only way to
- * change the function pointers was through the _meth_new and _meth_set
- * functions. At the very same time LibreSSL - up to version 3.5
- * had an accessible EVP_CIPHER struct. Then they changed it to an opaque
- * struct but didn't implement any _meth_new _meth_set functions for
- * EVP_CIPHER. The LibreSSL developers has said that it will be introduced
- * in LSSL 3.7. So we have a hole were we can't support this in
- * LibreSSL. */
-
+/* we've stipped out support for LibreSSL and OpenSSL < 1.1
+ * it was getting to be too much to maintain. If LibreSSL
+ * ever incorporates the meth_new() functionality we'll
+ * reinstate support in configure.ac
+ * cjr 2/8/2023
+ */
 const EVP_CIPHER *
 evp_aes_ctr_mt(void)
 {
-/* this determines if the struct is opaque or not */
-#if (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x3050000fL)
-#define EVP_CIPHER_ACCESSIBLE
-#endif
-#if OPENSSL_VERSION_NUMBER < 0x10100000UL
-#define EVP_CIPHER_ACCESSIBLE
-#endif
-/* LibreSSL reports the OSSL version number as 2. So we need to
- * check that as well as the LibreSSL version */
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000UL && OPENSSL_VERSION_NUMBER != 0x20000000UL) \
-	|| LIBRESSL_VERSION_NUMBER > 0x3060000fL
-#define EVP_CIPHER_OPAQUE
-#endif
-
-/* this should never happen */
-#if !defined(EVP_CIPHER_ACCESSIBLE) && !defined(EVP_CIPHER_OPAQUE)
-	fatal_f("The installed version of libcrypto does not support the threaded AES CTR cipher. Exiting.");
-#endif
-/* neither should this */
-#if defined(EVP_CIPHER_ACCESSIBLE) && defined(EVP_CIPHER_OPAQUE)
-	fatal_f("The installed version of libcrypto does not support the threaded AES CTR cipher. Exiting.");
-#endif
-
-#if defined(EVP_CIPHER_ACCESSIBLE) && !defined(EVP_CIPHER_OPAQUE)
-	static EVP_CIPHER aes_ctr;
-	memset(&aes_ctr, 0, sizeof(EVP_CIPHER));
-	aes_ctr.nid = NID_undef;
-	aes_ctr.block_size = AES_BLOCK_SIZE;
-	aes_ctr.iv_len = AES_BLOCK_SIZE;
-	aes_ctr.key_len = 16;
-	aes_ctr.init = ssh_aes_ctr_init;
-	aes_ctr.cleanup = ssh_aes_ctr_cleanup;
-	aes_ctr.do_cipher = ssh_aes_ctr;
-#  ifndef SSH_OLD_EVP
-        aes_ctr.flags = EVP_CIPH_CBC_MODE | EVP_CIPH_VARIABLE_LENGTH |
-		EVP_CIPH_ALWAYS_CALL_INIT | EVP_CIPH_CUSTOM_IV;
-#  endif /*SSH_OLD_EVP*/
-        return &aes_ctr;
-#endif /*EVP CIPHER ACCESSIBLE */
-
-#if defined(EVP_CIPHER_OPAQUE) && !defined(EVP_CIPHER_ACCESSIBLE)
 	static EVP_CIPHER *aes_ctr;
 	aes_ctr = EVP_CIPHER_meth_new(NID_undef, 16/*block*/, 16/*key*/);
 	EVP_CIPHER_meth_set_iv_length(aes_ctr, AES_BLOCK_SIZE);
@@ -688,8 +639,4 @@ evp_aes_ctr_mt(void)
 				      | EVP_CIPH_CUSTOM_IV);
 #  endif /*SSH_OLD_EVP*/
 	return aes_ctr;
-#endif /* EVP CIPHER OPAQUE */
 }
-
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000UL */
-#endif /* defined(WITH_OPENSSL) */

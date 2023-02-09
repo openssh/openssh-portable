@@ -170,31 +170,6 @@ cipher_ctx_name(const struct sshcipher_ctx *cc)
 	return cc->cipher->name;
 }
 
-/* in order to get around sandbox and forking issues with a threaded cipher
- * we set the initial pre-auth aes-ctr cipher to the default OpenSSH cipher
- * post auth we set them to the new evp as defined by cipher-ctr-mt
- */
-/* we don't need this anymore for the cipher swap. We can just explicitly 
- * give the EVPInit this type -cjr 09/08/2022 
- * function commented out but not deleted to make sure we have a record of it */
-/* #ifdef WITH_OPENSSL */
-/* void */
-/* cipher_reset_multithreaded(void) */
-/* { */
-/* 	/\* OpenSSL 3.0 introduced a new way of interacting with the EVP */
-/* 	 * that makes our method of doing a cipher switch simply not work. */
-/* 	 * We believe that rewriting it as a provider will restore this  */
-/* 	 * functionality to OSSL 3 but until then we disable it for OSSL 3  */
-/* 	 * TODO: Write a provider or figure out another fix.  */
-/* 	 *\/ */
-/* #if OPENSSL_VERSION_NUMBER <= 0x10100000UL */
-/* 	cipher_by_name("aes128-ctr")->evptype = evp_aes_ctr_mt; */
-/* 	cipher_by_name("aes192-ctr")->evptype = evp_aes_ctr_mt; */
-/* 	cipher_by_name("aes256-ctr")->evptype = evp_aes_ctr_mt; */
-/* #endif */
-/* } */
-/* #endif /\*WITH_OPENSSL*\/ */
-
 u_int
 cipher_blocksize(const struct sshcipher *c)
 {
@@ -376,16 +351,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 			fatal("Failed to load HPN-SSH AES-CTR-MT provider.");
 		}
 #else
-		/* this version doesn't so check to see if we are in the
-		 * LibreSSL hole that doesn't support this at all  otherwise
-		 * load the MT cipher */
-#if LIBRESSL_VERSION_NUMBER ==  0x3060000fL || LIBRESSL_VERSION_NUMBER ==  0x3050000fL
-		fprintf(stderr, "LibreSSL 3.5 & 3.6 do not support the threaded AES CTR cipher.");
-		fprintf(stderr, " Falling back to serial.\n");
-		type = (*cipher->evptype)();
-#else
 		type = (*evp_aes_ctr_mt)(); /* see cipher-ctr-mt.c */
-#endif
 #endif /* OPENSSL_VERSION_NUMBER */
 	} /* if (strstr()) */
 	if (EVP_CipherInit(cc->evp, type, NULL, (u_char *)iv,

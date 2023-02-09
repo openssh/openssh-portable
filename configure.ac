@@ -2829,15 +2829,17 @@ if test "x$openssl" = "xyes" ; then
 			# Check version is supported.
 			case "$ssl_library_ver" in
 			10000*|0*)
-				AC_MSG_ERROR([OpenSSL >= 1.0.1 required (have "$ssl_library_ver")])
+				AC_MSG_ERROR([OpenSSL >= 1.1.0g required (have "$ssl_library_ver")])
 		                ;;
-			100*)   ;; # 1.0.x
+			100*)   AC_MSG_ERROR([OpenSSL 1.0 is no longer supported. OpenSSL 1.1.0g or higher is required.])
+                                ;; # 1.0.x
 			101000[[0123456]]*)
 				# https://github.com/openssl/openssl/pull/4613
 				AC_MSG_ERROR([OpenSSL 1.1.x versions prior to 1.1.0g have a bug that breaks their use with OpenSSH (have "$ssl_library_ver")])
 				;;
 			101*)   ;; # 1.1.x
-			200*)   ;; # LibreSSL
+			200*)   AC_MSG_ERROR([LibreSSL is no longer suported by HPN-SSH. OpenSSL 1.1.0g or higher is required.])
+                                ;; # LibreSSL
 #			300*)   ;; # OpenSSL 3
 #			301*)   ;; # OpenSSL development branch.
 #			302*)   ;; # OpenSSL master branch

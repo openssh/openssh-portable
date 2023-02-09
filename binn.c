@@ -922,6 +922,7 @@ BINN_PRIVATE BOOL AddValue(binn *item, int type, void *pvalue, int size) {
       case BINN_STORAGE_BLOB:
       case BINN_STORAGE_STRING:
         if (size == 0) break; // the 2 above are allowed to have 0 length
+	/* fall through */
       default:
         return FALSE;
     }
@@ -2065,6 +2066,7 @@ BINN_PRIVATE BOOL GetWriteConvertedData(int *ptype, void **ppvalue, int *psize) 
       case BINN_STRING:
       case BINN_BLOB:
         if (*psize == 0) break;
+	/* fall through */
       default:
         return FALSE;
     }
@@ -3091,6 +3093,7 @@ binn * APIENTRY binn_value(int type, void *pvalue, int size, binn_mem_free freef
       break;
     case BINN_STORAGE_STRING:
       if (size == 0) size = strlen((char*)pvalue) + 1;
+      /* fall through */
     case BINN_STORAGE_BLOB:
     case BINN_STORAGE_CONTAINER:
       if (freefn == BINN_TRANSIENT) {
@@ -3425,6 +3428,7 @@ char * APIENTRY binn_get_str(binn *value) {
   switch (value->type) {
   case BINN_FLOAT:
     value->vdouble = value->vfloat;
+    /* fall through */
   case BINN_DOUBLE:
     snprintf(buf, sizeof buf, "%g", value->vdouble);
     goto loc_convert_value;
