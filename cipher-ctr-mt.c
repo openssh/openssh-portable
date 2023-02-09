@@ -157,21 +157,6 @@ struct ssh_aes_ctr_ctx_mt
 #endif /* __APPLE__ */
 };
 
-/* <friedl>
- * increment counter 'ctr',
- * the counter is of size 'len' bytes and stored in network-byte-order.
- * (LSB at ctr[len-1], MSB at ctr[0])
- */
-static void
-ssh_ctr_inc(u_char *ctr, size_t len)
-{
-	int i;
-
-	for (i = len - 1; i >= 0; i--)
-		if (++ctr[i])	/* continue on overflow */
-			return;
-}
-
 /*
  * Add num to counter 'ctr'
  */
@@ -270,7 +255,6 @@ thread_loop(void *x)
 	EVP_CIPHER_CTX *aesni_ctx;
 	struct ssh_aes_ctr_ctx_mt *c = x;
 	struct kq *q;
-	int i;
 	int qidx;
 	pthread_t first_tid;
 	int outlen;
