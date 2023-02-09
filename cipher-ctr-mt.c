@@ -640,3 +640,5 @@ evp_aes_ctr_mt(void)
 #  endif /*SSH_OLD_EVP*/
 	return aes_ctr;
 }
+#endif /* OSSL VERSION NUMBER */
+#endif /* OSSL */
