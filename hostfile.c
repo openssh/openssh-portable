@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.93 2022/01/06 22:02:52 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.94 2023/02/09 09:54:11 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -520,9 +520,17 @@ add_host_to_hostfile(const char *filename, const char *host,
 	if (key == NULL)
 		return 1;	/* XXX ? */
 	hostfile_create_user_ssh_dir(filename, 0);
-	f = fopen(filename, "a");
+	f = fopen(filename, "a+");
 	if (!f)
 		return 0;
+	/* Make sure we have a terminating newline. */
+	if (fseek(f, -1L, SEEK_END) == 0 && fgetc(f) != '\n')
+		if (fputc('\n', f) != '\n') {
+			error("Failed to add terminating newline to %s: %s",
+			   filename, strerror(errno));
+			fclose(f);
+			return 0;
+		}
 	success = write_host_entry(f, host, NULL, key, store_hash);
 	fclose(f);
 	return success;
