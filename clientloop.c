@@ -2817,7 +2817,7 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		 */
 		if (ssh->compat & SSH_HPNSSH) {
 			char *new_cmd;
-			new_cmd = malloc(len+3);
+			new_cmd = malloc(len+4);
 			/* read the existing command into a temp buffer */
 			sprintf(new_cmd, "%s", (const u_char*)sshbuf_ptr(cmd));
 			const char *pos;
