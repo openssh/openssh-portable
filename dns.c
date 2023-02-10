@@ -1,4 +1,4 @@
-/* $OpenBSD: dns.c,v 1.42 2022/02/01 23:32:51 djm Exp $ */
+/* $OpenBSD: dns.c,v 1.43 2023/02/10 04:56:30 djm Exp $ */
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -301,7 +301,8 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
  * Export the fingerprint of a key as a DNS resource record
  */
 int
-export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic)
+export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic,
+    int alg)
 {
 	u_int8_t rdata_pubkey_algorithm = 0;
 	u_int8_t rdata_digest_type = SSHFP_HASH_RESERVED;
@@ -311,6 +312,8 @@ export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic)
 	int success = 0;
 
 	for (dtype = SSHFP_HASH_SHA1; dtype < SSHFP_HASH_MAX; dtype++) {
+		if (alg != -1 && dtype != alg)
+			continue;
 		rdata_digest_type = dtype;
 		if (dns_read_key(&rdata_pubkey_algorithm, &rdata_digest_type,
 		    &rdata_digest, &rdata_digest_len, key)) {
