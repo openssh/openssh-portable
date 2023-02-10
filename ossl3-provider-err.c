@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
-#include "err.h"
+#include "ossl3-provider-err.h"
 
 #ifdef WITH_OPENSSL
 #if OPENSSL_VERSION_NUMBER >= 0x30000000UL

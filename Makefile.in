@@ -112,7 +112,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	kexsntrup761x25519.o sntrup761.o kexgen.o \
 	sftp-realpath.o platform-pledge.o platform-tracing.o platform-misc.o \
 	sshbuf-io.o metrics.o binn.o cipher-ctr-mt-provider.o \
-	cipher-ctr-mt-functions.o err.o num.o 
+	cipher-ctr-mt-functions.o ossl3-provider-err.o num.o 
 
 SKOBJS=	ssh-sk-client.o
 

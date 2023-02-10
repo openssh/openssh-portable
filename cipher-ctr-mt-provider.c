@@ -33,7 +33,7 @@
 #include <openssl/core_names.h>
 #include <openssl/err.h>
 #include "xmalloc.h"
-#include "err.h"
+#include "ossl3-provider-err.h"
 #include "num.h"
 #include "cipher-ctr-mt-functions.h"
 

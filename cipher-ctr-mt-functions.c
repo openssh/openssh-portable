@@ -36,7 +36,7 @@
 #include "log.h"
 
 /* for provider error struct */
-#include "err.h"
+#include "ossl3-provider-err.h"
 #include "num.h"
 
 /* note regarding threads and queues */
