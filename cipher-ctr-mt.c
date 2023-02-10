@@ -562,6 +562,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		}
 		c->qidx = 0;
 		c->ridx = 0;
+		c->struct_id = X++;
 
 		/* Start threads */
 		for (i = 0; i < cipher_threads; i++) {
@@ -569,8 +570,6 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 			if (pthread_create(&c->tid[i], NULL, thread_loop, c) != 0)
 				debug ("AES-CTR MT Could not create thread in %s", __FUNCTION__); /*should die here */
 			else {
-				if (!c->struct_id)
-					c->struct_id = X++;
 				c->id[i] = i;
 				debug ("AES-CTR MT spawned a thread with id %lu in %s (%d, %d)", c->tid[i], __FUNCTION__, c->struct_id, c->id[i]);
 			}

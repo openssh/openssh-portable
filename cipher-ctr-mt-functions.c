@@ -492,6 +492,7 @@ int aes_mt_start_threads(void *vevp_ctx, const u_char *key,
 		}
 		aes_mt_ctx->qidx = 0;
 		aes_mt_ctx->ridx = 0;
+		aes_mt_ctx->struct_id = global_struct_id++;
 
 		/* Start threads */
 		for (int i = 0; i < cipher_threads; i++) {
@@ -499,8 +500,6 @@ int aes_mt_start_threads(void *vevp_ctx, const u_char *key,
 			if (pthread_create(&aes_mt_ctx->tid[i], NULL, thread_loop, aes_mt_ctx) != 0)
 				fatal ("AES-CTR MT Could not create thread in %s", __func__);
 			else {
-				if (!aes_mt_ctx->struct_id)
-					aes_mt_ctx->struct_id = global_struct_id++;
 				aes_mt_ctx->id[i] = i;
 				debug_f ("AES-CTR MT spawned a thread with id %lu (%d, %d)",
 					 aes_mt_ctx->tid[i], aes_mt_ctx->struct_id,
