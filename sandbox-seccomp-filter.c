@@ -189,10 +189,14 @@
 #endif /* __NR_futex || __NR_futex_time64 */
 
 #if defined(__NR_mmap) || defined(__NR_mmap2)
+# ifdef MAP_FIXED_NOREPLACE
+#  define SC_MMAP_FLAGS MAP_PRIVATE|MAP_ANONYMOUS|MAP_FIXED|MAP_FIXED_NOREPLACE
+# else
+#  define SC_MMAP_FLAGS MAP_PRIVATE|MAP_ANONYMOUS|MAP_FIXED
+# endif /* MAP_FIXED_NOREPLACE */
 /* Use this for both __NR_mmap and __NR_mmap2 variants */
 # define SC_MMAP(_nr) \
-	SC_DENY_UNLESS_ARG_MASK(_nr, 3, \
-	    MAP_PRIVATE|MAP_ANONYMOUS|MAP_FIXED|MAP_FIXED_NOREPLACE, EINVAL), \
+	SC_DENY_UNLESS_ARG_MASK(_nr, 3, SC_MMAP_FLAGS, EINVAL), \
 	SC_ALLOW_ARG_MASK(_nr, 2, PROT_READ|PROT_WRITE|PROT_NONE)
 #endif /* __NR_mmap || __NR_mmap2 */
 
@@ -308,11 +312,21 @@ static const struct sock_filter preauth_insns[] = {
 #endif
 #ifdef __NR_madvise
 	SC_ALLOW_ARG(__NR_madvise, 2, MADV_NORMAL),
+# ifdef MADV_FREE
 	SC_ALLOW_ARG(__NR_madvise, 2, MADV_FREE),
+# endif
+# ifdef MADV_DONTNEED
 	SC_ALLOW_ARG(__NR_madvise, 2, MADV_DONTNEED),
+# endif
+# ifdef MADV_DONTFORK
 	SC_ALLOW_ARG(__NR_madvise, 2, MADV_DONTFORK),
+# endif
+# ifdef MADV_DONTDUMP
 	SC_ALLOW_ARG(__NR_madvise, 2, MADV_DONTDUMP),
+# endif
+# ifdef MADV_WIPEONFORK
 	SC_ALLOW_ARG(__NR_madvise, 2, MADV_WIPEONFORK),
+# endif
 	SC_DENY(__NR_madvise, EINVAL),
 #endif
 #ifdef __NR_mmap
