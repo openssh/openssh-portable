@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.h,v 1.58 2023/02/16 07:55:15 dtucker Exp $ */
+/* $OpenBSD: compat.h,v 1.59 2023/02/16 10:10:00 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999, 2000, 2001 Markus Friedl.  All rights reserved.
@@ -37,7 +37,7 @@
 /* #define unused		0x00000080 */
 /* #define unused		0x00000100 */
 /* #define unused		0x00000200 */
-#define SSH_BUG_PASSWORDPAD	0x00000400
+/* #define unused		0x00000400 */
 #define SSH_BUG_SCANNER		0x00000800
 #define SSH_BUG_BIGENDIANAES	0x00001000
 #define SSH_BUG_RSASIGMD5	0x00002000

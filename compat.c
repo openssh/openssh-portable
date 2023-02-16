@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.122 2023/02/16 07:55:15 dtucker Exp $ */
+/* $OpenBSD: compat.c,v 1.123 2023/02/16 10:10:00 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -79,17 +79,6 @@ compat_banner(struct ssh *ssh, const char *version)
 		{ "1.7 SecureFX*",	SSH_OLD_SESSIONID },
 		{ "Cisco-1.*",		SSH_BUG_DHGEX_LARGE|
 					SSH_BUG_HOSTKEYS },
-		{ "*SSH Compatible Server*",			/* Netscreen */
-					SSH_BUG_PASSWORDPAD },
-		{ "*OSU_0*,"
-		  "OSU_1.0*,"
-		  "OSU_1.1*,"
-		  "OSU_1.2*,"
-		  "OSU_1.3*,"
-		  "OSU_1.4*,"
-		  "OSU_1.5alpha1*,"
-		  "OSU_1.5alpha2*,"
-		  "OSU_1.5alpha3*",	SSH_BUG_PASSWORDPAD },
 		{ "*SSH_Version_Mapper*",
 					SSH_BUG_SCANNER },
 		{ "PuTTY_Local:*,"	/* dev versions < Sep 2014 */
