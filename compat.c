@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.123 2023/02/16 10:10:00 dtucker Exp $ */
+/* $OpenBSD: compat.c,v 1.124 2023/02/17 03:06:18 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -142,15 +142,7 @@ compat_banner(struct ssh *ssh, const char *version)
 char *
 compat_cipher_proposal(struct ssh *ssh, char *cipher_prop)
 {
-	if (!(ssh->compat & SSH_BUG_BIGENDIANAES))
-		return xstrdup(cipher_prop);
-	debug2_f("original cipher proposal: %s", cipher_prop);
-	if ((cipher_prop = match_filter_denylist(cipher_prop, "aes*")) == NULL)
-		fatal("match_filter_denylist failed");
-	debug2_f("compat cipher proposal: %s", cipher_prop);
-	if (*cipher_prop == '\0')
-		fatal("No supported ciphers found");
-	return cipher_prop;
+	return xstrdup(cipher_prop);
 }
 
 /* Always returns pointer to allocated memory, caller must free. */
