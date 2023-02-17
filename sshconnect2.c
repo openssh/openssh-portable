@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.361 2022/09/17 10:33:18 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.362 2023/02/17 04:22:50 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1875,20 +1875,6 @@ pubkey_reset(Authctxt *authctxt)
 }
 
 static int
-try_identity(struct ssh *ssh, Identity *id)
-{
-	if (!id->key)
-		return (0);
-	if (sshkey_type_plain(id->key->type) == KEY_RSA &&
-	    (ssh->compat & SSH_BUG_RSASIGMD5) != 0) {
-		debug("Skipped %s key %s for RSA/MD5 server",
-		    sshkey_type(id->key), id->filename);
-		return (0);
-	}
-	return 1;
-}
-
-static int
 userauth_pubkey(struct ssh *ssh)
 {
 	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
@@ -1908,7 +1894,7 @@ userauth_pubkey(struct ssh *ssh)
 		 * private key instead
 		 */
 		if (id->key != NULL) {
-			if (try_identity(ssh, id)) {
+			if (id->key != NULL) {
 				ident = format_identity(id);
 				debug("Offering public key: %s", ident);
 				free(ident);
@@ -1918,7 +1904,7 @@ userauth_pubkey(struct ssh *ssh)
 			debug("Trying private key: %s", id->filename);
 			id->key = load_identity_file(id);
 			if (id->key != NULL) {
-				if (try_identity(ssh, id)) {
+				if (id->key != NULL) {
 					id->isprivate = 1;
 					sent = sign_and_send_pubkey(ssh, id);
 				}

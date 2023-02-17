@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.50 2022/09/17 10:34:29 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.51 2023/02/17 04:22:50 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -99,12 +99,6 @@ userauth_hostbased(struct ssh *ssh, const char *method)
 	if (key->type != pktype) {
 		error_f("type mismatch for decoded key "
 		    "(received %d, expected %d)", key->type, pktype);
-		goto done;
-	}
-	if (sshkey_type_plain(key->type) == KEY_RSA &&
-	    (ssh->compat & SSH_BUG_RSASIGMD5) != 0) {
-		error("Refusing RSA key because peer uses unsafe "
-		    "signature format");
 		goto done;
 	}
 	if (match_pattern_list(pkalg, options.hostbased_accepted_algos, 0) != 1) {

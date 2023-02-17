@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.173 2022/11/07 10:05:38 dtucker Exp $ */
+/* $OpenBSD: kex.c,v 1.174 2023/02/17 04:22:50 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -1403,10 +1403,6 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 		    peer_version_string);
 		r = SSH_ERR_CONN_CLOSED; /* XXX */
 		goto out;
-	}
-	if ((ssh->compat & SSH_BUG_RSASIGMD5) != 0) {
-		logit("Remote version \"%.100s\" uses unsafe RSA signature "
-		    "scheme; disabling use of RSA keys", remote_version);
 	}
 	/* success */
 	r = 0;

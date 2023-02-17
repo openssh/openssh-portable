@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.124 2023/02/17 03:06:18 dtucker Exp $ */
+/* $OpenBSD: compat.c,v 1.125 2023/02/17 04:22:50 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -149,15 +149,7 @@ compat_cipher_proposal(struct ssh *ssh, char *cipher_prop)
 char *
 compat_pkalg_proposal(struct ssh *ssh, char *pkalg_prop)
 {
-	if (!(ssh->compat & SSH_BUG_RSASIGMD5))
-		return xstrdup(pkalg_prop);
-	debug2_f("original public key proposal: %s", pkalg_prop);
-	if ((pkalg_prop = match_filter_denylist(pkalg_prop, "ssh-rsa")) == NULL)
-		fatal("match_filter_denylist failed");
-	debug2_f("compat public key proposal: %s", pkalg_prop);
-	if (*pkalg_prop == '\0')
-		fatal("No supported PK algorithms found");
-	return pkalg_prop;
+	return xstrdup(pkalg_prop);
 }
 
 /* Always returns pointer to allocated memory, caller must free. */
