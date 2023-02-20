@@ -102,7 +102,8 @@ CONCH=conch
 
 # Tools used by multiple tests
 NC=$OBJ/netcat
-OPENSSL_BIN="${OPENSSL_BIN:-openssl}"
+# Always use the one configure tells us to, even if that's empty.
+#OPENSSL_BIN="${OPENSSL_BIN:-openssl}"
 
 if [ "x$TEST_SSH_SSH" != "x" ]; then
 	SSH="${TEST_SSH_SSH}"
