@@ -61,6 +61,7 @@
 
 #ifndef WITH_OPENSSL
 #define EVP_CIPHER_CTX void
+#define EVP_CIPHER void
 #else
 /* for multi-threaded aes-ctr cipher */
 extern const EVP_CIPHER *evp_aes_ctr_mt(void);
