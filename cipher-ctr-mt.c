@@ -35,6 +35,7 @@
 #include "xmalloc.h"
 #include "log.h"
 #include <unistd.h>
+#include "uthash.h"
 
 /* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"
@@ -139,23 +140,40 @@ struct kq {
 /* Context struct */
 struct ssh_aes_ctr_ctx_mt
 {
-	int             struct_id;
-	int             keylen;
-	int		state;
-	int		qidx;
-	int		ridx;
-	int             id[MAX_THREADS]; /* 32 */
-	AES_KEY         aes_key;
-	const u_char    *orig_key;
-	u_char		aes_counter[AES_BLOCK_SIZE]; /* 16B */
-	pthread_t	tid[MAX_THREADS]; /* 32 */
-	pthread_rwlock_t tid_lock;
-	struct kq	q[MAX_NUMKQ]; /* 33 */
+	long unsigned int struct_id;
+	int               keylen;
+	int		  state;
+	int		  qidx;
+	int		  ridx;
+	int               id[MAX_THREADS]; /* 32 */
+	AES_KEY           aes_key;
+	const u_char     *orig_key;
+	u_char		  aes_counter[AES_BLOCK_SIZE]; /* 16B */
+	pthread_t	  tid[MAX_THREADS]; /* 32 */
+	pthread_rwlock_t  tid_lock;
+	struct kq	  q[MAX_NUMKQ]; /* 33 */
 #ifdef __APPLE__
-	pthread_rwlock_t stop_lock;
-	int		exit_flag;
+	pthread_rwlock_t  stop_lock;
+	int		  exit_flag;
 #endif /* __APPLE__ */
 };
+
+/* this defines the hash and elements of evp context pointers
+ * that are created in thread_loop. We use this to clear and
+ * free the contexts in stop_and_prejoin
+ */
+struct aes_mt_ctx_ptrs {
+	pthread_t       tid;
+	EVP_CIPHER_CTX *pointer; /* 32 */
+	UT_hash_handle hh;
+};
+
+/* globals */
+/* how we increment the id the structs we create */
+long unsigned int global_struct_id = 0;
+
+/* keep a copy of the pointers created in thread_loop to free later */
+struct aes_mt_ctx_ptrs *evp_ptrs = NULL;
 
 /*
  * Add num to counter 'ctr'
@@ -222,17 +240,28 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
 
 	/* Cancel pregen threads */
 	for (i = 0; i < cipher_threads; i++) {
-		debug ("Canceled %lu (%d,%d)", c->tid[i], c->struct_id, c->id[i]);
+		debug ("Canceled %lu (%lu,%d)", c->tid[i], c->struct_id, c->id[i]);
 		pthread_cancel(c->tid[i]);
 	}
 	for (i = 0; i < cipher_threads; i++) {
 		if (pthread_kill(c->tid[i], 0) != 0)
-			debug3("AES-CTR MT pthread_join failure: Invalid thread id %lu in %s", c->tid[i], __FUNCTION__);
+			debug3("AES-CTR MT pthread_join failure: Invalid thread id %lu in %s",
+			       c->tid[i], __FUNCTION__);
 		else {
-			debug ("Joining %lu (%d, %d)", c->tid[i], c->struct_id, c->id[i]);
-			pthread_join(c->tid[i], NULL);
-		}
-	}
+			debug ("Joining %lu (%lu, %d)", c->tid[i], c->struct_id, c->id[i]);
+			pthread_mutex_destroy(&c->q[i].lock);
+                        pthread_cond_destroy(&c->q[i].cond);
+                        pthread_join(c->tid[i], NULL);
+			/* this finds the entry in the hash that corresponding to the
+			 * thread id. That's used to find the pointer to the cipher struct
+			 * created in thread_loop. */
+			struct aes_mt_ctx_ptrs *ptr;
+			HASH_FIND_INT(evp_ptrs, &c->tid[i], ptr);
+			EVP_CIPHER_CTX_free(ptr->pointer);
+			HASH_DEL(evp_ptrs, ptr);
+			free(ptr);              }
+        }
+	pthread_rwlock_destroy(&c->tid_lock);
 }
 
 /*
@@ -255,6 +284,7 @@ thread_loop(void *x)
 	EVP_CIPHER_CTX *aesni_ctx;
 	struct ssh_aes_ctr_ctx_mt *c = x;
 	struct kq *q;
+	struct aes_mt_ctx_ptrs *ptr;
 	int qidx;
 	pthread_t first_tid;
 	int outlen;
@@ -268,6 +298,16 @@ thread_loop(void *x)
 
 	/* create the context for this thread */
 	aesni_ctx = EVP_CIPHER_CTX_new();
+
+	/* keep track of the pointer for the evp in this struct
+	 * so we can free it later. So we place it in a hash indexed on the
+	 * thread id, which is available to us in the free function.
+	 * Note, the thread id isn't necessary unique across rekeys but
+	 * that's okay as they are unique during a key. */
+	ptr = malloc(sizeof *ptr); /*freed in stop & prejoin */
+	ptr->tid = pthread_self(); /* index for hash */
+	ptr->pointer = aesni_ctx;
+	HASH_ADD_INT(evp_ptrs, tid, ptr);
 
 	/* initialize the cipher ctx with the key provided
 	 * determinbe which cipher to use based on the key size */
@@ -562,16 +602,18 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		}
 		c->qidx = 0;
 		c->ridx = 0;
-		c->struct_id = X++;
+		c->struct_id = global_struct_id++;
 
 		/* Start threads */
 		for (i = 0; i < cipher_threads; i++) {
 			pthread_rwlock_wrlock(&c->tid_lock);
 			if (pthread_create(&c->tid[i], NULL, thread_loop, c) != 0)
-				debug ("AES-CTR MT Could not create thread in %s", __FUNCTION__); /*should die here */
+				fatal ("AES-CTR MT Could not create thread in %s", __FUNCTION__);
+                                /*should die here */
 			else {
 				c->id[i] = i;
-				debug ("AES-CTR MT spawned a thread with id %lu in %s (%d, %d)", c->tid[i], __FUNCTION__, c->struct_id, c->id[i]);
+				debug ("AES-CTR MT spawned a thread with id %lu in %s (%lu, %d)",
+				       c->tid[i], __FUNCTION__, c->struct_id, c->id[i]);
 			}
 			pthread_rwlock_unlock(&c->tid_lock);
 		}

@@ -61,7 +61,7 @@
 
 #ifndef WITH_OPENSSL
 #define EVP_CIPHER_CTX void
-#else 
+#else
 /* for multi-threaded aes-ctr cipher */
 extern const EVP_CIPHER *evp_aes_ctr_mt(void);
 #endif
@@ -70,6 +70,7 @@ struct sshcipher_ctx {
 	int	plaintext;
 	int	encrypt;
 	EVP_CIPHER_CTX *evp;
+	const EVP_CIPHER *meth_ptr; /*used to free memory in aes_ctr_mt */
 	struct chachapoly_ctx *cp_ctx;
 	struct aesctr_ctx ac_ctx; /* XXX union with evp? */
 	const struct sshcipher *cipher;
@@ -281,6 +282,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 
 	cc->plaintext = (cipher->flags & CFLAG_NONE) != 0;
 	cc->encrypt = do_encrypt;
+	cc->meth_ptr = NULL;
 
 	if (keylen < cipher->key_len ||
 	    (iv != NULL && ivlen < cipher_ivlen(cipher))) {
@@ -313,7 +315,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	/* the following block is for AES-CTR-MT cipher switching 
+	/* the following block is for AES-CTR-MT cipher switching
 	 * if we are using the ctr cipher and we are post-auth then
 	 * start the threaded cipher. If OSSL supports providers (OSSL 3.0+) then
 	 * we load our hpnssh provider. If it doesn't (OSSL < 1.1) then we use the
@@ -324,7 +326,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 		OSSL_LIB_CTX *aes_lib = NULL; /* probably not needed */
 		OSSL_PROVIDER *aes_mt_provider = NULL;
 		type = NULL;
-		
+
 		if (OSSL_PROVIDER_add_builtin(aes_lib, "hpnssh",
 					      OSSL_provider_init) != 1) {
 			fatal("Failed to add HPNSSH provider for AES-CTR");
@@ -352,6 +354,12 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 		}
 #else
 		type = (*evp_aes_ctr_mt)(); /* see cipher-ctr-mt.c */
+		/* we need to free this later if using aes_ctr_mt
+		 * under OSSL 1.1. Honestly, we could avoid this by making
+		 * it a global in cipher-ctr_mt.c and exporting it here
+		 * then we'd only have to call EVP_CIPHER_meth once but this
+		 * works for now. TODO: This. cjr 02.22.2023 */
+		cc->meth_ptr = type;
 #endif /* OPENSSL_VERSION_NUMBER */
 	} /* if (strstr()) */
 	if (EVP_CipherInit(cc->evp, type, NULL, (u_char *)iv,
@@ -492,6 +500,16 @@ cipher_free(struct sshcipher_ctx *cc)
 #ifdef WITH_OPENSSL
 	EVP_CIPHER_CTX_free(cc->evp);
 	cc->evp = NULL;
+	/* if meth_ptr isn't null then we are using the aes_ctr_mt
+	 * evp_cipher_meth_new() in cipher-ctr-mt.c under OSSL 1.1
+	 * if we don't explicitly free it then, even though we free
+	 * the ctx it is a part of it doesn't get freed. So...
+	 * cjr 2/7/2023
+	 */
+	if (cc->meth_ptr != NULL) {
+		EVP_CIPHER_meth_free((void *)(EVP_CIPHER *)cc->meth_ptr);
+		cc->meth_ptr = NULL;
+	}
 #endif
 	freezero(cc, sizeof(*cc));
 }

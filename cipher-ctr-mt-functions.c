@@ -75,7 +75,10 @@ int numkq = 2;
 
 /* globals */
 /* how we increment the id the structs we create */
-int global_struct_id = 0;
+long unsigned int global_struct_id = 0;
+
+/* keep a copy of the pointers created in thread_loop to free later */
+struct aes_mt_ctx_ptrs *evp_ptrs = NULL;
 
 /* private functions */
 
@@ -144,7 +147,7 @@ stop_and_join_pregen_threads(struct aes_mt_ctx_st *aes_mt_ctx)
 
 	/* Cancel pregen threads */
 	for (i = 0; i < cipher_threads; i++) {
-		debug_f ("Canceled %lu (%d,%d)", aes_mt_ctx->tid[i], aes_mt_ctx->struct_id,
+		debug_f ("Canceled %lu (%lu,%d)", aes_mt_ctx->tid[i], aes_mt_ctx->struct_id,
 		       aes_mt_ctx->id[i]);
 		pthread_cancel(aes_mt_ctx->tid[i]);
 	}
@@ -153,11 +156,20 @@ stop_and_join_pregen_threads(struct aes_mt_ctx_st *aes_mt_ctx)
 			debug3("AES-CTR MT pthread_join failure: Invalid thread id %lu in %s",
 			       aes_mt_ctx->tid[i], __func__);
 		else {
-			debug_f ("Joining %lu (%d, %d)", aes_mt_ctx->tid[i], aes_mt_ctx->struct_id,
-			       aes_mt_ctx->id[i]);
+			debug_f ("Joining %lu (%lu, %d)", aes_mt_ctx->tid[i], aes_mt_ctx->struct_id,
+				 aes_mt_ctx->id[i]);
 			pthread_join(aes_mt_ctx->tid[i], NULL);
-		}
-	}
+			/* this finds the entry in the hash that corresponding to the
+			 * thread id. That's used to find the pointer to the cipher struct
+			 * created in thread_loop. */
+			struct aes_mt_ctx_ptrs *ptr;
+			HASH_FIND_INT(evp_ptrs, &aes_mt_ctx->tid[i], ptr);
+			EVP_CIPHER_CTX_free(ptr->pointer);
+			HASH_DEL(evp_ptrs, ptr);
+			free(ptr);
+                }
+        }
+	pthread_rwlock_destroy(&aes_mt_ctx->tid_lock);
 }
 
 /* determine the number of threads to use
@@ -203,6 +215,7 @@ thread_loop(void *job)
 	EVP_CIPHER_CTX *evp_ctx;
 	struct aes_mt_ctx_st *aes_mt_ctx = job;
 	struct kq *q;
+	struct aes_mt_ctx_ptrs *ptr;
 	int qidx;
 	pthread_t first_tid;
 	int outlen;
@@ -216,6 +229,16 @@ thread_loop(void *job)
 
 	/* create the context for this thread */
 	evp_ctx = EVP_CIPHER_CTX_new();
+
+	/* keep track of the pointer for the evp in this struct
+	 * so we can free it later. So we place it in a hash indexed on the
+	 * thread id, which is available to us in the free function.
+	 * Note, the thread id isn't necessary unique across rekeys but
+	 * that's okay as they are unique during a key. */
+	ptr = malloc(sizeof *ptr); /*freed in stop & prejoin */
+	ptr->tid = pthread_self(); /* index for hash */
+	ptr->pointer = evp_ctx;
+	HASH_ADD_INT(evp_ptrs, tid, ptr);
 
 	/* initialize the cipher ctx with the key provided
 	 * determinbe which cipher to use based on the key size */
@@ -430,6 +453,7 @@ void aes_mt_freectx(void *vevp_ctx)
 		free(aes_mt_ctx);
 		EVP_CIPHER_CTX_set_app_data(evp_ctx, NULL);
 	}
+	EVP_CIPHER_CTX_free(evp_ctx);
 }
 
 /* this function takes the EVP context, gets the AES context
@@ -501,7 +525,7 @@ int aes_mt_start_threads(void *vevp_ctx, const u_char *key,
 				fatal ("AES-CTR MT Could not create thread in %s", __func__);
 			else {
 				aes_mt_ctx->id[i] = i;
-				debug_f ("AES-CTR MT spawned a thread with id %lu (%d, %d)",
+				debug_f ("AES-CTR MT spawned a thread with id %lu (%lu, %d)",
 					 aes_mt_ctx->tid[i], aes_mt_ctx->struct_id,
 					 aes_mt_ctx->id[i]);
 			}

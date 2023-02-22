@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include "cipher-aesctr.h"
+#include "uthash.h"
 
 #ifndef USE_BUILTIN_RIJNDAEL
 #include <openssl/aes.h>
@@ -100,23 +101,35 @@ struct kq {
 /* AES MT context struct */
 struct aes_mt_ctx_st {
 	struct provider_ctx_st *provctx;
-	int             struct_id;
-	int             keylen;
-	int		state;
-	int		qidx;
-	int		ridx;
-	int             id[MAX_THREADS]; /* 32 */
-	AES_KEY         aes_key;
-	const u_char    *orig_key;
-	u_char		aes_counter[AES_BLOCK_SIZE]; /* 16B */
-	pthread_t	tid[MAX_THREADS]; /* 32 */
-	pthread_rwlock_t tid_lock;
-	struct kq	q[MAX_NUMKQ]; /* 33 */
+	long unsigned int       struct_id;
+	int                     keylen;
+	int		        state;
+	int		        qidx;
+	int		        ridx;
+	int                     id[MAX_THREADS]; /* 32 */
+	AES_KEY                 aes_key;
+	const u_char           *orig_key;
+	u_char		        aes_counter[AES_BLOCK_SIZE]; /* 16B */
+	pthread_t	        tid[MAX_THREADS]; /* 32 */
+	pthread_rwlock_t        tid_lock;
+	struct kq	        q[MAX_NUMKQ]; /* 33 */
 #ifdef __APPLE__
-	pthread_rwlock_t stop_lock;
-	int		exit_flag;
+	pthread_rwlock_t        stop_lock;
+	int		        exit_flag;
 #endif /* __APPLE__ */
-	int             ongoing; /* possibly not needed */
+	int                     ongoing; /* possibly not needed */
+};
+
+/* this holds an array of evp context pointers that are
+ * created in thread_loop. Since we can't effectively free those
+ * contexts in thread_loop we keep a copy of those pointers here
+ * and then free them in stop_and_join_pregenthreads
+ * cjr 2/2/2023
+ */
+struct aes_mt_ctx_ptrs {
+	EVP_CIPHER_CTX *pointer;
+        pthread_t       tid;
+	UT_hash_handle  hh;
 };
 
 int aes_mt_do_cipher(void *, u_char *, size_t *, size_t, const u_char *, size_t);
