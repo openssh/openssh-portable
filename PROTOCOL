@@ -344,6 +344,32 @@ signal to a session attached to a channel. OpenSSH supports one
 extension signal "INFO@openssh.com" that allows sending SIGINFO on
 BSD-derived systems.
 
+2.7. connection: Request agent forward "auth-agent-req@openssh.com"
+
+SSH Agent forwarding may be requested for a session by sending a
+SSH_MSG_CHANNEL_REQUEST message.
+
+      byte      SSH_MSG_CHANNEL_REQUEST
+      uint32    recipient channel
+      string    "auth-agent-req@openssh.com"
+      boolean   want reply
+
+2.8. connection: Agent channels "auth-agent@openssh.com"
+
+To actually communicate with an SSH Agent, send an SSH_MSG_CHANNEL_OPEN
+with "auth-agent@openssh.com".
+
+      byte      SSH_MSG_CHANNEL_OPEN
+      string    "auth-agent@openssh.com"
+      uint32    sender channel
+      uint32    initial window size
+      uint32    maximum packet size
+
+The recipient should respond with SSH_MSG_CHANNEL_OPEN_CONFIRMATION
+or SSH_MSG_CHANNEL_OPEN_FAILURE.
+
+The protocol used inside of this channel is documented in section 5.5.
+
 3. Authentication protocol changes
 
 3.1. Host-bound public key authentication
