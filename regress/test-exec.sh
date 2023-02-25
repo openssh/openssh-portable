@@ -674,9 +674,6 @@ for t in ${SSH_HOSTKEY_TYPES}; do
 
 	# don't use SUDO for proxy connect
 	echo HostKey $OBJ/$t >> $OBJ/sshd_proxy
-
-	# explicitly set perms since cygwin inhertited perms might be too open
-	chmod 600 $OBJ/$t $OBJ/host.$t
 done
 chmod 644 $OBJ/authorized_keys_$USER
 
