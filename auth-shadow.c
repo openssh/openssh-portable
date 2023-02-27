@@ -98,8 +98,8 @@ auth_shadow_pwexpired(Authctxt *ctxt)
 	}
 
 	today = time(NULL) / DAY;
-	debug3("%s: today %d sp_lstchg %d sp_max %d", __func__, (int)today,
-	    (int)spw->sp_lstchg, (int)spw->sp_max);
+	debug3_f("today %lld sp_lstchg %lld sp_max %lld", (long long)today,
+	    (long long)spw->sp_lstchg, (long long)spw->sp_max);
 
 #if defined(__hpux) && !defined(HAVE_SECUREWARE)
 	if (iscomsec()) {
