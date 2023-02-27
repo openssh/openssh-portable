@@ -56,13 +56,13 @@ int
 auth_shadow_acctexpired(struct spwd *spw)
 {
 	time_t today;
-	int daysleft;
+	long long daysleft;
 	int r;
 
 	today = time(NULL) / DAY;
 	daysleft = spw->sp_expire - today;
-	debug3("%s: today %d sp_expire %d days left %d", __func__, (int)today,
-	    (int)spw->sp_expire, daysleft);
+	debug3("%s: today %lld sp_expire %lld days left %lld", __func__,
+	    (long long)today, (long long)spw->sp_expire, daysleft);
 
 	if (spw->sp_expire == -1) {
 		debug3("account expiration disabled");
@@ -70,9 +70,9 @@ auth_shadow_acctexpired(struct spwd *spw)
 		logit("Account %.100s has expired", spw->sp_namp);
 		return 1;
 	} else if (daysleft <= spw->sp_warn) {
-		debug3("account will expire in %d days", daysleft);
+		debug3("account will expire in %lld days", daysleft);
 		if ((r = sshbuf_putf(loginmsg, 
-		    "Your account will expire in %d day%s.\n", daysleft,
+		    "Your account will expire in %lld day%s.\n", daysleft,
 		    daysleft == 1 ? "" : "s")) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	}
