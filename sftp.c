@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.225 2023/01/05 05:49:13 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.226 2023/02/27 22:12:40 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1030,6 +1030,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 		if (lflag & LS_LONG_VIEW) {
 			if (g.gl_statv[i] == NULL) {
 				error("no stat information for %s", fname);
+				free(fname);
 				continue;
 			}
 			lname = ls_file(fname, g.gl_statv[i], 1,
