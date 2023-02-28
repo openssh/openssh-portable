@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.174 2023/02/17 04:22:50 dtucker Exp $ */
+/* $OpenBSD: kex.c,v 1.175 2023/02/28 21:31:50 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -1345,7 +1345,7 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 	}
 	peer_version_string = sshbuf_dup_string(peer_version);
 	if (peer_version_string == NULL)
-		error_f("sshbuf_dup_string failed");
+		fatal_f("sshbuf_dup_string failed");
 	/* XXX must be same size for sscanf */
 	if ((remote_version = calloc(1, sshbuf_len(peer_version))) == NULL) {
 		error_f("calloc failed");
