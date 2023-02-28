@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.462 2023/02/10 04:56:30 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.463 2023/02/28 08:45:24 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1337,7 +1337,7 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 			unlink(tmp);
 			fatal("fdopen: %s", strerror(oerrno));
 		}
-		fchmod(fd, sb.st_mode & 0644);
+		(void)fchmod(fd, sb.st_mode & 0644);
 		inplace = 1;
 	}
 	/* XXX support identity_file == "-" for stdin */
