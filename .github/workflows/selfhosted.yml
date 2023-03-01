@@ -111,6 +111,7 @@ jobs:
           config.h
           config.log
           regress/*.log
+          regress/log/*
           regress/valgrind-out/
     - name: shutdown VM
       if: always()
