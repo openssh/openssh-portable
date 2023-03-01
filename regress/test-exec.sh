@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.94 2023/01/13 04:47:34 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.95 2023/03/01 09:29:32 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -240,7 +240,13 @@ fi
 # Logfiles.
 # SSH_LOGFILE should be the debug output of ssh(1) only
 # SSHD_LOGFILE should be the debug output of sshd(8) only
-# REGRESS_LOGFILE is the output of the test itself stdout and stderr
+# REGRESS_LOGFILE is the log of progress of the regress test itself.
+# TEST_SSH_LOGDIR will contain datestamped logs of all binaries run in
+# chronological order.
+if [ "x$TEST_SSH_LOGDIR" = "x" ]; then
+	TEST_SSH_LOGDIR=$OBJ/log
+	mkdir -p $TEST_SSH_LOGDIR
+fi
 if [ "x$TEST_SSH_LOGFILE" = "x" ]; then
 	TEST_SSH_LOGFILE=$OBJ/ssh.log
 fi
@@ -276,26 +282,54 @@ if [ "x$TEST_REGRESS_CACHE_DIR" != "x" ]; then
 fi
 
 # truncate logfiles
->$TEST_SSH_LOGFILE
->$TEST_SSHD_LOGFILE
 >$TEST_REGRESS_LOGFILE
 
-# Create wrapper ssh with logging.  We can't just specify "SSH=ssh -E..."
-# because sftp and scp don't handle spaces in arguments.  scp and sftp like
-# to use -q so we remove those to preserve our debug logging.  In the rare
-# instance where -q is desirable -qq is equivalent and is not removed.
+# Create ssh and sshd wrappers with logging.  These create a datestamped
+# unique file for every invocation so that we can retain all logs from a
+# given test no matter how many times it's invoked.  It also leaves a
+# symlink with the original name for tests (and people) who look for that.
+
+# For ssh, e can't just specify "SSH=ssh -E..." because sftp and scp don't
+# handle spaces in arguments.  scp and sftp like to use -q so we remove those
+# to preserve our debug logging.  In the rare instance where -q is desirable
+# -qq is equivalent and is not removed.
 SSHLOGWRAP=$OBJ/ssh-log-wrapper.sh
 cat >$SSHLOGWRAP <<EOD
 #!/bin/sh
-echo "Executing: ${SSH} \$@" >>${TEST_SSH_LOGFILE}
+timestamp="\`$OBJ/timestamp\`"
+logfile="${TEST_SSH_LOGDIR}/\${timestamp}.ssh.\$\$.log"
+echo "Executing: ${SSH} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
+echo "Executing: ${SSH} \$@" >>\${logfile}
 for i in "\$@";do shift;case "\$i" in -q):;; *) set -- "\$@" "\$i";;esac;done
-exec ${SSH} -E${TEST_SSH_LOGFILE} "\$@"
+ln -f -s \${logfile} $TEST_SSH_LOGFILE
+exec ${SSH} -E\${logfile} "\$@"
 EOD
 
 chmod a+rx $OBJ/ssh-log-wrapper.sh
 REAL_SSH="$SSH"
 REAL_SSHD="$SSHD"
 SSH="$SSHLOGWRAP"
+
+SSHDLOGWRAP=$OBJ/sshd-log-wrapper.sh
+cat >$SSHDLOGWRAP <<EOD
+#!/bin/sh
+timestamp="\`$OBJ/timestamp\`"
+logfile="${TEST_SSH_LOGDIR}/\${timestamp}.sshd.\$\$.log"
+ln -f -s \${logfile} $TEST_SSHD_LOGFILE
+echo "Executing: ${SSHD} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
+echo "Executing: ${SSHD} \$@" >>\${logfile}
+exec ${SSHD} -E\${logfile} "\$@"
+EOD
+chmod a+rx $OBJ/sshd-log-wrapper.sh
+
+ssh_logfile ()
+{
+	tool="$1"
+	timestamp="`$OBJ/timestamp`"
+	logfile="${TEST_SSH_LOGDIR}/${timestamp}.$tool.$$.log"
+	echo "Logging $tool to log \${logfile}" >>$TEST_REGRESS_LOGFILE
+	echo $logfile
+}
 
 # Some test data.  We make a copy because some tests will overwrite it.
 # The tests may assume that $DATA exists and is writable and $COPY does
@@ -451,9 +485,10 @@ cleanup ()
 
 start_debug_log ()
 {
-	echo "trace: $@" >$TEST_REGRESS_LOGFILE
-	echo "trace: $@" >$TEST_SSH_LOGFILE
-	echo "trace: $@" >$TEST_SSHD_LOGFILE
+	echo "trace: $@" >>$TEST_REGRESS_LOGFILE
+	if [ -d "$TEST_SSH_LOGDIR" ]; then
+		rm -f $TEST_SSH_LOGDIR/*
+	fi
 }
 
 save_debug_log ()
@@ -464,6 +499,20 @@ save_debug_log ()
 	(cat $TEST_REGRESS_LOGFILE; echo) >>$OBJ/failed-regress.log
 	(cat $TEST_SSH_LOGFILE; echo) >>$OBJ/failed-ssh.log
 	(cat $TEST_SSHD_LOGFILE; echo) >>$OBJ/failed-sshd.log
+
+	# Save all logfiles in a tarball.
+	testname=`echo $tid | tr ' ' _`
+	(cd $OBJ &&
+	  logfiles=""
+	  for i in $TEST_REGRESS_LOGFILE $TEST_SSH_LOGFILE $TEST_SSHD_LOGFILE \
+	    $TEST_SSH_LOGDIR; do
+		if [ -e "`basename $i`" ]; then
+			logfiles="$logfiles `basename $i`"
+		else
+			logfiles="$logfiles $i"
+		fi
+	  done
+	  tar cfv $OBJ/failed-$testname-logs.tar $logfiles)
 }
 
 trace ()
@@ -725,7 +774,7 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	echo "HostName=127.0.0.1" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "PortNumber=$PORT" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "ProxyMethod=5" >> ${OBJ}/.putty/sessions/localhost_proxy
-	echo "ProxyTelnetCommand=sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy" >> ${OBJ}/.putty/sessions/localhost_proxy
+	echo "ProxyTelnetCommand=${OBJ}/sshd-log-wrapper.sh -i -f $OBJ/sshd_proxy" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "ProxyLocalhost=1" >> ${OBJ}/.putty/sessions/localhost_proxy
 
 	PUTTYDIR=${OBJ}/.putty
@@ -735,7 +784,7 @@ fi
 # create a proxy version of the client config
 (
 	cat $OBJ/ssh_config
-	echo proxycommand ${SUDO} env SSH_SK_HELPER=\"$SSH_SK_HELPER\" sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy
+	echo proxycommand ${SUDO} env SSH_SK_HELPER=\"$SSH_SK_HELPER\" ${OBJ}/sshd-log-wrapper.sh -i -f $OBJ/sshd_proxy
 ) > $OBJ/ssh_proxy
 
 # check proxy config
@@ -744,6 +793,7 @@ ${SSHD} -t -f $OBJ/sshd_proxy	|| fatal "sshd_proxy broken"
 start_sshd ()
 {
 	# start sshd
+	logfile="${TEST_SSH_LOGDIR}/sshd.`$OBJ/timestamp`.$$.log"
 	$SUDO ${SSHD} -f $OBJ/sshd_config "$@" -t || fatal "sshd_config broken"
 	$SUDO env SSH_SK_HELPER="$SSH_SK_HELPER" \
 	    ${SSHD} -f $OBJ/sshd_config "$@" -E$TEST_SSHD_LOGFILE
