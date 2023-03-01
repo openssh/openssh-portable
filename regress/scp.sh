@@ -33,7 +33,7 @@ scpclean() {
 for mode in scp sftp ; do
 	tag="$tid: $mode mode"
 	if test $mode = scp ; then
-		scpopts="-O -q -S ${OBJ}/scp-ssh-wrapper.scp"
+		scpopts="-O -S ${OBJ}/scp-ssh-wrapper.scp"
 	else
 		scpopts="-s -D ${SFTPSERVER}"
 	fi
@@ -115,6 +115,34 @@ for mode in scp sftp ; do
 	cp ${DATA} ${DIR}/copy
 	$SCP $scpopts -r somehost:${DIR} ${DIR2} || fail "copy failed"
 	diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
+
+	verbose "$tag: resume remote dir to local dir"
+	scpclean
+	rm -rf ${DIR2}
+	cp ${DATA} ${DIR}/copy1
+	cp ${DATA} ${DIR}/copy2
+	cp ${DATA} ${DIR}/copy3
+	$SCP -r $scpopts somehost:${DIR} ${DIR2} || fail "copy failed"
+	truncate --size=-512 ${DIR2}/copy1
+	truncate --size=+512 ${DIR2}/copy2
+	$SCP -Z $scpopts somehost:${DIR}/* ${DIR2} || fail "resume failed"
+	for i in $(cd ${DIR} && echo *); do
+            cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted resume copy"
+	done
+
+	verbose "$tag: resume local dir to remote dir"
+	scpclean
+	rm -rf ${DIR2}
+	cp ${DATA} ${DIR}/copy1
+	cp ${DATA} ${DIR}/copy2
+	cp ${DATA} ${DIR}/copy3
+	$SCP -r $scpopts ${DIR} somehost:${DIR2} || fail "copy failed"
+	truncate --size=-512 ${DIR2}/copy1
+	truncate --size=+512 ${DIR2}/copy2
+	$SCP -Z $scpopts ${DIR}/* somehost:${DIR2} || fail "resume failed"
+	for i in $(cd ${DIR} && echo *); do
+            cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted resume copy"
+	done
 
 	verbose "$tag: unmatched glob file local->remote"
 	scpclean
