@@ -535,7 +535,7 @@ main(int argc, char **argv)
 
 	fflag = Tflag = tflag = 0;
 	while ((ch = getopt(argc, argv,
-	    "12346ABCTdfOpqRrstvZ:D:F:J:M:P:S:c:i:l:o:X:")) != -1) {
+	    "12346ABCTdfOpqRrstvZD:F:J:M:P:S:c:i:l:o:X:")) != -1) {
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
@@ -2700,9 +2700,9 @@ usage(void)
 {
 #ifdef WITH_OPENSSL
 	(void) fprintf(stderr,
-	    "usage: scp [-346ABCOpqRrsTvZ] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
-	    "           [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
-	    "           [-P port] [-S program] [-X sftp_option] source ... target\n");
+	    "usage: hpnscp [-346ABCOpqRrsTvZ] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
+	    "              [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
+	    "              [-P port] [-S program] [-X sftp_option] source ... target\n");
 	exit(1);
 #else
 	(void) fprintf(stderr,
