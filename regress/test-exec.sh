@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.95 2023/03/01 09:29:32 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.96 2023/03/01 21:54:50 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -301,7 +301,8 @@ logfile="${TEST_SSH_LOGDIR}/\${timestamp}.ssh.\$\$.log"
 echo "Executing: ${SSH} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
 echo "Executing: ${SSH} \$@" >>\${logfile}
 for i in "\$@";do shift;case "\$i" in -q):;; *) set -- "\$@" "\$i";;esac;done
-ln -f -s \${logfile} $TEST_SSH_LOGFILE
+rm -f $TEST_SSH_LOGFILE
+ln -s \${logfile} $TEST_SSH_LOGFILE
 exec ${SSH} -E\${logfile} "\$@"
 EOD
 
@@ -315,7 +316,8 @@ cat >$SSHDLOGWRAP <<EOD
 #!/bin/sh
 timestamp="\`$OBJ/timestamp\`"
 logfile="${TEST_SSH_LOGDIR}/\${timestamp}.sshd.\$\$.log"
-ln -f -s \${logfile} $TEST_SSHD_LOGFILE
+rm -f $TEST_SSH_LOGFILE
+ln -s \${logfile} $TEST_SSH_LOGFILE
 echo "Executing: ${SSHD} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
 echo "Executing: ${SSHD} \$@" >>\${logfile}
 exec ${SSHD} -E\${logfile} "\$@"
