@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.96 2023/03/01 21:54:50 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.97 2023/03/02 08:24:41 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -301,7 +301,7 @@ logfile="${TEST_SSH_LOGDIR}/\${timestamp}.ssh.\$\$.log"
 echo "Executing: ${SSH} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
 echo "Executing: ${SSH} \$@" >>\${logfile}
 for i in "\$@";do shift;case "\$i" in -q):;; *) set -- "\$@" "\$i";;esac;done
-rm -f $TEST_SSH_LOGFILE
+$SUDO rm -f $TEST_SSH_LOGFILE
 ln -s \${logfile} $TEST_SSH_LOGFILE
 exec ${SSH} -E\${logfile} "\$@"
 EOD
@@ -316,8 +316,8 @@ cat >$SSHDLOGWRAP <<EOD
 #!/bin/sh
 timestamp="\`$OBJ/timestamp\`"
 logfile="${TEST_SSH_LOGDIR}/\${timestamp}.sshd.\$\$.log"
-rm -f $TEST_SSH_LOGFILE
-ln -s \${logfile} $TEST_SSH_LOGFILE
+$SUDO rm -f $TEST_SSHD_LOGFILE
+ln -s \${logfile} $TEST_SSHD_LOGFILE
 echo "Executing: ${SSHD} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
 echo "Executing: ${SSHD} \$@" >>\${logfile}
 exec ${SSHD} -E\${logfile} "\$@"
@@ -495,15 +495,18 @@ start_debug_log ()
 
 save_debug_log ()
 {
+	testname=`echo $tid | tr ' ' _`
+	tarname="$OBJ/failed-$testname-logs.tar"
+
 	echo $@ >>$TEST_REGRESS_LOGFILE
 	echo $@ >>$TEST_SSH_LOGFILE
 	echo $@ >>$TEST_SSHD_LOGFILE
+	echo "Saving debug logs to $tarname" >>$TEST_REGRESS_LOGFILE
 	(cat $TEST_REGRESS_LOGFILE; echo) >>$OBJ/failed-regress.log
 	(cat $TEST_SSH_LOGFILE; echo) >>$OBJ/failed-ssh.log
 	(cat $TEST_SSHD_LOGFILE; echo) >>$OBJ/failed-sshd.log
 
 	# Save all logfiles in a tarball.
-	testname=`echo $tid | tr ' ' _`
 	(cd $OBJ &&
 	  logfiles=""
 	  for i in $TEST_REGRESS_LOGFILE $TEST_SSH_LOGFILE $TEST_SSHD_LOGFILE \
@@ -514,7 +517,7 @@ save_debug_log ()
 			logfiles="$logfiles $i"
 		fi
 	  done
-	  tar cfv $OBJ/failed-$testname-logs.tar $logfiles)
+	  tar cf "$tarname" $logfiles)
 }
 
 trace ()
