@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.388 2023/03/03 02:37:58 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.389 2023/03/03 09:48:51 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2112,7 +2112,7 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 			free(response);
 			response = read_passphrase("Accept updated hostkeys? "
 			    "(yes/no): ", RP_ECHO);
-			if (strcasecmp(response, "yes") == 0)
+			if (response != NULL && strcasecmp(response, "yes") == 0)
 				break;
 			else if (quit_pending || response == NULL ||
 			    strcasecmp(response, "no") == 0) {
