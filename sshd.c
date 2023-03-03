@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.597 2023/02/10 04:47:19 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.598 2023/03/03 03:12:24 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2117,17 +2117,21 @@ main(int ac, char **av)
 	if (rexec_flag) {
 		debug("rexec start in %d out %d newsock %d pipe %d sock %d",
 		    sock_in, sock_out, newsock, startup_pipe, config_s[0]);
-		dup2(newsock, STDIN_FILENO);
-		dup2(STDIN_FILENO, STDOUT_FILENO);
+		if (dup2(newsock, STDIN_FILENO) == -1)
+			debug3_f("dup2 stdin: %s", strerror(errno));
+		if (dup2(STDIN_FILENO, STDOUT_FILENO) == -1)
+			debug3_f("dup2 stdout: %s", strerror(errno));
 		if (startup_pipe == -1)
 			close(REEXEC_STARTUP_PIPE_FD);
 		else if (startup_pipe != REEXEC_STARTUP_PIPE_FD) {
-			dup2(startup_pipe, REEXEC_STARTUP_PIPE_FD);
+			if (dup2(startup_pipe, REEXEC_STARTUP_PIPE_FD) == -1)
+				debug3_f("dup2 startup_p: %s", strerror(errno));
 			close(startup_pipe);
 			startup_pipe = REEXEC_STARTUP_PIPE_FD;
 		}
 
-		dup2(config_s[1], REEXEC_CONFIG_PASS_FD);
+		if (dup2(config_s[1], REEXEC_CONFIG_PASS_FD) == -1)
+			debug3_f("dup2 config_s: %s", strerror(errno));
 		close(config_s[1]);
 
 		ssh_signal(SIGHUP, SIG_IGN); /* avoid reset to SIG_DFL */
