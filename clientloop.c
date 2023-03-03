@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.387 2023/01/06 02:39:59 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.388 2023/03/03 02:37:58 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -158,7 +158,7 @@ static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
 static int need_rekeying;	/* Set to non-zero if rekeying is requested. */
 static int session_closed;	/* In SSH2: login session closed. */
-static u_int x11_refuse_time;	/* If >0, refuse x11 opens after this time. */
+static time_t x11_refuse_time;	/* If >0, refuse x11 opens after this time. */
 static time_t server_alive_time;	/* Time to do server_alive_check */
 static int hostkeys_update_complete;
 static int session_setup_complete;
@@ -376,8 +376,8 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 
 			if (timeout != 0 && x11_refuse_time == 0) {
 				now = monotime() + 1;
-				if (UINT_MAX - timeout < now)
-					x11_refuse_time = UINT_MAX;
+				if (SSH_TIME_T_MAX - timeout < now)
+					x11_refuse_time = SSH_TIME_T_MAX;
 				else
 					x11_refuse_time = now + timeout;
 				channel_set_x11_refuse_time(ssh,
@@ -1617,7 +1617,7 @@ client_request_x11(struct ssh *ssh, const char *request_type, int rchan)
 		    "malicious server.");
 		return NULL;
 	}
-	if (x11_refuse_time != 0 && (u_int)monotime() >= x11_refuse_time) {
+	if (x11_refuse_time != 0 && monotime() >= x11_refuse_time) {
 		verbose("Rejected X11 connection after ForwardX11Timeout "
 		    "expired");
 		return NULL;
