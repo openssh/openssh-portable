@@ -54,7 +54,7 @@ static ssh_gssapi_client gssapi_client =
     GSS_C_NO_CREDENTIAL, NULL, {NULL, NULL, NULL, NULL}};
 
 ssh_gssapi_mech gssapi_null_mech =
-    { NULL, NULL, {0, NULL}, NULL, NULL, NULL, NULL};
+    { NULL, NULL, {0, NULL}, NULL, NULL, NULL, NULL, NULL};
 
 #ifdef KRB5
 extern ssh_gssapi_mech gssapi_kerberos_mech;
@@ -165,6 +165,21 @@ ssh_gssapi_supported_oids(gss_OID_set *oidset)
 	gss_release_oid_set(&min_status, &supported);
 }
 
+static ssh_gssapi_mech *
+lookup_supported_mechanism(gss_OID_desc *oid)
+{
+	int i = 0;
+
+	while (supported_mechs[i]->name != NULL) {
+		if (supported_mechs[i]->oid.length == oid->length &&
+		    (memcmp(supported_mechs[i]->oid.elements,
+		    oid->elements, oid->length) == 0))
+			return supported_mechs[i];
+		i++;
+	}
+
+	return NULL;
+}
 
 /* Wrapper around accept_sec_context
  * Requires that the context contains:
@@ -177,11 +192,24 @@ ssh_gssapi_accept_ctx(Gssctxt *ctx, gss_buffer_desc *recv_tok,
     gss_buffer_desc *send_tok, OM_uint32 *flags)
 {
 	OM_uint32 status;
-	gss_OID mech;
+	gss_OID mech_oid;
+	struct ssh_gssapi_mech_struct *mech;
+
+	if (!ctx->first_token_validated) {
+		mech = lookup_supported_mechanism(ctx->oid);
+
+		if (mech == NULL)
+			fatal("GSSAPI mechanism not found");
+
+		if (mech->firsttokenvalid && !mech->firsttokenvalid(recv_tok))
+			fatal("First GSSAPI token is invalid");
+
+		ctx->first_token_validated = 1;
+	}
 
 	ctx->major = gss_accept_sec_context(&ctx->minor,
 	    &ctx->context, ctx->creds, recv_tok,
-	    GSS_C_NO_CHANNEL_BINDINGS, &ctx->client, &mech,
+	    GSS_C_NO_CHANNEL_BINDINGS, &ctx->client, &mech_oid,
 	    send_tok, flags, NULL, &ctx->client_creds);
 
 	if (GSS_ERROR(ctx->major))
@@ -275,19 +303,9 @@ ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 OM_uint32
 ssh_gssapi_getclient(Gssctxt *ctx, ssh_gssapi_client *client)
 {
-	int i = 0;
-
 	gss_buffer_desc ename;
 
-	client->mech = NULL;
-
-	while (supported_mechs[i]->name != NULL) {
-		if (supported_mechs[i]->oid.length == ctx->oid->length &&
-		    (memcmp(supported_mechs[i]->oid.elements,
-		    ctx->oid->elements, ctx->oid->length) == 0))
-			client->mech = supported_mechs[i];
-		i++;
-	}
+	client->mech = lookup_supported_mechanism(ctx->oid);
 
 	if (client->mech == NULL)
 		return GSS_S_FAILURE;
