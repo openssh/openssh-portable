@@ -1690,8 +1690,8 @@ main(int ac, char **av)
 			free(line);
 			break;
 		case 'V':
-			fprintf(stderr, "%s, %s\n",
-			    SSH_VERSION, SSH_OPENSSL_VERSION);
+			fprintf(stderr, "%s%s, %s\n",
+			    SSH_VERSION, SSH_HPN, SSH_OPENSSL_VERSION);
 			exit(0);
 		default:
 			usage();
