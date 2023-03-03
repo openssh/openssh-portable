@@ -1504,7 +1504,7 @@ source(int argc, char **argv)
 	int fd = -1, haderr, indx;
 	char *cp, *last, *name, buf[PATH_MAX + BUF_AND_HASH], encname[PATH_MAX];
 	int len;
-	char hashsum[HASH_LEN], test_hashsum[HASH_LEN];
+	char hashsum[HASH_LEN+1], test_hashsum[HASH_LEN+1];
 	char inbuf[PATH_MAX + BUF_AND_HASH];
 	size_t insize;
 	unsigned long long ull;
