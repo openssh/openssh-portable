@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.390 2023/01/17 09:44:48 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.391 2023/03/03 04:34:49 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2917,8 +2917,16 @@ dump_cfg_strarray_oneline(ServerOpCodes code, u_int count, char **vals)
 {
 	u_int i;
 
-	if (count <= 0 && code != sAuthenticationMethods)
-		return;
+	switch (code) {
+	case sAuthenticationMethods:
+	case sChannelTimeout:
+		break;
+	default:
+		if (count <= 0)
+			return;
+		break;
+	}
+
 	printf("%s", lookup_opcode_name(code));
 	for (i = 0; i < count; i++)
 		printf(" %s",  vals[i]);
