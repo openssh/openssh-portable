@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.427 2023/01/18 02:00:10 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.428 2023/03/04 03:22:59 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -198,7 +198,7 @@ struct ssh_channels {
 	u_int x11_saved_data_len;
 
 	/* Deadline after which all X11 connections are refused */
-	u_int x11_refuse_time;
+	time_t x11_refuse_time;
 
 	/*
 	 * Fake X11 authentication data.  This is what the server will be
@@ -1258,7 +1258,7 @@ x11_open_helper(struct ssh *ssh, struct sshbuf *b)
 
 	/* Is this being called after the refusal deadline? */
 	if (sc->x11_refuse_time != 0 &&
-	    (u_int)monotime() >= sc->x11_refuse_time) {
+	    monotime() >= sc->x11_refuse_time) {
 		verbose("Rejected X11 connection after ForwardX11Timeout "
 		    "expired");
 		return -1;
@@ -1879,7 +1879,7 @@ port_open_helper(struct ssh *ssh, Channel *c, char *rtype)
 }
 
 void
-channel_set_x11_refuse_time(struct ssh *ssh, u_int refuse_time)
+channel_set_x11_refuse_time(struct ssh *ssh, time_t refuse_time)
 {
 	ssh->chanctxt->x11_refuse_time = refuse_time;
 }
