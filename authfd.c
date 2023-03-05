@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.130 2022/04/27 11:08:55 dtucker Exp $ */
+/* $OpenBSD: authfd.c,v 1.131 2023/03/05 05:34:09 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -55,7 +55,6 @@
 #include "sshkey.h"
 #include "authfd.h"
 #include "cipher.h"
-#include "compat.h"
 #include "log.h"
 #include "atomicio.h"
 #include "misc.h"

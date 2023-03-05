@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.391 2023/03/03 04:34:49 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.392 2023/03/05 05:34:09 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -54,7 +54,6 @@
 #include "sshbuf.h"
 #include "misc.h"
 #include "servconf.h"
-#include "compat.h"
 #include "pathnames.h"
 #include "cipher.h"
 #include "sshkey.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.234 2023/01/17 09:44:48 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.235 2023/03/05 05:34:09 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -69,7 +69,6 @@
 #include "canohost.h"
 #include "sshpty.h"
 #include "channels.h"
-#include "compat.h"
 #include "ssh2.h"
 #include "sshkey.h"
 #include "cipher.h"

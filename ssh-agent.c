@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.294 2022/12/04 11:03:11 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.295 2023/03/05 05:34:09 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -80,7 +80,6 @@
 #include "sshbuf.h"
 #include "sshkey.h"
 #include "authfd.h"
-#include "compat.h"
 #include "log.h"
 #include "misc.h"
 #include "digest.h"

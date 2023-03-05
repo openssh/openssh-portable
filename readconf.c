@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.372 2023/01/13 02:58:20 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.373 2023/03/05 05:34:09 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -54,7 +54,6 @@
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssherr.h"
-#include "compat.h"
 #include "cipher.h"
 #include "pathnames.h"
 #include "log.h"
