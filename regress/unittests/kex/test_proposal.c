@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_proposal.c,v 1.1 2023/02/02 12:12:52 djm Exp $ */
+/* 	$OpenBSD: test_proposal.c,v 1.2 2023/03/06 12:15:47 dtucker Exp $ */
 /*
  * Regress test KEX
  *
@@ -80,4 +80,42 @@ kex_proposal(void)
 		free(result); free(in); free(out);
 	}
 	TEST_DONE();
+}
+
+void
+kex_proposal_populate_tests(void)
+{
+	char *prop[PROPOSAL_MAX], *kexalgs, *ciphers, *macs, *hkalgs;
+	const char *comp = compression_alg_list(0);
+	int i;
+	struct ssh ssh;
+	struct kex kex;
+
+	kexalgs = kex_alg_list(',');
+	ciphers = cipher_alg_list(',', 0);
+	macs = mac_alg_list(',');
+	hkalgs = kex_alg_list(',');
+
+	ssh.kex = &kex;
+	TEST_START("compat_kex_proposal_populate");
+	for (i = 0; i <= 1; i++) {
+		kex.server = i;
+		for (ssh.compat = 0; ssh.compat < 0x40000000; ) {
+			kex_proposal_populate_entries(&ssh, prop, NULL, NULL,
+			    NULL, NULL, NULL);
+			kex_proposal_free_entries(prop);
+			kex_proposal_populate_entries(&ssh, prop, kexalgs,
+			    ciphers, macs, hkalgs, comp);
+			kex_proposal_free_entries(prop);
+			if (ssh.compat == 0)
+				ssh.compat = 1;
+			else
+				ssh.compat <<= 1;
+		}
+	}
+
+	free(kexalgs);
+	free(ciphers);
+	free(macs);
+	free(hkalgs);
 }
