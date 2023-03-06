@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.598 2023/03/03 03:12:24 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.599 2023/03/06 12:14:48 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -104,7 +104,6 @@
 #include "digest.h"
 #include "sshkey.h"
 #include "kex.h"
-#include "myproposal.h"
 #include "authfile.h"
 #include "pathnames.h"
 #include "atomicio.h"
@@ -2389,30 +2388,23 @@ sshd_hostkey_sign(struct ssh *ssh, struct sshkey *privkey,
 static void
 do_ssh2_kex(struct ssh *ssh)
 {
-	char *myproposal[PROPOSAL_MAX] = { KEX_SERVER };
+	char *hkalgs = NULL, *myproposal[PROPOSAL_MAX];
+	const char *compression = NULL;
 	struct kex *kex;
-	char *prop_kex = NULL, *prop_enc = NULL, *prop_hostkey = NULL;
 	int r;
-
-	myproposal[PROPOSAL_KEX_ALGS] = prop_kex = compat_kex_proposal(ssh,
-	    options.kex_algorithms);
-	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-	    myproposal[PROPOSAL_ENC_ALGS_STOC] = prop_enc =
-	    compat_cipher_proposal(ssh, options.ciphers);
-	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
-	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
-
-	if (options.compression == COMP_NONE) {
-		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-		    myproposal[PROPOSAL_COMP_ALGS_STOC] = "none";
-	}
 
 	if (options.rekey_limit || options.rekey_interval)
 		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
 		    options.rekey_interval);
 
-	myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = prop_hostkey =
-	   compat_pkalg_proposal(ssh, list_hostkey_types());
+	if (options.compression == COMP_NONE)
+		compression = "none";
+	hkalgs = list_hostkey_types();
+
+	kex_proposal_populate_entries(ssh, myproposal, options.kex_algorithms,
+	    options.ciphers, options.macs, compression, hkalgs);
+
+	free(hkalgs);
 
 	/* start key exchange */
 	if ((r = kex_setup(ssh, myproposal)) != 0)
@@ -2447,9 +2439,7 @@ do_ssh2_kex(struct ssh *ssh)
 	    (r = ssh_packet_write_wait(ssh)) != 0)
 		fatal_fr(r, "send test");
 #endif
-	free(prop_kex);
-	free(prop_enc);
-	free(prop_hostkey);
+	kex_proposal_free_entries(myproposal);
 	debug("KEX done");
 }
 

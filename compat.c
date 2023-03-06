@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.125 2023/02/17 04:22:50 dtucker Exp $ */
+/* $OpenBSD: compat.c,v 1.126 2023/03/06 12:14:48 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -36,7 +36,6 @@
 #include "compat.h"
 #include "log.h"
 #include "match.h"
-#include "kex.h"
 
 /* determine bug flags from SSH protocol banner */
 void
@@ -140,21 +139,7 @@ compat_banner(struct ssh *ssh, const char *version)
 
 /* Always returns pointer to allocated memory, caller must free. */
 char *
-compat_cipher_proposal(struct ssh *ssh, char *cipher_prop)
-{
-	return xstrdup(cipher_prop);
-}
-
-/* Always returns pointer to allocated memory, caller must free. */
-char *
-compat_pkalg_proposal(struct ssh *ssh, char *pkalg_prop)
-{
-	return xstrdup(pkalg_prop);
-}
-
-/* Always returns pointer to allocated memory, caller must free. */
-char *
-compat_kex_proposal(struct ssh *ssh, char *p)
+compat_kex_proposal(struct ssh *ssh, const char *p)
 {
 	char *cp = NULL, *cp2 = NULL;
 

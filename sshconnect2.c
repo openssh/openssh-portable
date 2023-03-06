@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.363 2023/03/03 02:34:29 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.364 2023/03/06 12:14:48 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -56,7 +56,6 @@
 #include "cipher.h"
 #include "sshkey.h"
 #include "kex.h"
-#include "myproposal.h"
 #include "sshconnect.h"
 #include "authfile.h"
 #include "dh.h"
@@ -221,24 +220,17 @@ void
 ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
     const struct ssh_conn_info *cinfo)
 {
-	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
-	char *s, *all_key;
-	char *prop_kex = NULL, *prop_enc = NULL, *prop_hostkey = NULL;
-	int r, use_known_hosts_order = 0;
+	char *myproposal[PROPOSAL_MAX];
+	char *s, *all_key, *hkalgs = NULL;
+	int r;
 
 	xxx_host = host;
 	xxx_hostaddr = hostaddr;
 	xxx_conn_info = cinfo;
 
-	/*
-	 * If the user has not specified HostkeyAlgorithms, or has only
-	 * appended or removed algorithms from that list then prefer algorithms
-	 * that are in the list that are supported by known_hosts keys.
-	 */
-	if (options.hostkeyalgorithms == NULL ||
-	    options.hostkeyalgorithms[0] == '-' ||
-	    options.hostkeyalgorithms[0] == '+')
-		use_known_hosts_order = 1;
+	if (options.rekey_limit || options.rekey_interval)
+		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
+		    options.rekey_interval);
 
 	/* Expand or fill in HostkeyAlgorithms */
 	all_key = sshkey_alg_list(0, 0, 1, ',');
@@ -249,29 +241,22 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 
 	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
 		fatal_f("kex_names_cat");
-	myproposal[PROPOSAL_KEX_ALGS] = prop_kex = compat_kex_proposal(ssh, s);
-	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-	    myproposal[PROPOSAL_ENC_ALGS_STOC] = prop_enc =
-	    compat_cipher_proposal(ssh, options.ciphers);
-	myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-	    myproposal[PROPOSAL_COMP_ALGS_STOC] =
-	    (char *)compression_alg_list(options.compression);
-	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
-	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
-	if (use_known_hosts_order) {
-		/* Query known_hosts and prefer algorithms that appear there */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = prop_hostkey =
-		    compat_pkalg_proposal(ssh,
-		    order_hostkeyalgs(host, hostaddr, port, cinfo));
-	} else {
-		/* Use specified HostkeyAlgorithms exactly */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = prop_hostkey =
-		    compat_pkalg_proposal(ssh, options.hostkeyalgorithms);
-	}
 
-	if (options.rekey_limit || options.rekey_interval)
-		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
-		    options.rekey_interval);
+	/*
+	 * If the user has not specified HostkeyAlgorithms, or has only
+	 * appended or removed algorithms from that list then prefer algorithms
+	 * that are in the list that are supported by known_hosts keys.
+	 */
+	if (options.hostkeyalgorithms == NULL ||
+	    options.hostkeyalgorithms[0] == '-' ||
+	    options.hostkeyalgorithms[0] == '+')
+		hkalgs = order_hostkeyalgs(host, hostaddr, port, cinfo);
+
+	kex_proposal_populate_entries(ssh, myproposal, s, options.ciphers,
+	    options.macs, compression_alg_list(options.compression),
+	    hkalgs ? hkalgs : options.hostkeyalgorithms);
+
+	free(hkalgs);
 
 	/* start key exchange */
 	if ((r = kex_setup(ssh, myproposal)) != 0)
@@ -295,6 +280,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	ssh_dispatch_run_fatal(ssh, DISPATCH_BLOCK, &ssh->kex->done);
 
 	/* remove ext-info from the KEX proposals for rekeying */
+	free(myproposal[PROPOSAL_KEX_ALGS]);
 	myproposal[PROPOSAL_KEX_ALGS] =
 	    compat_kex_proposal(ssh, options.kex_algorithms);
 	if ((r = kex_prop2buf(ssh->kex->my, myproposal)) != 0)
@@ -308,10 +294,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    (r = ssh_packet_write_wait(ssh)) != 0)
 		fatal_fr(r, "send packet");
 #endif
-	/* Free only parts of proposal that were dynamically allocated here. */
-	free(prop_kex);
-	free(prop_enc);
-	free(prop_hostkey);
+	kex_proposal_free_entries(myproposal);
 }
 
 /*
