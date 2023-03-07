@@ -18,21 +18,24 @@
 
 #include "../test_helper/test_helper.h"
 
+#include "cipher.h"
 #include "compat.h"
 #include "ssherr.h"
 #include "sshbuf.h"
 #include "kex.h"
+#include "myproposal.h"
 #include "packet.h"
 #include "xmalloc.h"
 
-void kex_proposal(void);
+void kex_proposal_tests(void);
+void kex_proposal_populate_tests(void);
 
 #define CURVE25519 "curve25519-sha256@libssh.org"
 #define DHGEX1 "diffie-hellman-group-exchange-sha1"
 #define DHGEX256 "diffie-hellman-group-exchange-sha256"
 #define KEXALGOS CURVE25519","DHGEX256","DHGEX1
 void
-kex_proposal(void)
+kex_proposal_tests(void)
 {
 	size_t i;
 	struct ssh ssh;
