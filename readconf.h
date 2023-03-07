@@ -85,6 +85,7 @@ typedef struct {
 	char   *pkcs11_provider; /* PKCS#11 provider */
 	char   *sk_provider; /* Security key provider */
 	int	verify_host_key_dns;	/* Verify host key using DNS */
+	int insecure_dns; /* Accept insecure DNS responses (missing DNSSEC validation/'ad' flag in response) */
 
 	int     num_identity_files;	/* Number of files for RSA/DSA identities. */
 	char   *identity_files[SSH_MAX_IDENTITY_FILES];

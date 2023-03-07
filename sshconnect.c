@@ -1508,9 +1508,14 @@ verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key,
 			sshkey_drop_cert(plain);
 		if (verify_host_key_dns(host, hostaddr, plain, &flags) == 0) {
 			if (flags & DNS_VERIFY_FOUND) {
+				if (options.insecure_dns == 0 &&
+					! (flags & DNS_VERIFY_SECURE)) {
+					error("The authenticity of the SSHFP records cannot be established. Use a DNSSEC validating DNS resolver or -o InsecureDNS=yes to get rid of the message.");
+				}
 				if (options.verify_host_key_dns == 1 &&
 				    flags & DNS_VERIFY_MATCH &&
-				    flags & DNS_VERIFY_SECURE) {
+				    (flags & DNS_VERIFY_SECURE ||
+				    options.insecure_dns == 1)) {
 					r = 0;
 					goto out;
 				}

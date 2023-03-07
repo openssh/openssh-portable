@@ -1097,6 +1097,16 @@ or
 .Cm Host
 block
 to perform conditional inclusion.
+.It Cm InsecureDNS
+Specifies that non-DNSSEC-validated DNS data should be trusted,
+although it implies certain security risks (i.e. MITM) due to lack of
+authenticity. This setting is mostly relevant in combination with the
+.Cm VerifyHostKeyDNS
+option. Valid values are
+.Cm yes
+or
+.Cm no
+(the default).
 .It Cm IPQoS
 Specifies the IPv4 type-of-service or DSCP class for connections.
 Accepted values are

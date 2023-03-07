@@ -158,7 +158,7 @@ typedef enum {
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
 	oHostKeyAlgorithms, oBindAddress, oBindInterface, oPKCS11Provider,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
-	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
+	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oInsecureDNS, oConnectTimeout,
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
 	oServerAliveInterval, oServerAliveCountMax, oIdentitiesOnly,
 	oSendEnv, oSetEnv, oControlPath, oControlMaster, oControlPersist,
@@ -276,6 +276,7 @@ static struct {
 	{ "clearallforwardings", oClearAllForwardings },
 	{ "enablesshkeysign", oEnableSSHKeysign },
 	{ "verifyhostkeydns", oVerifyHostKeyDNS },
+	{ "insecuredns", oInsecureDNS },
 	{ "nohostauthenticationforlocalhost", oNoHostAuthenticationForLocalhost },
 	{ "rekeylimit", oRekeyLimit },
 	{ "connecttimeout", oConnectTimeout },
@@ -1136,6 +1137,11 @@ parse_time:
 	case oVerifyHostKeyDNS:
 		intptr = &options->verify_host_key_dns;
 		multistate_ptr = multistate_yesnoask;
+		goto parse_multistate;
+
+	case oInsecureDNS:
+		intptr = &options->insecure_dns;
+		multistate_ptr = multistate_flag;
 		goto parse_multistate;
 
 	case oStrictHostKeyChecking:
@@ -2398,6 +2404,7 @@ initialize_options(Options * options)
 	options->rekey_limit = - 1;
 	options->rekey_interval = -1;
 	options->verify_host_key_dns = -1;
+	options->insecure_dns = -1;
 	options->server_alive_interval = -1;
 	options->server_alive_count_max = -1;
 	options->send_env = NULL;
@@ -2585,6 +2592,8 @@ fill_default_options(Options * options)
 		options->rekey_interval = 0;
 	if (options->verify_host_key_dns == -1)
 		options->verify_host_key_dns = 0;
+	if (options->insecure_dns == -1)
+		options->insecure_dns = 0;
 	if (options->server_alive_interval == -1)
 		options->server_alive_interval = 0;
 	if (options->server_alive_count_max == -1)
@@ -3138,6 +3147,8 @@ fmt_intarg(OpCodes code, int val)
 	case oVerifyHostKeyDNS:
 	case oUpdateHostkeys:
 		return fmt_multistate_int(val, multistate_yesnoask);
+	case oInsecureDNS:
+		return fmt_multistate_int(val, multistate_flag);
 	case oStrictHostKeyChecking:
 		return fmt_multistate_int(val, multistate_strict_hostkey);
 	case oControlMaster:
@@ -3320,6 +3331,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oTCPKeepAlive, o->tcp_keep_alive);
 	dump_cfg_fmtint(oTunnel, o->tun_open);
 	dump_cfg_fmtint(oVerifyHostKeyDNS, o->verify_host_key_dns);
+	dump_cfg_fmtint(oInsecureDNS, o->insecure_dns);
 	dump_cfg_fmtint(oVisualHostKey, o->visual_host_key);
 	dump_cfg_fmtint(oUpdateHostkeys, o->update_hostkeys);
 	dump_cfg_fmtint(oEnableEscapeCommandline, o->enable_escape_commandline);

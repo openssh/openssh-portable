@@ -545,6 +545,7 @@ For full details of the options listed below, and their possible values, see
 .It IdentitiesOnly
 .It IdentityAgent
 .It IdentityFile
+.It InsecureDNS
 .It IPQoS
 .It KbdInteractiveAuthentication
 .It KbdInteractiveDevices
@@ -1297,6 +1298,13 @@ is added to a zonefile
 and the connecting client is able to match the fingerprint
 with that of the key presented.
 .Pp
+RFC 4255 mandates secure transmission of SSHFP records (i.e. DNSSEC).
+By default, the DNS resolver's answer is checked for the 'ad' flag
+(indicating DNSSEC validation) and unauthenticated records are not considered.
+This can be changed using the
+.Cm InsecureDNS
+option.
+.Pp
 In this example, we are connecting a client to a server,
 .Dq host.example.com .
 The SSHFP resource records should first be added to the zonefile for
@@ -1320,7 +1328,9 @@ Are you sure you want to continue connecting (yes/no)?
 .Pp
 See the
 .Cm VerifyHostKeyDNS
-option in
+and
+.Cm InsecureDNS
+options in
 .Xr ssh_config 5
 for more information.
 .Sh SSH-BASED VIRTUAL PRIVATE NETWORKS
