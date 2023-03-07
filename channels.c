@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.428 2023/03/04 03:22:59 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.429 2023/03/07 21:47:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1986,11 +1986,14 @@ channel_post_connecting(struct ssh *ssh, Channel *c)
 		fatal_f("channel %d: no remote id", c->self);
 	/* for rdynamic the OPEN_CONFIRMATION has been sent already */
 	isopen = (c->type == SSH_CHANNEL_RDYNAMIC_FINISH);
+
 	if (getsockopt(c->sock, SOL_SOCKET, SO_ERROR, &err, &sz) == -1) {
 		err = errno;
 		error("getsockopt SO_ERROR failed");
 	}
+
 	if (err == 0) {
+		/* Non-blocking connection completed */
 		debug("channel %d: connected to %s port %d",
 		    c->self, c->connect_ctx.host, c->connect_ctx.port);
 		channel_connect_ctx_free(&c->connect_ctx);
@@ -2008,16 +2011,17 @@ channel_post_connecting(struct ssh *ssh, Channel *c)
 			    (r = sshpkt_send(ssh)) != 0)
 				fatal_fr(r, "channel %i open confirm", c->self);
 		}
-	} else {
-		debug("channel %d: connection failed: %s",
-		    c->self, strerror(err));
-		/* Try next address, if any */
-		if ((sock = connect_next(&c->connect_ctx)) > 0) {
-			close(c->sock);
-			c->sock = c->rfd = c->wfd = sock;
-			return;
-		}
-		/* Exhausted all addresses */
+		return;
+	}
+	if (err == EINTR || err == EAGAIN || err == EINPROGRESS)
+		return;
+
+	/* Non-blocking connection failed */
+	debug("channel %d: connection failed: %s", c->self, strerror(err));
+
+	/* Try next address, if any */
+	if ((sock = connect_next(&c->connect_ctx)) == -1) {
+		/* Exhausted all addresses for this destination */
 		error("connect_to %.100s port %d: failed.",
 		    c->connect_ctx.host, c->connect_ctx.port);
 		channel_connect_ctx_free(&c->connect_ctx);
@@ -2036,6 +2040,10 @@ channel_post_connecting(struct ssh *ssh, Channel *c)
 			chan_mark_dead(ssh, c);
 		}
 	}
+
+	/* New non-blocking connection in progress */
+	close(c->sock);
+	c->sock = c->rfd = c->wfd = sock;
 }
 
 static int
