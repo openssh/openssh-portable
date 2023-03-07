@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.334 2023/03/05 05:34:09 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.335 2023/03/07 06:09:14 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1158,6 +1158,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		}
 		*value++ = '\0';
 		child_set_env(&env, &envsize, cp, value);
+		free(cp);
 	}
 
 	/* SSH_CLIENT deprecated */
