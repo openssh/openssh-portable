@@ -235,7 +235,7 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 			    PUBKEYAUTH_TOUCH_REQUIRED) ||
 			    !authopts->no_require_user_presence;
 			if (req_presence && (sig_details->sk_flags &
-			    SSH_SK_USER_PRESENCE_REQD) == 0) {
+			    SSH_SK_FIDO_USER_PRESENT) == 0) {
 				error("public key %s signature for %s%s from "
 				    "%.128s port %d rejected: user presence "
 				    "(authenticator touch) requirement "
@@ -250,7 +250,7 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 			    PUBKEYAUTH_VERIFY_REQUIRED) ||
 			    authopts->require_verify;
 			if (req_verify && (sig_details->sk_flags &
-			    SSH_SK_USER_VERIFICATION_REQD) == 0) {
+			    SSH_SK_FIDO_USER_VERIFIED) == 0) {
 				error("public key %s signature for %s%s from "
 				    "%.128s port %d rejected: user "
 				    "verification requirement not met ", key_s,

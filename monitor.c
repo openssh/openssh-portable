@@ -1450,7 +1450,7 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 		    PUBKEYAUTH_TOUCH_REQUIRED) ||
 		    !key_opts->no_require_user_presence;
 		if (req_presence &&
-		    (sig_details->sk_flags & SSH_SK_USER_PRESENCE_REQD) == 0) {
+		    (sig_details->sk_flags & SSH_SK_FIDO_USER_PRESENT) == 0) {
 			error("public key %s %s signature for %s%s from %.128s "
 			    "port %d rejected: user presence "
 			    "(authenticator touch) requirement not met ",
@@ -1463,7 +1463,7 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 		req_verify = (options.pubkey_auth_options &
 		    PUBKEYAUTH_VERIFY_REQUIRED) || key_opts->require_verify;
 		if (req_verify &&
-		    (sig_details->sk_flags & SSH_SK_USER_VERIFICATION_REQD) == 0) {
+		    (sig_details->sk_flags & SSH_SK_FIDO_USER_VERIFIED) == 0) {
 			error("public key %s %s signature for %s%s from %.128s "
 			    "port %d rejected: user verification requirement "
 			    "not met ", sshkey_type(key), fp,
