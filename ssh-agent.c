@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.295 2023/03/05 05:34:09 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.296 2023/03/08 04:43:12 guenther Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1960,7 +1960,6 @@ cleanup_exit(int i)
 	_exit(i);
 }
 
-/*ARGSUSED*/
 static void
 cleanup_handler(int sig)
 {

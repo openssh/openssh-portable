@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.176 2023/03/06 12:14:48 dtucker Exp $ */
+/* $OpenBSD: kex.c,v 1.177 2023/03/08 04:43:12 guenther Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -461,7 +461,6 @@ kex_prop_free(char **proposal)
 	free(proposal);
 }
 
-/* ARGSUSED */
 int
 kex_protocol_error(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -642,7 +641,6 @@ kex_send_kexinit(struct ssh *ssh)
 	return 0;
 }
 
-/* ARGSUSED */
 int
 kex_input_kexinit(int type, u_int32_t seq, struct ssh *ssh)
 {

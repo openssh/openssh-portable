@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.226 2023/02/27 22:12:40 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.227 2023/03/08 04:43:12 guenther Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -217,7 +217,6 @@ static const struct CMD cmds[] = {
 	{ NULL,		-1,		-1,		-1	}
 };
 
-/* ARGSUSED */
 static void
 killchild(int signo)
 {
@@ -232,7 +231,6 @@ killchild(int signo)
 	_exit(1);
 }
 
-/* ARGSUSED */
 static void
 suspchild(int signo)
 {
@@ -244,7 +242,6 @@ suspchild(int signo)
 	kill(getpid(), SIGSTOP);
 }
 
-/* ARGSUSED */
 static void
 cmd_interrupt(int signo)
 {
@@ -256,14 +253,12 @@ cmd_interrupt(int signo)
 	errno = olderrno;
 }
 
-/* ARGSUSED */
 static void
 read_interrupt(int signo)
 {
 	interrupted = 1;
 }
 
-/*ARGSUSED*/
 static void
 sigchld_handler(int sig)
 {

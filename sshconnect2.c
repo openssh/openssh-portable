@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.364 2023/03/06 12:14:48 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.365 2023/03/08 04:43:12 guenther Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -489,7 +489,6 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	}
 }
 
-/* ARGSUSED */
 static int
 input_userauth_service_accept(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -521,7 +520,6 @@ input_userauth_service_accept(int type, u_int32_t seq, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_ext_info(int type, u_int32_t seqnr, struct ssh *ssh)
 {
@@ -566,7 +564,6 @@ userauth(struct ssh *ssh, char *authlist)
 	}
 }
 
-/* ARGSUSED */
 static int
 input_userauth_error(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -574,7 +571,6 @@ input_userauth_error(int type, u_int32_t seq, struct ssh *ssh)
 	return 0;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_banner(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -594,7 +590,6 @@ input_userauth_banner(int type, u_int32_t seq, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_success(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -627,7 +622,6 @@ input_userauth_success_unexpected(int type, u_int32_t seq, struct ssh *ssh)
 }
 #endif
 
-/* ARGSUSED */
 static int
 input_userauth_failure(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -688,7 +682,6 @@ format_identity(Identity *id)
 	return ret;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_pk_ok(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -896,7 +889,6 @@ process_gssapi_token(struct ssh *ssh, gss_buffer_t recv_tok)
 	return status;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_response(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -941,7 +933,6 @@ input_gssapi_response(int type, u_int32_t plen, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -974,7 +965,6 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_errtok(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -1009,7 +999,6 @@ input_gssapi_errtok(int type, u_int32_t plen, struct ssh *ssh)
 	return 0;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_error(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -1087,7 +1076,6 @@ userauth_passwd(struct ssh *ssh)
 /*
  * parse PASSWD_CHANGEREQ, prompt user and send SSH2_MSG_USERAUTH_REQUEST
  */
-/* ARGSUSED */
 static int
 input_userauth_passwd_changereq(int type, u_int32_t seqnr, struct ssh *ssh)
 {

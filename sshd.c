@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.599 2023/03/06 12:14:48 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.600 2023/03/08 04:43:12 guenther Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -294,7 +294,6 @@ close_startup_pipes(void)
  * the server key).
  */
 
-/*ARGSUSED*/
 static void
 sighup_handler(int sig)
 {
@@ -324,7 +323,6 @@ sighup_restart(void)
 /*
  * Generic signal handler for terminating signals in the master daemon.
  */
-/*ARGSUSED*/
 static void
 sigterm_handler(int sig)
 {
@@ -335,7 +333,6 @@ sigterm_handler(int sig)
  * SIGCHLD handler.  This is called whenever a child dies.  This will then
  * reap any zombies left by exited children.
  */
-/*ARGSUSED*/
 static void
 main_sigchld_handler(int sig)
 {
@@ -352,7 +349,6 @@ main_sigchld_handler(int sig)
 /*
  * Signal handler for the alarm after the login grace period has expired.
  */
-/*ARGSUSED*/
 static void
 grace_alarm_handler(int sig)
 {
