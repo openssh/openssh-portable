@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.227 2023/03/08 04:43:12 guenther Exp $ */
+/* $OpenBSD: sftp.c,v 1.228 2023/03/08 06:21:32 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1997,7 +1997,9 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 
 	memset(&g, 0, sizeof(g));
 	if (remote != LOCAL) {
-		tmp = make_absolute_pwd_glob(tmp, remote_path);
+		tmp2 = make_absolute_pwd_glob(tmp, remote_path);
+		free(tmp);
+		tmp = tmp2;
 		remote_glob(conn, tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
 	} else
 		glob(tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
