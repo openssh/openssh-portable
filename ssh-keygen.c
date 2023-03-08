@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.465 2023/03/05 09:24:35 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.466 2023/03/08 00:05:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -476,6 +476,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 {
 	struct sshkey *key = NULL;
 	char *type, *cipher;
+	const char *alg = NULL;
 	u_char e1, e2, e3, *sig = NULL, data[] = "abcde12345";
 	int r, rlen, ktype;
 	u_int magic, i1, i2, i3, i4;
@@ -584,6 +585,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 		if ((r = ssh_rsa_complete_crt_parameters(key, rsa_iqmp)) != 0)
 			fatal_fr(r, "generate RSA parameters");
 		BN_clear_free(rsa_iqmp);
+		alg = "rsa-sha2-256";
 		break;
 	}
 	rlen = sshbuf_len(b);
@@ -592,10 +594,10 @@ do_convert_private_ssh2(struct sshbuf *b)
 
 	/* try the key */
 	if ((r = sshkey_sign(key, &sig, &slen, data, sizeof(data),
-	    NULL, NULL, NULL, 0)) != 0)
+	    alg, NULL, NULL, 0)) != 0)
 		error_fr(r, "signing with converted key failed");
 	else if ((r = sshkey_verify(key, sig, slen, data, sizeof(data),
-	    NULL, 0, NULL)) != 0)
+	    alg, 0, NULL)) != 0)
 		error_fr(r, "verification with converted key failed");
 	if (r != 0) {
 		sshkey_free(key);
