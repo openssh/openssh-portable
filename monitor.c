@@ -1097,6 +1097,10 @@ mm_answer_pam_respond(struct ssh *ssh, int sock, struct sshbuf *m)
 	sshpam_authok = NULL;
 	if ((r = sshbuf_get_u32(m, &num)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (num > PAM_MAX_NUM_MSG) {
+		fatal_f("Too many PAM messages, got %u, expected <= %u",
+		    num, (unsigned)PAM_MAX_NUM_MSG);
+	}
 	if (num > 0) {
 		resp = xcalloc(num, sizeof(char *));
 		for (i = 0; i < num; ++i) {
