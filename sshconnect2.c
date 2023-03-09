@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.365 2023/03/08 04:43:12 guenther Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.366 2023/03/09 07:11:05 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -222,7 +222,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 {
 	char *myproposal[PROPOSAL_MAX];
 	char *s, *all_key, *hkalgs = NULL;
-	int r;
+	int r, use_known_hosts_order = 0;
 
 	xxx_host = host;
 	xxx_hostaddr = hostaddr;
@@ -231,6 +231,16 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	if (options.rekey_limit || options.rekey_interval)
 		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
 		    options.rekey_interval);
+
+	/*
+	 * If the user has not specified HostkeyAlgorithms, or has only
+	 * appended or removed algorithms from that list then prefer algorithms
+	 * that are in the list that are supported by known_hosts keys.
+	 */
+	if (options.hostkeyalgorithms == NULL ||
+	    options.hostkeyalgorithms[0] == '-' ||
+	    options.hostkeyalgorithms[0] == '+')
+		use_known_hosts_order = 1;
 
 	/* Expand or fill in HostkeyAlgorithms */
 	all_key = sshkey_alg_list(0, 0, 1, ',');
@@ -242,14 +252,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
 		fatal_f("kex_names_cat");
 
-	/*
-	 * If the user has not specified HostkeyAlgorithms, or has only
-	 * appended or removed algorithms from that list then prefer algorithms
-	 * that are in the list that are supported by known_hosts keys.
-	 */
-	if (options.hostkeyalgorithms == NULL ||
-	    options.hostkeyalgorithms[0] == '-' ||
-	    options.hostkeyalgorithms[0] == '+')
+	if (use_known_hosts_order)
 		hkalgs = order_hostkeyalgs(host, hostaddr, port, cinfo);
 
 	kex_proposal_populate_entries(ssh, myproposal, s, options.ciphers,
