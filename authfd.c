@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.131 2023/03/05 05:34:09 dtucker Exp $ */
+/* $OpenBSD: authfd.c,v 1.132 2023/03/09 06:58:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -665,7 +665,7 @@ ssh_update_card(int sock, int add, const char *reader_id, const char *pin,
     struct dest_constraint **dest_constraints, size_t ndest_constraints)
 {
 	struct sshbuf *msg;
-	int r, constrained = (life || confirm);
+	int r, constrained = (life || confirm || dest_constraints);
 	u_char type;
 
 	if (add) {
