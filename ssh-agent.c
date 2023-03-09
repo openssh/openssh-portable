@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.296 2023/03/08 04:43:12 guenther Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.297 2023/03/09 21:06:24 jcs Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1023,8 +1023,8 @@ parse_dest_constraint(struct sshbuf *m, struct dest_constraint *dc)
 		error_fr(r, "parse");
 		goto out;
 	}
-	if ((r = parse_dest_constraint_hop(frombuf, &dc->from) != 0) ||
-	    (r = parse_dest_constraint_hop(tobuf, &dc->to) != 0))
+	if ((r = parse_dest_constraint_hop(frombuf, &dc->from)) != 0 ||
+	    (r = parse_dest_constraint_hop(tobuf, &dc->to)) != 0)
 		goto out; /* already logged */
 	if (elen != 0) {
 		error_f("unsupported extensions (len %zu)", elen);

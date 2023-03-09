@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.373 2023/03/05 05:34:09 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.374 2023/03/09 21:06:24 jcs Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -616,7 +616,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 		}
 		arg = criteria = NULL;
 		this_result = 1;
-		if ((negate = attrib[0] == '!'))
+		if ((negate = (attrib[0] == '!')))
 			attrib++;
 		/* Criterion "all" has no argument and must appear alone */
 		if (strcasecmp(attrib, "all") == 0) {
