@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.429 2023/03/07 21:47:42 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.430 2023/03/10 03:01:51 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -387,11 +387,11 @@ channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
 	int val;
 
 	if (rfd != -1)
-		fcntl(rfd, F_SETFD, FD_CLOEXEC);
+		(void)fcntl(rfd, F_SETFD, FD_CLOEXEC);
 	if (wfd != -1 && wfd != rfd)
-		fcntl(wfd, F_SETFD, FD_CLOEXEC);
+		(void)fcntl(wfd, F_SETFD, FD_CLOEXEC);
 	if (efd != -1 && efd != rfd && efd != wfd)
-		fcntl(efd, F_SETFD, FD_CLOEXEC);
+		(void)fcntl(efd, F_SETFD, FD_CLOEXEC);
 
 	c->rfd = rfd;
 	c->wfd = wfd;
