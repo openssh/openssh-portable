@@ -141,6 +141,8 @@ int mkstemp(char *path);
 char *mkdtemp(char *path);
 #endif
 
+#define mkstemp(x) _ssh_mkstemp(x)
+
 #ifndef HAVE_DAEMON
 int daemon(int nochdir, int noclose);
 #endif
