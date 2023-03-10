@@ -37,6 +37,7 @@
 #ifdef mkstemp
 #undef mkstemp
 #endif
+int mkstemp(char *);
 
 /*
  * From glibc man page: 'In glibc versions 2.06 and earlier, the file is
