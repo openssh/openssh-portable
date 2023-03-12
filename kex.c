@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.177 2023/03/08 04:43:12 guenther Exp $ */
+/* $OpenBSD: kex.c,v 1.178 2023/03/12 10:40:39 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -541,6 +541,11 @@ kex_input_ext_info(int type, u_int32_t seq, struct ssh *ssh)
 	ssh_dispatch_set(ssh, SSH2_MSG_EXT_INFO, &kex_protocol_error);
 	if ((r = sshpkt_get_u32(ssh, &ninfo)) != 0)
 		return r;
+	if (ninfo >= 1024) {
+		error("SSH2_MSG_EXT_INFO with too many entries, expected "
+		    "<=1024, received %u", ninfo);
+		return SSH_ERR_INVALID_FORMAT;
+	}
 	for (i = 0; i < ninfo; i++) {
 		if ((r = sshpkt_get_cstring(ssh, &name, NULL)) != 0)
 			return r;
