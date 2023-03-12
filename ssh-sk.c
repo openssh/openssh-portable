@@ -45,6 +45,8 @@
 #include "sk-api.h"
 #include "crypto_api.h"
 
+extern int ssh_sk_timeout;
+
 /*
  * Almost every use of OpenSSL in this file is for ECDSA-NISTP256.
  * This is strictly a larger hammer than necessary, but it reduces changes
@@ -65,32 +67,32 @@ struct sshsk_provider {
 	int (*sk_enroll)(int alg, const uint8_t *challenge,
 	    size_t challenge_len, const char *application, uint8_t flags,
 	    const char *pin, struct sk_option **opts,
-	    struct sk_enroll_response **enroll_response);
+	    struct sk_enroll_response **enroll_response, int timeout);
 
 	/* Sign a challenge */
 	int (*sk_sign)(int alg, const uint8_t *message, size_t message_len,
 	    const char *application,
 	    const uint8_t *key_handle, size_t key_handle_len,
 	    uint8_t flags, const char *pin, struct sk_option **opts,
-	    struct sk_sign_response **sign_response);
+	    struct sk_sign_response **sign_response, int timeout);
 
 	/* Enumerate resident keys */
 	int (*sk_load_resident_keys)(const char *pin, struct sk_option **opts,
-	    struct sk_resident_key ***rks, size_t *nrks);
+	    struct sk_resident_key ***rks, size_t *nrks, int timeout);
 };
 
 /* Built-in version */
 int ssh_sk_enroll(int alg, const uint8_t *challenge,
     size_t challenge_len, const char *application, uint8_t flags,
     const char *pin, struct sk_option **opts,
-    struct sk_enroll_response **enroll_response);
+    struct sk_enroll_response **enroll_response, int timeout);
 int ssh_sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application,
     const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, const char *pin, struct sk_option **opts,
-    struct sk_sign_response **sign_response);
+    struct sk_sign_response **sign_response, int timeout);
 int ssh_sk_load_resident_keys(const char *pin, struct sk_option **opts,
-    struct sk_resident_key ***rks, size_t *nrks);
+    struct sk_resident_key ***rks, size_t *nrks, int timeout);
 
 static void
 sshsk_free(struct sshsk_provider *p)
@@ -531,7 +533,7 @@ sshsk_enroll(int type, const char *provider_path, const char *device,
 	/* XXX validate flags? */
 	/* enroll key */
 	if ((r = skp->sk_enroll(alg, challenge, challenge_len, application,
-	    flags, pin, opts, &resp)) != 0) {
+	    flags, pin, opts, &resp, ssh_sk_timeout)) != 0) {
 		debug_f("provider \"%s\" failure %d", provider_path, r);
 		r = skerr_to_ssherr(r);
 		goto out;
@@ -682,7 +684,7 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 #endif
 	if ((r = skp->sk_sign(alg, data, datalen, key->sk_application,
 	    sshbuf_ptr(key->sk_key_handle), sshbuf_len(key->sk_key_handle),
-	    key->sk_flags, pin, opts, &resp)) != 0) {
+	    key->sk_flags, pin, opts, &resp, ssh_sk_timeout)) != 0) {
 		debug_f("sk_sign failed with code %d", r);
 		r = skerr_to_ssherr(r);
 		goto out;
@@ -808,7 +810,8 @@ sshsk_load_resident(const char *provider_path, const char *device,
 		r = SSH_ERR_INVALID_FORMAT; /* XXX sshsk_open return code? */
 		goto out;
 	}
-	if ((r = skp->sk_load_resident_keys(pin, opts, &rks, &nrks)) != 0) {
+	if ((r = skp->sk_load_resident_keys(pin, opts, &rks, &nrks,
+	    ssh_sk_timeout)) != 0) {
 		error("Provider \"%s\" returned failure %d", provider_path, r);
 		r = skerr_to_ssherr(r);
 		goto out;

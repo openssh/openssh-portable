@@ -127,17 +127,20 @@ uint32_t sk_api_version(void);
 /* Enroll a U2F key (private key generation) */
 int sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags, const char *pin,
-    struct sk_option **options, struct sk_enroll_response **enroll_response);
+    struct sk_option **options, struct sk_enroll_response **enroll_response,
+    int timeout);
 
 /* Sign a challenge */
 int sk_sign(uint32_t alg, const uint8_t *data, size_t data_len,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, const char *pin, struct sk_option **options,
-    struct sk_sign_response **sign_response);
+    struct sk_sign_response **sign_response, int timeout);
 
 /* Load resident keys */
 int sk_load_resident_keys(const char *pin, struct sk_option **options,
-    struct sk_resident_key ***rks, size_t *nrks);
+    struct sk_resident_key ***rks, size_t *nrks, int timeout);
+
+static int sk_timeout = -1; /* in seconds; -1 blocks indefinitely */
 
 static void skdebug(const char *func, const char *fmt, ...)
     __attribute__((__format__ (printf, 2, 3)));
@@ -178,7 +181,7 @@ static struct sk_usbhid *
 sk_open(const char *path)
 {
 	struct sk_usbhid *sk;
-	int r;
+	int r, timeout_ms = -1;
 
 	if (path == NULL) {
 		skdebug(__func__, "path == NULL");
@@ -195,6 +198,21 @@ sk_open(const char *path)
 	}
 	if ((sk->dev = fido_dev_new()) == NULL) {
 		skdebug(__func__, "fido_dev_new failed");
+		free(sk->path);
+		free(sk);
+		return NULL;
+	}
+	if (sk_timeout > 0) {
+		if (INT_MAX / 1000 < sk_timeout) {
+			skdebug(__func__, "bogus timeout %d", sk_timeout);
+			timeout_ms = -1;
+		} else {
+			timeout_ms = sk_timeout * 1000;
+		}
+	}
+	if ((r = fido_dev_set_timeout(sk->dev, timeout_ms)) != FIDO_OK) {
+		skdebug(__func__, "fido_dev_set_timeout failed");
+		fido_dev_free(&sk->dev);
 		free(sk->path);
 		free(sk);
 		return NULL;
@@ -838,7 +856,8 @@ key_lookup(fido_dev_t *dev, const char *application, const uint8_t *user_id,
 int
 sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags, const char *pin,
-    struct sk_option **options, struct sk_enroll_response **enroll_response)
+    struct sk_option **options, struct sk_enroll_response **enroll_response,
+    int timeout)
 {
 	fido_cred_t *cred = NULL;
 	const uint8_t *ptr;
@@ -853,6 +872,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	char *device = NULL;
 
 	fido_init(SSH_FIDO_INIT_ARG);
+	sk_timeout = timeout;
 
 	if (enroll_response == NULL) {
 		skdebug(__func__, "enroll_response == NULL");
@@ -1154,7 +1174,7 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
     const char *application,
     const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, const char *pin, struct sk_option **options,
-    struct sk_sign_response **sign_response)
+    struct sk_sign_response **sign_response, int timeout)
 {
 	fido_assert_t *assert = NULL;
 	char *device = NULL;
@@ -1164,6 +1184,7 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	int r;
 
 	fido_init(SSH_FIDO_INIT_ARG);
+	sk_timeout = timeout;
 
 	if (sign_response == NULL) {
 		skdebug(__func__, "sign_response == NULL");
@@ -1431,7 +1452,7 @@ read_rks(struct sk_usbhid *sk, const char *pin,
 
 int
 sk_load_resident_keys(const char *pin, struct sk_option **options,
-    struct sk_resident_key ***rksp, size_t *nrksp)
+    struct sk_resident_key ***rksp, size_t *nrksp, int timeout)
 {
 	int ret = SSH_SK_ERR_GENERAL, r = -1;
 	size_t i, nrks = 0;
@@ -1443,6 +1464,7 @@ sk_load_resident_keys(const char *pin, struct sk_option **options,
 	*nrksp = 0;
 
 	fido_init(SSH_FIDO_INIT_ARG);
+	sk_timeout = timeout;
 
 	if (check_sign_load_resident_options(options, &device) != 0)
 		goto out; /* error already logged */
