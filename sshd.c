@@ -2027,7 +2027,7 @@ main(int ac, char **av)
 	}
 	listener_proctitle = prepare_proctitle(ac, av);
 
-	/* Ensure that umask disallows at least group and world write */
+	/* Ensure that umask disallows at least group and world-writable */
 	new_umask = umask(0077) | 0022;
 	(void) umask(new_umask);
 
