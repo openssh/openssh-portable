@@ -443,7 +443,7 @@ addr_ntop(const struct xaddr *n, char *p, size_t len)
 	if (p == NULL || len == 0)
 		return -1;
 	if (getnameinfo(_SA(&ss), slen, p, len, NULL, 0,
-	    NI_NUMERICHOST) == -1)
+	    NI_NUMERICHOST) != 0)
 		return -1;
 
 	return 0;
