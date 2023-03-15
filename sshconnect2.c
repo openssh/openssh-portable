@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.361 2022/09/17 10:33:18 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.366 2023/03/09 07:11:05 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -56,7 +56,6 @@
 #include "cipher.h"
 #include "sshkey.h"
 #include "kex.h"
-#include "myproposal.h"
 #include "sshconnect.h"
 #include "authfile.h"
 #include "dh.h"
@@ -224,24 +223,21 @@ order_hostkeyalgs(char *host, struct sockaddr *hostaddr, u_short port,
 	return ret;
 }
 
-static char *myproposal[PROPOSAL_MAX];
-static const char *myproposal_default[PROPOSAL_MAX] = { KEX_CLIENT };
 void
 ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
     const struct ssh_conn_info *cinfo)
 {
-	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
-	char *s, *all_key;
-	char *prop_kex = NULL, *prop_enc = NULL, *prop_hostkey = NULL;
+	char *myproposal[PROPOSAL_MAX];
+	char *s, *all_key, *hkalgs = NULL;
 	int r, use_known_hosts_order = 0;
-
-	memcpy(&myproposal, &myproposal_default, sizeof(myproposal));
-
-	memcpy(&myproposal, &myproposal_default, sizeof(myproposal));
 
 	xxx_host = host;
 	xxx_hostaddr = hostaddr;
 	xxx_conn_info = cinfo;
+
+	if (options.rekey_limit || options.rekey_interval)
+		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
+		    options.rekey_interval);
 
 	/*
 	 * If the user has not specified HostkeyAlgorithms, or has only
@@ -262,29 +258,15 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 
 	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
 		fatal_f("kex_names_cat");
-	myproposal[PROPOSAL_KEX_ALGS] = prop_kex = compat_kex_proposal(ssh, s);
-	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-	    myproposal[PROPOSAL_ENC_ALGS_STOC] = prop_enc =
-	    compat_cipher_proposal(ssh, options.ciphers);
-	myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-	    myproposal[PROPOSAL_COMP_ALGS_STOC] =
-	    (char *)compression_alg_list(options.compression);
-	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
-	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
-	if (use_known_hosts_order) {
-		/* Query known_hosts and prefer algorithms that appear there */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = prop_hostkey =
-		    compat_pkalg_proposal(ssh,
-		    order_hostkeyalgs(host, hostaddr, port, cinfo));
-	} else {
-		/* Use specified HostkeyAlgorithms exactly */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = prop_hostkey =
-		    compat_pkalg_proposal(ssh, options.hostkeyalgorithms);
-	}
 
-	if (options.rekey_limit || options.rekey_interval)
-		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
-		    options.rekey_interval);
+	if (use_known_hosts_order)
+		hkalgs = order_hostkeyalgs(host, hostaddr, port, cinfo);
+
+	kex_proposal_populate_entries(ssh, myproposal, s, options.ciphers,
+	    options.macs, compression_alg_list(options.compression),
+	    hkalgs ? hkalgs : options.hostkeyalgorithms);
+
+	free(hkalgs);
 
 	/* start key exchange */
 	if ((r = kex_setup(ssh, myproposal)) != 0)
@@ -308,6 +290,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	ssh_dispatch_run_fatal(ssh, DISPATCH_BLOCK, &ssh->kex->done);
 
 	/* remove ext-info from the KEX proposals for rekeying */
+	free(myproposal[PROPOSAL_KEX_ALGS]);
 	myproposal[PROPOSAL_KEX_ALGS] =
 	    compat_kex_proposal(ssh, options.kex_algorithms);
 	if ((r = kex_prop2buf(ssh->kex->my, myproposal)) != 0)
@@ -321,10 +304,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    (r = ssh_packet_write_wait(ssh)) != 0)
 		fatal_fr(r, "send packet");
 #endif
-	/* Free only parts of proposal that were dynamically allocated here. */
-	free(prop_kex);
-	free(prop_enc);
-	free(prop_hostkey);
+	kex_proposal_free_entries(myproposal);
 }
 
 /*
@@ -516,16 +496,22 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	 * must be true and there must be no tty allocated.
 	 */
 	if (options.none_switch == 1 && options.none_enabled == 1) {
+		char *myproposal[PROPOSAL_MAX];
+		char *s = NULL;
+		const char *none_cipher = "none";
 		if (!tty_flag) { /* no null on tty sessions */
 			debug("Requesting none rekeying...");
-			memcpy(&myproposal, &myproposal_default, sizeof(myproposal));
-			myproposal[PROPOSAL_ENC_ALGS_STOC] = "none";
-			myproposal[PROPOSAL_ENC_ALGS_CTOS] = "none";
+			kex_proposal_populate_entries(ssh, myproposal, s, none_cipher,
+						      options.macs, compression_alg_list(options.compression),
+						      options.hostkeyalgorithms);
 			fprintf(stderr, "WARNING: ENABLED NONE CIPHER!!!\n");
+
 			/* NONEMAC can only be used in context of the NONE CIPHER */
 			if (options.nonemac_enabled == 1) {
-				myproposal[PROPOSAL_MAC_ALGS_STOC] = "none";
-				myproposal[PROPOSAL_MAC_ALGS_CTOS] = "none";
+				const char *none_mac = "none";
+				kex_proposal_populate_entries(ssh, myproposal, s, none_cipher,
+							      none_mac, compression_alg_list(options.compression),
+							      options.hostkeyalgorithms);
 				fprintf(stderr, "WARNING: ENABLED NONE MAC\n");
 			}
 			kex_prop2buf(ssh->kex->my, myproposal);
@@ -537,26 +523,6 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 		}
 	}
 
-#ifdef WITH_OPENSSL
-	if (options.disable_multithreaded == 0) {
-		/* if we are using aes-ctr there can be issues in either a fork or sandbox
-		 * so the initial aes-ctr is defined to point to the original single process
-		 * evp. After authentication we'll be past the fork and the sandboxed privsep
-		 * so we repoint the define to the multithreaded evp. To start the threads we
-		 * then force a rekey
-		 */
-		/* We now explicitly call the mt cipher in cipher.c so we don't need
-		 * the cipher_reset_multithreaded() anymore. We just need to
-		 * force a rekey -cjr 09/08/2022 */
-		const void *cc = ssh_packet_get_send_context(ssh);
-		/* only do this for the ctr cipher. otherwise gcm mode breaks. */
-		if (strstr(cipher_ctx_name(cc), "ctr")) {
-			debug("Single to Multithread CTR cipher swap - client request");
-			/* cipher_reset_multithreaded(); */
-			packet_request_rekeying();
-		}
-	}
-#endif
 	if (ssh_packet_connection_is_on_socket(ssh)) {
 		verbose("Authenticated to %s ([%s]:%d) using \"%s\".", host,
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
@@ -567,7 +533,6 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	}
 }
 
-/* ARGSUSED */
 static int
 input_userauth_service_accept(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -599,7 +564,6 @@ input_userauth_service_accept(int type, u_int32_t seq, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_ext_info(int type, u_int32_t seqnr, struct ssh *ssh)
 {
@@ -644,7 +608,6 @@ userauth(struct ssh *ssh, char *authlist)
 	}
 }
 
-/* ARGSUSED */
 static int
 input_userauth_error(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -652,7 +615,6 @@ input_userauth_error(int type, u_int32_t seq, struct ssh *ssh)
 	return 0;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_banner(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -672,7 +634,6 @@ input_userauth_banner(int type, u_int32_t seq, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_success(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -705,7 +666,6 @@ input_userauth_success_unexpected(int type, u_int32_t seq, struct ssh *ssh)
 }
 #endif
 
-/* ARGSUSED */
 static int
 input_userauth_failure(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -766,7 +726,6 @@ format_identity(Identity *id)
 	return ret;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_pk_ok(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -974,7 +933,6 @@ process_gssapi_token(struct ssh *ssh, gss_buffer_t recv_tok)
 	return status;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_response(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -1019,7 +977,6 @@ input_gssapi_response(int type, u_int32_t plen, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -1052,7 +1009,6 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_errtok(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -1087,7 +1043,6 @@ input_gssapi_errtok(int type, u_int32_t plen, struct ssh *ssh)
 	return 0;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_error(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -1165,7 +1120,6 @@ userauth_passwd(struct ssh *ssh)
 /*
  * parse PASSWD_CHANGEREQ, prompt user and send SSH2_MSG_USERAUTH_REQUEST
  */
-/* ARGSUSED */
 static int
 input_userauth_passwd_changereq(int type, u_int32_t seqnr, struct ssh *ssh)
 {
@@ -1936,20 +1890,6 @@ pubkey_reset(Authctxt *authctxt)
 }
 
 static int
-try_identity(struct ssh *ssh, Identity *id)
-{
-	if (!id->key)
-		return (0);
-	if (sshkey_type_plain(id->key->type) == KEY_RSA &&
-	    (ssh->compat & SSH_BUG_RSASIGMD5) != 0) {
-		debug("Skipped %s key %s for RSA/MD5 server",
-		    sshkey_type(id->key), id->filename);
-		return (0);
-	}
-	return 1;
-}
-
-static int
 userauth_pubkey(struct ssh *ssh)
 {
 	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
@@ -1969,7 +1909,7 @@ userauth_pubkey(struct ssh *ssh)
 		 * private key instead
 		 */
 		if (id->key != NULL) {
-			if (try_identity(ssh, id)) {
+			if (id->key != NULL) {
 				ident = format_identity(id);
 				debug("Offering public key: %s", ident);
 				free(ident);
@@ -1979,7 +1919,7 @@ userauth_pubkey(struct ssh *ssh)
 			debug("Trying private key: %s", id->filename);
 			id->key = load_identity_file(id);
 			if (id->key != NULL) {
-				if (try_identity(ssh, id)) {
+				if (id->key != NULL) {
 					id->isprivate = 1;
 					sent = sign_and_send_pubkey(ssh, id);
 				}
@@ -2150,7 +2090,8 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 		if (dup2(sock, STDERR_FILENO + 1) == -1)
 			fatal_f("dup2: %s", strerror(errno));
 		sock = STDERR_FILENO + 1;
-		fcntl(sock, F_SETFD, 0);	/* keep the socket on exec */
+		if (fcntl(sock, F_SETFD, 0) == -1) /* keep the socket on exec */
+			debug3_f("fcntl F_SETFD: %s", strerror(errno));
 		closefrom(sock + 1);
 
 		debug3_f("[child] pid=%ld, exec %s",

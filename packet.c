@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.308 2022/08/31 02:56:40 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.309 2023/03/03 10:23:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1014,7 +1014,8 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
         /* used to force rekeying when called for by the none
          * cipher switch and aes-mt-ctr methods -cjr */
         if (rekey_requested == 1) {
-                rekey_requested = 0;
+		debug_f("Got the rekey request");
+		rekey_requested = 0;
                 return 1;
         }
 
@@ -1362,7 +1363,7 @@ int
 ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 {
 	struct session_state *state = ssh->state;
-	int len, r, ms_remain;
+	int len, r, ms_remain = 0;
 	char buf[SSH_IOBUFSZ];
 	struct pollfd pfd;
 	struct timeval start;

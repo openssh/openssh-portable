@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.390 2023/01/17 09:44:48 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.392 2023/03/05 05:34:09 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -54,7 +54,6 @@
 #include "sshbuf.h"
 #include "misc.h"
 #include "servconf.h"
-#include "compat.h"
 #include "pathnames.h"
 #include "cipher.h"
 #include "sshkey.h"
@@ -195,7 +194,6 @@ initialize_server_options(ServerOptions *options)
 	options->hpn_buffer_size = -1;
 	options->none_enabled = -1;
 	options->nonemac_enabled = -1;
-	options->disable_multithreaded = -1;
 	options->hpn_buffer_limit = -1;
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
@@ -447,8 +445,6 @@ fill_default_server_options(ServerOptions *options)
 		debug ("Attempted to enabled None MAC without setting None Enabled to true. None MAC disabled.");
 		options->nonemac_enabled = 0;
 	}
-	if (options->disable_multithreaded == -1)
-		options->disable_multithreaded = 0;
 	if (options->hpn_disabled == -1)
 		options->hpn_disabled = 0;
 	if (options->hpn_buffer_limit == -1)
@@ -567,8 +563,7 @@ typedef enum {
 	sKerberosGetAFSToken, sPasswordAuthentication,
 	sKbdInteractiveAuthentication, sListenAddress, sAddressFamily,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
-	sNoneEnabled, sNoneMacEnabled,
-	sDisableMTAES, sHPNBufferLimit,
+	sNoneEnabled, sNoneMacEnabled, sHPNBufferLimit,
 	sTcpRcvBufPoll, sHPNDisabled, sHPNBufferSize,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
@@ -740,7 +735,6 @@ static struct {
 	{ "hpnbuffersize", sHPNBufferSize, SSHCFG_ALL },
 	{ "tcprcvbufpoll", sTcpRcvBufPoll, SSHCFG_ALL },
 	{ "noneenabled", sNoneEnabled, SSHCFG_ALL },
-	{ "disableMTAES", sDisableMTAES, SSHCFG_ALL },
 	{ "nonemacenabled", sNoneMacEnabled, SSHCFG_ALL },
 	{ "hpnbufferlimit", sHPNBufferLimit, SSHCFG_ALL },
 	{ "kexalgorithms", sKexAlgorithms, SSHCFG_GLOBAL },
@@ -1655,10 +1649,6 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		intptr = &options->nonemac_enabled;
 		goto parse_flag;
 		
-	case sDisableMTAES:
-		intptr = &options->disable_multithreaded;
-		goto parse_flag;
-
 	case sHPNBufferLimit:
 		intptr = &options->hpn_buffer_limit;
 		goto parse_flag;		
@@ -3016,8 +3006,16 @@ dump_cfg_strarray_oneline(ServerOpCodes code, u_int count, char **vals)
 {
 	u_int i;
 
-	if (count <= 0 && code != sAuthenticationMethods)
-		return;
+	switch (code) {
+	case sAuthenticationMethods:
+	case sChannelTimeout:
+		break;
+	default:
+		if (count <= 0)
+			return;
+		break;
+	}
+
 	printf("%s", lookup_opcode_name(code));
 	for (i = 0; i < count; i++)
 		printf(" %s",  vals[i]);
