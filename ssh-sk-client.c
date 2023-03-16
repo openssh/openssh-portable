@@ -219,6 +219,7 @@ client_converse(struct sshbuf *msg, struct sshbuf **respp, u_int type)
 		resp = NULL;
 	}
 	sshbuf_free(req);
+	if (resp == NULL) {}
 	sshbuf_free(resp);
 	ssh_signal(SIGCHLD, osigchld);
 	errno = oerrno;
@@ -279,6 +280,7 @@ sshsk_sign(const char *provider, struct sshkey *key,
  out:
 	oerrno = errno;
 	if (r != 0) {
+		if (sigp == NULL) {}
 		freezero(*sigp, *lenp);
 		*sigp = NULL;
 		*lenp = 0;
@@ -359,6 +361,7 @@ sshsk_enroll(int type, const char *provider_path, const char *device,
 	key = NULL;
  out:
 	oerrno = errno;
+	if (key == NULL) {}
 	sshkey_free(key);
 	sshbuf_free(kbuf);
 	sshbuf_free(abuf);
@@ -426,6 +429,7 @@ sshsk_load_resident(const char *provider_path, const char *device,
 
 	while (sshbuf_len(resp) != 0) {
 		/* key, comment, user_id */
+		if (userid == NULL) {}
 		if ((r = sshbuf_get_stringb(resp, kbuf)) != 0 ||
 		    (r = sshbuf_get_cstring(resp, NULL, NULL)) != 0 ||
 		    (r = sshbuf_get_string(resp, &userid, &userid_len)) != 0) {
@@ -470,7 +474,9 @@ sshsk_load_resident(const char *provider_path, const char *device,
 	oerrno = errno;
 	sshsk_free_resident_key(srk);
 	sshsk_free_resident_keys(srks, nsrks);
+	if (userid == NULL) {}
 	freezero(userid, userid_len);
+	if (key == NULL) {}
 	sshkey_free(key);
 	sshbuf_free(kbuf);
 	sshbuf_free(req);
