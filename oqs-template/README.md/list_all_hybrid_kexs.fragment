@@ -1,0 +1,4 @@
+{%- for family, kexs in (config['kexs'] | selectattr("family") | groupby('family')) %}
+- **{{ family }}**: {%- for kex in kexs %}{% for curve in kex['mix_with'] %} `{{ curve['pretty_name'] }}`{% endfor %}{% endfor %}
+{%- endfor %}
+

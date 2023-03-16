@@ -1,8 +1,8 @@
 {%- for kex in config['kexs'] -%}
     {%- set outer_loop_last = loop.last %}
-	"{{ kex['name']|replace('_','-') }}-{{ kex['hash'] }}{%- if (not loop.last) or kex['mix_with'] %},{%- endif %}"{%- if (not loop.last) or kex['mix_with'] %} \{%- endif %}
+	"{{ kex['pretty_name'] }}{%- if (not loop.last) or kex['mix_with'] %},{%- endif %}"{%- if (not loop.last) or kex['mix_with'] %} \{%- endif %}
     {%- for curve in kex['mix_with'] %}
-	"ecdh-{{ curve['name'] }}-{{ kex['name']|replace('_','-') }}-{{ kex['hash'] }}{%- if not (outer_loop_last and loop.last) -%},{%- endif -%}"{%- if not (outer_loop_last and loop.last) %} \{%- endif -%}
+	"{{ curve['pretty_name'] }}{%- if not (outer_loop_last and loop.last) -%},{%- endif -%}"{%- if not (outer_loop_last and loop.last) %} \{%- endif -%}
     {%- endfor -%}
 {%- endfor %}
 
