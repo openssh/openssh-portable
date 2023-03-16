@@ -93,12 +93,12 @@
 #define	KEX_HQC_256_SHA512	"hqc-256-sha512"
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
-#define	KEX_FRODOKEM_640_AES_ECDH_NISTP256_SHA256	"ecdh-nistp256-frodokem-640r2-aes-sha256@openquantumsafe.org"
-#define	KEX_FRODOKEM_976_AES_ECDH_NISTP384_SHA384	"ecdh-nistp384-frodokem-976r2-aes-sha384@openquantumsafe.org"
-#define	KEX_FRODOKEM_1344_AES_ECDH_NISTP521_SHA512	"ecdh-nistp521-frodokem-1344r2-aes-sha512@openquantumsafe.org"
-#define	KEX_FRODOKEM_640_SHAKE_ECDH_NISTP256_SHA256	"ecdh-nistp256-frodokem-640r2-shake-sha256@openquantumsafe.org"
-#define	KEX_FRODOKEM_976_SHAKE_ECDH_NISTP384_SHA384	"ecdh-nistp384-frodokem-976r2-shake-sha384@openquantumsafe.org"
-#define	KEX_FRODOKEM_1344_SHAKE_ECDH_NISTP521_SHA512	"ecdh-nistp521-frodokem-1344r2-shake-sha512"
+#define	KEX_FRODOKEM_640_AES_ECDH_NISTP256_SHA256	"ecdh-nistp256-frodokem-640-aesr2-sha256@openquantumsafe.org"
+#define	KEX_FRODOKEM_976_AES_ECDH_NISTP384_SHA384	"ecdh-nistp384-frodokem-976-aesr2-sha384@openquantumsafe.org"
+#define	KEX_FRODOKEM_1344_AES_ECDH_NISTP521_SHA512	"ecdh-nistp521-frodokem-1344-aesr2-sha512@openquantumsafe.org"
+#define	KEX_FRODOKEM_640_SHAKE_ECDH_NISTP256_SHA256	"ecdh-nistp256-frodokem-640-shaker2-sha256@openquantumsafe.org"
+#define	KEX_FRODOKEM_976_SHAKE_ECDH_NISTP384_SHA384	"ecdh-nistp384-frodokem-976-shaker2-sha384@openquantumsafe.org"
+#define	KEX_FRODOKEM_1344_SHAKE_ECDH_NISTP521_SHA512	"ecdh-nistp521-frodokem-1344-shaker2-sha512@openquantumsafe.org"
 #define	KEX_KYBER_512_ECDH_NISTP256_SHA256	"ecdh-nistp256-kyber-512r3-sha256-d00@openquantumsafe.org"
 #define	KEX_KYBER_768_ECDH_NISTP384_SHA384	"ecdh-nistp384-kyber-768r3-sha384-d00@openquantumsafe.org"
 #define	KEX_KYBER_1024_ECDH_NISTP521_SHA512	"ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org"
