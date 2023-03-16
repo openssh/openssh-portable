@@ -14,7 +14,7 @@ This document will be changing over time to reflect new changes and features. Th
 
 ## Documentation
 
-The official documentation for OpenSSH are the man pages for each tool:
+The official documentation for OpenSSH are the man pages for each tool. 
 
 * [ssh(1)](https://man.openbsd.org/ssh.1)
 * [sshd(8)](https://man.openbsd.org/sshd.8)
@@ -25,7 +25,11 @@ The official documentation for OpenSSH are the man pages for each tool:
 * [ssh-keyscan(8)](https://man.openbsd.org/ssh-keyscan.8)
 * [sftp-server(8)](https://man.openbsd.org/sftp-server.8)
 
+All options in OpenSSH are respected by HPN-SSH. The man pages for HPN-SSH tools are the same as the name of the tool.
+
 ## Building HPNSSH
+
+Detailed step by step instructions can be found at https://psc.edu/hpn-ssh-home/
 
 ### Dependencies
 

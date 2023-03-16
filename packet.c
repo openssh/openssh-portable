@@ -1364,8 +1364,8 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 {
 	struct session_state *state = ssh->state;
 	int len, r, ms_remain = 0;
-	char buf[SSH_IOBUFSZ];
 	struct pollfd pfd;
+	char buf[SSH_IOBUFSZ];
 	struct timeval start;
 	struct timespec timespec, *timespecp = NULL;
 

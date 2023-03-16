@@ -2421,8 +2421,10 @@ do_ssh2_kex(struct ssh *ssh)
 		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
 		    options.rekey_interval);
 
+	if (options.compression == COMP_NONE)
+		compression = "none";
 	hkalgs = list_hostkey_types();
-		
+
 	kex_proposal_populate_entries(ssh, myproposal, options.kex_algorithms,
 	    options.ciphers, options.macs, compression, hkalgs);
 
