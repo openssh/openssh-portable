@@ -184,7 +184,7 @@ refresh_progress_meter(int force_update)
 		return;
 
 	/* filename */
-	file_len = cols = win_size - 36;
+	file_len = cols = win_size - 45;
 	if (file_len > 0) {
 		asmprintf(&buf, INT_MAX, &cols, "%-*s", file_len, file);
 		/* If we used fewer columns than expected then pad */
@@ -203,10 +203,9 @@ refresh_progress_meter(int force_update)
 
 	/* instantaneous rate */
 	if (bytes_left > 0)
-		format_rate((off_t)delta_pos);
+		xextendf(&buf, NULL, "%s/s", format_rate((off_t)delta_pos));
 	else
-		format_rate((off_t)max_delta_pos);
-	strlcat(buf, "/s ", win_size);
+		xextendf(&buf, NULL, "%s/s", format_rate((off_t)max_delta_pos));
 
 	/* ETA */
 	if (!transferred)
@@ -250,6 +249,7 @@ refresh_progress_meter(int force_update)
 	}
 	free(buf);
 	free(obuf);
+	last_pos = cur_pos;
 }
 
 static void
