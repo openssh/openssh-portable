@@ -1844,6 +1844,7 @@ pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 		free(ident);
 	}
 	debug2_f("done");
+	free(id);
 }
 
 static void

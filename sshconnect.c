@@ -114,7 +114,7 @@ static int
 ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host,
     const char *host_arg, u_short port, const char *proxy_command)
 {
-	char *command_string;
+	char *command_string = (char*) malloc(20 * sizeof(char));;
 	int sp[2], sock;
 	pid_t pid;
 	char *shell;
@@ -196,7 +196,7 @@ static int
 ssh_proxy_connect(struct ssh *ssh, const char *host, const char *host_arg,
     u_short port, const char *proxy_command)
 {
-	char *command_string;
+	char *command_string = (char*) malloc(20 * sizeof(char));;
 	int pin[2], pout[2];
 	pid_t pid;
 	char *shell;
@@ -569,7 +569,7 @@ confirm(const char *prompt, const char *fingerprint)
 {
 	const char *msg, *again = "Please type 'yes' or 'no': ";
 	const char *again_fp = "Please type 'yes', 'no' or the fingerprint: ";
-	char *p, *cp;
+	char *p,*cp;
 	int ret = -1;
 
 	if (options.batch_mode)
