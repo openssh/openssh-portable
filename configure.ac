@@ -2817,11 +2817,21 @@ if test "x$openssl" = "xyes" ; then
 #ifndef HAVE_OPENSSL_VERSION_NUM
 # define OpenSSL_version_num	SSLeay
 #endif
-		if ((rc = fprintf(fd, "%08lx (%s)\n",
-		    (unsigned long)OpenSSL_version_num(),
+# if LIBRESSL_VERSION_NUMBER >= 0x3070100fL
+/* older versions of libressl don't have EVP_CIPHER_meth_ functions
+ * this tests the version number and prepends Libre on the results
+ * and that is checked for specifically in the case statement below
+ * -cjr 3/16/2023 */
+		if ((rc = fprintf(fd, "Libre%08lx (%s)\n",
+		    LIBRESSL_VERSION_NUMBER,
 		    OpenSSL_version(OPENSSL_VERSION))) < 0)
 			exit(1);
-
+# else
+		if ((rc = fprintf(fd, "%08lx (%s)\n",
+		    OPENSSL_VERSION_NUMBER,
+		    OpenSSL_version(OPENSSL_VERSION))) < 0)
+			exit(1);
+#endif
 		exit(0);
 		]])],
 		[
@@ -2838,8 +2848,9 @@ if test "x$openssl" = "xyes" ; then
 				AC_MSG_ERROR([OpenSSL 1.1.x versions prior to 1.1.0g have a bug that breaks their use with OpenSSH (have "$ssl_library_ver")])
 				;;
 			101*)   ;; # 1.1.x
-			200*)   AC_MSG_ERROR([LibreSSL is no longer suported by HPN-SSH. OpenSSL 1.1.0g or higher is required.])
-                                ;; # LibreSSL
+			200*)   AC_MSG_ERROR([LibreSSL versions older than 3.7 are no longer suported by HPN-SSH.])
+                                ;; # LibreSSL unsupported versions
+			Libre*) ;; # LibreSSL that supports evp_cipher_meth_* functions
 #			300*)   ;; # OpenSSL 3
 #			301*)   ;; # OpenSSL development branch.
 #			302*)   ;; # OpenSSL master branch
