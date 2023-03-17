@@ -524,6 +524,7 @@ DH_set_length(DH *dh, long length)
 }
 #endif /* HAVE_DH_SET_LENGTH */
 
+#ifdef ENABLE_PKCS11
 #ifndef HAVE_RSA_METH_FREE
 void
 RSA_meth_free(RSA_METHOD *meth)
@@ -603,6 +604,7 @@ RSA_meth_set_finish(RSA_METHOD *meth, int (*finish)(RSA *rsa))
 	return 1;
 }
 #endif /* HAVE_RSA_METH_SET_FINISH */
+#endif /* ENABLE_PKCS11 */
 
 #ifndef HAVE_EVP_PKEY_GET0_RSA
 RSA *
