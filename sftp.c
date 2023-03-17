@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.222 2022/09/19 10:46:00 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.229 2023/03/12 09:41:18 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -217,7 +217,6 @@ static const struct CMD cmds[] = {
 	{ NULL,		-1,		-1,		-1	}
 };
 
-/* ARGSUSED */
 static void
 killchild(int signo)
 {
@@ -232,7 +231,6 @@ killchild(int signo)
 	_exit(1);
 }
 
-/* ARGSUSED */
 static void
 suspchild(int signo)
 {
@@ -244,7 +242,6 @@ suspchild(int signo)
 	kill(getpid(), SIGSTOP);
 }
 
-/* ARGSUSED */
 static void
 cmd_interrupt(int signo)
 {
@@ -256,14 +253,12 @@ cmd_interrupt(int signo)
 	errno = olderrno;
 }
 
-/* ARGSUSED */
 static void
 read_interrupt(int signo)
 {
 	interrupted = 1;
 }
 
-/*ARGSUSED*/
 static void
 sigchld_handler(int sig)
 {
@@ -275,7 +270,8 @@ sigchld_handler(int sig)
 	while ((pid = waitpid(sshpid, NULL, WNOHANG)) == -1 && errno == EINTR)
 		continue;
 	if (pid == sshpid) {
-		(void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
+		if (!quiet)
+		    (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
 		sshpid = -1;
 	}
 
@@ -1011,7 +1007,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 	 */
 	for (nentries = 0; g.gl_pathv[nentries] != NULL; nentries++)
 		;	/* count entries */
-	indices = calloc(nentries, sizeof(*indices));
+	indices = xcalloc(nentries, sizeof(*indices));
 	for (i = 0; i < nentries; i++)
 		indices[i] = i;
 
@@ -1029,6 +1025,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 		if (lflag & LS_LONG_VIEW) {
 			if (g.gl_statv[i] == NULL) {
 				error("no stat information for %s", fname);
+				free(fname);
 				continue;
 			}
 			lname = ls_file(fname, g.gl_statv[i], 1,
@@ -2000,7 +1997,9 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 
 	memset(&g, 0, sizeof(g));
 	if (remote != LOCAL) {
-		tmp = make_absolute_pwd_glob(tmp, remote_path);
+		tmp2 = make_absolute_pwd_glob(tmp, remote_path);
+		free(tmp);
+		tmp = tmp2;
 		remote_glob(conn, tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
 	} else
 		glob(tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
@@ -2410,7 +2409,7 @@ usage(void)
 	    "          [-D sftp_server_command] [-F ssh_config] [-i identity_file]\n"
 	    "          [-J destination] [-l limit] [-o ssh_option] [-P port]\n"
 	    "          [-R num_requests] [-S program] [-s subsystem | sftp_server]\n"
-	    "          destination\n",
+	    "          [-X sftp_option] destination\n",
 	    __progname);
 	exit(1);
 }
@@ -2431,7 +2430,7 @@ main(int argc, char **argv)
 	struct sftp_conn *conn;
 	size_t copy_buffer_len = 0;
 	size_t num_requests = 0;
-	long long limit_kbps = 0;
+	long long llv, limit_kbps = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -2449,7 +2448,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246AafhNpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:")) != -1) {
+	    "1246AafhNpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:X:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case 'A':
@@ -2545,6 +2544,31 @@ main(int argc, char **argv)
 		case 'S':
 			ssh_program = optarg;
 			replacearg(&args, 0, "%s", ssh_program);
+			break;
+		case 'X':
+			/* Please keep in sync with ssh.c -X */
+			if (strncmp(optarg, "buffer=", 7) == 0) {
+				r = scan_scaled(optarg + 7, &llv);
+				if (r == 0 && (llv <= 0 || llv > 256 * 1024)) {
+					r = -1;
+					errno = EINVAL;
+				}
+				if (r == -1) {
+					fatal("Invalid buffer size \"%s\": %s",
+					     optarg + 7, strerror(errno));
+				}
+				copy_buffer_len = (size_t)llv;
+			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
+				llv = strtonum(optarg + 10, 1, 256 * 1024,
+				    &errstr);
+				if (errstr != NULL) {
+					fatal("Invalid number of requests "
+					    "\"%s\": %s", optarg + 10, errstr);
+				}
+				num_requests = (size_t)llv;
+			} else {
+				fatal("Invalid -X option");
+			}
 			break;
 		case 'h':
 		default:

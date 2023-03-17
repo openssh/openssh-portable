@@ -7,10 +7,10 @@ PACKAGES=""
 case "`./config.guess`" in
 *cygwin)
 	PACKAGER=setup
-	echo Setting CYGWIN sustem environment variable.
+	echo Setting CYGWIN system environment variable.
 	setx CYGWIN "binmode"
-	chmod -R go-rw /cygdrive/d/a
-	umask 077
+	echo Removing extended ACLs so umask works as expected.
+	setfacl -b . regress
 	PACKAGES="$PACKAGES,autoconf,automake,cygwin-devel,gcc-core"
 	PACKAGES="$PACKAGES,make,openssl-devel,zlib-devel"
 	;;
@@ -139,16 +139,29 @@ if [ "yes" = "$INSTALL_FIDO_PPA" ]; then
     sudo apt-add-repository -y ppa:yubico/stable
 fi
 
-if [ "x" != "x$PACKAGES" ]; then
+tries=3
+while [ ! -z "$PACKAGES" ] && [ "$tries" -gt "0" ]; do
     case "$PACKAGER" in
     apt)
 	sudo apt update -qq
-	sudo apt install -qy $PACKAGES
+	if sudo apt install -qy $PACKAGES; then
+		PACKAGES=""
+	fi
 	;;
     setup)
-	/cygdrive/c/setup.exe -q -P `echo "$PACKAGES" | tr ' ' ,`
+	if /cygdrive/c/setup.exe -q -P `echo "$PACKAGES" | tr ' ' ,`; then
+		PACKAGES=""
+	fi
 	;;
     esac
+    if [ ! -z "$PACKAGES" ]; then
+	sleep 90
+    fi
+    tries=$(($tries - 1))
+done
+if [ ! -z "$PACKAGES" ]; then
+	echo "Package installation failed."
+	exit 1
 fi
 
 if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then

@@ -130,10 +130,12 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 ])
 
 openssl=yes
+openssl_bin=openssl
 AC_ARG_WITH([openssl],
 	[  --without-openssl       Disable use of OpenSSL; use only limited internal crypto **EXPERIMENTAL** ],
 	[  if test "x$withval" = "xno" ; then
 		openssl=no
+		openssl_bin=""
 	   fi
 	]
 )
@@ -2681,6 +2683,7 @@ AC_CHECK_FUNCS([getpgrp],[
 # Search for OpenSSL
 saved_CPPFLAGS="$CPPFLAGS"
 saved_LDFLAGS="$LDFLAGS"
+openssl_bin_PATH="$PATH"
 AC_ARG_WITH([ssl-dir],
 	[  --with-ssl-dir=PATH     Specify path to OpenSSL installation ],
 	[
@@ -2710,9 +2713,12 @@ AC_ARG_WITH([ssl-dir],
 			else
 				CPPFLAGS="-I${withval} ${CPPFLAGS}"
 			fi
+			openssl_bin_PATH="${PATH}${PATH_SEPARATOR}${withval}/bin${PATH_SEPARATOR}${withval}/apps"
 		fi
 	]
 )
+AC_PATH_PROGS([openssl_bin], openssl, [], [$openssl_bin_PATH])
+AC_SUBST(OPENSSL_BIN, [${openssl_bin}])
 
 AC_ARG_WITH([openssl-header-check],
 	[  --without-openssl-header-check Disable OpenSSL version consistency check],
@@ -3239,7 +3245,7 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" != "xno" ; then
 		    [Enable for built-in U2F/FIDO support])
 		enable_sk="built-in"
 		saved_LIBS="$LIBS"
-		LIBS="$LIBS $LIBFIDO2"
+		LIBS="$LIBFIDO2 $LIBS"
 		AC_CHECK_FUNCS([ \
 			fido_assert_set_clientdata \
 			fido_cred_prot \
