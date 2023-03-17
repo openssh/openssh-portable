@@ -1228,9 +1228,6 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	alist.list = NULL;
 
 	for (i = 0; i < argc - 1; i++) {
-		free(suser);
-		free(host);
-		free(src);
 		r = parse_scp_uri(argv[i], &suser, &host, &sport, &src);
 		if (r == -1) {
 			fmprintf(stderr, "%s: invalid uri\n", argv[i]);
