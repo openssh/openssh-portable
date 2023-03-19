@@ -55,7 +55,7 @@ jobs:
           - { target: ubuntu-latest, config: libressl-3.4.3 }
           - { target: ubuntu-latest, config: libressl-3.5.3 }
           - { target: ubuntu-latest, config: libressl-3.6.1 }
-          - { target: ubuntu-latest, config: libressl-3.7.0 }
+          - { target: ubuntu-latest, config: libressl-3.7.1 }
           - { target: ubuntu-latest, config: openssl-master }
           - { target: ubuntu-latest, config: openssl-noec }
           - { target: ubuntu-latest, config: openssl-1.0.1 }
@@ -66,10 +66,10 @@ jobs:
           - { target: ubuntu-latest, config: openssl-1.1.1k }
           - { target: ubuntu-latest, config: openssl-1.1.1n }
           - { target: ubuntu-latest, config: openssl-1.1.1q }
-          - { target: ubuntu-latest, config: openssl-1.1.1s }
+          - { target: ubuntu-latest, config: openssl-1.1.1t }
           - { target: ubuntu-latest, config: openssl-3.0.0 }
-          - { target: ubuntu-latest, config: openssl-3.0.5 }
           - { target: ubuntu-latest, config: openssl-3.0.7 }
+          - { target: ubuntu-latest, config: openssl-3.1.0 }
           - { target: ubuntu-latest, config: openssl-1.1.1_stable }
           - { target: ubuntu-latest, config: openssl-3.0 }  # stable branch
           - { target: ubuntu-22.04, config: pam }
