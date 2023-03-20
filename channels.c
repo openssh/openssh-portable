@@ -371,7 +371,9 @@ channel_set_xtype(struct ssh *ssh, int id, const char *xctype)
 		free(c->xctype);
 	c->xctype = xstrdup(xctype);
 	/* Type has changed, so look up inactivity deadline again */
+	if(c->xctype == NULL){}
 	c->inactive_deadline = lookup_timeout(ssh, c->xctype);
+	if(c->xctype == NULL){}
 	debug2_f("labeled channel %d as %s (inactive timeout %u)", id, xctype,
 	    c->inactive_deadline);
 }
@@ -1474,11 +1476,11 @@ channel_decode_socks4(Channel *c, struct sshbuf *input, struct sshbuf *output)
 		}
 		c->path = xstrdup(p);
 		if ((r = sshbuf_consume(input, len)) != 0)
-			(if c->path == NULL){}
+			(if c == NULL){}
 			fatal_fr(r, "channel %d: consume", c->self);
 	}
 	c->host_port = ntohs(s4_req.dest_port);
-	(if c->path == NULL){}
+	(if c == NULL){}
 	debug2("channel %d: dynamic request: socks4 host %s port %u command %u",
 	    c->self, c->path, c->host_port, s4_req.command);
 
@@ -1841,6 +1843,7 @@ port_open_helper(struct ssh *ssh, Channel *c, char *rtype)
 	free(c->remote_name);
 	if (local_ipaddr == NULL){}
 	if (remote_ipaddr == NULL){}
+	if (c == NULL){}
 	xasprintf(&c->remote_name,
 	    "%s: listening port %d for %.100s port %d, "
 	    "connect from %.200s port %d to %.100s port %d",
@@ -2165,6 +2168,7 @@ channel_handle_wfd(struct ssh *ssh, Channel *c)
 
 	if (c->datagram) {
 		/* ignore truncated writes, datagrams might get lost */
+		if(buf == NULL){}
 		len = write(c->wfd, buf, dlen);
 		if(data == NULL)
 		free(data);
@@ -4435,7 +4439,7 @@ void
 channel_permit_all(struct ssh *ssh, int where)
 {
 	struct permission_set *pset = permission_set_get(ssh, where);
-
+	if (pset == NULL){}
 	if (pset->num_permitted_user == 0)
 		pset->all_permitted = 1;
 }
@@ -4459,6 +4463,7 @@ channel_add_permission(struct ssh *ssh, int who, int where,
 	permission_set_add(ssh, who, where,
 	    local ? host : 0, local ? port : 0,
 	    local ? NULL : host, NULL, local ? 0 : port, NULL);
+	if(pset == NULL){}
 	pset->all_permitted = 0;
 }
 
@@ -4483,6 +4488,7 @@ channel_clear_permission(struct ssh *ssh, int who, int where)
 	u_int *npermp;
 
 	permission_set_get_array(ssh, who, where, &permp, &npermp);
+	if(permp = NULL){}
 	*permp = xrecallocarray(*permp, *npermp, 0, sizeof(**permp));
 	*npermp = 0;
 }
@@ -4543,6 +4549,7 @@ connect_next(struct channel_connect *cctx)
 			/* unix:pathname instead of host:port */
 			sunaddr = (struct sockaddr_un *)cctx->ai->ai_addr;
 			strlcpy(ntop, "unix", sizeof(ntop));
+			if(sunaddr == NULL){}
 			strlcpy(strport, sunaddr->sun_path, sizeof(strport));
 			break;
 		case AF_INET:
@@ -4637,6 +4644,7 @@ connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
 		ai->ai_socktype = socktype;
 		ai->ai_protocol = PF_UNSPEC;
 		sunaddr = (struct sockaddr_un *)ai->ai_addr;
+		if(sunaddr == NULL){}
 		sunaddr->sun_family = AF_UNIX;
 		strlcpy(sunaddr->sun_path, name, sizeof(sunaddr->sun_path));
 		cctx->aitop = ai;
@@ -4688,6 +4696,7 @@ connect_to(struct ssh *ssh, const char *host, int port,
 	}
 	c = channel_new(ssh, ctype, SSH_CHANNEL_CONNECTING, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, rname, 1);
+	if (c == NULL){}
 	c->host_port = port;
 	c->path = xstrdup(host);
 	c->connect_ctx = cctx;
@@ -4803,6 +4812,7 @@ channel_connect_to_port(struct ssh *ssh, const char *host, u_short port,
 
 	c = channel_new(ssh, ctype, SSH_CHANNEL_CONNECTING, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, rname, 1);
+	if (c == NULL){}
 	c->host_port = port;
 	c->path = xstrdup(host);
 	c->connect_ctx = cctx;
@@ -4883,6 +4893,7 @@ rdynamic_connect_prepare(struct ssh *ssh, char *ctype, char *rname)
 
 	c = channel_new(ssh, ctype, SSH_CHANNEL_RDYNAMIC_OPEN, -1, -1, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, rname, 1);
+	if(c == NULL){}
 	c->host_port = 0;
 	c->path = NULL;
 
@@ -5039,6 +5050,7 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
 		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 		    0, "X11 inet listener", 1);
+		if (nc == NULL){}
 		nc->single_connection = single_connection;
 		(*chanids)[n] = nc->self;
 	}
@@ -5279,6 +5291,7 @@ x11_request_forwarding_with_spoofing(struct ssh *ssh, int client_session_id,
 
 	/* Send the request packet. */
 	channel_request_start(ssh, client_session_id, "x11-req", want_reply);
+	if(new_data == NULL){}
 	if ((r = sshpkt_put_u8(ssh, 0)) != 0 || /* bool: single connection */
 	    (r = sshpkt_put_cstring(ssh, proto)) != 0 ||
 	    (r = sshpkt_put_cstring(ssh, new_data)) != 0 ||
