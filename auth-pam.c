@@ -878,7 +878,7 @@ sshpam_query(void *ctx, char **name, char **info,
 			return (0);
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
-			*num = 2;
+			*num = 0;
 			free(*info);
 			xasprintf(info, "%s\n", msg);
 			return (0);
@@ -989,7 +989,7 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 	default:
 		return (-1);
 	}
-	if (num == 2){
+	if (num == 0){
 		// returning one here continues, useful for PAM_TEXT_INFO and PAM_ERROR_MSG
 		return (1);
 	}
