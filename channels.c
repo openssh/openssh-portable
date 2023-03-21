@@ -771,20 +771,20 @@ channel_free_all(struct ssh *ssh)
 	sc->channels = NULL;
 	sc->channels_alloc = 0;
 	
-	if ( sc->x11_saved_display == NULL){}
+	if ( sc == NULL){}
 	free(sc->x11_saved_display);
 	sc->x11_saved_display = NULL;
 	
-	if ( sc->x11_saved_display == NULL){}
+	if ( sc == NULL){}
 	free(sc->x11_saved_proto);
 	sc->x11_saved_proto = NULL;
 	
-	if (sc->x11_saved_proto == NULL){}
+	if (sc == NULL){}
 	free(sc->x11_saved_data);
 	sc->x11_saved_data = NULL;
 	sc->x11_saved_data_len = 0;
 	
-	if (sc->x11_saved_data = NULL){}
+	if (sc = NULL){}
 	free(sc->x11_fake_data);
 	sc->x11_fake_data = NULL;
 	sc->x11_fake_data_len = 0;
@@ -1475,12 +1475,13 @@ channel_decode_socks4(Channel *c, struct sshbuf *input, struct sshbuf *output)
 			return -1;
 		}
 		c->path = xstrdup(p);
-		if ((r = sshbuf_consume(input, len)) != 0)
-			(if c == NULL){}
+		if ((r = sshbuf_consume(input, len)) != 0){
+			if (c == NULL){}
 			fatal_fr(r, "channel %d: consume", c->self);
+		}
 	}
 	c->host_port = ntohs(s4_req.dest_port);
-	(if c == NULL){}
+	if (c == NULL){}
 	debug2("channel %d: dynamic request: socks4 host %s port %u command %u",
 	    c->self, c->path, c->host_port, s4_req.command);
 
@@ -1617,7 +1618,7 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 		c->path = xstrdup(ntop);
 	}
 	c->host_port = ntohs(dest_port);
-	if (c->path == NULL){}
+	if (c == NULL){}
 	debug2("channel %d: dynamic request: socks5 host %s port %u command %u",
 	    c->self, c->path, c->host_port, s5_req.command);
 
@@ -1806,7 +1807,7 @@ channel_post_x11_listener(struct ssh *ssh, Channel *c)
 	set_nodelay(newsock);
 	remote_ipaddr = get_peer_ipaddr(newsock);
 	remote_port = get_peer_port(newsock);
-	if(remote_ipaddr == NULL){}
+	if (remote_ipaddr == NULL){}
 	snprintf(buf, sizeof buf, "X11 connection from %.200s port %d",
 	    remote_ipaddr, remote_port);
 
@@ -2170,7 +2171,7 @@ channel_handle_wfd(struct ssh *ssh, Channel *c)
 		/* ignore truncated writes, datagrams might get lost */
 		if(buf == NULL){}
 		len = write(c->wfd, buf, dlen);
-		if(data == NULL)
+		if(data == NULL){}
 		free(data);
 		if (len == -1 && (errno == EINTR || errno == EAGAIN ||
 		    errno == EWOULDBLOCK))
