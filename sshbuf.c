@@ -27,7 +27,7 @@
 #define SSHBUF_INTERNAL
 #include "sshbuf.h"
 #include "misc.h"
-/* #include "log.h" */
+#include "log.h"
 
 #define BUF_WATERSHED 256*1024
 
@@ -413,11 +413,13 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	/* there is a buffer that needs to grow quickly but doesn't seem to count as 
 	 * input or output so we check to make sure that window_max isn't set
 	 * before we do. In this case we set it immediately to the maximum 
-	 * allocated buffer size which shoudl be about 32MB 
+	 * allocated buffer size which should be about 32MB 
 	 * this likely isn't the right way to do this but it works for now
 	 * TODO: Come up with a better solution -cjr 12/1/2022 */
-	if (rlen > BUF_WATERSHED && buf->window_max == 0) 
-		rlen = buf->max_size;
+	if (rlen > BUF_WATERSHED && buf->window_max == 0) {
+	  rlen = rlen + (16*1024*1024);
+	  debug_f("************* rlen is now %lu", rlen);
+	}
 	/* rlen might be above the max allocation */
 	if (rlen > buf->max_size)
 		rlen = buf->max_size;
