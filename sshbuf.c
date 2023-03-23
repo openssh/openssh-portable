@@ -400,14 +400,14 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * what we need (the size of window_max) so if the current allocation (in
 	 * buf->alloc) is greater than window_max we skip it.
 	 */
-	/* if (rlen > BUF_WATERSHED && buf->window_max !=0){ //  && buf->alloc < buf->window_max) { */
-	/* 	debug_f ("%p, prior rlen %zu and need %zu buf_alloc is %zu", buf, rlen, need, buf->alloc); */
-	/* 	/\* set need to the the max window size less the current allocation *\/ */
-	/* 	need = buf->max_size; */
-	/* 	rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC); */
-	/* 	debug_f ("%p, rlen is %zu need is %zu window max is %zu max_size is %zu", */
-	/* 	 	 buf, rlen, need, buf->window_max, buf->max_size); */
-	/* } */
+	if (rlen > BUF_WATERSHED && buf->window_max !=0){ //  && buf->alloc < buf->window_max) {
+		debug_f ("%p, prior rlen %zu and need %zu buf_alloc is %zu", buf, rlen, need, buf->alloc);
+		/* set need to the the max window size less the current allocation */
+		need = buf->max_size;
+		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
+		debug_f ("%p, rlen is %zu need is %zu window max is %zu max_size is %zu",
+		 	 buf, rlen, need, buf->window_max, buf->max_size);
+	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 
 	/* there is a buffer that needs to grow quickly but doesn't seem to count as 
