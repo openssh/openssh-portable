@@ -424,7 +424,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	}
 	/* rlen might be above the max allocation */
 	if (rlen > buf->max_size)
-		rlen = buf->max_size*2;
+		rlen = buf->max_size;
 	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {
 		SSHBUF_DBG(("realloc fail"));
