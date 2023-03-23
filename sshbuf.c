@@ -113,6 +113,7 @@ sshbuf_new(void)
 		return NULL;
 	ret->alloc = SSHBUF_SIZE_INIT;
 	ret->max_size = SSHBUF_ALLOC_MAX;
+	debug_f("Max size set to %zu", ret->max_size);
 	ret->readonly = 0;
 	ret->refcount = 1;
 	ret->parent = NULL;
@@ -132,6 +133,7 @@ sshbuf_from(const void *blob, size_t len)
 	    (ret = calloc(sizeof(*ret), 1)) == NULL)
 		return NULL;
 	ret->alloc = ret->size = ret->max_size = len;
+	debug_f("Max size set to %zu", ret->max_size);
 	ret->readonly = 1;
 	ret->refcount = 1;
 	ret->parent = NULL;
@@ -234,6 +236,7 @@ sshbuf_reset(struct sshbuf *buf)
 size_t
 sshbuf_max_size(const struct sshbuf *buf)
 {
+	debug_f("Max size set to %zu", buf->max_size/2);
 	return buf->max_size / 2;
 }
 
@@ -300,7 +303,8 @@ sshbuf_set_max_size(struct sshbuf *buf, size_t requested_size)
 		buf->alloc = rlen;
 	}
 	SSHBUF_TELL("new-max");
-	buf->max_size = max_size;
+	buf->max_size = max_size/2;
+	debug_f("Max size set to %zu", max_size);
 	return 0;
 }
 
@@ -423,8 +427,10 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	  debug_f("************* max_size is %lu", buf->max_size);
 	}
 	/* rlen might be above the max allocation */
-	if (rlen > buf->max_size)
+	if (rlen > buf->max_size) {
 		rlen = buf->max_size;
+		debug_f("set rlen to %llu", buf->max_size);
+	}
 	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {
 		SSHBUF_DBG(("realloc fail"));
