@@ -65,13 +65,6 @@ dup_strings(char ***dstp, size_t *ndstp, char **src, size_t nsrc)
 	/* success */
 	*dstp = dst;
 	*ndstp = nsrc;
-
-	/* Free memory */
-    for (i = 0; i < nsrc; i++) {
-        free(dst[i]);
-    }
-    free(dst);
-
 	return 0;
 }
 
