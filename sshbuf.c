@@ -401,10 +401,10 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * what we need (the size of window_max) so if the current allocation (in
 	 * buf->alloc) is greater than window_max we skip it.
 	 */
-	if (rlen > BUF_WATERSHED && buf->alloc < buf->window_max) {
+	if (rlen > BUF_WATERSHED) {
 		debug_f ("%p, prior rlen %zu and need %zu buf_alloc is %zu", buf, rlen, need, buf->alloc);
 		/* set need to the the max window size less the current allocation */
-		need = buf->window_max;
+		need = (1024*1024);
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
 		debug_f ("%p, rlen is %zu need is %zu window max is %zu max_size is %zu",
 		 	 buf, rlen, need, buf->window_max, buf->max_size);
@@ -420,10 +420,11 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	if (rlen > BUF_WATERSHED && buf->window_max == 0) {
 	  //rlen = rlen + (4*1024*1024);
 	  debug_f("************* rlen is now %lu", rlen);
+	  debug_f("************* max_size is %lu", buf->max_size);
 	}
 	/* rlen might be above the max allocation */
 	if (rlen > buf->max_size)
-		rlen = buf->max_size;
+		rlen = buf->max_size*2;
 	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {
 		SSHBUF_DBG(("realloc fail"));
