@@ -52,7 +52,6 @@ dup_strings(char ***dstp, size_t *ndstp, char **src, size_t nsrc)
 		return 0;
 
 	if ((dst = calloc(nsrc, sizeof(*src))) == NULL)
-		free(dst);
 		return -1;
 	for (i = 0; i < nsrc; i++) {
 		if ((dst[i] = strdup(src[i])) == NULL) {
@@ -62,9 +61,17 @@ dup_strings(char ***dstp, size_t *ndstp, char **src, size_t nsrc)
 			return -1;
 		}
 	}
+
 	/* success */
 	*dstp = dst;
 	*ndstp = nsrc;
+
+	/* Free memory */
+    for (i = 0; i < nsrc; i++) {
+        free(dst[i]);
+    }
+    free(dst);
+
 	return 0;
 }
 
