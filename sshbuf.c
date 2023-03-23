@@ -303,7 +303,7 @@ sshbuf_set_max_size(struct sshbuf *buf, size_t requested_size)
 		buf->alloc = rlen;
 	}
 	SSHBUF_TELL("new-max");
-	buf->max_size = max_size/2;
+	buf->max_size = max_size;
 	debug_f("Max size set to %zu", max_size);
 	return 0;
 }
@@ -408,7 +408,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	if (rlen > BUF_WATERSHED) {
 		debug_f ("%p, prior rlen %zu and need %zu buf_alloc is %zu", buf, rlen, need, buf->alloc);
 		/* set need to the the max window size less the current allocation */
-		need = (1024*1024);
+		need = (16*1024*1024);
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
 		debug_f ("%p, rlen is %zu need is %zu window max is %zu max_size is %zu",
 		 	 buf, rlen, need, buf->window_max, buf->max_size);
