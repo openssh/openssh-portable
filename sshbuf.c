@@ -356,6 +356,7 @@ sshbuf_check_reserve(const struct sshbuf *buf, size_t len)
 void
 sshbuf_set_window_max(struct sshbuf *buf, size_t len)
 {
+	debug_f("setting window max to len: %lu", len);
 	buf->window_max = len; 
 }
 
@@ -400,10 +401,10 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * what we need (the size of window_max) so if the current allocation (in
 	 * buf->alloc) is greater than window_max we skip it.
 	 */
-	if (rlen > BUF_WATERSHED && buf->window_max !=0){ //  && buf->alloc < buf->window_max) {
+	if (rlen > BUF_WATERSHED && buf->alloc < buf->window_max) {
 		debug_f ("%p, prior rlen %zu and need %zu buf_alloc is %zu", buf, rlen, need, buf->alloc);
 		/* set need to the the max window size less the current allocation */
-		need = buf->max_size;
+		need = buf->window_max;
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
 		debug_f ("%p, rlen is %zu need is %zu window max is %zu max_size is %zu",
 		 	 buf, rlen, need, buf->window_max, buf->max_size);
