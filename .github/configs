@@ -139,6 +139,10 @@ case "$config" in
 	CONFIGFLAGS="--with-pam"
 	SSHD_CONFOPTS="UsePam yes"
 	;;
+    boringssl)
+	CONFIGFLAGS="--disable-pkcs11"
+	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/boringssl --with-rpath=-Wl,-rpath,"
+	;;
     libressl-*)
 	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/libressl --with-rpath=-Wl,-rpath,"
 	;;
