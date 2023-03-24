@@ -55,6 +55,15 @@ void ssh_libcrypto_init(void);
 # endif
 #endif
 
+#ifdef OPENSSL_IS_BORINGSSL
+/*
+ * BoringSSL (rightly) got rid of the BN_FLG_CONSTTIME flag, along with
+ * the entire BN_set_flags() interface.
+ * https://boringssl.googlesource.com/boringssl/+/0a211dfe9
+ */
+# define BN_set_flags(a, b)
+#endif
+
 #ifndef HAVE_EVP_CIPHER_CTX_GET_IV
 # ifdef HAVE_EVP_CIPHER_CTX_GET_UPDATED_IV
 #  define EVP_CIPHER_CTX_get_iv EVP_CIPHER_CTX_get_updated_iv

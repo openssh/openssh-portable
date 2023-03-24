@@ -3342,16 +3342,22 @@ translate_libcrypto_error(unsigned long pem_err)
 	case ERR_LIB_PEM:
 		switch (pem_reason) {
 		case PEM_R_BAD_PASSWORD_READ:
+#ifdef PEM_R_PROBLEMS_GETTING_PASSWORD
 		case PEM_R_PROBLEMS_GETTING_PASSWORD:
+#endif
+#ifdef PEM_R_BAD_DECRYPT
 		case PEM_R_BAD_DECRYPT:
+#endif
 			return SSH_ERR_KEY_WRONG_PASSPHRASE;
 		default:
 			return SSH_ERR_INVALID_FORMAT;
 		}
 	case ERR_LIB_EVP:
 		switch (pem_reason) {
+#ifdef EVP_R_BAD_DECRYPT
 		case EVP_R_BAD_DECRYPT:
 			return SSH_ERR_KEY_WRONG_PASSPHRASE;
+#endif
 #ifdef EVP_R_BN_DECODE_ERROR
 		case EVP_R_BN_DECODE_ERROR:
 #endif
