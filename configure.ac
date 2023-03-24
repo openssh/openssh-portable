@@ -2803,7 +2803,16 @@ if test "x$openssl" = "xyes" ; then
 	#define DATA "conftest.ssllibver"
 		]], [[
 		FILE *f;
-
+		/* We need these legacy bits to warn for old libcrypto */
+		#ifndef OPENSSL_VERSION
+		# define OPENSSL_VERSION SSLEAY_VERSION
+		#endif
+		#ifndef HAVE_OPENSSL_VERSION
+		# define OpenSSL_version       SSLeay_version
+		#endif
+		#ifndef HAVE_OPENSSL_VERSION_NUM
+		# define OpenSSL_version_num   SSLeay
+		#endif
 		if ((f = fopen(DATA, "w")) == NULL)
 			exit(1);
 		if (fprintf(f, "%08lx (%s)",
