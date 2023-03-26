@@ -296,13 +296,22 @@ case "`./config.guess`" in
 	;;
 esac
 
-# If we have a local openssl/libressl, use that.
+# Unless specifically configured, search for a suitable version of OpenSSL,
+# otherwise build without it.
 if [ -z "${LIBCRYPTOFLAGS}" ]; then
+	LIBCRYPTOFLAGS="--without-openssl"
 	# last-match
-	for i in /usr/local /usr/local/ssl /usr/local/opt/openssl; do
+	for i in /usr /usr/local /usr/local/ssl /usr/local/opt/openssl; do
+		ver="none"
 		if [ -x ${i}/bin/openssl ]; then
-			LIBCRYPTOFLAGS="--with-ssl-dir=${i}"
+			ver="$(${i}/bin/openssl version)"
 		fi
+		case "$ver" in
+			none) ;;
+			"OpenSSL 0."*|"OpenSSL 1.0."*|"OpenSSL 1.1.0"*) ;;
+			"LibreSSL 2."*|"LibreSSL 3.0."*) ;;
+			*) LIBCRYPTOFLAGS="--with-ssl-dir=${i}" ;;
+		esac
 	done
 fi
 
