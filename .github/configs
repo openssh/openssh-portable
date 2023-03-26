@@ -313,6 +313,9 @@ if [ -z "${LIBCRYPTOFLAGS}" ]; then
 			*) LIBCRYPTOFLAGS="--with-ssl-dir=${i}" ;;
 		esac
 	done
+	if [ "${LIBCRYPTOFLAGS}" = "--without-openssl" ]; then
+		TEST_TARGET="t-exec"
+	fi
 fi
 
 CONFIGFLAGS="${CONFIGFLAGS} ${LIBCRYPTOFLAGS}"
