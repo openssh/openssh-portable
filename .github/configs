@@ -81,7 +81,8 @@ case "$config" in
 	    CFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer"
 	    LDFLAGS="-fsanitize=memory"
 	    CPPFLAGS='-Dchroot=chdir -Dexplicit_bzero=bzero -DMSAN_OPTIONS=\"log_path='$SANLOGS'/msan.log\"'
-	    CONFIGFLAGS="--without-openssl --without-zlib --without-shadow"
+	    CONFIGFLAGS="--without-zlib --without-shadow"
+	    LIBCRYPTOFLAGS="--without-openssl"
 	    TEST_TARGET="t-exec"
 	    ;;
 	*-sanitize-undefined)
@@ -244,7 +245,8 @@ case "${TARGET_HOST}" in
 	SKIP_LTESTS="forwarding multiplex proxy-connect hostkey-agent agent-ptrace"
 	;;
     minix3)
-	LIBCRYPTOFLAGS="--without-openssl --disable-security-key"
+	CONFIGFLAGS="${CONFIGFLAGS} --disable-security-key"
+	LIBCRYPTOFLAGS="--without-openssl"
 	# Minix does not have a loopback interface so we have to skip any
 	# test that relies on one.
 	# Also, Minix seems to be very limited in the number of select()
@@ -268,7 +270,8 @@ case "${TARGET_HOST}" in
 	CONFIGFLAGS="${CONFIGFLAGS} --without-hardening --disable-security-key"
 	;;
     openwrt-*)
-	CONFIGFLAGS="${CONFIGFLAGS} --without-openssl --without-zlib"
+	CONFIGFLAGS="${CONFIGFLAGS} --without-zlib"
+	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET="t-exec"
 	;;
     sol10|sol11)
