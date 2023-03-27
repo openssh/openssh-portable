@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.585 2023/02/10 04:40:28 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.586 2023/03/27 03:56:11 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1419,6 +1419,14 @@ main(int ac, char **av)
 		free(p);
 		free(options.identity_agent);
 		options.identity_agent = cp;
+	}
+
+	if (options.revoked_host_keys != NULL) {
+		p = tilde_expand_filename(options.revoked_host_keys, getuid());
+		cp = default_client_percent_dollar_expand(p, cinfo);
+		free(p);
+		free(options.revoked_host_keys);
+		options.revoked_host_keys = cp;
 	}
 
 	if (options.forward_agent_sock_path != NULL) {
