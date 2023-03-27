@@ -214,7 +214,7 @@ esac
 # The Solaris 64bit targets are special since they need a non-flag arg.
 case "$config" in
     sol64*)
-	CONFIGFLAGS="x86_64 --with-cflags=-m64 --with-ldflags=-m64 ${CONFIGFLAGS}"
+	CONFIGFLAGS="--target=x86_64 --with-cflags=-m64 --with-ldflags=-m64 ${CONFIGFLAGS}"
 	LIBCRYPTOFLAGS="--with-ssl-dir=/usr/local/ssl64 --with-rpath=-Wl,-rpath,"
 	;;
 esac
