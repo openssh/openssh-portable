@@ -222,6 +222,7 @@ esac
 case "${TARGET_HOST}" in
     aix*)
 	CONFIGFLAGS="--disable-security-key"
+	LIBCRYPTOFLAGS="--without-openssl"
 	# These are slow real or virtual machines so skip the slowest tests
 	# (which tend to be thw ones that transfer lots of data) so that the
 	# test run does not time out.
