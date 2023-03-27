@@ -36,10 +36,31 @@
 #endif
 
 #ifdef WITH_OPENSSL
-/* We don't use sha2 from OpenSSL and they can conflict with system sha2.h */
-#define OPENSSL_NO_SHA
+/*
+ * We use native (or compat) SHA2, but some bits of OpenSSL conflict with
+ * some native sha2 implementations.  SHA2 is no longer optional in OpenSSL,
+ * so prevent conflicts as best we can.
+ */
 #define USE_LIBC_SHA2	/* NetBSD 9 */
+#define SHA256_CTX	openssl_SHA256_CTX
+#define SHA512_CTX	openssl_SHA512_CTX
+#ifdef SHA1
+# undef SHA1
+#endif
+#ifdef SHA224
+# undef SHA224
+#endif
+#ifdef SHA256
+# undef SHA256
+#endif
+#ifdef SHA384
+# undef SHA384
+#endif
+#ifdef SHA512
+# undef SHA512
+#endif
 #include <openssl/opensslv.h>
+#include <openssl/sha.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
 #include <openssl/bn.h>
