@@ -64,7 +64,21 @@ struct sshbuf {
 	int readonly;		/* Refers to external, const data */
 	u_int refcount;		/* Tracks self and number of child buffers */
 	struct sshbuf *parent;	/* If child, pointer to parent */
+	char label[MAX_LABEL_LEN];   /* String for buffer label - debugging use */
+	struct timeval buf_ts; /* creation time of buffer */
 };
+
+void
+sshbuf_relabel(struct sshbuf *buf, const char *label)
+{
+	if (label != NULL)
+		strncpy(buf->label, label, MAX_LABEL_LEN-1);
+}
+
+float time_diff(struct timeval *start, struct timeval *end)
+{
+	return (end->tv_sec - start->tv_sec) + 1e-6*(end->tv_usec - start->tv_usec);
+}
 
 static inline int
 sshbuf_check_sanity(const struct sshbuf *buf)
@@ -105,7 +119,7 @@ sshbuf_maybe_pack(struct sshbuf *buf, int force)
 }
 
 struct sshbuf *
-sshbuf_new(void)
+sshbuf_new_label (const char *label)
 {
 	struct sshbuf *ret;
 
@@ -113,10 +127,11 @@ sshbuf_new(void)
 		return NULL;
 	ret->alloc = SSHBUF_SIZE_INIT;
 	ret->max_size = SSHBUF_ALLOC_MAX;
-	debug_f("Max size set to %zu", ret->max_size);
 	ret->readonly = 0;
 	ret->refcount = 1;
 	ret->parent = NULL;
+	if (label != NULL)
+		strncpy(ret->label, label, MAX_LABEL_LEN-1);
 	if ((ret->cd = ret->d = calloc(1, ret->alloc)) == NULL) {
 		free(ret);
 		return NULL;
@@ -133,7 +148,6 @@ sshbuf_from(const void *blob, size_t len)
 	    (ret = calloc(sizeof(*ret), 1)) == NULL)
 		return NULL;
 	ret->alloc = ret->size = ret->max_size = len;
-	debug_f("Max size set to %zu", ret->max_size);
 	ret->readonly = 1;
 	ret->refcount = 1;
 	ret->parent = NULL;
@@ -236,7 +250,6 @@ sshbuf_reset(struct sshbuf *buf)
 size_t
 sshbuf_max_size(const struct sshbuf *buf)
 {
-	debug_f("Max size set to %zu", buf->max_size/2);
 	return buf->max_size / 2;
 }
 
@@ -304,7 +317,6 @@ sshbuf_set_max_size(struct sshbuf *buf, size_t requested_size)
 	}
 	SSHBUF_TELL("new-max");
 	buf->max_size = max_size;
-	debug_f("Max size set to %zu", max_size);
 	return 0;
 }
 
@@ -360,8 +372,7 @@ sshbuf_check_reserve(const struct sshbuf *buf, size_t len)
 void
 sshbuf_set_window_max(struct sshbuf *buf, size_t len)
 {
-	debug_f("setting window max to len: %lu", len);
-	buf->window_max = len; 
+	buf->window_max = len;
 }
 
 int
@@ -370,6 +381,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	size_t rlen, need;
 	u_char *dp;
 	int r;
+	struct timeval current_time;
 
 	SSHBUF_DBG(("allocate buf = %p len = %zu", buf, len));
 	if ((r = sshbuf_check_reserve(buf, len)) != 0)
@@ -406,30 +418,35 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * buf->alloc) is greater than window_max we skip it.
 	 */
 	if (rlen > BUF_WATERSHED) {
-		debug_f ("%p, prior rlen %zu and need %zu buf_alloc is %zu", buf, rlen, need, buf->alloc);
+		debug_f ("label:%s ptr: %p, prior rlen %zu and need %zu buf_alloc is %zu",
+			 buf->label, buf, rlen, need, buf->alloc);
 		/* set need to the the max window size less the current allocation */
-		need = (16*1024*1024);
+		need = (4*1024*1024);
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
-		debug_f ("%p, rlen is %zu need is %zu window max is %zu max_size is %zu",
-		 	 buf, rlen, need, buf->window_max, buf->max_size);
+		debug_f ("label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
+		 	 buf->label, buf, rlen, need, buf->window_max, buf->max_size);
 	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 
-	/* there is a buffer that needs to grow quickly but doesn't seem to count as 
+	/* there is a buffer that needs to grow quickly but doesn't seem to count as
 	 * input or output so we check to make sure that window_max isn't set
-	 * before we do. In this case we set it immediately to the maximum 
-	 * allocated buffer size which should be about 32MB 
+	 * before we do. In this case we set it immediately to the maximum
+	 * allocated buffer size which should be about 32MB
 	 * this likely isn't the right way to do this but it works for now
 	 * TODO: Come up with a better solution -cjr 12/1/2022 */
 	if (rlen > BUF_WATERSHED && buf->window_max == 0) {
 	  //rlen = rlen + (4*1024*1024);
 	  debug_f("************* rlen is now %lu", rlen);
 	  debug_f("************* max_size is %lu", buf->max_size);
+	  gettimeofday(&current_time, NULL);
+	  debug_f("label: %s, size: %lu, allocated: %lu, Max alloc: %lu, Age: %0.8f", buf->label,
+		  buf->size, buf->alloc, buf->max_size,
+		  time_diff(&(buf->buf_ts), &current_time));
 	}
 	/* rlen might be above the max allocation */
 	if (rlen > buf->max_size) {
 		rlen = buf->max_size;
-		debug_f("set rlen to %llu", buf->max_size);
+		debug_f("set rlen to %zu", buf->max_size);
 	}
 	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {

@@ -33,6 +33,8 @@
 #define SSHBUF_REFS_MAX		0x100000	/* Max child buffers */
 #define SSHBUF_MAX_BIGNUM	(16384 / 8)	/* Max bignum *bytes* */
 #define SSHBUF_MAX_ECPOINT	((528 * 2 / 8) + 1) /* Max EC point *bytes* */
+#define MAX_LABEL_LEN           64 /*maximum size of sshbuf label */
+#define sshbuf_new() sshbuf_new_label(__func__)
 
 struct sshbuf;
 
@@ -40,7 +42,18 @@ struct sshbuf;
  * Create a new sshbuf buffer.
  * Returns pointer to buffer on success, or NULL on allocation failure.
  */
-struct sshbuf *sshbuf_new(void);
+/* struct sshbuf *sshbuf_new(void); */
+
+/*
+ * Create a new labeled sshbuf buffer.
+ * Returns pointer to buffer on success, or NULL on allocation failure.
+ */
+struct sshbuf *sshbuf_new_label(const char *);
+
+/*
+ * relabel the sshbuf struct
+ */
+void sshbuf_relabel(struct sshbuf *, const char *);
 
 /*
  * Create a new, read-only sshbuf buffer from existing data.

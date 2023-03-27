@@ -240,6 +240,13 @@ ssh_alloc_session_state(void)
 	    (state->outgoing_packet = sshbuf_new()) == NULL ||
 	    (state->incoming_packet = sshbuf_new()) == NULL)
 		goto fail;
+	/* these buffers are important in terms of tracking buffer usage
+	 * so we explicitly label them with descriptive names */
+	sshbuf_relabel(state->input, "input");
+	sshbuf_relabel(state->incoming_packet, "inpacket");
+	sshbuf_relabel(state->output, "output");
+	sshbuf_relabel(state->outgoing_packet, "outpacket");
+
 	TAILQ_INIT(&state->outgoing);
 	TAILQ_INIT(&ssh->private_keys);
 	TAILQ_INIT(&ssh->public_keys);
