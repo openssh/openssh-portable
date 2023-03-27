@@ -67,15 +67,6 @@
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/pem.h>
-
-/* Compatibility with OpenSSH 1.0.x */
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-#define ECDSA_SIG_get0(sig, pr, ps) \
-	do { \
-		(*pr) = sig->r; \
-		(*ps) = sig->s; \
-	} while (0)
-#endif
 #endif /* WITH_OPENSSL */
 
 /* #define SK_DEBUG 1 */
