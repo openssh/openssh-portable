@@ -37,7 +37,6 @@
 
 #ifdef WITH_OPENSSL
 /* We don't use sha2 from OpenSSL and they can conflict with system sha2.h */
-#define HEADER_SHA_H
 #define USE_LIBC_SHA2	/* NetBSD 9 */
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
