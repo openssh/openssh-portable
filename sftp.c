@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.230 2023/03/28 07:44:32 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.231 2023/03/29 00:59:08 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -769,6 +769,8 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 			goto out;
 		}
 
+		free(abs_dst);
+		abs_dst = NULL;
 		if (g.gl_matchc == 1 && tmp_dst) {
 			/* If directory specified, append filename */
 			if (dst_is_dir)
