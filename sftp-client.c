@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.169 2023/03/08 04:43:12 guenther Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.170 2023/03/28 07:44:32 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2895,6 +2895,10 @@ path_append(const char *p1, const char *p2)
 	return(ret);
 }
 
+/*
+ * Arg p must be dynamically allocated.  It will either be returned or
+ * freed and a replacement allocated.  Caller must free returned string.
+ */
 char *
 make_absolute(char *p, const char *pwd)
 {
