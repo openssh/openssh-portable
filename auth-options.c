@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.98 2022/02/08 08:59:12 dtucker Exp $ */
+/* $OpenBSD: auth-options.c,v 1.99 2023/03/29 00:18:35 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -703,7 +703,7 @@ serialise_array(struct sshbuf *m, char **a, size_t n)
 {
 	struct sshbuf *b;
 	size_t i;
-	int r;
+	int r = SSH_ERR_INTERNAL_ERROR;
 
 	if (n > INT_MAX)
 		return SSH_ERR_INTERNAL_ERROR;
@@ -712,18 +712,17 @@ serialise_array(struct sshbuf *m, char **a, size_t n)
 		return SSH_ERR_ALLOC_FAIL;
 	}
 	for (i = 0; i < n; i++) {
-		if ((r = sshbuf_put_cstring(b, a[i])) != 0) {
-			sshbuf_free(b);
-			return r;
-		}
+		if ((r = sshbuf_put_cstring(b, a[i])) != 0)
+			goto out;
 	}
 	if ((r = sshbuf_put_u32(m, n)) != 0 ||
-	    (r = sshbuf_put_stringb(m, b)) != 0) {
-		sshbuf_free(b);
-		return r;
-	}
+	    (r = sshbuf_put_stringb(m, b)) != 0)
+		goto out;
 	/* success */
-	return 0;
+	r = 0;
+ out:
+	sshbuf_free(b);
+	return r;
 }
 
 static int
