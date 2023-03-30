@@ -1,11 +1,11 @@
 {%- for kex in config['kexs'] %}
-#define	KEX_{{ kex['name']|upper }}_{{ kex['hash']|upper }}	"{{ kex['name']|replace('_','-') }}-{{ kex['hash'] }}"
+#define	KEX_{{ kex['name']|upper }}_{{ kex['hash']|upper }}	"{{ kex['pretty_name'] }}"
 {%- endfor %}
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 {%- for kex in config['kexs'] -%}
     {%- for curve in kex['mix_with'] %}
-#define	KEX_{{ kex['name']|upper }}_ECDH_{{ curve['name']|upper }}_{{ kex['hash']|upper }}	"ecdh-{{ curve['name'] }}-{{ kex['name']|replace('_','-') }}-{{ kex['hash'] }}"
+#define	KEX_{{ kex['name']|upper }}_ECDH_{{ curve['name']|upper }}_{{ kex['hash']|upper }}	"{{ curve['pretty_name'] }}"
     {%- endfor %}
 {%- endfor %}
 #endif /* OPENSSL_HAS_ECC */
