@@ -271,7 +271,6 @@ sshbuf_find(const struct sshbuf *b, size_t start_offset,
 	return 0;
 }
 
-#include "log.h"
 int
 sshbuf_read(int fd, struct sshbuf *buf, size_t maxlen, size_t *rlen)
 {
@@ -280,26 +279,25 @@ sshbuf_read(int fd, struct sshbuf *buf, size_t maxlen, size_t *rlen)
 	ssize_t rr;
 	u_char *d;
 
-	debug_f("in");
 	if (rlen != NULL)
 		*rlen = 0;
 	if ((r = sshbuf_reserve(buf, maxlen, &d)) != 0)
 		return r;
-	debug_f("trying to reserve %zu, r is %d", maxlen, r);
+	//debug_f("trying to reserve %zu, r is %d", maxlen, r);
 
 	rr = read(fd, d, maxlen);
 	oerrno = errno;
 	
 	/* Adjust the buffer to include only what was actually read */
 	if ((adjust = maxlen - (rr > 0 ? rr : 0)) != 0) {
-		debug_f("adjust: %zu, rr: %zu, maxlen: %zu", adjust, rr, maxlen);
+	  //debug_f("adjust: %zu, rr: %zu, maxlen: %zu", adjust, rr, maxlen);
 		if ((r = sshbuf_consume_end(buf, adjust)) != 0) {
 			/* avoid returning uninitialised data to caller */
 			memset(d + rr, '\0', adjust);
 			return SSH_ERR_INTERNAL_ERROR; /* shouldn't happen */
 		}
 	} else {
-		debug_f("FOOL!!! adjust: %zu, rr: %zu, maxlen: %zu", adjust, rr, maxlen);
+	  //debug_f("FOOL!!! adjust: %zu, rr: %zu, maxlen: %zu", adjust, rr, maxlen);
 	}
 	if (rr < 0) {
 		errno = oerrno;
@@ -311,8 +309,8 @@ sshbuf_read(int fd, struct sshbuf *buf, size_t maxlen, size_t *rlen)
 	/* success */
 	if (rlen != NULL) {
 		*rlen = (size_t)rr;
-		debug_f("rlen at end is %zu", *rlen);
-	} else
-		debug_f("RLEN IS NULL!");
+		//debug_f("rlen at end is %zu", *rlen);
+	} //else
+	  //debug_f("RLEN IS NULL!");
 	return 0;
 }

@@ -498,7 +498,7 @@ sshbuf_consume(struct sshbuf *buf, size_t len)
 	/* deal with empty buffer */
 	if (buf->off == buf->size) {
 		buf->off = buf->size = 0;
-		debug_f("empty buffer");
+		//debug_f("empty buffer");
 	}
 	SSHBUF_TELL("done");
 	return 0;
