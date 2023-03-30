@@ -88,8 +88,7 @@ sshbuf_check_sanity(const struct sshbuf *buf)
 	    (!buf->readonly && buf->d != buf->cd) ||
 	    buf->refcount < 1 || buf->refcount > SSHBUF_REFS_MAX ||
 	    buf->cd == NULL ||
-	    buf->max_size > SSHBUF_ALLOC_MAX ||
-	    (!buf->readonly && (buf->max_size & 1) != 0) ||
+	    buf->max_size > SSHBUF_SIZE_MAX ||
 	    buf->alloc > buf->max_size ||
 	    buf->size > buf->alloc ||
 	    buf->off > buf->size)) {
@@ -126,7 +125,7 @@ sshbuf_new_label (const char *label)
 	if ((ret = calloc(sizeof(*ret), 1)) == NULL)
 		return NULL;
 	ret->alloc = SSHBUF_SIZE_INIT;
-	ret->max_size = SSHBUF_ALLOC_MAX;
+	ret->max_size = SSHBUF_SIZE_MAX;
 	ret->readonly = 0;
 	ret->refcount = 1;
 	ret->parent = NULL;
@@ -290,7 +289,7 @@ sshbuf_set_max_size(struct sshbuf *buf, size_t requested_size)
 		return 0;
 	if (buf->readonly || buf->refcount > 1)
 		return SSH_ERR_BUFFER_READ_ONLY;
-	if (requested_size > SSHBUF_SIZE_MAX || max_size > SSHBUF_ALLOC_MAX)
+	if (max_size > SSHBUF_SIZE_MAX)
 		return SSH_ERR_NO_BUFFER_SPACE;
 	/*
 	 * Always pack as it makes everything that follows easier.
@@ -497,8 +496,10 @@ sshbuf_consume(struct sshbuf *buf, size_t len)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 	buf->off += len;
 	/* deal with empty buffer */
-	if (buf->off == buf->size)
+	if (buf->off == buf->size) {
 		buf->off = buf->size = 0;
+		debug_f("empty buffer");
+	}
 	SSHBUF_TELL("done");
 	return 0;
 }

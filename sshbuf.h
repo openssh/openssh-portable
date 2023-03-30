@@ -29,7 +29,6 @@
 #endif /* WITH_OPENSSL */
 
 #define SSHBUF_SIZE_MAX		0xFFFFFFF	/* Hard maximum size 256MB */
-#define SSHBUF_ALLOC_MAX        (SSHBUF_SIZE_MAX*2)     /* Max alloc size */
 #define SSHBUF_REFS_MAX		0x100000	/* Max child buffers */
 #define SSHBUF_MAX_BIGNUM	(16384 / 8)	/* Max bignum *bytes* */
 #define SSHBUF_MAX_ECPOINT	((528 * 2 / 8) + 1) /* Max EC point *bytes* */

@@ -103,7 +103,7 @@
 #define DBG(x)
 #endif
 
-#define PACKET_MAX_SIZE (256 * 1024)
+#define PACKET_MAX_SIZE (64 * 1024)
 
 struct packet_state {
 	u_int32_t seqnr;
@@ -231,7 +231,8 @@ ssh_alloc_session_state(void)
 {
 	struct ssh *ssh = NULL;
 	struct session_state *state = NULL;
-
+	struct sshbuf *buf = NULL;
+	
 	if ((ssh = calloc(1, sizeof(*ssh))) == NULL ||
 	    (state = calloc(1, sizeof(*state))) == NULL ||
 	    (ssh->kex = kex_new()) == NULL ||
@@ -1838,10 +1839,13 @@ ssh_packet_process_read(struct ssh *ssh, int fd)
 	int r;
 	size_t rlen;
 
+	debug_f ("label:");
 	if ((r = sshbuf_read(fd, state->input, PACKET_MAX_SIZE, &rlen)) != 0)
 		return r;
-
+	debug_f ("r is %d:", r);
+	
 	if (state->packet_discard) {
+		debug_f("discard");
 		if ((r = sshbuf_consume_end(state->input, rlen)) != 0)
 			return r;
 		state->keep_alive_timeouts = 0; /* ?? */
