@@ -416,7 +416,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * what we need (the size of window_max) so if the current allocation (in
 	 * buf->alloc) is greater than window_max we skip it.
 	 */
-	if (rlen > BUF_WATERSHED) {
+	if (rlen > BUF_WATERSHED && strstr(buf->label, "input")) {
 		debug_f ("label:%s ptr: %p, prior rlen %zu and need %zu buf_alloc is %zu",
 			 buf->label, buf, rlen, need, buf->alloc);
 		/* set need to the the max window size less the current allocation */
