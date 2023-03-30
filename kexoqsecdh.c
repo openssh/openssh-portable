@@ -83,15 +83,14 @@ kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if (ECDH_compute_key(kbuf, klen, dh_pub, key, NULL) != (int)klen ||
-	    BN_bin2bn(kbuf, klen, shared_secret) == NULL) {
+	if (ECDH_compute_key(kbuf, klen, dh_pub, key, NULL) != (int)klen) {
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
 #ifdef DEBUG_KEXECDH
 	dump_digest("shared secret", kbuf, klen);
 #endif
-	if ((r = sshbuf_put_bignum2(buf, shared_secret)) != 0)
+	if ((r = sshbuf_put(buf, kbuf, klen)) != 0)
 		goto out;
 	*shared_secretp = buf;
 	buf = NULL;
