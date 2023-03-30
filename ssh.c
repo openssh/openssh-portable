@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.586 2023/03/27 03:56:11 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.587 2023/03/30 07:19:50 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1760,7 +1760,7 @@ control_persist_detach(void)
 		close(muxserver_sock);
 		muxserver_sock = -1;
 		options.control_master = SSHCTL_MASTER_NO;
-		muxclient(options.control_path);
+		(void)muxclient(options.control_path);
 		/* muxclient() doesn't return on success. */
 		fatal("Failed to connect to new control master");
 	}
