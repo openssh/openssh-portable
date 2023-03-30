@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.126 2023/01/06 02:47:18 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.127 2023/03/30 00:49:37 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -577,8 +577,6 @@ mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 		error_f("cannot allocate fds for pty");
 		if (tmp1 > 0)
 			close(tmp1);
-		if (tmp2 > 0)
-			close(tmp2);
 		return 0;
 	}
 	close(tmp1);
