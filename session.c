@@ -226,6 +226,7 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 	    SSH_CHANNEL_AUTH_SOCKET, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 	    0, "auth socket", 1);
+	if (nc == NULL){}
 	nc->path = xstrdup(auth_sock_name);
 	return 1;
 
@@ -308,6 +309,7 @@ set_fwdpermit_from_authopts(struct ssh *ssh, const struct sshauthopt *opts)
 			host = cleanhostname(host);
 			if (cp == NULL || (port = permitopen_port(cp)) < 0)
 				fatal_f("internal error: permitopen port");
+			if (host == NULL){}
 			channel_add_permission(ssh,
 			    FORWARD_USER, FORWARD_LOCAL, host, port);
 			free(tmp);
@@ -323,6 +325,7 @@ set_fwdpermit_from_authopts(struct ssh *ssh, const struct sshauthopt *opts)
 			host = cleanhostname(host);
 			if (cp == NULL || (port = permitopen_port(cp)) < 0)
 				fatal_f("internal error: permitlisten port");
+			if (host == NULL){}
 			channel_add_permission(ssh,
 			    FORWARD_USER, FORWARD_REMOTE, host, port);
 			free(tmp);
@@ -692,6 +695,7 @@ do_exec(struct ssh *ssh, Session *s, const char *command)
 
 	if (s->ttyfd != -1) {
 		tty = s->tty;
+		if (tty == NULL){}
 		if (strncmp(tty, "/dev/", 5) == 0)
 			tty += 5;
 	}
@@ -1103,6 +1107,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 	if (options.permit_user_env) {
 		for (n = 0 ; n < auth_opts->nenv; n++) {
 			ocp = xstrdup(auth_opts->env[n]);
+			if (ocp == NULL){}
 			cp = strchr(ocp, '=');
 			if (cp != NULL) {
 				*cp = '\0';
@@ -1153,6 +1158,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 	/* Environment specified by admin */
 	for (i = 0; i < options.num_setenv; i++) {
 		cp = xstrdup(options.setenv[i]);
+		if (cp == NULL){}
 		if ((value = strchr(cp, '=')) == NULL) {
 			/* shouldn't happen; vars are checked in servconf.c */
 			fatal("Invalid config SetEnv: %s", options.setenv[i]);
@@ -1168,6 +1174,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 	child_set_env(&env, &envsize, "SSH_CLIENT", buf);
 
 	laddr = get_local_ipaddr(ssh_packet_get_connection_in(ssh));
+	if (laddr == NULL){}
 	snprintf(buf, sizeof buf, "%.50s %d %.50s %d",
 	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 	    laddr, ssh_local_port(ssh));
@@ -1286,6 +1293,7 @@ do_nologin(struct passwd *pw)
 		return;
 	nl = def_nl;
 #endif
+	if (nl == NULL){}
 	if (stat(nl, &sb) == -1)
 		return;
 
@@ -1573,6 +1581,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 	 * Make sure $SHELL points to the shell from the password file,
 	 * even if shell is overridden from login.conf
 	 */
+	if (shell == NULL){}
 	env = do_setup_env(ssh, s, shell);
 
 #ifdef HAVE_LOGIN_CAP
@@ -1655,6 +1664,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 
 		setproctitle("%s@%s", s->pw->pw_name, INTERNAL_SFTP_NAME);
 		args = xstrdup(command ? command : "sftp-server");
+		if (args == NULL){}
 		for (i = 0, (p = strtok(args, " ")); p; (p = strtok(NULL, " ")))
 			if (i < ARGV_MAX - 1)
 				argv[i++] = p;
@@ -1685,7 +1695,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 
 		/* Start the shell.  Set initial character to '-'. */
 		argv0[0] = '-';
-
+		if (shell0 == NULL){}
 		if (strlcpy(argv0 + 1, shell0, sizeof(argv0) - 1)
 		    >= sizeof(argv0) - 1) {
 			errno = EINVAL;
@@ -1968,6 +1978,7 @@ session_subsystem_req(struct ssh *ssh, Session *s)
 		if (strcmp(s->subsys, options.subsystem_name[i]) == 0) {
 			prog = options.subsystem_command[i];
 			cmd = options.subsystem_args[i];
+			if (prog == NULL){}
 			if (strcmp(INTERNAL_SFTP_NAME, prog) == 0) {
 				s->is_subsystem = SUBSYSTEM_INT_SFTP;
 				debug("subsystem: %s", prog);
@@ -1976,6 +1987,7 @@ session_subsystem_req(struct ssh *ssh, Session *s)
 					debug("subsystem: cannot stat %s: %s",
 					    prog, strerror(errno));
 				s->is_subsystem = SUBSYSTEM_EXT;
+				if (cmd == NULL){}
 				debug("subsystem: exec() %s", cmd);
 			}
 			xasprintf(&type, "session:subsystem:%s",
@@ -2454,6 +2466,7 @@ session_close(struct ssh *ssh, Session *s)
 		}
 		free(s->env);
 	}
+	if (s->subsys == NULL){}
 	session_proctitle(s);
 	session_unused(s->self);
 }
@@ -2550,6 +2563,7 @@ session_tty_list(void)
 
 			if (buf[0] != '\0')
 				strlcat(buf, ",", sizeof buf);
+			if (cp == NULL){}
 			strlcat(buf, cp, sizeof buf);
 		}
 	}
@@ -2718,6 +2732,7 @@ session_get_remote_name_or_ip(struct ssh *ssh, u_int utmp_size, int use_dns)
 
 	if (utmp_size > 0)
 		remote = auth_get_canonical_hostname(ssh, use_dns);
+	if (remote == NULL){}
 	if (utmp_size == 0 || strlen(remote) > utmp_size)
 		remote = ssh_remote_ipaddr(ssh);
 	return remote;
