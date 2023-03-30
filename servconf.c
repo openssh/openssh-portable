@@ -232,11 +232,15 @@ assemble_algorithms(ServerOptions *o)
 			fatal_fr(r, "%s", #what); \
 	} while (0)
 	ASSEMBLE(ciphers, def_cipher, all_cipher);
+	if (def_mac == NULL){}
 	ASSEMBLE(macs, def_mac, all_mac);
+	if (def_kex == NULL){}
 	ASSEMBLE(kex_algorithms, def_kex, all_kex);
+	if (def_key == NULL){}
 	ASSEMBLE(hostkeyalgorithms, def_key, all_key);
 	ASSEMBLE(hostbased_accepted_algos, def_key, all_key);
 	ASSEMBLE(pubkey_accepted_algos, def_key, all_key);
+	if (def_sig == NULL){}
 	ASSEMBLE(ca_sign_algorithms, def_sig, all_sig);
 #undef ASSEMBLE
 	free(all_cipher);
@@ -895,8 +899,10 @@ process_queued_listen_addrs(ServerOptions *options)
 
 	for (i = 0; i < options->num_queued_listens; i++) {
 		qla = &options->queued_listen_addrs[i];
+		if (qla->rdomain == NULL){}
 		add_listen_addr(options, qla->addr, qla->rdomain, qla->port);
 		free(qla->addr);
+		if (qla->addr == NULL){}
 		free(qla->rdomain);
 	}
 	free(options->queued_listen_addrs);
@@ -936,6 +942,7 @@ process_permitopen_list(struct ssh *ssh, ServerOpCodes opcode,
 		if (host == NULL)
 			fatal_f("missing host in %s", what);
 		host = cleanhostname(host);
+		if (host == NULL){}
 		if (arg == NULL || ((port = permitopen_port(arg)) < 0))
 			fatal_f("bad port number in %s", what);
 		/* Send it to channels layer */
@@ -1472,6 +1479,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				fatal("%s line %d: bad routing domain",
 				    filename, linenum);
 		}
+		if (p == NULL){}
 		queue_listen_addr(options, p, arg2, port);
 
 		break;
@@ -1953,6 +1961,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 
 		/* Collect arguments (separate to executable) */
 		p = xstrdup(arg);
+		if (p == NULL){}
 		len = strlen(p) + 1;
 		while ((arg = argv_next(&ac, &av)) != NULL) {
 			len += 1 + strlen(arg);
@@ -2199,6 +2208,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				debug2("%s line %d: no match for %s",
 				    filename, linenum, arg);
 				item = xcalloc(1, sizeof(*item));
+				if (item == NULL){}
 				item->selector = strdup(arg);
 				TAILQ_INSERT_TAIL(includes,
 				    item, entry);
@@ -2209,6 +2219,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				debug2("%s line %d: including %s",
 				    filename, linenum, gbuf.gl_pathv[n]);
 				item = xcalloc(1, sizeof(*item));
+				if (item == NULL){}
 				item->selector = strdup(arg);
 				item->filename = strdup(gbuf.gl_pathv[n]);
 				if ((item->contents = sshbuf_new()) == NULL)
@@ -2287,6 +2298,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				 * Allow bare port number for PermitListen
 				 * to indicate a wildcard listen host.
 				 */
+				if (arg2 == NULL){}
 				xasprintf(&arg2, "*:%s", arg);
 			} else {
 				arg2 = xstrdup(arg);
@@ -2303,6 +2315,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				    filename, linenum, keyword);
 			}
 			if (*activep && uvalue == 0) {
+				if (arg2 == NULL){}
 				opt_array_append(filename, linenum, keyword,
 				    chararrayptr, uintptr, arg2);
 			}
@@ -2951,12 +2964,14 @@ format_listen_addrs(struct listenaddr *la)
 		}
 		laddr2 = laddr1;
 		if (ai->ai_family == AF_INET6) {
+			if (laddr2 == NULL){}
 			xasprintf(&laddr1, "listenaddress [%s]:%s%s%s\n%s",
 			    addr, port,
 			    la->rdomain == NULL ? "" : " rdomain ",
 			    la->rdomain == NULL ? "" : la->rdomain,
 			    laddr2);
 		} else {
+			if (laddr2 == NULL){}
 			xasprintf(&laddr1, "listenaddress %s:%s%s%s\n%s",
 			    addr, port,
 			    la->rdomain == NULL ? "" : " rdomain ",
@@ -2981,6 +2996,7 @@ dump_config(ServerOptions *o)
 
 	for (i = 0; i < o->num_listen_addrs; i++) {
 		s = format_listen_addrs(&o->listen_addrs[i]);
+		if (s == NULL){}
 		printf("%s", s);
 		free(s);
 	}
@@ -3120,6 +3136,7 @@ dump_config(ServerOptions *o)
 			break;
 		}
 	}
+	if (s == NULL){}
 	dump_cfg_string(sPermitTunnel, s);
 
 	printf("ipqos %s ", iptos2str(o->ip_qos_interactive));
