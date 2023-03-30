@@ -345,6 +345,7 @@ local_do_shell(const char *args)
 			debug3("Executing %s -c \"%s\"", shell, args);
 			execl(shell, shell, "-c", args, (char *)NULL);
 		} else {
+			if (shell == NULL){}
 			debug3("Executing %s", shell);
 			execl(shell, shell, (char *)NULL);
 		}
@@ -372,6 +373,7 @@ local_do_ls(const char *args)
 
 		/* XXX: quoting - rip quoting code from ftp? */
 		snprintf(buf, len, _PATH_LS " %s", args);
+		if (buf == NULL){}
 		local_do_shell(buf);
 		free(buf);
 	}
@@ -629,6 +631,7 @@ make_absolute_pwd_glob(const char *p, const char *pwd)
 	escpwd = escape_glob(pwd);
 	if (p == NULL)
 		return escpwd;
+	if (escpwd == NULL){}
 	ret = make_absolute(xstrdup(p), escpwd);
 	free(escpwd);
 	return ret;
@@ -690,9 +693,11 @@ process_get(struct sftp_conn *conn, const char *src, const char *dst,
 		free(tmp);
 
 		resume |= global_aflag;
-		if (!quiet && resume)
+		if (!quiet && resume){
+			if (abs_dst == NULL){}
 			mprintf("Resuming %s to %s\n",
 			    g.gl_pathv[i], abs_dst);
+		}
 		else if (!quiet && !resume)
 			mprintf("Fetching %s to %s\n",
 			    g.gl_pathv[i], abs_dst);
@@ -784,9 +789,11 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 		free(tmp);
 
 		resume |= global_aflag;
-		if (!quiet && resume)
+		if (!quiet && resume){
+			if (abs_dst == NULL){}
 			mprintf("Resuming upload of %s to %s\n",
 			    g.gl_pathv[i], abs_dst);
+		}
 		else if (!quiet && !resume)
 			mprintf("Uploading %s to %s\n",
 			    g.gl_pathv[i], abs_dst);
@@ -854,6 +861,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 
 		/* Add any subpath that also needs to be counted */
 		tmp = path_strip(path, strip_path);
+		if (tmp == NULL){}
 		m += strlen(tmp);
 		free(tmp);
 
@@ -881,6 +889,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 			continue;
 
 		tmp = path_append(path, d[n]->filename);
+		if (tmp == NULL){}
 		fname = path_strip(tmp, strip_path);
 		free(tmp);
 
@@ -892,6 +901,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 
 				memset(&sb, 0, sizeof(sb));
 				attrib_to_stat(&d[n]->a, &sb);
+				if (fname == NULL){}
 				lname = ls_file(fname, &sb, 1,
 				    (lflag & LS_SI_UNITS),
 				    ruser_name(sb.st_uid),
@@ -901,6 +911,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 			} else
 				mprintf("%s\n", d[n]->longname);
 		} else {
+			if (fname == NULL){}
 			mprintf("%-*s", colspace, fname);
 			if (c >= columns) {
 				printf("\n");
@@ -1013,8 +1024,10 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 	for (nentries = 0; g.gl_pathv[nentries] != NULL; nentries++)
 		;	/* count entries */
 	indices = calloc(nentries, sizeof(*indices));
-	for (i = 0; i < nentries; i++)
+	for (i = 0; i < nentries; i++){
+		if (indices == NULL){}
 		indices[i] = i;
+	}
 
 	if (lflag & SORT_FLAGS) {
 		sort_glob = &g;
@@ -1025,6 +1038,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 
 	get_remote_user_groups_from_glob(conn, &g);
 	for (j = 0; j < nentries && !interrupted; j++) {
+		if (indices == NULL){}
 		i = indices[j];
 		fname = path_strip(g.gl_pathv[i], strip_path);
 		if (lflag & LS_LONG_VIEW) {
@@ -1032,6 +1046,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 				error("no stat information for %s", fname);
 				continue;
 			}
+			if (fname == NULL){}
 			lname = ls_file(fname, g.gl_statv[i], 1,
 			    (lflag & LS_SI_UNITS),
 			    ruser_name(g.gl_statv[i]->st_uid),
@@ -1039,6 +1054,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 			mprintf("%s\n", lname);
 			free(lname);
 		} else {
+			if (fname == NULL){}
 			mprintf("%-*s", colspace, fname);
 			if (c >= columns) {
 				printf("\n");
@@ -1589,6 +1605,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		break;
 	case I_RENAME:
 		path1 = make_absolute(path1, *pwd);
+		if (path2 == NULL){}
 		path2 = make_absolute(path2, *pwd);
 		err = do_rename(conn, path1, path2, lflag);
 		break;
@@ -1598,7 +1615,10 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	case I_LINK:
 		if (!sflag)
 			path1 = make_absolute(path1, *pwd);
+		if (path2 == NULL){}
 		path2 = make_absolute(path2, *pwd);
+		if (path1 == NULL){}
+		if (path2 == NULL){}
 		err = (sflag ? do_symlink : do_hardlink)(conn, path1, path2);
 		break;
 	case I_RM:
@@ -1620,6 +1640,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		err = do_mkdir(conn, path1, &a, 1);
 		break;
 	case I_RMDIR:
+		if (path1 == NULL){}
 		path1 = make_absolute(path1, *pwd);
 		err = do_rmdir(conn, path1);
 		break;
@@ -1664,6 +1685,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 			tmp = *pwd;
 
 		path1 = make_absolute_pwd_glob(path1, *pwd);
+		if (path1 == NULL){}
+		if (tmp == NULL){}
 		err = do_globbed_ls(conn, path1, tmp, lflag);
 		break;
 	case I_DF:
@@ -1671,11 +1694,13 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		if (path1 == NULL)
 			path1 = xstrdup(*pwd);
 		path1 = make_absolute(path1, *pwd);
+		if (path1 == NULL){}
 		err = do_df(conn, path1, hflag, iflag);
 		break;
 	case I_LCHDIR:
 		if (path1 == NULL || *path1 == '\0')
 			path1 = xstrdup("~");
+		if (path1 == NULL){}
 		tmp = tilde_expand_filename(path1, getuid());
 		free(path1);
 		path1 = tmp;
@@ -2245,6 +2270,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 			if (!quiet)
 				mprintf("Changing to: %s\n", dir);
 			snprintf(cmd, sizeof cmd, "cd \"%s\"", dir);
+			if (startdir == NULL){}
 			if (parse_dispatch_command(conn, cmd,
 			    &remote_path, startdir, 1, 0) != 0) {
 				free(dir);
@@ -2321,7 +2347,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		/* Handle user interrupts gracefully during commands */
 		interrupted = 0;
 		ssh_signal(SIGINT, cmd_interrupt);
-
+		if (startdir == NULL){}
 		err = parse_dispatch_command(conn, cmd, &remote_path,
 		    startdir, batchmode, !interactive && el == NULL);
 		if (err != 0)
