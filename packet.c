@@ -103,7 +103,7 @@
 #define DBG(x)
 #endif
 
-#define PACKET_MAX_SIZE (64 * 1024)
+#define PACKET_MAX_SIZE (256 * 1024)
 
 struct packet_state {
 	u_int32_t seqnr;
@@ -1303,7 +1303,7 @@ ssh_packet_send2(struct ssh *ssh)
 	if ((need_rekey || state->rekeying) && !ssh_packet_type_is_kex(type)) {
 		if (need_rekey)
 			debug3_f("rekex triggered");
-		debug("enqueue packet: %u", type);
+		debug_f("enqueue packet: %u", type);
 		p = calloc(1, sizeof(*p));
 		if (p == NULL)
 			return SSH_ERR_ALLOC_FAIL;
@@ -1347,7 +1347,7 @@ ssh_packet_send2(struct ssh *ssh)
 				debug3_f("queued packet triggered rekex");
 				return kex_start_rekex(ssh);
 			}
-			debug("dequeue packet: %u", type);
+			debug_f("dequeue packet: %u", type);
 			sshbuf_free(state->outgoing_packet);
 			state->outgoing_packet = p->payload;
 			TAILQ_REMOVE(&state->outgoing, p, next);
