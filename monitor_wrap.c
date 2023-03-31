@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.127 2023/03/30 00:49:37 dtucker Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.128 2023/03/31 00:44:29 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -575,7 +575,7 @@ mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 	if ((tmp1 = dup(pmonitor->m_recvfd)) == -1 ||
 	    (tmp2 = dup(pmonitor->m_recvfd)) == -1) {
 		error_f("cannot allocate fds for pty");
-		if (tmp1 > 0)
+		if (tmp1 >= 0)
 			close(tmp1);
 		return 0;
 	}
