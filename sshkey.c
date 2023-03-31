@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.134 2022/10/28 02:47:04 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.135 2023/03/31 03:22:49 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2743,7 +2743,6 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 {
 	u_char *cp, *key = NULL, *pubkeyblob = NULL;
 	u_char salt[SALT_LEN];
-	char *b64 = NULL;
 	size_t i, pubkeylen, keylen, ivlen, blocksize, authlen;
 	u_int check;
 	int r = SSH_ERR_INTERNAL_ERROR;
@@ -2860,8 +2859,6 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 		freezero(key, keylen + ivlen);
 	if (pubkeyblob != NULL)
 		freezero(pubkeyblob, pubkeylen);
-	if (b64 != NULL)
-		freezero(b64, strlen(b64));
 	return r;
 }
 
