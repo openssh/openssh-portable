@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.231 2023/03/29 00:59:08 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.232 2023/03/31 04:45:08 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -225,7 +225,7 @@ killchild(int signo)
 	pid = sshpid;
 	if (pid > 1) {
 		kill(pid, SIGTERM);
-		waitpid(pid, NULL, 0);
+		(void)waitpid(pid, NULL, 0);
 	}
 
 	_exit(1);
