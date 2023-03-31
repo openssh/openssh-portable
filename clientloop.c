@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.390 2023/03/08 04:43:12 guenther Exp $ */
+/* $OpenBSD: clientloop.c,v 1.391 2023/03/31 04:04:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2270,7 +2270,7 @@ key_accepted_by_hostkeyalgs(const struct sshkey *key)
 	const char *ktype = sshkey_ssh_name(key);
 	const char *hostkeyalgs = options.hostkeyalgorithms;
 
-	if (key == NULL || key->type == KEY_UNSPEC)
+	if (key->type == KEY_UNSPEC)
 		return 0;
 	if (key->type == KEY_RSA &&
 	    (match_pattern_list("rsa-sha2-256", hostkeyalgs, 0) == 1 ||
