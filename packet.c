@@ -103,7 +103,7 @@
 #define DBG(x)
 #endif
 
-#define PACKET_MAX_SIZE (256 * 1024)
+#define PACKET_MAX_SIZE (36 * 1024)
 
 struct packet_state {
 	u_int32_t seqnr;
