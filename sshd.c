@@ -2357,8 +2357,8 @@ main(int ac, char **av)
                 if (strstr(cipher_ctx_name(cc), "ctr")) {
                         debug("Single to Multithreaded CTR cipher swap - server request");
                         /* cipher_reset_multithreaded(); */
-			//			ssh_packet_set_authenticated(ssh);
-                        packet_request_rekeying();
+			ssh_packet_set_authenticated(ssh);
+			//                        packet_request_rekeying();
                 }
 #endif
 	
