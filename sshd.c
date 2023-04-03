@@ -2358,7 +2358,7 @@ main(int ac, char **av)
                         debug("Single to Multithreaded CTR cipher swap - server request");
                         /* cipher_reset_multithreaded(); */
 			ssh_packet_set_authenticated(ssh);
-			//                        packet_request_rekeying();
+			packet_request_rekeying();
                 }
 #endif
 	
