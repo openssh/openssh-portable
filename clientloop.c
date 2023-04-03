@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.391 2023/03/31 04:04:15 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.392 2023/04/03 08:10:54 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1005,14 +1005,12 @@ process_escapes(struct ssh *ssh, Channel *c,
 	u_int i;
 	u_char ch;
 	char *s;
-	struct escape_filter_ctx *efc = c->filter_ctx == NULL ?
-	    NULL : (struct escape_filter_ctx *)c->filter_ctx;
+	struct escape_filter_ctx *efc;
 
-	if (c->filter_ctx == NULL)
+	if (c == NULL || c->filter_ctx == NULL || len <= 0)
 		return 0;
 
-	if (len <= 0)
-		return (0);
+	efc = (struct escape_filter_ctx *)c->filter_ctx;
 
 	for (i = 0; i < (u_int)len; i++) {
 		/* Get one character at a time. */
@@ -1109,7 +1107,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 				continue;
 
 			case '&':
-				if (c && c->ctl_chan != -1)
+				if (c->ctl_chan != -1)
 					goto noescape;
 				/*
 				 * Detach the program (continue to serve
