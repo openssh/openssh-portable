@@ -277,7 +277,8 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 		return NULL;
 	}
 	if (cname != NULL && res->ai_canonname != NULL) {
-		if (!valid_domain(res->ai_canonname, 0, &errstr)) {
+		if (strcmp(cname, res->ai_canonname) > 0 &&
+		    !valid_domain(res->ai_canonname, 0, &errstr)) {
 			error("ignoring bad CNAME \"%s\" for host \"%s\": %s",
 			    res->ai_canonname, name, errstr);
 		} else if (strlcpy(cname, res->ai_canonname, clen) >= clen) {
