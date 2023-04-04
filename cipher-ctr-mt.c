@@ -72,7 +72,7 @@
 
 /*-------------------- TUNABLES --------------------*/
 /* maximum number of threads and queues */
-#define MAX_THREADS      32
+#define MAX_THREADS      4
 #define MAX_NUMKQ        (MAX_THREADS + 1)
 
 /* Number of pregen threads to use */

@@ -706,6 +706,15 @@ do_exec(struct ssh *ssh, Session *s, const char *command)
 	    ssh_remote_port(ssh),
 	    s->self);
 
+	int post_auth = packet_authentication_state(ssh);
+	if (post_auth) {
+	  struct statm_t result;
+	  read_mem_stats(&result, post_auth);
+	   debug_f("********** Post session start memory usage is now virt: %lu, res: %lu, share: %lu",
+		  result.size*4, result.resident*4, result.share*4);
+	}
+
+	
 #ifdef SSH_AUDIT_EVENTS
 	if (command != NULL)
 		PRIVSEP(audit_run_command(command));

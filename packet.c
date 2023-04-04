@@ -231,7 +231,7 @@ ssh_alloc_session_state(void)
 {
 	struct ssh *ssh = NULL;
 	struct session_state *state = NULL;
-	
+
 	if ((ssh = calloc(1, sizeof(*ssh))) == NULL ||
 	    (state = calloc(1, sizeof(*state))) == NULL ||
 	    (ssh->kex = kex_new()) == NULL ||
@@ -316,7 +316,6 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	state = ssh->state;
 	state->connection_in = fd_in;
 	state->connection_out = fd_out;
-
 	if ((r = cipher_init(&state->send_context, none,
 			     (const u_char *)"", 0, NULL, 0,
 			     CIPHER_ENCRYPT, state->after_authentication)) != 0 ||
@@ -1840,7 +1839,7 @@ ssh_packet_process_read(struct ssh *ssh, int fd)
 
 	if ((r = sshbuf_read(fd, state->input, PACKET_MAX_SIZE, &rlen)) != 0)
 		return r;
-	
+
 	if (state->packet_discard) {
 		debug_f("discard");
 		if ((r = sshbuf_consume_end(state->input, rlen)) != 0)

@@ -70,6 +70,29 @@
 #include "ssherr.h"
 #include "platform.h"
 
+void
+read_mem_stats(statm_t *result, int post_auth)
+{
+	if (!post_auth)
+		return;
+
+	const char* statm_path = "/proc/self/statm";
+
+	FILE *f = fopen(statm_path,"r");
+	if(!f){
+		perror(statm_path);
+		abort();
+	}
+	if(7 != fscanf(f,"%lu %lu %lu %lu %lu %lu %lu",
+		       &result->size, &result->resident, &result->share, &result->text, &result->lib,
+		       &result->data, &result->dt))
+	{
+		perror(statm_path);
+		abort();
+	}
+	fclose(f);
+}
+
 /* remove newline at end of string */
 char *
 chop(char *s)

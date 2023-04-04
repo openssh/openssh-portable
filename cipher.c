@@ -276,6 +276,8 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	const EVP_CIPHER *type;
 	int klen;
 #endif
+#include "misc.h"
+	struct statm_t result;
 
 	*ccp = NULL;
 	if ((cc = calloc(sizeof(*cc), 1)) == NULL)
@@ -321,6 +323,12 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	 * start the threaded cipher. If OSSL supports providers (OSSL 3.0+) then
 	 * we load our hpnssh provider. If it doesn't (OSSL < 1.1) then we use the
 	 * _meth_new process found in cipher-ctr-mt.c */
+	if (post_auth) {
+	  read_mem_stats(&result, post_auth);
+
+	  debug_f("********* pre provider load memory usage is now virt: %lu, res: %lu, share: %lu",
+		  result.size*4, result.resident*4, result.share*4);
+	}
 	if (strstr(cc->cipher->name, "ctr") && post_auth) {
 #if OPENSSL_VERSION_NUMBER >= 0x30000000UL
 		/* this version of openssl uses providers */
@@ -333,6 +341,11 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 			fatal("Failed to add HPNSSH provider for AES-CTR");
 		}
 		aes_mt_provider = OSSL_PROVIDER_load(aes_lib, "hpnssh");
+
+		read_mem_stats(&result, post_auth);
+
+		debug_f("********* post provider load memory usage is now virt: %lu, res: %lu, share: %lu",
+			result.size*4, result.resident*4, result.share*4);
 
 		if (aes_mt_provider != NULL) {
 			/* use the previous key length to determine which cipher to load */
@@ -353,6 +366,11 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 			ERR_print_errors_fp(stderr);
 			fatal("Failed to load HPN-SSH AES-CTR-MT provider.");
 		}
+
+		read_mem_stats(&result, post_auth);
+
+		debug_f("********* post EVP_CIPHER_fetch memory usage is now virt: %lu, res: %lu, share: %lu",
+			result.size*4, result.resident*4, result.share*4);
 #else
 		type = (*evp_aes_ctr_mt)(); /* see cipher-ctr-mt.c */
 		/* we need to free this later if using aes_ctr_mt
@@ -367,6 +385,12 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	    (do_encrypt == CIPHER_ENCRYPT)) == 0) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
+	}
+	if (post_auth) {
+	  read_mem_stats(&result, post_auth);
+
+	  debug_f("********* post 1st EVP_CIPHER_init memory usage is now virt: %lu, res: %lu, share: %lu",
+		  result.size*4, result.resident*4, result.share*4);
 	}
 	if (cipher_authlen(cipher) &&
 	    !EVP_CIPHER_CTX_ctrl(cc->evp, EVP_CTRL_GCM_SET_IV_FIXED,
@@ -384,6 +408,12 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	if (EVP_CipherInit(cc->evp, NULL, (u_char *)key, NULL, -1) == 0) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
+	}
+	if (post_auth) {
+	  read_mem_stats(&result, post_auth);
+
+	  debug_f("********* post 2nd EVP_CIPHER_init memory usage is now virt: %lu, res: %lu, share: %lu",
+		  result.size*4, result.resident*4, result.share*4);
 	}
 	ret = 0;
 #endif /* WITH_OPENSSL */
