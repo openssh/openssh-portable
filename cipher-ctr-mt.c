@@ -90,11 +90,11 @@ int cipher_threads = 1;
 int numkq = 2;
 
 /* Length of a keystream queue */
-/* one queue holds 512KB (8192 * 4 * 16) of key data
+/* one queue holds 512KB (1024 * 32 * 16) of key data
  * being that the queues are destroyed after a rekey
  * and at leats one has to be fully filled prior to
  * enciphering data we don't want this to be too large */
-#define KQLEN (8192 * 4)
+#define KQLEN (1024 * 32)
 
 /* Processor cacheline length */
 #define CACHELINE_LEN	64
@@ -244,6 +244,11 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
 		debug ("Canceled %lu (%lu,%d)", c->tid[i], c->struct_id, c->id[i]);
 		pthread_cancel(c->tid[i]);
 	}
+        for (i = 0; i < numkq; i++) {
+                pthread_mutex_lock(&c->q[i].lock);
+                pthread_cond_broadcast(&c->q[i].cond);
+                pthread_mutex_unlock(&c->q[i].lock);
+        }
 	for (i = 0; i < cipher_threads; i++) {
 		if (pthread_kill(c->tid[i], 0) != 0)
 			debug3("AES-CTR MT pthread_join failure: Invalid thread id %lu in %s",
@@ -282,6 +287,11 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
 static void *
 thread_loop(void *x)
 {
+	struct statm_t result;
+	read_mem_stats(&result, 1);
+	debug_f("********* LOOP START memory usage is now virt: %lu, res: %lu, share: %lu",
+		result.size*4, result.resident*4, result.share*4);
+	
 	EVP_CIPHER_CTX *aesni_ctx;
 	struct ssh_aes_ctr_ctx_mt *c = x;
 	struct kq *q;
@@ -289,14 +299,9 @@ thread_loop(void *x)
 	int qidx;
 	pthread_t first_tid;
 	int outlen;
-	struct statm_t result;
 	u_char mynull[KQLEN * AES_BLOCK_SIZE];
 	memset(&mynull, 0, KQLEN * AES_BLOCK_SIZE);
 
-	read_mem_stats(&result, 1);
-	debug_f("********* LOOP START memory usage is now virt: %lu, res: %lu, share: %lu",
-		result.size*4, result.resident*4, result.share*4);
-	
 	/* get the thread id to see if this is the first one */
 	pthread_rwlock_rdlock(&c->tid_lock);
 	first_tid = c->tid[0];
@@ -322,7 +327,7 @@ thread_loop(void *x)
 		result.size*4, result.resident*4, result.share*4);
 	
 	/* initialize the cipher ctx with the key provided
-	 * determinbe which cipher to use based on the key size */
+	 * determine which cipher to use based on the key size */
 	if (c->keylen == 256)
 		EVP_EncryptInit_ex(aesni_ctx, EVP_aes_256_ctr(), NULL, c->orig_key, NULL);
 	else if (c->keylen == 128)
@@ -413,6 +418,9 @@ thread_loop(void *x)
 
 		/* see coresponding block above for useful comments */
 		EVP_EncryptUpdate(aesni_ctx, q->keys[0], &outlen, mynull, KQLEN * AES_BLOCK_SIZE);
+		read_mem_stats(&result, 1);
+		//		debug_f("Size is %d byte", KQLEN*AES_BLOCK_SIZE);
+		//		debug_f("********* qidx: %d LOOP fill thread memory usage is now virt: %lu, res: %lu, share: %lu", qidx, result.size*4, result.resident*4, result.share*4);
 
 		/* Re-lock, mark full and signal consumer */
 		pthread_mutex_lock(&q->lock);
@@ -665,6 +673,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 			debug_f("********* %d: pre thread create memory usage is now virt: %lu, res: %lu, share: %lu",
 				i, result.size*4, result.resident*4, result.share*4);
 			debug("size of c is %zu", sizeof(*c));
+			debug("size of ctx is %zu", sizeof(ctx));
 			if (pthread_create(&c->tid[i], NULL, thread_loop, c) != 0)
 				fatal ("AES-CTR MT Could not create thread in %s", __FUNCTION__);
                                 /*should die here */
@@ -673,7 +682,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 				debug ("AES-CTR MT spawned a thread with id %lu in %s (%lu, %d)",
 				       c->tid[i], __FUNCTION__, c->struct_id, c->id[i]);
 			}
-			sleep (5);
+			//sleep (5);
 			read_mem_stats(&result, 1);
 			debug_f("********* %d: post thread create memory usage is now virt: %lu, res: %lu, share: %lu",
 				i, result.size*4, result.resident*4, result.share*4);
