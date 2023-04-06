@@ -667,6 +667,10 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 
 		
 		/* Start threads */
+#define STACK_SIZE (1024 * 1024)
+		pthread_attr_t attr;
+		pthread_attr_init(&attr);
+		pthread_attr_setstacksize(&attr, STACK_SIZE);
 		for (i = 0; i < cipher_threads; i++) {
 			pthread_rwlock_wrlock(&c->tid_lock);
 			read_mem_stats(&result, 1);
@@ -674,7 +678,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 				i, result.size*4, result.resident*4, result.share*4);
 			debug("size of c is %zu", sizeof(*c));
 			debug("size of ctx is %zu", sizeof(ctx));
-			if (pthread_create(&c->tid[i], NULL, thread_loop, c) != 0)
+			if (pthread_create(&c->tid[i], &attr, thread_loop, c) != 0)
 				fatal ("AES-CTR MT Could not create thread in %s", __FUNCTION__);
                                 /*should die here */
 			else {

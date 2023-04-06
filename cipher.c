@@ -398,12 +398,24 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
+	if (post_auth) {
+	  read_mem_stats(&result, post_auth);
+
+	  debug_f("********* post 1st authlen memory usage is now virt: %lu, res: %lu, share: %lu",
+		  result.size*4, result.resident*4, result.share*4);
+	}
 	klen = EVP_CIPHER_CTX_key_length(cc->evp);
 	if (klen > 0 && keylen != (u_int)klen) {
 		if (EVP_CIPHER_CTX_set_key_length(cc->evp, keylen) == 0) {
 			ret = SSH_ERR_LIBCRYPTO_ERROR;
 			goto out;
 		}
+	}
+	if (post_auth) {
+	  read_mem_stats(&result, post_auth);
+
+	  debug_f("********* post key_len memory usage is now virt: %lu, res: %lu, share: %lu",
+		  result.size*4, result.resident*4, result.share*4);
 	}
 	if (EVP_CipherInit(cc->evp, NULL, (u_char *)key, NULL, -1) == 0) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
