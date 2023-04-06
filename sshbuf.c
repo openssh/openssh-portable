@@ -27,7 +27,7 @@
 #define SSHBUF_INTERNAL
 #include "sshbuf.h"
 #include "misc.h"
-#include "log.h"
+/* #include "log.h" */
 
 #define BUF_WATERSHED 256*1024
 
@@ -380,7 +380,6 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	size_t rlen, need;
 	u_char *dp;
 	int r;
-	struct timeval current_time;
 
 	SSHBUF_DBG(("allocate buf = %p len = %zu", buf, len));
 	if ((r = sshbuf_check_reserve(buf, len)) != 0)
@@ -415,15 +414,19 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * normal value for need. We also don't want to grow the buffer past
 	 * what we need (the size of window_max) so if the current allocation (in
 	 * buf->alloc) is greater than window_max we skip it.
+	 *
+	 * Turns out the extra functions on the following conditional aren't needed
+	 * -cjr 04/06/23
 	 */
 	if (rlen > BUF_WATERSHED) {
-		debug_f ("label:%s ptr: %p, prior rlen %zu and need %zu buf_alloc is %zu",
-			 buf->label, buf, rlen, need, buf->alloc);
-		/* set need to the the max window size less the current allocation */
+		debug_f ("Prior: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
+			 buf->label, buf, rlen, need, buf->window_max, buf->max_size);
+		/* easiest thing to do is grow the nuffer by 4MB each time. It might end
+		 * up being somewhat overallocated but works quickly */
 		need = (4*1024*1024);
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
-		debug_f ("label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
-		 	 buf->label, buf, rlen, need, buf->window_max, buf->max_size);
+		debug_f ("Post: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
+			 buf->label, buf, rlen, need, buf->window_max, buf->max_size);
 	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 
@@ -483,7 +486,6 @@ sshbuf_consume(struct sshbuf *buf, size_t len)
 	/* deal with empty buffer */
 	if (buf->off == buf->size) {
 		buf->off = buf->size = 0;
-		//debug_f("empty buffer");
 	}
 	SSHBUF_TELL("done");
 	return 0;

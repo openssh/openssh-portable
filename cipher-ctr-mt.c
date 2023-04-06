@@ -36,7 +36,6 @@
 #include "log.h"
 #include <unistd.h>
 #include "uthash.h"
-#include "misc.h"
 
 /* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"
@@ -287,11 +286,6 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
 static void *
 thread_loop(void *x)
 {
-	struct statm_t result;
-	read_mem_stats(&result, 1);
-	debug_f("********* LOOP START memory usage is now virt: %lu, res: %lu, share: %lu",
-		result.size*4, result.resident*4, result.share*4);
-	
 	EVP_CIPHER_CTX *aesni_ctx;
 	struct ssh_aes_ctr_ctx_mt *c = x;
 	struct kq *q;
@@ -309,9 +303,6 @@ thread_loop(void *x)
 
 	/* create the context for this thread */
 	aesni_ctx = EVP_CIPHER_CTX_new();
-	read_mem_stats(&result, 1);
-	debug_f("********* LOOP new context memory usage is now virt: %lu, res: %lu, share: %lu",
-		result.size*4, result.resident*4, result.share*4);
 
 	/* keep track of the pointer for the evp in this struct
 	 * so we can free it later. So we place it in a hash indexed on the
@@ -322,10 +313,7 @@ thread_loop(void *x)
 	ptr->tid = pthread_self(); /* index for hash */
 	ptr->pointer = aesni_ctx;
 	HASH_ADD_INT(evp_ptrs, tid, ptr);
-	read_mem_stats(&result, 1);
-	debug_f("********* LOOP track pointer memory usage is now virt: %lu, res: %lu, share: %lu",
-		result.size*4, result.resident*4, result.share*4);
-	
+
 	/* initialize the cipher ctx with the key provided
 	 * determine which cipher to use based on the key size */
 	if (c->keylen == 256)
@@ -338,9 +326,6 @@ thread_loop(void *x)
 		logit("Invalid key length of %d in AES CTR MT. Exiting", c->keylen);
 		exit(1);
 	}
-	read_mem_stats(&result, 1);
-	debug_f("********* LOOP init ctx memory usage is now virt: %lu, res: %lu, share: %lu",
-		result.size*4, result.resident*4, result.share*4);
 
 	/*
 	 * Handle the special case of startup, one thread must fill
@@ -367,9 +352,6 @@ thread_loop(void *x)
 			pthread_cond_broadcast(&q->cond);
 		}
 		pthread_mutex_unlock(&q->lock);
-		read_mem_stats(&result, 1);
-		debug_f("********* LOOP first thread memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
 	}
 
 	/*
@@ -418,9 +400,6 @@ thread_loop(void *x)
 
 		/* see coresponding block above for useful comments */
 		EVP_EncryptUpdate(aesni_ctx, q->keys[0], &outlen, mynull, KQLEN * AES_BLOCK_SIZE);
-		read_mem_stats(&result, 1);
-		//		debug_f("Size is %d byte", KQLEN*AES_BLOCK_SIZE);
-		//		debug_f("********* qidx: %d LOOP fill thread memory usage is now virt: %lu, res: %lu, share: %lu", qidx, result.size*4, result.resident*4, result.share*4);
 
 		/* Re-lock, mark full and signal consumer */
 		pthread_mutex_lock(&q->lock);
@@ -539,14 +518,9 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
     int enc)
 {
 	struct ssh_aes_ctr_ctx_mt *c;
-	struct statm_t result;
 	int i;
-	read_mem_stats(&result, 1);
-	debug_f("********* START INIT memory usage is now virt: %lu, res: %lu, share: %lu",
-		result.size*4, result.resident*4, result.share*4);
-	
+
 	char *aes_threads = getenv("SSH_CIPHER_THREADS");
-	debug_f("!!!!!!!!!!!!!!!!! threads = %s", aes_threads);
         if (aes_threads != NULL && strlen(aes_threads) != 0)
 		cipher_threads = atoi(aes_threads);
 	else
@@ -567,10 +541,6 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 
 	/* set up the initial state of c (our cipher stream struct) */
  	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) == NULL) {
-		read_mem_stats(&result, 1);
-		debug_f("********* start get app data memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
-
 		c = xmalloc(sizeof(*c));
 		pthread_rwlock_init(&c->tid_lock, NULL);
 #ifdef __APPLE__
@@ -588,18 +558,12 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 
 		/* attach our struct to the context */
 		EVP_CIPHER_CTX_set_app_data(ctx, c);
-		read_mem_stats(&result, 1);
-		debug_f("********* get app data memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
 	}
 
 	/* we are initializing but the current structure already
 	   has an IV and key so we want to kill the existing key data
 	   and start over. This is important when we need to rekey the data stream */
 	if (c->state == (HAVE_KEY | HAVE_IV)) {
-		read_mem_stats(&result, 1);
-		debug_f("********* start c->state memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
 		/* tell the pregen threads to exit */
 		stop_and_join_pregen_threads(c);
 
@@ -610,46 +574,25 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 
 		/* Start over getting key & iv */
 		c->state = HAVE_NONE;
-		read_mem_stats(&result, 1);
-		debug_f("********* c->state memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
 	}
 
 	/* set the initial key for this key stream queue */
 	if (key != NULL) {
-		read_mem_stats(&result, 1);
-		debug_f("********* start key != NULL memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
 		AES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
 		   &c->aes_key);
 		c->orig_key = key;
 		c->keylen = EVP_CIPHER_CTX_key_length(ctx) * 8;
 		c->state |= HAVE_KEY;
-		read_mem_stats(&result, 1);
-		debug_f("********* key != NULL memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
 	}
 
 	/* set the IV */
 	if (iv != NULL) {
 		/* init the counter this is just a 16byte uchar */
-		read_mem_stats(&result, 1);
-		debug_f("********* start iv != NULL memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
 		memcpy(c->aes_counter, iv, AES_BLOCK_SIZE);
 		c->state |= HAVE_IV;
-		read_mem_stats(&result, 1);
-		debug_f("********* iv != NULL memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
-
 	}
 
 	if (c->state == (HAVE_KEY | HAVE_IV)) {
-		debug_f("start thread init");
-		read_mem_stats(&result, 1);
-		debug_f("********* start thread init memory usage is now virt: %lu, res: %lu, share: %lu",
-			result.size*4, result.resident*4, result.share*4);
-
 		/* Clear queues */
 		/* set the first key in the key queue to the current counter */
 		memcpy(c->q[0].ctr, c->aes_counter, AES_BLOCK_SIZE);
@@ -666,7 +609,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		c->ridx = 0;
 		c->struct_id = global_struct_id++;
 
-		
+
 		/* Start threads */
 #define STACK_SIZE (1024 * 1024)
 		pthread_attr_t attr;
@@ -674,11 +617,6 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		pthread_attr_setstacksize(&attr, STACK_SIZE);
 		for (i = 0; i < cipher_threads; i++) {
 			pthread_rwlock_wrlock(&c->tid_lock);
-			read_mem_stats(&result, 1);
-			debug_f("********* %d: pre thread create memory usage is now virt: %lu, res: %lu, share: %lu",
-				i, result.size*4, result.resident*4, result.share*4);
-			debug("size of c is %zu", sizeof(*c));
-			debug("size of ctx is %zu", sizeof(ctx));
 			if (pthread_create(&c->tid[i], &attr, thread_loop, c) != 0)
 				fatal ("AES-CTR MT Could not create thread in %s", __FUNCTION__);
                                 /*should die here */
@@ -687,10 +625,6 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 				debug ("AES-CTR MT spawned a thread with id %lu in %s (%lu, %d)",
 				       c->tid[i], __FUNCTION__, c->struct_id, c->id[i]);
 			}
-			//sleep (5);
-			read_mem_stats(&result, 1);
-			debug_f("********* %d: post thread create memory usage is now virt: %lu, res: %lu, share: %lu",
-				i, result.size*4, result.resident*4, result.share*4);
 			pthread_rwlock_unlock(&c->tid_lock);
 		}
 		pthread_mutex_lock(&c->q[0].lock);
@@ -698,15 +632,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		while (c->q[0].qstate == KQINIT)
 			pthread_cond_wait(&c->q[0].cond, &c->q[0].lock);
 		pthread_mutex_unlock(&c->q[0].lock);
-		read_mem_stats(&result, 1);
-		debug_f("********* end thread init memory usage is now virt: %lu, res: %lu, share: %lu",
-		result.size*4, result.resident*4, result.share*4);
-		
-		debug_f("end thread init");
 	}
-	read_mem_stats(&result, 1);
-	debug_f("********* END INIT memory usage is now virt: %lu, res: %lu, share: %lu",
-		result.size*4, result.resident*4, result.share*4);
 	return 1;
 }
 

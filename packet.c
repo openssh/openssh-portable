@@ -105,7 +105,7 @@
 
 /* SSH_IOBUFSZ + 1k of head room */
 /* OpenSSH usings 256KB packet size max but that consumes a
- * lot of memory wiht the buffers we are using. This keeps it 
+ * lot of memory wiht the buffers we are using. This keeps it
  * in check. Doesn't seem to have an impact on performance or
  * functionality cjr 04/06/2023 */
 #define PACKET_MAX_SIZE (SSH_IOBUFSZ + 1024)
@@ -1846,7 +1846,6 @@ ssh_packet_process_read(struct ssh *ssh, int fd)
 		return r;
 
 	if (state->packet_discard) {
-		debug_f("discard");
 		if ((r = sshbuf_consume_end(state->input, rlen)) != 0)
 			return r;
 		state->keep_alive_timeouts = 0; /* ?? */
