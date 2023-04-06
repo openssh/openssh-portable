@@ -419,21 +419,21 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * -cjr 04/06/23
 	 */
 	if (rlen > BUF_WATERSHED) {
-		debug_f ("Prior: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
-			 buf->label, buf, rlen, need, buf->window_max, buf->max_size);
+		/* debug_f ("Prior: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
+		   buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
 		/* easiest thing to do is grow the nuffer by 4MB each time. It might end
 		 * up being somewhat overallocated but works quickly */
 		need = (4*1024*1024);
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
-		debug_f ("Post: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
-			 buf->label, buf, rlen, need, buf->window_max, buf->max_size);
+		/* debug_f ("Post: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
+		   buf->label, buf, rlen, need, buf->window_max, buf->max_size);*/
 	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 
 	/* rlen might be above the max allocation */
 	if (rlen > buf->max_size) {
 		rlen = buf->max_size;
-		debug_f("set rlen to %zu", buf->max_size);
+		/* debug_f("set rlen to %zu", buf->max_size);*/
 	}
 	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {
