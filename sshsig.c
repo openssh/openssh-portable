@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.31 2023/03/30 03:05:01 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.32 2023/04/06 03:56:02 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -1018,7 +1018,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 	char *line = NULL;
 	size_t linesize = 0;
 	u_long linenum = 0;
-	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
+	int r = SSH_ERR_KEY_NOT_FOUND, oerrno;
 
 	if ((f = fopen(path, "r")) == NULL) {
 		oerrno = errno;
@@ -1028,7 +1028,6 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 
-	r = SSH_ERR_KEY_NOT_FOUND;
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
 		r = check_allowed_keys_line(path, linenum, line,
@@ -1056,7 +1055,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 	fclose(f);
-	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+	return r;
 }
 
 int
