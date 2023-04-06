@@ -103,7 +103,12 @@
 #define DBG(x)
 #endif
 
-#define PACKET_MAX_SIZE (36 * 1024)
+/* SSH_IOBUFSZ + 1k of head room */
+/* OpenSSH usings 256KB packet size max but that consumes a
+ * lot of memory wiht the buffers we are using. This keeps it 
+ * in check. Doesn't seem to have an impact on performance or
+ * functionality cjr 04/06/2023 */
+#define PACKET_MAX_SIZE (SSH_IOBUFSZ + 1024)
 
 struct packet_state {
 	u_int32_t seqnr;
