@@ -416,7 +416,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * what we need (the size of window_max) so if the current allocation (in
 	 * buf->alloc) is greater than window_max we skip it.
 	 */
-	if (rlen > BUF_WATERSHED && strstr(buf->label, "input")) {
+	if (rlen > BUF_WATERSHED) {
 		debug_f ("label:%s ptr: %p, prior rlen %zu and need %zu buf_alloc is %zu",
 			 buf->label, buf, rlen, need, buf->alloc);
 		/* set need to the the max window size less the current allocation */
@@ -427,21 +427,6 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 
-	/* there is a buffer that needs to grow quickly but doesn't seem to count as
-	 * input or output so we check to make sure that window_max isn't set
-	 * before we do. In this case we set it immediately to the maximum
-	 * allocated buffer size which should be about 32MB
-	 * this likely isn't the right way to do this but it works for now
-	 * TODO: Come up with a better solution -cjr 12/1/2022 */
-	if (rlen > BUF_WATERSHED && buf->window_max == 0) {
-	  //rlen = rlen + (4*1024*1024);
-	  debug_f("************* rlen is now %lu", rlen);
-	  debug_f("************* max_size is %lu", buf->max_size);
-	  gettimeofday(&current_time, NULL);
-	  debug_f("label: %s, size: %lu, allocated: %lu, Max alloc: %lu, Age: %0.8f", buf->label,
-		  buf->size, buf->alloc, buf->max_size,
-		  time_diff(&(buf->buf_ts), &current_time));
-	}
 	/* rlen might be above the max allocation */
 	if (rlen > buf->max_size) {
 		rlen = buf->max_size;
