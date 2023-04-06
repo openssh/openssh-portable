@@ -78,14 +78,20 @@ sshbuf_dtob16(struct sshbuf *buf)
 	char *ret;
 	const char hex[] = "0123456789abcdef";
 
+	if(p == NULL)
+	{
+		p = sshbuf_ptr(buf);
+	}
+
 	if (len == 0)
 		return strdup("");
 	if (SIZE_MAX / 2 <= len || (ret = malloc(len * 2 + 1)) == NULL)
 		return NULL;
-	for (i = j = 0; i < len; i++) {
+
+		for (i = j = 0; i < len; i++) {
 		ret[j++] = hex[(p[i] >> 4) & 0xf];
 		ret[j++] = hex[p[i] & 0xf];
-	}
+	}	
 	ret[j] = '\0';
 	return ret;
 }
@@ -95,7 +101,7 @@ sshbuf_dtob64(const struct sshbuf *d, struct sshbuf *b64, int wrap)
 {
 	size_t i, slen = 0;
 	char *s = NULL;
-	int r;
+	int r = 0;
 
 	if (d == NULL || b64 == NULL || sshbuf_len(d) >= SIZE_MAX / 2)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -278,6 +284,11 @@ sshbuf_read(int fd, struct sshbuf *buf, size_t maxlen, size_t *rlen)
 	size_t adjust;
 	ssize_t rr;
 	u_char *d;
+
+	if(d == NULL)
+	{
+		printf("null found");
+	};
 
 	if (rlen != NULL)
 		*rlen = 0;

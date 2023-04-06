@@ -86,10 +86,19 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 	while (sshbuf_len(c) > 0) {
 		sshbuf_free(data);
 		data = NULL;
+		if(name == NULL){
+			printf("Error name was set to NULL");
+		}
+		if(data == NULL){
+			printf("Error data was set to NULL");
+		}
 		if ((r = sshbuf_get_cstring(c, &name, NULL)) != 0 ||
 		    (r = sshbuf_froms(c, &data)) != 0) {
 			error_r(r, "Unable to parse certificate options");
 			goto out;
+		}
+		if(data == NULL){
+			printf("Error data was set to NULL");
 		}
 		debug3("found certificate option \"%.100s\" len %zu",
 		    name, sshbuf_len(data));

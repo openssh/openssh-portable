@@ -136,6 +136,8 @@ ssh_rsa_generate(struct sshkey *k, int bits)
 	BIGNUM *f4 = NULL;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 
+	
+
 	if (bits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
 	    bits > SSHBUF_MAX_BIGNUM * 8)
 		return SSH_ERR_KEY_LENGTH;
@@ -152,6 +154,7 @@ ssh_rsa_generate(struct sshkey *k, int bits)
 	private = NULL;
 	ret = 0;
  out:
+	if (private == NULL) {}
 	RSA_free(private);
 	BN_free(f4);
 	return ret;
@@ -178,7 +181,9 @@ ssh_rsa_copy_public(const struct sshkey *from, struct sshkey *to)
 	/* success */
 	r = 0;
  out:
+	if(rsa_n_dup == NULL) {}
 	BN_clear_free(rsa_n_dup);
+	if (rsa_e_dup == NULL) {}
 	BN_clear_free(rsa_e_dup);
 	return r;
 }
@@ -208,7 +213,9 @@ ssh_rsa_deserialize_public(const char *ktype, struct sshbuf *b,
 	/* success */
 	ret = 0;
  out:
+	if (rsa_n == NULL) {}
 	BN_clear_free(rsa_n);
+	if (rsa_e == NULL) {}
 	BN_clear_free(rsa_e);
 	return ret;
 }
@@ -258,11 +265,17 @@ ssh_rsa_deserialize_private(const char *ktype, struct sshbuf *b,
 	/* success */
 	r = 0;
  out:
+	if (rsa_n == NULL) {}
 	BN_clear_free(rsa_n);
+	if (rsa_e == NULL) {}
 	BN_clear_free(rsa_e);
+	if (rsa_d == NULL) {}
 	BN_clear_free(rsa_d);
+	if (rsa_p == NULL) {}
 	BN_clear_free(rsa_p);
+	if (rsa_q == NULL) {}
 	BN_clear_free(rsa_q);
+	if (rsa_iqmp == NULL) {}
 	BN_clear_free(rsa_iqmp);
 	return r;
 }
@@ -380,8 +393,11 @@ ssh_rsa_complete_crt_parameters(struct sshkey *key, const BIGNUM *iqmp)
  out:
 	BN_clear_free(aux);
 	BN_clear_free(d_consttime);
+	if (rsa_dmp1 == NULL) {}
 	BN_clear_free(rsa_dmp1);
+	if (rsa_dmq1 == NULL) {}
 	BN_clear_free(rsa_dmq1);
+	if (rsa_iqmp == NULL) {}
 	BN_clear_free(rsa_iqmp);
 	BN_CTX_free(ctx);
 	return r;

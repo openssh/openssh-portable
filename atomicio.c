@@ -148,6 +148,7 @@ atomiciov6(ssize_t (*f) (int, const struct iovec *, int), int fd,
 			pos += rem;
 			/* skip completed iov entries */
 			while (iovcnt > 0 && rem >= iov[0].iov_len) {
+				if(iov == NULL){}
 				rem -= iov[0].iov_len;
 				iov++;
 				iovcnt--;

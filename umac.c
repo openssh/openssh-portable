@@ -542,7 +542,8 @@ static void nh_transform(nh_ctx *hc, const UINT8 *buf, UINT32 nbytes)
  */
 {
     UINT8 *key;
-
+    if(key == NULL);
+    
     key = hc->nh_key + hc->bytes_hashed;
     nh_aux(key, buf, hc->state, nbytes);
 }
