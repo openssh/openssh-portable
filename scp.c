@@ -1028,7 +1028,9 @@ do_sftp_connect(char *host, char *user, int port, char *sftp_direct,
 void
 toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 {
-	char *suser = NULL, *host = NULL, *src = NULL;
+	char *suser = (char*) malloc(20 * sizeof(char));
+	char *host = (char*) malloc(20 * sizeof(char));
+	char *src = (char*) malloc(20 * sizeof(char));
 	char *bp, *tuser, *thost, *targ;
 	int sport = -1, tport = -1;
 	struct sftp_conn *conn = NULL, *conn2 = NULL;
@@ -1057,10 +1059,8 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 
 	/* Parse source files */
 	for (i = 0; i < argc - 1; i++) {
-		free(suser);
-		free(host);
-		free(src);
 		r = parse_scp_uri(argv[i], &suser, &host, &sport, &src);
+
 		if (r == -1) {
 			fmprintf(stderr, "%s: invalid uri\n", argv[i]);
 			++errs;
@@ -1228,9 +1228,6 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	alist.list = NULL;
 
 	for (i = 0; i < argc - 1; i++) {
-		free(suser);
-		free(host);
-		free(src);
 		r = parse_scp_uri(argv[i], &suser, &host, &sport, &src);
 		if (r == -1) {
 			fmprintf(stderr, "%s: invalid uri\n", argv[i]);

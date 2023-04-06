@@ -928,7 +928,7 @@ fingerprint_private(const char *path)
 	if ((r = sshkey_load_public(path, &pubkey, &comment)) != 0)
 		debug_r(r, "load public \"%s\"", path);
 	if (pubkey == NULL || comment == NULL || *comment == '\0') {
-		free(comment);
+		
 		if ((r = sshkey_load_private(path, NULL,
 		    &privkey, &comment)) != 0)
 			debug_r(r, "load private \"%s\"", path);
@@ -984,7 +984,6 @@ do_fingerprint(struct passwd *pw)
 		 */
 		if (lnum == 1 && strcmp(identity_file, "-") != 0 &&
 		    strstr(cp, "PRIVATE KEY") != NULL) {
-			free(line);
 			fclose(f);
 			fingerprint_private(path);
 			exit(0);
@@ -1447,8 +1446,6 @@ do_change_passphrase(struct passwd *pw)
 		if (strcmp(passphrase1, passphrase2) != 0) {
 			explicit_bzero(passphrase1, strlen(passphrase1));
 			explicit_bzero(passphrase2, strlen(passphrase2));
-			free(passphrase1);
-			free(passphrase2);
 			printf("Pass phrases do not match.  Try again.\n");
 			exit(1);
 		}
@@ -2267,7 +2264,6 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 	path = tilde_expand_filename(file, pw->pw_uid);
 	if (strcmp(path, "-") == 0) {
 		krl_spec = stdin;
-		free(path);
 		path = xstrdup("(standard input)");
 	} else if ((krl_spec = fopen(path, "r")) == NULL)
 		fatal("fopen %s: %s", path, strerror(errno));

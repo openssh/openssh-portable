@@ -14,6 +14,7 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * COMMENT
  */
 
 #include "includes.h"
@@ -57,8 +58,10 @@ addr_match_list(const char *addr, const char *_list)
 		debug2_f("couldn't parse address %.100s", addr);
 		return 0;
 	}
-	if ((o = list = strdup(_list)) == NULL)
+	if ((o = list = strdup(_list)) == NULL) {
+		free(o);
 		return -1;
+	}
 	while ((cp = strsep(&list, ",")) != NULL) {
 		neg = *cp == '!';
 		if (neg)
@@ -117,8 +120,10 @@ addr_match_cidr_list(const char *addr, const char *_list)
 		debug2_f("couldn't parse address %.100s", addr);
 		return 0;
 	}
-	if ((o = list = strdup(_list)) == NULL)
+	if ((o = list = strdup(_list)) == NULL) {
+		free(o);
 		return -1;
+	}
 	while ((cp = strsep(&list, ",")) != NULL) {
 		if (*cp == '\0') {
 			error_f("empty entry in list \"%.100s\"", o);

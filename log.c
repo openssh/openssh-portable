@@ -181,8 +181,9 @@ log_verbose_reset(void)
 
 	for (i = 0; i < nlog_verbose; i++)
 		free(log_verbose[i]);
-	free(log_verbose);
 	log_verbose = NULL;
+	free(log_verbose);
+	
 	nlog_verbose = 0;
 }
 

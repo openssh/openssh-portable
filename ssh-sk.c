@@ -777,7 +777,9 @@ sshsk_free_resident_keys(struct sshsk_resident_key **srks, size_t nsrks)
 
 	for (i = 0; i < nsrks; i++)
 		sshsk_free_resident_key(srks[i]);
-	free(srks);
+	if (srks != NULL){	
+		free(srks);
+	}
 }
 
 int

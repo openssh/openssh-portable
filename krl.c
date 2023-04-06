@@ -175,12 +175,10 @@ ssh_krl_free(struct ssh_krl *krl)
 	RB_FOREACH_SAFE(rb, revoked_blob_tree, &krl->revoked_keys, trb) {
 		RB_REMOVE(revoked_blob_tree, &krl->revoked_keys, rb);
 		free(rb->blob);
-		free(rb);
 	}
 	RB_FOREACH_SAFE(rb, revoked_blob_tree, &krl->revoked_sha1s, trb) {
 		RB_REMOVE(revoked_blob_tree, &krl->revoked_sha1s, rb);
 		free(rb->blob);
-		free(rb);
 	}
 	RB_FOREACH_SAFE(rb, revoked_blob_tree, &krl->revoked_sha256s, trb) {
 		RB_REMOVE(revoked_blob_tree, &krl->revoked_sha256s, rb);
