@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.232 2023/03/31 04:45:08 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.233 2023/04/06 03:12:32 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2006,7 +2006,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 		tmp = make_absolute_pwd_glob(tmp, remote_path);
 		remote_glob(conn, tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
 	} else
-		glob(tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
+		(void)glob(tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
 
 	/* Determine length of pwd so we can trim completion display */
 	for (hadglob = tmplen = pwdlen = 0; tmp[tmplen] != 0; tmplen++) {
