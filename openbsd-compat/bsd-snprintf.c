@@ -714,7 +714,9 @@ fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 	int fplace = 0;
 	int padlen = 0; /* amount to pad */
 	int zpadlen = 0;
+#if 0
 	int caps = 0;
+#endif
 	int idx;
 	double intpart;
 	double fracpart;
@@ -776,8 +778,7 @@ fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 		idx = (int) ((temp -intpart +0.05)* 10.0);
 		/* idx = (int) (((double)(temp*0.1) -intpart +0.05) *10.0); */
 		/* printf ("%llf, %f, %x\n", temp, intpart, idx); */
-		iconvert[iplace++] =
-			(caps? "0123456789ABCDEF":"0123456789abcdef")[idx];
+		iconvert[iplace++] = "0123456789"[idx];
 	} while (intpart && (iplace < 311));
 	if (iplace == 311) iplace--;
 	iconvert[iplace] = 0;
@@ -791,8 +792,7 @@ fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 			idx = (int) ((temp -fracpart +0.05)* 10.0);
 			/* idx = (int) ((((temp/10) -fracpart) +0.05) *10); */
 			/* printf ("%lf, %lf, %ld\n", temp, fracpart, idx ); */
-			fconvert[fplace++] =
-			(caps? "0123456789ABCDEF":"0123456789abcdef")[idx];
+			fconvert[fplace++] = "0123456789"[idx];
 		} while(fracpart && (fplace < 311));
 		if (fplace == 311) fplace--;
 	}
