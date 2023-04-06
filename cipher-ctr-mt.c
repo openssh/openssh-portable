@@ -545,7 +545,8 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	debug_f("********* START INIT memory usage is now virt: %lu, res: %lu, share: %lu",
 		result.size*4, result.resident*4, result.share*4);
 	
-	char * aes_threads = getenv("SSH_CIPHER_THREADS");
+	char *aes_threads = getenv("SSH_CIPHER_THREADS");
+	debug_f("!!!!!!!!!!!!!!!!! threads = %s", aes_threads);
         if (aes_threads != NULL && strlen(aes_threads) != 0)
 		cipher_threads = atoi(aes_threads);
 	else
