@@ -178,6 +178,47 @@ cipher_blocksize(const struct sshcipher *c)
 	return (c->block_size);
 }
 
+uint64_t
+cipher_rekey_blocks(const struct sshcipher *c)
+{
+	/*
+	 * Chacha20-Poly1305 does not benefit from data-based rekeying,
+	 * per "The Security of ChaCha20-Poly1305 in the Multi-user Setting",
+	 * Degabriele, J. P., Govinden, J, Gunther, F. and Paterson K.
+	 * ACM CCS 2021; https://eprint.iacr.org/2023/085.pdf
+	 *
+	 * Cryptanalysis aside, we do still want do need to prevent the SSH
+	 * sequence number wrapping and also to rekey to provide some
+	 * protection for long lived sessions against key disclosure at the
+	 * endpoints, so arrange for rekeying every 2**32 blocks as the
+	 * 128-bit block ciphers do (i.e. every 32GB data).
+	 */
+	if ((c->flags & CFLAG_CHACHAPOLY) != 0)
+		return (uint64_t)1 << 32;
+
+	/* there is no actual need to rekey the NULL cipher but
+	 * rekeying is a necessary step. In part, as mentioned above,
+	 * to keep the seqnr from wrapping. So we set it to the
+	 * maximum possible -cjr 4/10/23 */
+	if ((c->flags & CFLAG_NONE) != 0)
+		return (uint64_t)1 << 32;
+
+	/*
+	 * The 2^(blocksize*2) limit is too expensive for 3DES,
+	 * so enforce a 1GB data limit for small blocksizes.
+	 * See discussion in RFC4344 section 3.2.
+	 */
+	if (c->block_size < 16)
+		return ((uint64_t)1 << 30) / c->block_size;
+	/*
+	 * Otherwise, use the RFC4344 s3.2 recommendation of 2**(L/4) blocks
+	 * before rekeying where L is the blocksize in bits.
+	 * Most other ciphers have a 128 bit blocksize, so this equates to
+	 * 2**32 blocks / 64GB data.
+	 */
+	return (uint64_t)1 << (c->block_size * 2);
+}
+
 u_int
 cipher_keylen(const struct sshcipher *c)
 {

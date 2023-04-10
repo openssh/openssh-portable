@@ -63,6 +63,9 @@
 #endif
 #include <signal.h>
 #include <time.h>
+#ifdef HAVE_UTIL_H
+# include <util.h>
+#endif
 
 /*
  * Explicitly include OpenSSL before zlib as some versions of OpenSSL have
@@ -103,12 +106,16 @@
 #define DBG(x)
 #endif
 
-/* SSH_IOBUFSZ + 1k of head room */
 /* OpenSSH usings 256KB packet size max but that consumes a
- * lot of memory wiht the buffers we are using. This keeps it
- * in check. Doesn't seem to have an impact on performance or
- * functionality cjr 04/06/2023 */
-#define PACKET_MAX_SIZE (SSH_IOBUFSZ + 1024)
+ * lot of memory with the buffers we are using. However, we need
+ * a large packet size if the banner that's being sent is large.
+ * So we need a 256KB packet pre authentication and a smaller one
+ * in this case SSH_IOBUFSZ + 1KB, afterwards. So we change
+ * PACKET_MAX_SIZE from a #define to a global. Then, in the function
+ * ssh_packet_set_authentcated we reduce the size to something
+ * more memory efficient. -cjr 04/07/23
+ */
+u_int packet_max_size = 256 * 1024;
 
 struct packet_state {
 	u_int32_t seqnr;
@@ -397,7 +404,7 @@ ssh_packet_stop_discard(struct ssh *ssh)
 
 	if (state->packet_discard_mac) {
 		char buf[1024];
-		size_t dlen = PACKET_MAX_SIZE;
+		size_t dlen = packet_max_size;
 
 		if (dlen > state->packet_discard_mac_already)
 			dlen -= state->packet_discard_mac_already;
@@ -884,6 +891,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	const char *wmsg;
 	int r, crypt_type;
 	const char *dir = mode == MODE_OUT ? "out" : "in";
+	char blocks_s[FMT_SCALED_STRSIZE], bytes_s[FMT_SCALED_STRSIZE];
 
 	debug2_f("mode %d", mode);
 
@@ -952,29 +960,20 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		}
 		comp->enabled = 1;
 	}
-	/*
-	 * The 2^(blocksize*2) limit is too expensive for 3DES,
-	 * so enforce a 1GB limit for small blocksizes.
-	 * See RFC4344 section 3.2.
-	 */
 
-	/* we really don't need to rekey if we are using the none cipher
-	 * but there isn't a good way to disable it entirely that I can find
-	 * and using a blocksize larger that 16 doesn't work (dunno why)
-	 * so this seems to be a good limit for now - CJR 10/16/2020*/
-	if (ssh->none == 1) {
-		*max_blocks = (u_int64_t)1 << (31*2);
-	} else {
-		if (enc->block_size >= 16)
-			*max_blocks = (u_int64_t)1 << (enc->block_size*2);
-		else
-			*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
+	/* get the maximum number of blocks the cipher can 
+	 * handle safely */
+	*max_blocks = cipher_rekey_blocks(enc->cipher);
+
+	/* these lines support the debug */
+	strlcpy(blocks_s, "?", sizeof(blocks_s));
+	strlcpy(bytes_s, "?", sizeof(bytes_s));
+	if (*max_blocks * enc->block_size < LLONG_MAX) {
+		fmt_scaled((long long)*max_blocks, blocks_s);
+		fmt_scaled((long long)*max_blocks * enc->block_size, bytes_s);
 	}
-	if (state->rekey_limit)
-		*max_blocks = MINIMUM(*max_blocks,
-		    state->rekey_limit / enc->block_size);
-	debug("rekey %s after %llu blocks", dir,
-	      (unsigned long long)*max_blocks);
+	debug("rekey %s after %s blocks / %sB data", dir, blocks_s, bytes_s);
+
 	return 0;
 }
 
@@ -1504,7 +1503,7 @@ ssh_packet_read_poll2_mux(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			return 0; /* packet is incomplete */
 		state->packlen = PEEK_U32(cp);
 		if (state->packlen < 4 + 1 ||
-		    state->packlen > PACKET_MAX_SIZE)
+		    state->packlen > packet_max_size)
 			return SSH_ERR_MESSAGE_INCOMPLETE;
 	}
 	need = state->packlen + 4;
@@ -1563,7 +1562,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		    sshbuf_ptr(state->input), sshbuf_len(state->input)) != 0)
 			return 0;
 		if (state->packlen < 1 + 4 ||
-		    state->packlen > PACKET_MAX_SIZE) {
+		    state->packlen > packet_max_size) {
 #ifdef PACKET_DEBUG
 			sshbuf_dump(state->input, stderr);
 #endif
@@ -1590,7 +1589,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			goto out;
 		state->packlen = PEEK_U32(sshbuf_ptr(state->incoming_packet));
 		if (state->packlen < 1 + 4 ||
-		    state->packlen > PACKET_MAX_SIZE) {
+		    state->packlen > packet_max_size) {
 #ifdef PACKET_DEBUG
 			fprintf(stderr, "input: \n");
 			sshbuf_dump(state->input, stderr);
@@ -1599,7 +1598,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 #endif
 			logit("Bad packet length %u.", state->packlen);
 			return ssh_packet_start_discard(ssh, enc, mac, 0,
-			    PACKET_MAX_SIZE);
+			    packet_max_size);
 		}
 		if ((r = sshbuf_consume(state->input, block_size)) != 0)
 			goto out;
@@ -1622,7 +1621,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		logit("padding error: need %d block %d mod %d",
 		    need, block_size, need % block_size);
 		return ssh_packet_start_discard(ssh, enc, mac, 0,
-		    PACKET_MAX_SIZE - block_size);
+		    packet_max_size - block_size);
 	}
 	/*
 	 * check if the entire packet has been received and
@@ -1666,11 +1665,11 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			if (r != SSH_ERR_MAC_INVALID)
 				goto out;
 			logit("Corrupted MAC on input.");
-			if (need + block_size > PACKET_MAX_SIZE)
+			if (need + block_size > packet_max_size)
 				return SSH_ERR_INTERNAL_ERROR;
 			return ssh_packet_start_discard(ssh, enc, mac,
 			    sshbuf_len(state->incoming_packet),
-			    PACKET_MAX_SIZE - need - block_size);
+			    packet_max_size - need - block_size);
 		}
 		/* Remove MAC from input buffer */
 		DBG(debug("MAC #%d ok", state->p_read.seqnr));
@@ -1842,7 +1841,7 @@ ssh_packet_process_read(struct ssh *ssh, int fd)
 	int r;
 	size_t rlen;
 
-	if ((r = sshbuf_read(fd, state->input, PACKET_MAX_SIZE, &rlen)) != 0)
+	if ((r = sshbuf_read(fd, state->input, packet_max_size, &rlen)) != 0)
 		return r;
 
 	if (state->packet_discard) {
@@ -2241,6 +2240,7 @@ void
 ssh_packet_set_authenticated(struct ssh *ssh)
 {
 	ssh->state->after_authentication = 1;
+	packet_max_size = 256 * 1024;
 }
 
 void *
