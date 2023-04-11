@@ -961,7 +961,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		comp->enabled = 1;
 	}
 
-	/* get the maximum number of blocks the cipher can 
+	/* get the maximum number of blocks the cipher can
 	 * handle safely */
 	*max_blocks = cipher_rekey_blocks(enc->cipher);
 
@@ -2236,11 +2236,19 @@ ssh_packet_set_server(struct ssh *ssh)
 	ssh->kex->server = 1; /* XXX unify? */
 }
 
+/* Set the state of the connection to post auth
+ * While we are here also decrease the size of
+ * packet_max_size to something more reasonable.
+ * In this case thats 33k. Which is the size of
+ * the largest packet we expect to see and some space
+ * for overhead. This reduces memory usage in high
+ * BDP environments without impacting performance
+ * -cjr 4/11/23 */
 void
 ssh_packet_set_authenticated(struct ssh *ssh)
 {
 	ssh->state->after_authentication = 1;
-	packet_max_size = 256 * 1024;
+	packet_max_size = SSH_IOBUFSZ + 1024;
 }
 
 void *

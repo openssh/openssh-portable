@@ -27,7 +27,7 @@
 #define SSHBUF_INTERNAL
 #include "sshbuf.h"
 #include "misc.h"
-#include "log.h"
+/* #include "log.h" */
 
 #define BUF_WATERSHED 256*1024
 
@@ -425,8 +425,8 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 		 * up being somewhat overallocated but works quickly */
 		need = (4*1024*1024);
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
-		debug_f ("Post: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
-			 buf->label, buf, rlen, need, buf->window_max, buf->max_size);
+		/* debug_f ("Post: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu", */
+		/* 	 buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
 	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 
