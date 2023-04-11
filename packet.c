@@ -117,6 +117,10 @@
  */
 u_int packet_max_size = 256 * 1024;
 
+/* global to support forced rekeying */
+int rekey_requested = 0;
+
+
 struct packet_state {
 	u_int32_t seqnr;
 	u_int32_t packets;
@@ -978,7 +982,6 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 }
 
 /* this supports the forced rekeying required for the NONE cipher */
-int rekey_requested = 0;
 void
 packet_request_rekeying(void)
 {
