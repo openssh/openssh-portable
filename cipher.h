@@ -63,6 +63,7 @@ int	 cipher_get_length(struct sshcipher_ctx *, u_int *, u_int,
     const u_char *, u_int);
 void	 cipher_free(struct sshcipher_ctx *);
 u_int	 cipher_blocksize(const struct sshcipher *);
+uint64_t cipher_rekey_blocks(const struct sshcipher *);
 u_int	 cipher_keylen(const struct sshcipher *);
 u_int	 cipher_seclen(const struct sshcipher *);
 u_int	 cipher_authlen(const struct sshcipher *);

@@ -63,6 +63,9 @@
 #endif
 #include <signal.h>
 #include <time.h>
+#ifdef HAVE_UTIL_H
+# include <util.h>
+#endif
 
 /*
  * Explicitly include OpenSSL before zlib as some versions of OpenSSL have
@@ -888,6 +891,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	const char *wmsg;
 	int r, crypt_type;
 	const char *dir = mode == MODE_OUT ? "out" : "in";
+	char blocks_s[FMT_SCALED_STRSIZE], bytes_s[FMT_SCALED_STRSIZE];
 
 	debug2_f("mode %d", mode);
 
@@ -956,29 +960,20 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		}
 		comp->enabled = 1;
 	}
-	/*
-	 * The 2^(blocksize*2) limit is too expensive for 3DES,
-	 * so enforce a 1GB limit for small blocksizes.
-	 * See RFC4344 section 3.2.
-	 */
 
-	/* we really don't need to rekey if we are using the none cipher
-	 * but there isn't a good way to disable it entirely that I can find
-	 * and using a blocksize larger that 16 doesn't work (dunno why)
-	 * so this seems to be a good limit for now - CJR 10/16/2020*/
-	if (ssh->none == 1) {
-		*max_blocks = (u_int64_t)1 << (31*2);
-	} else {
-		if (enc->block_size >= 16)
-			*max_blocks = (u_int64_t)1 << (enc->block_size*2);
-		else
-			*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
+	/* get the maximum number of blocks the cipher can
+	 * handle safely */
+	*max_blocks = cipher_rekey_blocks(enc->cipher);
+
+	/* these lines support the debug */
+	strlcpy(blocks_s, "?", sizeof(blocks_s));
+	strlcpy(bytes_s, "?", sizeof(bytes_s));
+	if (*max_blocks * enc->block_size < LLONG_MAX) {
+		fmt_scaled((long long)*max_blocks, blocks_s);
+		fmt_scaled((long long)*max_blocks * enc->block_size, bytes_s);
 	}
-	if (state->rekey_limit)
-		*max_blocks = MINIMUM(*max_blocks,
-		    state->rekey_limit / enc->block_size);
-	debug("rekey %s after %llu blocks", dir,
-	      (unsigned long long)*max_blocks);
+	debug("rekey %s after %s blocks / %sB data", dir, blocks_s, bytes_s);
+
 	return 0;
 }
 
@@ -2241,6 +2236,14 @@ ssh_packet_set_server(struct ssh *ssh)
 	ssh->kex->server = 1; /* XXX unify? */
 }
 
+/* Set the state of the connection to post auth
+ * While we are here also decrease the size of
+ * packet_max_size to something more reasonable.
+ * In this case thats 33k. Which is the size of
+ * the largest packet we expect to see and some space
+ * for overhead. This reduces memory usage in high
+ * BDP environments without impacting performance
+ * -cjr 4/11/23 */
 void
 ssh_packet_set_authenticated(struct ssh *ssh)
 {
