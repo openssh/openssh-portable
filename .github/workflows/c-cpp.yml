@@ -53,7 +53,7 @@ jobs:
           - { target: ubuntu-latest, config: libressl-3.4.3 }
           - { target: ubuntu-latest, config: libressl-3.5.3 }
           - { target: ubuntu-latest, config: libressl-3.6.1 }
-          - { target: ubuntu-latest, config: libressl-3.7.1 }
+          - { target: ubuntu-latest, config: libressl-3.7.2 }
           - { target: ubuntu-latest, config: openssl-master }
           - { target: ubuntu-latest, config: openssl-noec }
           - { target: ubuntu-latest, config: openssl-1.1.1 }
