@@ -969,6 +969,11 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	 * handle safely */
 	*max_blocks = cipher_rekey_blocks(enc->cipher);
 
+	/* if we have a custom oRekeyLimit use that. */
+        if (state->rekey_limit)
+                *max_blocks = MINIMUM(*max_blocks,
+                    state->rekey_limit / enc->block_size);
+
 	/* these lines support the debug */
 	strlcpy(blocks_s, "?", sizeof(blocks_s));
 	strlcpy(bytes_s, "?", sizeof(bytes_s));
