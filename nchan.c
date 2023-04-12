@@ -136,7 +136,7 @@ chan_ibuf_empty(struct ssh *ssh, Channel *c)
 	}
 	switch (c->istate) {
 	case CHAN_INPUT_WAIT_DRAIN:
-		if (!(c->flags & (CHAN_CLOSE_SENT|CHAN_LOCAL)))
+		if (!(c->flags & ((unsigned)CHAN_CLOSE_SENT|(unsigned)CHAN_LOCAL)))
 			chan_send_eof2(ssh, c);
 		chan_set_istate(c, CHAN_INPUT_CLOSED);
 		break;
@@ -176,6 +176,8 @@ chan_rcvd_eow(struct ssh *ssh, Channel *c)
 	case CHAN_INPUT_OPEN:
 		chan_shutdown_read(ssh, c);
 		chan_set_istate(c, CHAN_INPUT_CLOSED);
+		break;
+	default:
 		break;
 	}
 }
@@ -288,6 +290,8 @@ chan_rcvd_oclose(struct ssh *ssh, Channel *c)
 		 */
 		chan_set_ostate(c, CHAN_OUTPUT_WAIT_DRAIN);
 		break;
+	default:
+		break;
 	}
 	switch (c->istate) {
 	case CHAN_INPUT_OPEN:
@@ -300,6 +304,8 @@ chan_rcvd_oclose(struct ssh *ssh, Channel *c)
 			chan_send_eof2(ssh, c);
 		chan_shutdown_extended_read(ssh, c);
 		chan_set_istate(c, CHAN_INPUT_CLOSED);
+		break;
+	default:
 		break;
 	}
 }
