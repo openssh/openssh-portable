@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.466 2023/03/08 00:05:37 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.467 2023/04/12 08:53:54 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1186,7 +1186,7 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 	case HKF_STATUS_OK:
 	case HKF_STATUS_MATCHED:
 		/*
-		 * Don't hash hosts already already hashed, with wildcard
+		 * Don't hash hosts already hashed, with wildcard
 		 * characters or a CA/revocation marker.
 		 */
 		if (was_hashed || has_wild || l->marker != MRK_NONE) {
