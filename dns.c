@@ -227,7 +227,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 		return -1;
 	}
 
-	if ((unsigned))fingerprints->rri_flags & (unsigned)RRSET_VALIDATED) {
+	if ((unsigned)fingerprints->rri_flags & (unsigned)RRSET_VALIDATED) {
 		*flags |= (unsigned)DNS_VERIFY_SECURE;
 		debug("found %d secure fingerprints in DNS",
 		    fingerprints->rri_nrdatas);
