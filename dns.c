@@ -227,7 +227,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 		return -1;
 	}
 
-	if (fingerprints->rri_flags & (unsigned)RRSET_VALIDATED) {
+	if ((unsigned))fingerprints->rri_flags & (unsigned)RRSET_VALIDATED) {
 		*flags |= (unsigned)DNS_VERIFY_SECURE;
 		debug("found %d secure fingerprints in DNS",
 		    fingerprints->rri_nrdatas);
@@ -269,11 +269,11 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 			    hostkey_digest_len) == 0) {
 				debug_f("matched SSHFP type %d fptype %d",
 				    dnskey_algorithm, dnskey_digest_type);
-				*flags |= DNS_VERIFY_MATCH;
+				*flags |= (unsigned)DNS_VERIFY_MATCH;
 			} else {
 				debug_f("failed SSHFP type %d fptype %d",
 				    dnskey_algorithm, dnskey_digest_type);
-				*flags |= DNS_VERIFY_FAILED;
+				*flags |= (unsigned)DNS_VERIFY_FAILED;
 			}
 		}
 		free(dnskey_digest);
@@ -283,11 +283,11 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	freerrset(fingerprints);
 
 	/* If any fingerprint failed to validate, return failure. */
-	if (*flags & (unsigned)DNS_VERIFY_FAILED)
+	if ((unsigned)*flags & (unsigned)DNS_VERIFY_FAILED)
 		*flags &= ~(unsigned)DNS_VERIFY_MATCH;
 
-	if (*flags & (unsigned)DNS_VERIFY_FOUND)
-		if (*flags & (unsigned)DNS_VERIFY_MATCH)
+	if ((unsigned)*flags & (unsigned)DNS_VERIFY_FOUND)
+		if ((unsigned)*flags & (unsigned)DNS_VERIFY_MATCH)
 			debug("matching host key fingerprint found in DNS");
 		else
 			debug("mismatching host key fingerprint found in DNS");
