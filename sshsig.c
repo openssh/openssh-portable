@@ -92,7 +92,7 @@ sshsig_dearmor(struct sshbuf *sig, struct sshbuf **out)
 	size_t eoffset = 0;
 	struct sshbuf *buf = NULL;
 	struct sshbuf *sbuf = NULL;
-	char *b64 = NULL;
+	char *b64 = (char*) malloc(20 * sizeof(char));
 
 	if ((sbuf = sshbuf_fromb(sig)) == NULL) {
 		error_f("sshbuf_fromb failed");
@@ -257,7 +257,7 @@ static int
 sshsig_peek_hashalg(struct sshbuf *signature, char **hashalgp)
 {
 	struct sshbuf *buf = NULL;
-	char *hashalg = NULL;
+	char *hashalg = (char*) malloc(20 * sizeof(char));
 	int r = SSH_ERR_INTERNAL_ERROR;
 
 	if (hashalgp != NULL)
