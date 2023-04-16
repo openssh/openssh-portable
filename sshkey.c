@@ -313,7 +313,8 @@ sshkey_match_keyname_to_sigalgs(const char *keyname, const char *sigalgs)
 char *
 sshkey_alg_list(int certs_only, int plain_only, int include_sigonly, char sep)
 {
-	char *tmp, *ret = NULL;
+	char *tmp = (char*) malloc(20 * sizeof(char));
+	char *ret = NULL;
 	size_t i, nlen, rlen = 0;
 	const struct sshkey_impl *impl;
 
@@ -342,7 +343,8 @@ sshkey_alg_list(int certs_only, int plain_only, int include_sigonly, char sep)
 int
 sshkey_names_valid2(const char *names, int allow_wildcard)
 {
-	char *s, *cp, *p;
+	char *s = (char*) malloc(20 * sizeof(char));
+	char *cp, *p;
 	const struct sshkey_impl *impl;
 	int i, type;
 
@@ -1167,7 +1169,8 @@ int
 sshkey_read(struct sshkey *ret, char **cpp)
 {
 	struct sshkey *k;
-	char *cp, *blobcopy;
+	char *cp;
+	char *blobcopy = (char*) malloc(20 * sizeof(char));
 	size_t space;
 	int r, type, curve_nid = -1;
 	struct sshbuf *blob;
@@ -2944,14 +2947,14 @@ static int
 private2_decrypt(struct sshbuf *decoded, const char *passphrase,
     struct sshbuf **decryptedp, struct sshkey **pubkeyp)
 {
-	char *ciphername = NULL, *kdfname = NULL;
+	char *ciphername = (char*) malloc(20 * sizeof(char)), *kdfname = (char*) malloc(20 * sizeof(char));
 	const struct sshcipher *cipher = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
 	size_t keylen = 0, ivlen = 0, authlen = 0, slen = 0;
 	struct sshbuf *kdf = NULL, *decrypted = NULL;
 	struct sshcipher_ctx *ciphercontext = NULL;
 	struct sshkey *pubkey = NULL;
-	u_char *key = NULL, *salt = NULL, *dp;
+	u_char *key = NULL, *salt = (u_char*) malloc(20 * sizeof(u_char)), *dp;
 	u_int blocksize, rounds, nkeys, encrypted_len, check1, check2;
 
 	if (decoded == NULL || decryptedp == NULL || pubkeyp == NULL)
