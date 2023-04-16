@@ -206,16 +206,19 @@ ssh_add_hostkey(struct ssh *ssh, struct sshkey *key)
 		k->key = pubkey;
 		TAILQ_INSERT_TAIL(&ssh->public_keys, k, next);
 		r = 0;
-		free(k);      /* release memory allocated for k */
-    	free(k_prv);  /* release memory allocated for k_prv */
 	} else {
 		if ((k = malloc(sizeof(*k))) == NULL)
 			return SSH_ERR_ALLOC_FAIL;
 		k->key = key;
 		TAILQ_INSERT_TAIL(&ssh->public_keys, k, next);
 		r = 0;
-		free(k);  /* release memory allocated for k */
 	}
+
+	/* free memory before returning */
+	if (r != 0) {
+		free(k_prv);
+		free(k);
+	} 
 
 	return r;
 }
