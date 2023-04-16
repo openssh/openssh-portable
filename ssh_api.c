@@ -169,6 +169,7 @@ ssh_free(struct ssh *ssh)
 	}
 	ssh_packet_close(ssh);
 	free(ssh);
+	free(k);
 }
 
 void
