@@ -196,7 +196,6 @@ ssh_add_hostkey(struct ssh *ssh, struct sshkey *key)
 			return r;
 		if ((k = malloc(sizeof(*k))) == NULL ||
 		    (k_prv = malloc(sizeof(*k_prv))) == NULL) {
-			free(k);
 			sshkey_free(pubkey);
 			return SSH_ERR_ALLOC_FAIL;
 		}
