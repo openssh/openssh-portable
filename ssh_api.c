@@ -160,10 +160,12 @@ ssh_free(struct ssh *ssh)
 		if (ssh->kex && ssh->kex->server)
 			sshkey_free(k->key);
 		free(k);
+		k = NULL; // set k to NULL after freeing it
 	}
 	while ((k = TAILQ_FIRST(&ssh->private_keys)) != NULL) {
 		TAILQ_REMOVE(&ssh->private_keys, k, next);
 		free(k);
+		k = NULL; // set k to NULL after freeing it
 	}
 	ssh_packet_close(ssh);
 	free(ssh);
