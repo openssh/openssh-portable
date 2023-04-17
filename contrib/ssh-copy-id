@@ -364,6 +364,11 @@ if [ "$DRY_RUN" ] ; then
 	=-=-=-=-=-=-=-=
 	EOF
 else
+  # replace SSH port argument with SFTP port argument if SFTP and a custom port was used
+  if [ "$SFTP" ] ; then
+    SSH_OPTS="$(echo $SSH_OPTS | sed 's/-p/-P/')"
+  fi
+  
   cat <<-EOF
 
 	Number of key(s) added: $ADDED
