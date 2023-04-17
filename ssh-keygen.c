@@ -2981,8 +2981,9 @@ do_moduli_gen(const char *out_file, char **opts, size_t nopts)
 			    "generation", opts[i]);
 		}
 	}
-
-	if ((out = fopen(out_file, "w")) == NULL) {
+	
+	out = (strcmp(out_file, "-") != 0) ? fopen(out_file, "w") : stdout;
+	if (out == NULL) {
 		fatal("Couldn't open modulus candidate file \"%s\": %s",
 		    out_file, strerror(errno));
 	}
@@ -3047,7 +3048,8 @@ do_moduli_screen(const char *out_file, char **opts, size_t nopts)
 		}
 	}
 
-	if ((out = fopen(out_file, "a")) == NULL) {
+	out = (strcmp(out_file, "-") != 0) ? fopen(out_file, "a") : stdout;
+	if (out == NULL) {
 		fatal("Couldn't open moduli file \"%s\": %s",
 		    out_file, strerror(errno));
 	}
