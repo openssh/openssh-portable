@@ -153,8 +153,8 @@ poly1305_donna_finish:
 	f2 = ((h2 >> 12) | (h3 << 14)) + (uint64_t)U8TO32_LE(&key[24]);
 	f3 = ((h3 >> 18) | (h4 <<  8)) + (uint64_t)U8TO32_LE(&key[28]);
 
-	U32TO8_LE(&out[ 0], f0); f1 += (f0 >> 32);
-	U32TO8_LE(&out[ 4], f1); f2 += (f1 >> 32);
-	U32TO8_LE(&out[ 8], f2); f3 += (f2 >> 32);
-	U32TO8_LE(&out[12], f3);
+	out[0] = (uint8_t)(f0 & 0xFF), f1 += (f0 >> 32);
+	out[4] = (uint8_t)(f1 & 0xFF), f2 += (f1 >> 32);
+	out[8] = (uint8_t)(f2 & 0xFF), f3 += (f2 >> 32);
+	U32TO8_LE((uint8_t*)&out[12], f3);
 }

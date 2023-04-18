@@ -80,7 +80,7 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	 * packet sequence number.
 	 */
 	memset(poly_key, 0, sizeof(poly_key));
-	POKE_U64(seqbuf, seqnr);
+	POKE_U64(seqbuf + 8, seqnr & 0xffU);
 	chacha_ivsetup(&ctx->main_ctx, seqbuf, NULL);
 	chacha_encrypt_bytes(&ctx->main_ctx,
 	    poly_key, poly_key, sizeof(poly_key));
@@ -129,7 +129,7 @@ chachapoly_get_length(struct chachapoly_ctx *ctx,
 
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
-	POKE_U64(seqbuf, seqnr);
+	POKE_U64(seqbuf, seqnr & 0xffU);
 	chacha_ivsetup(&ctx->header_ctx, seqbuf, NULL);
 	chacha_encrypt_bytes(&ctx->header_ctx, cp, buf, 4);
 	*plenp = PEEK_U32(buf);
