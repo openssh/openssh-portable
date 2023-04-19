@@ -301,7 +301,7 @@ channel_lookup(struct ssh *ssh, int id)
 	case SSH_CHANNEL_ABANDONED:
 	case SSH_CHANNEL_MUX_PROXY:
 		return c;
-	default:
+	//default:
 	}
 	logit("Non-public channel %d, type %d.", id, c->type);
 	return NULL;
