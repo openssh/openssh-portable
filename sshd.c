@@ -1912,7 +1912,7 @@ main(int ac, char **av)
 				sensitive_data.have_ssh2_key = 1;
 			break;
 		default:
-			return;
+			break;
 		}
 		if ((fp = sshkey_fingerprint(pubkey, options.fingerprint_hash,
 		    SSH_FP_DEFAULT)) == NULL)

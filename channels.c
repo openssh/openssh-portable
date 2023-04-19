@@ -301,7 +301,8 @@ channel_lookup(struct ssh *ssh, int id)
 	case SSH_CHANNEL_ABANDONED:
 	case SSH_CHANNEL_MUX_PROXY:
 		return c;
-	//default:
+	default:
+		break;
 	}
 	logit("Non-public channel %d, type %d.", id, c->type);
 	return NULL;
@@ -3531,7 +3532,7 @@ reason2txt(int reason)
 	case SSH2_OPEN_RESOURCE_SHORTAGE:
 		return "resource shortage";
 	default:
-		return;
+		break;
 	}
 
 	return "unknown reason";
