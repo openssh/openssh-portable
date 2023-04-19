@@ -270,6 +270,8 @@ key_type_is_ecdsa_variant(int type)
 	case KEY_ECDSA_SK:
 	case KEY_ECDSA_SK_CERT:
 		return 1;
+	default:
+		break;
 	}
 	return 0;
 }
@@ -941,17 +943,17 @@ fingerprint_bubblebabble(u_char *dgst_raw, size_t dgst_raw_len)
 	for (i = 0; i < rounds; i++) {
 		u_int idx0, idx1, idx2, idx3, idx4;
 		if ((i + 1 < rounds) || (dgst_raw_len % 2 != 0)) {
-			idx0 = (((((u_int)(dgst_raw[2 * i])) >> 6) & 3) +
+			idx0 = (((((u_int)(dgst_raw[2 * i])) >> 6) & (unsigned)3) +
 			    seed) % 6;
-			idx1 = (((u_int)(dgst_raw[2 * i])) >> 2) & 15;
-			idx2 = ((((u_int)(dgst_raw[2 * i])) & 3) +
+			idx1 = (((u_int)(dgst_raw[2 * i])) >> 2) & (unsigned)15;
+			idx2 = ((((u_int)(dgst_raw[2 * i])) & (unsigned)3) +
 			    (seed / 6)) % 6;
 			retval[j++] = vowels[idx0];
 			retval[j++] = consonants[idx1];
 			retval[j++] = vowels[idx2];
 			if ((i + 1) < rounds) {
-				idx3 = (((u_int)(dgst_raw[(2 * i) + 1])) >> 4) & 15;
-				idx4 = (((u_int)(dgst_raw[(2 * i) + 1]))) & 15;
+				idx3 = (((u_int)(dgst_raw[(2 * i) + 1])) >> 4) & (unsigned)15;
+				idx4 = (((u_int)(dgst_raw[(2 * i) + 1]))) & (unsigned)15;
 				retval[j++] = consonants[idx3];
 				retval[j++] = '-';
 				retval[j++] = consonants[idx4];
@@ -1074,11 +1076,11 @@ fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
 	/* output upper border */
 	p = retval;
 	*p++ = '+';
-	for (i = 0; i < (FLDSIZE_X - tlen) / 2; i++)
+	for (i = 0; i < ((unsigned char)FLDSIZE_X - tlen) / 2; i++)
 		*p++ = '-';
 	memcpy(p, title, tlen);
 	p += tlen;
-	for (i += tlen; i < FLDSIZE_X; i++)
+	for (i += tlen; i < (unsigned int)FLDSIZE_X; i++)
 		*p++ = '-';
 	*p++ = '+';
 	*p++ = '\n';
@@ -1094,11 +1096,11 @@ fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
 
 	/* output lower border */
 	*p++ = '+';
-	for (i = 0; i < (FLDSIZE_X - hlen) / 2; i++)
+	for (i = 0; i < ((unsigned char)FLDSIZE_X - hlen) / 2; i++)
 		*p++ = '-';
 	memcpy(p, hash, hlen);
 	p += hlen;
-	for (i += hlen; i < FLDSIZE_X; i++)
+	for (i += hlen; i < (unsigned int)FLDSIZE_X; i++)
 		*p++ = '-';
 	*p++ = '+';
 
@@ -3381,6 +3383,8 @@ translate_libcrypto_error(unsigned long pem_err)
 		}
 	case ERR_LIB_ASN1:
 		return SSH_ERR_INVALID_FORMAT;
+	default:
+		break;
 	}
 	return SSH_ERR_LIBCRYPTO_ERROR;
 }

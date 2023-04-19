@@ -1171,6 +1171,8 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 				return -1;
 			case 0:
 				result = 0;
+			default:
+				break;
 			}
 		} else if (strcasecmp(attrib, "host") == 0) {
 			if (ci == NULL || (ci->test && ci->host == NULL)) {
@@ -1205,6 +1207,8 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 				break;
 			case -2:
 				return -1;
+			default:
+				break;
 			}
 		} else if (strcasecmp(attrib, "localaddress") == 0){
 			if (ci == NULL || (ci->test && ci->laddress == NULL)) {
@@ -1230,6 +1234,8 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 				break;
 			case -2:
 				return -1;
+			default:
+				break;
 			}
 		} else if (strcasecmp(attrib, "localport") == 0) {
 			if ((port = a2port(arg)) == -1) {
@@ -2012,6 +2018,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		case 1:
 			if (value < 0 || value > 32)
 				n = -1;
+		default:
+			break;
 		}
 		if (n != 1 && n != 2)
 			fatal("%s line %d: Invalid %s spec.",

@@ -324,6 +324,8 @@ addr_increment(struct xaddr *a)
 				break;
 		}
 		break;
+	default:
+		break;
 	}
 }
 
