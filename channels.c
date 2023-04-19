@@ -477,7 +477,7 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 		debug2("channel: expanding %d", sc->channels_alloc);
 	}
 	/* Initialize and return new channel. */
-	c = sc->channels[found] = xcalloc(1, sizeof(*c));
+	c = sc->channels[found] = xcalloc(1, sizeof(Channel));
 	if ((c->input = sshbuf_new()) == NULL ||
 	    (c->output = sshbuf_new()) == NULL ||
 	    (c->extended = sshbuf_new()) == NULL)
