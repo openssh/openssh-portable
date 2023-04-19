@@ -3882,7 +3882,7 @@ channel_setup_fwd_listener_streamlocal(struct ssh *ssh, int type,
 	switch (type) {
 	case SSH_CHANNEL_UNIX_LISTENER:
 		if (fwd->connect_path != NULL) {
-			if (strlen(fwd->connect_path) >= sizeof(sunaddr.sun_path)) {
+			if (strlen(fwd->connect_path) > sizeof(sunaddr.sun_path)) {
 				error("Local connecting path too long: %s",
 				    fwd->connect_path);
 				return 0;
