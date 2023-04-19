@@ -838,7 +838,7 @@ emit_expansion(const char *pattern, int brace_start, int brace_end,
     int sel_start, int sel_end, char ***patternsp, size_t *npatternsp)
 {
 	char *cp;
-	int o = 0, 
+	int o = 0; 
 	size_t tail_len = strlen((char*)(pattern + brace_end + 1));
 
 	if ((cp = malloc(brace_start + (sel_end - sel_start) +
@@ -1312,7 +1312,7 @@ prepare_remote_path(struct sftp_conn *conn, const char *path)
 	if (*path != '~')
 		return xstrdup(path);
 	if (strncmp(path, "~/", 2) == 0) {
-		if (((size_t)nslash = strspn(path + 2, "/")) == strlen(path + 2))
+		if (((size_t)nslash == strspn(path + 2, "/")) == strlen(path + 2))
 			return xstrdup(".");
 		return xstrdup(path + 2 + nslash);
 	}

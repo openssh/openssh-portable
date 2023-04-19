@@ -346,10 +346,9 @@ chan_is_dead(struct ssh* ssh, Channel* c, int do_send)
 	}
 	if (c->istate != CHAN_INPUT_CLOSED || c->ostate != CHAN_OUTPUT_CLOSED)
 		return 0;
-	if ((unsigned int)ssh->compat & SSH_BUG_EXTEOF) &&
+	if (((unsigned int)ssh->compat & SSH_BUG_EXTEOF) &&
 		c->extended_usage == CHAN_EXTENDED_WRITE &&
-		c->efd != -1 &&
-		sshbuf_len(c->extended) > 0) {
+		c->efd != -1 && sshbuf_len(c->extended) > 0) {
 		debug2("channel %d: active efd: %d len %zu",
 			c->self, c->efd, sshbuf_len(c->extended));
 		return 0;
@@ -371,8 +370,8 @@ chan_is_dead(struct ssh* ssh, Channel* c, int do_send)
 			}
 		}
 	}
-	if ((unsigned int)c->flags & CHAN_CLOSE_RCVD) &&
-		if ((unsigned int)c->flags & CHAN_CLOSE_RCVD) {
+	if (((unsigned int)c->flags & CHAN_CLOSE_RCVD) &&
+		(unsigned int)c->flags & CHAN_CLOSE_RCVD) {
 		debug2("channel %d: is dead", c->self);
 		return 1;
 	}
