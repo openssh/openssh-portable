@@ -92,7 +92,7 @@ sshsig_dearmor(struct sshbuf *sig, struct sshbuf **out)
 	size_t eoffset = 0;
 	struct sshbuf *buf = NULL;
 	struct sshbuf *sbuf = NULL;
-	char *b64 = NULL;
+	char *b64 = (char*) malloc(20 * sizeof(char));
 
 	if ((sbuf = sshbuf_fromb(sig)) == NULL) {
 		error_f("sshbuf_fromb failed");
@@ -257,7 +257,7 @@ static int
 sshsig_peek_hashalg(struct sshbuf *signature, char **hashalgp)
 {
 	struct sshbuf *buf = NULL;
-	char *hashalg = NULL;
+	char *hashalg = (char*) malloc(20 * sizeof(char));
 	int r = SSH_ERR_INTERNAL_ERROR;
 
 	if (hashalgp != NULL)
@@ -462,7 +462,7 @@ sshsig_verifyb(struct sshbuf *signature, const struct sshbuf *message,
 {
 	struct sshbuf *b = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
-	char *hashalg = NULL;
+	char *hashalg = (char*) malloc(20 * sizeof(char));
 
 	if (sig_details != NULL)
 		*sig_details = NULL;
@@ -590,7 +590,7 @@ sshsig_verify_fd(struct sshbuf *signature, int fd,
 {
 	struct sshbuf *b = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
-	char *hashalg = NULL;
+	char *hashalg = (char*) malloc(20 * sizeof(char));
 
 	if (sig_details != NULL)
 		*sig_details = NULL;
@@ -701,6 +701,7 @@ sshsigopt_parse(const char *opts, const char *path, u_long linenum,
 	/* success */
 	return ret;
  fail:
+	free(opt);
 	if (errstrp != NULL)
 		*errstrp = errstr;
 	sshsigopt_free(ret);
@@ -721,7 +722,8 @@ parse_principals_key_and_options(const char *path, u_long linenum, char *line,
     const char *required_principal, char **principalsp, struct sshkey **keyp,
     struct sshsigopt **sigoptsp)
 {
-	char *opts = NULL, *tmp, *cp, *principals = NULL;
+	char *opts = NULL, *tmp, *cp = NULL;
+	char *principals = (char*) malloc(20 * sizeof(char));
 	const char *reason = NULL;
 	struct sshsigopt *sigopts = NULL;
 	struct sshkey *key = NULL;
@@ -974,7 +976,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
     const char *principal, const char *sig_namespace, uint64_t verify_time)
 {
 	FILE *f = NULL;
-	char *line = NULL;
+	char *line = (char*) malloc(20 * sizeof(char));
 	size_t linesize = 0;
 	u_long linenum = 0;
 	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
@@ -1015,7 +1017,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
     uint64_t verify_time, char **principals)
 {
 	FILE *f = NULL;
-	char *line = NULL;
+	char *line = (char*) malloc(20 * sizeof(char));
 	size_t linesize = 0;
 	u_long linenum = 0;
 	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
