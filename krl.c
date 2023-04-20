@@ -505,6 +505,8 @@ choose_next_state(int current_state, u_int64_t contig, int final,
 	case 0:
 		cost_bitmap_restart = cost_bitmap = 8 + 64;
 		cost_list = 8;
+	default:
+		break;
 	}
 
 	/* Estimate base cost in bits of each section type */
@@ -627,6 +629,8 @@ revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
 				bitmap_free(bitmap);
 				bitmap = NULL;
 				break;
+			default:
+				break;
 			}
 			if ((r = sshbuf_put_u8(buf, state)) != 0 ||
 			    (r = sshbuf_put_stringb(buf, sect)) != 0)
@@ -653,6 +657,8 @@ revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
 				if ((r = sshbuf_put_u64(sect,
 				    bitmap_start)) != 0)
 					goto out;
+				break;
+			default:
 				break;
 			}
 		}
@@ -683,6 +689,8 @@ revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
 				}
 			}
 			break;
+		default:
+			break;
 		}
 		last = rs->hi;
 	}
@@ -698,6 +706,8 @@ revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
 				goto out;
 			bitmap_free(bitmap);
 			bitmap = NULL;
+			break;
+		default:
 			break;
 		}
 		if ((r = sshbuf_put_u8(buf, state)) != 0 ||

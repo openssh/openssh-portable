@@ -202,6 +202,8 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		case KEY_RSA:
 			*bitsp = DEFAULT_BITS;
 			break;
+		default:
+			break;
 		}
 #endif
 	}
@@ -228,6 +230,8 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 			fatal("Invalid ECDSA key length: valid lengths are "
 			    "256 or 384 bits");
 #endif
+	default:
+		break;
 	}
 #endif
 }
@@ -585,6 +589,8 @@ do_convert_private_ssh2(struct sshbuf *b)
 			fatal_fr(r, "generate RSA parameters");
 		BN_clear_free(rsa_iqmp);
 		break;
+	default:
+		break;
 	}
 	rlen = sshbuf_len(b);
 	if (rlen != 0)
@@ -624,6 +630,8 @@ get_line(FILE *fp, char *line, size_t len)
 			return pos;
 		case '\n':
 			return pos;
+		default:
+			break;
 		}
 		line[pos++] = c;
 		line[pos] = '\0';

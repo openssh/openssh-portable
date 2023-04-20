@@ -223,7 +223,7 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 		goto out;
 
 	/* save initial signature and hostkey */
-	if ((kex->flags & KEX_INITIAL) != 0) {
+	if ((kex->flags & (unsigned)KEX_INITIAL) != 0) {
 		if (kex->initial_hostkey != NULL || kex->initial_sig != NULL) {
 			r = SSH_ERR_INTERNAL_ERROR;
 			goto out;

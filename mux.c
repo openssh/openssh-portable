@@ -791,6 +791,8 @@ mux_master_process_open_fwd(struct ssh *ssh, u_int rid,
 			goto out;
 		}
 		break;
+	default:
+		break;
 	}
 
 	if (options.control_master == SSHCTL_MASTER_ASK ||
@@ -915,6 +917,8 @@ mux_master_process_close_fwd(struct ssh *ssh, u_int rid,
 				break;
 			}
 		}
+		break;
+	default:
 		break;
 	}
 
