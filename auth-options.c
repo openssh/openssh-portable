@@ -61,7 +61,6 @@ dup_strings(char ***dstp, size_t *ndstp, char **src, size_t nsrc)
 			return -1;
 		}
 	}
-
 	/* success */
 	*dstp = dst;
 	*ndstp = nsrc;
