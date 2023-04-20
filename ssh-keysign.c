@@ -289,10 +289,11 @@ main(int argc, char **argv)
 		fatal("%s: no matching hostkey found for key %s %s", __progname,
 		    sshkey_type(key), fp ? fp : "");
 	}
-
+	if (i<5){
 	if ((r = sshkey_sign(keys[i], &signature, &slen, data, dlen,
 	    pkalg, NULL, NULL, 0)) != 0)
 		fatal_r(r, "%s: sshkey_sign failed", __progname);
+	}
 	free(data);
 
 	/* send reply */

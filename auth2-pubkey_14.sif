@@ -1,0 +1,1640 @@
+/* $OpenBSD: auth2-pubkey.c,v 1.117 2022/09/17 10:34:29 djm Exp $ */
+/*
+ * Copyright (c) 2000 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2010 Damien Miller.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+ 
+#include "includes.h"
+ 
+#include <sys/types.h>
+ 
+#include <stdlib.h>
+#include <errno.h>
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
+#include <pwd.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include <limits.h>
+ 
+#include "xmalloc.h"
+/* (O) STATIC VIOLATION     : 243 S : CERT-C:2016 PRE06-C: Included file not protected with #define. :   3443F/* OPEN FILE /home/student/dgq0001/Downloads/openssh-portable/xmalloc.h */ */
+#include "ssh.h"
+/* (O) STATIC VIOLATION     : 243 S : CERT-C:2016 PRE06-C: Included file not protected with #define. :   3500F/* OPEN FILE /home/student/dgq0001/Downloads/openssh-portable/ssh.h */ */
+#include "ssh2.h"
+/* (O) STATIC VIOLATION     : 243 S : CERT-C:2016 PRE06-C: Included file not protected with #define. :   3585F/* OPEN FILE /home/student/dgq0001/Downloads/openssh-portable/ssh2.h */ */
+#include "packet.h"
+#include "kex.h"
+#include "sshbuf.h"
+#include "log.h"
+#include "misc.h"
+#include "servconf.h"
+#include "compat.h"
+#include "sshkey.h"
+#include "hostfile.h"
+#include "auth.h"
+#include "pathnames.h"
+/* (O) STATIC VIOLATION     : 243 S : CERT-C:2016 PRE06-C: Included file not protected with #define. :   8792F/* OPEN FILE /home/student/dgq0001/Downloads/openssh-portable/pathnames.h */ */
+#include "uidswap.h"
+/* (O) STATIC VIOLATION     : 243 S : CERT-C:2016 PRE06-C: Included file not protected with #define. :   8912F/* OPEN FILE /home/student/dgq0001/Downloads/openssh-portable/uidswap.h */ */
+#include "auth-options.h"
+#include "canohost.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
+#include "monitor_wrap.h"
+#include "authfile.h"
+#include "match.h"
+#include "ssherr.h"
+#include "channels.h" /* XXX for session.h */
+#include "session.h" /* XXX for child_set_env(); refactor? */
+#include "sk-api.h"
+ 
+/* import */
+extern ServerOptions options;
+ 
+static char *
+format_key(const struct sshkey *key)
+\{
+	char *ret, *fp = sshkey_fingerprint(key,
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  10515F      ret , */
+	    options.fingerprint_hash, SSH_FP_DEFAULT);
+ 
+	xasprintf(&ret, "%s %s", sshkey_type(key), fp);
+/* (O) STATIC VIOLATION     : 382 S : CERT-C:2016 ERR33-C,EXP12-C: (void) missing for discarded return value. :  10517T    xasprintf ( & ret , "%s %s" , */
+/* (M) DATAFLOW VIOLATION   : 53 D : CERT-C:2016 EXP08-C,EXP33-C: Attempt to use uninitialised pointer. : ret : 10517 */
+/*    See also line 79 auth2-pubkey.c */
+	free(fp);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  10519T    free ( fp ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : fp : 10519 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 10519 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : fp : 10519 */
+	return ret;
+\}
+/* (M) DATAFLOW VIOLATION   : 24 D : CERT-C:2016 DCL31-C: Procedure definition has no associated prototype. : format_key */
+ 
+static int
+/* (O) STATIC VIOLATION     : 35 S : CERT-C:2016 MSC06-C: Static procedure is not explicitly called in code analysed. : userauth_pubkey :  10524Fstatic int */
+userauth_pubkey(struct ssh *ssh, const char *method)
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : ssh :  10526F  struct ssh * ssh , */
+\{
+	Authctxt *authctxt = ssh->authctxt;
+	struct passwd *pw = authctxt->pw;
+	struct sshbuf *b = NULL;
+	struct sshkey *key = NULL, *hostkey = NULL;
+	char *pkalg = NULL, *userstyle = NULL, *key_s = NULL, *ca_s = NULL;
+/* (O) XREF VIOLATION       : 67 X : CERT-C:2016 DCL02-C: Identifier is typographically ambiguous. : keys :  10538F      * key_s = NULL , */
+/*    See also line 56 hostfile.h */
+	u_char *pkblob = NULL, *sig = NULL, have_sig;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  10542F    have_sig ; */
+	size_t blen, slen;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  10544F      blen , */
+	int hostbound, r, pktype;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  10547F      hostbound , */
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  10548F      r , */
+	int req_presence = 0, req_verify = 0, authenticated = 0;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  10552F      req_verify = 0 , */
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  10553F      authenticated = 0 ; */
+/* (O) DATAFLOW VIOLATION   : 105 D : CERT-C:2016 MSC06-C,MSC12-C,MSC13-C: DU anomaly dead code, var value is unused on all paths. : req_presence : 10551 */
+/* (O) DATAFLOW VIOLATION   : 105 D : CERT-C:2016 MSC06-C,MSC12-C,MSC13-C: DU anomaly dead code, var value is unused on all paths. : req_verify : 10552 */
+	struct sshauthopt *authopts = NULL;
+	struct sshkey_sig_details *sig_details = NULL;
+ 
+	hostbound = strcmp(method, "publickey-hostbound-v00@openssh.com") == 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10558T    hostbound = strcmp ( method , "publickey-hostbound-v00@openssh.com" ) == 0 ; */
+ 
+	if ((r = sshpkt_get_u8(ssh, &have_sig)) != 0 ||
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10561T      ( r = sshpkt_get_u8 ( ssh , & have_sig ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10561 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10561 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10561 */
+/* (M) DATAFLOW VIOLATION   : 53 D : CERT-C:2016 EXP08-C,EXP33-C: Attempt to use uninitialised pointer. : have_sig : 10561 */
+/*    See also line 95 auth2-pubkey.c */
+	    (r = sshpkt_get_cstring(ssh, &pkalg, NULL)) != 0 ||
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10563T      ( r = sshpkt_get_cstring ( ssh , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10563 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10563 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10563 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10565T      ) != 0 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10565 */
+	    (r = sshpkt_get_string(ssh, &pkblob, &blen)) != 0)
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10567T      ( r = sshpkt_get_string ( ssh , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10567 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10567 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10567 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10569T      ) != 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10571T      { */
+		fatal_fr(r, "parse %s packet", method);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10572T        sshfatal ( __FILE__ , __func__ , 10505 , 1 , SYSLOG_LEVEL_FATAL , */
+ 
+	/* hostbound auth includes the hostkey offered at initial KEX */
+	if (hostbound) \{
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10578T      hostbound */
+		if ((r = sshpkt_getb_froms(ssh, &b)) != 0 ||
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10583T          ( r = sshpkt_getb_froms ( ssh , & b ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10583 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10583 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10583 */
+		    (r = sshkey_fromb(b, &hostkey)) != 0)
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10585T          ( r = sshkey_fromb ( b , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10585 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10585 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10585 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10587T          ) != 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10589T          { */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : hostkey : 10586 */
+/*    See also line 93 auth2-pubkey.c */
+			fatal_fr(r, "parse %s hostkey", method);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10590T            sshfatal ( __FILE__ , __func__ , 10511 , 1 , SYSLOG_LEVEL_FATAL , */
+		if (ssh->kex->initial_hostkey == NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : initial_hostkey :  10595T          ssh -> kex -> initial_hostkey == NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10597T          { */
+			fatal_f("internal error: initial hostkey not recorded");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10598T            sshfatal ( __FILE__ , __func__ , 10513 , 1 , SYSLOG_LEVEL_FATAL , NULL , "internal error: initial hostkey not recorded" ) ; */
+		if (!sshkey_equal(hostkey, ssh->kex->initial_hostkey))
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10602T          ! sshkey_equal ( hostkey , ssh -> kex -> initial_hostkey ) */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10604T          { */
+			fatal_f("%s packet contained wrong host key", method);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10605T            sshfatal ( __FILE__ , __func__ , 10515 , 1 , SYSLOG_LEVEL_FATAL , NULL , "%s packet contained wrong host key" , method ) ; */
+		sshbuf_free(b);
+		b = NULL;
+	\}
+ 
+	if (log_level_get() >= SYSLOG_LEVEL_DEBUG2) \{
+		char *keystring;
+		struct sshbuf *pkbuf;
+ 
+		if ((pkbuf = sshbuf_from(pkblob, blen)) == NULL)
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10621T          ( pkbuf = sshbuf_from ( pkblob , blen ) ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10621 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 10621 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10623T          { */
+			fatal_f("sshbuf_from failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10624T            sshfatal ( __FILE__ , __func__ , 10525 , 1 , SYSLOG_LEVEL_FATAL , NULL , "sshbuf_from failed" ) ; */
+		if ((keystring = sshbuf_dtob64_string(pkbuf, 0)) == NULL)
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10628T          ( keystring = sshbuf_dtob64_string ( pkbuf , 0 ) ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10628 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10628 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 10628 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10630T          { */
+			fatal_f("sshbuf_dtob64 failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10631T            sshfatal ( __FILE__ , __func__ , 10527 , 1 , SYSLOG_LEVEL_FATAL , NULL , "sshbuf_dtob64 failed" ) ; */
+		debug2_f("%s user %s %s public key %s %s",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10633T        sshlog ( __FILE__ , __func__ , 10528 , 1 , SYSLOG_LEVEL_DEBUG2 , NULL , "%s user %s %s public key %s %s" ,   authctxt -> valid */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. : 10633 */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10639T        authctxt -> user ,   have_sig */
+		    authctxt->valid ? "valid" : "invalid", authctxt->user,
+		    have_sig ? "attempting" : "querying", pkalg, keystring);
+		sshbuf_free(pkbuf);
+		free(keystring);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  10648T        free ( keystring ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : keystring : 10648 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 10648 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : keystring : 10648 */
+	\}
+ 
+	pktype = sshkey_type_from_name(pkalg);
+	if (pktype == KEY_UNSPEC) \{
+		/* this is perfectly legal */
+		verbose_f("unsupported public key algorithm: %s", pkalg);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10657T        sshlog ( __FILE__ , __func__ , 10538 , 1 , SYSLOG_LEVEL_VERBOSE , NULL , "unsupported public key algorithm: %s" , pkalg ) ; */
+		goto done;
+	\}
+	if ((r = sshkey_from_blob(pkblob, blen, &key)) != 0) \{
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10662T      ( r = sshkey_from_blob ( pkblob , blen , & key ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10662 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10662 */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : key : 10662 */
+/*    See also line 93 auth2-pubkey.c */
+		error_fr(r, "parse key");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10665T        sshlog ( __FILE__ , __func__ , 10542 , 1 , SYSLOG_LEVEL_ERROR , */
+		goto done;
+	\}
+	if (key == NULL) \{
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : key :  10671T      key == NULL */
+		error_f("cannot decode key: %s", pkalg);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10674T        sshlog ( __FILE__ , __func__ , 10546 , 1 , SYSLOG_LEVEL_ERROR , NULL , "cannot decode key: %s" , pkalg ) ; */
+		goto done;
+	\}
+	if (key->type != pktype) \{
+		error_f("type mismatch for decoded key "
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10682T        sshlog ( __FILE__ , __func__ , 10550 , 1 , SYSLOG_LEVEL_ERROR , NULL , "type mismatch for decoded key " */
+		    "(received %d, expected %d)", key->type, pktype);
+		goto done;
+	\}
+	if (sshkey_type_plain(key->type) == KEY_RSA &&
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10688T      sshkey_type_plain ( key -> type ) == KEY_RSA */
+	    (ssh->compat & SSH_BUG_RSASIGMD5) != 0) \{
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10690T      ( ssh -> compat & 0x00002000 */
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : & used with int: ssh -> compat : 10690 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10691T      ) != 0 */
+		logit("Refusing RSA key because client uses unsafe "
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10694T        sshlog ( __FILE__ , __func__ , 10556 , 0 , SYSLOG_LEVEL_INFO , NULL , "Refusing RSA key because client uses unsafe " */
+		    "signature scheme");
+		goto done;
+	\}
+	if (auth2_key_already_used(authctxt, key)) \{
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10700T      auth2_key_already_used ( authctxt , key ) */
+		logit("refusing previously-used %s key", sshkey_type(key));
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10703T        sshlog ( __FILE__ , __func__ , 10561 , 0 , SYSLOG_LEVEL_INFO , NULL , "refusing previously-used %s key" , */
+		goto done;
+	\}
+	if (match_pattern_list(pkalg, options.pubkey_accepted_algos, 0) != 1) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10709T      match_pattern_list ( pkalg , options.pubkey_accepted_algos , 0 ) != 1 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 10709 */
+		logit_f("signature algorithm %s not in "
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10712T        sshlog ( __FILE__ , __func__ , 10565 , 1 , SYSLOG_LEVEL_INFO , NULL , "signature algorithm %s not in " */
+		    "PubkeyAcceptedAlgorithms", pkalg);
+		goto done;
+	\}
+	if ((r = sshkey_check_cert_sigtype(key,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10718T      ( r = sshkey_check_cert_sigtype ( key , options.ca_sign_algorithms ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10718 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10718 */
+	    options.ca_sign_algorithms)) != 0) \{
+		logit_fr(r, "certificate signature algorithm %s",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10721T        sshlog ( __FILE__ , __func__ , 10571 , 1 , SYSLOG_LEVEL_INFO , */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10724T        key -> cert == NULL */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10726T        key -> cert -> signature_type == NULL */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : signature_type : 10726 */
+		    (key->cert == NULL || key->cert->signature_type == NULL) ?
+		    "(null)" : key->cert->signature_type);
+		goto done;
+	\}
+	if ((r = sshkey_check_rsa_length(key,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10739T      ( r = sshkey_check_rsa_length ( key , options.required_rsa_size ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10739 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10739 */
+	    options.required_rsa_size)) != 0) \{
+		logit_r(r, "refusing %s key", sshkey_type(key));
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10742T        sshlog ( __FILE__ , __func__ , 10578 , 0 , SYSLOG_LEVEL_INFO , */
+		goto done;
+	\}
+	key_s = format_key(key);
+	if (sshkey_is_cert(key))
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10752T      sshkey_is_cert ( key ) */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10754T      { */
+		ca_s = format_key(key->cert->signature_key);
+ 
+	if (have_sig) \{
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10761T      have_sig */
+		debug3_f("%s have %s signature for %s%s%s",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10764T        sshlog ( __FILE__ , __func__ , 10586 , 1 , SYSLOG_LEVEL_DEBUG3 , NULL , "%s have %s signature for %s%s%s" , method , pkalg , key_s ,   ca_s == NULL */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : ca_s : 10764 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : ca_s :  10770T          ca_s == NULL */
+		    method, pkalg, key_s,
+		    ca_s == NULL ? "" : " CA ", ca_s == NULL ? "" : ca_s);
+		if ((r = sshpkt_get_string(ssh, &sig, &slen)) != 0 ||
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10780T          ( r = sshpkt_get_string ( ssh , & sig , & slen ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10780 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10780 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10780 */
+		    (r = sshpkt_get_end(ssh)) != 0)
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10782T          ( r = sshpkt_get_end ( ssh */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10782 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10782 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10782 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10784T          ) != 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10786T          { */
+			fatal_fr(r, "parse signature packet");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10787T            sshfatal ( __FILE__ , __func__ , 10591 , 1 , SYSLOG_LEVEL_FATAL , */
+		if ((b = sshbuf_new()) == NULL)
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10792T          ( b = sshbuf_new () ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10792 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 10792 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10794T          { */
+			fatal_f("sshbuf_new failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10795T            sshfatal ( __FILE__ , __func__ , 10593 , 1 , SYSLOG_LEVEL_FATAL , NULL , "sshbuf_new failed" ) ; */
+		if (ssh->compat & SSH_OLD_SESSIONID) \{
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : & used with int: ssh -> compat :  10799T          ssh -> compat & 0x00000010 */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. : 10799 */
+			if ((r = sshbuf_putb(b, ssh->kex->session_id)) != 0)
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10804T              ( r = sshbuf_putb ( b , ssh -> kex -> session_id ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10804 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10804 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10806T              { */
+				fatal_fr(r, "put old session id");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10807T                sshfatal ( __FILE__ , __func__ , 10596 , 1 , SYSLOG_LEVEL_FATAL , */
+		\} else \{
+			if ((r = sshbuf_put_stringb(b,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10815T              ( r = sshbuf_put_stringb ( b , ssh -> kex -> session_id ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10815 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10815 */
+			    ssh->kex->session_id)) != 0)
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10817T              { */
+				fatal_fr(r, "put session id");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10818T                sshfatal ( __FILE__ , __func__ , 10600 , 1 , SYSLOG_LEVEL_FATAL , */
+		\}
+		if (!authctxt->valid || authctxt->user == NULL) \{
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10824T          ! authctxt -> valid */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. : 10824 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10826T          authctxt -> user == NULL */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : user : 10826 */
+			debug2_f("disabled because of invalid user");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10829T            sshlog ( __FILE__ , __func__ , 10603 , 1 , SYSLOG_LEVEL_DEBUG2 , NULL , "disabled because of invalid user" ) ; */
+			goto done;
+		\}
+		/* reconstruct packet */
+		xasprintf(&userstyle, "%s%s%s", authctxt->user,
+/* (O) STATIC VIOLATION     : 382 S : CERT-C:2016 ERR33-C,EXP12-C: (void) missing for discarded return value. :  10833T        xasprintf ( & userstyle , "%s%s%s" , authctxt -> user ,   authctxt -> style */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. : 10833 */
+		    authctxt->style ? ":" : "",
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10839T          authctxt -> style */
+		    authctxt->style ? authctxt->style : "");
+		if ((r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  10849T          ( r = sshbuf_put_u8 ( b , 50 ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10849 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10849 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10849 */
+		    (r = sshbuf_put_cstring(b, userstyle)) != 0 ||
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10851T          ( r = sshbuf_put_cstring ( b , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10851 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10851 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10851 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10853T          ) != 0 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10853 */
+		    (r = sshbuf_put_cstring(b, authctxt->service)) != 0 ||
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10855T          ( r = sshbuf_put_cstring ( b , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10855 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10855 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10855 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10857T          ) != 0 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10857 */
+		    (r = sshbuf_put_cstring(b, method)) != 0 ||
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10859T          ( r = sshbuf_put_cstring ( b , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10859 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10859 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10859 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10861T          ) != 0 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10861 */
+		    (r = sshbuf_put_u8(b, have_sig)) != 0 ||
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10863T          ( r = sshbuf_put_u8 ( b , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10863 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10863 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10863 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10865T          ) != 0 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10865 */
+		    (r = sshbuf_put_cstring(b, pkalg)) != 0 ||
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10867T          ( r = sshbuf_put_cstring ( b , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10867 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10867 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10867 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10869T          ) != 0 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10869 */
+		    (r = sshbuf_put_string(b, pkblob, blen)) != 0)
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10871T          ( r = sshbuf_put_string ( b , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10871 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10871 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10871 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10873T          ) != 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10875T          { */
+			fatal_fr(r, "reconstruct %s packet", method);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10876T            sshfatal ( __FILE__ , __func__ , 10617 , 1 , SYSLOG_LEVEL_FATAL , */
+		if (hostbound &&
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10881T          hostbound */
+		    (r = sshkey_puts(ssh->kex->initial_hostkey, b)) != 0)
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10883T          ( r = sshkey_puts ( ssh -> kex -> initial_hostkey , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 10883 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 10883 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 10883 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10885T          ) != 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  10887T          { */
+			fatal_fr(r, "reconstruct %s packet", method);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10888T            sshfatal ( __FILE__ , __func__ , 10620 , 1 , SYSLOG_LEVEL_FATAL , */
+#ifdef DEBUG_PK
+		sshbuf_dump(b, stderr);
+#endif
+		/* test for correct signature */
+		authenticated = 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10892T        authenticated = 0 ; */
+		if (PRIVSEP(user_key_allowed(ssh, pw, key, 1, &authopts)) &&
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10896T            use_privsep */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10898T          mm_user_key_allowed ( ssh , pw , key , 1 , & authopts ) */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10902T          ssh , pw , key , 1 , & authopts ) */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10904T           ) */
+		    PRIVSEP(sshkey_verify(key, sig, slen,
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10906T          ( */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10907T            use_privsep */
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : & used with int: ssh -> compat :  10912T          ( ssh -> compat & 0x00000002 ) == 0 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10912 */
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : & used with int: ssh -> compat :  10923T          ( ssh -> compat & 0x00000002 ) == 0 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 10923 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10931T          ) == 0 */
+		    sshbuf_ptr(b), sshbuf_len(b),
+		    (ssh->compat & SSH_BUG_SIGTYPE) == 0 ? pkalg : NULL,
+		    ssh->compat, &sig_details)) == 0) \{
+			authenticated = 1;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10934T            authenticated = 1 ; */
+		\}
+		if (authenticated == 1 && sig_details != NULL) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10938T          authenticated == 1 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10938 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10940T          sig_details != NULL */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : sig_details : 10940 */
+			auth2_record_info(authctxt, "signature count = %u",
+			    sig_details->sk_counter);
+			debug_f("sk_counter = %u, sk_flags = 0x%02x",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  10944T            sshlog ( __FILE__ , __func__ , 10636 , 1 , SYSLOG_LEVEL_DEBUG1 , NULL , "sk_counter = %u, sk_flags = 0x%02x" , sig_details -> sk_counter , sig_details -> sk_flags ) ; */
+			    sig_details->sk_counter, sig_details->sk_flags);
+			req_presence = (options.pubkey_auth_options &
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : & used with int: options.pubkey_auth_options :  10946T            options.pubkey_auth_options & ( 1 ) */
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : & used with int: ( 1 ) : 10946 */
+			    PUBKEYAUTH_TOUCH_REQUIRED) ||
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10947T            ) */
+			    !authopts->no_require_user_presence;
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : authopts :  10949T                           ! authopts -> no_require_user_presence */
+/*    See also line 99 auth2-pubkey.c */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 10949 */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. : 10949 */
+			if (req_presence && (sig_details->sk_flags &
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10953T              req_presence */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10955T              ( sig_details -> sk_flags & 0x01 */
+/* (O) STATIC VIOLATION     : 331 S : CERT-C:2016 INT13-C: Literal value requires a U suffix.           : 0x01 : 10955 */
+			    SSH_SK_USER_PRESENCE_REQD) == 0) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10956T              ) == 0 */
+				error("public key %s signature for %s%s from "
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10959T                sshlog ( __FILE__ , __func__ , 10643 , 0 , SYSLOG_LEVEL_ERROR , NULL , "public key %s signature for %s%s from " */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10962T"not met " , key_s ,   authctxt -> valid */
+				    "%.128s port %d rejected: user presence "
+				    "(authenticator touch) requirement "
+				    "not met ", key_s,
+				    authctxt->valid ? "" : "invalid user ",
+				    authctxt->user, ssh_remote_ipaddr(ssh),
+				    ssh_remote_port(ssh));
+				authenticated = 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10973T                authenticated = 0 ; */
+				goto done;
+			\}
+			req_verify = (options.pubkey_auth_options &
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : & used with int: options.pubkey_auth_options :  10977T            options.pubkey_auth_options & ( 1 << 1 ) */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 10977 */
+/* (O) STATIC VIOLATION     : 50 S : CERT-C:2016 INT13-C,INT16-C: Use of shift operator on signed type. : << used with signed char: 1 : 10977 */
+/* (O) STATIC VIOLATION     : 334 S : CERT-C:2016 INT02-C: No cast when ~ or << applied to small types (MR). : 10977 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 10977 */
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : & used with int: ( 1 << 1 ) : 10977 */
+			    PUBKEYAUTH_VERIFY_REQUIRED) ||
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10978T            ) */
+			    authopts->require_verify;
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10980T                         authopts -> require_verify */
+			if (req_verify && (sig_details->sk_flags &
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10984T              req_verify */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  10986T              ( sig_details -> sk_flags & 0x04 */
+/* (O) STATIC VIOLATION     : 331 S : CERT-C:2016 INT13-C: Literal value requires a U suffix.           : 0x04 : 10986 */
+			    SSH_SK_USER_VERIFICATION_REQD) == 0) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10987T              ) == 0 */
+				error("public key %s signature for %s%s from "
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  10990T                sshlog ( __FILE__ , __func__ , 10658 , 0 , SYSLOG_LEVEL_ERROR , NULL , "public key %s signature for %s%s from " */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  10992T"verification requirement not met " , key_s ,   authctxt -> valid */
+				    "%.128s port %d rejected: user "
+				    "verification requirement not met ", key_s,
+				    authctxt->valid ? "" : "invalid user ",
+				    authctxt->user, ssh_remote_ipaddr(ssh),
+				    ssh_remote_port(ssh));
+				authenticated = 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11003T                authenticated = 0 ; */
+				goto done;
+			\}
+		\}
+		auth2_record_key(authctxt, authenticated, key);
+	\} else \{
+		debug_f("%s test pkalg %s pkblob %s%s%s", method, pkalg, key_s,
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : key_s :  11011T        sshlog ( __FILE__ , __func__ , 10670 , 1 , SYSLOG_LEVEL_DEBUG1 , NULL , "%s test pkalg %s pkblob %s%s%s" , method , pkalg , key_s ,   ca_s == NULL */
+/*    See also line 94 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : ca_s : 11011 */
+/*    See also line 94 auth2-pubkey.c */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 11011 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : ca_s : 11011 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : ca_s :  11017T          ca_s == NULL */
+		    ca_s == NULL ? "" : " CA ", ca_s == NULL ? "" : ca_s);
+ 
+		if ((r = sshpkt_get_end(ssh)) != 0)
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11027T          ( r = sshpkt_get_end ( ssh ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11027 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11027 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11029T          { */
+			fatal_fr(r, "parse packet");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11030T            sshfatal ( __FILE__ , __func__ , 10674 , 1 , SYSLOG_LEVEL_FATAL , */
+ 
+		if (!authctxt->valid || authctxt->user == NULL) \{
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11035T          ! authctxt -> valid */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. : 11035 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11037T          authctxt -> user == NULL */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : user : 11037 */
+			debug2_f("disabled because of invalid user");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11040T            sshlog ( __FILE__ , __func__ , 10677 , 1 , SYSLOG_LEVEL_DEBUG2 , NULL , "disabled because of invalid user" ) ; */
+			goto done;
+		\}
+		/* XXX fake reply and always send PK_OK ? */
+		/*
+		 * XXX this allows testing whether a user is allowed
+		 * to login: if you happen to have a valid pubkey this
+		 * message is sent. the message is NEVER sent at all
+		 * if a user is not allowed to login. is this an
+		 * issue? -markus
+		 */
+		if (PRIVSEP(user_key_allowed(ssh, pw, key, 0, NULL))) \{
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11054T            use_privsep */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11056T          mm_user_key_allowed ( ssh , pw , key , 0 , NULL ) */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11060T          ssh , pw , key , 0 , NULL ) */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11062T          ) */
+			if ((r = sshpkt_start(ssh, SSH2_MSG_USERAUTH_PK_OK))
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11066T              ( r = sshpkt_start ( ssh , 60 ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11066 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11066 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 11066 */
+			    != 0 ||
+			    (r = sshpkt_put_cstring(ssh, pkalg)) != 0 ||
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11068T              ( r = sshpkt_put_cstring ( ssh , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 11068 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 11068 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11068 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11070T              ) != 0 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 11070 */
+			    (r = sshpkt_put_string(ssh, pkblob, blen)) != 0 ||
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11072T              ( r = sshpkt_put_string ( ssh , */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 11072 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 11072 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11072 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11074T              ) != 0 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 11074 */
+			    (r = sshpkt_send(ssh)) != 0 ||
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11076T              ( r = sshpkt_send ( ssh */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 11076 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 11076 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11076 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11078T              ) != 0 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 11078 */
+			    (r = ssh_packet_write_wait(ssh)) != 0)
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11080T              ( r = ssh_packet_write_wait ( ssh */
+/* (O) STATIC VIOLATION     : 133 S : CERT-C:2016 EXP02-C: Assignment operator in RHS of && or ||. : 11080 */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 11080 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11080 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11082T              ) != 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11084T              { */
+				fatal_fr(r, "send packet");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11085T                sshfatal ( __FILE__ , __func__ , 10695 , 1 , SYSLOG_LEVEL_FATAL , */
+			authctxt->postponed = 1;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11088T            authctxt -> postponed = 1 ; */
+/* (O) DATAFLOW VIOLATION   : 105 D : CERT-C:2016 MSC06-C,MSC12-C,MSC13-C: DU anomaly dead code, var value is unused on all paths. : (authctxt)->postponed : 11088 */
+		\}
+	\}
+done:
+	if (authenticated == 1 && auth_activate_options(ssh, authopts) != 0) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11095T      authenticated == 1 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 11095 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11097T      auth_activate_options ( ssh , */
+/* (O) STATIC VIOLATION     : 139 S : CERT-C:2016 MSC12-C: Construct leads to infeasible code. :  11098T      authopts ) != 0 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11098 */
+		debug_f("key options inconsistent with existing");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11101T        sshlog ( __FILE__ , __func__ , 10701 , 1 , SYSLOG_LEVEL_DEBUG1 , NULL , "key options inconsistent with existing" ) ; */
+		authenticated = 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11102T        authenticated = 0 ; */
+	\}
+	debug2_f("authenticated %d pkalg %s", authenticated, pkalg);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11104T    sshlog ( __FILE__ , __func__ , 10704 , 1 , SYSLOG_LEVEL_DEBUG2 , NULL , "authenticated %d pkalg %s" , authenticated , pkalg ) ; */
+ 
+	sshbuf_free(b);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : b :  11105T    sshbuf_free ( b ) ; */
+/*    See also line 92 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : b : 11105 */
+/*    See also line 119 auth2-pubkey.c, line 92 auth2-pubkey.c */
+	sshauthopt_free(authopts);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : authopts :  11106T    sshauthopt_free ( authopts ) ; */
+/*    See also line 99 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : authopts : 11106 */
+/*    See also line 99 auth2-pubkey.c */
+	sshkey_free(key);
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : key :  11107T    sshkey_free ( key ) ; */
+/*    See also line 93 auth2-pubkey.c */
+	sshkey_free(hostkey);
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : hostkey :  11108T    sshkey_free ( hostkey ) ; */
+/*    See also line 93 auth2-pubkey.c */
+	free(userstyle);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11109T    free ( userstyle ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : userstyle : 11109 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11109 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : userstyle : 11109 */
+	free(pkalg);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11110T    free ( pkalg ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : pkalg : 11110 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11110 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : pkalg : 11110 */
+	free(pkblob);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11111T    free ( pkblob ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : pkblob : 11111 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : pkblob : 11111 */
+	free(key_s);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11112T    free ( key_s ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : key_s : 11112 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11112 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : key_s : 11112 */
+	free(ca_s);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11113T    free ( ca_s ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : ca_s : 11113 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11113 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : ca_s : 11113 */
+	free(sig);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11114T    free ( sig ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : sig : 11114 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : sig : 11114 */
+	sshkey_sig_details_free(sig_details);
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : sig_details :  11115T    sshkey_sig_details_free ( sig_details ) ; */
+/*    See also line 100 auth2-pubkey.c */
+	return authenticated;
+\}
+/* (M) DATAFLOW VIOLATION   : 24 D : CERT-C:2016 DCL31-C: Procedure definition has no associated prototype. : userauth_pubkey */
+/* (I) DATAFLOW VIOLATION   :  8 D : CERT-C:2016 DCL22-C,MSC06-C,MSC12-C,MSC13-C: DD data flow anomalies found. */
+ 
+static int
+match_principals_file(struct passwd *pw, char *file,
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : pw :  11122F  struct passwd * pw , */
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : file :  11123F  char * file , */
+    struct sshkey_cert *cert, struct sshauthopt **authoptsp)
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : cert :  11124F  struct sshkey_cert * cert , */
+\{
+	FILE *f;
+	int success;
+ 
+	if (authoptsp != NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : authoptsp :  11133T      authoptsp != NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11135T      { */
+		*authoptsp = NULL;
+ 
+	temporarily_use_uid(pw);
+	debug("trying authorized principals file %s", file);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11139T    sshlog ( __FILE__ , __func__ , 10731 , 0 , SYSLOG_LEVEL_DEBUG1 , NULL , "trying authorized principals file %s" , file ) ; */
+	if ((f = auth_openprincipals(file, pw, options.strict_modes)) == NULL) \{
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11142T      ( f = auth_openprincipals ( file , pw , options.strict_modes ) ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11142 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 11142 */
+		restore_uid();
+		return 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11147T        0 ; */
+	\}
+	success = auth_process_principals(f, file, cert, authoptsp);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : authoptsp :  11149T    success = auth_process_principals ( f , file , cert , authoptsp ) ; */
+/*    See also line 324 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : authoptsp : 11149 */
+/*    See also line 330 auth2-pubkey.c, line 324 auth2-pubkey.c */
+	fclose(f);
+/* (O) STATIC VIOLATION     : 382 S : CERT-C:2016 ERR33-C,EXP12-C: (void) missing for discarded return value. :  11150T    fclose ( f ) ; */
+	restore_uid();
+	return success;
+\}
+/* (M) DATAFLOW VIOLATION   : 49 D : CERT-C:2016 FIO22-C,FIO42-C: File pointer not closed on exit. : f :  11154F  } */
+/*    See also line 334 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 24 D : CERT-C:2016 DCL31-C: Procedure definition has no associated prototype. : match_principals_file */
+ 
+/*
+ * Checks whether principal is allowed in output of command.
+ * returns 1 if the principal is allowed or 0 otherwise.
+ */
+static int
+match_principals_command(struct passwd *user_pw,
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : user_pw :  11162F  struct passwd * user_pw , */
+    const struct sshkey *key, struct sshauthopt **authoptsp)
+\{
+	struct passwd *runas_pw = NULL;
+	const struct sshkey_cert *cert = key->cert;
+	FILE *f = NULL;
+	int r, ok, found_principal = 0;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11172F      r , */
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11173F      ok , */
+	int i, ac = 0, uid_swapped = 0;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11176F      i , */
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11178F      uid_swapped = 0 ; */
+	pid_t pid;
+	char *tmp, *username = NULL, *command = NULL, **av = NULL;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11182F      tmp , */
+	char *ca_fp = NULL, *key_fp = NULL, *catext = NULL, *keytext = NULL;
+	char serial_s[32], uidstr[32];
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11192F      serial_s [ 32 ] , */
+	void (*osigchld)(int);
+/* (O) STATIC VIOLATION     : 299 S : CERT-C:2016 DCL05-C: Pointer to function declared without typedef. :  11194T    void ( * osigchld ) ( */
+ 
+	if (authoptsp != NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : authoptsp :  11198T      authoptsp != NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11200T      { */
+		*authoptsp = NULL;
+	if (options.authorized_principals_command == NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : options.authorized_principals_command :  11205T      options.authorized_principals_command == NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11207T      { */
+		return 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11209T        0 ; */
+	if (options.authorized_principals_command_user == NULL) \{
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : options.authorized_principals_command_user :  11213T      options.authorized_principals_command_user == NULL */
+		error("No user for AuthorizedPrincipalsCommand specified, "
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11216T        sshlog ( __FILE__ , __func__ , 10766 , 0 , SYSLOG_LEVEL_ERROR , NULL , "No user for AuthorizedPrincipalsCommand specified, " */
+		    "skipping");
+		return 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11219T        0 ; */
+	\}
+ 
+	/*
+	 * NB. all returns later this function should go via "out" to
+	 * ensure the original SIGCHLD handler is restored properly.
+	 */
+	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
+/* (M) STATIC VIOLATION     : 21 S : CERT-C:2016 DCL07-C,EXP37-C,MSC40-C: Number of parameters does not match.         : ssh_signal; 2 actual, 3 formal :  11225T    osigchld = ssh_signal ( SIGCHLD , SIG_DFL ) ; */
+/*    See also line 232 misc.h */
+ 
+	/* Prepare and verify the user for the command */
+	username = percent_expand(options.authorized_principals_command_user,
+	    "u", user_pw->pw_name, (char *)NULL);
+	runas_pw = getpwnam(username);
+/* (M) STATIC VIOLATION     : 496 S : CERT-C:2016 DCL31-C,EXP37-C: Function call with no prior declaration.     : getpwnam :  11228T    runas_pw = getpwnam ( username ) ; */
+/* (M) STATIC VIOLATION     : 170 S : CERT-C:2016 DCL07-C,EXP37-C: Procedure call has no prototype and no defn. : getpwnam : 11228 */
+/* (M) DATAFLOW VIOLATION   : 41 D : CERT-C:2016 DCL31-C,EXP37-C: Procedure call has no prototype declared. : getpwnam : 11228 */
+	if (runas_pw == NULL) \{
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : runas_pw :  11231T      runas_pw == NULL */
+		error("AuthorizedPrincipalsCommandUser \\"%s\\" not found: %s",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11234T        sshlog ( __FILE__ , __func__ , 10782 , 0 , SYSLOG_LEVEL_ERROR , NULL , "AuthorizedPrincipalsCommandUser \"%s\" not found: %s" , username , */
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : strerror : 11234 */
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : errno :  11235T        strerror ( errno ) ) ; */
+/* (M) DATAFLOW VIOLATION   : 41 D : CERT-C:2016 DCL31-C,EXP37-C: Procedure call has no prototype declared. : strerror : 11235 */
+		    username, strerror(errno));
+		goto out;
+	\}
+ 
+	/* Turn the command into an argument vector */
+	if (argv_split(options.authorized_principals_command,
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11241T      argv_split ( options.authorized_principals_command , & ac , & av , 0 ) != 0 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11241 */
+	    &ac, &av, 0) != 0) \{
+		error("AuthorizedPrincipalsCommand \\"%s\\" contains "
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11244T        sshlog ( __FILE__ , __func__ , 10790 , 0 , SYSLOG_LEVEL_ERROR , NULL , "AuthorizedPrincipalsCommand \"%s\" contains " */
+		    "invalid quotes", options.authorized_principals_command);
+		goto out;
+	\}
+	if (ac == 0) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11250T      ac == 0 */
+		error("AuthorizedPrincipalsCommand \\"%s\\" yielded no arguments",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11253T        sshlog ( __FILE__ , __func__ , 10795 , 0 , SYSLOG_LEVEL_ERROR , NULL , "AuthorizedPrincipalsCommand \"%s\" yielded no arguments" , options.authorized_principals_command ) ; */
+		    options.authorized_principals_command);
+		goto out;
+	\}
+	if ((ca_fp = sshkey_fingerprint(cert->signature_key,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11258T      ( ca_fp = sshkey_fingerprint ( cert -> signature_key , options.fingerprint_hash , SSH_FP_DEFAULT ) ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11258 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 11258 */
+	    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL) \{
+		error_f("sshkey_fingerprint failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11261T        sshlog ( __FILE__ , __func__ , 10801 , 1 , SYSLOG_LEVEL_ERROR , NULL , "sshkey_fingerprint failed" ) ; */
+		goto out;
+	\}
+	if ((key_fp = sshkey_fingerprint(key,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11266T      ( key_fp = sshkey_fingerprint ( key , options.fingerprint_hash , SSH_FP_DEFAULT ) ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11266 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 11266 */
+	    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL) \{
+		error_f("sshkey_fingerprint failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11269T        sshlog ( __FILE__ , __func__ , 10806 , 1 , SYSLOG_LEVEL_ERROR , NULL , "sshkey_fingerprint failed" ) ; */
+		goto out;
+	\}
+	if ((r = sshkey_to_base64(cert->signature_key, &catext)) != 0) \{
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11274T      ( r = sshkey_to_base64 ( cert -> signature_key , & catext ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11274 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11274 */
+		error_fr(r, "sshkey_to_base64 failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11277T        sshlog ( __FILE__ , __func__ , 10810 , 1 , SYSLOG_LEVEL_ERROR , */
+		goto out;
+	\}
+	if ((r = sshkey_to_base64(key, &keytext)) != 0) \{
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11283T      ( r = sshkey_to_base64 ( key , & keytext ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11283 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11283 */
+		error_fr(r, "sshkey_to_base64 failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11286T        sshlog ( __FILE__ , __func__ , 10814 , 1 , SYSLOG_LEVEL_ERROR , */
+		goto out;
+	\}
+	snprintf(serial_s, sizeof(serial_s), "%llu",
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : snprintf :  11290T    snprintf ( serial_s , sizeof ( serial_s ) , "%llu" , ( unsigned long long ) cert -> serial ) ; */
+/* (O) STATIC VIOLATION     : 586 S : CERT-C:2016 INT15-C: Format is not %j for user defined type. : 11290 */
+	    (unsigned long long)cert->serial);
+	snprintf(uidstr, sizeof(uidstr), "%llu",
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : snprintf :  11291T    snprintf ( uidstr , sizeof ( uidstr ) , "%llu" , ( unsigned long long ) user_pw -> pw_uid ) ; */
+	    (unsigned long long)user_pw->pw_uid);
+	for (i = 1; i < ac; i++) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11294T      i = 1 */
+		tmp = percent_expand(av[i],
+/* (M) STATIC VIOLATION     : 476 S : CERT-C:2016 ARR30-C: Array index not unsigned. :  11301T        tmp = percent_expand ( av [ i ] , "U" , uidstr , "u" , user_pw -> pw_name , "h" , user_pw -> pw_dir , "t" , */
+		    "U", uidstr,
+		    "u", user_pw->pw_name,
+		    "h", user_pw->pw_dir,
+		    "t", sshkey_ssh_name(key),
+		    "T", sshkey_ssh_name(cert->signature_key),
+		    "f", key_fp,
+		    "F", ca_fp,
+		    "k", keytext,
+		    "K", catext,
+		    "i", cert->key_id,
+		    "s", serial_s,
+		    (char *)NULL);
+		if (tmp == NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : tmp :  11306T          tmp == NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11308T          { */
+			fatal_f("percent_expand failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11309T            sshfatal ( __FILE__ , __func__ , 10836 , 1 , SYSLOG_LEVEL_FATAL , NULL , "percent_expand failed" ) ; */
+		free(av[i]);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11311T        free ( av [ i ] ) ; */
+/* (M) STATIC VIOLATION     : 476 S : CERT-C:2016 ARR30-C: Array index not unsigned. : 11311 */
+		av[i] = tmp;
+/* (M) STATIC VIOLATION     : 476 S : CERT-C:2016 ARR30-C: Array index not unsigned. :  11312T        av [ i ] = tmp ; */
+	\}
+	/* Prepare a printable command for logs, etc. */
+	command = argv_assemble(ac, av);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : av :  11315T    command = argv_assemble ( ac , av ) ; */
+/*    See also line 358 auth2-pubkey.c */
+ 
+	if ((pid = subprocess("AuthorizedPrincipalsCommand", command,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11318T      ( pid = subprocess ( "AuthorizedPrincipalsCommand" , command , ac , av , & f , ( 1 << 1 ) | ( 1 << 2 ) , runas_pw , temporarily_use_uid , */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11318 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 11318 */
+/* (O) STATIC VIOLATION     : 50 S : CERT-C:2016 INT13-C,INT16-C: Use of shift operator on signed type. : << used with signed char: 1 : 11318 */
+/* (O) STATIC VIOLATION     : 334 S : CERT-C:2016 INT02-C: No cast when ~ or << applied to small types (MR). : 11318 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 11318 */
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : | used with signed char: ( 1 << 1 ) : 11318 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 11318 */
+/* (O) STATIC VIOLATION     : 50 S : CERT-C:2016 INT13-C,INT16-C: Use of shift operator on signed type. : << used with signed char: 1 : 11318 */
+/* (O) STATIC VIOLATION     : 334 S : CERT-C:2016 INT02-C: No cast when ~ or << applied to small types (MR). : 11318 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 2 : 11318 */
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : | used with signed char: ( 1 << 2 ) : 11318 */
+/* (O) STATIC VIOLATION     : 458 S : CERT-C:2016 INT02-C,INT07-C,MSC05-C,STR04-C: Implicit conversion: actual to formal param (MR). : (void* and void):  param  9 : 11318 */
+/*    See also line 112 misc.h */
+	    ac, av, &f,
+	    SSH_SUBPROCESS_STDOUT_CAPTURE|SSH_SUBPROCESS_STDERR_DISCARD,
+	    runas_pw, temporarily_use_uid, restore_uid)) == 0)
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11320T      ) == 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11322T      { */
+		goto out;
+ 
+	uid_swapped = 1;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11325T    uid_swapped = 1 ; */
+	temporarily_use_uid(runas_pw);
+ 
+	ok = auth_process_principals(f, "(command)", cert, authoptsp);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : authoptsp :  11327T    ok = auth_process_principals ( f , "(command)" , cert , authoptsp ) ; */
+/*    See also line 350 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : authoptsp : 11327 */
+/*    See also line 364 auth2-pubkey.c, line 350 auth2-pubkey.c */
+ 
+	fclose(f);
+/* (O) STATIC VIOLATION     : 382 S : CERT-C:2016 ERR33-C,EXP12-C: (void) missing for discarded return value. :  11328T    fclose ( f ) ; */
+	f = NULL;
+ 
+	if (exited_cleanly(pid, "AuthorizedPrincipalsCommand", command, 0) != 0)
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11332T      exited_cleanly ( pid , "AuthorizedPrincipalsCommand" , command , 0 ) != 0 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11332 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11334T      { */
+		goto out;
+ 
+	/* Read completed successfully */
+	found_principal = ok;
+ out:
+	if (f != NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : f :  11342T      f != NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11344T      { */
+		fclose(f);
+/* (O) STATIC VIOLATION     : 382 S : CERT-C:2016 ERR33-C,EXP12-C: (void) missing for discarded return value. :  11345T        fclose ( f ) ; */
+	ssh_signal(SIGCHLD, osigchld);
+/* (M) STATIC VIOLATION     : 21 S : CERT-C:2016 DCL07-C,EXP37-C,MSC40-C: Number of parameters does not match.         : ssh_signal; 2 actual, 3 formal :  11347T    ssh_signal ( SIGCHLD , osigchld ) ; */
+/*    See also line 232 misc.h */
+/* (O) STATIC VIOLATION     : 458 S : CERT-C:2016 INT02-C,INT07-C,MSC05-C,STR04-C: Implicit conversion: actual to formal param (MR). : (void* and proc*):  param  2 : 11347 */
+/*    See also line 232 misc.h */
+	for (i = 0; i < ac; i++)
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11350T      i = 0 */
+/* (O) STATIC VIOLATION     : 11 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to loop body. :  11356T      { */
+		free(av[i]);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11357T        free ( av [ i ] ) ; */
+/* (M) STATIC VIOLATION     : 476 S : CERT-C:2016 ARR30-C: Array index not unsigned. : 11357 */
+	free(av);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11359T    free ( av ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : av : 11359 */
+/* (M) STATIC VIOLATION     : 484 S : CERT-C:2016 MEM00-C,MEM01-C,MEM30-C: Attempt to use already freed object.         : av : 11359 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : av : 11359 */
+	if (uid_swapped)
+/* (O) STATIC VIOLATION     : 139 S : CERT-C:2016 MSC12-C: Construct leads to infeasible code. :  11362T      uid_swapped */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11364T      { */
+		restore_uid();
+	free(command);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11367T    free ( command ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : command : 11367 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11367 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : command : 11367 */
+	free(username);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11368T    free ( username ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : username : 11368 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11368 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : username : 11368 */
+	free(ca_fp);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11369T    free ( ca_fp ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : ca_fp : 11369 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11369 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : ca_fp : 11369 */
+	free(key_fp);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11370T    free ( key_fp ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : key_fp : 11370 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11370 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : key_fp : 11370 */
+	free(catext);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11371T    free ( catext ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : catext : 11371 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11371 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : catext : 11371 */
+	free(keytext);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11372T    free ( keytext ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : keytext : 11372 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11372 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : keytext : 11372 */
+	return found_principal;
+\}
+/* (M) DATAFLOW VIOLATION   : 49 D : CERT-C:2016 FIO22-C,FIO42-C: File pointer not closed on exit. : f :  11375F  } */
+/*    See also line 354 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : username : 11375 */
+/*    See also line 358 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : command : 11375 */
+/*    See also line 358 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : av : 11375 */
+/*    See also line 358 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : ca_fp : 11375 */
+/*    See also line 359 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : key_fp : 11375 */
+/*    See also line 359 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : catext : 11375 */
+/*    See also line 359 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : keytext : 11375 */
+/*    See also line 359 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 24 D : CERT-C:2016 DCL31-C: Procedure definition has no associated prototype. : match_principals_command */
+/* (I) DATAFLOW VIOLATION   :  8 D : CERT-C:2016 DCL22-C,MSC06-C,MSC12-C,MSC13-C: DD data flow anomalies found. */
+ 
+/* Authenticate a certificate key against TrustedUserCAKeys */
+static int
+user_cert_trusted_ca(struct passwd *pw, struct sshkey *key,
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : pw :  11380F  struct passwd * pw , */
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : key :  11381F  struct sshkey * key , */
+    const char *remote_ip, const char *remote_host,
+    struct sshauthopt **authoptsp)
+\{
+	char *ca_fp, *principals_file = NULL;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11387F      ca_fp , */
+	const char *reason;
+	struct sshauthopt *principals_opts = NULL, *cert_opts = NULL;
+	struct sshauthopt *final_opts = NULL;
+	int r, ret = 0, found_principal = 0, use_authorized_principals;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11396F      r , */
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11398F      found_principal = 0 , */
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11399F      use_authorized_principals ; */
+ 
+	if (authoptsp != NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : authoptsp :  11402T      authoptsp != NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11404T      { */
+		*authoptsp = NULL;
+ 
+	if (!sshkey_is_cert(key) || options.trusted_user_ca_keys == NULL)
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11410T      ) */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. : 11410 */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11412T      options.trusted_user_ca_keys == NULL */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : options.trusted_user_ca_keys : 11412 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11414T      { */
+		return 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11416T        0 ; */
+ 
+	if ((ca_fp = sshkey_fingerprint(key->cert->signature_key,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11420T      ( ca_fp = sshkey_fingerprint ( key -> cert -> signature_key , options.fingerprint_hash , SSH_FP_DEFAULT ) ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11420 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 11420 */
+	    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11422T      { */
+		return 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11424T        0 ; */
+ 
+	if ((r = sshkey_in_file(key->cert->signature_key,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11428T      ( r = sshkey_in_file ( key -> cert -> signature_key , options.trusted_user_ca_keys , 1 , 0 ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11428 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 11428 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11428 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11428 */
+	    options.trusted_user_ca_keys, 1, 0)) != 0) \{
+		debug2_fr(r, "CA %s %s is not listed in %s",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11431T        sshlog ( __FILE__ , __func__ , 10904 , 1 , SYSLOG_LEVEL_DEBUG2 , */
+		    sshkey_type(key->cert->signature_key), ca_fp,
+		    options.trusted_user_ca_keys);
+		goto out;
+	\}
+	/*
+	 * If AuthorizedPrincipals is in use, then compare the certificate
+	 * principals against the names in that file rather than matching
+	 * against the username.
+	 */
+	if ((principals_file = authorized_principals_file(pw)) != NULL) \{
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11443T      ( principals_file = authorized_principals_file ( pw ) ) != NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11443 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 11443 */
+		if (match_principals_file(pw, principals_file,
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11449T            pw , principals_file , key -> cert , & principals_opts ) */
+/* (O) STATIC VIOLATION     : 458 S : CERT-C:2016 INT02-C,INT07-C,MSC05-C,STR04-C: Implicit conversion: actual to formal param (MR). : (int and struct sshkey_cert):  param  3 : 11448 */
+/*    See also line 322 auth2-pubkey.c */
+		    key->cert, &principals_opts))
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11451T          { */
+			found_principal = 1;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11452T            found_principal = 1 ; */
+	\}
+	/* Try querying command if specified */
+	if (!found_principal && match_principals_command(pw, key,
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11458T      ! found_principal */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11462T      pw , key , & principals_opts ) */
+	    &principals_opts))
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11464T      { */
+		found_principal = 1;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11465T        found_principal = 1 ; */
+	/* If principals file or command is specified, then require a match */
+	use_authorized_principals = principals_file != NULL ||
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : principals_file :  11468T    use_authorized_principals = principals_file != NULL */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. : 11468 */
+	    options.authorized_principals_command != NULL;
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11470T    options.authorized_principals_command != NULL */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : options.authorized_principals_command : 11470 */
+	if (!found_principal && use_authorized_principals) \{
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11474T      ! found_principal */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11476T      use_authorized_principals */
+		reason = "Certificate does not contain an authorized principal";
+		goto fail_reason;
+	\}
+	if (use_authorized_principals && principals_opts == NULL)
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11484T      use_authorized_principals */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11486T      principals_opts == NULL */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : principals_opts : 11486 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11488T      { */
+		fatal_f("internal error: missing principals_opts");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11489T        sshfatal ( __FILE__ , __func__ , 10931 , 1 , SYSLOG_LEVEL_FATAL , NULL , "internal error: missing principals_opts" ) ; */
+	if (sshkey_cert_check_authority_now(key, 0, 1, 0,
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11493T      sshkey_cert_check_authority_now ( key , 0 , 1 , 0 ,   use_authorized_principals */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 11493 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11493 */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. : 11493 */
+	    use_authorized_principals ? NULL : pw->pw_name, &reason) != 0)
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11500T      ) != 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11502T      { */
+/* (M) DATAFLOW VIOLATION   : 53 D : CERT-C:2016 EXP08-C,EXP33-C: Attempt to use uninitialised pointer. : reason : 11499 */
+/*    See also line 489 auth2-pubkey.c */
+		goto fail_reason;
+ 
+	/* Check authority from options in key and from principals file/cmd */
+	if ((cert_opts = sshauthopt_from_cert(key)) == NULL) \{
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11508T      ( cert_opts = sshauthopt_from_cert ( key ) ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11508 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 11508 */
+		reason = "Invalid certificate options";
+		goto fail_reason;
+	\}
+	if (auth_authorise_keyopts(pw, cert_opts, 0,
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11516T      auth_authorise_keyopts ( pw , cert_opts , 0 , remote_ip , remote_host , "cert" ) != 0 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11516 */
+	    remote_ip, remote_host, "cert") != 0) \{
+		reason = "Refused by certificate options";
+		goto fail_reason;
+	\}
+	if (principals_opts == NULL) \{
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : principals_opts :  11524T      principals_opts == NULL */
+		final_opts = cert_opts;
+		cert_opts = NULL;
+	\} else \{
+		if (auth_authorise_keyopts(pw, principals_opts, 0,
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11534T          auth_authorise_keyopts ( pw , principals_opts , 0 , remote_ip , remote_host , "principals" ) != 0 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11534 */
+		    remote_ip, remote_host, "principals") != 0) \{
+			reason = "Refused by certificate principals options";
+			goto fail_reason;
+		\}
+		if ((final_opts = sshauthopt_merge(principals_opts,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11542T          ( final_opts = sshauthopt_merge ( principals_opts , cert_opts , & reason ) ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11542 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 11542 */
+		    cert_opts, &reason)) == NULL) \{
+ fail_reason:
+			error("%s", reason);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11546T            sshlog ( __FILE__ , __func__ , 10958 , 0 , SYSLOG_LEVEL_ERROR , NULL , "%s" , reason ) ; */
+			auth_debug_add("%s", reason);
+			goto out;
+		\}
+	\}
+ 
+	/* Success */
+	verbose("Accepted certificate ID \\"%s\\" (serial %llu) signed by "
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11552T    sshlog ( __FILE__ , __func__ , 10965 , 0 , SYSLOG_LEVEL_VERBOSE , NULL , "Accepted certificate ID \"%s\" (serial %llu) signed by " */
+	    "%s CA %s via %s", key->cert->key_id,
+	    (unsigned long long)key->cert->serial,
+	    sshkey_type(key->cert->signature_key), ca_fp,
+	    options.trusted_user_ca_keys);
+	if (authoptsp != NULL) \{
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : authoptsp :  11557T      authoptsp != NULL */
+		*authoptsp = final_opts;
+		final_opts = NULL;
+	\}
+	ret = 1;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11563T    ret = 1 ; */
+ out:
+	sshauthopt_free(principals_opts);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : principals_opts :  11565T    sshauthopt_free ( principals_opts ) ; */
+/*    See also line 490 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : principals_opts : 11565 */
+/*    See also line 490 auth2-pubkey.c */
+	sshauthopt_free(cert_opts);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : cert_opts :  11566T    sshauthopt_free ( cert_opts ) ; */
+/*    See also line 490 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : cert_opts : 11566 */
+/*    See also line 550 auth2-pubkey.c, line 490 auth2-pubkey.c */
+	sshauthopt_free(final_opts);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : final_opts :  11567T    sshauthopt_free ( final_opts ) ; */
+/*    See also line 491 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : final_opts : 11567 */
+/*    See also line 574 auth2-pubkey.c, line 491 auth2-pubkey.c */
+	free(principals_file);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11568T    free ( principals_file ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : principals_file : 11568 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11568 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : principals_file : 11568 */
+	free(ca_fp);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11569T    free ( ca_fp ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : ca_fp : 11569 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11569 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : ca_fp : 11569 */
+	return ret;
+\}
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : principals_file :  11572F  } */
+/*    See also line 488 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : ca_fp : 11572 */
+/*    See also line 500 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 24 D : CERT-C:2016 DCL31-C: Procedure definition has no associated prototype. : user_cert_trusted_ca */
+/* (I) DATAFLOW VIOLATION   :  8 D : CERT-C:2016 DCL22-C,MSC06-C,MSC12-C,MSC13-C: DD data flow anomalies found. */
+ 
+/*
+ * Checks whether key is allowed in file.
+ * returns 1 if the key is allowed or 0 otherwise.
+ */
+static int
+user_key_allowed2(struct passwd *pw, struct sshkey *key,
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : pw :  11580F  struct passwd * pw , */
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : key :  11581F  struct sshkey * key , */
+    char *file, const char *remote_ip, const char *remote_host,
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : file :  11582F  char * file , */
+    struct sshauthopt **authoptsp)
+\{
+	FILE *f;
+	int found_key = 0;
+ 
+	if (authoptsp != NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : authoptsp :  11593T      authoptsp != NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11595T      { */
+		*authoptsp = NULL;
+ 
+	/* Temporarily use the user's uid. */
+	temporarily_use_uid(pw);
+ 
+	debug("trying public key file %s", file);
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11600T    sshlog ( __FILE__ , __func__ , 11002 , 0 , SYSLOG_LEVEL_DEBUG1 , NULL , "trying public key file %s" , file ) ; */
+	if ((f = auth_openkeyfile(file, pw, options.strict_modes)) != NULL) \{
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11603T      ( f = auth_openkeyfile ( file , pw , options.strict_modes ) ) != NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11603 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 11603 */
+		found_key = auth_check_authkeys_file(pw, f, file,
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : authoptsp :  11606T        found_key = auth_check_authkeys_file ( pw , f , file , key , remote_ip , remote_host , authoptsp ) ; */
+/*    See also line 593 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : authoptsp : 11606 */
+/*    See also line 599 auth2-pubkey.c, line 593 auth2-pubkey.c */
+		    key, remote_ip, remote_host, authoptsp);
+		fclose(f);
+/* (O) STATIC VIOLATION     : 382 S : CERT-C:2016 ERR33-C,EXP12-C: (void) missing for discarded return value. :  11607T        fclose ( f ) ; */
+	\}
+ 
+	restore_uid();
+	return found_key;
+\}
+/* (M) DATAFLOW VIOLATION   : 49 D : CERT-C:2016 FIO22-C,FIO42-C: File pointer not closed on exit. : f :  11612F  } */
+/*    See also line 605 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 24 D : CERT-C:2016 DCL31-C: Procedure definition has no associated prototype. : user_key_allowed2 */
+/* (I) DATAFLOW VIOLATION   :  8 D : CERT-C:2016 DCL22-C,MSC06-C,MSC12-C,MSC13-C: DD data flow anomalies found. */
+ 
+/*
+ * Checks whether key is allowed in output of command.
+ * returns 1 if the key is allowed or 0 otherwise.
+ */
+static int
+user_key_command_allowed2(struct passwd *user_pw, struct sshkey *key,
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : user_pw :  11620F  struct passwd * user_pw , */
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : key :  11621F  struct sshkey * key , */
+    const char *remote_ip, const char *remote_host,
+    struct sshauthopt **authoptsp)
+\{
+	struct passwd *runas_pw = NULL;
+	FILE *f = NULL;
+	int r, ok, found_key = 0;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11631F      r , */
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11632F      ok , */
+	int i, uid_swapped = 0, ac = 0;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11635F      i , */
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11637F      ac = 0 ; */
+	pid_t pid;
+	char *username = NULL, *key_fp = NULL, *keytext = NULL;
+	char uidstr[32], *tmp, *command = NULL, **av = NULL;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11645F      uidstr [ 32 ] , */
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11646F      * tmp , */
+	void (*osigchld)(int);
+/* (O) STATIC VIOLATION     : 299 S : CERT-C:2016 DCL05-C: Pointer to function declared without typedef. :  11649T    void ( * osigchld ) ( */
+ 
+	if (authoptsp != NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : authoptsp :  11653T      authoptsp != NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11655T      { */
+		*authoptsp = NULL;
+	if (options.authorized_keys_command == NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : options.authorized_keys_command :  11660T      options.authorized_keys_command == NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11662T      { */
+		return 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11664T        0 ; */
+	if (options.authorized_keys_command_user == NULL) \{
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : options.authorized_keys_command_user :  11668T      options.authorized_keys_command_user == NULL */
+		error("No user for AuthorizedKeysCommand specified, skipping");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11671T        sshlog ( __FILE__ , __func__ , 11036 , 0 , SYSLOG_LEVEL_ERROR , NULL , "No user for AuthorizedKeysCommand specified, skipping" ) ; */
+		return 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11673T        0 ; */
+	\}
+ 
+	/*
+	 * NB. all returns later this function should go via "out" to
+	 * ensure the original SIGCHLD handler is restored properly.
+	 */
+	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
+/* (M) STATIC VIOLATION     : 21 S : CERT-C:2016 DCL07-C,EXP37-C,MSC40-C: Number of parameters does not match.         : ssh_signal; 2 actual, 3 formal :  11679T    osigchld = ssh_signal ( SIGCHLD , SIG_DFL ) ; */
+/*    See also line 232 misc.h */
+ 
+	/* Prepare and verify the user for the command */
+	username = percent_expand(options.authorized_keys_command_user,
+	    "u", user_pw->pw_name, (char *)NULL);
+	runas_pw = getpwnam(username);
+/* (M) STATIC VIOLATION     : 496 S : CERT-C:2016 DCL31-C,EXP37-C: Function call with no prior declaration.     : getpwnam :  11682T    runas_pw = getpwnam ( username ) ; */
+/* (M) STATIC VIOLATION     : 170 S : CERT-C:2016 DCL07-C,EXP37-C: Procedure call has no prototype and no defn. : getpwnam : 11682 */
+	if (runas_pw == NULL) \{
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : runas_pw :  11685T      runas_pw == NULL */
+		error("AuthorizedKeysCommandUser \\"%s\\" not found: %s",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11688T        sshlog ( __FILE__ , __func__ , 11051 , 0 , SYSLOG_LEVEL_ERROR , NULL , "AuthorizedKeysCommandUser \"%s\" not found: %s" , username , */
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : strerror : 11688 */
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : errno :  11689T        strerror ( errno ) ) ; */
+		    username, strerror(errno));
+		goto out;
+	\}
+ 
+	/* Prepare AuthorizedKeysCommand */
+	if ((key_fp = sshkey_fingerprint(key, options.fingerprint_hash,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11695T      ( key_fp = sshkey_fingerprint ( key , options.fingerprint_hash , SSH_FP_DEFAULT ) ) == NULL */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11695 */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL. : 11695 */
+	    SSH_FP_DEFAULT)) == NULL) \{
+		error_f("sshkey_fingerprint failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11698T        sshlog ( __FILE__ , __func__ , 11059 , 1 , SYSLOG_LEVEL_ERROR , NULL , "sshkey_fingerprint failed" ) ; */
+		goto out;
+	\}
+	if ((r = sshkey_to_base64(key, &keytext)) != 0) \{
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11703T      ( r = sshkey_to_base64 ( key , & keytext ) ) != 0 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11703 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11703 */
+		error_fr(r, "sshkey_to_base64 failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11706T        sshlog ( __FILE__ , __func__ , 11063 , 1 , SYSLOG_LEVEL_ERROR , */
+		goto out;
+	\}
+ 
+	/* Turn the command into an argument vector */
+	if (argv_split(options.authorized_keys_command, &ac, &av, 0) != 0) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11713T      argv_split ( options.authorized_keys_command , & ac , & av , 0 ) != 0 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11713 */
+		error("AuthorizedKeysCommand \\"%s\\" contains invalid quotes",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11716T        sshlog ( __FILE__ , __func__ , 11069 , 0 , SYSLOG_LEVEL_ERROR , NULL , "AuthorizedKeysCommand \"%s\" contains invalid quotes" , options.authorized_keys_command ) ; */
+		    options.authorized_keys_command);
+		goto out;
+	\}
+	if (ac == 0) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11721T      ac == 0 */
+		error("AuthorizedKeysCommand \\"%s\\" yielded no arguments",
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11724T        sshlog ( __FILE__ , __func__ , 11074 , 0 , SYSLOG_LEVEL_ERROR , NULL , "AuthorizedKeysCommand \"%s\" yielded no arguments" , options.authorized_keys_command ) ; */
+		    options.authorized_keys_command);
+		goto out;
+	\}
+	snprintf(uidstr, sizeof(uidstr), "%llu",
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : snprintf :  11727T    snprintf ( uidstr , sizeof ( uidstr ) , "%llu" , ( unsigned long long ) user_pw -> pw_uid ) ; */
+	    (unsigned long long)user_pw->pw_uid);
+	for (i = 1; i < ac; i++) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11730T      i = 1 */
+		tmp = percent_expand(av[i],
+/* (M) STATIC VIOLATION     : 476 S : CERT-C:2016 ARR30-C: Array index not unsigned. :  11737T        tmp = percent_expand ( av [ i ] , "U" , uidstr , "u" , user_pw -> pw_name , "h" , user_pw -> pw_dir , "t" , */
+		    "U", uidstr,
+		    "u", user_pw->pw_name,
+		    "h", user_pw->pw_dir,
+		    "t", sshkey_ssh_name(key),
+		    "f", key_fp,
+		    "k", keytext,
+		    (char *)NULL);
+		if (tmp == NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : tmp :  11741T          tmp == NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11743T          { */
+			fatal_f("percent_expand failed");
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11744T            sshfatal ( __FILE__ , __func__ , 11090 , 1 , SYSLOG_LEVEL_FATAL , NULL , "percent_expand failed" ) ; */
+		free(av[i]);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11746T        free ( av [ i ] ) ; */
+/* (M) STATIC VIOLATION     : 476 S : CERT-C:2016 ARR30-C: Array index not unsigned. : 11746 */
+		av[i] = tmp;
+/* (M) STATIC VIOLATION     : 476 S : CERT-C:2016 ARR30-C: Array index not unsigned. :  11747T        av [ i ] = tmp ; */
+	\}
+	/* Prepare a printable command for logs, etc. */
+	command = argv_assemble(ac, av);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : av :  11750T    command = argv_assemble ( ac , av ) ; */
+/*    See also line 630 auth2-pubkey.c */
+ 
+	/*
+	 * If AuthorizedKeysCommand was run without arguments
+	 * then fall back to the old behaviour of passing the
+	 * target username as a single argument.
+	 */
+	if (ac == 1) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11758T      ac == 1 */
+		av = xreallocarray(av, ac + 2, sizeof(*av));
+/* (M) STATIC VIOLATION     : 433 S : CERT-C:2016 EXP13-C,INT02-C,INT31-C,MSC05-C,STR34-C: Type conversion without cast. : (char* and void*): av = xreallocarray :  11761T        av = xreallocarray ( av , ac + 2 , sizeof ( * av ) ) ; */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 2 : 11761 */
+		av[1] = xstrdup(user_pw->pw_name);
+/* (O) STATIC VIOLATION     : 458 S : CERT-C:2016 INT02-C,INT07-C,MSC05-C,STR04-C: Implicit conversion: actual to formal param (MR). : (int and char):  param  1 :  11762T        av [ 1 ] = xstrdup ( user_pw -> pw_name ) ; */
+/*    See also line 23 xmalloc.h */
+		av[2] = NULL;
+		/* Fix up command too, since it is used in log messages */
+		free(command);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11765T        free ( command ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : command : 11765 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11765 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : command : 11765 */
+		xasprintf(&command, "%s %s", av[0], av[1]);
+/* (O) STATIC VIOLATION     : 382 S : CERT-C:2016 ERR33-C,EXP12-C: (void) missing for discarded return value. :  11766T        xasprintf ( & command , "%s %s" , av [ 0 ] , av [ 1 ] ) ; */
+/* (M) DATAFLOW VIOLATION   : 51 D : CERT-C:2016 MEM30-C: Attempt to read from freed memory. : command : 11766 */
+	\}
+ 
+	if ((pid = subprocess("AuthorizedKeysCommand", command,
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : command :  11770T      ( pid = subprocess ( "AuthorizedKeysCommand" , command , ac , av , & f , ( 1 << 1 ) | ( 1 << 2 ) , runas_pw , temporarily_use_uid , */
+/*    See also line 630 auth2-pubkey.c */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 11770 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11770 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 11770 */
+/* (O) STATIC VIOLATION     : 50 S : CERT-C:2016 INT13-C,INT16-C: Use of shift operator on signed type. : << used with signed char: 1 : 11770 */
+/* (O) STATIC VIOLATION     : 334 S : CERT-C:2016 INT02-C: No cast when ~ or << applied to small types (MR). : 11770 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 11770 */
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : | used with signed char: ( 1 << 1 ) : 11770 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 : 11770 */
+/* (O) STATIC VIOLATION     : 50 S : CERT-C:2016 INT13-C,INT16-C: Use of shift operator on signed type. : << used with signed char: 1 : 11770 */
+/* (O) STATIC VIOLATION     : 334 S : CERT-C:2016 INT02-C: No cast when ~ or << applied to small types (MR). : 11770 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 2 : 11770 */
+/* (O) STATIC VIOLATION     : 120 S : CERT-C:2016 INT13-C,INT16-C: Use of bit operator on signed type. : | used with signed char: ( 1 << 2 ) : 11770 */
+/* (O) STATIC VIOLATION     : 458 S : CERT-C:2016 INT02-C,INT07-C,MSC05-C,STR04-C: Implicit conversion: actual to formal param (MR). : (void* and void):  param  9 : 11770 */
+/*    See also line 112 misc.h */
+	    ac, av, &f,
+	    SSH_SUBPROCESS_STDOUT_CAPTURE|SSH_SUBPROCESS_STDERR_DISCARD,
+	    runas_pw, temporarily_use_uid, restore_uid)) == 0)
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11772T      ) == 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11774T      { */
+		goto out;
+ 
+	uid_swapped = 1;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 1 :  11777T    uid_swapped = 1 ; */
+	temporarily_use_uid(runas_pw);
+ 
+	ok = auth_check_authkeys_file(user_pw, f,
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : authoptsp :  11779T    ok = auth_check_authkeys_file ( user_pw , f , options.authorized_keys_command , key , remote_ip , remote_host , authoptsp ) ; */
+/*    See also line 622 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : authoptsp : 11779 */
+/*    See also line 634 auth2-pubkey.c, line 622 auth2-pubkey.c */
+	    options.authorized_keys_command, key, remote_ip,
+	    remote_host, authoptsp);
+ 
+	fclose(f);
+/* (O) STATIC VIOLATION     : 382 S : CERT-C:2016 ERR33-C,EXP12-C: (void) missing for discarded return value. :  11780T    fclose ( f ) ; */
+	f = NULL;
+ 
+	if (exited_cleanly(pid, "AuthorizedKeysCommand", command, 0) != 0)
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11784T      exited_cleanly ( pid , "AuthorizedKeysCommand" , command , 0 ) != 0 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11784 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11786T      { */
+		goto out;
+ 
+	/* Read completed successfully */
+	found_key = ok;
+ out:
+	if (f != NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : f :  11794T      f != NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11796T      { */
+		fclose(f);
+/* (O) STATIC VIOLATION     : 382 S : CERT-C:2016 ERR33-C,EXP12-C: (void) missing for discarded return value. :  11797T        fclose ( f ) ; */
+	ssh_signal(SIGCHLD, osigchld);
+/* (M) STATIC VIOLATION     : 21 S : CERT-C:2016 DCL07-C,EXP37-C,MSC40-C: Number of parameters does not match.         : ssh_signal; 2 actual, 3 formal :  11799T    ssh_signal ( SIGCHLD , osigchld ) ; */
+/*    See also line 232 misc.h */
+/* (O) STATIC VIOLATION     : 458 S : CERT-C:2016 INT02-C,INT07-C,MSC05-C,STR04-C: Implicit conversion: actual to formal param (MR). : (void* and proc*):  param  2 : 11799 */
+/*    See also line 232 misc.h */
+	for (i = 0; i < ac; i++)
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11802T      i = 0 */
+/* (O) STATIC VIOLATION     : 11 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to loop body. :  11808T      { */
+		free(av[i]);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11809T        free ( av [ i ] ) ; */
+/* (M) STATIC VIOLATION     : 476 S : CERT-C:2016 ARR30-C: Array index not unsigned. : 11809 */
+	free(av);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11811T    free ( av ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : av : 11811 */
+/* (M) STATIC VIOLATION     : 484 S : CERT-C:2016 MEM00-C,MEM01-C,MEM30-C: Attempt to use already freed object.         : av : 11811 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : av : 11811 */
+	if (uid_swapped)
+/* (O) STATIC VIOLATION     : 139 S : CERT-C:2016 MSC12-C: Construct leads to infeasible code. :  11814T      uid_swapped */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11816T      { */
+		restore_uid();
+	free(command);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11819T    free ( command ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : command : 11819 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11819 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : command : 11819 */
+	free(username);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11820T    free ( username ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : username : 11820 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11820 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : username : 11820 */
+	free(key_fp);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11821T    free ( key_fp ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : key_fp : 11821 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11821 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : key_fp : 11821 */
+	free(keytext);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11822T    free ( keytext ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : keytext : 11822 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11822 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : keytext : 11822 */
+	return found_key;
+\}
+/* (M) DATAFLOW VIOLATION   : 49 D : CERT-C:2016 FIO22-C,FIO42-C: File pointer not closed on exit. : f :  11825F  } */
+/*    See also line 625 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : username : 11825 */
+/*    See also line 629 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : key_fp : 11825 */
+/*    See also line 629 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : keytext : 11825 */
+/*    See also line 629 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : command : 11825 */
+/*    See also line 630 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 50 D : CERT-C:2016 MEM00-C,MEM12-C,MEM31-C: Memory not freed after last reference. : av : 11825 */
+/*    See also line 630 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 24 D : CERT-C:2016 DCL31-C: Procedure definition has no associated prototype. : user_key_command_allowed2 */
+/* (I) DATAFLOW VIOLATION   :  8 D : CERT-C:2016 DCL22-C,MSC06-C,MSC12-C,MSC13-C: DD data flow anomalies found. */
+ 
+/*
+ * Check whether key authenticates and authorises the user.
+ */
+int
+user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : ssh :  11832F  struct ssh * ssh , */
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : pw :  11833F  struct passwd * pw , */
+/* (O) DATAFLOW VIOLATION   : 120 D : CERT-C:2016 DCL13-C: Pointer param should be declared pointer to const. : key :  11834F  struct sshkey * key , */
+    int auth_attempt, struct sshauthopt **authoptsp)
+\{
+	u_int success = 0, i;
+/* (O) STATIC VIOLATION     : 579 S : CERT-C:2016 DCL04-C: More than one variable per declaration. :  11840F      i ; */
+	char *file;
+	struct sshauthopt *opts = NULL;
+	const char *remote_ip = ssh_remote_ipaddr(ssh);
+	const char *remote_host = auth_get_canonical_hostname(ssh,
+	    options.use_dns);
+ 
+	if (authoptsp != NULL)
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : authoptsp :  11851T      authoptsp != NULL */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11853T      { */
+		*authoptsp = NULL;
+ 
+	if (auth_key_is_revoked(key))
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11858T      auth_key_is_revoked ( key ) */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11860T      { */
+		return 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11862T        0 ; */
+	if (sshkey_is_cert(key) &&
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11867T      ) */
+	    auth_key_is_revoked(key->cert->signature_key))
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11870T      ) */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11872T      { */
+		return 0;
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11874T        0 ; */
+ 
+	for (i = 0; !success && i < options.num_authkeys_files; i++) \{
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11878T      i = 0 */
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11880T      ! success */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11882T      i < options.num_authkeys_files */
+		if (strcasecmp(options.authorized_keys_files[i], "none") == 0)
+/* (M) STATIC VIOLATION     : 496 S : CERT-C:2016 DCL31-C,EXP37-C: Function call with no prior declaration.     : strcasecmp :  11889T          strcasecmp ( options.authorized_keys_files [ i ] , "none" ) == 0 */
+/* (M) STATIC VIOLATION     : 170 S : CERT-C:2016 DCL07-C,EXP37-C: Procedure call has no prototype and no defn. : strcasecmp : 11889 */
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 : 11889 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11891T          { */
+			continue;
+		file = expand_authorized_keys(
+		    options.authorized_keys_files[i], pw);
+		success = user_key_allowed2(pw, key, file,
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : file :  11897T          pw , key , file , remote_ip , remote_host , & opts ) ; */
+/*    See also line 758 auth2-pubkey.c */
+		    remote_ip, remote_host, &opts);
+		free(file);
+/* (M) STATIC VIOLATION     : 44 S : CERT-C:2016 CON33-C,CON37-C,DCL03-C,ERR01-C,ERR06-C,ERR07-C,ERR32-C,FIO03-C,FIO05-C,FIO06-C,FIO09-C,FIO17-C,FIO18-C,FIO19-C,FIO20-C,FIO21-C,FIO37-C,FIO40-C,INT05-C,MEM03-C,MEM36-C,MSC24-C,MSC30-C,MSC33-C,POS33-C,SIG00-C,SIG02-C,SIG35-C,STR03-C,STR07-C: Use of banned function, type or variable.    : free :  11898T        free ( file ) ; */
+/* (M) STATIC VIOLATION     : 483 S : CERT-C:2016 MEM34-C: Freed parameter is not heap item.            : file : 11898 */
+/* (M) STATIC VIOLATION     : 407 S : CERT-C:2016 MEM34-C: free used on string. : 11898 */
+/* (M) DATAFLOW VIOLATION   : 125 D : CERT-C:2016 MEM34-C: free called on variable with no allocated space. : file : 11898 */
+		if (!success) \{
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11901T          ! success */
+			sshauthopt_free(opts);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : opts :  11904T            sshauthopt_free ( opts ) ; */
+/*    See also line 759 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : opts : 11904 */
+/*    See also line 599 auth2-pubkey.c, line 759 auth2-pubkey.c */
+			opts = NULL;
+		\}
+	\}
+	if (success)
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11910T      success */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11912T      { */
+		goto out;
+ 
+	if ((success = user_cert_trusted_ca(pw, key, remote_ip, remote_host,
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : remote_ip :  11919T          pw , key , remote_ip , remote_host , & opts ) */
+/*    See also line 760 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : remote_host : 11919 */
+/*    See also line 761 auth2-pubkey.c */
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. : 11917 */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11917 */
+	    &opts)) != 0)
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11920T      ) != 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11922T      { */
+		goto out;
+	sshauthopt_free(opts);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : opts :  11925T    sshauthopt_free ( opts ) ; */
+/*    See also line 759 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : opts : 11925 */
+/*    See also line 495 auth2-pubkey.c, line 759 auth2-pubkey.c */
+	opts = NULL;
+ 
+	if ((success = user_key_command_allowed2(pw, key, remote_ip,
+/* (M) STATIC VIOLATION     :  9 S : CERT-C:2016 EXP30-C,FIO41-C,PRE31-C: Assignment operation in expression. :  11929T      ( success = */
+/* (M) STATIC VIOLATION     : 132 S : CERT-C:2016 EXP45-C: Assignment operator in boolean expression. : 11929 */
+	    remote_host, &opts)) != 0)
+/* (O) STATIC VIOLATION     : 201 S : CERT-C:2016 DCL06-C,EXP07-C,EXP09-C: Use of numeric literal in expression.        : 0 :  11932T      ) != 0 */
+/* (O) STATIC VIOLATION     : 12 S : CERT-C:2016 EXP15-C,EXP19-C: No brackets to then/else. :  11934T      { */
+		goto out;
+	sshauthopt_free(opts);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : opts :  11937T    sshauthopt_free ( opts ) ; */
+/*    See also line 759 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : opts : 11937 */
+/*    See also line 793 auth2-pubkey.c, line 759 auth2-pubkey.c */
+	opts = NULL;
+ 
+ out:
+	if (success && authoptsp != NULL) \{
+/* (M) STATIC VIOLATION     : 114 S : CERT-C:2016 EXP20-C,EXP45-C: Expression is not Boolean. :  11942T      success */
+/* (O) STATIC VIOLATION     : 49 S : CERT-C:2016 EXP00-C: Logical conjunctions need brackets. :  11944T      authoptsp != NULL */
+/* (O) STATIC VIOLATION     : 159 S : CERT-C:2016 MEM10-C: Comparing pointer with zero or NULL.         : authoptsp : 11944 */
+		*authoptsp = opts;
+		opts = NULL;
+	\}
+	sshauthopt_free(opts);
+/* (M) DATAFLOW VIOLATION   : 45 D : CERT-C:2016 ARR30-C,EXP08-C,EXP34-C: Pointer not checked for null before use. : opts :  11950T    sshauthopt_free ( opts ) ; */
+/*    See also line 759 auth2-pubkey.c */
+/* (M) DATAFLOW VIOLATION   : 135 D : CERT-C:2016 EXP34-C: Pointer assigned to NULL may be dereferenced. : opts : 11950 */
+/*    See also line 804 auth2-pubkey.c, line 759 auth2-pubkey.c */
+	return success;
+\}
+/* (O) DATAFLOW VIOLATION   :  1 D : CERT-C:2016 MSC13-C: Unused procedure parameter. : auth_attempt */
+/* (I) DATAFLOW VIOLATION   :  8 D : CERT-C:2016 DCL22-C,MSC06-C,MSC12-C,MSC13-C: DD data flow anomalies found. */
+ 
+Authmethod method_pubkey = \{
+	"publickey",
+	"publickey-hostbound-v00@openssh.com",
+	userauth_pubkey,
+	&options.pubkey_authentication
+\};
+ 

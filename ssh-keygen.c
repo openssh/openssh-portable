@@ -202,6 +202,8 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		case KEY_RSA:
 			*bitsp = DEFAULT_BITS;
 			break;
+		default:
+			break;
 		}
 #endif
 	}
@@ -228,6 +230,8 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 			fatal("Invalid ECDSA key length: valid lengths are "
 			    "256 or 384 bits");
 #endif
+	default:
+		break;
 	}
 #endif
 }
@@ -585,6 +589,8 @@ do_convert_private_ssh2(struct sshbuf *b)
 			fatal_fr(r, "generate RSA parameters");
 		BN_clear_free(rsa_iqmp);
 		break;
+	default:
+		break;
 	}
 	rlen = sshbuf_len(b);
 	if (rlen != 0)
@@ -624,6 +630,8 @@ get_line(FILE *fp, char *line, size_t len)
 			return pos;
 		case '\n':
 			return pos;
+		default:
+			break;
 		}
 		line[pos++] = c;
 		line[pos] = '\0';
@@ -927,7 +935,7 @@ fingerprint_private(const char *path)
 	if ((r = sshkey_load_public(path, &pubkey, &comment)) != 0)
 		debug_r(r, "load public \"%s\"", path);
 	if (pubkey == NULL || comment == NULL || *comment == '\0') {
-		free(comment);
+		
 		if ((r = sshkey_load_private(path, NULL,
 		    &privkey, &comment)) != 0)
 			debug_r(r, "load private \"%s\"", path);
@@ -983,7 +991,6 @@ do_fingerprint(struct passwd *pw)
 		 */
 		if (lnum == 1 && strcmp(identity_file, "-") != 0 &&
 		    strstr(cp, "PRIVATE KEY") != NULL) {
-			free(line);
 			fclose(f);
 			fingerprint_private(path);
 			exit(0);
@@ -1442,8 +1449,6 @@ do_change_passphrase(struct passwd *pw)
 		if (strcmp(passphrase1, passphrase2) != 0) {
 			explicit_bzero(passphrase1, strlen(passphrase1));
 			explicit_bzero(passphrase2, strlen(passphrase2));
-			free(passphrase1);
-			free(passphrase2);
 			printf("Pass phrases do not match.  Try again.\n");
 			exit(1);
 		}
@@ -2257,7 +2262,6 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 	path = tilde_expand_filename(file, pw->pw_uid);
 	if (strcmp(path, "-") == 0) {
 		krl_spec = stdin;
-		free(path);
 		path = xstrdup("(standard input)");
 	} else if ((krl_spec = fopen(path, "r")) == NULL)
 		fatal("fopen %s: %s", path, strerror(errno));

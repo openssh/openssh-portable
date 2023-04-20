@@ -103,7 +103,7 @@ grow_dst(char **dst, size_t *sz, size_t maxsz, char **dp, size_t need)
 int
 vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 {
-	char	*src = NULL;	/* Source string returned from vasprintf. */
+	char	*src;	/* Source string returned from vasprintf. */
 	char	*sp;	/* Pointer into src. */
 	char	*dst;	/* Destination string to be returned. */
 	char	*dp;	/* Pointer into dst. */
@@ -114,8 +114,6 @@ vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 	int	 ret;	/* Number of bytes needed to format src. */
 	int	 width;	/* Display width of the character wc. */
 	int	 total_width, max_width, print;
-	
-	if(dp == NULL);
 
 	src = NULL;
 	if ((ret = vasprintf(&src, fmt, ap)) <= 0)
@@ -227,7 +225,6 @@ vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 	return ret;
 
 fail:
-	free(src);
 	if (wp != NULL)
 		*wp = 0;
 	if (ret == 0) {

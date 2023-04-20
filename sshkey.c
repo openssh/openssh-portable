@@ -268,6 +268,8 @@ key_type_is_ecdsa_variant(int type)
 	case KEY_ECDSA_SK:
 	case KEY_ECDSA_SK_CERT:
 		return 1;
+	default:
+		break;
 	}
 	return 0;
 }
@@ -313,8 +315,7 @@ sshkey_match_keyname_to_sigalgs(const char *keyname, const char *sigalgs)
 char *
 sshkey_alg_list(int certs_only, int plain_only, int include_sigonly, char sep)
 {
-	char *tmp = (char*) malloc(20 * sizeof(char));
-	char *ret = NULL;
+	char *tmp, *ret = NULL;
 	size_t i, nlen, rlen = 0;
 	const struct sshkey_impl *impl;
 
@@ -343,8 +344,7 @@ sshkey_alg_list(int certs_only, int plain_only, int include_sigonly, char sep)
 int
 sshkey_names_valid2(const char *names, int allow_wildcard)
 {
-	char *s = (char*) malloc(20 * sizeof(char));
-	char *cp, *p;
+	char *s, *cp, *p;
 	const struct sshkey_impl *impl;
 	int i, type;
 
@@ -939,17 +939,17 @@ fingerprint_bubblebabble(u_char *dgst_raw, size_t dgst_raw_len)
 	for (i = 0; i < rounds; i++) {
 		u_int idx0, idx1, idx2, idx3, idx4;
 		if ((i + 1 < rounds) || (dgst_raw_len % 2 != 0)) {
-			idx0 = (((((u_int)(dgst_raw[2 * i])) >> 6) & 3) +
+			idx0 = (((((u_int)(dgst_raw[2 * i])) >> 6) & (unsigned)3) +
 			    seed) % 6;
-			idx1 = (((u_int)(dgst_raw[2 * i])) >> 2) & 15;
-			idx2 = ((((u_int)(dgst_raw[2 * i])) & 3) +
+			idx1 = (((u_int)(dgst_raw[2 * i])) >> 2) & (unsigned)15;
+			idx2 = ((((u_int)(dgst_raw[2 * i])) & (unsigned)3) +
 			    (seed / 6)) % 6;
 			retval[j++] = vowels[idx0];
 			retval[j++] = consonants[idx1];
 			retval[j++] = vowels[idx2];
 			if ((i + 1) < rounds) {
-				idx3 = (((u_int)(dgst_raw[(2 * i) + 1])) >> 4) & 15;
-				idx4 = (((u_int)(dgst_raw[(2 * i) + 1]))) & 15;
+				idx3 = (((u_int)(dgst_raw[(2 * i) + 1])) >> 4) & (unsigned)15;
+				idx4 = (((u_int)(dgst_raw[(2 * i) + 1]))) & (unsigned)15;
 				retval[j++] = consonants[idx3];
 				retval[j++] = '-';
 				retval[j++] = consonants[idx4];
@@ -1070,11 +1070,11 @@ fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
 	/* output upper border */
 	p = retval;
 	*p++ = '+';
-	for (i = 0; i < (FLDSIZE_X - tlen) / 2; i++)
+	for (i = 0; i < ((unsigned char)FLDSIZE_X - tlen) / 2; i++)
 		*p++ = '-';
 	memcpy(p, title, tlen);
 	p += tlen;
-	for (i += tlen; i < FLDSIZE_X; i++)
+	for (i += tlen; i < (unsigned int)FLDSIZE_X; i++)
 		*p++ = '-';
 	*p++ = '+';
 	*p++ = '\n';
@@ -1090,11 +1090,11 @@ fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
 
 	/* output lower border */
 	*p++ = '+';
-	for (i = 0; i < (FLDSIZE_X - hlen) / 2; i++)
+	for (i = 0; i < ((unsigned char)FLDSIZE_X - hlen) / 2; i++)
 		*p++ = '-';
 	memcpy(p, hash, hlen);
 	p += hlen;
-	for (i += hlen; i < FLDSIZE_X; i++)
+	for (i += hlen; i < (unsigned int)FLDSIZE_X; i++)
 		*p++ = '-';
 	*p++ = '+';
 
@@ -1169,8 +1169,7 @@ int
 sshkey_read(struct sshkey *ret, char **cpp)
 {
 	struct sshkey *k;
-	char *cp;
-	char *blobcopy = (char*) malloc(20 * sizeof(char));
+	char *cp, *blobcopy;
 	size_t space;
 	int r, type, curve_nid = -1;
 	struct sshbuf *blob;
@@ -1245,7 +1244,7 @@ sshkey_to_base64(const struct sshkey *key, char **b64p)
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL;
-	char *uu = (char*) malloc(20 * sizeof(char));
+	char *uu = NULL;
 
 	if (b64p != NULL)
 		*b64p = NULL;
@@ -1531,8 +1530,7 @@ int
 sshkey_shield_private(struct sshkey *k)
 {
 	struct sshbuf *prvbuf = NULL;
-	u_char *prekey = (u_char*) malloc(20 * sizeof(u_char));;
-	u_char *enc = NULL, keyiv[SSH_DIGEST_MAX_LENGTH];
+	u_char *prekey = NULL, *enc = NULL, keyiv[SSH_DIGEST_MAX_LENGTH];
 	struct sshcipher_ctx *cctx = NULL;
 	const struct sshcipher *cipher;
 	size_t i, enclen = 0;
@@ -1759,7 +1757,7 @@ cert_parse(struct sshbuf *b, struct sshkey *key, struct sshbuf *certbuf)
 {
 	struct sshbuf *principals = NULL, *crit = NULL;
 	struct sshbuf *exts = NULL, *ca = NULL;
-	u_char *sig = (u_char*) malloc(20 * sizeof(u_char));
+	u_char *sig = NULL;
 	size_t signed_len = 0, slen = 0, kidlen = 0;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 
@@ -1799,7 +1797,7 @@ cert_parse(struct sshbuf *b, struct sshkey *key, struct sshbuf *certbuf)
 
 	/* Parse principals section */
 	while (sshbuf_len(principals) > 0) {
-		char *principal = (char*) malloc(20 * sizeof(char));
+		char *principal = NULL;
 		char **oprincipals = NULL;
 
 		if (key->cert->nprincipals >= SSHKEY_CERT_MAX_PRINCIPALS) {
@@ -1993,7 +1991,7 @@ sshkey_get_sigtype(const u_char *sig, size_t siglen, char **sigtypep)
 {
 	int r;
 	struct sshbuf *b = NULL;
-	char *sigtype = (char*) malloc(20 * sizeof(char));
+	char *sigtype = NULL;
 
 	if (sigtypep != NULL)
 		*sigtypep = NULL;
@@ -2066,7 +2064,7 @@ sshkey_check_sigtype(const u_char *sig, size_t siglen,
     const char *requested_alg)
 {
 	const char *expected_alg;
-	char *sigtype = (char*) malloc(20 * sizeof(char));
+	char *sigtype = NULL;
 	int r;
 
 	if (requested_alg == NULL)
@@ -2172,13 +2170,11 @@ sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
 {
 	const struct sshkey_impl *impl;
 	struct sshbuf *principals = NULL;
-	u_char nonce[32];
-	u_char *ca_blob = (u_char*) malloc(20 * sizeof(u_char));
-	u_char *sig_blob = (u_char*) malloc(20 * sizeof(u_char));
+	u_char *ca_blob = NULL, *sig_blob = NULL, nonce[32];
 	size_t i, ca_len, sig_len;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *cert = NULL;
-	char *sigtype = (char*) malloc(20 * sizeof(char));
+	char *sigtype = NULL;
 
 	if (k == NULL || k->cert == NULL ||
 	    k->cert->certblob == NULL || ca == NULL)
@@ -2747,8 +2743,7 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
     const char *passphrase, const char *comment, const char *ciphername,
     int rounds)
 {
-	u_char *cp, *key = NULL;
-	u_char *pubkeyblob = (u_char*) malloc(20 * sizeof(u_char));
+	u_char *cp, *key = NULL, *pubkeyblob = NULL;
 	u_char salt[SALT_LEN];
 	char *b64 = NULL;
 	size_t i, pubkeylen, keylen, ivlen, blocksize, authlen;
@@ -2951,14 +2946,14 @@ static int
 private2_decrypt(struct sshbuf *decoded, const char *passphrase,
     struct sshbuf **decryptedp, struct sshkey **pubkeyp)
 {
-	char *ciphername = (char*) malloc(20 * sizeof(char)), *kdfname = (char*) malloc(20 * sizeof(char));
+	char *ciphername = NULL, *kdfname = NULL;
 	const struct sshcipher *cipher = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
 	size_t keylen = 0, ivlen = 0, authlen = 0, slen = 0;
 	struct sshbuf *kdf = NULL, *decrypted = NULL;
 	struct sshcipher_ctx *ciphercontext = NULL;
 	struct sshkey *pubkey = NULL;
-	u_char *key = NULL, *salt = (u_char*) malloc(20 * sizeof(u_char)), *dp;
+	u_char *key = NULL, *salt = NULL, *dp;
 	u_int blocksize, rounds, nkeys, encrypted_len, check1, check2;
 
 	if (decoded == NULL || decryptedp == NULL || pubkeyp == NULL)
@@ -3372,6 +3367,8 @@ translate_libcrypto_error(unsigned long pem_err)
 		}
 	case ERR_LIB_ASN1:
 		return SSH_ERR_INVALID_FORMAT;
+	default:
+		break;
 	}
 	return SSH_ERR_LIBCRYPTO_ERROR;
 }

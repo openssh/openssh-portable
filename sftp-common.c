@@ -69,14 +69,14 @@ stat_to_attrib(const struct stat *st, Attrib *a)
 {
 	attrib_clear(a);
 	a->flags = 0;
-	a->flags |= SSH2_FILEXFER_ATTR_SIZE;
+	a->flags |= (unsigned)SSH2_FILEXFER_ATTR_SIZE;
 	a->size = st->st_size;
-	a->flags |= SSH2_FILEXFER_ATTR_UIDGID;
+	a->flags |= (unsigned)SSH2_FILEXFER_ATTR_UIDGID;
 	a->uid = st->st_uid;
 	a->gid = st->st_gid;
-	a->flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
+	a->flags |= (unsigned)SSH2_FILEXFER_ATTR_PERMISSIONS;
 	a->perm = st->st_mode;
-	a->flags |= SSH2_FILEXFER_ATTR_ACMODTIME;
+	a->flags |= (unsigned)SSH2_FILEXFER_ATTR_ACMODTIME;
 	a->atime = st->st_atime;
 	a->mtime = st->st_mtime;
 }
@@ -87,15 +87,15 @@ attrib_to_stat(const Attrib *a, struct stat *st)
 {
 	memset(st, 0, sizeof(*st));
 
-	if (a->flags & SSH2_FILEXFER_ATTR_SIZE)
+	if (a->flags & (unsigned)SSH2_FILEXFER_ATTR_SIZE)
 		st->st_size = a->size;
-	if (a->flags & SSH2_FILEXFER_ATTR_UIDGID) {
+	if (a->flags & (unsigned)SSH2_FILEXFER_ATTR_UIDGID) {
 		st->st_uid = a->uid;
 		st->st_gid = a->gid;
 	}
-	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)
+	if (a->flags & (unsigned)SSH2_FILEXFER_ATTR_PERMISSIONS)
 		st->st_mode = a->perm;
-	if (a->flags & SSH2_FILEXFER_ATTR_ACMODTIME) {
+	if (a->flags & (unsigned)SSH2_FILEXFER_ATTR_ACMODTIME) {
 		st->st_atime = a->atime;
 		st->st_mtime = a->mtime;
 	}

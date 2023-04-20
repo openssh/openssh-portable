@@ -707,6 +707,8 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 		if ((r = sshsk_ed25519_sig(resp, sig)) != 0)
 			goto out;
 		break;
+	default:
+		break;
 	}
 #ifdef DEBUG_SK
 	fprintf(stderr, "%s: sig_flags = 0x%02x, sig_counter = %u\n",
@@ -777,7 +779,9 @@ sshsk_free_resident_keys(struct sshsk_resident_key **srks, size_t nsrks)
 
 	for (i = 0; i < nsrks; i++)
 		sshsk_free_resident_key(srks[i]);
-	free(srks);
+	if (srks != NULL){	
+		free(srks);
+	}
 }
 
 int
@@ -829,7 +833,7 @@ sshsk_load_resident(const char *provider_path, const char *device,
 		}
 		sk_flags = SSH_SK_USER_PRESENCE_REQD|SSH_SK_RESIDENT_KEY;
 		if ((rks[i]->flags & SSH_SK_USER_VERIFICATION_REQD))
-			sk_flags |= SSH_SK_USER_VERIFICATION_REQD;
+			sk_flags |= (unsigned)SSH_SK_USER_VERIFICATION_REQD;
 		if ((r = sshsk_key_from_response(rks[i]->alg,
 		    rks[i]->application, sk_flags, &rks[i]->key, &key)) != 0)
 			goto out;

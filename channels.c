@@ -301,6 +301,8 @@ channel_lookup(struct ssh *ssh, int id)
 	case SSH_CHANNEL_ABANDONED:
 	case SSH_CHANNEL_MUX_PROXY:
 		return c;
+	default:
+		break;
 	}
 	logit("Non-public channel %d, type %d.", id, c->type);
 	return NULL;
@@ -816,6 +818,8 @@ channel_stop_listening(struct ssh *ssh)
 			case SSH_CHANNEL_RUNIX_LISTENER:
 				channel_close_fd(ssh, c, &c->sock);
 				channel_free(ssh, c);
+				break;
+			default:
 				break;
 			}
 		}
@@ -3176,6 +3180,8 @@ channel_proxy_downstream(struct ssh *ssh, Channel *downstream)
 				c->flags |= CHAN_CLOSE_SENT;
 		}
 		break;
+	default:
+		break;
 	}
 	if (modified) {
 		if ((r = sshpkt_start(ssh, type)) != 0 ||
@@ -3279,6 +3285,8 @@ channel_proxy_upstream(Channel *c, int type, u_int32_t seq, struct ssh *ssh)
 			channel_free(ssh, c);
 		else
 			c->flags |= CHAN_CLOSE_RCVD;
+		break;
+	default:
 		break;
 	}
 	sshbuf_free(b);
@@ -3523,7 +3531,10 @@ reason2txt(int reason)
 		return "unknown channel type";
 	case SSH2_OPEN_RESOURCE_SHORTAGE:
 		return "resource shortage";
+	default:
+		break;
 	}
+
 	return "unknown reason";
 }
 
@@ -3883,7 +3894,7 @@ channel_setup_fwd_listener_streamlocal(struct ssh *ssh, int type,
 				error("No forward host name.");
 				return 0;
 			}
-			if (strlen(fwd->connect_host) >= NI_MAXHOST) {
+			if (strlen(fwd->connect_host) >= (size_t)NI_MAXHOST) {
 				error("Forward host name too long.");
 				return 0;
 			}

@@ -160,16 +160,13 @@ ssh_free(struct ssh *ssh)
 		if (ssh->kex && ssh->kex->server)
 			sshkey_free(k->key);
 		free(k);
-		k = NULL; // set k to NULL after freeing it
 	}
 	while ((k = TAILQ_FIRST(&ssh->private_keys)) != NULL) {
 		TAILQ_REMOVE(&ssh->private_keys, k, next);
 		free(k);
-		k = NULL; // set k to NULL after freeing it
 	}
 	ssh_packet_close(ssh);
 	free(ssh);
-	free(k);
 }
 
 void
@@ -197,6 +194,7 @@ ssh_add_hostkey(struct ssh *ssh, struct sshkey *key)
 			return r;
 		if ((k = malloc(sizeof(*k))) == NULL ||
 		    (k_prv = malloc(sizeof(*k_prv))) == NULL) {
+			free(k);
 			sshkey_free(pubkey);
 			return SSH_ERR_ALLOC_FAIL;
 		}
@@ -214,7 +212,6 @@ ssh_add_hostkey(struct ssh *ssh, struct sshkey *key)
 		TAILQ_INSERT_TAIL(&ssh->public_keys, k, next);
 		r = 0;
 	}
-
 	/* free memory before returning */
 	if (r != 0) {
 		free(k_prv);
@@ -335,8 +332,7 @@ _ssh_read_banner(struct ssh *ssh, struct sshbuf *banner)
 	const char *mismatch = "Protocol mismatch.\r\n";
 	const u_char *s = sshbuf_ptr(input);
 	u_char c;
-	char *cp = (u_char*) malloc(20 * sizeof(u_char));
-	char *remote_version = (u_char*) malloc(20 * sizeof(u_char));
+	char *cp = NULL, *remote_version = NULL;
 	int r = 0, remote_major, remote_minor, expect_nl;
 	size_t n, j;
 
@@ -415,7 +411,7 @@ _ssh_read_banner(struct ssh *ssh, struct sshbuf *banner)
 int
 _ssh_send_banner(struct ssh *ssh, struct sshbuf *banner)
 {
-	char *cp = (char*) malloc(20 * sizeof(char));
+	char *cp;
 	int r;
 
 	if ((r = sshbuf_putf(banner, "SSH-2.0-%.100s\r\n", SSH_VERSION)) != 0)
@@ -520,9 +516,7 @@ int
 _ssh_order_hostkeyalgs(struct ssh *ssh)
 {
 	struct key_entry *k;
-	char *orig = (char*) malloc(20 * sizeof(char));
-	char *oavail = (char*) malloc(20 * sizeof(char));
-	char *avail = NULL, *alg, *replace = NULL;
+	char *orig, *avail, *oavail = NULL, *alg, *replace = NULL;
 	char **proposal;
 	size_t maxlen;
 	int ktype, r;

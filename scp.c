@@ -819,6 +819,8 @@ find_brace(const char *pattern, int *startp, int *endp)
 			if (--brace_level <= 0)
 				*endp = i;
 			break;
+		default:
+			break;
 		}
 	}
 	/* unbalanced brackets/braces */
@@ -836,7 +838,8 @@ emit_expansion(const char *pattern, int brace_start, int brace_end,
     int sel_start, int sel_end, char ***patternsp, size_t *npatternsp)
 {
 	char *cp;
-	int o = 0, tail_len = strlen(pattern + brace_end + 1);
+	int o = 0; 
+	size_t tail_len = strlen((char*)(pattern + brace_end + 1));
 
 	if ((cp = malloc(brace_start + (sel_end - sel_start) +
 	    tail_len + 1)) == NULL)
@@ -913,6 +916,8 @@ brace_expand_one(const char *pattern, char ***patternsp, size_t *npatternsp,
 		case '\\':
 			if (i < brace_end - 1)
 				i++; /* skip */
+			break;
+		default:
 			break;
 		}
 		if (pattern[i] == ',' || i == brace_end - 1) {
@@ -1028,7 +1033,9 @@ do_sftp_connect(char *host, char *user, int port, char *sftp_direct,
 void
 toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 {
-	char *suser = NULL, *host = NULL, *src = NULL;
+	char *suser = (char*) malloc(20 * sizeof(char));
+	char *host = (char*) malloc(20 * sizeof(char));
+	char *src = (char*) malloc(20 * sizeof(char));
 	char *bp, *tuser, *thost, *targ;
 	int sport = -1, tport = -1;
 	struct sftp_conn *conn = NULL, *conn2 = NULL;
@@ -1057,10 +1064,8 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 
 	/* Parse source files */
 	for (i = 0; i < argc - 1; i++) {
-		free(suser);
-		free(host);
-		free(src);
 		r = parse_scp_uri(argv[i], &suser, &host, &sport, &src);
+
 		if (r == -1) {
 			fmprintf(stderr, "%s: invalid uri\n", argv[i]);
 			++errs;
@@ -1228,9 +1233,6 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	alist.list = NULL;
 
 	for (i = 0; i < argc - 1; i++) {
-		free(suser);
-		free(host);
-		free(src);
 		r = parse_scp_uri(argv[i], &suser, &host, &sport, &src);
 		if (r == -1) {
 			fmprintf(stderr, "%s: invalid uri\n", argv[i]);
@@ -1307,7 +1309,7 @@ prepare_remote_path(struct sftp_conn *conn, const char *path)
 	if (*path != '~')
 		return xstrdup(path);
 	if (strncmp(path, "~/", 2) == 0) {
-		if ((nslash = strspn(path + 2, "/")) == strlen(path + 2))
+		if (((size_t)nslash == strspn(path + 2, "/")) == strlen(path + 2))
 			return xstrdup(".");
 		return xstrdup(path + 2 + nslash);
 	}
@@ -1520,7 +1522,7 @@ rsource(char *name, struct stat *statp)
 			continue;
 		if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
 			continue;
-		if (strlen(name) + 1 + strlen(dp->d_name) >= sizeof(path) - 1) {
+		if ((size_t)(strlen(name) + 1 + strlen(dp->d_name)) >= sizeof(path) - 1) {
 			run_err("%s/%s: name too long", name, dp->d_name);
 			continue;
 		}
