@@ -633,8 +633,6 @@ list_hostkey_types(void)
 		case KEY_XMSS:
 			append_hostkey_type(b, sshkey_ssh_name(key));
 			break;
-		default:
-			break;
 		}
 		/* If the private key has a cert peer, then list that too */
 		key = sensitive_data.host_certificates[i];
@@ -655,8 +653,6 @@ list_hostkey_types(void)
 		case KEY_ED25519_SK_CERT:
 		case KEY_XMSS_CERT:
 			append_hostkey_type(b, sshkey_ssh_name(key));
-			break;
-		default:
 			break;
 		}
 	}
@@ -1250,8 +1246,6 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					listening--;
 					startup_flags[i] = 0;
 				}
-				break;
-			default:
 				break;
 			}
 		}
@@ -1915,8 +1909,6 @@ main(int ac, char **av)
 		case KEY_XMSS:
 			if (have_agent || key != NULL)
 				sensitive_data.have_ssh2_key = 1;
-			break;
-		default:
 			break;
 		}
 		if ((fp = sshkey_fingerprint(pubkey, options.fingerprint_hash,

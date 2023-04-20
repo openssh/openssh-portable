@@ -227,8 +227,6 @@ sshkey_try_load_public(struct sshkey **kp, const char *filename,
 		case '\n':
 		case '\0':
 			continue;
-		default:
-			break;
 		}
 		/* Abort loading if this looks like a private key */
 		if (strncmp(cp, "-----BEGIN", 10) == 0 ||
@@ -405,8 +403,6 @@ sshkey_in_file(struct sshkey *key, const char *filename, int strict_type,
 		case '\n':
 		case '\0':
 			continue;
-		default:
-			break;
 		}
 
 		if ((pub = sshkey_new(KEY_UNSPEC)) == NULL) {

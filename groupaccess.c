@@ -111,8 +111,6 @@ ga_match_pattern_list(const char *group_pattern)
 			continue;
 		case 1:
 			found = 1;
-		default:
-			break;
 		}
 	}
 	return found;

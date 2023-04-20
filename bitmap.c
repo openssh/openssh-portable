@@ -75,7 +75,7 @@ bitmap_test_bit(struct bitmap *b, u_int n)
 		return 0; /* invalid */
 	if (b->len == 0 || (n / BITMAP_BITS) > b->top)
 		return 0;
-	return (b->d[n / BITMAP_BITS] >> (n & (unsigned int)BITMAP_WMASK)) & 1;
+	return (b->d[n / BITMAP_BITS] >> (n & BITMAP_WMASK)) & 1;
 }
 
 static int
@@ -108,7 +108,7 @@ bitmap_set_bit(struct bitmap *b, u_int n)
 	offset = n / BITMAP_BITS;
 	if (offset > b->top)
 		b->top = offset;
-	b->d[offset] |= (BITMAP_WTYPE)((uint32_t)1 << (n & BITMAP_WMASK));
+	b->d[offset] |= (BITMAP_WTYPE)1 << (n & BITMAP_WMASK);
 	return 0;
 }
 
@@ -132,7 +132,7 @@ bitmap_clear_bit(struct bitmap *b, u_int n)
 	offset = n / BITMAP_BITS;
 	if (offset > b->top)
 		return;
-	b->d[offset] &= ~((BITMAP_WTYPE)((uint32_t)1 << (n & BITMAP_WMASK)));
+	b->d[offset] &= ~((BITMAP_WTYPE)1 << (n & BITMAP_WMASK));
 	/* The top may have changed as a result of the clear */
 	retop(b);
 }
@@ -179,7 +179,7 @@ bitmap_to_string(struct bitmap *b, void *p, size_t l)
 		for (j = 0; j < BITMAP_BYTES; j++) {
 			if (k >= l)
 				break;
-			s[need - 1 - k++] = (unsigned char)((b->d[i] >> (j * 8)) & 0xff);
+			s[need - 1 - k++] = (b->d[i] >> (j * 8)) & 0xff;
 		}
 	}
 	return 0;
@@ -192,7 +192,7 @@ bitmap_from_string(struct bitmap *b, const void *p, size_t l)
 	size_t i, offset, shift;
 	const u_char *s = (const u_char *)p;
 
-	if (l > (unsigned int)(BITMAP_MAX / 8))
+	if (l > BITMAP_MAX / 8)
 		return -1;
 	if ((r = reserve(b, l * 8)) != 0)
 		return r;
