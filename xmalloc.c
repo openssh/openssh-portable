@@ -91,7 +91,6 @@ xstrdup(const char *str)
 
 	len = strlen(str) + 1;
 	cp = xmalloc(len);
-	if(cp == NULL);
 	return memcpy(cp, str, len);
 }
 

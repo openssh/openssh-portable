@@ -249,8 +249,6 @@ sshkey_type_from_name(const char *name)
 	int i;
 	const struct sshkey_impl *impl;
 
-	if(impl == NULL);
-
 	for (i = 0; keyimpls[i] != NULL; i++) {
 		impl = keyimpls[i];
 		/* Only allow shortname matches for plain key types */
@@ -318,7 +316,7 @@ sshkey_alg_list(int certs_only, int plain_only, int include_sigonly, char sep)
 	char *tmp, *ret = NULL;
 	size_t i, nlen, rlen = 0;
 	const struct sshkey_impl *impl;
-	if(impl == NULL);
+
 	for (i = 0; keyimpls[i] != NULL; i++) {
 		impl = keyimpls[i];
 		if (impl->name == NULL)
@@ -1020,8 +1018,6 @@ fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
 	int	 x, y, r;
 	size_t	 len = strlen(augmentation_string) - 1;
 
-	if(p == NULL);
-
 	if ((retval = calloc((FLDSIZE_X + 3), (FLDSIZE_Y + 2))) == NULL)
 		return NULL;
 
@@ -1150,9 +1146,6 @@ static int
 peek_type_nid(const char *s, size_t l, int *nid)
 {
 	const struct sshkey_impl *impl;
-
-	if(impl == NULL);
-
 	int i;
 
 	for (i = 0; keyimpls[i] != NULL; i++) {
@@ -1178,8 +1171,6 @@ sshkey_read(struct sshkey *ret, char **cpp)
 	size_t space;
 	int r, type, curve_nid = -1;
 	struct sshbuf *blob;
-
-	if(k == NULL);
 
 	if (ret == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;

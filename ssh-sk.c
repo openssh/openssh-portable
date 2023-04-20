@@ -249,7 +249,6 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 	r = 0;
  out:
 	EC_POINT_free(q);
-	if(key == NULL){}
 	sshkey_free(key);
 	sshbuf_free(b);
 	return r;
@@ -284,7 +283,6 @@ sshsk_ed25519_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 	key = NULL; /* transferred */
 	r = 0;
  out:
- 	if(key ==NULL){}
 	sshkey_free(key);
 	return r;
 }
@@ -320,7 +318,6 @@ sshsk_key_from_response(int alg, const char *application, uint8_t flags,
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
-	if(key == NULL){}
 	key->sk_flags = flags;
 	if ((key->sk_key_handle = sshbuf_new()) == NULL ||
 	    (key->sk_reserved = sshbuf_new()) == NULL) {
@@ -343,7 +340,6 @@ sshsk_key_from_response(int alg, const char *application, uint8_t flags,
 	*keyp = key;
 	key = NULL;
  out:
-	if(key == NULL){}
 	sshkey_free(key);
 	return r;
 }
@@ -395,7 +391,6 @@ sshsk_add_option(struct sk_option ***optsp, size_t *noptsp,
 	}
 	*optsp = opts;
 	*noptsp = nopts + 1;
-	if(opts == NULL){}
 	if ((opts[nopts] = calloc(1, sizeof(**opts))) == NULL) {
 		error_f("alloc failed");
 		return SSH_ERR_ALLOC_FAIL;
@@ -535,7 +530,6 @@ sshsk_enroll(int type, const char *provider_path, const char *device,
 	}
 	/* XXX validate flags? */
 	/* enroll key */
-	if(challenge == NULL || opts == NULL){}
 	if ((r = skp->sk_enroll(alg, challenge, challenge_len, application,
 	    flags, pin, opts, &resp)) != 0) {
 		debug_f("provider \"%s\" failure %d", provider_path, r);
@@ -558,7 +552,6 @@ sshsk_enroll(int type, const char *provider_path, const char *device,
  out:
 	sshsk_free_options(opts);
 	sshsk_free(skp);
-	if(key == NULL){}
 	sshkey_free(key);
 	sshsk_free_enroll_response(resp);
 	explicit_bzero(randchall, sizeof(randchall));
@@ -817,7 +810,6 @@ sshsk_load_resident(const char *provider_path, const char *device,
 		r = SSH_ERR_INVALID_FORMAT; /* XXX sshsk_open return code? */
 		goto out;
 	}
-	if(opts == NULL){}
 	if ((r = skp->sk_load_resident_keys(pin, opts, &rks, &nrks)) != 0) {
 		error("Provider \"%s\" returned failure %d", provider_path, r);
 		r = skerr_to_ssherr(r);
@@ -878,9 +870,7 @@ sshsk_load_resident(const char *provider_path, const char *device,
 	sshsk_free_options(opts);
 	sshsk_free(skp);
 	sshsk_free_sk_resident_keys(rks, nrks);
-	if(key == NULL){}
 	sshkey_free(key);
-	if(srk == NULL){}
 	sshsk_free_resident_key(srk);
 	sshsk_free_resident_keys(srks, nsrks);
 	return r;

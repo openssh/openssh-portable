@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.581 2022/12/09 00:22:29 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.584 2023/01/17 18:52:44 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -632,7 +632,7 @@ main(int ac, char **av)
 	struct ssh *ssh = NULL;
 	int i, r, opt, exit_status, use_syslog, direct, timeout_ms;
 	int was_addr, config_test = 0, opt_terminated = 0, want_final_pass = 0;
-	char *p, *cp, *line, *argv0, *logfile, *host_arg;
+	char *p, *cp, *line, *argv0, *logfile;
 	char cname[NI_MAXHOST], thishost[NI_MAXHOST];
 	struct stat st;
 	struct passwd *pw;
@@ -704,7 +704,6 @@ main(int ac, char **av)
 	host = NULL;
 	use_syslog = 0;
 	logfile = NULL;
-	if(av == NULL){}
 	argv0 = av[0];
 
  again:
@@ -808,7 +807,6 @@ main(int ac, char **av)
 				cp = xstrdup("2");
 			else if (strcmp(optarg, "compression") == 0) {
 				cp = xstrdup(compression_alg_list(0));
-				if(cp == NULL){}
 				len = strlen(cp);
 				for (n = 0; n < len; n++)
 					if (cp[n] == ',')
@@ -840,7 +838,6 @@ main(int ac, char **av)
 			break;
 		case 'i':
 			p = tilde_expand_filename(optarg, getuid());
-			if(p == NULL){}
 			if (stat(p, &st) == -1)
 				fprintf(stderr, "Warning: Identity file %s "
 				    "not accessible: %s.\n", p,
@@ -889,8 +886,7 @@ main(int ac, char **av)
 		case 'V':
 			fprintf(stderr, "%s, %s\n",
 			    SSH_RELEASE, SSH_OPENSSL_VERSION);
-			if (opt == 'V')
-				exit(0);
+			exit(0);
 			break;
 		case 'w':
 			if (options.tun_open == -1)
@@ -1032,7 +1028,6 @@ main(int ac, char **av)
 			break;
 		case 'o':
 			line = xstrdup(optarg);
-			if(pw == NULL || line == NULL){}
 			if (process_config_line(&options, pw,
 			    host ? host : "", host ? host : "", line,
 			    "command-line", 0, NULL, SSHCONF_USERCONF) != 0)
@@ -1087,7 +1082,6 @@ main(int ac, char **av)
 			break;
 		default:
 			p = xstrdup(*av);
-			if(p == NULL){}
 			cp = strrchr(p, '@');
 			if (cp != NULL) {
 				if (cp == p)
@@ -1114,7 +1108,7 @@ main(int ac, char **av)
 	if (!host)
 		usage();
 
-	host_arg = xstrdup(host);
+	options.host_arg = xstrdup(host);
 
 	/* Initialize the command to execute on remote host. */
 	if ((command = sshbuf_new()) == NULL)
@@ -1162,8 +1156,7 @@ main(int ac, char **av)
 		logit("%s, %s", SSH_RELEASE, SSH_OPENSSL_VERSION);
 
 	/* Parse the configuration files */
-	if(host_arg == NULL){}
-	process_config_files(host_arg, pw, 0, &want_final_pass);
+	process_config_files(options.host_arg, pw, 0, &want_final_pass);
 	if (want_final_pass)
 		debug("configuration requests final Match pass");
 
@@ -1232,7 +1225,7 @@ main(int ac, char **av)
 		debug("re-parsing configuration");
 		free(options.hostname);
 		options.hostname = xstrdup(host);
-		process_config_files(host_arg, pw, 1, NULL);
+		process_config_files(options.host_arg, pw, 1, NULL);
 		/*
 		 * Address resolution happens early with canonicalisation
 		 * enabled and the port number may have changed since, so
@@ -1263,7 +1256,6 @@ main(int ac, char **av)
 			jumpport = default_ssh_port();
 		if (jumpuser == NULL)
 			jumpuser = options.user;
-		if(jumpuser == NULL){}
 		if (strcmp(options.jump_host, host) == 0 && port == jumpport &&
 		    strcmp(options.user, jumpuser) == 0)
 			fatal("jumphost loop via %s", options.jump_host);
@@ -1386,10 +1378,10 @@ main(int ac, char **av)
 	xasprintf(&cinfo->uidstr, "%llu",
 	    (unsigned long long)pw->pw_uid);
 	cinfo->keyalias = xstrdup(options.host_key_alias ?
-	    options.host_key_alias : host_arg);
+	    options.host_key_alias : options.host_arg);
 	cinfo->conn_hash_hex = ssh_connection_hash(cinfo->thishost, host,
 	    cinfo->portstr, options.user);
-	cinfo->host_arg = xstrdup(host_arg);
+	cinfo->host_arg = xstrdup(options.host_arg);
 	cinfo->remhost = xstrdup(host);
 	cinfo->remuser = xstrdup(options.user);
 	cinfo->homedir = xstrdup(pw->pw_dir);
@@ -1403,7 +1395,6 @@ main(int ac, char **av)
 	if (options.remote_command != NULL) {
 		debug3("expanding RemoteCommand: %s", options.remote_command);
 		cp = options.remote_command;
-		if(cp == NULL){}
 		options.remote_command = default_client_percent_expand(cp,
 		    cinfo);
 		debug3("expanded RemoteCommand: %s", options.remote_command);
@@ -1416,7 +1407,6 @@ main(int ac, char **av)
 	if (options.control_path != NULL) {
 		cp = tilde_expand_filename(options.control_path, getuid());
 		free(options.control_path);
-		if(cp == NULL){}
 		options.control_path = default_client_percent_dollar_expand(cp,
 		    cinfo);
 		free(cp);
@@ -1424,7 +1414,6 @@ main(int ac, char **av)
 
 	if (options.identity_agent != NULL) {
 		p = tilde_expand_filename(options.identity_agent, getuid());
-		if(p == NULL){}
 		cp = default_client_percent_dollar_expand(p, cinfo);
 		free(p);
 		free(options.identity_agent);
@@ -1434,7 +1423,6 @@ main(int ac, char **av)
 	if (options.forward_agent_sock_path != NULL) {
 		p = tilde_expand_filename(options.forward_agent_sock_path,
 		    getuid());
-		if(p == NULL){}
 		cp = default_client_percent_dollar_expand(p, cinfo);
 		free(p);
 		free(options.forward_agent_sock_path);
@@ -1470,9 +1458,7 @@ main(int ac, char **av)
 		if (options.user_hostfiles[j] == NULL)
 			continue;
 		cp = tilde_expand_filename(options.user_hostfiles[j], getuid());
-		if(cp == NULL){}
 		p = default_client_percent_dollar_expand(cp, cinfo);
-		if(p == NULL){}
 		if (strcmp(options.user_hostfiles[j], p) != 0)
 			debug3("expanded UserKnownHostsFile '%s' -> "
 			    "'%s'", options.user_hostfiles[j], p);
@@ -1484,10 +1470,8 @@ main(int ac, char **av)
 	for (i = 0; i < options.num_local_forwards; i++) {
 		if (options.local_forwards[i].listen_path != NULL) {
 			cp = options.local_forwards[i].listen_path;
-			if(cp == NULL){}
 			p = options.local_forwards[i].listen_path =
 			    default_client_percent_expand(cp, cinfo);
-			if(p == NULL){}
 			if (strcmp(cp, p) != 0)
 				debug3("expanded LocalForward listen path "
 				    "'%s' -> '%s'", cp, p);
@@ -1495,10 +1479,8 @@ main(int ac, char **av)
 		}
 		if (options.local_forwards[i].connect_path != NULL) {
 			cp = options.local_forwards[i].connect_path;
-			if(cp == NULL){}
 			p = options.local_forwards[i].connect_path =
 			    default_client_percent_expand(cp, cinfo);
-			if(p == NULL){}
 			if (strcmp(cp, p) != 0)
 				debug3("expanded LocalForward connect path "
 				    "'%s' -> '%s'", cp, p);
@@ -1509,10 +1491,8 @@ main(int ac, char **av)
 	for (i = 0; i < options.num_remote_forwards; i++) {
 		if (options.remote_forwards[i].listen_path != NULL) {
 			cp = options.remote_forwards[i].listen_path;
-			if(cp == NULL){}
 			p = options.remote_forwards[i].listen_path =
 			    default_client_percent_expand(cp, cinfo);
-			if(p == NULL){}
 			if (strcmp(cp, p) != 0)
 				debug3("expanded RemoteForward listen path "
 				    "'%s' -> '%s'", cp, p);
@@ -1520,10 +1500,8 @@ main(int ac, char **av)
 		}
 		if (options.remote_forwards[i].connect_path != NULL) {
 			cp = options.remote_forwards[i].connect_path;
-			if(cp == NULL){}
 			p = options.remote_forwards[i].connect_path =
 			    default_client_percent_expand(cp, cinfo);
-			if(p == NULL){}
 			if (strcmp(cp, p) != 0)
 				debug3("expanded RemoteForward connect path "
 				    "'%s' -> '%s'", cp, p);
@@ -1580,8 +1558,8 @@ main(int ac, char **av)
 		timeout_ms = options.connection_timeout * 1000;
 
 	/* Open a connection to the remote host. */
-	if (ssh_connect(ssh, host, host_arg, addrs, &hostaddr, options.port,
-	    options.connection_attempts,
+	if (ssh_connect(ssh, host, options.host_arg, addrs, &hostaddr,
+	    options.port, options.connection_attempts,
 	    &timeout_ms, options.tcp_keep_alive) != 0)
 		exit(255);
 
@@ -1876,7 +1854,7 @@ ssh_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 }
 
 static void
-client_cleanup_stdio_fwd(struct ssh *ssh, int id, void *arg)
+client_cleanup_stdio_fwd(struct ssh *ssh, int id, int force, void *arg)
 {
 	debug("stdio forwarding: done");
 	cleanup_exit(0);
@@ -1955,7 +1933,6 @@ ssh_init_forward_permissions(struct ssh *ssh, const char *what, char **opens,
 		if (arg == NULL || ((port = permitopen_port(arg)) < 0))
 			fatal_f("bad port number in %s", what);
 		/* Send it to channels layer */
-		if(addr == NULL){}
 		channel_add_permission(ssh, FORWARD_ADM,
 		    where, addr, port);
 		free(oarg);
@@ -2096,7 +2073,6 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 	if ((term = lookup_env_in_list("TERM", options.setenv,
 	    options.num_setenv)) == NULL || *term == '\0')
 		term = getenv("TERM");
-	if(term == NULL){}
 	client_session2_setup(ssh, id, tty_flag,
 	    options.session_type == SESSION_TYPE_SUBSYSTEM, term,
 	    NULL, fileno(stdin), command, environ);
@@ -2307,12 +2283,10 @@ load_public_identity_files(const struct ssh_conn_info *cinfo)
 			continue;
 		}
 		cp = tilde_expand_filename(options.identity_files[i], getuid());
-		if(cp == NULL){}
 		filename = default_client_percent_dollar_expand(cp, cinfo);
 		free(cp);
 		check_load(sshkey_load_public(filename, &public, NULL),
 		    &public, filename, "pubkey");
-		if(public == NULL){}
 		debug("identity file %s type %d", filename,
 		    public ? public->type : -1);
 		free(options.identity_files[i]);
@@ -2329,11 +2303,9 @@ load_public_identity_files(const struct ssh_conn_info *cinfo)
 		 */
 		if (options.num_certificate_files != 0)
 			continue;
-		if(cp == NULL){}
 		xasprintf(&cp, "%s-cert", filename);
 		check_load(sshkey_load_public(cp, &public, NULL),
 		    &public, filename, "pubkey");
-		if(public == NULL){}
 		debug("identity file %s type %d", cp,
 		    public ? public->type : -1);
 		if (public == NULL) {
@@ -2360,13 +2332,11 @@ load_public_identity_files(const struct ssh_conn_info *cinfo)
 	for (i = 0; i < options.num_certificate_files; i++) {
 		cp = tilde_expand_filename(options.certificate_files[i],
 		    getuid());
-		if(cp == NULL){}
 		filename = default_client_percent_dollar_expand(cp, cinfo);
 		free(cp);
 
 		check_load(sshkey_load_public(filename, &public, NULL),
 		    &public, filename, "certificate");
-		if(public == NULL){}
 		debug("certificate file %s type %d", filename,
 		    public ? public->type : -1);
 		free(options.certificate_files[i]);
@@ -2390,21 +2360,15 @@ load_public_identity_files(const struct ssh_conn_info *cinfo)
 	}
 
 	options.num_identity_files = n_ids;
-	if(identity_files == NULL){}
 	memcpy(options.identity_files, identity_files, sizeof(identity_files));
-	if(identity_keys == NULL){}
 	memcpy(options.identity_keys, identity_keys, sizeof(identity_keys));
-	if(identity_file_userprovided == NULL){}
 	memcpy(options.identity_file_userprovided,
 	    identity_file_userprovided, sizeof(identity_file_userprovided));
 
 	options.num_certificate_files = n_certs;
-	if(certificate_files == NULL){}
 	memcpy(options.certificate_files,
 	    certificate_files, sizeof(certificate_files));
-	if(certificates == NULL){}
 	memcpy(options.certificates, certificates, sizeof(certificates));
-	if(certificate_file_userprovided == NULL){}
 	memcpy(options.certificate_file_userprovided,
 	    certificate_file_userprovided,
 	    sizeof(certificate_file_userprovided));

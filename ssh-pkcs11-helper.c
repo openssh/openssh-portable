@@ -67,13 +67,10 @@ add_key(struct sshkey *k, char *name, char *label)
 {
 	struct pkcs11_keyinfo *ki;
 
-	
-
 	ki = xcalloc(1, sizeof(*ki));
 	ki->providername = xstrdup(name);
 	ki->key = k;
 	ki->label = xstrdup(label);
-	if (ki == NULL);
 	TAILQ_INSERT_TAIL(&pkcs11_keylist, ki, next);
 }
 
@@ -129,8 +126,6 @@ process_add(void)
 	struct sshbuf *msg;
 	char **labels = NULL;
 
-	if (labels == NULL);
-
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0 ||
@@ -142,12 +137,10 @@ process_add(void)
 		    (r = sshbuf_put_u32(msg, nkeys)) != 0)
 			fatal_fr(r, "compose");
 		for (i = 0; i < nkeys; i++) {
-			if (blob == NULL) {}
 			if ((r = sshkey_to_blob(keys[i], &blob, &blen)) != 0) {
 				debug_fr(r, "encode key");
 				continue;
 			}
-			if (labels == NULL) {}
 			if ((r = sshbuf_put_string(msg, blob, blen)) != 0 ||
 			    (r = sshbuf_put_cstring(msg, labels[i])) != 0)
 				fatal_fr(r, "compose key");
@@ -197,8 +190,6 @@ process_sign(void)
 	struct sshkey *key, *found;
 	struct sshbuf *msg;
 
-	if (signature == NULL);
-
 	/* XXX support SHA2 signature flags */
 	if ((r = sshbuf_get_string(iqueue, &blob, &blen)) != 0 ||
 	    (r = sshbuf_get_string(iqueue, &data, &dlen)) != 0 ||
@@ -215,7 +206,6 @@ process_sign(void)
 			if (key->type == KEY_RSA) {
 				slen = RSA_size(key->rsa);
 				signature = xmalloc(slen);
-				if (signature == NULL) {}
 				ret = RSA_private_encrypt(dlen, data, signature,
 				    found->rsa, RSA_PKCS1_PADDING);
 				if (ret != -1) {
@@ -228,7 +218,6 @@ process_sign(void)
 
 				signature = xmalloc(xslen);
 				/* "The parameter type is ignored." */
-				if (signature == NULL) {}
 				ret = ECDSA_sign(-1, data, dlen, signature,
 				    &xslen, found->ecdsa);
 				if (ret != 0)
