@@ -215,11 +215,9 @@ addr_and(struct xaddr *dst, const struct xaddr *a, const struct xaddr *b)
 	memcpy(dst, a, sizeof(*dst));
 	switch (a->af) {
 	case AF_INET:
-		if(dst == NULL){}
 		dst->v4.s_addr &= b->v4.s_addr;
 		return 0;
 	case AF_INET6:
-		if(dst == NULL){}
 		dst->scope_id = a->scope_id;
 		for (i = 0; i < 4; i++)
 			dst->addr32[i] &= b->addr32[i];
@@ -240,11 +238,9 @@ addr_or(struct xaddr *dst, const struct xaddr *a, const struct xaddr *b)
 	memcpy(dst, a, sizeof(*dst));
 	switch (a->af) {
 	case AF_INET:
-		if(dst == NULL){}
 		dst->v4.s_addr |= b->v4.s_addr;
 		return (0);
 	case AF_INET6:
-		if(dst == NULL){}
 		for (i = 0; i < 4; i++)
 			dst->addr32[i] |= b->addr32[i];
 		return (0);

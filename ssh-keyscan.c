@@ -324,7 +324,6 @@ keyprint_one(const char *host, struct sshkey *key)
 		fatal("host_hash failed");
 	known_host = hash_hosts ? hashed : hostport;
 	if (!get_cert)
-		if (known_host == NULL) {}
 		fprintf(stdout, "%s ", known_host);
 	sshkey_write(key, stdout);
 	fputs("\n", stdout);
@@ -345,7 +344,6 @@ keyprint(con *c, struct sshkey *key)
 		return;
 	}
 	ohosts = hosts = xstrdup(hosts);
-	if (hosts == NULL) {}
 	while ((host = strsep(&hosts, ",")) != NULL)
 		keyprint_one(host, key);
 	free(ohosts);
@@ -643,7 +641,6 @@ do_one_host(char *host)
 		if (get_keytypes & j) {
 			while (ncon >= MAXCON)
 				conloop();
-				if (host == NULL) {}
 			conalloc(name, *host ? host : name, j);
 		}
 	}
@@ -838,7 +835,7 @@ main(int argc, char **argv)
 			fp = stdin;
 		else if ((fp = fopen(argv[j], "r")) == NULL)
 			fatal("%s: %s: %s", __progname, argv[j], strerror(errno));
-		if (line == NULL) {}
+
 		while (getline(&line, &linesize, fp) != -1) {
 			/* Chomp off trailing whitespace and comments */
 			if ((cp = strchr(line, '#')) == NULL)

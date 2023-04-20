@@ -115,8 +115,6 @@ vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 	int	 width;	/* Display width of the character wc. */
 	int	 total_width, max_width, print;
 
-	if(dp == NULL);
-
 	src = NULL;
 	if ((ret = vasprintf(&src, fmt, ap)) <= 0)
 		goto fail;
