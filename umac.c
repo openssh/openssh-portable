@@ -255,7 +255,7 @@ static void pdf_gen_xor(pdf_ctx *pc, const UINT8 nonce[8], UINT8 buf[8])
     int ndx = nonce[7] & LOW_BIT_MASK;
 #endif
     *(UINT32 *)t.tmp_nonce_lo = ((const UINT32 *)nonce)[1];
-    t.tmp_nonce_lo[3] &= ~(unsigned)LOW_BIT_MASK; /* zero last bit */
+    t.tmp_nonce_lo[3] &= ~LOW_BIT_MASK; /* zero last bit */
 
     if ( (((UINT32 *)t.tmp_nonce_lo)[0] != ((UINT32 *)pc->nonce)[1]) ||
          (((const UINT32 *)nonce)[0] != ((UINT32 *)pc->nonce)[0]) )
@@ -627,7 +627,7 @@ static void nh_update(nh_ctx *hc, const UINT8 *buf, UINT32 nbytes)
             hc->bytes_hashed += HASH_BUF_BYTES;
         }
         if (nbytes >= HASH_BUF_BYTES) {
-            i = nbytes & ~((unsigned)HASH_BUF_BYTES - 1);
+            i = nbytes & ~(HASH_BUF_BYTES - 1);
             nh_transform(hc, buf, i);
             nbytes -= i;
             buf += i;
@@ -677,8 +677,8 @@ static void nh_final(nh_ctx *hc, UINT8 *result)
     int nh_len, nbits;
 
     if (hc->next_data_empty != 0) {
-        nh_len = ((hc->next_data_empty + ((unsigned)L1_PAD_BOUNDARY - 1)) &
-                                                ~((unsigned)L1_PAD_BOUNDARY - 1));
+        nh_len = ((hc->next_data_empty + (L1_PAD_BOUNDARY - 1)) &
+                                                ~(L1_PAD_BOUNDARY - 1));
         zero_pad(hc->data + hc->next_data_empty,
                                           nh_len - hc->next_data_empty);
         nh_transform(hc, hc->data, nh_len);
@@ -1013,7 +1013,7 @@ static uhash_ctx_t uhash_alloc(u_char key[])
     if (ctx) {
         if (ALLOC_BOUNDARY) {
             bytes_to_add = ALLOC_BOUNDARY -
-                              ((ptrdiff_t)ctx & ((unsigned)ALLOC_BOUNDARY -1));
+                              ((ptrdiff_t)ctx & (ALLOC_BOUNDARY -1));
             ctx = (uhash_ctx_t)((u_char *)ctx + bytes_to_add);
             *((u_char *)ctx - 1) = bytes_to_add;
         }

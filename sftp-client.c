@@ -442,7 +442,7 @@ get_decode_statvfs(struct sftp_conn *conn, struct sftp_statvfs *st,
 		fatal_fr(r, "parse statvfs");
 
 	st->f_flag = (flag & SSH2_FXE_STATVFS_ST_RDONLY) ? ST_RDONLY : 0;
-	st->f_flag |= (flag & (unsigned)SSH2_FXE_STATVFS_ST_NOSUID) ? (unsigned)ST_NOSUID : 0;
+	st->f_flag |= (flag & SSH2_FXE_STATVFS_ST_NOSUID) ? ST_NOSUID : 0;
 
 	sshbuf_free(msg);
 
@@ -506,44 +506,44 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 			fatal_fr(r, "parse extension");
 		if (strcmp(name, "posix-rename@openssh.com") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_POSIX_RENAME;
+			ret->exts |= SFTP_EXT_POSIX_RENAME;
 			known = 1;
 		} else if (strcmp(name, "statvfs@openssh.com") == 0 &&
 		    strcmp((char *)value, "2") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_STATVFS;
+			ret->exts |= SFTP_EXT_STATVFS;
 			known = 1;
 		} else if (strcmp(name, "fstatvfs@openssh.com") == 0 &&
 		    strcmp((char *)value, "2") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_FSTATVFS;
+			ret->exts |= SFTP_EXT_FSTATVFS;
 			known = 1;
 		} else if (strcmp(name, "hardlink@openssh.com") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_HARDLINK;
+			ret->exts |= SFTP_EXT_HARDLINK;
 			known = 1;
 		} else if (strcmp(name, "fsync@openssh.com") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_FSYNC;
+			ret->exts |= SFTP_EXT_FSYNC;
 			known = 1;
 		} else if (strcmp(name, "lsetstat@openssh.com") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_LSETSTAT;
+			ret->exts |= SFTP_EXT_LSETSTAT;
 			known = 1;
 		} else if (strcmp(name, "limits@openssh.com") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_LIMITS;
+			ret->exts |= SFTP_EXT_LIMITS;
 			known = 1;
 		} else if (strcmp(name, "expand-path@openssh.com") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_PATH_EXPAND;
+			ret->exts |= SFTP_EXT_PATH_EXPAND;
 			known = 1;
 		} else if (strcmp(name, "copy-data") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_COPY_DATA;
+			ret->exts |= SFTP_EXT_COPY_DATA;
 			known = 1;
 		} else if (strcmp(name,
 		    "users-groups-by-id@openssh.com") == 0 &&
 		    strcmp((char *)value, "1") == 0) {
-			ret->exts |= (unsigned)SFTP_EXT_GETUSERSGROUPS_BY_ID;
+			ret->exts |= SFTP_EXT_GETUSERSGROUPS_BY_ID;
 			known = 1;
 		}
 		if (known) {
@@ -651,7 +651,7 @@ do_limits(struct sftp_conn *conn, struct sftp_limits *limits)
 		debug_f("expected SSH2_FXP_EXTENDED_REPLY(%u) packet, got %u",
 		    SSH2_FXP_EXTENDED_REPLY, type);
 		/* Disable the limits extension */
-		conn->exts &= ~(unsigned)SFTP_EXT_LIMITS;
+		conn->exts &= ~SFTP_EXT_LIMITS;
 		sshbuf_free(msg);
 		return 0;
 	}
@@ -1120,7 +1120,7 @@ do_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 
 	/* Do not preserve set[ug]id here, as we do not preserve ownership */
 	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
-		mode = a->perm & (unsigned)0777;
+		mode = a->perm & 0777;
 
 		if (!S_ISREG(a->perm)) {
 			error("Cannot copy non-regular file: %s", oldpath);
@@ -1134,7 +1134,7 @@ do_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 	/* Set up the new perms for the new file */
 	attrib_clear(a);
 	a->perm = mode;
-	a->flags |= (unsigned)SSH2_FILEXFER_ATTR_PERMISSIONS;
+	a->flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 
 	if ((msg = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
@@ -1620,7 +1620,7 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 
 	/* Do not preserve set[ug]id here, as we do not preserve ownership */
 	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)
-		mode = a->perm & (unsigned)0777;
+		mode = a->perm & 0777;
 	else
 		mode = 0666;
 
@@ -1896,7 +1896,7 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		mprintf("Retrieving %s\n", src);
 
 	if (dirattrib->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
-		mode = dirattrib->perm & (unsigned)01777;
+		mode = dirattrib->perm & 01777;
 		tmpmode = mode | (S_IWUSR|S_IXUSR);
 	} else {
 		debug("download remote \"%s\": server "
@@ -2035,11 +2035,11 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 	}
 	stat_to_attrib(&sb, &a);
 
-	a.flags &= ~(unsigned)SSH2_FILEXFER_ATTR_SIZE;
-	a.flags &= ~(unsigned)SSH2_FILEXFER_ATTR_UIDGID;
-	a.perm &= (unsigned)0777;
+	a.flags &= ~SSH2_FILEXFER_ATTR_SIZE;
+	a.flags &= ~SSH2_FILEXFER_ATTR_UIDGID;
+	a.perm &= 0777;
 	if (!preserve_flag)
-		a.flags &= ~(unsigned)SSH2_FILEXFER_ATTR_ACMODTIME;
+		a.flags &= ~SSH2_FILEXFER_ATTR_ACMODTIME;
 
 	if (resume) {
 		/* Get remote file size if it exists */
@@ -2234,11 +2234,11 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		mprintf("Entering %s\n", src);
 
 	stat_to_attrib(&sb, &a);
-	a.flags &= ~(unsigned)SSH2_FILEXFER_ATTR_SIZE;
-	a.flags &= ~(unsigned)SSH2_FILEXFER_ATTR_UIDGID;
-	a.perm &= (unsigned)01777;
+	a.flags &= ~SSH2_FILEXFER_ATTR_SIZE;
+	a.flags &= ~SSH2_FILEXFER_ATTR_UIDGID;
+	a.perm &= 01777;
 	if (!preserve_flag)
-		a.flags &= ~(unsigned)SSH2_FILEXFER_ATTR_ACMODTIME;
+		a.flags &= ~SSH2_FILEXFER_ATTR_ACMODTIME;
 
 	/*
 	 * sftp lacks a portable status value to match errno EEXIST,
@@ -2437,11 +2437,11 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
 		return -1;
 
 	/* Send open request to write side */
-	a->flags &= ~(unsigned)SSH2_FILEXFER_ATTR_SIZE;
-	a->flags &= ~(unsigned)SSH2_FILEXFER_ATTR_UIDGID;
-	a->perm &= (unsigned)0777;
+	a->flags &= ~SSH2_FILEXFER_ATTR_SIZE;
+	a->flags &= ~SSH2_FILEXFER_ATTR_UIDGID;
+	a->perm &= 0777;
 	if (!preserve_flag)
-		a->flags &= ~(unsigned)SSH2_FILEXFER_ATTR_ACMODTIME;
+		a->flags &= ~SSH2_FILEXFER_ATTR_ACMODTIME;
 	if (send_open(to, to_path, "dest",
 	    SSH2_FXF_WRITE|SSH2_FXF_CREAT|SSH2_FXF_TRUNC, a,
 	    &to_handle, &to_handle_len) != 0) {
@@ -2668,16 +2668,16 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 		mprintf("Retrieving %s\n", from_path);
 
 	curdir = *dirattrib; /* dirattrib will be clobbered */
-	curdir.flags &= ~(unsigned)SSH2_FILEXFER_ATTR_SIZE;
-	curdir.flags &= ~(unsigned)SSH2_FILEXFER_ATTR_UIDGID;
+	curdir.flags &= ~SSH2_FILEXFER_ATTR_SIZE;
+	curdir.flags &= ~SSH2_FILEXFER_ATTR_UIDGID;
 	if ((curdir.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) == 0) {
 		debug("Origin did not send permissions for "
 		    "directory \"%s\"", to_path);
 		curdir.perm = S_IWUSR|S_IXUSR;
-		curdir.flags |= (unsigned)SSH2_FILEXFER_ATTR_PERMISSIONS;
+		curdir.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 	}
 	/* We need to be able to write to the directory while we transfer it */
-	mode = curdir.perm & (unsigned)01777;
+	mode = curdir.perm & 01777;
 	curdir.perm = mode | (S_IWUSR|S_IXUSR);
 
 	/*
