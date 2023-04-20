@@ -68,7 +68,7 @@ kexgex_client(struct ssh *ssh)
 	kex->min = DH_GRP_MIN;
 	kex->max = DH_GRP_MAX;
 	kex->nbits = nbits;
-	if (ssh->compat & SSH_BUG_DHGEX_LARGE)
+	if ((unsigned)ssh->compat & SSH_BUG_DHGEX_LARGE)
 		kex->nbits = MINIMUM(kex->nbits, 4096);
 	/* New GEX request */
 	if ((r = sshpkt_start(ssh, SSH2_MSG_KEX_DH_GEX_REQUEST)) != 0 ||
@@ -180,7 +180,7 @@ input_kex_dh_gex_reply(int type, u_int32_t seq, struct ssh *ssh)
 	}
 	if ((r = kex_dh_compute_key(kex, dh_server_pub, shared_secret)) != 0)
 		goto out;
-	if (ssh->compat & SSH_OLD_DHGEX)
+	if ((unsigned)ssh->compat & SSH_OLD_DHGEX)
 		kex->min = kex->max = -1;
 
 	/* calc and verify H */
