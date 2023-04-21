@@ -878,7 +878,6 @@ do_download(struct passwd *pw)
 		free(comments[i]);
 		sshkey_free(keys[i]);
 	}
-	free(comments);
 	free(keys);
 	pkcs11_terminate();
 	exit(0);
@@ -1159,10 +1158,6 @@ do_gen_all_hostkeys(struct passwd *pw)
  next:
 		sshkey_free(private);
 		sshkey_free(public);
-		free(prv_tmp);
-		free(pub_tmp);
-		free(prv_file);
-		free(pub_file);
 	}
 	if (first != 0)
 		printf("\n");
@@ -1473,7 +1468,6 @@ do_change_passphrase(struct passwd *pw)
 	/* Destroy the passphrase and the copy of the key in memory. */
 	freezero(passphrase1, strlen(passphrase1));
 	sshkey_free(private);		 /* Destroys contents */
-	free(comment);
 
 	printf("Your identification has been saved with the new passphrase.\n");
 	exit(0);
@@ -1582,12 +1576,9 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	    new_comment, private_key_format, openssh_format_cipher,
 	    rounds)) != 0) {
 		error_r(r, "Saving key \"%s\" failed", identity_file);
-		freezero(passphrase, strlen(passphrase));
 		sshkey_free(private);
-		free(comment);
 		exit(1);
 	}
-	freezero(passphrase, strlen(passphrase));
 	if ((r = sshkey_from_private(private, &public)) != 0)
 		fatal_fr(r, "sshkey_from_private");
 	sshkey_free(private);
@@ -1596,7 +1587,6 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	if ((r = sshkey_save_public(public, identity_file, new_comment)) != 0)
 		fatal_r(r, "Unable to save public key to %s", identity_file);
 	sshkey_free(public);
-	free(comment);
 
 	if (strlen(new_comment) > 0)
 		printf("Comment '%s' applied\n", new_comment);
@@ -2931,7 +2921,6 @@ sig_match_principals(const char *allowed_keys, char *principal,
 		printf("%s\n", principals[i]);
 		free(principals[i]);
 	}
-	free(principals);
 
 	return 0;
 }
