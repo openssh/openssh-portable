@@ -13,7 +13,14 @@ jobs:
       fail-fast: false
       matrix:
         # First we test all OSes in the default configuration.
-        target: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12, windows-2019, windows-2022]
+        target:
+          - ubuntu-20.04
+          - ubuntu-22.04
+          - macos-11
+          - macos-12
+          - macos-13
+          - windows-2019
+          - windows-2022
         config: [default]
         # Then we include any extra configs we want to test for specific VMs.
         # Valgrind slows things down quite a bit, so start them first.
