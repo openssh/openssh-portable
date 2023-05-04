@@ -42,7 +42,7 @@ Portable OpenSSH is built using autoconf and make. It requires a working C compi
 
 FIDO security token support needs [libfido2](https://github.com/Yubico/libfido2) and its dependencies. Also, certain platforms and build-time options may require additional dependencies; see README.platform for details.
 
-This fork implements the [draft-kampanakis-curdle-pq-ssh-00](https://datatracker.ietf.org/doc/draft-kampanakis-curdle-pq-ssh/) IETF draft for hybrid key exchange algorithms.
+This fork implements the [draft-kampanakis-curdle-ssh-pq-ke](https://datatracker.ietf.org/doc/draft-kampanakis-curdle-ssh-pq-ke/) IETF draft for hybrid key exchange algorithms.
 
 ### Limitations and security
 
