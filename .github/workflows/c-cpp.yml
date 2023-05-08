@@ -83,6 +83,7 @@ jobs:
           - { target: ubuntu-22.04, config: without-openssl }
           - { target: macos-11, config: pam }
           - { target: macos-12, config: pam }
+          - { target: macos-13, config: pam }
     runs-on: ${{ matrix.target }}
     steps:
     - name: set cygwin git params
