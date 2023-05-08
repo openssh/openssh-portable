@@ -4,7 +4,9 @@ PACKAGES=""
 
  . .github/configs $@
 
-case "`./config.guess`" in
+host=`./config.guess`
+echo "config.guess: $host"
+case "$host" in
 *cygwin)
 	PACKAGER=setup
 	echo Setting CYGWIN system environment variable.
