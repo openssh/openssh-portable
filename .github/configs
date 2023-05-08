@@ -287,7 +287,8 @@ case "${TARGET_HOST}" in
 	;;
 esac
 
-case "`./config.guess`" in
+host=`./config.guess`
+case "$host" in
 *cygwin)
 	SUDO=""
 	# Don't run compat tests on cygwin as they don't currently compile.
@@ -298,6 +299,11 @@ case "`./config.guess`" in
 	# modern versions don't ship with libcrypto.
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
+	case "$host" in
+	*-darwin22.*)
+		# sudo -S nobody doesn't work on macos 13 for some reason.
+		SKIP_LTESTS="agent-getpeereid" ;;
+	esac
 	;;
 esac
 
