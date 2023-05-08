@@ -231,7 +231,8 @@ refresh_progress_meter(int force_update)
 	asmprintf(&obuf, INT_MAX, &cols, " %s", buf);
 	if (obuf != NULL) {
 		*obuf = '\r'; /* must insert as asmprintf() would escape it */
-		atomicio(vwrite, STDOUT_FILENO, obuf, strlen(obuf));
+		if (atomicio(vwrite, STDOUT_FILENO, obuf, strlen(obuf) != strlen(obuf))
+		    fatal_f("write: %s", strerror(errno));
 	}
 	free(buf);
 	free(obuf);
