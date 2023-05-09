@@ -25,9 +25,6 @@
 #include <stdarg.h>
 #include <string.h>
 
-/* Suppress format truncation warning since we're explicitly testing that. */
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-
 static int failed = 0;
 
 static void
