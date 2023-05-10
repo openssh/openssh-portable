@@ -242,7 +242,6 @@ populate_new_ids() {
 #    optionally takes an alternative path for authorized_keys
 installkeys_sh() {
   AUTH_KEY_FILE=${1:-.ssh/authorized_keys}
-  AUTH_KEY_DIR=$(dirname "${AUTH_KEY_FILE}")
 
   # In setting INSTALLKEYS_SH:
   #    the tr puts it all on one line (to placate tcsh)
@@ -252,15 +251,20 @@ installkeys_sh() {
   #    the -z `tail ...` checks for a trailing newline. The echo adds one if was missing
   #    the cat adds the keys we're getting via STDIN
   #    and if available restorecon is used to restore the SELinux context
+  # OpenWrt has a special case for root only.
   INSTALLKEYS_SH=$(tr '\t\n' ' ' <<-EOF
 	cd;
 	umask 077;
-	mkdir -p "${AUTH_KEY_DIR}" &&
-		{ [ -z \`tail -1c ${AUTH_KEY_FILE} 2>/dev/null\` ] ||
-			echo >> "${AUTH_KEY_FILE}" || exit 1; } &&
-		cat >> "${AUTH_KEY_FILE}" || exit 1;
+	AUTH_KEY_FILE="${AUTH_KEY_FILE}";
+	[ -f /etc/openwrt_release ] && [ "\$LOGNAME" = "root" ] &&
+		AUTH_KEY_FILE=/etc/dropbear/authorized_keys;
+	AUTH_KEY_DIR=\`dirname "\${AUTH_KEY_FILE}"\`;
+	mkdir -p "\${AUTH_KEY_DIR}" &&
+		{ [ -z \`tail -1c "\${AUTH_KEY_FILE}" 2>/dev/null\` ] ||
+			echo >> "\${AUTH_KEY_FILE}" || exit 1; } &&
+		cat >> "\${AUTH_KEY_FILE}" || exit 1;
 	if type restorecon >/dev/null 2>&1; then
-		restorecon -F "${AUTH_KEY_DIR}" "${AUTH_KEY_FILE}";
+		restorecon -F "\${AUTH_KEY_DIR}" "\${AUTH_KEY_FILE}";
 	fi
 	EOF
   )
@@ -335,13 +339,6 @@ case "$REMOTE_VERSION" in
     if [ -z "$ADDED" ] ; then
       exit 1
     fi
-    ;;
-  dropbear*)
-    populate_new_ids 0
-    [ "$DRY_RUN" ] || printf '%s\n' "$NEW_IDS" | \
-      $SSH "$@" "$(installkeys_sh /etc/dropbear/authorized_keys)" \
-      || exit 1
-    ADDED=$(printf '%s\n' "$NEW_IDS" | wc -l)
     ;;
   *)
     # Assuming that the remote host treats ~/.ssh/authorized_keys as one might expect
