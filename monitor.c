@@ -125,8 +125,6 @@ int mm_answer_keyverify(struct ssh *, int, struct sshbuf *);
 int mm_answer_pty(struct ssh *, int, struct sshbuf *);
 int mm_answer_pty_cleanup(struct ssh *, int, struct sshbuf *);
 int mm_answer_term(struct ssh *, int, struct sshbuf *);
-int mm_answer_rsa_keyallowed(struct ssh *, int, struct sshbuf *);
-int mm_answer_rsa_challenge(struct ssh *, int, struct sshbuf *);
 int mm_answer_rsa_response(struct ssh *, int, struct sshbuf *);
 int mm_answer_sesskey(struct ssh *, int, struct sshbuf *);
 int mm_answer_sessid(struct ssh *, int, struct sshbuf *);
