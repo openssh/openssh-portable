@@ -89,7 +89,7 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	if (!do_encrypt) {
 		const u_char *tag = src + aadlen + len;
 
-		poly1305_auth(expected_tag, src, aadlen + len, poly_key);
+		poly1305_auth(NULL, expected_tag, src, aadlen + len, poly_key);
 		if (timingsafe_bcmp(expected_tag, tag, POLY1305_TAGLEN) != 0) {
 			r = SSH_ERR_MAC_INVALID;
 			goto out;
@@ -109,7 +109,7 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 
 	/* If encrypting, calculate and append tag */
 	if (do_encrypt) {
-		poly1305_auth(dest + aadlen + len, dest, aadlen + len,
+		poly1305_auth(NULL, dest + aadlen + len, dest, aadlen + len,
 		    poly_key);
 	}
 	r = 0;

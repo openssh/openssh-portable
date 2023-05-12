@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.99 2021/11/13 21:14:13 deraadt Exp $ */
+/* $OpenBSD: misc.h,v 1.102 2023/03/03 02:37:58 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -173,6 +173,8 @@ void	 child_set_env(char ***envp, u_int *envsizep, const char *name,
 	    const char *value);
 const char *lookup_env_in_list(const char *env,
 	    char * const *envs, size_t nenvs);
+const char *lookup_setenv_in_list(const char *env,
+	    char * const *envs, size_t nenvs);
 
 int	 argv_split(const char *, int *, char ***, int);
 char	*argv_assemble(int, char **argv);
@@ -200,6 +202,15 @@ void	opt_array_append2(const char *file, const int line,
 	    const char *directive, char ***array, int **iarray, u_int *lp,
 	    const char *s, int i);
 
+struct timespec;
+void ptimeout_init(struct timespec *pt);
+void ptimeout_deadline_sec(struct timespec *pt, long sec);
+void ptimeout_deadline_ms(struct timespec *pt, long ms);
+void ptimeout_deadline_monotime(struct timespec *pt, time_t when);
+int ptimeout_get_ms(struct timespec *pt);
+struct timespec *ptimeout_get_tsp(struct timespec *pt);
+int ptimeout_isset(struct timespec *pt);
+
 /* readpass.c */
 
 #define RP_ECHO			0x0001
@@ -222,5 +233,8 @@ void	notify_complete(struct notifier_ctx *, const char *, ...)
 
 typedef void (*sshsig_t)(int);
 sshsig_t ssh_signal(int, sshsig_t);
+
+/* On OpenBSD time_t is int64_t which is long long. */
+/* #define SSH_TIME_T_MAX LLONG_MAX */
 
 #endif /* _MISC_H */

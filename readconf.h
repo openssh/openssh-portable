@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.146 2021/12/19 22:14:47 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.150 2023/01/13 02:58:20 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -28,6 +28,7 @@ struct allowed_cname {
 };
 
 typedef struct {
+	char   *host_arg;	/* Host arg as specified on command line. */
 	int     forward_agent;	/* Forward authentication agent. */
 	char   *forward_agent_sock_path; /* Optional path of the agent. */
 	int     forward_x11;	/* Forward X11 display. */
@@ -125,22 +126,23 @@ typedef struct {
 	int64_t rekey_limit;
 	int     none_switch;    /* Use none cipher */
 	int     none_enabled;   /* Allow none to be used */
-	int     nonemac_enabled;   /* Allow none to be used */	
-	int     disable_multithreaded; /*disable multithreaded aes-ctr*/
+	int     nonemac_enabled;   /* Allow none to be used */
         int     metrics; /* enable metrics */
         int     metrics_interval; /* time in seconds between polls */
         char   *metrics_path; /* path for the metrics files */
-        int	rekey_interval;
+	int     fallback; /* en|disable fallback port (def: true) */
+	int     fallback_port; /* port to fallback to (def: 22) */
+	int	rekey_interval;
 
 	int	no_host_authentication_for_localhost;
 	int	identities_only;
 	int	server_alive_interval;
 	int	server_alive_count_max;
 
-	int     num_send_env;
-	char   **send_env;
-	int     num_setenv;
-	char   **setenv;
+	u_int	num_send_env;
+	char	**send_env;
+	u_int	num_setenv;
+	char	**setenv;
 
 	char	*control_path;
 	int	control_master;
@@ -188,6 +190,9 @@ typedef struct {
 	char   *jump_extra;
 
 	char   *known_hosts_command;
+
+	int	required_rsa_size;	/* minimum size of RSA keys */
+	int	enable_escape_commandline;	/* ~C commandline */
 
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;

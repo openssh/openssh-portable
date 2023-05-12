@@ -52,17 +52,26 @@
 
 #include "openbsd-compat/openssl-compat.h"
 
-#ifndef WITH_OPENSSL
-#define EVP_CIPHER_CTX void
+/* for provider functions */
+#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#include <openssl/err.h>
+#include <openssl/params.h>
+#include <openssl/provider.h>
 #endif
 
+#ifndef WITH_OPENSSL
+#define EVP_CIPHER_CTX void
+#define EVP_CIPHER void
+#else
 /* for multi-threaded aes-ctr cipher */
 extern const EVP_CIPHER *evp_aes_ctr_mt(void);
+#endif
 
 struct sshcipher_ctx {
 	int	plaintext;
 	int	encrypt;
 	EVP_CIPHER_CTX *evp;
+	const EVP_CIPHER *meth_ptr; /*used to free memory in aes_ctr_mt */
 	struct chachapoly_ctx *cp_ctx;
 	struct aesctr_ctx ac_ctx; /* XXX union with evp? */
 	const struct sshcipher *cipher;
@@ -97,14 +106,11 @@ static struct sshcipher ciphers[] = {
 	{ "aes256-cbc",		16, 32, 0, 0, CFLAG_CBC, EVP_aes_256_cbc },
 	{ "aes128-ctr",		16, 16, 0, 0, 0, EVP_aes_128_ctr },
 	{ "aes192-ctr",		16, 24, 0, 0, 0, EVP_aes_192_ctr },
-	{ "aes256-ctr",		16, 32, 0, 0, 0, EVP_aes_256_ctr }, 
-
-# ifdef OPENSSL_HAVE_EVPGCM
+	{ "aes256-ctr",		16, 32, 0, 0, 0, EVP_aes_256_ctr },
 	{ "aes128-gcm@openssh.com",
 				16, 16, 12, 16, 0, EVP_aes_128_gcm },
 	{ "aes256-gcm@openssh.com",
 				16, 32, 12, 16, 0, EVP_aes_256_gcm },
-# endif /* OPENSSL_HAVE_EVPGCM */
 #else
 	{ "aes128-ctr",		16, 16, 0, 0, CFLAG_AESCTR, NULL },
 	{ "aes192-ctr",		16, 24, 0, 0, CFLAG_AESCTR, NULL },
@@ -165,20 +171,6 @@ cipher_ctx_name(const struct sshcipher_ctx *cc)
 {
 	return cc->cipher->name;
 }
-
-/* in order to get around sandbox and forking issues with a threaded cipher
- * we set the initial pre-auth aes-ctr cipher to the default OpenSSH cipher
- * post auth we set them to the new evp as defined by cipher-ctr-mt
- */
-#ifdef WITH_OPENSSL
-void
-cipher_reset_multithreaded(void)
-{
-	cipher_by_name("aes128-ctr")->evptype = evp_aes_ctr_mt;
-	cipher_by_name("aes192-ctr")->evptype = evp_aes_ctr_mt;
-	cipher_by_name("aes256-ctr")->evptype = evp_aes_ctr_mt;
-}
-#endif
 
 u_int
 cipher_blocksize(const struct sshcipher *c)
@@ -292,6 +284,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 
 	cc->plaintext = (cipher->flags & CFLAG_NONE) != 0;
 	cc->encrypt = do_encrypt;
+	cc->meth_ptr = NULL;
 
 	if (keylen < cipher->key_len ||
 	    (iv != NULL && ivlen < cipher_ivlen(cipher))) {
@@ -327,6 +320,53 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
+	/* the following block is for AES-CTR-MT cipher switching
+	 * if we are using the ctr cipher and we are post-auth then
+	 * start the threaded cipher. If OSSL supports providers (OSSL 3.0+) then
+	 * we load our hpnssh provider. If it doesn't (OSSL < 1.1) then we use the
+	 * _meth_new process found in cipher-ctr-mt.c */
+	if (strstr(cc->cipher->name, "ctr") && post_auth) {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+		/* this version of openssl uses providers */
+		OSSL_LIB_CTX *aes_lib = NULL; /* probably not needed */
+		OSSL_PROVIDER *aes_mt_provider = NULL;
+		type = NULL;
+
+		if (OSSL_PROVIDER_add_builtin(aes_lib, "hpnssh",
+					      OSSL_provider_init) != 1) {
+			fatal("Failed to add HPNSSH provider for AES-CTR");
+		}
+		aes_mt_provider = OSSL_PROVIDER_load(aes_lib, "hpnssh");
+
+		if (aes_mt_provider != NULL) {
+			/* use the previous key length to determine which cipher to load */
+			if (cipher->key_len == 32)
+				type = EVP_CIPHER_fetch(aes_lib, "aes_ctr_mt_256", NULL);
+			if (cipher->key_len == 24)
+				type = EVP_CIPHER_fetch(aes_lib, "aes_ctr_mt_192", NULL);
+			if (cipher->key_len == 16)
+				type = EVP_CIPHER_fetch(aes_lib, "aes_ctr_mt_128", NULL);
+			if (type == NULL) {
+				ERR_print_errors_fp(stderr);
+				fatal("FAILED TO LOAD aes_ctr_mt");
+			} else {
+				debug("LOADED aes_ctr_mt");
+			}
+		}
+		else {
+			ERR_print_errors_fp(stderr);
+			fatal("Failed to load HPN-SSH AES-CTR-MT provider.");
+		}
+#else
+		type = (*evp_aes_ctr_mt)(); /* see cipher-ctr-mt.c */
+		/* we need to free this later if using aes_ctr_mt
+		 * under OSSL 1.1. Honestly, we could avoid this by making
+		 * it a global in cipher-ctr_mt.c and exporting it here
+		 * then we'd only have to call EVP_CIPHER_meth once but this
+		 * works for now. TODO: This. cjr 02.22.2023 */
+		cc->meth_ptr = type;
+#endif /* OPENSSL_VERSION_NUMBER */
+	} /* if (strstr()) */
 	if (EVP_CipherInit(cc->evp, type, NULL, (u_char *)iv,
 	    (do_encrypt == CIPHER_ENCRYPT)) == 0) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
@@ -474,6 +514,16 @@ cipher_free(struct sshcipher_ctx *cc)
 #ifdef WITH_OPENSSL
 	EVP_CIPHER_CTX_free(cc->evp);
 	cc->evp = NULL;
+	/* if meth_ptr isn't null then we are using the aes_ctr_mt
+	 * evp_cipher_meth_new() in cipher-ctr-mt.c under OSSL 1.1
+	 * if we don't explicitly free it then, even though we free
+	 * the ctx it is a part of it doesn't get freed. So...
+	 * cjr 2/7/2023
+	 */
+	if (cc->meth_ptr != NULL) {
+		EVP_CIPHER_meth_free((void *)(EVP_CIPHER *)cc->meth_ptr);
+		cc->meth_ptr = NULL;
+	}
 #endif
 	freezero(cc, sizeof(*cc));
 }
@@ -529,11 +579,6 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, size_t len)
 		return SSH_ERR_LIBCRYPTO_ERROR;
 	if ((size_t)evplen != len)
 		return SSH_ERR_INVALID_ARGUMENT;
-#ifndef OPENSSL_HAVE_EVPCTR
-	if (c->evptype == evp_aes_128_ctr)
-		ssh_aes_ctr_iv(cc->evp, 0, iv, len);
-	else
-#endif
 	if (cipher_authlen(c)) {
 		if (!EVP_CIPHER_CTX_ctrl(cc->evp, EVP_CTRL_GCM_IV_GEN,
 		    len, iv))
@@ -563,12 +608,6 @@ cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv, size_t len)
 		return SSH_ERR_LIBCRYPTO_ERROR;
 	if ((size_t)evplen != len)
 		return SSH_ERR_INVALID_ARGUMENT;
-#ifndef OPENSSL_HAVE_EVPCTR
-	/* XXX iv arg is const, but ssh_aes_ctr_iv isn't */
-	if (c->evptype == evp_aes_128_ctr)
-		ssh_aes_ctr_iv(cc->evp, 1, (u_char *)iv, evplen);
-	else
-#endif
 	if (cipher_authlen(c)) {
 		/* XXX iv arg is const, but EVP_CIPHER_CTX_ctrl isn't */
 		if (!EVP_CIPHER_CTX_ctrl(cc->evp,

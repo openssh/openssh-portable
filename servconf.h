@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.156 2022/03/18 04:04:11 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.159 2023/01/17 09:44:48 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -204,7 +204,6 @@ typedef struct {
 	int	hpn_disabled;		/* disable hpn functionality. false by default */
 	int	hpn_buffer_size;	/* set the hpn buffer size - default 3MB */
 	int	none_enabled;		/* Enable NONE cipher switch */
-        int     disable_multithreaded;  /* disable multithreaded aes-ctr cipher */
 	int     nonemac_enabled;        /* Enable NONE MAC switch */
 	int     hpn_buffer_limit;       /* limit local_window_max to 1/2 receive buffer */
   
@@ -236,6 +235,12 @@ typedef struct {
 	int	expose_userauth_info;
 	u_int64_t timing_secret;
 	char   *sk_provider;
+	int	required_rsa_size;	/* minimum size of RSA keys */
+
+	char	**channel_timeouts;	/* inactivity timeout by channel type */
+	u_int	num_channel_timeouts;
+
+	int	unused_connection_timeout;
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */
@@ -293,6 +298,7 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
 		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens); \
 		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens); \
+		M_CP_STRARRAYOPT(channel_timeouts, num_channel_timeouts); \
 		M_CP_STRARRAYOPT(log_verbose, num_log_verbose); \
 	} while (0)
 
@@ -302,6 +308,7 @@ void	 fill_default_server_options(ServerOptions *);
 int	 process_server_config_line(ServerOptions *, char *, const char *, int,
 	    int *, struct connection_info *, struct include_list *includes);
 void	 process_permitopen(struct ssh *ssh, ServerOptions *options);
+void	 process_channel_timeouts(struct ssh *ssh, ServerOptions *);
 void	 load_server_config(const char *, struct sshbuf *);
 void	 parse_server_config(ServerOptions *, const char *, struct sshbuf *,
 	    struct include_list *includes, struct connection_info *, int);

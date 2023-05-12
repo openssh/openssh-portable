@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.366 2022/02/08 08:59:12 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.375 2023/03/10 02:24:56 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -54,7 +54,6 @@
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssherr.h"
-#include "compat.h"
 #include "cipher.h"
 #include "pathnames.h"
 #include "log.h"
@@ -168,9 +167,8 @@ typedef enum {
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
 	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
-	oNoneEnabled, oNoneMacEnabled, oNoneSwitch,
-	oDisableMTAES, oHPNBufferLimit,
-	oMetrics, oMetricsPath, oMetricsInterval,
+	oNoneEnabled, oNoneMacEnabled, oNoneSwitch, oHPNBufferLimit,
+	oMetrics, oMetricsPath, oMetricsInterval, oFallback, oFallbackPort,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType, oStdinNull,
 	oForkAfterAuthentication, oIgnoreUnknown, oProxyUseFdpass,
@@ -179,7 +177,8 @@ typedef enum {
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oFingerprintHash, oUpdateHostkeys, oHostbasedAcceptedAlgorithms,
 	oPubkeyAcceptedAlgorithms, oCASignatureAlgorithms, oProxyJump,
-	oSecurityKeyProvider, oKnownHostsCommand,
+	oSecurityKeyProvider, oKnownHostsCommand, oRequiredRSASize,
+	oEnableEscapeCommandline,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -306,11 +305,12 @@ static struct {
 	{ "noneenabled", oNoneEnabled },
 	{ "nonemacenabled", oNoneMacEnabled },
 	{ "noneswitch", oNoneSwitch },
-        { "disablemtaes", oDisableMTAES },
 	{ "hpnbufferlimit", oHPNBufferLimit },
 	{ "metrics", oMetrics },
 	{ "metricspath", oMetricsPath },
 	{ "metricsinterval", oMetricsInterval },
+	{ "fallback", oFallback },
+	{ "fallbackport", oFallbackPort },
 	{ "sessiontype", oSessionType },
 	{ "stdinnull", oStdinNull },
 	{ "forkafterauthentication", oForkAfterAuthentication },
@@ -337,6 +337,9 @@ static struct {
 	{ "tcprcvbuf", oTcpRcvBuf },
 	{ "hpndisabled", oHPNDisabled },
 	{ "hpnbuffersize", oHPNBufferSize },
+	{ "requiredrsasize", oRequiredRSASize },
+	{ "enableescapecommandline", oEnableEscapeCommandline },
+
 	{ NULL, oBadOption }
 };
 
@@ -528,7 +531,7 @@ default_ssh_port(void)
 
 	if (port == 0) {
 		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
-		port = sp ? ntohs(sp->s_port) : SSH_DEFAULT_PORT;
+		port = sp ? ntohs(sp->s_port) : HPNSSH_DEFAULT_PORT;
 	}
 	return port;
 }
@@ -630,7 +633,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 		}
 		arg = criteria = NULL;
 		this_result = 1;
-		if ((negate = attrib[0] == '!'))
+		if ((negate = (attrib[0] == '!')))
 			attrib++;
 		/* Criterion "all" has no argument and must appear alone */
 		if (strcasecmp(attrib, "all") == 0) {
@@ -769,20 +772,16 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 static void
 rm_env(Options *options, const char *arg, const char *filename, int linenum)
 {
-	int i, j, onum_send_env = options->num_send_env;
-	char *cp;
+	u_int i, j, onum_send_env = options->num_send_env;
 
 	/* Remove an environment variable */
 	for (i = 0; i < options->num_send_env; ) {
-		cp = xstrdup(options->send_env[i]);
-		if (!match_pattern(cp, arg + 1)) {
-			free(cp);
+		if (!match_pattern(options->send_env[i], arg + 1)) {
 			i++;
 			continue;
 		}
 		debug3("%s line %d: removing environment %s",
-		    filename, linenum, cp);
-		free(cp);
+		    filename, linenum, options->send_env[i]);
 		free(options->send_env[i]);
 		options->send_env[i] = NULL;
 		for (j = i; j < options->num_send_env - 1; j++) {
@@ -1171,10 +1170,6 @@ parse_time:
 		intptr = &options->nonemac_enabled;
 		goto parse_flag;
 
-        case oDisableMTAES:
-		intptr = &options->disable_multithreaded;
-		goto parse_flag;
-
 	case oHPNBufferLimit:
 		intptr = &options->hpn_buffer_limit;
 		goto parse_flag;
@@ -1192,7 +1187,15 @@ parse_time:
 		options->metrics = 1;
 		goto parse_string;
 
-	 /*
+	case oFallback:
+		intptr = &options->fallback;
+		goto parse_flag;
+
+	case oFallbackPort:
+		intptr = &options->fallback_port;
+		goto parse_int;
+
+	/*
 	 * We check to see if the command comes from the command
 	 * line or not. If it does then enable it otherwise fail.
 	 *  NONE should never be a default configuration.
@@ -1646,37 +1649,37 @@ parse_pubkey_algos:
 	case oPermitRemoteOpen:
 		uintptr = &options->num_permitted_remote_opens;
 		cppptr = &options->permitted_remote_opens;
-		arg = argv_next(&ac, &av);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing %s specification",
-			    filename, linenum, lookup_opcode_name(opcode));
 		uvalue = *uintptr;	/* modified later */
-		if (strcmp(arg, "any") == 0 || strcmp(arg, "none") == 0) {
-			if (*activep && uvalue == 0) {
-				*uintptr = 1;
-				*cppptr = xcalloc(1, sizeof(**cppptr));
-				(*cppptr)[0] = xstrdup(arg);
-			}
-			break;
-		}
+		i = 0;
 		while ((arg = argv_next(&ac, &av)) != NULL) {
 			arg2 = xstrdup(arg);
-			p = hpdelim(&arg);
-			if (p == NULL) {
-				fatal("%s line %d: missing host in %s",
-				    filename, linenum,
-				    lookup_opcode_name(opcode));
-			}
-			p = cleanhostname(p);
-			/*
-			 * don't want to use permitopen_port to avoid
-			 * dependency on channels.[ch] here.
-			 */
-			if (arg == NULL ||
-			    (strcmp(arg, "*") != 0 && a2port(arg) <= 0)) {
-				fatal("%s line %d: bad port number in %s",
-				    filename, linenum,
-				    lookup_opcode_name(opcode));
+			/* Allow any/none only in first position */
+			if (strcasecmp(arg, "none") == 0 ||
+			    strcasecmp(arg, "any") == 0) {
+				if (i > 0 || ac > 0) {
+					error("%s line %d: keyword %s \"%s\" "
+					    "argument must appear alone.",
+					    filename, linenum, keyword, arg);
+					goto out;
+				}
+			} else {
+				p = hpdelim(&arg);
+				if (p == NULL) {
+					fatal("%s line %d: missing host in %s",
+					    filename, linenum,
+					    lookup_opcode_name(opcode));
+				}
+				p = cleanhostname(p);
+				/*
+				 * don't want to use permitopen_port to avoid
+				 * dependency on channels.[ch] here.
+				 */
+				if (arg == NULL || (strcmp(arg, "*") != 0 &&
+				    a2port(arg) <= 0)) {
+					fatal("%s line %d: bad port number "
+					    "in %s", filename, linenum,
+					    lookup_opcode_name(opcode));
+				}
 			}
 			if (*activep && uvalue == 0) {
 				opt_array_append(filename, linenum,
@@ -1684,7 +1687,11 @@ parse_pubkey_algos:
 				    cppptr, uintptr, arg2);
 			}
 			free(arg2);
+			i++;
 		}
+		if (i == 0)
+			fatal("%s line %d: missing %s specification",
+			    filename, linenum, lookup_opcode_name(opcode));
 		break;
 
 	case oClearAllForwardings:
@@ -1814,20 +1821,10 @@ parse_pubkey_algos:
 				/* Removing an env var */
 				rm_env(options, arg, filename, linenum);
 				continue;
-			} else {
-				/* Adding an env var */
-				if (options->num_send_env >= INT_MAX) {
-					error("%s line %d: too many send env.",
-					    filename, linenum);
-					goto out;
-				}
-				options->send_env = xrecallocarray(
-				    options->send_env, options->num_send_env,
-				    options->num_send_env + 1,
-				    sizeof(*options->send_env));
-				options->send_env[options->num_send_env++] =
-				    xstrdup(arg);
 			}
+			opt_array_append(filename, linenum,
+			    lookup_opcode_name(opcode),
+			    &options->send_env, &options->num_send_env, arg);
 		}
 		break;
 
@@ -1841,16 +1838,15 @@ parse_pubkey_algos:
 			}
 			if (!*activep || value != 0)
 				continue;
-			/* Adding a setenv var */
-			if (options->num_setenv >= INT_MAX) {
-				error("%s line %d: too many SetEnv.",
-				    filename, linenum);
-				goto out;
+			if (lookup_setenv_in_list(arg, options->setenv,
+			    options->num_setenv) != NULL) {
+				debug2("%s line %d: ignoring duplicate env "
+				    "name \"%.64s\"", filename, linenum, arg);
+				continue;
 			}
-			options->setenv = xrecallocarray(
-			    options->setenv, options->num_setenv,
-			    options->num_setenv + 1, sizeof(*options->setenv));
-			options->setenv[options->num_setenv++] = xstrdup(arg);
+			opt_array_append(filename, linenum,
+			    lookup_opcode_name(opcode),
+			    &options->setenv, &options->num_setenv, arg);
 		}
 		break;
 
@@ -2216,15 +2212,13 @@ parse_pubkey_algos:
 		value2 = 0; /* unlimited lifespan by default */
 		if (value == 3 && arg2 != NULL) {
 			/* allow "AddKeysToAgent confirm 5m" */
-			if ((value2 = convtime(arg2)) == -1 ||
-			    value2 > INT_MAX) {
+			if ((value2 = convtime(arg2)) == -1) {
 				error("%s line %d: invalid time value.",
 				    filename, linenum);
 				goto out;
 			}
 		} else if (value == -1 && arg2 == NULL) {
-			if ((value2 = convtime(arg)) == -1 ||
-			    value2 > INT_MAX) {
+			if ((value2 = convtime(arg)) == -1) {
 				error("%s line %d: unsupported option",
 				    filename, linenum);
 				goto out;
@@ -2267,6 +2261,14 @@ parse_pubkey_algos:
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(arg);
 		break;
+
+	case oEnableEscapeCommandline:
+		intptr = &options->enable_escape_commandline;
+		goto parse_flag;
+
+	case oRequiredRSASize:
+		intptr = &options->required_rsa_size;
+		goto parse_int;
 
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
@@ -2404,6 +2406,7 @@ void
 initialize_options(Options * options)
 {
 	memset(options, 'X', sizeof(*options));
+	options->host_arg = NULL;
 	options->forward_agent = -1;
 	options->forward_agent_sock_path = NULL;
 	options->forward_x11 = -1;
@@ -2502,13 +2505,14 @@ initialize_options(Options * options)
 	options->none_switch = -1;
 	options->none_enabled = -1;
 	options->nonemac_enabled = -1;
-        options->disable_multithreaded = -1;
 	options->metrics = -1;
 	options->metrics_path = NULL;
 	options->metrics_interval = -1;
 	options->hpn_disabled = -1;
 	options->hpn_buffer_size = -1;
 	options->hpn_buffer_limit = -1;
+	options->fallback = -1;
+	options->fallback_port = -1;
 	options->tcp_rcv_buf_poll = -1;
 	options->tcp_rcv_buf = -1;
 	options->session_type = -1;
@@ -2527,6 +2531,8 @@ initialize_options(Options * options)
 	options->hostbased_accepted_algos = NULL;
 	options->pubkey_accepted_algos = NULL;
 	options->known_hosts_command = NULL;
+	options->required_rsa_size = -1;
+	options->enable_escape_commandline = -1;
 }
 
 /*
@@ -2713,14 +2719,16 @@ fill_default_options(Options * options)
 		fprintf(stderr, "None MAC can only be used with the None cipher. None MAC disabled.\n");
 		options->nonemac_enabled = 0;
 	}
-        if (options->disable_multithreaded == -1)
-		options->disable_multithreaded = 0;
 	if (options->metrics == -1)
 		options->metrics = 0;
 	if (options->metrics_interval == -1)
 		options->metrics_interval = 5;
 	if (options->control_master == -1)
 		options->control_master = 0;
+	if (options->fallback == -1)
+		options->fallback = 1;
+	if (options->fallback_port == -1)
+		options->fallback_port = SSH_DEFAULT_PORT;
 	if (options->control_persist == -1) {
 		options->control_persist = 0;
 		options->control_persist_timeout = 0;
@@ -2766,6 +2774,10 @@ fill_default_options(Options * options)
 	if (options->sk_provider == NULL)
 		options->sk_provider = xstrdup("$SSH_SK_PROVIDER");
 #endif
+	if (options->required_rsa_size == -1)
+		options->required_rsa_size = SSH_RSA_MINIMUM_MODULUS_SIZE;
+	if (options->enable_escape_commandline == -1)
+		options->enable_escape_commandline = 0;
 
 	/* Expand KEX name lists */
 	all_cipher = cipher_alg_list(',', 0);
@@ -2906,9 +2918,9 @@ free_options(Options *o)
 	}
 	free(o->remote_forwards);
 	free(o->stdio_forward_host);
-	FREE_ARRAY(int, o->num_send_env, o->send_env);
+	FREE_ARRAY(u_int, o->num_send_env, o->send_env);
 	free(o->send_env);
-	FREE_ARRAY(int, o->num_setenv, o->setenv);
+	FREE_ARRAY(u_int, o->num_setenv, o->setenv);
 	free(o->setenv);
 	free(o->control_path);
 	free(o->local_command);
@@ -3404,6 +3416,7 @@ dump_client_config(Options *o, const char *host)
 	free(all_key);
 
 	/* Most interesting options first: user, host, port */
+	dump_cfg_string(oHost, o->host_arg);
 	dump_cfg_string(oUser, o->user);
 	dump_cfg_string(oHostname, host);
 	dump_cfg_int(oPort, o->port);
@@ -3447,6 +3460,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oVerifyHostKeyDNS, o->verify_host_key_dns);
 	dump_cfg_fmtint(oVisualHostKey, o->visual_host_key);
 	dump_cfg_fmtint(oUpdateHostkeys, o->update_hostkeys);
+	dump_cfg_fmtint(oEnableEscapeCommandline, o->enable_escape_commandline);
 
 	/* Integer options */
 	dump_cfg_int(oCanonicalizeMaxDots, o->canonicalize_max_dots);
@@ -3455,6 +3469,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_int(oNumberOfPasswordPrompts, o->number_of_password_prompts);
 	dump_cfg_int(oServerAliveCountMax, o->server_alive_count_max);
 	dump_cfg_int(oServerAliveInterval, o->server_alive_interval);
+	dump_cfg_int(oRequiredRSASize, o->required_rsa_size);
 
 	/* String options */
 	dump_cfg_string(oBindAddress, o->bind_address);

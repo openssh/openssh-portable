@@ -67,9 +67,6 @@
  */
 #define NUMSTREAMS 32
 
-/* When this value is exceeded, spawn a new worker thread. Not implemented. */
-#define MAXSTRIKES 3
-
 /* END TUNABLES */
 
 
@@ -126,9 +123,6 @@ struct chachapoly_ctx_mt {
 	 * and lock states cannot be guaranteed to be sane.
 	 */
 	pid_t mainpid;
-
-	/* Indirect performance metric */
-	u_int strikes;
 
 	/*
 	 * Used as a resting point for worker threads. The main thread
@@ -492,9 +486,6 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
 	if (pthread_mutex_init(&(ctx_mt->tid_lock), NULL))
 		goto failstreams;
 
-	/* Start with zero strikes. */
-	ctx_mt->strikes=0;
-
 	if (pthread_cond_init(&(ctx_mt->cond), NULL))
 		goto failtid;
 
@@ -776,18 +767,8 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	struct mt_keystream * ks = &(ctx_mt->streams[seqnr % NUMSTREAMS]);
 	/* Return value, to reproduce the serial implementation behavior. */
 	int r = SSH_ERR_INTERNAL_ERROR;
-	/*
-	 * Block if a worker is currently generating the data. If trylock() is
-	 * nonzero, then a worker is currently busy with the data, so increment
-	 * the strikes and then block. If trylock() is zero, then the lock has
-	 * been obtained, so proceed.
-	 */
-	if (pthread_mutex_trylock(&(ks->lock))) {
-		ctx_mt->strikes++;
-		debug_f("Caught up to workers! Strike %u! Waiting.",
-		    ctx_mt->strikes);
-		pthread_mutex_lock(&(ks->lock));
-	}
+	/* Block if a worker is currently generating the data. */
+	pthread_mutex_lock(&(ks->lock));
 	/* Read the sequence number of the keystream in slot */
 	found_seqnr = ks->seqnr;
 	/* Don't hold the lock. Workers won't touch it until we signal them. */
@@ -800,7 +781,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 		if (!do_encrypt) {
 			const u_char *tag = src + aadlen + len;
 			u_char expected_tag[POLY1305_TAGLEN];
-			poly1305_auth(expected_tag, src, aadlen + len,
+			poly1305_auth(NULL, expected_tag, src, aadlen + len,
 			    ks->poly_key);
 			if (timingsafe_bcmp(expected_tag, tag, POLY1305_TAGLEN)
 			    != 0)
@@ -818,8 +799,8 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 			fastXOR(dest+aadlen,src+aadlen,ks->mainStream,len);
 			/* calculate and append tag */
 			if (do_encrypt)
-				poly1305_auth(dest+aadlen+len, dest, aadlen+len,
-				    ks->poly_key);
+				poly1305_auth(NULL, dest+aadlen+len, dest,
+				    aadlen+len, ks->poly_key);
 			r=0; /* Success! */
 		}
 		if (r) /* Anything nonzero is an error. */
@@ -839,10 +820,8 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 		 * way, we update the sequence number in the context and signal
 		 * the workers to build fresh keystreams.
 		 */
-		ctx_mt->strikes++;
-		debug_f( "Cache miss! Seeking %u, found %u. Strike %u! "
-		    "Falling back to serial mode.", seqnr, found_seqnr,
-		    ctx_mt->strikes);
+		debug_f( "Cache miss! Seeking %u, found %u. "
+		    "Falling back to serial mode.", seqnr, found_seqnr);
 		explicit_bzero(&found_seqnr, sizeof(found_seqnr));
 		/* Same logic as above */
 		pthread_mutex_lock(&(ctx_mt->seqnr_lock));
@@ -895,12 +874,7 @@ chachapoly_get_length_mt(struct chachapoly_ctx *ctx, u_int *plenp, u_int seqnr,
 	u_char buf[4];
 	u_int found_seqnr;
 	struct mt_keystream * ks = &(ctx_mt->streams[seqnr % NUMSTREAMS]);
-	if (pthread_mutex_trylock(&(ks->lock))) {
-		ctx_mt->strikes++;
-		debug_f("Caught up to workers! Strike %u! Waiting.",
-		    ctx_mt->strikes);
-		pthread_mutex_lock(&(ks->lock));
-	}
+	pthread_mutex_lock(&(ks->lock));
 	found_seqnr = ks->seqnr;
 	pthread_mutex_unlock(&(ks->lock));
 
@@ -911,10 +885,8 @@ chachapoly_get_length_mt(struct chachapoly_ctx *ctx, u_int *plenp, u_int seqnr,
 		*plenp = PEEK_U32(buf);
 		return 0;
 	} else {
-		ctx_mt->strikes++;
-		debug_f("Cache miss! Seeking %u, found %u. Strike %u! "
-		    "Falling back to serial mode.", seqnr, found_seqnr,
-		    ctx_mt->strikes);
+		debug_f("Cache miss! Seeking %u, found %u. "
+		    "Falling back to serial mode.", seqnr, found_seqnr);
 		explicit_bzero(&found_seqnr, sizeof(found_seqnr));
 		return chachapoly_get_length(ctx, plenp, seqnr, cp, len);
 	}

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey-xmss.c,v 1.11 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: sshkey-xmss.c,v 1.12 2022/10/28 00:39:29 djm Exp $ */
 /*
  * Copyright (c) 2017 Markus Friedl.  All rights reserved.
  *
@@ -365,7 +365,7 @@ sshkey_xmss_deserialize_pk_info(struct sshkey *k, struct sshbuf *b)
 }
 
 int
-sshkey_xmss_generate_private_key(struct sshkey *k, u_int bits)
+sshkey_xmss_generate_private_key(struct sshkey *k, int bits)
 {
 	int r;
 	const char *name;
@@ -956,7 +956,7 @@ sshkey_xmss_encrypt_state(const struct sshkey *k, struct sshbuf *b,
 	if ((r = sshbuf_reserve(encrypted,
 	    encrypted_len + aadlen + authlen, &cp)) != 0 ||
 	    (r = cipher_init(&ciphercontext, cipher, key, keylen,
-	    iv, ivlen, 1, 0)) != 0 ||
+	        iv, ivlen, 1, 0)) != 0 ||
 	    (r = cipher_crypt(ciphercontext, 0, cp, sshbuf_ptr(encoded),
 	    encrypted_len, aadlen, authlen, 0)) != 0)
 		goto out;
@@ -1049,7 +1049,7 @@ sshkey_xmss_decrypt_state(const struct sshkey *k, struct sshbuf *encoded,
 	/* decrypt private state of key */
 	if ((r = sshbuf_reserve(decrypted, aadlen + encrypted_len, &dp)) != 0 ||
 	    (r = cipher_init(&ciphercontext, cipher, key, keylen,
-	    iv, ivlen, 0, 0)) != 0 ||
+	        iv, ivlen, 0, 0)) != 0 ||
 	    (r = cipher_crypt(ciphercontext, 0, dp, sshbuf_ptr(copy),
 	    encrypted_len, aadlen, authlen, 0)) != 0)
 		goto out;

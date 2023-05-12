@@ -1,5 +1,20 @@
 Notes:
 
+LibreSSL Support:
+Changes in LibreSSL version 3.5 and 3.6 prevent the use of the threaded AES CTR cipher. 
+In those cases HPNSSH will fallback to the serial versionof the AES CTR cipher. A warning
+is printed to stderr. 
+
+Automatic Port Fallback (in version 17v3)
+The hpnssh client now uses TCP port 2222 to connect automatically as this is the
+default hpnsshd port. However, we understand that many users will be end up connecting
+standard SSH servers on port 22. To make the easier for users the client will fall back to
+port 22 in the event that there is no hpnssh server running on port 2222. The behaviour can
+be modifed as follows:
+-oFallback=[yes|no] will enable or disable port fallback. Default is yes.
+-oFallbackPort=[N] where N is the port number that should be used for fall back.
+    Default is 22.
+
 TCP_INFO Metrics
 This features allows the client to request tcp networking information from the
 TCP_INFO struct. This includes data on retransmits, round trip time, lost packets,
@@ -31,10 +46,10 @@ may have more instruments available to poll than older kernels.
 FreeBSD Note: This is supported on Release 6 and higher. However, FreeBSD has fewer available
 instruments than new Linux kernels.
 
-Multiplexing Note: The metrics are reported from the TCP socket which means that gathering 
-metrics from multiplexed sessions will report on the activity of all sessions on that socket. 
+Multiplexing Note: The metrics are reported from the TCP socket which means that gathering
+metrics from multiplexed sessions will report on the activity of all sessions on that socket.
 This will likely result in less clear results and, as such, we suggest only gathering metrics
-from non-multiplexed session. 
+from non-multiplexed session.
 
 SCP with Resume functionality
 This feature allows SCP to resume failed transfers. In the event of a failed transfer

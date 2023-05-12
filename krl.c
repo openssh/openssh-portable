@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.53 2021/06/04 06:19:07 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.55 2023/03/14 07:28:47 dtucker Exp $ */
 
 #include "includes.h"
 
@@ -191,6 +191,7 @@ ssh_krl_free(struct ssh_krl *krl)
 		TAILQ_REMOVE(&krl->revoked_certs, rc, entry);
 		revoked_certs_free(rc);
 	}
+	free(krl);
 }
 
 void
@@ -1388,7 +1389,7 @@ krl_dump(struct ssh_krl *krl, FILE *f)
 			error("sshkey_fingerprint failed");
 			continue;
 		}
-		fprintf(f, "hash: SHA256:%s # %s\n", fp, sshkey_ssh_name(key));
+		fprintf(f, "hash: %s # %s\n", fp, sshkey_ssh_name(key));
 		free(fp);
 		free(key);
 	}

@@ -26,7 +26,10 @@
 #include <stdlib.h>
 #include <errno.h>
 #ifdef HAVE_ERR_H
-# include <err.h>
+#include <err.h>
+#endif
+#ifdef __APPLE__
+#include "apple_err.h"
 #endif
 #include "openbsd-compat/getopt_long.c"
 

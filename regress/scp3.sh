@@ -1,29 +1,20 @@
-#	$OpenBSD: scp3.sh,v 1.3 2021/08/10 03:35:45 djm Exp $
+#	$OpenBSD: scp3.sh,v 1.4 2023/01/13 04:47:34 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="scp3"
 
-#set -x
+set -x
 
 COPY2=${OBJ}/copy2
 DIR=${COPY}.dd
 DIR2=${COPY}.dd2
 
+maybe_add_scp_path_to_sshd
+
 SRC=`dirname ${SCRIPT}`
 cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.scp
 chmod 755 ${OBJ}/scp-ssh-wrapper.scp
 export SCP # used in scp-ssh-wrapper.scp
-
-
-scp_path=$(which -a hpnscp)
-if [ -x "$scp_path" ] || [ $scp_path == "*openssh-portable*" ]; then
-	echo "*****************"
-	echo "Required hpnscp binary not found in path. Skipping scp3 test."
-	echo "You can rerun this test after installation with"
-	echo "'make tests LTESTS=scp3'"
-	echo "*****************"
-	exit
-fi
 
 scpclean() {
 	rm -rf ${COPY} ${COPY2} ${DIR} ${DIR2}

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.307 2022/01/22 00:49:34 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.309 2023/03/03 10:23:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -309,6 +309,7 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	state = ssh->state;
 	state->connection_in = fd_in;
 	state->connection_out = fd_out;
+
 	if ((r = cipher_init(&state->send_context, none,
 	    (const u_char *)"", 0, NULL, 0, CIPHER_ENCRYPT, state->after_authentication)) != 0 ||
 	    (r = cipher_init(&state->receive_context, none,
@@ -951,7 +952,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	 * and using a blocksize larger that 16 doesn't work (dunno why)
 	 * so this seems to be a good limit for now - CJR 10/16/2020*/
 	if (ssh->none == 1) {
-		*max_blocks = (u_int64_t)1 << (16*2);
+		*max_blocks = (u_int64_t)1 << (31*2);
 	} else {
 		if (enc->block_size >= 16)
 			*max_blocks = (u_int64_t)1 << (enc->block_size*2);
@@ -1013,7 +1014,8 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
         /* used to force rekeying when called for by the none
          * cipher switch and aes-mt-ctr methods -cjr */
         if (rekey_requested == 1) {
-                rekey_requested = 0;
+		debug_f("Got the rekey request");
+		rekey_requested = 0;
                 return 1;
         }
 
@@ -1023,7 +1025,7 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 		return 1;
 
 	/*
-	 * Always rekey when MAX_PACKETS sent in either direction 
+	 * Always rekey when MAX_PACKETS sent in either direction
 	 * As per RFC4344 section 3.1 we do this after 2^31 packets.
 	 */
 	if (state->p_send.packets > MAX_PACKETS ||
@@ -1361,9 +1363,9 @@ int
 ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 {
 	struct session_state *state = ssh->state;
-	int len, r, ms_remain;
-	char buf[SSH_IOBUFSZ];
+	int len, r, ms_remain = 0;
 	struct pollfd pfd;
+	char buf[SSH_IOBUFSZ];
 	struct timeval start;
 	struct timespec timespec, *timespecp = NULL;
 
@@ -1965,16 +1967,16 @@ sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
 }
 
 /* this prints out the final log entry */
-void 
+void
 sshpkt_final_log_entry (struct ssh *ssh) {
 	double total_time;
-	
-	if (ssh->start_time < 1) 
+
+	if (ssh->start_time < 1)
 		/* this will produce a NaN in the output. -cjr */
 		total_time = 0;
 	else
 		total_time = monotime_double() - ssh->start_time;
-	
+
 	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
 	      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 	      ssh->stdin_bytes, ssh->fdout_bytes, total_time,
