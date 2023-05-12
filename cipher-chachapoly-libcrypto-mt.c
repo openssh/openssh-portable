@@ -56,7 +56,7 @@
 /* BEGIN TUNABLES */
 
 /* Number of worker threads to spawn. */
-#define NUMTHREADS 2
+#define NUMTHREADS 1
 
 /* Number of keystreams to pre-generate. This does not need to be a multiple of
  * NUMTHREADS. Larger values will allocate more memory, while smaller values may
@@ -131,7 +131,7 @@ struct chachapoly_ctx_mt {
 	 * cancellation points are positioned immediately before and after this
 	 * waiting point.
 	 */
-	pthread_cond_t cond;
+	pthread_cond_t cond[NUMTHREADS];
 
 	/* A buffer of zeros fed to EVP ciphers to get raw XOR keystreams. */
 	u_char zeros[KEYSTREAMLEN]; /* KEYSTREAMLEN == 32768 */
@@ -327,7 +327,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 		pthread_mutex_lock(&(ctx_mt->seqnr_lock));
 		pthread_cleanup_push((void (*)(void *)) pthread_mutex_unlock,
 		    &(ctx_mt->seqnr_lock));
-		while (td->seqnr == ctx_mt->seqnr) {
+		while ((td->seqnr / NUMTHREADS) == (ctx_mt->seqnr / NUMTHREADS)) {
 			/* Briefly allow cancellations here. */
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			pthread_testcancel();
@@ -338,7 +338,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			 * destroy the locks using standard pthread calls.
 			 */
 			/* Wait for main to update seqnr and signal us. */
-			pthread_cond_wait(&(ctx_mt->cond),
+			pthread_cond_wait(&(ctx_mt->cond[threadIndex]),
 			    &(ctx_mt->seqnr_lock));
 			/* Briefly allow cancellations again. */
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -356,13 +356,15 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 		/*
 		 * Check all of the keystreams that are this thread's
 		 * responsibility, which is only every nth keystream, where n is
-		 * the number of threads.
+		 * the number of threads, and keep going until we catch up.
 		 */
-		for (int i=threadIndex; i<NUMSTREAMS; i+=NUMTHREADS) {
+		int i = td->seqnr % NUMSTREAMS;
+		while (1) {
+//		for (int i=threadIndex; i<NUMSTREAMS; i+=NUMTHREADS) {
 			struct mt_keystream * ks = &(ctx_mt->streams[i]);
-			/* Skip over this keystream if it's not outdated. */
+			/* Break when we catch up. */
 			if (ks->seqnr >= td->seqnr)
-				continue;
+				break;
 
 			/* Prevent reading by the main thread */
 			pthread_mutex_lock(&(ks->lock));
@@ -377,6 +379,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			/* Generate the new keystream! */
 			generate_keystream(ks, new_seqnr, td, ctx_mt->zeros);
 			pthread_mutex_unlock(&(ks->lock));
+			i = (i + NUMTHREADS) % NUMSTREAMS;
 		}
 	}
 	/* This will never happen. */
@@ -424,7 +427,8 @@ free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
 		 * now. There's a cancellation point immediately after the
 		 * cond_wait() to prevent them from starting new work.
 		 */
-		pthread_cond_broadcast(&(ctx_mt->cond));
+		for (int i=0; i<NUMTHREADS; i++)
+			pthread_cond_broadcast(&(ctx_mt->cond[i]));
 		/* All threads are canceled or will cancel very soon. */
 		for (int i=0; i<NUMTHREADS; i++) {
 			debug2_f("Joining thread %d: %lx", i, ctx_mt->tid[i]);
@@ -439,7 +443,8 @@ free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
 		/* All threads are joined. Everything is serial now. */
 		pthread_mutex_destroy(&(ctx_mt->tid_lock));
 		pthread_mutex_destroy(&(ctx_mt->seqnr_lock));
-		pthread_cond_destroy(&(ctx_mt->cond));
+		for (int i=0; i<NUMTHREADS; i++)
+			pthread_cond_destroy(&(ctx_mt->cond[i]));
 		for (int i=0; i<NUMSTREAMS; i++) {
 			pthread_mutex_destroy(&(ctx_mt->streams[i].lock));
 		}
@@ -478,6 +483,7 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
 
 	if (pthread_mutex_init(&(ctx_mt->seqnr_lock), NULL))
 		goto failfree;
+
 	for (int i=0; i<NUMSTREAMS; i++) {
 		if (pthread_mutex_init(&(ctx_mt->streams[i].lock), NULL))
 			goto failseqnr;
@@ -486,8 +492,18 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
 	if (pthread_mutex_init(&(ctx_mt->tid_lock), NULL))
 		goto failstreams;
 
-	if (pthread_cond_init(&(ctx_mt->cond), NULL))
-		goto failtid;
+	{
+		int i;
+		for (i=0; i<NUMTHREADS; i++)
+			if (pthread_cond_init(&(ctx_mt->cond[i]), NULL))
+				break;
+		if (i != NUMTHREADS) {
+			i--;
+			for (; i>=0; i--)
+				pthread_cond_destroy(&(ctx_mt->cond[i]));
+			goto failtid;
+		}
+	}
 
 	/* This is unnecessary because we already zeroed the whole struct. */
 	/* memset(ctx_mt->zeros,0,sizeof(ctx_mt->zeros)); */
@@ -560,7 +576,8 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
 		free_threadData(&(ctx_mt->tds[i]));
  	/* FALLTHROUGH */
 /* failcond: */
-	pthread_cond_destroy(&(ctx_mt->cond));
+	for (int i=0; i<NUMTHREADS; i++)
+		pthread_cond_destroy(&(ctx_mt->cond[i]));
  	/* FALLTHROUGH */
  failtid:
 	pthread_mutex_destroy(&(ctx_mt->tid_lock));
@@ -774,6 +791,15 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	/* Don't hold the lock. Workers won't touch it until we signal them. */
 	pthread_mutex_unlock(&(ks->lock));
 
+	if (found_seqnr == seqnr) {
+	} else {
+		while (found_seqnr != seqnr) {
+			pthread_mutex_lock(&(ks->lock));
+			found_seqnr = ks->seqnr;
+			pthread_mutex_unlock(&(ks->lock));
+		}
+	}
+
 	/* TODO: add compiler hint that this is likely */
 	if (found_seqnr == seqnr) { /* Good, it's the correct keystream. */
 		explicit_bzero(&found_seqnr, sizeof(found_seqnr));
@@ -812,7 +838,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 		ctx_mt->seqnr = seqnr + 1; /* Will be read by workers */
 		pthread_mutex_unlock(&(ctx_mt->seqnr_lock));
 		/* Signal worker threads to scan the keystreams for new work */
-		pthread_cond_broadcast(&(ctx_mt->cond));
+		pthread_cond_broadcast(&(ctx_mt->cond[seqnr % NUMTHREADS]));
 		return 0;
 	} else { /* Bad, it's the wrong keystream. */
 		/*
@@ -827,7 +853,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 		pthread_mutex_lock(&(ctx_mt->seqnr_lock));
 		ctx_mt->seqnr = seqnr+1;
 		pthread_mutex_unlock(&(ctx_mt->seqnr_lock));
-		pthread_cond_broadcast(&(ctx_mt->cond));
+		pthread_cond_broadcast(&(ctx_mt->cond[seqnr % NUMTHREADS]));
 
 		/* Fall back to the serial implementation. */
 		return chachapoly_crypt(ctx, seqnr, dest, src, len, aadlen,
@@ -877,6 +903,15 @@ chachapoly_get_length_mt(struct chachapoly_ctx *ctx, u_int *plenp, u_int seqnr,
 	pthread_mutex_lock(&(ks->lock));
 	found_seqnr = ks->seqnr;
 	pthread_mutex_unlock(&(ks->lock));
+
+	if (found_seqnr == seqnr) {
+	} else {
+		while (found_seqnr != seqnr) {
+			pthread_mutex_lock(&(ks->lock));
+			found_seqnr = ks->seqnr;
+			pthread_mutex_unlock(&(ks->lock));
+		}
+	}
 
 	if (found_seqnr == seqnr) {
 		explicit_bzero(&found_seqnr, sizeof(found_seqnr));
