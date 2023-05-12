@@ -105,6 +105,9 @@ static char *authmethods_get(Authctxt *authctxt);
 #define MATCH_PARTIAL	3	/* method matches, submethod can't be checked */
 static int list_starts_with(const char *, const char *, const char *);
 
+/* read the user banner from the path in sshd_config
+ * this isn't to read it on the client side but to read
+ * it into what we are going to send on the server side */
 char *
 auth2_read_banner(void)
 {

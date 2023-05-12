@@ -487,6 +487,9 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	    (c->output = sshbuf_new()) == NULL ||
 	    (c->extended = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
+	sshbuf_relabel(c->input, "channel input");
+	sshbuf_relabel(c->output, "channel output");
+	sshbuf_relabel(c->extended, "channel extended");
 	if ((r = sshbuf_set_max_size(c->input, CHAN_INPUT_MAX)) != 0)
 		fatal_fr(r, "sshbuf_set_max_size");
 	c->ostate = CHAN_OUTPUT_OPEN;
@@ -1224,7 +1227,7 @@ channel_tcpwinsz(struct ssh *ssh)
 	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
 		tcpwinsz = SSHBUF_SIZE_MAX;
 
-	debug2("tcpwinsz: tcp connection %d, Receive window: %d",
+	debug3_f("tcp connection %d, Receive window: %d",
 	       ssh_packet_get_connection_in(ssh), tcpwinsz);
 	return tcpwinsz;
 }
@@ -2373,7 +2376,7 @@ channel_check_window(struct ssh *ssh, Channel *c)
 		    (r = sshpkt_send(ssh)) != 0) {
 			fatal_fr(r, "channel %i", c->self);
 		}
-		debug2("channel %d: window %d sent adjust %d",
+		debug3_f("channel %d: window %d sent adjust %d",
 		    c->self, c->local_window,
 		    c->local_consumed + addition);
 		c->local_window += c->local_consumed + addition;
@@ -3657,7 +3660,7 @@ channel_input_window_adjust(int type, u_int32_t seq, struct ssh *ssh)
 		error_fr(r, "parse adjust");
 		ssh_packet_disconnect(ssh, "Invalid window adjust message");
 	}
-	debug2("channel %d: rcvd adjust %u", c->self, adjust);
+	debug3_f("channel %d: rcvd adjust %u", c->self, adjust);
 	if ((new_rwin = c->remote_window + adjust) < c->remote_window) {
 		fatal("channel %d: adjust %u overflows remote window %u",
 		    c->self, adjust, c->remote_window);

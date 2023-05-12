@@ -72,7 +72,7 @@
 
 /*-------------------- TUNABLES --------------------*/
 /* maximum number of threads and queues */
-#define MAX_THREADS      32
+#define MAX_THREADS      4
 #define MAX_NUMKQ        (MAX_THREADS + 1)
 
 /* Number of pregen threads to use */
@@ -89,11 +89,11 @@ int cipher_threads = 1;
 int numkq = 2;
 
 /* Length of a keystream queue */
-/* one queue holds 512KB (8192 * 4 * 16) of key data
+/* one queue holds 512KB (1024 * 32 * 16) of key data
  * being that the queues are destroyed after a rekey
  * and at leats one has to be fully filled prior to
  * enciphering data we don't want this to be too large */
-#define KQLEN (8192 * 4)
+#define KQLEN (1024 * 32)
 
 /* Processor cacheline length */
 #define CACHELINE_LEN	64
@@ -243,6 +243,11 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
 		debug ("Canceled %lu (%lu,%d)", c->tid[i], c->struct_id, c->id[i]);
 		pthread_cancel(c->tid[i]);
 	}
+        for (i = 0; i < numkq; i++) {
+                pthread_mutex_lock(&c->q[i].lock);
+                pthread_cond_broadcast(&c->q[i].cond);
+                pthread_mutex_unlock(&c->q[i].lock);
+        }
 	for (i = 0; i < cipher_threads; i++) {
 		if (pthread_kill(c->tid[i], 0) != 0)
 			debug3("AES-CTR MT pthread_join failure: Invalid thread id %lu in %s",
@@ -310,7 +315,7 @@ thread_loop(void *x)
 	HASH_ADD_INT(evp_ptrs, tid, ptr);
 
 	/* initialize the cipher ctx with the key provided
-	 * determinbe which cipher to use based on the key size */
+	 * determine which cipher to use based on the key size */
 	if (c->keylen == 256)
 		EVP_EncryptInit_ex(aesni_ctx, EVP_aes_256_ctr(), NULL, c->orig_key, NULL);
 	else if (c->keylen == 128)
@@ -515,7 +520,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	struct ssh_aes_ctr_ctx_mt *c;
 	int i;
 
-	char * aes_threads = getenv("SSH_CIPHER_THREADS");
+	char *aes_threads = getenv("SSH_CIPHER_THREADS");
         if (aes_threads != NULL && strlen(aes_threads) != 0)
 		cipher_threads = atoi(aes_threads);
 	else
@@ -604,10 +609,15 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		c->ridx = 0;
 		c->struct_id = global_struct_id++;
 
+
 		/* Start threads */
+#define STACK_SIZE (1024 * 1024)
+		pthread_attr_t attr;
+		pthread_attr_init(&attr);
+		pthread_attr_setstacksize(&attr, STACK_SIZE);
 		for (i = 0; i < cipher_threads; i++) {
 			pthread_rwlock_wrlock(&c->tid_lock);
-			if (pthread_create(&c->tid[i], NULL, thread_loop, c) != 0)
+			if (pthread_create(&c->tid[i], &attr, thread_loop, c) != 0)
 				fatal ("AES-CTR MT Could not create thread in %s", __FUNCTION__);
                                 /*should die here */
 			else {
