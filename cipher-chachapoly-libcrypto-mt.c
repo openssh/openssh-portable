@@ -1,28 +1,3 @@
-/* A multi-threaded implementation of the ChaCha20-Poly1305 cipher. */
-/*
- * This is an alternative implementation, intended to be fully compatible with
- * preexisting implementations of ChaCha20-Poly1305 in OpenSSH. It is based upon
- * the sources of cipher-chachapoly-libcrypto.c, and similarly makes use of
- * OpenSSL's EVP interface to generate the ChaCha20 keystreams. The Poly1305
- * component is fulfilled using the Poly1305 algorithms which ship with OpenSSH.
- *
- * During initialization, this cipher spawns worker threads that pre-generate
- * all necessary ChaCha20 keystreams in advance. When the main OpenSSH thread
- * uses this cipher to encrypt or decrypt a packet, the pregenerated keystream
- * is read, they are merged with the packet payload via an XOR operation, the
- * Poly1305 tag is verified, and the worker threads are signalled that the
- * keystream memory can be reused to prepare for the encryption or decryption of
- * a subsequent packet.
- *
- * The serial functions from cipher-chachapoly-libcrypto.c may be used
- * interchangeably with the functions from this cipher, since they use
- * compatible context structure definitions. However, the serial cleanup
- * function, chachapoly_free(), does not properly clean up the worker threads
- * and free the additional structures needed for this multithreaded
- * implementation.
- */
-
-/* The includes were mostly copied from cipher-chachapoly-libcrypto.c */
 /* TODO: audit includes */
 
 #include "includes.h"
@@ -51,124 +26,61 @@
 
 /* Size of keystream to pregenerate, measured in bytes */
 #define KEYSTREAMLEN ((((SSH_IOBUFSZ - 1)/CHACHA_BLOCKLEN) + 1)*CHACHA_BLOCKLEN)
-
-
 /* BEGIN TUNABLES */
 
 /* Number of worker threads to spawn. */
 #define NUMTHREADS 1
-
-/* Number of keystreams to pre-generate. This does not need to be a multiple of
- * NUMTHREADS. Larger values will allocate more memory, while smaller values may
- * fail to absorb bursts of packets during moments of high throughput. The total
- * size of the keystream cache will be NUMSTREAMS*KEYSTREAMLEN, measured in
- * bytes. This cache is the primary contribution to the memory footprint of this
- * multithreaded cipher.
- */
-#define NUMSTREAMS 32
+#define NUMSTREAMS 128
 
 /* END TUNABLES */
 
-
-/* all members are written by worker threads, read by main thread */
 struct mt_keystream {
 	u_char poly_key[POLY1305_KEYLEN];     /* POLY1305_KEYLEN == 32 */
 	u_char headerStream[CHACHA_BLOCKLEN]; /* CHACHA_BLOCKLEN == 64 */
 	u_char mainStream[KEYSTREAMLEN];      /* KEYSTREAMLEN == 32768 */
-
-	/*
-	 * Allow main thread to verify that the keystream was generated for the
-	 * expected seqnr. Also allow worker threads to see if the keystream is
-	 * old.
-	 */
-	u_int seqnr;
-
-	/* Block the main thread from reading while a worker is writing */
-	pthread_mutex_t lock;
 };
 
-/* Stores all nontrivial data used inside individual threads */
+struct mt_keystream_batch {
+	u_int batchID;
+	pthread_mutex_t lock;
+	pthread_barrier_t bar_start;
+	pthread_barrier_t bar_end;
+	struct mt_keystream streams[NUMSTREAMS];
+};
+
 struct threadData {
-	/* members for use in generate_keystream(): */
 	EVP_CIPHER_CTX * main_evp;
 	EVP_CIPHER_CTX * header_evp;
 	u_char seqbuf[16];
 
-	/* members for use in threadLoop(): */
-	u_int seqnr;
+	u_int batchID;
 };
 
-/* Stores all cipher data that must persist between function calls */
 struct chachapoly_ctx_mt {
-	/*
-	 * Next expected seqnr to read. This is written by the main thread to
-	 * indicate that all older keystreams may be replaced. It's read by
-	 * worker threads and by the main thread during a rekey.
-	 */
 	u_int seqnr;
-	/* Prevent workers from reading seqnr while main is updating it */
-	pthread_mutex_t seqnr_lock;
+	u_int batchID;
+	pthread_mutex_t batchID_lock;
 
-	/* The pregenerated keystreams */
-	struct mt_keystream streams[NUMSTREAMS]; /* NUMSTREAMS == 32 */
+	struct mt_keystream_batch batches[2];
 
-	/* Thread identifiers */
-	pthread_t tid[NUMTHREADS]; /* NUMTHREADS == 2 */
-	/* Block threads from reading their identifiers too soon */
+	pthread_t tid[NUMTHREADS];
 	pthread_mutex_t tid_lock;
 
-	/*
-	 * Written by the main thread during initialization to track whether
-	 * this process is a fork, in which case worker threads will be missing
-	 * and lock states cannot be guaranteed to be sane.
-	 */
 	pid_t mainpid;
-
-	/*
-	 * Used as a resting point for worker threads. The main thread
-	 * broadcasts to this cond primarily to indicate that worker threads may
-	 * have fresh work. It is not directly used as a cancellation point, but
-	 * cancellation points are positioned immediately before and after this
-	 * waiting point.
-	 */
-	pthread_cond_t cond[NUMTHREADS];
-
-	/* A buffer of zeros fed to EVP ciphers to get raw XOR keystreams. */
+	pthread_cond_t cond;
 	u_char zeros[KEYSTREAMLEN]; /* KEYSTREAMLEN == 32768 */
-
-	/* All nontrivial thread-specific data */
-	struct threadData tds[NUMTHREADS]; /* NUMTHREADS == 2 */
+	struct threadData tds[NUMTHREADS];
 };
 
-/*
- * This is directly copied from cipher-chachapoly-libcrypto.c, because we need
- * to use an identical context struct in order for cipher.c to be able to call
- * the multithreaded and serial implementations interchangeably. The struct is
- * declared, but not defined, in the cipher-chachapoly.h header. A pointer to
- * the multithreaded context is stored in main_evp as OpenSSL app data which is
- * ignored by the serial implementation.
- */
 struct chachapoly_ctx {
 	EVP_CIPHER_CTX *main_evp, *header_evp;
+#ifdef OPENSSL_HAVE_POLY_EVP
+	EVP_MAC_CTX    *poly_ctx;
+#else
+	char           *poly_ctx;
+#endif
 };
 
-/*
- * Used by worker threads to generate keystreams.
- *
- * Uses OpenSSL's ChaCha20 EVP to pre-generate the keystreams for anticipated
- * packets. This function does not manage any locks, so be sure to manage the
- * locks before and after calling it. Most invocations are from worker threads,
- * so this function must be thread safe. The main thread also calls this
- * function during initialization to give the soon-to-be-spawned worker threads
- * a head start.
- *
- * @param ks The keystream struct in which the new keystream should be stored.
- * @param seqnr The SSH sequence number of the new keystream to generate.
- * @param td Structure containing initialized EVP contexts and related buffers.
- * @param zeros A buffer of zeros used to get a raw XOR keystream from OpenSSL.
- * @retval 0 The keystream was generated successfully
- * @retval -1 An OpenSSL error occurred
- */
 int
 generate_keystream(struct mt_keystream * ks,u_int seqnr,struct threadData * td,
     u_char * zeros)
@@ -194,18 +106,9 @@ generate_keystream(struct mt_keystream * ks,u_int seqnr,struct threadData * td,
 	    EVP_Cipher(td->main_evp, ks->mainStream, zeros, KEYSTREAMLEN) < 0)
 		return -1;
 
-	/* update the sequence number */
-	ks->seqnr = seqnr;
 	return 0;
 }
 
-/*
- * Used to cleanup thread data structures.
- * This function is safe to call as long as the threadData was at least
- * partially initialized.
- *
- * @param td The thread data structure to be cleaned up.
- */
 void
 free_threadData(struct threadData * td)
 {
@@ -219,16 +122,6 @@ free_threadData(struct threadData * td)
 }
 
 
-/*
- * Used to initialize a thread data structure so that it's ready to be used to
- * generate keystreams. This implementation is directly based on
- * cipher-chachapoly-libcrypto.c/chachapoly_new().
- *
- * @param td The thread data structure to be initialized
- * @param ctx A cipher context from which EVP contexts will be cloned
- * @retval 0 The structure was initialized successfully
- * @retval -1 An OpenSSL error occurred and the structure was not initialized.
- */
 int
 initialize_threadData(struct threadData * td, struct chachapoly_ctx * ctx)
 {
@@ -240,36 +133,21 @@ initialize_threadData(struct threadData * td, struct chachapoly_ctx * ctx)
 		goto fail;
 	if (!EVP_CIPHER_CTX_copy(td->header_evp, ctx->header_evp))
 		goto fail;
-	/*
-	 * Why isn't this check performed on main_evp, too? No idea, but the
-	 * reference code in cipher-chachapoly-libcrypto.c doesn't do it either.
-	 * Maybe it's a static value, so they'll always be the same?
-	 */
 	if (EVP_CIPHER_CTX_iv_length(td->header_evp) != 16)
 		goto fail;
-	/* td->seqnr will be set to the correct value by the worker thread */
 	return 0;
  fail:
 	free_threadData(td);
 	return -1;
 }
 
-/*
- * Worker thread code. This loops until it receives a cancellation signal from
- * the main thread. It may exit early if it cannot find its thread ID in the
- * array written by the main thread.
- *
- * @param ctx_mt The shared multhreaded cipher context
- */
 void
 threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 {
-	/* Will point to all of thread's nontrivial data */
 	struct threadData * td;
 	pthread_t self;
 	int threadIndex = -1;
 
-	/* Restrict cancellations to known points to maintain sanity of locks */
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
 	/*
@@ -299,23 +177,17 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 	/* Now that we have the thread ID, grab the thread data. */
 	td = &(ctx_mt->tds[threadIndex]);
 
-	/*
-	 * Loop forever. If the thread is canceled, the thread terminates
-	 * immediately WITHOUT "breaking" the loop. Code after the while loop
-	 * never runs.
-	 */
 	while (1) {
 		/*
 		 * This is mostly just textbook pthread_cond_wait(), used to
-		 * wait for ctx_mt->seqnr to change. Once the main thread
-		 * changes ctx_mt->seqnr, it broadcasts to ctx_mt->cond, which
+		 * wait for ctx_mt->batchID to change. Once the main thread
+		 * changes ctx_mt->batchID, it broadcasts to ctx_mt->cond, which
 		 * triggers all threads which were waiting at ctx_mt->cond to
-		 * proceed. The threads check to see if ctx_mt->seqnr REALLY
+		 * proceed. The threads check to see if ctx_mt->batchID REALLY
 		 * changed (hypothetically, ctx_mt->cond could be erroneously
-		 * triggered), and if so, proceed to scan the keystreams for new
-		 * work.
+		 * triggered), and if so, proceed to generate the next batch.
 		 *
-		 * If a thread is canceled while it's holding seqnr_lock, it
+		 * If a thread is canceled while it's holding batchID_lock, it
 		 * must free that lock before terminating, so a cleanup handler
 		 * is registered using pthread_cleanup_push(...) and later
 		 * deregistered using pthread_cleanup_pop(0).
@@ -324,10 +196,10 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 		 * we can ensure that the locks will be in a known state when
 		 * the thread cancels, and so we can release them appropriately.
 		 */
-		pthread_mutex_lock(&(ctx_mt->seqnr_lock));
+		pthread_mutex_lock(&(ctx_mt->batchID_lock));
 		pthread_cleanup_push((void (*)(void *)) pthread_mutex_unlock,
-		    &(ctx_mt->seqnr_lock));
-		while ((td->seqnr / NUMTHREADS) == (ctx_mt->seqnr / NUMTHREADS)) {
+		    &(ctx_mt->batchID_lock));
+		while (td->batchID == ctx_mt->batchID) {
 			/* Briefly allow cancellations here. */
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			pthread_testcancel();
@@ -337,9 +209,9 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			 * cond_wait, otherwise it becomes impossible to
 			 * destroy the locks using standard pthread calls.
 			 */
-			/* Wait for main to update seqnr and signal us. */
-			pthread_cond_wait(&(ctx_mt->cond[threadIndex]),
-			    &(ctx_mt->seqnr_lock));
+			/* Wait for main to update batchID and signal us. */
+			pthread_cond_wait(&(ctx_mt->cond),
+			    &(ctx_mt->batchID_lock));
 			/* Briefly allow cancellations again. */
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			pthread_testcancel();
@@ -347,53 +219,36 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 		}
 		pthread_cleanup_pop(0);
 		/*
-		 * The main thread changed ctx_mt->seqnr, and we
+		 * The main thread changed ctx_mt->batchID, and we
 		 * noticed, so update our internal value and move on.
 		 */
-		td->seqnr = ctx_mt->seqnr;
-		pthread_mutex_unlock(&(ctx_mt->seqnr_lock));
+		td->batchID = ctx_mt->batchID;
+		pthread_mutex_unlock(&(ctx_mt->batchID_lock));
 
-		/*
-		 * Check all of the keystreams that are this thread's
-		 * responsibility, which is only every nth keystream, where n is
-		 * the number of threads, and keep going until we catch up.
-		 */
-		int i = td->seqnr % NUMSTREAMS;
-		while (1) {
-//		for (int i=threadIndex; i<NUMSTREAMS; i+=NUMTHREADS) {
-			struct mt_keystream * ks = &(ctx_mt->streams[i]);
-			/* Break when we catch up. */
-			if (ks->seqnr >= td->seqnr)
-				break;
+		struct mt_keystream_batch * oldBatch =
+		    &(ctx_mt->batches[(td->batchID - 1) % 2]);
 
-			/* Prevent reading by the main thread */
-			pthread_mutex_lock(&(ks->lock));
-			/*
-			 * This is just some math to get the next seqnr (which
-			 * is greater than or equal to the current seqnr) for
-			 * this index in the stream array.
-			 */
-			int seqnrStreamIndex = td->seqnr % NUMSTREAMS;
-			u_int new_seqnr = td->seqnr + i - seqnrStreamIndex +
-			    (i < seqnrStreamIndex ? NUMSTREAMS : 0);
-			/* Generate the new keystream! */
-			generate_keystream(ks, new_seqnr, td, ctx_mt->zeros);
-			pthread_mutex_unlock(&(ks->lock));
-			i = (i + NUMTHREADS) % NUMSTREAMS;
+		u_int newBatchID = oldBatch->batchID + 2;
+		u_int refseqnr = newBatchID * NUMSTREAMS;
+
+		if (threadIndex == 0)
+			pthread_mutex_lock(&(oldBatch->lock));
+		pthread_barrier_wait(&(oldBatch->bar_start));
+
+		for (int i = threadIndex; i < NUMSTREAMS; i += NUMTHREADS) {
+			generate_keystream(&(oldBatch->streams[i]),
+			    refseqnr + i, td, ctx_mt->zeros);
 		}
+
+		pthread_barrier_wait(&(oldBatch->bar_end));
+		oldBatch->batchID = newBatchID;
+		if (threadIndex == 0)
+			pthread_mutex_unlock(&(oldBatch->lock));
 	}
 	/* This will never happen. */
 	return;
 }
 
-/*
- * Frees all data associated with the multithreaded context and cancels all the
- * worker threads. This function skips destroying the mutexes and conds, and
- * cancelling the threads if this process is not the one which initialized them,
- * which is an unavoidable potential memory leak.
- *
- * @param ctx_mt The multithreaded cipher context to clean up.
- */
 void
 free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
 {
@@ -408,19 +263,15 @@ free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
 	 */
 	if (getpid() == ctx_mt->mainpid) {
 		/*
-		debug2_f("<main thread: pid=%u, tid=%u, ptid=0x%lx>", getpid(),
-		    gettid(),pthread_self());
-		*/
-		/*
-		 * Acquire seqnr_lock, so that thread cancellations can be sent
-		 * without risking race conditions near cond. We don't need to
-		 * acquire tid_lock, since we're only reading, and the main
+		 * Acquire batchID_lock, so that thread cancellations can be
+		 * sent without risking race conditions near cond. We don't need
+		 * to acquire tid_lock, since we're only reading, and the main
 		 * thread is the only writer, which is us!
 		 */
-		pthread_mutex_lock(&(ctx_mt->seqnr_lock));
+		pthread_mutex_lock(&(ctx_mt->batchID_lock));
 		for (int i=0; i<NUMTHREADS; i++)
 			pthread_cancel(ctx_mt->tid[i]);
-		pthread_mutex_unlock(&(ctx_mt->seqnr_lock));
+		pthread_mutex_unlock(&(ctx_mt->batchID_lock));
 		/*
 		 * At this point, the only threads which might not cancel are
 		 * the ones currently stuck on pthread_cond_wait(), so free them
@@ -428,7 +279,7 @@ free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
 		 * cond_wait() to prevent them from starting new work.
 		 */
 		for (int i=0; i<NUMTHREADS; i++)
-			pthread_cond_broadcast(&(ctx_mt->cond[i]));
+			pthread_cond_broadcast(&(ctx_mt->cond));
 		/* All threads are canceled or will cancel very soon. */
 		for (int i=0; i<NUMTHREADS; i++) {
 			debug2_f("Joining thread %d: %lx", i, ctx_mt->tid[i]);
@@ -442,11 +293,13 @@ free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
 		}
 		/* All threads are joined. Everything is serial now. */
 		pthread_mutex_destroy(&(ctx_mt->tid_lock));
-		pthread_mutex_destroy(&(ctx_mt->seqnr_lock));
-		for (int i=0; i<NUMTHREADS; i++)
-			pthread_cond_destroy(&(ctx_mt->cond[i]));
-		for (int i=0; i<NUMSTREAMS; i++) {
-			pthread_mutex_destroy(&(ctx_mt->streams[i].lock));
+		pthread_mutex_destroy(&(ctx_mt->batchID_lock));
+		pthread_cond_destroy(&(ctx_mt->cond));
+		for (int i=0; i<2; i++) {
+			pthread_mutex_destroy(&(ctx_mt->batches[i].lock));
+			pthread_barrier_destroy(
+			    &(ctx_mt->batches[i].bar_start));
+			pthread_barrier_destroy(&(ctx_mt->batches[i].bar_end));
 		}
 	}
 
@@ -455,82 +308,57 @@ free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
 		free_threadData(&(ctx_mt->tds[i]));
 
 	/* Zero and free the whole multithreaded cipher context. */
-	freezero(ctx_mt,sizeof(*ctx_mt));
+	freezero(ctx_mt, sizeof(*ctx_mt));
 }
 
-/*
- * Initialize a new multithreaded cipher context. This also pregenerates the
- * initial keystreams (serially) to give worker threads a head start, but as a
- * consequence, initialization is hypothetically slow and rekeying is expensive.
- *
- * @param ctx A serial cipher context from which the EVP contexts will be cloned
- * @param startseqnr Starting sequence number for the pregenerated keystreams
- * @returns If successful, the new multithreaded cipher context, otherwise NULL
- */
 struct chachapoly_ctx_mt *
 initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
 {
 	struct chachapoly_ctx_mt * ctx_mt = xmalloc(sizeof(*ctx_mt));
-	/*
-	 * Start from a fresh slate so that uninitialized data can be recognized
-	 * as zeros. UPDATE: TODO: this wasn't reliable for checking locks, so I
-	 * reworked the failure procedures. We might not need this memset
-	 * anymore.
-	 */
 	memset(ctx_mt, 0, sizeof(*ctx_mt));
 	/* Initialize the sequence number. When rekeying, this won't be zero. */
 	ctx_mt->seqnr = startseqnr;
+	ctx_mt->batchID = startseqnr / NUMSTREAMS;
 
-	if (pthread_mutex_init(&(ctx_mt->seqnr_lock), NULL))
-		goto failfree;
+	/* TODO: add error checks */
+	pthread_mutex_init(&ctx_mt->batchID_lock, NULL);
+	pthread_mutex_init(&(ctx_mt->tid_lock), NULL);
+	pthread_cond_init(&(ctx_mt->cond), NULL);
 
-	for (int i=0; i<NUMSTREAMS; i++) {
-		if (pthread_mutex_init(&(ctx_mt->streams[i].lock), NULL))
-			goto failseqnr;
+	ctx_mt->batches[ctx_mt->batchID % 2].batchID = ctx_mt->batchID;
+	ctx_mt->batches[(ctx_mt->batchID + 1) % 2].batchID = ctx_mt->batchID + 1;
+
+	for (int i=0; i<2; i++) {
+		struct mt_keystream_batch * batch = &(ctx_mt->batches[i]);
+		pthread_mutex_init(&(batch->lock), NULL);
+		pthread_barrier_init(&(batch->bar_start), NULL, NUMTHREADS);
+		pthread_barrier_init(&(batch->bar_end), NULL, NUMTHREADS);
 	}
 
-	if (pthread_mutex_init(&(ctx_mt->tid_lock), NULL))
-		goto failstreams;
-
-	{
-		int i;
-		for (i=0; i<NUMTHREADS; i++)
-			if (pthread_cond_init(&(ctx_mt->cond[i]), NULL))
-				break;
-		if (i != NUMTHREADS) {
-			i--;
-			for (; i>=0; i--)
-				pthread_cond_destroy(&(ctx_mt->cond[i]));
-			goto failtid;
-		}
+	for (int i=0; i<NUMTHREADS; i++) {
+		initialize_threadData(&(ctx_mt->tds[i]), ctx);
+		ctx_mt->tds[i].batchID = ctx_mt->batchID;
 	}
 
-	/* This is unnecessary because we already zeroed the whole struct. */
-	/* memset(ctx_mt->zeros,0,sizeof(ctx_mt->zeros)); */
-
-	for (int i=0; i<NUMTHREADS; i++)
-		if (initialize_threadData(&(ctx_mt->tds[i]), ctx))
-			goto failthreaddata;
 	struct threadData * mainData;
 
 #if NUMTHREADS == 0
 	/* There are none to borrow, so initialize our own. */
 	struct threadData td;
-	if (initialize_threadData(&td, ctx))
-		goto failthreaddata;
+	initialize_threadData(&td, ctx)
 	mainData = &td;
 #else
 	/* Borrow ctx_mt->tds[0] to do initial keystream generation. */
 	mainData = &(ctx_mt->tds[0]);
 #endif
 
-	for (int i=0; i<NUMSTREAMS; i++) {
-		int seqnrStreamIndex = startseqnr%NUMSTREAMS;
-		u_int new_seqnr = startseqnr + i - seqnrStreamIndex +
-		    (i<seqnrStreamIndex ? NUMSTREAMS : 0);
-		if (generate_keystream(&(ctx_mt->streams[i]), new_seqnr,
-		    mainData, ctx_mt->zeros))
-			goto failstreamdata;
+	for (int i=0; i<2; i++) {
+		u_int refseqnr = ctx_mt->batches[i].batchID * NUMSTREAMS;
+		for (int j = startseqnr > refseqnr ? startseqnr - refseqnr : 0;
+		    j<NUMSTREAMS; j++) {
+			generate_keystream(&(ctx_mt->batches[i].streams[j]),
+			    refseqnr + j, mainData, ctx_mt->zeros);
+		}
 	}
 
 #if NUMTHREADS == 0
@@ -569,41 +397,8 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
  failthreads:
 	free_ctx_mt(ctx_mt);
 	return NULL; /* free_ctx_mt() takes care of everything below */
- failstreamdata:
- 	/* FALLTHROUGH */
- failthreaddata:
-	for (int i=0; i<NUMTHREADS; i++)
-		free_threadData(&(ctx_mt->tds[i]));
- 	/* FALLTHROUGH */
-/* failcond: */
-	for (int i=0; i<NUMTHREADS; i++)
-		pthread_cond_destroy(&(ctx_mt->cond[i]));
- 	/* FALLTHROUGH */
- failtid:
-	pthread_mutex_destroy(&(ctx_mt->tid_lock));
- 	/* FALLTHROUGH */
- failstreams:
-	for (int i=0; i<NUMSTREAMS; i++)
-		pthread_mutex_destroy(&(ctx_mt->streams[i].lock));
- 	/* FALLTHROUGH */
- failseqnr:
-	pthread_mutex_destroy(&(ctx_mt->seqnr_lock));
- 	/* FALLTHROUGH */
- failfree:
-	freezero(ctx_mt, sizeof(*ctx_mt));
-	return NULL;
 }
 
-/*
- * Initializes an MT context and binds it to the existing serial context. It
- * somewhat redundantly returns the MT context after adding it to the serial
- * context. This avoids requiring the calling thread to make another EVP call
- * to get the MT context we just created.
- *
- * @param ctx The serial cipher context to which the MT context will be bound
- * @param startseqnr Starting sequence number for the pregenerated keystreams
- * @returns If successful, the new multithreaded cipher context, otherwise NULL
- */
 struct chachapoly_ctx_mt *
 add_mt_to_ctx(struct chachapoly_ctx * ctx,u_int startseqnr)
 {
@@ -617,12 +412,6 @@ add_mt_to_ctx(struct chachapoly_ctx * ctx,u_int startseqnr)
 	return ctx_mt;
 }
 
-/*
- * Retrieve MT context from serial context
- *
- * @param ctx The serial cipher context containing the MT context
- * @returns The bound MT context if there is one, otherwise NULL.
- */
 struct chachapoly_ctx_mt *
 get_ctx_mt(struct chachapoly_ctx * ctx)
 {
@@ -634,23 +423,6 @@ get_ctx_mt(struct chachapoly_ctx * ctx)
 	return ctx_mt;
 }
 
-/*
- * Initialize a new serial-implementation-compatible cipher context, including
- * an embedded multithreaded context. Keystreams will be pre-generated starting
- * at the sequence number read from the previous context (passed via oldctx), or
- * starting at sequence number zero if the previous context is NULL or otherwise
- * cannot be read. The provided key should be 64-bytes long, in which the first
- * half will be used for the main ChaCha20 instance, and the second half will be
- * used for a secondary ChaCha20 instance used to encrypt header informtation.
- *
- * TODO: If it fails, should it try to return a serial context instead?
- * (right now it does not)
- *
- * @param oldctx The (un-freed) previous context, for use when rekeying, or NULL
- * @param key 64-byte cipher encryption/decryption key
- * @param keylen Passed to chachapoly_new() for generation of the serial context
- * @returns If successful, the new cipher context, otherwise NULL
- */
 struct chachapoly_ctx *
 chachapoly_new_mt(struct chachapoly_ctx * oldctx, const u_char * key,
     u_int keylen)
@@ -659,13 +431,6 @@ chachapoly_new_mt(struct chachapoly_ctx * oldctx, const u_char * key,
 	if (ctx == NULL)
 		return NULL;
 
-	/*
-	 * If we're not rekeying, 0 is a good choice, since we're presumably
-	 * close to the beginning anyway. Small differences between zero and the
-	 * true sequence number will lead to small amounts of wasted effort. For
-	 * large differences, the wasted effort is capped by the number of
-	 * keystreams being pre-generated.
-	 */
 	u_int startseqnr = 0;
 
 	if (oldctx != NULL) { /* Rekeying, so get the old sequence number. */
@@ -690,13 +455,6 @@ chachapoly_new_mt(struct chachapoly_ctx * oldctx, const u_char * key,
 	return ctx;
 }
 
-/*
- * Clean up a cipher context. This function frees both the provided serial
- * cipher context and any embedded multithreaded cipher contextx which might
- * also be present.
- *
- * @param cpctx The cipher context which needs to be cleaned up.
- */
 void
 chachapoly_free_mt(struct chachapoly_ctx *cpctx)
 {
@@ -712,49 +470,18 @@ chachapoly_free_mt(struct chachapoly_ctx *cpctx)
 static inline void
 fastXOR(u_char *dest, const u_char *src1, const u_char *src2, u_int len)
 {
-        typedef __uint128_t chunk;
-        size_t i;
-        for (i=0; i < (len / sizeof(chunk)); i++)
-                ((chunk *)dest)[i]=((chunk *)src1)[i]^((chunk *)src2)[i];
-        for (i=i*(sizeof(chunk) / sizeof(char)); i < len; i++)
-                dest[i]=src1[i]^src2[i];
+	typedef __uint128_t chunk;
+	size_t i;
+	for (i=0; i < (len / sizeof(chunk)); i++)
+		((chunk *)dest)[i]=((chunk *)src1)[i]^((chunk *)src2)[i];
+	for (i=i*(sizeof(chunk) / sizeof(char)); i < len; i++)
+		dest[i]=src1[i]^src2[i];
 }
 
-/*
- * Encrypt or decrypt an SSH packet. Uses the header key (the second half of the
- * key provided during initialization) to encrypt or decrypt 'aadlen' bytes from
- * 'src', storing the result in 'dest'. These encrypted header bytes are treated
- * as additional authenticated data for poly1305 MAC calculation. Next it
- * encrypts or decrypts 'len' bytes at offset 'aadlen' from 'src', and stores
- * it at the same offset in 'dest'. The authentication tag is read from (and
- * verified) or written to POLY1305_TAGLEN bytes at offset 'len'+'aadlen'.
- *
- * If called without an MT context, this creates one, which is slow. If creation
- * fails, it falls back to using the serial implementation of the crypt()
- * function. TODO: is this what we want it to do?
- *
- * If this function is called from a child process that has forked from a parent
- * which previously initialized a multithreaded cipher context, then we clean up
- * the original MT context and initialize a new one.
- *
- * @param ctx a cipher context which may or may not have a bound MT context.
- * @param seqnr the SSH sequence number, used to lookup the correct keystream
- * @param dest the encrypted/decrypted output range
- * @param src the unencrypted/undecrypted input range
- * @param len the length of the packet payload (in bytes)
- * @param aadlen the packet header length (in bytes)
- * @param authlen the authentication tag length (in bytes)
- * @param do_encrypt set to 1 to encrypt, 0 to decrypt
- * @retval 0 Encryption or decryption was successful
- * @retval SSH_ERR_MAC_INVALID Poly1305 MAC verification failed
- * @retval SSH_ERR_LIBCRYPTO_ERROR Serial fallback failed with an OpenSSL error.
- * @retval SSH_ERR_INTERNAL_ERROR An unknown error occurred.
- */
 int
 chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
     const u_char *src, u_int len, u_int aadlen, u_int authlen, int do_encrypt)
 {
-	/* debug3_f("<debug> seqnr == %u%c",seqnr,do_encrypt ? 'e' : 'd'); */
 	struct chachapoly_ctx_mt * ctx_mt = get_ctx_mt(ctx);
 	/* If initialized as a serial context, generate the MT context */
 	if (ctx_mt == NULL) {
@@ -777,38 +504,21 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 		ctx_mt = add_mt_to_ctx(ctx, seqnr);
 	}
 
-	/* The sequence number read from the pregenerated keystream */
-	u_int found_seqnr;
+	struct mt_keystream_batch * batch =
+	    &(ctx_mt->batches[ctx_mt->batchID % 2]);
+	u_int found_batchID = batch->batchID;
+	struct mt_keystream * ks = &(batch->streams[seqnr % NUMSTREAMS]);
 
-	/* Convenience pointer to the desired keystream's slot */
-	struct mt_keystream * ks = &(ctx_mt->streams[seqnr % NUMSTREAMS]);
-	/* Return value, to reproduce the serial implementation behavior. */
 	int r = SSH_ERR_INTERNAL_ERROR;
-	/* Block if a worker is currently generating the data. */
-	pthread_mutex_lock(&(ks->lock));
-	/* Read the sequence number of the keystream in slot */
-	found_seqnr = ks->seqnr;
-	/* Don't hold the lock. Workers won't touch it until we signal them. */
-	pthread_mutex_unlock(&(ks->lock));
 
-	if (found_seqnr == seqnr) {
-	} else {
-		while (found_seqnr != seqnr) {
-			pthread_mutex_lock(&(ks->lock));
-			found_seqnr = ks->seqnr;
-			pthread_mutex_unlock(&(ks->lock));
-		}
-	}
-
-	/* TODO: add compiler hint that this is likely */
-	if (found_seqnr == seqnr) { /* Good, it's the correct keystream. */
-		explicit_bzero(&found_seqnr, sizeof(found_seqnr));
+	if (found_batchID == ctx_mt->batchID) { /* Safety check */
+		explicit_bzero(&found_batchID, sizeof(found_batchID));
 		/* check tag before anything else */
 		if (!do_encrypt) {
 			const u_char *tag = src + aadlen + len;
 			u_char expected_tag[POLY1305_TAGLEN];
-			poly1305_auth(NULL, expected_tag, src, aadlen + len,
-			    ks->poly_key);
+			poly1305_auth(ctx->poly_ctx, expected_tag, src,
+			    aadlen + len, ks->poly_key);
 			if (timingsafe_bcmp(expected_tag, tag, POLY1305_TAGLEN)
 			    != 0)
 				r = SSH_ERR_MAC_INVALID;
@@ -825,35 +535,73 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 			fastXOR(dest+aadlen,src+aadlen,ks->mainStream,len);
 			/* calculate and append tag */
 			if (do_encrypt)
-				poly1305_auth(NULL, dest+aadlen+len, dest,
-				    aadlen+len, ks->poly_key);
+				poly1305_auth(ctx->poly_ctx, dest+aadlen+len,
+				    dest, aadlen+len, ks->poly_key);
 			r=0; /* Success! */
 		}
 		if (r) /* Anything nonzero is an error. */
 			return r;
 
-		/* Prevent workers from reading seqnr while we increment it */
-		pthread_mutex_lock(&(ctx_mt->seqnr_lock));
-		/* All keystreams older than seqnr + 1 are outdated */
-		ctx_mt->seqnr = seqnr + 1; /* Will be read by workers */
-		pthread_mutex_unlock(&(ctx_mt->seqnr_lock));
-		/* Signal worker threads to scan the keystreams for new work */
-		pthread_cond_broadcast(&(ctx_mt->cond[seqnr % NUMTHREADS]));
+		ctx_mt->seqnr = seqnr + 1;
+
+		if (ctx_mt->seqnr / NUMSTREAMS > ctx_mt->batchID) {
+			u_int newBatchID = ctx_mt->seqnr / NUMSTREAMS;
+			struct mt_keystream_batch * newBatch =
+			    &(ctx_mt->batches[newBatchID % 2]);
+			pthread_mutex_lock(&(newBatch->lock));
+			found_batchID = newBatch->batchID;
+			pthread_mutex_unlock(&(newBatch->lock));
+			if (found_batchID != newBatchID) {
+				debug_f("Post batch miss! Seeking %u, found %u."
+				    " Looping.", newBatchID, found_batchID);
+				while (found_batchID != newBatchID) {
+					pthread_mutex_lock(&(newBatch->lock));
+					found_batchID = newBatch->batchID;
+					pthread_mutex_unlock(&(newBatch->lock));
+				}
+				debug_f("Loop exit.");
+			}
+	
+			pthread_mutex_lock(&(ctx_mt->batchID_lock));
+			ctx_mt->batchID = ctx_mt->batchID + 1;
+			pthread_mutex_unlock(&(ctx_mt->batchID_lock));
+
+			pthread_cond_broadcast(&(ctx_mt->cond));
+		}
+
 		return 0;
-	} else { /* Bad, it's the wrong keystream. */
-		/*
-		 * The keystream is either too old or completely wrong. Either
-		 * way, we update the sequence number in the context and signal
-		 * the workers to build fresh keystreams.
-		 */
-		debug_f( "Cache miss! Seeking %u, found %u. "
-		    "Falling back to serial mode.", seqnr, found_seqnr);
-		explicit_bzero(&found_seqnr, sizeof(found_seqnr));
+	} else { /* Bad, it's the wrong batch. */
+		debug_f( "Pre batch miss! Seeking %u, found %u. "
+		    "Falling back to serial mode.", ctx_mt->batchID,
+		    found_batchID);
+
 		/* Same logic as above */
-		pthread_mutex_lock(&(ctx_mt->seqnr_lock));
 		ctx_mt->seqnr = seqnr+1;
-		pthread_mutex_unlock(&(ctx_mt->seqnr_lock));
-		pthread_cond_broadcast(&(ctx_mt->cond[seqnr % NUMTHREADS]));
+
+		if (ctx_mt->seqnr / NUMSTREAMS > ctx_mt->batchID) {
+			u_int newBatchID = ctx_mt->seqnr / NUMSTREAMS;
+			struct mt_keystream_batch * newBatch =
+			    &(ctx_mt->batches[newBatchID % 2]);
+			pthread_mutex_lock(&(newBatch->lock));
+			found_batchID = newBatch->batchID;
+			pthread_mutex_unlock(&(newBatch->lock));
+			if (found_batchID != newBatchID) {
+				debug_f("Pre batch miss! Seeking %u, found %u. "
+				    "Looping.", newBatchID, found_batchID);
+				while (found_batchID != newBatchID) {
+					pthread_mutex_lock(&(newBatch->lock));
+					found_batchID = newBatch->batchID;
+					pthread_mutex_unlock(&(newBatch->lock));
+				}
+				debug_f("Loop exit.");
+			}
+	
+			pthread_mutex_lock(&(ctx_mt->batchID_lock));
+			ctx_mt->batchID = ctx_mt->batchID + 1;
+			pthread_mutex_unlock(&(ctx_mt->batchID_lock));
+
+			pthread_cond_broadcast(&(ctx_mt->cond));
+		}
 
 		/* Fall back to the serial implementation. */
 		return chachapoly_crypt(ctx, seqnr, dest, src, len, aadlen,
@@ -861,23 +609,6 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	}
 }
 
-/*
- * Decrypt and extract the encrypted packet length. Based on the implementation
- * from "cipher-chachapoly-libcrypto.c". Falls back to the serial implementation
- * if there's no multithreaded cipher context, if we've forked since the
- * multithreaded cipher context was initialized, or if the pregenerated
- * keystream in the corresponding slot does not match the sequence number given
- * as a parameter.
- *
- * @param ctx The cipher context to use for decryption
- * @param plenp The address into which the packet length should be stored
- * @param seqnr The sequence number of the packet (needed for decryption)
- * @param cp The encrypted packet ciphertext
- * @param len The length of the encrypted header containing the packet length
- * @retval 0 The packet length was decrypted successfully.
- * @retval SSH_ERR_MESSAGE_INCOMPLETE The packet header given is too short.
- * @retval SSH_ERR_LIBCRYPTO_ERROR Serial fallback failed with an OpenSSL error.
- */
 int
 chachapoly_get_length_mt(struct chachapoly_ctx *ctx, u_int *plenp, u_int seqnr,
     const u_char *cp, u_int len)
@@ -898,31 +629,24 @@ chachapoly_get_length_mt(struct chachapoly_ctx *ctx, u_int *plenp, u_int seqnr,
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 
 	u_char buf[4];
-	u_int found_seqnr;
-	struct mt_keystream * ks = &(ctx_mt->streams[seqnr % NUMSTREAMS]);
-	pthread_mutex_lock(&(ks->lock));
-	found_seqnr = ks->seqnr;
-	pthread_mutex_unlock(&(ks->lock));
+	u_int sought_batchID = seqnr / NUMSTREAMS;
+	u_int found_batchID;
+	struct mt_keystream_batch * batch =
+	    &(ctx_mt->batches[ctx_mt->batchID % 2]);
+	struct mt_keystream * ks = &(batch->streams[seqnr % NUMSTREAMS]);
+	found_batchID = batch->batchID;
 
-	if (found_seqnr == seqnr) {
-	} else {
-		while (found_seqnr != seqnr) {
-			pthread_mutex_lock(&(ks->lock));
-			found_seqnr = ks->seqnr;
-			pthread_mutex_unlock(&(ks->lock));
-		}
-	}
-
-	if (found_seqnr == seqnr) {
-		explicit_bzero(&found_seqnr, sizeof(found_seqnr));
+	if (found_batchID == sought_batchID) {
+		explicit_bzero(&found_batchID, sizeof(found_batchID));
 		for (u_int i=0; i < sizeof(buf); i++)
 			buf[i]=ks->headerStream[i] ^ cp[i];
 		*plenp = PEEK_U32(buf);
 		return 0;
 	} else {
-		debug_f("Cache miss! Seeking %u, found %u. "
-		    "Falling back to serial mode.", seqnr, found_seqnr);
-		explicit_bzero(&found_seqnr, sizeof(found_seqnr));
+		debug_f("Batch miss! Seeking %u, found %u. "
+		    "Falling back to serial mode.", sought_batchID,
+		    found_batchID);
+		explicit_bzero(&found_batchID, sizeof(found_batchID));
 		return chachapoly_get_length(ctx, plenp, seqnr, cp, len);
 	}
 }
