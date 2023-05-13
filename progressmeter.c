@@ -231,7 +231,8 @@ refresh_progress_meter(int force_update)
 	asmprintf(&obuf, INT_MAX, &cols, " %s", buf);
 	if (obuf != NULL) {
 		*obuf = '\r'; /* must insert as asmprintf() would escape it */
-		atomicio(vwrite, STDOUT_FILENO, obuf, strlen(obuf));
+		if (atomicio(vwrite, STDOUT_FILENO, obuf, strlen(obuf)) != strlen(obuf))
+			fatal_f("write: %s", strerror(errno));
 	}
 	free(buf);
 	free(obuf);
@@ -276,7 +277,8 @@ stop_progress_meter(void)
 	if (cur_pos != end_pos)
 		refresh_progress_meter(1);
 
-	atomicio(vwrite, STDOUT_FILENO, "\n", 1);
+	if (atomicio(vwrite, STDOUT_FILENO, "\n", 1) != 1)
+		fatal_f("write: %s", strerror(errno));
 }
 
 static void
