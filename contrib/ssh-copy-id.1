@@ -32,6 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .Op Fl f
 .Op Fl n
 .Op Fl s
+.Op Fl x
 .Op Fl i Op Ar identity_file
 .Op Fl p Ar port
 .Op Fl o Ar ssh_option
@@ -91,6 +92,11 @@ With this option the user's
 .Pa ~/.ssh/authorized_keys
 file will be downloaded, modified locally and uploaded with sftp.
 This option is useful if the server has restrictions on commands which can be used on the remote side.
+.It Fl x
+This option is for debugging the
+.Nm
+script itself.
+It sets the shell's -x flag, so that you can see the commands being run.
 .It Fl h , Fl ?
 Print Usage summary
 .It Fl p Ar port , Fl o Ar ssh_option
