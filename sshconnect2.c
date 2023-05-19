@@ -541,6 +541,12 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	  ssh_packet_set_authenticated(ssh);
 	  packet_request_rekeying();
 	}
+	/* do the same for multithreaded chacha20 */
+	if (! strcmp(cipher_ctx_name(cc), "chacha20-poly1305@openssh.com")) {
+		debug("Client request rekey for multithreaded CC20 transition");
+		ssh_packet_set_authenticated(ssh);
+		packet_request_rekeying();
+	}
 #endif
 
 	if (ssh_packet_connection_is_on_socket(ssh)) {

@@ -121,17 +121,16 @@ free_threadData(struct threadData * td)
 	explicit_bzero(td, sizeof(*td));
 }
 
-
 int
-initialize_threadData(struct threadData * td, struct chachapoly_ctx * ctx)
+initialize_threadData(struct threadData * td, const u_char *key)
 {
 	memset(td,0,sizeof(*td));
 	if ((td->main_evp = EVP_CIPHER_CTX_new()) == NULL ||
 	    (td->header_evp = EVP_CIPHER_CTX_new()) == NULL)
 		goto fail;
-	if (!EVP_CIPHER_CTX_copy(td->main_evp, ctx->main_evp))
+	if (!EVP_CipherInit(td->main_evp, EVP_chacha20(), key, NULL, 1))
 		goto fail;
-	if (!EVP_CIPHER_CTX_copy(td->header_evp, ctx->header_evp))
+	if (!EVP_CipherInit(td->header_evp, EVP_chacha20(), key + 32, NULL, 1))
 		goto fail;
 	if (EVP_CIPHER_CTX_iv_length(td->header_evp) != 16)
 		goto fail;
@@ -312,7 +311,8 @@ free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
 }
 
 struct chachapoly_ctx_mt *
-initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
+initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr,
+    const u_char *key)
 {
 	struct chachapoly_ctx_mt * ctx_mt = xmalloc(sizeof(*ctx_mt));
 	memset(ctx_mt, 0, sizeof(*ctx_mt));
@@ -336,7 +336,7 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
 	}
 
 	for (int i=0; i<NUMTHREADS; i++) {
-		initialize_threadData(&(ctx_mt->tds[i]), ctx);
+		initialize_threadData(&(ctx_mt->tds[i]), key);
 		ctx_mt->tds[i].batchID = ctx_mt->batchID;
 	}
 
@@ -345,7 +345,7 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
 #if NUMTHREADS == 0
 	/* There are none to borrow, so initialize our own. */
 	struct threadData td;
-	initialize_threadData(&td, ctx)
+	initialize_threadData(&td, key)
 	mainData = &td;
 #else
 	/* Borrow ctx_mt->tds[0] to do initial keystream generation. */
@@ -400,19 +400,6 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr)
 }
 
 struct chachapoly_ctx_mt *
-add_mt_to_ctx(struct chachapoly_ctx * ctx,u_int startseqnr)
-{
-	if (ctx == NULL)
-		return NULL;
-	struct chachapoly_ctx_mt * ctx_mt = initialize_ctx_mt(ctx, startseqnr);
-	/* Don't touch the serial context if we're failing. */
-	if (ctx_mt == NULL)
-		return NULL;
-	EVP_CIPHER_CTX_set_app_data(ctx->main_evp, ctx_mt);
-	return ctx_mt;
-}
-
-struct chachapoly_ctx_mt *
 get_ctx_mt(struct chachapoly_ctx * ctx)
 {
 	struct chachapoly_ctx_mt * ctx_mt;
@@ -444,7 +431,8 @@ chachapoly_new_mt(struct chachapoly_ctx * oldctx, const u_char * key,
 		/* chachapoly_free_mt(oldctx); */
 	}
 
-	struct chachapoly_ctx_mt * ctx_mt = initialize_ctx_mt(ctx, startseqnr);
+	struct chachapoly_ctx_mt * ctx_mt = initialize_ctx_mt(ctx, startseqnr,
+	    key);
 	explicit_bzero(&startseqnr, sizeof(startseqnr));
 
 	if (ctx_mt == NULL) {
@@ -485,23 +473,19 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	struct chachapoly_ctx_mt * ctx_mt = get_ctx_mt(ctx);
 	/* If initialized as a serial context, generate the MT context */
 	if (ctx_mt == NULL) {
-		/* TODO: compiler hint that this is unlikely */
-		ctx_mt = add_mt_to_ctx(ctx, seqnr);
-		if (ctx_mt == NULL) {
-			debug_f(
-			    "Failed to upgrade to a multithreaded context.");
-			return chachapoly_crypt(ctx, seqnr, dest, src, len,
-			    aadlen, authlen, do_encrypt);
-		}
+		debug_f("Missing multithreaded context.");
+		return chachapoly_crypt(ctx, seqnr, dest, src, len, aadlen,
+		    authlen, do_encrypt);
 	} else if (ctx_mt->mainpid != getpid()) { /* we're a fork */
 		/*
 		 * TODO: this is EXTREMELY RARE, may never happen at all (only
 		 * if the fork calls crypt), so we should tell the compiler.
 		 */
 		/* The worker threads don't exist, so regenerate ctx_mt */
+		debug_f("Fork called crypt without workers!");
 		free_ctx_mt(ctx_mt);
 		EVP_CIPHER_CTX_set_app_data(ctx->main_evp, NULL);
-		ctx_mt = add_mt_to_ctx(ctx, seqnr);
+		return SSH_ERR_INTERNAL_ERROR;
 	}
 
 	struct mt_keystream_batch * batch =
