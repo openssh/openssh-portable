@@ -142,6 +142,7 @@ do
       TARGET_PATH="${OPTARG}"
       ;;
     x)
+      SET_X="set -x;"
       set -x
       ;;
     h|\?)
@@ -254,6 +255,7 @@ installkeys_sh() {
   #    and if available restorecon is used to restore the SELinux context
   # OpenWrt has a special case for root only.
   INSTALLKEYS_SH=$(tr '\t\n' ' ' <<-EOF
+	$SET_X
 	cd;
 	umask 077;
 	AUTH_KEY_FILE="${TARGET_PATH}";
