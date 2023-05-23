@@ -36,6 +36,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .Op Fl i Op Ar identity_file
 .Op Fl p Ar port
 .Op Fl o Ar ssh_option
+.Op Fl t Ar target_path
 .Op Ar user Ns @ Ns
 .Ar hostname
 .Nm
@@ -92,13 +93,8 @@ With this option the user's
 .Pa ~/.ssh/authorized_keys
 file will be downloaded, modified locally and uploaded with sftp.
 This option is useful if the server has restrictions on commands which can be used on the remote side.
-.It Fl x
-This option is for debugging the
-.Nm
-script itself.
-It sets the shell's -x flag, so that you can see the commands being run.
-.It Fl h , Fl ?
-Print Usage summary
+.It Fl t Ar target_path
+the path on the target system where the keys should be added (defaults to ".ssh/authorized_keys")
 .It Fl p Ar port , Fl o Ar ssh_option
 These two options are simply passed through untouched, along with their
 argument, to allow one to set the port or other
@@ -109,6 +105,13 @@ Rather than specifying these as command line options, it is often better to use 
 .Xr ssh 1 Ns 's
 configuration file:
 .Xr ssh_config 5 .
+.It Fl x
+This option is for debugging the
+.Nm
+script itself.
+It sets the shell's -x flag, so that you can see the commands being run.
+.It Fl h , Fl ?
+Print Usage summary
 .El
 .Pp
 Default behaviour without
