@@ -149,7 +149,7 @@ do
       usage
       ;;
   esac
-done 
+done
 #shift all args to keep only USER_HOST
 shift $((OPTIND-1))
 
