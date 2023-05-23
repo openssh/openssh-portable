@@ -149,15 +149,6 @@ kex_gen_client(struct ssh *ssh)
 	case KEX_KEM_KYBER_1024_SHA512:
 		r = kex_kem_kyber_1024_keypair(kex);
 		break;
-	case KEX_KEM_KYBER_512_90S_SHA256:
-		r = kex_kem_kyber_512_90s_keypair(kex);
-		break;
-	case KEX_KEM_KYBER_768_90S_SHA384:
-		r = kex_kem_kyber_768_90s_keypair(kex);
-		break;
-	case KEX_KEM_KYBER_1024_90S_SHA512:
-		r = kex_kem_kyber_1024_90s_keypair(kex);
-		break;
 	case KEX_KEM_BIKE_L1_SHA512:
 		r = kex_kem_bike_l1_keypair(kex);
 		break;
@@ -231,15 +222,6 @@ kex_gen_client(struct ssh *ssh)
 		break;
 	case KEX_KEM_KYBER_1024_ECDH_NISTP521_SHA512:
 		r = kex_kem_kyber_1024_ecdh_nistp521_keypair(kex);
-		break;
-	case KEX_KEM_KYBER_512_90S_ECDH_NISTP256_SHA256:
-		r = kex_kem_kyber_512_90s_ecdh_nistp256_keypair(kex);
-		break;
-	case KEX_KEM_KYBER_768_90S_ECDH_NISTP384_SHA384:
-		r = kex_kem_kyber_768_90s_ecdh_nistp384_keypair(kex);
-		break;
-	case KEX_KEM_KYBER_1024_90S_ECDH_NISTP521_SHA512:
-		r = kex_kem_kyber_1024_90s_ecdh_nistp521_keypair(kex);
 		break;
 	case KEX_KEM_BIKE_L1_ECDH_NISTP256_SHA512:
 		r = kex_kem_bike_l1_ecdh_nistp256_keypair(kex);
@@ -389,15 +371,6 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 	case KEX_KEM_KYBER_1024_SHA512:
 		r = kex_kem_kyber_1024_dec(kex, server_blob, &shared_secret);
 		break;
-	case KEX_KEM_KYBER_512_90S_SHA256:
-		r = kex_kem_kyber_512_90s_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_768_90S_SHA384:
-		r = kex_kem_kyber_768_90s_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_1024_90S_SHA512:
-		r = kex_kem_kyber_1024_90s_dec(kex, server_blob, &shared_secret);
-		break;
 	case KEX_KEM_BIKE_L1_SHA512:
 		r = kex_kem_bike_l1_dec(kex, server_blob, &shared_secret);
 		break;
@@ -471,15 +444,6 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 		break;
 	case KEX_KEM_KYBER_1024_ECDH_NISTP521_SHA512:
 		r = kex_kem_kyber_1024_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_512_90S_ECDH_NISTP256_SHA256:
-		r = kex_kem_kyber_512_90s_ecdh_nistp256_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_768_90S_ECDH_NISTP384_SHA384:
-		r = kex_kem_kyber_768_90s_ecdh_nistp384_dec(kex, server_blob, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_1024_90S_ECDH_NISTP521_SHA512:
-		r = kex_kem_kyber_1024_90s_ecdh_nistp521_dec(kex, server_blob, &shared_secret);
 		break;
 	case KEX_KEM_BIKE_L1_ECDH_NISTP256_SHA512:
 		r = kex_kem_bike_l1_ecdh_nistp256_dec(kex, server_blob, &shared_secret);
@@ -689,18 +653,6 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 		r = kex_kem_kyber_1024_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
 		break;
-	case KEX_KEM_KYBER_512_90S_SHA256:
-		r = kex_kem_kyber_512_90s_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_768_90S_SHA384:
-		r = kex_kem_kyber_768_90s_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_1024_90S_SHA512:
-		r = kex_kem_kyber_1024_90s_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
 	case KEX_KEM_BIKE_L1_SHA512:
 		r = kex_kem_bike_l1_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
@@ -797,18 +749,6 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 		break;
 	case KEX_KEM_KYBER_1024_ECDH_NISTP521_SHA512:
 		r = kex_kem_kyber_1024_ecdh_nistp521_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_512_90S_ECDH_NISTP256_SHA256:
-		r = kex_kem_kyber_512_90s_ecdh_nistp256_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_768_90S_ECDH_NISTP384_SHA384:
-		r = kex_kem_kyber_768_90s_ecdh_nistp384_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_KYBER_1024_90S_ECDH_NISTP521_SHA512:
-		r = kex_kem_kyber_1024_90s_ecdh_nistp521_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
 		break;
 	case KEX_KEM_BIKE_L1_ECDH_NISTP256_SHA512:

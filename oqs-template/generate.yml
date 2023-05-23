@@ -91,36 +91,6 @@ kexs:
         openssl_nid: 'NID_secp521r1'
         pretty_name: 'ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org'
   -
-    family: 'Kyber'
-    name: 'kyber_512_90s'
-    hash: 'sha256'
-    pretty_name: 'kyber-512-90s-sha256'
-    mix_with:
-      -
-        name: 'nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-        pretty_name: 'ecdh-nistp256-kyber-512-90sr3-sha256@openquantumsafe.org'
-  -
-    family: 'Kyber'
-    name: 'kyber_768_90s'
-    hash: 'sha384'
-    pretty_name: 'kyber-768-90s-sha384'
-    mix_with:
-      -
-        name: 'nistp384'
-        openssl_nid: 'NID_secp384r1'
-        pretty_name: 'ecdh-nistp384-kyber-768-90sr3-sha384@openquantumsafe.org'
-  -
-    family: 'Kyber'
-    name: 'kyber_1024_90s'
-    hash: 'sha512'
-    pretty_name: 'kyber-1024-90s-sha512'
-    mix_with:
-      -
-        name: 'nistp521'
-        openssl_nid: 'NID_secp521r1'
-        pretty_name: 'ecdh-nistp521-kyber-1024-90sr3-sha512@openquantumsafe.org'
-  -
     family: 'BIKE'
     name: 'bike_l1'
     hash: 'sha512'
@@ -324,46 +294,8 @@ sigs:
         name: 'ecdsa_nistp521'
         openssl_nid: 'NID_secp521r1'
   -
-    family: 'Dilithium'
-    name: 'dilithium_2_aes'
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'Dilithium'
-    name: 'dilithium_3_aes'
-    level: 3
-    mix_with:
-      -
-        name: 'ecdsa_nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'Dilithium'
-    name: 'dilithium_5_aes'
-    level: 5
-    mix_with:
-      -
-        name: 'ecdsa_nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
     family: 'SPHINCS'
-    name: 'sphincs_haraka_128f_robust'
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_haraka_128f_simple'
+    name: 'sphincs_sha2_128f_simple'
     enable: true
     level: 1
     mix_with:
@@ -375,7 +307,7 @@ sigs:
         openssl_nid: 'NID_X9_62_prime256v1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_haraka_128s_robust'
+    name: 'sphincs_sha2_128s_simple'
     level: 1
     mix_with:
       -
@@ -386,7 +318,7 @@ sigs:
         openssl_nid: 'NID_X9_62_prime256v1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_haraka_128s_simple'
+    name: 'sphincs_shake_128f_simple'
     level: 1
     mix_with:
       -
@@ -397,7 +329,7 @@ sigs:
         openssl_nid: 'NID_X9_62_prime256v1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_sha256_128f_robust'
+    name: 'sphincs_shake_128s_simple'
     level: 1
     mix_with:
       -
@@ -408,85 +340,7 @@ sigs:
         openssl_nid: 'NID_X9_62_prime256v1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_sha256_128s_robust'
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_sha256_128f_simple'
-    enable: true
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_sha256_128s_simple'
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_128f_robust'
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_128s_robust'
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_128f_simple'
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_128s_simple'
-    level: 1
-    mix_with:
-      -
-        name: 'rsa3072'
-        rsa: true
-      -
-        name: 'ecdsa_nistp256'
-        openssl_nid: 'NID_X9_62_prime256v1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_haraka_192f_robust'
+    name: 'sphincs_sha2_192f_simple'
     level: 3
     mix_with:
       -
@@ -494,7 +348,7 @@ sigs:
         openssl_nid: 'NID_secp384r1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_haraka_192s_robust'
+    name: 'sphincs_sha2_192s_simple'
     level: 3
     mix_with:
       -
@@ -502,7 +356,7 @@ sigs:
         openssl_nid: 'NID_secp384r1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_haraka_192f_simple'
+    name: 'sphincs_shake_192f_simple'
     level: 3
     mix_with:
       -
@@ -510,7 +364,7 @@ sigs:
         openssl_nid: 'NID_secp384r1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_haraka_192s_simple'
+    name: 'sphincs_shake_192s_simple'
     level: 3
     mix_with:
       -
@@ -518,120 +372,7 @@ sigs:
         openssl_nid: 'NID_secp384r1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_sha256_192f_robust'
-    level: 3
-    mix_with:
-      -
-        name: 'ecdsa_nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_sha256_192s_robust'
-    enable: true
-    level: 3
-    mix_with:
-      -
-        name: 'ecdsa_nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_sha256_192f_simple'
-    level: 3
-    mix_with:
-      -
-        name: 'ecdsa_nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_sha256_192s_simple'
-    level: 3
-    mix_with:
-      -
-        name: 'ecdsa_nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_192f_robust'
-    level: 3
-    mix_with:
-      -
-        name: 'ecdsa_nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_192s_robust'
-    level: 3
-    mix_with:
-      -
-        name: 'ecdsa_nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_192f_simple'
-    level: 3
-    mix_with:
-      -
-        name: 'ecdsa_nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_192s_simple'
-    level: 3
-    mix_with:
-      -
-        name: 'ecdsa_nistp384'
-        openssl_nid: 'NID_secp384r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_haraka_256f_robust'
-    level: 5
-    mix_with:
-      -
-        name: 'ecdsa_nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_haraka_256s_robust'
-    level: 5
-    mix_with:
-      -
-        name: 'ecdsa_nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_haraka_256f_simple'
-    level: 5
-    mix_with:
-      -
-        name: 'ecdsa_nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_haraka_256s_simple'
-    level: 5
-    mix_with:
-      -
-        name: 'ecdsa_nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_sha256_256f_robust'
-    level: 5
-    mix_with:
-      -
-        name: 'ecdsa_nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_sha256_256s_robust'
-    level: 5
-    mix_with:
-      -
-        name: 'ecdsa_nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_sha256_256f_simple'
+    name: 'sphincs_sha2_256f_simple'
     enable: true
     level: 5
     mix_with:
@@ -640,7 +381,7 @@ sigs:
         openssl_nid: 'NID_secp521r1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_sha256_256s_simple'
+    name: 'sphincs_sha2_256s_simple'
     level: 5
     mix_with:
       -
@@ -648,7 +389,7 @@ sigs:
         openssl_nid: 'NID_secp521r1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_shake256_256f_robust'
+    name: 'sphincs_shake_256f_simple'
     level: 5
     mix_with:
       -
@@ -656,23 +397,7 @@ sigs:
         openssl_nid: 'NID_secp521r1'
   -
     family: 'SPHINCS'
-    name: 'sphincs_shake256_256s_robust'
-    level: 5
-    mix_with:
-      -
-        name: 'ecdsa_nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_256f_simple'
-    level: 5
-    mix_with:
-      -
-        name: 'ecdsa_nistp521'
-        openssl_nid: 'NID_secp521r1'
-  -
-    family: 'SPHINCS'
-    name: 'sphincs_shake256_256s_simple'
+    name: 'sphincs_shake_256s_simple'
     level: 5
     mix_with:
       -

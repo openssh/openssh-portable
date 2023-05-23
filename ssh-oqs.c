@@ -349,138 +349,70 @@ int ssh_dilithium5_verify(const struct sshkey *key,
     return r;
 }
 /*---------------------------------------------------
- * SPHINCS_HARAKA_128F_SIMPLE METHODS
+ * SPHINCS_SHA2_128F_SIMPLE METHODS
  *---------------------------------------------------
  */
-int ssh_sphincsharaka128fsimple_sign(const struct sshkey *key,
+int ssh_sphincssha2128fsimple_sign(const struct sshkey *key,
                      u_char **sigp,
                      size_t *lenp,
                      const u_char *data,
                      size_t datalen,
                      u_int compat)
 {
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_haraka_128f_simple);
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha2_128f_simple);
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
-    int r = ssh_generic_sign(sig, "sphincsharaka128fsimple", key, sigp, lenp, data, datalen, compat);
+    int r = ssh_generic_sign(sig, "sphincssha2128fsimple", key, sigp, lenp, data, datalen, compat);
     OQS_SIG_free(sig);
     return r;
 }
-int ssh_sphincsharaka128fsimple_verify(const struct sshkey *key,
+int ssh_sphincssha2128fsimple_verify(const struct sshkey *key,
                        const u_char *signature,
                        size_t signaturelen,
                        const u_char *data,
                        size_t datalen,
                        u_int compat)
 {
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_haraka_128f_simple);
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha2_128f_simple);
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
-    int r = ssh_generic_verify(sig, "sphincsharaka128fsimple", key, signature, signaturelen, data, datalen, compat);
+    int r = ssh_generic_verify(sig, "sphincssha2128fsimple", key, signature, signaturelen, data, datalen, compat);
     OQS_SIG_free(sig);
     return r;
 }
 /*---------------------------------------------------
- * SPHINCS_SHA256_128F_SIMPLE METHODS
+ * SPHINCS_SHA2_256F_SIMPLE METHODS
  *---------------------------------------------------
  */
-int ssh_sphincssha256128fsimple_sign(const struct sshkey *key,
+int ssh_sphincssha2256fsimple_sign(const struct sshkey *key,
                      u_char **sigp,
                      size_t *lenp,
                      const u_char *data,
                      size_t datalen,
                      u_int compat)
 {
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_128f_simple);
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha2_256f_simple);
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
-    int r = ssh_generic_sign(sig, "sphincssha256128fsimple", key, sigp, lenp, data, datalen, compat);
+    int r = ssh_generic_sign(sig, "sphincssha2256fsimple", key, sigp, lenp, data, datalen, compat);
     OQS_SIG_free(sig);
     return r;
 }
-int ssh_sphincssha256128fsimple_verify(const struct sshkey *key,
+int ssh_sphincssha2256fsimple_verify(const struct sshkey *key,
                        const u_char *signature,
                        size_t signaturelen,
                        const u_char *data,
                        size_t datalen,
                        u_int compat)
 {
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_128f_simple);
+    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha2_256f_simple);
     if (sig == NULL) {
         return SSH_ERR_ALLOC_FAIL;
     }
-    int r = ssh_generic_verify(sig, "sphincssha256128fsimple", key, signature, signaturelen, data, datalen, compat);
-    OQS_SIG_free(sig);
-    return r;
-}
-/*---------------------------------------------------
- * SPHINCS_SHA256_192S_ROBUST METHODS
- *---------------------------------------------------
- */
-int ssh_sphincssha256192srobust_sign(const struct sshkey *key,
-                     u_char **sigp,
-                     size_t *lenp,
-                     const u_char *data,
-                     size_t datalen,
-                     u_int compat)
-{
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_192s_robust);
-    if (sig == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = ssh_generic_sign(sig, "sphincssha256192srobust", key, sigp, lenp, data, datalen, compat);
-    OQS_SIG_free(sig);
-    return r;
-}
-int ssh_sphincssha256192srobust_verify(const struct sshkey *key,
-                       const u_char *signature,
-                       size_t signaturelen,
-                       const u_char *data,
-                       size_t datalen,
-                       u_int compat)
-{
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_192s_robust);
-    if (sig == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = ssh_generic_verify(sig, "sphincssha256192srobust", key, signature, signaturelen, data, datalen, compat);
-    OQS_SIG_free(sig);
-    return r;
-}
-/*---------------------------------------------------
- * SPHINCS_SHA256_256F_SIMPLE METHODS
- *---------------------------------------------------
- */
-int ssh_sphincssha256256fsimple_sign(const struct sshkey *key,
-                     u_char **sigp,
-                     size_t *lenp,
-                     const u_char *data,
-                     size_t datalen,
-                     u_int compat)
-{
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_256f_simple);
-    if (sig == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = ssh_generic_sign(sig, "sphincssha256256fsimple", key, sigp, lenp, data, datalen, compat);
-    OQS_SIG_free(sig);
-    return r;
-}
-int ssh_sphincssha256256fsimple_verify(const struct sshkey *key,
-                       const u_char *signature,
-                       size_t signaturelen,
-                       const u_char *data,
-                       size_t datalen,
-                       u_int compat)
-{
-    OQS_SIG *sig = OQS_SIG_new(OQS_SIG_alg_sphincs_sha256_256f_simple);
-    if (sig == NULL) {
-        return SSH_ERR_ALLOC_FAIL;
-    }
-    int r = ssh_generic_verify(sig, "sphincssha256256fsimple", key, signature, signaturelen, data, datalen, compat);
+    int r = ssh_generic_verify(sig, "sphincssha2256fsimple", key, signature, signaturelen, data, datalen, compat);
     OQS_SIG_free(sig);
     return r;
 }

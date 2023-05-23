@@ -73,9 +73,6 @@
 #define	KEX_KYBER_512_SHA256	"kyber-512-sha256"
 #define	KEX_KYBER_768_SHA384	"kyber-768-sha384"
 #define	KEX_KYBER_1024_SHA512	"kyber-1024-sha512"
-#define	KEX_KYBER_512_90S_SHA256	"kyber-512-90s-sha256"
-#define	KEX_KYBER_768_90S_SHA384	"kyber-768-90s-sha384"
-#define	KEX_KYBER_1024_90S_SHA512	"kyber-1024-90s-sha512"
 #define	KEX_BIKE_L1_SHA512	"bike-l1-sha512"
 #define	KEX_BIKE_L3_SHA512	"bike-l3-sha512"
 #define	KEX_CLASSIC_MCELIECE_348864_SHA256	"classic-mceliece-348864-sha256"
@@ -102,9 +99,6 @@
 #define	KEX_KYBER_512_ECDH_NISTP256_SHA256	"ecdh-nistp256-kyber-512r3-sha256-d00@openquantumsafe.org"
 #define	KEX_KYBER_768_ECDH_NISTP384_SHA384	"ecdh-nistp384-kyber-768r3-sha384-d00@openquantumsafe.org"
 #define	KEX_KYBER_1024_ECDH_NISTP521_SHA512	"ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org"
-#define	KEX_KYBER_512_90S_ECDH_NISTP256_SHA256	"ecdh-nistp256-kyber-512-90sr3-sha256@openquantumsafe.org"
-#define	KEX_KYBER_768_90S_ECDH_NISTP384_SHA384	"ecdh-nistp384-kyber-768-90sr3-sha384@openquantumsafe.org"
-#define	KEX_KYBER_1024_90S_ECDH_NISTP521_SHA512	"ecdh-nistp521-kyber-1024-90sr3-sha512@openquantumsafe.org"
 #define	KEX_BIKE_L1_ECDH_NISTP256_SHA512	"ecdh-nistp256-bike-l1r3-sha512@openquantumsafe.org"
 #define	KEX_BIKE_L3_ECDH_NISTP384_SHA512	"ecdh-nistp384-bike-l3r3-sha512@openquantumsafe.org"
 #define	KEX_CLASSIC_MCELIECE_348864_ECDH_NISTP256_SHA256	"ecdh-nistp256-classic-mceliece-348864r3-sha256@openquantumsafe.org"
@@ -173,9 +167,6 @@ enum kex_exchange {
 	KEX_KEM_KYBER_512_SHA256,
 	KEX_KEM_KYBER_768_SHA384,
 	KEX_KEM_KYBER_1024_SHA512,
-	KEX_KEM_KYBER_512_90S_SHA256,
-	KEX_KEM_KYBER_768_90S_SHA384,
-	KEX_KEM_KYBER_1024_90S_SHA512,
 	KEX_KEM_BIKE_L1_SHA512,
 	KEX_KEM_BIKE_L3_SHA512,
 	KEX_KEM_CLASSIC_MCELIECE_348864_SHA256,
@@ -202,9 +193,6 @@ enum kex_exchange {
 	KEX_KEM_KYBER_512_ECDH_NISTP256_SHA256,
 	KEX_KEM_KYBER_768_ECDH_NISTP384_SHA384,
 	KEX_KEM_KYBER_1024_ECDH_NISTP521_SHA512,
-	KEX_KEM_KYBER_512_90S_ECDH_NISTP256_SHA256,
-	KEX_KEM_KYBER_768_90S_ECDH_NISTP384_SHA384,
-	KEX_KEM_KYBER_1024_90S_ECDH_NISTP521_SHA512,
 	KEX_KEM_BIKE_L1_ECDH_NISTP256_SHA512,
 	KEX_KEM_BIKE_L3_ECDH_NISTP384_SHA512,
 	KEX_KEM_CLASSIC_MCELIECE_348864_ECDH_NISTP256_SHA256,
@@ -391,18 +379,6 @@ int	 kex_kem_kyber_768_dec(struct kex *, const struct sshbuf *, struct sshbuf **
 int	 kex_kem_kyber_1024_keypair(struct kex *);
 int	 kex_kem_kyber_1024_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_kyber_1024_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* kyber_512_90s prototypes */
-int	 kex_kem_kyber_512_90s_keypair(struct kex *);
-int	 kex_kem_kyber_512_90s_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_kyber_512_90s_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* kyber_768_90s prototypes */
-int	 kex_kem_kyber_768_90s_keypair(struct kex *);
-int	 kex_kem_kyber_768_90s_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_kyber_768_90s_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* kyber_1024_90s prototypes */
-int	 kex_kem_kyber_1024_90s_keypair(struct kex *);
-int	 kex_kem_kyber_1024_90s_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_kyber_1024_90s_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 /* bike_l1 prototypes */
 int	 kex_kem_bike_l1_keypair(struct kex *);
 int	 kex_kem_bike_l1_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
@@ -501,18 +477,6 @@ int	 kex_kem_kyber_768_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, st
 int	 kex_kem_kyber_1024_ecdh_nistp521_keypair(struct kex *);
 int	 kex_kem_kyber_1024_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
 int	 kex_kem_kyber_1024_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* kyber_512_90s_nistp256 prototypes */
-int	 kex_kem_kyber_512_90s_ecdh_nistp256_keypair(struct kex *);
-int	 kex_kem_kyber_512_90s_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_kyber_512_90s_ecdh_nistp256_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* kyber_768_90s_nistp384 prototypes */
-int	 kex_kem_kyber_768_90s_ecdh_nistp384_keypair(struct kex *);
-int	 kex_kem_kyber_768_90s_ecdh_nistp384_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_kyber_768_90s_ecdh_nistp384_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
-/* kyber_1024_90s_nistp521 prototypes */
-int	 kex_kem_kyber_1024_90s_ecdh_nistp521_keypair(struct kex *);
-int	 kex_kem_kyber_1024_90s_ecdh_nistp521_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);
-int	 kex_kem_kyber_1024_90s_ecdh_nistp521_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 /* bike_l1_nistp256 prototypes */
 int	 kex_kem_bike_l1_ecdh_nistp256_keypair(struct kex *);
 int	 kex_kem_bike_l1_ecdh_nistp256_enc(struct kex *, const struct sshbuf *, struct sshbuf **, struct sshbuf **);

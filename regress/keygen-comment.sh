@@ -36,10 +36,8 @@ for fmt in '' RFC4716 PKCS8 PEM; do
 		*dilithium2*) test -z "$oldfmt" || continue ;;
 		*dilithium3*) test -z "$oldfmt" || continue ;;
 		*dilithium5*) test -z "$oldfmt" || continue ;;
-		*sphincsharaka128fsimple*) test -z "$oldfmt" || continue ;;
-		*sphincssha256128fsimple*) test -z "$oldfmt" || continue ;;
-		*sphincssha256192srobust*) test -z "$oldfmt" || continue ;;
-		*sphincssha256256fsimple*) test -z "$oldfmt" || continue ;;
+		*sphincssha2128fsimple*) test -z "$oldfmt" || continue ;;
+		*sphincssha2256fsimple*) test -z "$oldfmt" || continue ;;
 ##### OQS_TEMPLATE_FRAGMENT_EXCLUDE_OQS_ALGS_END
 		esac
 		comment="foo bar"

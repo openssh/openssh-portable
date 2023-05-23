@@ -67,7 +67,7 @@ The following quantum-safe algorithms from liboqs are supported (assuming they h
 - **ClassicMcEliece**: `classic-mceliece-348864-sha256`, `classic-mceliece-348864f-sha256`, `classic-mceliece-460896-sha512`, `classic-mceliece-460896f-sha512`, `classic-mceliece-6688128-sha512`, `classic-mceliece-6688128f-sha512`, `classic-mceliece-6960119-sha512`, `classic-mceliece-6960119f-sha512`, `classic-mceliece-8192128-sha512`, `classic-mceliece-8192128f-sha512`
 - **FrodoKEM**: `frodokem-640-aes-sha256`, `frodokem-976-aes-sha384`, `frodokem-1344-aes-sha512`, `frodokem-640-shake-sha256`, `frodokem-976-shake-sha384`, `frodokem-1344-shake-sha512`
 - **HQC**: `hqc-128-sha256`, `hqc-192-sha384`, `hqc-256-sha512`†
-- **Kyber**: `kyber-512-sha256`, `kyber-768-sha384`, `kyber-1024-sha512`, `kyber-512-90s-sha256`, `kyber-768-90s-sha384`, `kyber-1024-90s-sha512`
+- **Kyber**: `kyber-512-sha256`, `kyber-768-sha384`, `kyber-1024-sha512`
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_KEXS_END -->
 
 The following hybrid algorithms are made available:
@@ -77,7 +77,7 @@ The following hybrid algorithms are made available:
 - **ClassicMcEliece**: `ecdh-nistp256-classic-mceliece-348864r3-sha256@openquantumsafe.org` `ecdh-nistp256-classic-mceliece-348864fr3-sha256@openquantumsafe.org` `ecdh-nistp384-classic-mceliece-460896r3-sha512@openquantumsafe.org` `ecdh-nistp384-classic-mceliece-460896fr3-sha512@openquantumsafe.org` `ecdh-nistp521-classic-mceliece-6688128r3-sha512@openquantumsafe.org` `ecdh-nistp521-classic-mceliece-6688128fr3-sha512@openquantumsafe.org` `ecdh-nistp521-classic-mceliece-6960119r3-sha512@openquantumsafe.org` `ecdh-nistp521-classic-mceliece-6960119fr3-sha512@openquantumsafe.org` `ecdh-nistp521-classic-mceliece-8192128r3-sha512@openquantumsafe.org` `ecdh-nistp521-classic-mceliece-8192128fr3-sha512@openquantumsafe.org`
 - **FrodoKEM**: `ecdh-nistp256-frodokem-640-aesr2-sha256@openquantumsafe.org` `ecdh-nistp384-frodokem-976-aesr2-sha384@openquantumsafe.org` `ecdh-nistp521-frodokem-1344-aesr2-sha512@openquantumsafe.org` `ecdh-nistp256-frodokem-640-shaker2-sha256@openquantumsafe.org` `ecdh-nistp384-frodokem-976-shaker2-sha384@openquantumsafe.org` `ecdh-nistp521-frodokem-1344-shaker2-sha512@openquantumsafe.org`
 - **HQC**: `ecdh-nistp256-hqc-128r3-sha256@openquantumsafe.org` `ecdh-nistp384-hqc-192r3-sha384@openquantumsafe.org` `ecdh-nistp521-hqc-256r3-sha512@openquantumsafe.org`
-- **Kyber**: `ecdh-nistp256-kyber-512r3-sha256-d00@openquantumsafe.org` `ecdh-nistp384-kyber-768r3-sha384-d00@openquantumsafe.org` `ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org` `ecdh-nistp256-kyber-512-90sr3-sha256@openquantumsafe.org` `ecdh-nistp384-kyber-768-90sr3-sha384@openquantumsafe.org` `ecdh-nistp521-kyber-1024-90sr3-sha512@openquantumsafe.org`
+- **Kyber**: `ecdh-nistp256-kyber-512r3-sha256-d00@openquantumsafe.org` `ecdh-nistp384-kyber-768r3-sha384-d00@openquantumsafe.org` `ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org`
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_HYBRID_KEXS_END -->
 
 Note that algorithms marked with a dagger (†) have large stack usage and may cause failures when run on threads or in constrained environments. For example, McEliece require building `oqs-openssh` with a large(r) stack provision than is default: Adding `LDFLAGS="-Wl,--stack,20000000"` to [the `./configure` command below](#step-2-build-the-fork) is required to allow cygwin-based testing to pass.
@@ -87,9 +87,9 @@ Note that algorithms marked with a dagger (†) have large stack usage and may c
 The following digital signature algorithms from liboqs are supported (assuming they have been enabled in liboqs). Note that only select L3 signature variants are enabled by default. In general, algorithms that are enabled by default are marked with an asterisk, and should you wish to enable additional variants, consult [the "Code Generation" section of the documentation in the wiki](https://github.com/open-quantum-safe/openssh/wiki/Using-liboqs-supported-algorithms-in-the-fork#code-generation).
 
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_SIGS_START -->
-- **Dilithium**: `dilithium2`\*, `dilithium3`\*, `dilithium5`\*, `dilithium2aes`, `dilithium3aes`, `dilithium5aes`
+- **Dilithium**: `dilithium2`\*, `dilithium3`\*, `dilithium5`\*
 - **Falcon**: `falcon512`\*, `falcon1024`\*
-- **SPHINCS**: `sphincsharaka128frobust`, `sphincsharaka128fsimple`\*, `sphincsharaka128srobust`, `sphincsharaka128ssimple`, `sphincssha256128frobust`, `sphincssha256128srobust`, `sphincssha256128fsimple`\*, `sphincssha256128ssimple`, `sphincsshake256128frobust`, `sphincsshake256128srobust`, `sphincsshake256128fsimple`, `sphincsshake256128ssimple`, `sphincsharaka192frobust`, `sphincsharaka192srobust`, `sphincsharaka192fsimple`, `sphincsharaka192ssimple`, `sphincssha256192frobust`, `sphincssha256192srobust`\*, `sphincssha256192fsimple`, `sphincssha256192ssimple`, `sphincsshake256192frobust`, `sphincsshake256192srobust`, `sphincsshake256192fsimple`, `sphincsshake256192ssimple`, `sphincsharaka256frobust`, `sphincsharaka256srobust`, `sphincsharaka256fsimple`, `sphincsharaka256ssimple`, `sphincssha256256frobust`, `sphincssha256256srobust`, `sphincssha256256fsimple`\*, `sphincssha256256ssimple`, `sphincsshake256256frobust`, `sphincsshake256256srobust`, `sphincsshake256256fsimple`, `sphincsshake256256ssimple`
+- **SPHINCS**: `sphincssha2128fsimple`\*, `sphincssha2128ssimple`, `sphincsshake128fsimple`, `sphincsshake128ssimple`, `sphincssha2192fsimple`, `sphincssha2192ssimple`, `sphincsshake192fsimple`, `sphincsshake192ssimple`, `sphincssha2256fsimple`\*, `sphincssha2256ssimple`, `sphincsshake256fsimple`, `sphincsshake256ssimple`
 <!--- OQS_TEMPLATE_FRAGMENT_LIST_ALL_SIGS_END -->
 
 

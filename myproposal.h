@@ -57,12 +57,6 @@
 	"ecdh-nistp384-kyber-768r3-sha384-d00@openquantumsafe.org," \
 	"kyber-1024-sha512," \
 	"ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org," \
-	"kyber-512-90s-sha256," \
-	"ecdh-nistp256-kyber-512-90sr3-sha256@openquantumsafe.org," \
-	"kyber-768-90s-sha384," \
-	"ecdh-nistp384-kyber-768-90sr3-sha384@openquantumsafe.org," \
-	"kyber-1024-90s-sha512," \
-	"ecdh-nistp521-kyber-1024-90sr3-sha512@openquantumsafe.org," \
 	"bike-l1-sha512," \
 	"ecdh-nistp256-bike-l1r3-sha512@openquantumsafe.org," \
 	"bike-l3-sha512," \
