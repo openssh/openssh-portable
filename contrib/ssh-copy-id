@@ -127,7 +127,7 @@ do
       use_id_file "${OPTARG:-$DEFAULT_PUB_ID_FILE}"
       ;;
     o|F)
-      SSH_OPTS="${SSH_OPTS:+$SSH_OPTS }-$OPT '$(quote "${OPTARG}")'"
+      OPTS_oF="${OPTS_oF:+$OPTS_oF }-$OPT '$(quote "${OPTARG}")'"
       ;;
     f)
       FORCED=1
@@ -166,7 +166,8 @@ fi
 
 USER_HOST="$*"
 # tack the hostname onto SSH_OPTS
-SSH_OPTS="${SSH_OPTS:+$SSH_OPTS }${SSH_PORT:+-p $SSH_PORT }'$(quote "$USER_HOST")'"
+OPTS_USER_HOST="${OPTS_oF:+$OPTS_oF }'$(quote "$USER_HOST")'"
+SSH_OPTS="${SSH_PORT:+-p $SSH_PORT }$OPTS_USER_HOST"
 # and populate "$@" for later use (only way to get proper quoting of options)
 eval set -- "$SSH_OPTS"
 
@@ -378,7 +379,7 @@ else
 
 	Number of key(s) added: $ADDED
 
-	Now try logging into the machine, with:   "${SFTP:-ssh}${SSH_PORT:+ -${PORT_OPT:-p} '$SSH_PORT'} ${SSH_OPTS}"
+	Now try logging into the machine, with:   "${SFTP:-ssh}${SSH_PORT:+ -${PORT_OPT:-p} $SSH_PORT} ${OPTS_USER_HOST}"
 	and check to make sure that only the key(s) you wanted were added.
 
 	EOF
