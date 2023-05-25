@@ -791,6 +791,55 @@ kex_ready(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 {
 	int r;
 
+	char * match;
+	u_int next;
+	char * adjCTOS = xstrdup(proposal[PROPOSAL_ENC_ALGS_CTOS]);
+	char * origCTOS = proposal[PROPOSAL_ENC_ALGS_CTOS];
+	char * adjSTOC = xstrdup(proposal[PROPOSAL_ENC_ALGS_STOC]);
+	char * origSTOC = proposal[PROPOSAL_ENC_ALGS_STOC];
+
+	const char * ccpstr = "chacha20-poly1305@openssh.com";
+	const char * ccpmtstr = "chacha20-poly1305-mt@hpnssh.org";
+
+	match = match_list(ccpmtstr, proposal[PROPOSAL_ENC_ALGS_CTOS], &next);
+	if (match != NULL) {
+		free(match);
+		match = match_list(ccpstr, proposal[PROPOSAL_ENC_ALGS_CTOS],
+		    NULL);
+		if (match == NULL) {
+			adjCTOS = xreallocarray(adjCTOS, strlen(adjCTOS) +
+			    1 + strlen(ccpstr) + 1, sizeof(char));
+			/* ','  string          '\0' */
+			adjCTOS[next] = ',';
+			memcpy(adjCTOS + next + 1, ccpstr, strlen(ccpstr));
+			memcpy(adjCTOS + next + 1 + strlen(ccpstr),
+			    origCTOS + next, strlen(origCTOS + next) + 1);
+		} else {
+			free(match);
+		}
+	}
+	proposal[PROPOSAL_ENC_ALGS_CTOS] = adjCTOS;
+	match = match_list(ccpmtstr, proposal[PROPOSAL_ENC_ALGS_STOC], &next);
+	if (match != NULL) {
+		free(match);
+		match = match_list(ccpstr, proposal[PROPOSAL_ENC_ALGS_STOC],
+		    NULL);
+		if (match == NULL) {
+			adjSTOC = xreallocarray(adjSTOC, strlen(adjSTOC) +
+			    1 + strlen(ccpstr) + 1, sizeof(char));
+			/* ','  string          '\0' */
+			adjSTOC[next] = ',';
+			memcpy(adjSTOC + next + 1, ccpstr, strlen(ccpstr));
+			memcpy(adjSTOC + next + 1 + strlen(ccpstr),
+			    origSTOC + next, strlen(origSTOC + next) + 1);
+		} else {
+			free(match);
+		}
+	}
+	proposal[PROPOSAL_ENC_ALGS_STOC] = adjSTOC;
+	free(origCTOS);
+	free(origSTOC);
+
 	if ((r = kex_prop2buf(ssh->kex->my, proposal)) != 0)
 		return r;
 	ssh->kex->flags = KEX_INITIAL;
@@ -1052,6 +1101,24 @@ kex_choose_conf(struct ssh *ssh)
 			kex->failed_choice = peer[nenc];
 			peer[nenc] = NULL;
 			goto out;
+		}
+		if ((strcmp(newkeys->enc.name, "chacha20-poly1305@openssh.com")
+		    == 0) && (match_list("chacha20-poly1305-mt@hpnssh.org",
+		    my[nenc], NULL) != NULL)) {
+			free(newkeys->enc.name);
+			newkeys->enc.cipher = cipher_by_name(
+			    "chacha20-poly1305-mt@hpnssh.org");
+			if (newkeys->enc.cipher == NULL) {
+				error_f("%s cipher not found.",
+				    "chacha20-poly1305-mt@hpnssh.org");
+				r = SSH_ERR_INTERNAL_ERROR;
+				kex->failed_choice = peer[nenc];
+				peer[nenc] = NULL;
+				goto out;
+			} else {
+				newkeys->enc.name = xstrdup(
+				    "chacha20-poly1305-mt@hpnssh.org");
+			}
 		}
 		authlen = cipher_authlen(newkeys->enc.cipher);
 		/* ignore mac for authenticated encryption */

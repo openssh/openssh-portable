@@ -70,10 +70,7 @@ struct chachapoly_ctx_mt {
 	pthread_cond_t cond;
 	u_char zeros[KEYSTREAMLEN]; /* KEYSTREAMLEN == 32768 */
 	struct threadData tds[NUMTHREADS];
-};
 
-struct chachapoly_ctx {
-	EVP_CIPHER_CTX *main_evp, *header_evp;
 #ifdef OPENSSL_HAVE_POLY_EVP
 	EVP_MAC_CTX    *poly_ctx;
 #else
@@ -249,7 +246,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 }
 
 void
-free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
+chachapoly_free_mt(struct chachapoly_ctx_mt * ctx_mt)
 {
 	if (ctx_mt == NULL)
 		return;
@@ -311,8 +308,7 @@ free_ctx_mt(struct chachapoly_ctx_mt * ctx_mt)
 }
 
 struct chachapoly_ctx_mt *
-initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr,
-    const u_char *key)
+chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 {
 	struct chachapoly_ctx_mt * ctx_mt = xmalloc(sizeof(*ctx_mt));
 	memset(ctx_mt, 0, sizeof(*ctx_mt));
@@ -392,67 +388,13 @@ initialize_ctx_mt(struct chachapoly_ctx * ctx, u_int startseqnr,
 		goto failthreads;
 
 	/* Success! */
+	explicit_bzero(&startseqnr, sizeof(startseqnr));
 	return ctx_mt;
 
  failthreads:
-	free_ctx_mt(ctx_mt);
-	return NULL; /* free_ctx_mt() takes care of everything below */
-}
-
-struct chachapoly_ctx_mt *
-get_ctx_mt(struct chachapoly_ctx * ctx)
-{
-	struct chachapoly_ctx_mt * ctx_mt;
-
-	if (ctx == NULL)
-		return NULL;
-	ctx_mt = EVP_CIPHER_CTX_get_app_data(ctx->main_evp);
-	return ctx_mt;
-}
-
-struct chachapoly_ctx *
-chachapoly_new_mt(struct chachapoly_ctx * oldctx, const u_char * key,
-    u_int keylen)
-{
-	struct chachapoly_ctx *ctx = chachapoly_new(key, keylen);
-	if (ctx == NULL)
-		return NULL;
-
-	u_int startseqnr = 0;
-
-	if (oldctx != NULL) { /* Rekeying, so get the old sequence number. */
-		/* Only MT contexts store seqnr, so look for one */
-		struct chachapoly_ctx_mt * oldctx_mt = get_ctx_mt(oldctx);
-		if (oldctx_mt != NULL)
-			/* Only reading, so no need to lock */
-			startseqnr=oldctx_mt->seqnr;
-
-		/* Don't do this! It's not our job! */
-		/* chachapoly_free_mt(oldctx); */
-	}
-
-	struct chachapoly_ctx_mt * ctx_mt = initialize_ctx_mt(ctx, startseqnr,
-	    key);
+	chachapoly_free_mt(ctx_mt);
 	explicit_bzero(&startseqnr, sizeof(startseqnr));
-
-	if (ctx_mt == NULL) {
-		chachapoly_free(ctx);
-		return NULL;
-	}
-	EVP_CIPHER_CTX_set_app_data(ctx->main_evp, ctx_mt);
-	return ctx;
-}
-
-void
-chachapoly_free_mt(struct chachapoly_ctx *cpctx)
-{
-	if (cpctx == NULL)
-		return;
-	struct chachapoly_ctx_mt * ctx_mt = get_ctx_mt(cpctx);
-	free_ctx_mt(ctx_mt); /* Safe even if ctx_mt == NULL */
-	/* This is probably unnecessary, but should be harmless. */
-	EVP_CIPHER_CTX_set_app_data(cpctx->main_evp, NULL);
-	chachapoly_free(cpctx);
+	return NULL;
 }
 
 static inline void
@@ -467,24 +409,17 @@ fastXOR(u_char *dest, const u_char *src1, const u_char *src2, u_int len)
 }
 
 int
-chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
+chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
     const u_char *src, u_int len, u_int aadlen, u_int authlen, int do_encrypt)
 {
-	struct chachapoly_ctx_mt * ctx_mt = get_ctx_mt(ctx);
-	/* If initialized as a serial context, generate the MT context */
-	if (ctx_mt == NULL) {
-		debug_f("Missing multithreaded context.");
-		return chachapoly_crypt(ctx, seqnr, dest, src, len, aadlen,
-		    authlen, do_encrypt);
-	} else if (ctx_mt->mainpid != getpid()) { /* we're a fork */
+	if (ctx_mt->mainpid != getpid()) { /* we're a fork */
 		/*
 		 * TODO: this is EXTREMELY RARE, may never happen at all (only
 		 * if the fork calls crypt), so we should tell the compiler.
 		 */
 		/* The worker threads don't exist, so regenerate ctx_mt */
 		debug_f("Fork called crypt without workers!");
-		free_ctx_mt(ctx_mt);
-		EVP_CIPHER_CTX_set_app_data(ctx->main_evp, NULL);
+		chachapoly_free_mt(ctx_mt);
 		return SSH_ERR_INTERNAL_ERROR;
 	}
 
@@ -501,7 +436,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 		if (!do_encrypt) {
 			const u_char *tag = src + aadlen + len;
 			u_char expected_tag[POLY1305_TAGLEN];
-			poly1305_auth(ctx->poly_ctx, expected_tag, src,
+			poly1305_auth(ctx_mt->poly_ctx, expected_tag, src,
 			    aadlen + len, ks->poly_key);
 			if (timingsafe_bcmp(expected_tag, tag, POLY1305_TAGLEN)
 			    != 0)
@@ -519,7 +454,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 			fastXOR(dest+aadlen,src+aadlen,ks->mainStream,len);
 			/* calculate and append tag */
 			if (do_encrypt)
-				poly1305_auth(ctx->poly_ctx, dest+aadlen+len,
+				poly1305_auth(ctx_mt->poly_ctx, dest+aadlen+len,
 				    dest, aadlen+len, ks->poly_key);
 			r=0; /* Success! */
 		}
@@ -536,8 +471,9 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 			found_batchID = newBatch->batchID;
 			pthread_mutex_unlock(&(newBatch->lock));
 			if (found_batchID != newBatchID) {
-				debug_f("Post batch miss! Seeking %u, found %u."
-				    " Looping.", newBatchID, found_batchID);
+				debug_f("Post-crypt batch miss! Seeking %u, "
+				    "found %u. Looping.", newBatchID,
+				    found_batchID);
 				while (found_batchID != newBatchID) {
 					pthread_mutex_lock(&(newBatch->lock));
 					found_batchID = newBatch->batchID;
@@ -552,61 +488,25 @@ chachapoly_crypt_mt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 
 			pthread_cond_broadcast(&(ctx_mt->cond));
 		}
+		
+		/* TODO: Nothing we need to sanitize here? */
 
 		return 0;
 	} else { /* Bad, it's the wrong batch. */
-		debug_f( "Pre batch miss! Seeking %u, found %u. "
-		    "Falling back to serial mode.", ctx_mt->batchID,
-		    found_batchID);
-
-		/* Same logic as above */
-		ctx_mt->seqnr = seqnr+1;
-
-		if (ctx_mt->seqnr / NUMSTREAMS > ctx_mt->batchID) {
-			u_int newBatchID = ctx_mt->seqnr / NUMSTREAMS;
-			struct mt_keystream_batch * newBatch =
-			    &(ctx_mt->batches[newBatchID % 2]);
-			pthread_mutex_lock(&(newBatch->lock));
-			found_batchID = newBatch->batchID;
-			pthread_mutex_unlock(&(newBatch->lock));
-			if (found_batchID != newBatchID) {
-				debug_f("Pre batch miss! Seeking %u, found %u. "
-				    "Looping.", newBatchID, found_batchID);
-				while (found_batchID != newBatchID) {
-					pthread_mutex_lock(&(newBatch->lock));
-					found_batchID = newBatch->batchID;
-					pthread_mutex_unlock(&(newBatch->lock));
-				}
-				debug_f("Loop exit.");
-			}
-	
-			pthread_mutex_lock(&(ctx_mt->batchID_lock));
-			ctx_mt->batchID = ctx_mt->batchID + 1;
-			pthread_mutex_unlock(&(ctx_mt->batchID_lock));
-
-			pthread_cond_broadcast(&(ctx_mt->cond));
-		}
-
-		/* Fall back to the serial implementation. */
-		return chachapoly_crypt(ctx, seqnr, dest, src, len, aadlen,
-		    authlen, do_encrypt);
+		debug_f( "Pre-crypt batch miss! Seeking %u, found %u. Failing.",
+		    ctx_mt->batchID, found_batchID);
+		return SSH_ERR_INTERNAL_ERROR;
 	}
 }
 
 int
-chachapoly_get_length_mt(struct chachapoly_ctx *ctx, u_int *plenp, u_int seqnr,
-    const u_char *cp, u_int len)
+chachapoly_get_length_mt(struct chachapoly_ctx_mt *ctx_mt, u_int *plenp,
+    u_int seqnr, const u_char *cp, u_int len)
 {
-	struct chachapoly_ctx_mt * ctx_mt = get_ctx_mt(ctx);
 	/* TODO: add compiler hints */
-	if (ctx_mt == NULL) { /* Don't bother upgrading to MT just for this. */
-		debug_f("No MT context. Falling back to serial mode.");
-		return chachapoly_get_length(ctx, plenp, seqnr, cp, len);
-	}
-
 	if (ctx_mt->mainpid != getpid()) { /* Use serial mode if we're a fork */
-		debug_f("We're a fork. Falling back to serial mode.");
-		return chachapoly_get_length(ctx, plenp, seqnr, cp, len);
+		debug_f("We're a fork. Failing.");
+		return SSH_ERR_INTERNAL_ERROR;
 	}
 
 	if (len < 4)
@@ -627,11 +527,10 @@ chachapoly_get_length_mt(struct chachapoly_ctx *ctx, u_int *plenp, u_int seqnr,
 		*plenp = PEEK_U32(buf);
 		return 0;
 	} else {
-		debug_f("Batch miss! Seeking %u, found %u. "
-		    "Falling back to serial mode.", sought_batchID,
-		    found_batchID);
+		debug_f("Batch miss! Seeking %u, found %u. Failing.",
+		    sought_batchID, found_batchID);
 		explicit_bzero(&found_batchID, sizeof(found_batchID));
-		return chachapoly_get_length(ctx, plenp, seqnr, cp, len);
+		return SSH_ERR_INTERNAL_ERROR;
 	}
 }
 #endif /* defined(HAVE_EVP_CHACHA20) && !defined(HAVE_BROKEN_CHACHA20) */

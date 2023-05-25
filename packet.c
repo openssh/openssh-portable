@@ -332,10 +332,10 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	state = ssh->state;
 	state->connection_in = fd_in;
 	state->connection_out = fd_out;
-	if ((r = cipher_init(&state->send_context, none,
-	    (const u_char *)"", 0, NULL, 0, CIPHER_ENCRYPT, state->after_authentication)) != 0 ||
-	    (r = cipher_init(&state->receive_context, none,
-	    (const u_char *)"", 0, NULL, 0, CIPHER_DECRYPT, state->after_authentication)) != 0) {
+	if ((r = cipher_init(&state->send_context, none, (const u_char *)"", 0,
+	    NULL, 0, 0, CIPHER_ENCRYPT, state->after_authentication)) != 0 ||
+	    (r = cipher_init(&state->receive_context, none, (const u_char *)"",
+	    0, NULL, 0, 0, CIPHER_DECRYPT, state->after_authentication)) != 0) {
 		error_fr(r, "cipher_init failed");
 		free(ssh); /* XXX need ssh_free_session_state? */
 		return NULL;
@@ -933,14 +933,27 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	}
 	mac->enabled = 1;
 	DBG(debug_f("cipher_init: %s", dir));
-    struct sshcipher_ctx *oldccp = *ccp;
-	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len,
-	    enc->iv, enc->iv_len, crypt_type, state->after_authentication)) != 0) {
-	    cipher_free(oldccp);
+	struct sshcipher_ctx *oldccp = *ccp;
+	if (strcmp(enc->name, "chacha20-poly1305-mt@hpnssh.org") == 0) {
+		if (state->after_authentication)
+			enc->cipher = cipher_by_name(
+			    "chacha20-poly1305-mt@hpnssh.org");
+		else
+			enc->cipher = cipher_by_name(
+			    "chacha20-poly1305@openssh.com");
+		if (enc->cipher == NULL) {
+			cipher_free(oldccp);
+			return r;
+		}
+	}
+	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len, enc->iv,
+	    enc->iv_len, crypt_type ? state->p_send.seqnr : state->p_read.seqnr,
+	    crypt_type, state->after_authentication)) != 0) {
+		cipher_free(oldccp);
 		return r;
-    } else {
-	    cipher_free(oldccp);
-    }
+	} else {
+		cipher_free(oldccp);
+	}
 	if (!state->cipher_warning_done &&
 	    (wmsg = cipher_warning_message(*ccp)) != NULL) {
 		error("Warning: %s", wmsg);
@@ -2807,8 +2820,15 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 }
 
 /* need this for the moment for the aes-ctr cipher */
-void *
-ssh_packet_get_send_context(struct ssh *ssh)
+char *
+ssh_packet_get_send_ciphername(struct ssh *ssh)
 {
-        return ssh->state->send_context;
+        return ssh->state->newkeys[MODE_OUT]->enc.name;
+}
+
+/* need this for the moment for the aes-ctr cipher */
+char *
+ssh_packet_get_recv_ciphername(struct ssh *ssh)
+{
+        return ssh->state->newkeys[MODE_IN]->enc.name;
 }

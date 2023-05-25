@@ -533,16 +533,19 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	/* We now explicitly call the mt cipher in cipher.c so we don't need
 	 * the cipher_reset_multithreaded() anymore. We just need to
 	 * force a rekey -cjr 09/08/2022 */
-	const void *cc = ssh_packet_get_send_context(ssh);
+	
 	/* only do this for the ctr cipher. otherwise gcm mode breaks. */
-	if (strstr(cipher_ctx_name(cc), "ctr")) {
+	if (strstr(ssh_packet_get_send_ciphername(ssh), "ctr")) {
 	  debug("Single to Multithread CTR cipher swap - client request");
 	  /* cipher_reset_multithreaded(); */
 	  ssh_packet_set_authenticated(ssh);
 	  packet_request_rekeying();
 	}
 	/* do the same for multithreaded chacha20 */
-	if (! strcmp(cipher_ctx_name(cc), "chacha20-poly1305@openssh.com")) {
+	if ((strcmp(ssh_packet_get_send_ciphername(ssh),
+	    "chacha20-poly1305-mt@hpnssh.org") == 0) ||
+	    (strcmp(ssh_packet_get_recv_ciphername(ssh),
+	    "chacha20-poly1305-mt@hpnssh.org") == 0)) {
 		debug("Client request rekey for multithreaded CC20 transition");
 		ssh_packet_set_authenticated(ssh);
 		packet_request_rekeying();
