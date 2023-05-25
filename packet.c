@@ -933,7 +933,8 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	}
 	mac->enabled = 1;
 	DBG(debug_f("cipher_init: %s", dir));
-	struct sshcipher_ctx *oldccp = *ccp;
+	cipher_free(*ccp);
+	*ccp = NULL;
 	if (strcmp(enc->name, "chacha20-poly1305-mt@hpnssh.org") == 0) {
 		if (state->after_authentication)
 			enc->cipher = cipher_by_name(
@@ -941,19 +942,13 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		else
 			enc->cipher = cipher_by_name(
 			    "chacha20-poly1305@openssh.com");
-		if (enc->cipher == NULL) {
-			cipher_free(oldccp);
+		if (enc->cipher == NULL)
 			return r;
-		}
 	}
 	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len, enc->iv,
 	    enc->iv_len, crypt_type ? state->p_send.seqnr : state->p_read.seqnr,
-	    crypt_type, state->after_authentication)) != 0) {
-		cipher_free(oldccp);
+	    crypt_type, state->after_authentication)) != 0)
 		return r;
-	} else {
-		cipher_free(oldccp);
-	}
 	if (!state->cipher_warning_done &&
 	    (wmsg = cipher_warning_message(*ccp)) != NULL) {
 		error("Warning: %s", wmsg);
