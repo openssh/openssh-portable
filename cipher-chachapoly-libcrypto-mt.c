@@ -251,6 +251,13 @@ chachapoly_free_mt(struct chachapoly_ctx_mt * ctx_mt)
 	if (ctx_mt == NULL)
 		return;
 
+#ifdef OPENSSL_HAVE_POLY_EVP
+	if (ctx_mt->poly_ctx != NULL) {
+		EVP_MAC_CTX_free(ctx_mt->poly_ctx);
+		ctx_mt->poly_ctx = NULL;
+	}
+#endif
+
 	/*
 	 * Only cleanup the threads and mutexes if we are the PID that
 	 * initialized them! If we're a fork, the threads don't really exist,
@@ -315,6 +322,23 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 	/* Initialize the sequence number. When rekeying, this won't be zero. */
 	ctx_mt->seqnr = startseqnr;
 	ctx_mt->batchID = startseqnr / NUMSTREAMS;
+
+#ifdef OPENSSL_HAVE_POLY_EVP
+	/* TODO: more error checks! */
+	EVP_MAC *mac = NULL;
+	if ((mac = EVP_MAC_fetch(NULL, "POLY1305", NULL)) == NULL) {
+		freezero(ctx_mt, sizeof(*ctx_mt));
+		explicit_bzero(&startseqnr, sizeof(startseqnr));
+		return NULL;
+	}
+	if ((ctx_mt->poly_ctx = EVP_MAC_CTX_new(mac)) == NULL) {
+		freezero(ctx_mt, sizeof(*ctx_mt));
+		explicit_bzero(&startseqnr, sizeof(startseqnr));
+		return NULL
+	}
+#else
+	ctx_mt->poly_ctx = NULL;
+#endif
 
 	/* TODO: add error checks */
 	pthread_mutex_init(&ctx_mt->batchID_lock, NULL);
