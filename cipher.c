@@ -456,7 +456,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
  */
 int
 cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
-   const u_char *src, u_int len, u_int aadlen, u_int authlen, int post_auth)
+   const u_char *src, u_int len, u_int aadlen, u_int authlen)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
 		if ((cc->cipher->flags & CFLAG_MT) != 0)
@@ -523,7 +523,7 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
 /* Extract the packet length, including any decryption necessary beforehand */
 int
 cipher_get_length(struct sshcipher_ctx *cc, u_int *plenp, u_int seqnr,
-    const u_char *cp, u_int len, int post_auth)
+    const u_char *cp, u_int len)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
 		if ((cc->cipher->flags & CFLAG_MT) != 0)

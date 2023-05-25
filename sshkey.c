@@ -1593,8 +1593,8 @@ sshkey_shield_private(struct sshkey *k)
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = cipher_crypt(cctx, 0, enc,
-	    sshbuf_ptr(prvbuf), sshbuf_len(prvbuf), 0, 0, 0)) != 0)
+	if ((r = cipher_crypt(cctx, 0, enc, sshbuf_ptr(prvbuf),
+	    sshbuf_len(prvbuf), 0, 0)) != 0)
 		goto out;
 #ifdef DEBUG_PK
 	fprintf(stderr, "%s: encrypted\n", __func__);
@@ -1719,8 +1719,8 @@ sshkey_unshield_private(struct sshkey *k)
 	fprintf(stderr, "%s: encrypted\n", __func__);
 	sshbuf_dump_data(k->shielded_private, k->shielded_len, stderr);
 #endif
-	if ((r = cipher_crypt(cctx, 0, cp,
-	    k->shielded_private, k->shielded_len, 0, 0, 0)) != 0)
+	if ((r = cipher_crypt(cctx, 0, cp, k->shielded_private, k->shielded_len,
+	    0, 0)) != 0)
 		goto out;
 #ifdef DEBUG_PK
 	fprintf(stderr, "%s: serialised\n", __func__);
@@ -2837,8 +2837,8 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 	if ((r = sshbuf_reserve(encoded,
 	    sshbuf_len(encrypted) + authlen, &cp)) != 0)
 		goto out;
-	if ((r = cipher_crypt(ciphercontext, 0, cp,
-	    sshbuf_ptr(encrypted), sshbuf_len(encrypted), 0, authlen, 0)) != 0)
+	if ((r = cipher_crypt(ciphercontext, 0, cp, sshbuf_ptr(encrypted),
+	    sshbuf_len(encrypted), 0, authlen)) != 0)
 		goto out;
 
 	sshbuf_reset(blob);
@@ -3045,7 +3045,7 @@ private2_decrypt(struct sshbuf *decoded, const char *passphrase,
 	    ivlen, 0, 0, 0)) != 0)
 		goto out;
 	if ((r = cipher_crypt(ciphercontext, 0, dp, sshbuf_ptr(decoded),
-	    encrypted_len, 0, authlen, 0)) != 0) {
+	    encrypted_len, 0, authlen)) != 0) {
 		/* an integrity error here indicates an incorrect passphrase */
 		if (r == SSH_ERR_MAC_INVALID)
 			r = SSH_ERR_KEY_WRONG_PASSPHRASE;

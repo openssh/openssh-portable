@@ -1249,8 +1249,8 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	    sshbuf_len(state->outgoing_packet) + authlen, &cp)) != 0)
 		goto out;
 	if ((r = cipher_crypt(state->send_context, state->p_send.seqnr, cp,
-	    sshbuf_ptr(state->outgoing_packet),
-	    len - aadlen, aadlen, authlen, state->after_authentication)) != 0)
+	    sshbuf_ptr(state->outgoing_packet), len - aadlen, aadlen, authlen))
+	    != 0)
 		goto out;
 	/* append unencrypted MAC */
 	if (mac && mac->enabled) {
@@ -1573,9 +1573,9 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	aadlen = (mac && mac->enabled && mac->etm) || authlen ? 4 : 0;
 
 	if (aadlen && state->packlen == 0) {
-		if (cipher_get_length(state->receive_context,
-		    &state->packlen, state->p_read.seqnr,
-		    sshbuf_ptr(state->input), sshbuf_len(state->input), state->after_authentication) != 0)
+		if (cipher_get_length(state->receive_context, &state->packlen,
+		    state->p_read.seqnr, sshbuf_ptr(state->input),
+		    sshbuf_len(state->input)) != 0)
 			return 0;
 		if (state->packlen < 1 + 4 ||
 		    state->packlen > packet_max_size) {
@@ -1601,7 +1601,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			goto out;
 		if ((r = cipher_crypt(state->receive_context,
 		    state->p_send.seqnr, cp, sshbuf_ptr(state->input),
-		    block_size, 0, 0, state->after_authentication)) != 0)
+		    block_size, 0, 0)) != 0)
 			goto out;
 		state->packlen = PEEK_U32(sshbuf_ptr(state->incoming_packet));
 		if (state->packlen < 1 + 4 ||
@@ -1668,7 +1668,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	    &cp)) != 0)
 		goto out;
 	if ((r = cipher_crypt(state->receive_context, state->p_read.seqnr, cp,
-	    sshbuf_ptr(state->input), need, aadlen, authlen, state->after_authentication)) != 0)
+	    sshbuf_ptr(state->input), need, aadlen, authlen)) != 0)
 		goto out;
 	if ((r = sshbuf_consume(state->input, aadlen + need + authlen)) != 0)
 		goto out;

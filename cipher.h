@@ -59,9 +59,9 @@ const char *compression_alg_list(int);
 int	 cipher_init(struct sshcipher_ctx **, const struct sshcipher *,
     const u_char *, u_int, const u_char *, u_int, u_int, int, int);
 int	 cipher_crypt(struct sshcipher_ctx *, u_int, u_char *, const u_char *,
-    u_int, u_int, u_int, int);
+    u_int, u_int, u_int);
 int	 cipher_get_length(struct sshcipher_ctx *, u_int *, u_int,
-    const u_char *, u_int, int);
+    const u_char *, u_int);
 void	 cipher_free(struct sshcipher_ctx *);
 u_int	 cipher_blocksize(const struct sshcipher *);
 uint64_t cipher_rekey_blocks(const struct sshcipher *);
