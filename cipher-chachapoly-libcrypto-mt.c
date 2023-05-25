@@ -334,7 +334,7 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 	if ((ctx_mt->poly_ctx = EVP_MAC_CTX_new(mac)) == NULL) {
 		freezero(ctx_mt, sizeof(*ctx_mt));
 		explicit_bzero(&startseqnr, sizeof(startseqnr));
-		return NULL
+		return NULL;
 	}
 #else
 	ctx_mt->poly_ctx = NULL;
