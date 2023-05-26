@@ -1116,33 +1116,6 @@ main(int ac, char **av)
 		fatal("sshbuf_new failed");
 
 	/*
-	 * Save the command to execute on the remote host in a buffer. There
-	 * is no limit on the length of the command, except by the maximum
-	 * packet size.  Also sets the tty flag if there is no command.
-	 */
-	if (!ac) {
-		/* No command specified - execute shell on a tty. */
-		if (options.session_type == SESSION_TYPE_SUBSYSTEM) {
-			fprintf(stderr,
-			    "You must specify a subsystem to invoke.\n");
-			usage();
-		}
-	} else {
-		/* A command has been specified.  Store it into the buffer. */
-		if (ac > 1)
-			fprintf(stderr,
-				"Warning: arguments given to command. "
-				"Concatenating with spaces.\n");
-		for (i = 0; i < ac; i++) {
-			if ((r = sshbuf_putf(command, "%s%s",
-			    i ? " " : "", av[i])) != 0)
-				fatal_fr(r, "buffer error");
-		}
-	}
-
-	ssh_signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
-
-	/*
 	 * Initialize "log" output.  Since we are the client all output
 	 * goes to stderr unless otherwise specified by -y or -E.
 	 */
@@ -1159,6 +1132,32 @@ main(int ac, char **av)
 
 	if (debug_flag)
 		logit("%s, %s", SSH_RELEASE, SSH_OPENSSL_VERSION);
+
+	/*
+	 * Save the command to execute on the remote host in a buffer. There
+	 * is no limit on the length of the command, except by the maximum
+	 * packet size.  Also sets the tty flag if there is no command.
+	 */
+	if (!ac) {
+		/* No command specified - execute shell on a tty. */
+		if (options.session_type == SESSION_TYPE_SUBSYSTEM) {
+			fprintf(stderr,
+			    "You must specify a subsystem to invoke.\n");
+			usage();
+		}
+	} else {
+		/* A command has been specified.  Store it into the buffer. */
+		if (ac > 1)
+			logit("Warning: arguments given to command. "
+				"Concatenating with spaces.\n");
+		for (i = 0; i < ac; i++) {
+			if ((r = sshbuf_putf(command, "%s%s",
+			    i ? " " : "", av[i])) != 0)
+				fatal_fr(r, "buffer error");
+		}
+	}
+
+	ssh_signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
 
 	/* Parse the configuration files */
 	process_config_files(options.host_arg, pw, 0, &want_final_pass);
