@@ -62,7 +62,18 @@ Make the application with “make -j[num cores]”. So if you have an 8 core sys
 you’d use “make -j8”
 
 
-Step 7: Installation
+Step 7: Set up the hpnsshd user. 
+
+This user is part of the privilege separation routines used in the 
+pre-authentication sandbox. I suggest using the following command: 
+
+sudo useradd --system --shell /usr/sbin/nologin --comment="Privilege separated HPNSSH User" \ 
+--home=/run/hpnsshd hpnsshd
+
+Alternatively, you can use vipw to add the user manually. 
+
+
+Step 8: Installation
 
 After HPN-SSH successfully builds, install it with “sudo make install”. This will install the 
 binaries, configuration files, and generate the unique host keys used. At this point you can 
@@ -73,17 +84,6 @@ NoneCipher and NoneMac options. For more information use “man hpnsshd_config�
 “man hpnssh_config”. Note: The hpnssh client expects the server to be on port 2222 but will 
 fallback to 22 if it’s not found there. So if you do change the default port you’ll need to 
 make sure the clients point at the correct port. 
-
-
-Step 8: Set up the hpnsshd user. 
-
-This user is part of the privilege separation routines used in the 
-pre-authentication sandbox. I suggest using the following command: 
-
-sudo useradd --system --shell /usr/sbin/nologin --comment="Privilege separated HPNSSH User" \ 
---home=/run/hpnsshd hpnsshd
-
-Alternatively, you can use vipw to add the user manually. 
 
 
 Step 9: Finishing up.
