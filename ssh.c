@@ -1129,6 +1129,10 @@ main(int ac, char **av)
 		}
 	} else {
 		/* A command has been specified.  Store it into the buffer. */
+		if (ac > 1)
+			fprintf(stderr,
+				"Warning: arguments given to command. "
+				"Concatenating with spaces.\n");
 		for (i = 0; i < ac; i++) {
 			if ((r = sshbuf_putf(command, "%s%s",
 			    i ? " " : "", av[i])) != 0)
