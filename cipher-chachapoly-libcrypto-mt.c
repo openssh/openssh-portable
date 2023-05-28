@@ -446,6 +446,7 @@ int
 chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
     const u_char *src, u_int len, u_int aadlen, u_int authlen, int do_encrypt)
 {
+#ifdef SAFETY
 	if (ctx_mt->mainpid != getpid()) { /* we're a fork */
 		/*
 		 * TODO: this is EXTREMELY RARE, may never happen at all (only
@@ -456,16 +457,21 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 		chachapoly_free_mt(ctx_mt);
 		return SSH_ERR_INTERNAL_ERROR;
 	}
+#endif
 
 	struct mt_keystream_batch * batch =
 	    &(ctx_mt->batches[ctx_mt->batchID % 2]);
+#ifdef SAFETY
 	u_int found_batchID = batch->batchID;
+#endif
 	struct mt_keystream * ks = &(batch->streams[seqnr % NUMSTREAMS]);
 
 	int r = SSH_ERR_INTERNAL_ERROR;
 
+#ifdef SAFETY
 	if (found_batchID == ctx_mt->batchID) { /* Safety check */
 		explicit_bzero(&found_batchID, sizeof(found_batchID));
+#endif
 		/* check tag before anything else */
 		if (!do_encrypt) {
 			const u_char *tag = src + aadlen + len;
@@ -518,7 +524,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 			struct mt_keystream_batch * newBatch =
 			    &(ctx_mt->batches[newBatchID % 2]);
 			pthread_mutex_lock(&(newBatch->lock));
-			found_batchID = newBatch->batchID;
+			u_int found_batchID = newBatch->batchID;
 			pthread_mutex_unlock(&(newBatch->lock));
 			if (found_batchID != newBatchID) {
 				debug_f("Post-crypt batch miss! Seeking %u, "
@@ -542,11 +548,13 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 		/* TODO: Nothing we need to sanitize here? */
 
 		return 0;
+#ifdef SAFETY
 	} else { /* Bad, it's the wrong batch. */
 		debug_f( "Pre-crypt batch miss! Seeking %u, found %u. Failing.",
 		    ctx_mt->batchID, found_batchID);
 		return SSH_ERR_INTERNAL_ERROR;
 	}
+#endif
 }
 
 int
@@ -554,33 +562,41 @@ chachapoly_get_length_mt(struct chachapoly_ctx_mt *ctx_mt, u_int *plenp,
     u_int seqnr, const u_char *cp, u_int len)
 {
 	/* TODO: add compiler hints */
+#ifdef SAFETY
 	if (ctx_mt->mainpid != getpid()) { /* Use serial mode if we're a fork */
 		debug_f("We're a fork. Failing.");
 		return SSH_ERR_INTERNAL_ERROR;
 	}
+#endif
 
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 
 	u_char buf[4];
+#ifdef SAFETY
 	u_int sought_batchID = seqnr / NUMSTREAMS;
 	u_int found_batchID;
+#endif
 	struct mt_keystream_batch * batch =
 	    &(ctx_mt->batches[ctx_mt->batchID % 2]);
 	struct mt_keystream * ks = &(batch->streams[seqnr % NUMSTREAMS]);
+#ifdef SAFETY
 	found_batchID = batch->batchID;
 
 	if (found_batchID == sought_batchID) {
 		explicit_bzero(&found_batchID, sizeof(found_batchID));
+#endif
 		for (u_int i=0; i < sizeof(buf); i++)
 			buf[i]=ks->headerStream[i] ^ cp[i];
 		*plenp = PEEK_U32(buf);
 		return 0;
+#ifdef SAFETY
 	} else {
 		debug_f("Batch miss! Seeking %u, found %u. Failing.",
 		    sought_batchID, found_batchID);
 		explicit_bzero(&found_batchID, sizeof(found_batchID));
 		return SSH_ERR_INTERNAL_ERROR;
 	}
+#endif
 }
 #endif /* defined(HAVE_EVP_CHACHA20) && !defined(HAVE_BROKEN_CHACHA20) */
