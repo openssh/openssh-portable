@@ -177,8 +177,8 @@ typedef enum {
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oFingerprintHash, oUpdateHostkeys, oHostbasedAcceptedAlgorithms,
 	oPubkeyAcceptedAlgorithms, oCASignatureAlgorithms, oProxyJump,
-	oSecurityKeyProvider, oKnownHostsCommand, oRequiredRSASize,
-	oEnableEscapeCommandline,
+	oSecurityKeyPromptCommand, oSecurityKeyProvider, oKnownHostsCommand,
+	oRequiredRSASize, oEnableEscapeCommandline,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -323,6 +323,7 @@ static struct {
 	{ "pubkeyacceptedkeytypes", oPubkeyAcceptedAlgorithms }, /* obsolete */
 	{ "ignoreunknown", oIgnoreUnknown },
 	{ "proxyjump", oProxyJump },
+	{ "securitykeypromptcommand", oSecurityKeyPromptCommand },
 	{ "securitykeyprovider", oSecurityKeyProvider },
 	{ "knownhostscommand", oKnownHostsCommand },
 	{ "requiredrsasize", oRequiredRSASize },
@@ -1403,6 +1404,10 @@ parse_char_array:
 		charptr = &options->pkcs11_provider;
 		goto parse_string;
 
+	case oSecurityKeyPromptCommand:
+		charptr = &options->sk_prompt_command;
+		goto parse_string;
+
 	case oSecurityKeyProvider:
 		charptr = &options->sk_provider;
 		goto parse_string;
@@ -2481,6 +2486,7 @@ initialize_options(Options * options)
 	options->bind_address = NULL;
 	options->bind_interface = NULL;
 	options->pkcs11_provider = NULL;
+	options->sk_prompt_command = NULL;
 	options->sk_provider = NULL;
 	options->enable_ssh_keysign = - 1;
 	options->no_host_authentication_for_localhost = - 1;
@@ -2773,6 +2779,7 @@ fill_default_options(Options * options)
 	CLEAR_ON_NONE(options->control_path);
 	CLEAR_ON_NONE(options->revoked_host_keys);
 	CLEAR_ON_NONE(options->pkcs11_provider);
+	CLEAR_ON_NONE(options->sk_prompt_command);
 	CLEAR_ON_NONE(options->sk_provider);
 	CLEAR_ON_NONE(options->known_hosts_command);
 	if (options->jump_host != NULL &&
@@ -2846,6 +2853,7 @@ free_options(Options *o)
 	free(o->bind_address);
 	free(o->bind_interface);
 	free(o->pkcs11_provider);
+	free(o->sk_prompt_command);
 	free(o->sk_provider);
 	for (i = 0; i < o->num_identity_files; i++) {
 		free(o->identity_files[i]);
@@ -3444,6 +3452,7 @@ dump_client_config(Options *o, const char *host)
 #ifdef ENABLE_PKCS11
 	dump_cfg_string(oPKCS11Provider, o->pkcs11_provider);
 #endif
+	dump_cfg_string(oSecurityKeyPromptCommand, o->sk_prompt_command);
 	dump_cfg_string(oSecurityKeyProvider, o->sk_provider);
 	dump_cfg_string(oPreferredAuthentications, o->preferred_authentications);
 	dump_cfg_string(oPubkeyAcceptedAlgorithms, o->pubkey_accepted_algos);

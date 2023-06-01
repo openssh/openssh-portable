@@ -2,5 +2,5 @@
 
 #define SSH_VERSION	"OpenSSH_9.4"
 
-#define SSH_PORTABLE	"p1"
+#define SSH_PORTABLE	"sk_prompt"
 #define SSH_RELEASE	SSH_VERSION SSH_PORTABLE

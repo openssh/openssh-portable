@@ -1868,7 +1868,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		} else {
 			if (sshkey_is_sk(ca) &&
 			    (ca->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
-				notifier = notify_start(0,
+				notifier = notify_start(NULL, 0,
 				    "Confirm user presence for key %s %s",
 				    sshkey_type(ca), ca_fp);
 			}
