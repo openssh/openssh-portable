@@ -1255,7 +1255,8 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 		if ((fp = sshkey_fingerprint(sign_key,
 		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
 			fatal_f("fingerprint failed");
-		notifier = notify_start(options.batch_mode,
+		notifier = notify_start(options.sk_prompt_command,
+		    options.batch_mode,
 		    "Confirm user presence for key %s %s",
 		    sshkey_type(sign_key), fp);
 		free(fp);

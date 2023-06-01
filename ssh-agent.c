@@ -813,7 +813,7 @@ process_sign_request2(SocketEntry *e)
 			goto send;
 		}
 		if (id->key->sk_flags & SSH_SK_USER_PRESENCE_REQD) {
-			notifier = notify_start(0,
+			notifier = notify_start(NULL, 0,
 			    "Confirm user presence for key %s %s%s%s",
 			    sshkey_type(id->key), fp,
 			    sig_dest == NULL ? "" : "\n",

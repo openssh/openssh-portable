@@ -236,7 +236,7 @@ struct notifier_ctx {
 };
 
 struct notifier_ctx *
-notify_start(int force_askpass, const char *fmt, ...)
+notify_start(const char *command, int force_askpass, const char *fmt, ...)
 {
 	va_list args;
 	char *prompt = NULL;
@@ -251,21 +251,25 @@ notify_start(int force_askpass, const char *fmt, ...)
 
 	if (fflush(NULL) != 0)
 		error_f("fflush: %s", strerror(errno));
-	if (!force_askpass && isatty(STDERR_FILENO)) {
-		writemsg(prompt);
-		goto out_ctx;
-	}
-	if ((askpass = getenv("SSH_ASKPASS")) == NULL)
-		askpass = _PATH_SSH_ASKPASS_DEFAULT;
-	if (*askpass == '\0') {
-		debug3_f("cannot notify: no askpass");
-		goto out;
-	}
-	if (getenv("DISPLAY") == NULL &&
-	    ((s = getenv(SSH_ASKPASS_REQUIRE_ENV)) == NULL ||
-	    strcmp(s, "force") != 0)) {
-		debug3_f("cannot notify: no display");
-		goto out;
+	if (command) {
+		askpass = command;
+	} else {
+		if (!force_askpass && isatty(STDERR_FILENO)) {
+			writemsg(prompt);
+			goto out_ctx;
+		}
+		if ((askpass = getenv("SSH_ASKPASS")) == NULL)
+			askpass = _PATH_SSH_ASKPASS_DEFAULT;
+		if (*askpass == '\0') {
+			debug3_f("cannot notify: no askpass");
+			goto out;
+		}
+		if (getenv("DISPLAY") == NULL &&
+				((s = getenv(SSH_ASKPASS_REQUIRE_ENV)) == NULL ||
+				strcmp(s, "force") != 0)) {
+			debug3_f("cannot notify: no display");
+			goto out;
+		}
 	}
 	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
 	if ((pid = fork()) == -1) {

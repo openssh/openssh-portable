@@ -228,8 +228,8 @@ struct notifier_ctx;
 
 char	*read_passphrase(const char *, int);
 int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
-struct notifier_ctx *notify_start(int, const char *, ...)
-	__attribute__((format(printf, 2, 3)));
+struct notifier_ctx *notify_start(const char *, int, const char *, ...)
+	__attribute__((format(printf, 3, 4)));
 void	notify_complete(struct notifier_ctx *, const char *, ...)
 	__attribute__((format(printf, 2, 3)));
 
