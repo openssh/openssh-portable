@@ -1254,9 +1254,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
     struct connection_info *connectinfo, int *inc_flags, int depth,
     struct include_list *includes)
 {
-	char *str, ***chararrayptr, **charptr, *arg, *arg2, *p, *keyword;
-	int cmdline = 0, *intptr, value, value2, n, port, oactive, r;
-	int ca_only = 0, found = 0;
+	char *str, ***chararrayptr, **charptr, *arg, *arg2, *arg_pre, *p, *keyword;
+	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST];
+	int cmdline = 0, *intptr, value, value2, n, port, oactive, r, found;
+	int ca_only = 0;
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
 	ServerOpCodes opcode;
@@ -2230,6 +2231,12 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			fatal("Include directive not supported as a "
 			    "command-line option");
 		}
+
+		if (gethostname(thishost, sizeof(thishost)) == -1)
+			fatal("gethostname: %s", strerror(errno));
+		strlcpy(shorthost, thishost, sizeof(shorthost));
+		shorthost[strcspn(thishost, ".")] = '\0';
+
 		value = 0;
 		while ((arg2 = argv_next(&ac, &av)) != NULL) {
 			if (*arg2 == '\0') {
@@ -2240,9 +2247,13 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			value++;
 			found = 0;
 			if (*arg2 != '/' && *arg2 != '~') {
-				xasprintf(&arg, "%s/%s", SSHDIR, arg2);
+				xasprintf(&arg_pre, "%s/%s", SSHDIR, arg2);
 			} else
-				arg = xstrdup(arg2);
+				arg_pre = xstrdup(arg2);
+
+			arg = percent_expand(arg_pre,
+					"l", thishost, "L", shorthost, (char *) NULL);
+			free(arg_pre);
 
 			/*
 			 * Don't let included files clobber the containing
