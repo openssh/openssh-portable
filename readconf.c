@@ -1044,7 +1044,8 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
     const char *original_host, char *line, const char *filename,
     int linenum, int *activep, int flags, int *want_final_pass, int depth)
 {
-	char *str, **charptr, *endofnumber, *keyword, *arg, *arg2, *p;
+	char *str, **charptr, *endofnumber, *keyword, *arg, *arg2, *arg_pre, *p;
+	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST];
 	char **cpptr, ***cppptr, fwdarg[256];
 	u_int i, *uintptr, max_entries = 0;
 	int r, oactive, negated, opcode, *intptr, value, value2, cmdline = 0;
@@ -1983,6 +1984,12 @@ parse_pubkey_algos:
 			    "command-line option");
 			goto out;
 		}
+
+		if (gethostname(thishost, sizeof(thishost)) == -1)
+			fatal("gethostname: %s", strerror(errno));
+		strlcpy(shorthost, thishost, sizeof(shorthost));
+		shorthost[strcspn(thishost, ".")] = '\0';
+
 		value = 0;
 		while ((arg = argv_next(&ac, &av)) != NULL) {
 			if (*arg == '\0') {
@@ -2003,11 +2010,14 @@ parse_pubkey_algos:
 				goto out;
 			}
 			if (!path_absolute(arg) && *arg != '~') {
-				xasprintf(&arg2, "%s/%s",
+				xasprintf(&arg_pre, "%s/%s",
 				    (flags & SSHCONF_USERCONF) ?
 				    "~/" _PATH_SSH_USER_DIR : SSHDIR, arg);
 			} else
-				arg2 = xstrdup(arg);
+				arg_pre = xstrdup(arg);
+			arg2 = percent_expand(arg_pre,
+					"l", thishost, "L", shorthost, (char *) NULL);
+			free(arg_pre);
 			memset(&gl, 0, sizeof(gl));
 			r = glob(arg2, GLOB_TILDE, NULL, &gl);
 			if (r == GLOB_NOMATCH) {
