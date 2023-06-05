@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.393 2023/05/24 23:01:06 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.394 2023/06/05 13:24:36 millert Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -959,7 +959,7 @@ process_permitopen(struct ssh *ssh, ServerOptions *options)
 
 /* Parse a ChannelTimeout clause "pattern=interval" */
 static int
-parse_timeout(const char *s, char **typep, u_int *secsp)
+parse_timeout(const char *s, char **typep, int *secsp)
 {
 	char *cp, *sdup;
 	int secs;
@@ -985,7 +985,7 @@ parse_timeout(const char *s, char **typep, u_int *secsp)
 	if (typep != NULL)
 		*typep = xstrdup(sdup);
 	if (secsp != NULL)
-		*secsp = (u_int)secs;
+		*secsp = secs;
 	free(sdup);
 	return 0;
 }
@@ -993,7 +993,8 @@ parse_timeout(const char *s, char **typep, u_int *secsp)
 void
 process_channel_timeouts(struct ssh *ssh, ServerOptions *options)
 {
-	u_int i, secs;
+	int secs;
+	u_int i;
 	char *type;
 
 	debug3_f("setting %u timeouts", options->num_channel_timeouts);

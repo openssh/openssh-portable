@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.149 2023/03/04 03:22:59 dtucker Exp $ */
+/* $OpenBSD: channels.h,v 1.150 2023/06/05 13:24:36 millert Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -210,7 +210,7 @@ struct Channel {
 	/* Last traffic seen for OPEN channels */
 	time_t			lastused;
 	/* Inactivity timeout deadline in seconds (0 = no timeout) */
-	u_int			inactive_deadline;
+	int			inactive_deadline;
 };
 
 #define CHAN_EXTENDED_IGNORE		0
@@ -308,7 +308,7 @@ int	 channel_close_fd(struct ssh *, Channel *, int *);
 void	 channel_send_window_changes(struct ssh *);
 
 /* channel inactivity timeouts */
-void channel_add_timeout(struct ssh *, const char *, u_int);
+void channel_add_timeout(struct ssh *, const char *, int);
 void channel_clear_timeouts(struct ssh *);
 
 /* mux proxy support */

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.430 2023/03/10 03:01:51 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.431 2023/06/05 13:24:36 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -154,7 +154,7 @@ struct permission_set {
 /* Used to record timeouts per channel type */
 struct ssh_channel_timeout {
 	char *type_pattern;
-	u_int timeout_secs;
+	int timeout_secs;
 };
 
 /* Master structure for channels state */
@@ -312,11 +312,11 @@ channel_lookup(struct ssh *ssh, int id)
  */
 void
 channel_add_timeout(struct ssh *ssh, const char *type_pattern,
-    u_int timeout_secs)
+    int timeout_secs)
 {
 	struct ssh_channels *sc = ssh->chanctxt;
 
-	debug2_f("channel type \"%s\" timeout %u seconds",
+	debug2_f("channel type \"%s\" timeout %d seconds",
 	    type_pattern, timeout_secs);
 	sc->timeouts = xrecallocarray(sc->timeouts, sc->ntimeouts,
 	    sc->ntimeouts + 1, sizeof(*sc->timeouts));
@@ -340,7 +340,7 @@ channel_clear_timeouts(struct ssh *ssh)
 	sc->ntimeouts = 0;
 }
 
-static u_int
+static int
 lookup_timeout(struct ssh *ssh, const char *type)
 {
 	struct ssh_channels *sc = ssh->chanctxt;
