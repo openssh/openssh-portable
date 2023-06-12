@@ -69,6 +69,8 @@ struct chachapoly_ctx_mt {
 
 	pthread_t tid[NUMTHREADS];
 	pthread_mutex_t tid_lock;
+	pthread_t adv_tid;
+	pthread_t self_tid;
 
 	pid_t mainpid;
 	pthread_cond_t cond;
@@ -403,6 +405,8 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 
 	/* Store the PID so that in the future, we can tell if we're a fork */
 	ctx_mt->mainpid = getpid();
+	ctx_mt->self_tid = pthread_self();
+	ctx_mt->adv_tid = ctx_mt->self_tid;
 	int ret=0;
 	/* Block workers from reading their thread IDs before we set them. */
 	pthread_mutex_lock(&(ctx_mt->tid_lock));
@@ -446,6 +450,32 @@ fastXOR(u_char *dest, const u_char *src1, const u_char *src2, u_int len)
 		dest[i]=src1[i]^src2[i];
 }
 
+void
+adv_thread(struct chachapoly_ctx_mt * ctx_mt) {
+	u_int newBatchID = ctx_mt->seqnr / NUMSTREAMS;
+	struct mt_keystream_batch * newBatch =
+	    &(ctx_mt->batches[newBatchID % 2]);
+	pthread_mutex_lock(&(newBatch->lock));
+	u_int found_batchID = newBatch->batchID;
+	pthread_mutex_unlock(&(newBatch->lock));
+	if (found_batchID != newBatchID) {
+		debug_f("Post-crypt batch miss! Seeking %u, found %u. Looping.",
+		    newBatchID, found_batchID);
+		while (found_batchID != newBatchID) {
+			pthread_mutex_lock(&(newBatch->lock));
+			found_batchID = newBatch->batchID;
+			pthread_mutex_unlock(&(newBatch->lock));
+		}
+		debug_f("Loop exit.");
+	}
+
+	pthread_mutex_lock(&(ctx_mt->batchID_lock));
+	ctx_mt->batchID = ctx_mt->batchID + 1;
+	pthread_mutex_unlock(&(ctx_mt->batchID_lock));
+
+	pthread_cond_broadcast(&(ctx_mt->cond));
+}
+
 int
 chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
     const u_char *src, u_int len, u_int aadlen, u_int authlen, int do_encrypt)
@@ -462,6 +492,11 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 		return SSH_ERR_INTERNAL_ERROR;
 	}
 #endif
+
+	if (__builtin_expect(ctx_mt->adv_tid != ctx_mt->self_tid,0)) {
+		pthread_join(ctx_mt->adv_tid, NULL);
+		ctx_mt->adv_tid = ctx_mt->self_tid;
+	}
 
 	struct mt_keystream_batch * batch =
 	    &(ctx_mt->batches[ctx_mt->batchID % 2]);
@@ -523,30 +558,9 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 
 		ctx_mt->seqnr = seqnr + 1;
 
-		if (ctx_mt->seqnr / NUMSTREAMS > ctx_mt->batchID) {
-			u_int newBatchID = ctx_mt->seqnr / NUMSTREAMS;
-			struct mt_keystream_batch * newBatch =
-			    &(ctx_mt->batches[newBatchID % 2]);
-			pthread_mutex_lock(&(newBatch->lock));
-			u_int found_batchID = newBatch->batchID;
-			pthread_mutex_unlock(&(newBatch->lock));
-			if (found_batchID != newBatchID) {
-				debug_f("Post-crypt batch miss! Seeking %u, "
-				    "found %u. Looping.", newBatchID,
-				    found_batchID);
-				while (found_batchID != newBatchID) {
-					pthread_mutex_lock(&(newBatch->lock));
-					found_batchID = newBatch->batchID;
-					pthread_mutex_unlock(&(newBatch->lock));
-				}
-				debug_f("Loop exit.");
-			}
-	
-			pthread_mutex_lock(&(ctx_mt->batchID_lock));
-			ctx_mt->batchID = ctx_mt->batchID + 1;
-			pthread_mutex_unlock(&(ctx_mt->batchID_lock));
-
-			pthread_cond_broadcast(&(ctx_mt->cond));
+		if (__builtin_expect(ctx_mt->seqnr / NUMSTREAMS > ctx_mt->batchID,0)) {
+			pthread_create(&ctx_mt->adv_tid, NULL, (void * (*)(void *)) adv_thread, ctx_mt);
+			//adv_thread(ctx_mt);
 		}
 		
 		/* TODO: Nothing we need to sanitize here? */
@@ -575,6 +589,11 @@ chachapoly_get_length_mt(struct chachapoly_ctx_mt *ctx_mt, u_int *plenp,
 
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
+
+	if (ctx_mt->adv_tid != ctx_mt->self_tid) {
+		pthread_join(ctx_mt->adv_tid, NULL);
+		ctx_mt->adv_tid = ctx_mt->self_tid;
+	}
 
 	u_char buf[4];
 #ifdef SAFETY
