@@ -112,7 +112,7 @@ auth_password(struct ssh *ssh, const char *password)
 	}
 #endif
 #ifdef USE_PAM
-	if (options.use_pam)
+	if (options.use_pam && options.passwd_use_pam)
 		return (sshpam_auth_passwd(authctxt, password) && ok);
 #endif
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)

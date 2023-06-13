@@ -91,6 +91,7 @@ initialize_server_options(ServerOptions *options)
 
 	/* Portable-specific options */
 	options->use_pam = -1;
+	options->passwd_use_pam = -1;
 
 	/* Standard Options */
 	options->num_ports = 0;
@@ -279,8 +280,10 @@ fill_default_server_options(ServerOptions *options)
 	u_int i;
 
 	/* Portable-specific options */
-	if (options->use_pam == -1)
+	if (options->use_pam == -1){
 		options->use_pam = 0;
+		options->passwd_use_pam = 1;
+	}
 
 	/* Standard Options */
 	if (options->num_host_key_files == 0) {
@@ -500,6 +503,7 @@ typedef enum {
 	sBadOption,		/* == unknown option */
 	/* Portable-specific options */
 	sUsePAM,
+	sPasswdUsePAM,
 	/* Standard Options */
 	sPort, sHostKeyFile, sLoginGraceTime,
 	sPermitRootLogin, sLogFacility, sLogLevel, sLogVerbose,
@@ -550,8 +554,10 @@ static struct {
 	/* Portable-specific options */
 #ifdef USE_PAM
 	{ "usepam", sUsePAM, SSHCFG_GLOBAL },
+	{ "passwdusepam", sPasswdUsePAM, SSHCFG_GLOBAL },
 #else
 	{ "usepam", sUnsupported, SSHCFG_GLOBAL },
+	{ "passwdusepam", sUnsupported, SSHCFG_GLOBAL },
 #endif
 	{ "pamauthenticationviakbdint", sDeprecated, SSHCFG_GLOBAL },
 	/* Standard Options */
@@ -1399,6 +1405,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 	/* Portable-specific options */
 	case sUsePAM:
 		intptr = &options->use_pam;
+		goto parse_flag;
+
+	case sPasswdUsePAM:
+		intptr = &options->passwd_use_pam;
 		goto parse_flag;
 
 	/* Standard Options */
