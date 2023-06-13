@@ -36,25 +36,37 @@
 #endif
 
 #ifdef WITH_OPENSSL
-/* We don't use sha2 from OpenSSL and they can conflict with system sha2.h */
-#define OPENSSL_NO_SHA
+/*
+ * We use native (or compat) SHA2, but some bits of OpenSSL conflict with
+ * some native sha2 implementations.  SHA2 is no longer optional in OpenSSL,
+ * so prevent conflicts as best we can.
+ */
 #define USE_LIBC_SHA2	/* NetBSD 9 */
+#define SHA256_CTX	openssl_SHA256_CTX
+#define SHA512_CTX	openssl_SHA512_CTX
+#ifdef SHA1
+# undef SHA1
+#endif
+#ifdef SHA224
+# undef SHA224
+#endif
+#ifdef SHA256
+# undef SHA256
+#endif
+#ifdef SHA384
+# undef SHA384
+#endif
+#ifdef SHA512
+# undef SHA512
+#endif
 #include <openssl/opensslv.h>
+#include <openssl/sha.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
 #include <openssl/bn.h>
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/pem.h>
-
-/* Compatibility with OpenSSH 1.0.x */
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-#define ECDSA_SIG_get0(sig, pr, ps) \
-	do { \
-		(*pr) = sig->r; \
-		(*ps) = sig->s; \
-	} while (0)
-#endif
 #endif /* WITH_OPENSSL */
 
 /* #define SK_DEBUG 1 */

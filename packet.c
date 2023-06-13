@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.307 2022/01/22 00:49:34 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.310 2023/04/06 03:21:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -986,7 +986,7 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 		return 1;
 
 	/*
-	 * Always rekey when MAX_PACKETS sent in either direction 
+	 * Always rekey when MAX_PACKETS sent in either direction
 	 * As per RFC4344 section 3.1 we do this after 2^31 packets.
 	 */
 	if (state->p_send.packets > MAX_PACKETS ||
@@ -1324,7 +1324,7 @@ int
 ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 {
 	struct session_state *state = ssh->state;
-	int len, r, ms_remain;
+	int len, r, ms_remain = 0;
 	struct pollfd pfd;
 	char buf[8192];
 	struct timeval start;
@@ -1890,7 +1890,7 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 	case SSH_ERR_NO_COMPRESS_ALG_MATCH:
 	case SSH_ERR_NO_KEX_ALG_MATCH:
 	case SSH_ERR_NO_HOSTKEY_ALG_MATCH:
-		if (ssh && ssh->kex && ssh->kex->failed_choice) {
+		if (ssh->kex && ssh->kex->failed_choice) {
 			ssh_packet_clear_keys(ssh);
 			errno = oerrno;
 			logdie("Unable to negotiate with %s: %s. "

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.218 2022/06/28 06:09:14 jmc Exp $ */
+/* $OpenBSD: sftp.c,v 1.234 2023/04/12 08:53:54 jsg Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -68,6 +68,7 @@ typedef void EditLine;
 #include "sshbuf.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
+#include "sftp-usergroup.h"
 
 /* File to read commands from */
 FILE* infile;
@@ -166,7 +167,8 @@ enum sftp_command {
 struct CMD {
 	const char *c;
 	const int n;
-	const int t;
+	const int t;	/* Completion type for the first argument */
+	const int t2;	/* completion type for the optional second argument */
 };
 
 /* Type of completion */
@@ -175,47 +177,46 @@ struct CMD {
 #define LOCAL	2
 
 static const struct CMD cmds[] = {
-	{ "bye",	I_QUIT,		NOARGS	},
-	{ "cd",		I_CHDIR,	REMOTE	},
-	{ "chdir",	I_CHDIR,	REMOTE	},
-	{ "chgrp",	I_CHGRP,	REMOTE	},
-	{ "chmod",	I_CHMOD,	REMOTE	},
-	{ "chown",	I_CHOWN,	REMOTE	},
-	{ "copy",	I_COPY,		REMOTE	},
-	{ "cp",		I_COPY,		REMOTE	},
-	{ "df",		I_DF,		REMOTE	},
-	{ "dir",	I_LS,		REMOTE	},
-	{ "exit",	I_QUIT,		NOARGS	},
-	{ "get",	I_GET,		REMOTE	},
-	{ "help",	I_HELP,		NOARGS	},
-	{ "lcd",	I_LCHDIR,	LOCAL	},
-	{ "lchdir",	I_LCHDIR,	LOCAL	},
-	{ "lls",	I_LLS,		LOCAL	},
-	{ "lmkdir",	I_LMKDIR,	LOCAL	},
-	{ "ln",		I_LINK,		REMOTE	},
-	{ "lpwd",	I_LPWD,		LOCAL	},
-	{ "ls",		I_LS,		REMOTE	},
-	{ "lumask",	I_LUMASK,	NOARGS	},
-	{ "mkdir",	I_MKDIR,	REMOTE	},
-	{ "mget",	I_GET,		REMOTE	},
-	{ "mput",	I_PUT,		LOCAL	},
-	{ "progress",	I_PROGRESS,	NOARGS	},
-	{ "put",	I_PUT,		LOCAL	},
-	{ "pwd",	I_PWD,		REMOTE	},
-	{ "quit",	I_QUIT,		NOARGS	},
-	{ "reget",	I_REGET,	REMOTE	},
-	{ "rename",	I_RENAME,	REMOTE	},
-	{ "reput",	I_REPUT,	LOCAL	},
-	{ "rm",		I_RM,		REMOTE	},
-	{ "rmdir",	I_RMDIR,	REMOTE	},
-	{ "symlink",	I_SYMLINK,	REMOTE	},
-	{ "version",	I_VERSION,	NOARGS	},
-	{ "!",		I_SHELL,	NOARGS	},
-	{ "?",		I_HELP,		NOARGS	},
-	{ NULL,		-1,		-1	}
+	{ "bye",	I_QUIT,		NOARGS, 	NOARGS	},
+	{ "cd",		I_CHDIR,	REMOTE, 	NOARGS	},
+	{ "chdir",	I_CHDIR,	REMOTE, 	NOARGS	},
+	{ "chgrp",	I_CHGRP,	REMOTE, 	NOARGS	},
+	{ "chmod",	I_CHMOD,	REMOTE, 	NOARGS	},
+	{ "chown",	I_CHOWN,	REMOTE, 	NOARGS	},
+	{ "copy",	I_COPY,		REMOTE, 	LOCAL	},
+	{ "cp",		I_COPY,		REMOTE, 	LOCAL	},
+	{ "df",		I_DF,		REMOTE, 	NOARGS	},
+	{ "dir",	I_LS,		REMOTE, 	NOARGS	},
+	{ "exit",	I_QUIT,		NOARGS, 	NOARGS	},
+	{ "get",	I_GET,		REMOTE, 	LOCAL	},
+	{ "help",	I_HELP,		NOARGS, 	NOARGS	},
+	{ "lcd",	I_LCHDIR,	LOCAL,		NOARGS	},
+	{ "lchdir",	I_LCHDIR,	LOCAL,		NOARGS	},
+	{ "lls",	I_LLS,		LOCAL,		NOARGS	},
+	{ "lmkdir",	I_LMKDIR,	LOCAL,		NOARGS	},
+	{ "ln",		I_LINK,		REMOTE, 	REMOTE	},
+	{ "lpwd",	I_LPWD,		LOCAL,		NOARGS	},
+	{ "ls",		I_LS,		REMOTE,		NOARGS	},
+	{ "lumask",	I_LUMASK,	NOARGS,		NOARGS	},
+	{ "mkdir",	I_MKDIR,	REMOTE,		NOARGS	},
+	{ "mget",	I_GET,		REMOTE,		LOCAL	},
+	{ "mput",	I_PUT,		LOCAL,		REMOTE	},
+	{ "progress",	I_PROGRESS,	NOARGS,		NOARGS	},
+	{ "put",	I_PUT,		LOCAL,		REMOTE	},
+	{ "pwd",	I_PWD,		REMOTE, 	NOARGS	},
+	{ "quit",	I_QUIT,		NOARGS, 	NOARGS	},
+	{ "reget",	I_REGET,	REMOTE, 	LOCAL	},
+	{ "rename",	I_RENAME,	REMOTE, 	REMOTE	},
+	{ "reput",	I_REPUT,	LOCAL,		REMOTE	},
+	{ "rm",		I_RM,		REMOTE,		NOARGS	},
+	{ "rmdir",	I_RMDIR,	REMOTE,		NOARGS	},
+	{ "symlink",	I_SYMLINK,	REMOTE,		REMOTE	},
+	{ "version",	I_VERSION,	NOARGS, 	NOARGS	},
+	{ "!",		I_SHELL,	NOARGS, 	NOARGS	},
+	{ "?",		I_HELP,		NOARGS, 	NOARGS	},
+	{ NULL,		-1,		-1,		-1	}
 };
 
-/* ARGSUSED */
 static void
 killchild(int signo)
 {
@@ -224,13 +225,12 @@ killchild(int signo)
 	pid = sshpid;
 	if (pid > 1) {
 		kill(pid, SIGTERM);
-		waitpid(pid, NULL, 0);
+		(void)waitpid(pid, NULL, 0);
 	}
 
 	_exit(1);
 }
 
-/* ARGSUSED */
 static void
 suspchild(int signo)
 {
@@ -242,7 +242,6 @@ suspchild(int signo)
 	kill(getpid(), SIGSTOP);
 }
 
-/* ARGSUSED */
 static void
 cmd_interrupt(int signo)
 {
@@ -254,14 +253,12 @@ cmd_interrupt(int signo)
 	errno = olderrno;
 }
 
-/* ARGSUSED */
 static void
 read_interrupt(int signo)
 {
 	interrupted = 1;
 }
 
-/*ARGSUSED*/
 static void
 sigchld_handler(int sig)
 {
@@ -273,7 +270,8 @@ sigchld_handler(int sig)
 	while ((pid = waitpid(sshpid, NULL, WNOHANG)) == -1 && errno == EINTR)
 		continue;
 	if (pid == sshpid) {
-		(void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
+		if (!quiet)
+		    (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
 		sshpid = -1;
 	}
 
@@ -618,15 +616,19 @@ escape_glob(const char *s)
 	return ret;
 }
 
+/*
+ * Arg p must be dynamically allocated.  make_absolute will either return it
+ * or free it and allocate a new one.  Caller must free returned string.
+ */
 static char *
-make_absolute_pwd_glob(const char *p, const char *pwd)
+make_absolute_pwd_glob(char *p, const char *pwd)
 {
 	char *ret, *escpwd;
 
 	escpwd = escape_glob(pwd);
 	if (p == NULL)
 		return escpwd;
-	ret = make_absolute(xstrdup(p), escpwd);
+	ret = make_absolute(p, escpwd);
 	free(escpwd);
 	return ret;
 }
@@ -639,7 +641,7 @@ process_get(struct sftp_conn *conn, const char *src, const char *dst,
 	glob_t g;
 	int i, r, err = 0;
 
-	abs_src = make_absolute_pwd_glob(src, pwd);
+	abs_src = make_absolute_pwd_glob(xstrdup(src), pwd);
 	memset(&g, 0, sizeof(g));
 
 	debug3("Looking up %s", abs_src);
@@ -767,6 +769,8 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 			goto out;
 		}
 
+		free(abs_dst);
+		abs_dst = NULL;
 		if (g.gl_matchc == 1 && tmp_dst) {
 			/* If directory specified, append filename */
 			if (dst_is_dir)
@@ -870,6 +874,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 		qsort(d, n, sizeof(*d), sdirent_comp);
 	}
 
+	get_remote_user_groups_from_dirents(conn, d);
 	for (n = 0; d[n] != NULL && !interrupted; n++) {
 		char *tmp, *fname;
 
@@ -881,14 +886,17 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 		free(tmp);
 
 		if (lflag & LS_LONG_VIEW) {
-			if (lflag & (LS_NUMERIC_VIEW|LS_SI_UNITS)) {
+			if ((lflag & (LS_NUMERIC_VIEW|LS_SI_UNITS)) != 0 ||
+			    can_get_users_groups_by_id(conn)) {
 				char *lname;
 				struct stat sb;
 
 				memset(&sb, 0, sizeof(sb));
 				attrib_to_stat(&d[n]->a, &sb);
 				lname = ls_file(fname, &sb, 1,
-				    (lflag & LS_SI_UNITS));
+				    (lflag & LS_SI_UNITS),
+				    ruser_name(sb.st_uid),
+				    rgroup_name(sb.st_gid));
 				mprintf("%s\n", lname);
 				free(lname);
 			} else
@@ -1005,7 +1013,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 	 */
 	for (nentries = 0; g.gl_pathv[nentries] != NULL; nentries++)
 		;	/* count entries */
-	indices = calloc(nentries, sizeof(*indices));
+	indices = xcalloc(nentries, sizeof(*indices));
 	for (i = 0; i < nentries; i++)
 		indices[i] = i;
 
@@ -1016,16 +1024,20 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 		sort_glob = NULL;
 	}
 
+	get_remote_user_groups_from_glob(conn, &g);
 	for (j = 0; j < nentries && !interrupted; j++) {
 		i = indices[j];
 		fname = path_strip(g.gl_pathv[i], strip_path);
 		if (lflag & LS_LONG_VIEW) {
 			if (g.gl_statv[i] == NULL) {
 				error("no stat information for %s", fname);
+				free(fname);
 				continue;
 			}
 			lname = ls_file(fname, g.gl_statv[i], 1,
-			    (lflag & LS_SI_UNITS));
+			    (lflag & LS_SI_UNITS),
+			    ruser_name(g.gl_statv[i]->st_uid),
+			    rgroup_name(g.gl_statv[i]->st_gid));
 			mprintf("%s\n", lname);
 			free(lname);
 		} else {
@@ -1945,19 +1957,25 @@ complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
 }
 
 /*
- * Determine whether a particular sftp command's arguments (if any)
- * represent local or remote files.
+ * Determine whether a particular sftp command's arguments (if any) represent
+ * local or remote files. The "cmdarg" argument specifies the actual argument
+ * and accepts values 1 or 2.
  */
 static int
-complete_is_remote(char *cmd) {
+complete_is_remote(char *cmd, int cmdarg) {
 	int i;
 
 	if (cmd == NULL)
 		return -1;
 
 	for (i = 0; cmds[i].c; i++) {
-		if (!strncasecmp(cmd, cmds[i].c, strlen(cmds[i].c)))
-			return cmds[i].t;
+		if (!strncasecmp(cmd, cmds[i].c, strlen(cmds[i].c))) {
+			if (cmdarg == 1)
+				return cmds[i].t;
+			else if (cmdarg == 2)
+				return cmds[i].t2;
+			break;
+		}
 	}
 
 	return -1;
@@ -1988,7 +2006,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 		tmp = make_absolute_pwd_glob(tmp, remote_path);
 		remote_glob(conn, tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
 	} else
-		glob(tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
+		(void)glob(tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
 
 	/* Determine length of pwd so we can trim completion display */
 	for (hadglob = tmplen = pwdlen = 0; tmp[tmplen] != 0; tmplen++) {
@@ -2137,13 +2155,29 @@ complete(EditLine *el, int ch)
 			ret = CC_REDISPLAY;
 	} else if (carg >= 1) {
 		/* Handle file parsing */
-		int remote = complete_is_remote(argv[0]);
+		int remote = 0;
+		int i = 0, cmdarg = 0;
 		char *filematch = NULL;
 
 		if (carg > 1 && line[cursor-1] != ' ')
 			filematch = argv[carg - 1];
 
-		if (remote != 0 &&
+		for (i = 1; i < carg; i++) {
+			/* Skip flags */
+			if (argv[i][0] != '-')
+				cmdarg++;
+		}
+
+		/*
+		 * If previous argument is complete, then offer completion
+		 * on the next one.
+		 */
+		if (line[cursor - 1] == ' ')
+			cmdarg++;
+
+		remote = complete_is_remote(argv[0], cmdarg);
+
+		if ((remote == REMOTE || remote == LOCAL) &&
 		    complete_match(el, complete_ctx->conn,
 		    *complete_ctx->remote_pathp, filematch,
 		    remote, carg == argc, quote, terminated) != 0)
@@ -2379,7 +2413,7 @@ usage(void)
 	    "          [-D sftp_server_command] [-F ssh_config] [-i identity_file]\n"
 	    "          [-J destination] [-l limit] [-o ssh_option] [-P port]\n"
 	    "          [-R num_requests] [-S program] [-s subsystem | sftp_server]\n"
-	    "          destination\n",
+	    "          [-X sftp_option] destination\n",
 	    __progname);
 	exit(1);
 }
@@ -2400,7 +2434,7 @@ main(int argc, char **argv)
 	struct sftp_conn *conn;
 	size_t copy_buffer_len = 0;
 	size_t num_requests = 0;
-	long long limit_kbps = 0;
+	long long llv, limit_kbps = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -2418,7 +2452,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246AafhNpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:")) != -1) {
+	    "1246AafhNpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:X:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case 'A':
@@ -2514,6 +2548,31 @@ main(int argc, char **argv)
 		case 'S':
 			ssh_program = optarg;
 			replacearg(&args, 0, "%s", ssh_program);
+			break;
+		case 'X':
+			/* Please keep in sync with ssh.c -X */
+			if (strncmp(optarg, "buffer=", 7) == 0) {
+				r = scan_scaled(optarg + 7, &llv);
+				if (r == 0 && (llv <= 0 || llv > 256 * 1024)) {
+					r = -1;
+					errno = EINVAL;
+				}
+				if (r == -1) {
+					fatal("Invalid buffer size \"%s\": %s",
+					     optarg + 7, strerror(errno));
+				}
+				copy_buffer_len = (size_t)llv;
+			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
+				llv = strtonum(optarg + 10, 1, 256 * 1024,
+				    &errstr);
+				if (errstr != NULL) {
+					fatal("Invalid number of requests "
+					    "\"%s\": %s", optarg + 10, errstr);
+				}
+				num_requests = (size_t)llv;
+			} else {
+				fatal("Invalid -X option");
+			}
 			break;
 		case 'h':
 		default:

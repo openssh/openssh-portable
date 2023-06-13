@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.457 2022/07/20 03:33:22 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.467 2023/04/12 08:53:54 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -476,6 +476,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 {
 	struct sshkey *key = NULL;
 	char *type, *cipher;
+	const char *alg = NULL;
 	u_char e1, e2, e3, *sig = NULL, data[] = "abcde12345";
 	int r, rlen, ktype;
 	u_int magic, i1, i2, i3, i4;
@@ -584,6 +585,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 		if ((r = ssh_rsa_complete_crt_parameters(key, rsa_iqmp)) != 0)
 			fatal_fr(r, "generate RSA parameters");
 		BN_clear_free(rsa_iqmp);
+		alg = "rsa-sha2-256";
 		break;
 	}
 	rlen = sshbuf_len(b);
@@ -592,10 +594,10 @@ do_convert_private_ssh2(struct sshbuf *b)
 
 	/* try the key */
 	if ((r = sshkey_sign(key, &sig, &slen, data, sizeof(data),
-	    NULL, NULL, NULL, 0)) != 0)
+	    alg, NULL, NULL, 0)) != 0)
 		error_fr(r, "signing with converted key failed");
 	else if ((r = sshkey_verify(key, sig, slen, data, sizeof(data),
-	    NULL, 0, NULL)) != 0)
+	    alg, 0, NULL)) != 0)
 		error_fr(r, "verification with converted key failed");
 	if (r != 0) {
 		sshkey_free(key);
@@ -1184,7 +1186,7 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 	case HKF_STATUS_OK:
 	case HKF_STATUS_MATCHED:
 		/*
-		 * Don't hash hosts already already hashed, with wildcard
+		 * Don't hash hosts already hashed, with wildcard
 		 * characters or a CA/revocation marker.
 		 */
 		if (was_hashed || has_wild || l->marker != MRK_NONE) {
@@ -1337,7 +1339,7 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 			unlink(tmp);
 			fatal("fdopen: %s", strerror(oerrno));
 		}
-		fchmod(fd, sb.st_mode & 0644);
+		(void)fchmod(fd, sb.st_mode & 0644);
 		inplace = 1;
 	}
 	/* XXX support identity_file == "-" for stdin */
@@ -1479,13 +1481,23 @@ do_change_passphrase(struct passwd *pw)
  */
 static int
 do_print_resource_record(struct passwd *pw, char *fname, char *hname,
-    int print_generic)
+    int print_generic, char * const *opts, size_t nopts)
 {
 	struct sshkey *public;
 	char *comment = NULL;
 	struct stat st;
-	int r;
+	int r, hash = -1;
+	size_t i;
 
+	for (i = 0; i < nopts; i++) {
+		if (strncasecmp(opts[i], "hashalg=", 8) == 0) {
+			if ((hash = ssh_digest_alg_by_name(opts[i] + 8)) == -1)
+				fatal("Unsupported hash algorithm");
+		} else {
+			error("Invalid option \"%s\"", opts[i]);
+			return SSH_ERR_INVALID_ARGUMENT;
+		}
+	}
 	if (fname == NULL)
 		fatal_f("no filename");
 	if (stat(fname, &st) == -1) {
@@ -1495,7 +1507,7 @@ do_print_resource_record(struct passwd *pw, char *fname, char *hname,
 	}
 	if ((r = sshkey_load_public(fname, &public, &comment)) != 0)
 		fatal_r(r, "Failed to read v2 public key from \"%s\"", fname);
-	export_dns_rr(hname, public, stdout, print_generic);
+	export_dns_rr(hname, public, stdout, print_generic, hash);
 	sshkey_free(public);
 	free(comment);
 	return 1;
@@ -1917,6 +1929,21 @@ parse_relative_time(const char *s, time_t now)
 }
 
 static void
+parse_hex_u64(const char *s, uint64_t *up)
+{
+	char *ep;
+	unsigned long long ull;
+
+	errno = 0;
+	ull = strtoull(s, &ep, 16);
+	if (*s == '\0' || *ep != '\0')
+		fatal("Invalid certificate time: not a number");
+	if (errno == ERANGE && ull == ULONG_MAX)
+		fatal_fr(SSH_ERR_SYSTEM_ERROR, "Invalid certificate time");
+	*up = (uint64_t)ull;
+}
+
+static void
 parse_cert_times(char *timespec)
 {
 	char *from, *to;
@@ -1938,8 +1965,8 @@ parse_cert_times(char *timespec)
 
 	/*
 	 * from:to, where
-	 * from := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS | "always"
-	 *   to := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS | "forever"
+	 * from := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS | 0x... | "always"
+	 *   to := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS | 0x... | "forever"
 	 */
 	from = xstrdup(timespec);
 	to = strchr(from, ':');
@@ -1951,6 +1978,8 @@ parse_cert_times(char *timespec)
 		cert_valid_from = parse_relative_time(from, now);
 	else if (strcmp(from, "always") == 0)
 		cert_valid_from = 0;
+	else if (strncmp(from, "0x", 2) == 0)
+		parse_hex_u64(from, &cert_valid_from);
 	else if (parse_absolute_time(from, &cert_valid_from) != 0)
 		fatal("Invalid from time \"%s\"", from);
 
@@ -1958,6 +1987,8 @@ parse_cert_times(char *timespec)
 		cert_valid_to = parse_relative_time(to, now);
 	else if (strcmp(to, "forever") == 0)
 		cert_valid_to = ~(u_int64_t)0;
+	else if (strncmp(to, "0x", 2) == 0)
+		parse_hex_u64(to, &cert_valid_to);
 	else if (parse_absolute_time(to, &cert_valid_to) != 0)
 		fatal("Invalid to time \"%s\"", to);
 
@@ -2986,6 +3017,7 @@ do_moduli_screen(const char *out_file, char **opts, size_t nopts)
 		} else if (strncmp(opts[i], "start-line=", 11) == 0) {
 			start_lineno = strtoul(opts[i]+11, NULL, 10);
 		} else if (strncmp(opts[i], "checkpoint=", 11) == 0) {
+			free(checkpoint);
 			checkpoint = xstrdup(opts[i]+11);
 		} else if (strncmp(opts[i], "generator=", 10) == 0) {
 			generator_wanted = (u_int32_t)strtonum(
@@ -3024,6 +3056,9 @@ do_moduli_screen(const char *out_file, char **opts, size_t nopts)
 	    generator_wanted, checkpoint,
 	    start_lineno, lines_to_process) != 0)
 		fatal("modulus screening failed");
+	if (in != stdin)
+		(void)fclose(in);
+	free(checkpoint);
 #else /* WITH_OPENSSL */
 	fatal("Moduli screening is not supported");
 #endif /* WITH_OPENSSL */
@@ -3288,7 +3323,7 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	char comment[1024], *passphrase;
+	char comment[1024], *passphrase = NULL;
 	char *rr_hostname = NULL, *ep, *fp, *ra;
 	struct sshkey *private, *public;
 	struct passwd *pw;
@@ -3525,7 +3560,6 @@ main(int argc, char **argv)
 			else
 				fatal("Unsupported moduli option %s", optarg);
 			break;
-		case '?':
 		default:
 			usage();
 		}
@@ -3707,7 +3741,7 @@ main(int argc, char **argv)
 
 		if (have_identity) {
 			n = do_print_resource_record(pw, identity_file,
-			    rr_hostname, print_generic);
+			    rr_hostname, print_generic, opts, nopts);
 			if (n == 0)
 				fatal("%s: %s", identity_file, strerror(errno));
 			exit(0);
@@ -3715,19 +3749,19 @@ main(int argc, char **argv)
 
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_RSA_KEY_FILE, rr_hostname,
-			    print_generic);
+			    print_generic, opts, nopts);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_DSA_KEY_FILE, rr_hostname,
-			    print_generic);
+			    print_generic, opts, nopts);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_ECDSA_KEY_FILE, rr_hostname,
-			    print_generic);
+			    print_generic, opts, nopts);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_ED25519_KEY_FILE, rr_hostname,
-			    print_generic);
+			    print_generic, opts, nopts);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_XMSS_KEY_FILE, rr_hostname,
-			    print_generic);
+			    print_generic, opts, nopts);
 			if (n == 0)
 				fatal("no keys found.");
 			exit(0);
@@ -3801,13 +3835,6 @@ main(int argc, char **argv)
 		}
 		if ((attest = sshbuf_new()) == NULL)
 			fatal("sshbuf_new failed");
-		if ((sk_flags &
-		    (SSH_SK_USER_VERIFICATION_REQD|SSH_SK_RESIDENT_KEY))) {
-			passphrase = read_passphrase("Enter PIN for "
-			    "authenticator: ", RP_ALLOW_STDIN);
-		} else {
-			passphrase = NULL;
-		}
 		r = 0;
 		for (i = 0 ;;) {
 			if (!quiet) {

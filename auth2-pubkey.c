@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.116 2022/06/15 16:08:25 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.118 2023/02/17 04:22:50 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -153,12 +153,6 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		    "(received %d, expected %d)", key->type, pktype);
 		goto done;
 	}
-	if (sshkey_type_plain(key->type) == KEY_RSA &&
-	    (ssh->compat & SSH_BUG_RSASIGMD5) != 0) {
-		logit("Refusing RSA key because client uses unsafe "
-		    "signature scheme");
-		goto done;
-	}
 	if (auth2_key_already_used(authctxt, key)) {
 		logit("refusing previously-used %s key", sshkey_type(key));
 		goto done;
@@ -173,6 +167,11 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		logit_fr(r, "certificate signature algorithm %s",
 		    (key->cert == NULL || key->cert->signature_type == NULL) ?
 		    "(null)" : key->cert->signature_type);
+		goto done;
+	}
+	if ((r = sshkey_check_rsa_length(key,
+	    options.required_rsa_size)) != 0) {
+		logit_r(r, "refusing %s key", sshkey_type(key));
 		goto done;
 	}
 	key_s = format_key(key);

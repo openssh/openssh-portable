@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.29 2022/03/30 04:27:51 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.32 2023/04/06 03:56:02 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -491,7 +491,7 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 {
 	char *hex, rbuf[8192], hash[SSH_DIGEST_MAX_LENGTH];
 	ssize_t n, total = 0;
-	struct ssh_digest_ctx *ctx;
+	struct ssh_digest_ctx *ctx = NULL;
 	int alg, oerrno, r = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL;
 
@@ -514,7 +514,6 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 				continue;
 			oerrno = errno;
 			error_f("read: %s", strerror(errno));
-			ssh_digest_free(ctx);
 			errno = oerrno;
 			r = SSH_ERR_SYSTEM_ERROR;
 			goto out;
@@ -549,9 +548,11 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 	/* success */
 	r = 0;
  out:
+	oerrno = errno;
 	sshbuf_free(b);
 	ssh_digest_free(ctx);
 	explicit_bzero(hash, sizeof(hash));
+	errno = oerrno;
 	return r;
 }
 
@@ -976,7 +977,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	char *line = NULL;
 	size_t linesize = 0;
 	u_long linenum = 0;
-	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
+	int r = SSH_ERR_KEY_NOT_FOUND, oerrno;
 
 	/* Check key and principal against file */
 	if ((f = fopen(path, "r")) == NULL) {
@@ -1006,7 +1007,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	/* Either we hit an error parsing or we simply didn't find the key */
 	fclose(f);
 	free(line);
-	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+	return r;
 }
 
 int
@@ -1017,7 +1018,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 	char *line = NULL;
 	size_t linesize = 0;
 	u_long linenum = 0;
-	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
+	int r = SSH_ERR_KEY_NOT_FOUND, oerrno;
 
 	if ((f = fopen(path, "r")) == NULL) {
 		oerrno = errno;
@@ -1027,7 +1028,6 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 
-	r = SSH_ERR_KEY_NOT_FOUND;
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
 		r = check_allowed_keys_line(path, linenum, line,
@@ -1055,7 +1055,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 	fclose(f);
-	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+	return r;
 }
 
 int
