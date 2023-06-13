@@ -167,6 +167,16 @@ compression_alg_list(int compression)
 #endif
 }
 
+/* used to get the cipher name when we are testing to
+ * see if we can move from a serial to parallel cipher
+ * only called in cipher-switch.c
+ */
+const char *
+cipher_ctx_name(const struct sshcipher_ctx *cc)
+{
+        return cc->cipher->name;
+}
+
 u_int
 cipher_blocksize(const struct sshcipher *c)
 {

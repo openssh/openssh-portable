@@ -2814,16 +2814,16 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 	return 0;
 }
 
-/* need this for the moment for the aes-ctr cipher */
-char *
-ssh_packet_get_send_ciphername(struct ssh *ssh)
+/* used for cipher switching
+ * only called in cipher-swtich.c */
+void *
+ssh_packet_get_send_context(struct ssh *ssh)
 {
-        return ssh->state->newkeys[MODE_OUT]->enc.name;
+        return ssh->state->send_context;
 }
 
-/* need this for the moment for the aes-ctr cipher */
-char *
-ssh_packet_get_recv_ciphername(struct ssh *ssh)
+void *
+ssh_packet_get_receive_context(struct ssh *ssh)
 {
-        return ssh->state->newkeys[MODE_IN]->enc.name;
+        return ssh->state->receive_context;
 }

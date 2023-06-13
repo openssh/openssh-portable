@@ -837,8 +837,6 @@ kex_ready(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 		}
 	}
 	proposal[PROPOSAL_ENC_ALGS_STOC] = adjSTOC;
-	free(origCTOS);
-	free(origSTOC);
 
 	if ((r = kex_prop2buf(ssh->kex->my, proposal)) != 0)
 		return r;
@@ -1034,7 +1032,7 @@ kex_choose_conf(struct ssh *ssh)
 	int r, first_kex_follows;
 	int auth_flag = 0;
 	int log_flag = 0;
-	
+
 	auth_flag = packet_authentication_state(ssh);
 	debug("AUTH STATE IS %d", auth_flag);
 
@@ -1144,7 +1142,7 @@ kex_choose_conf(struct ssh *ssh)
 			}
 			else
 				fatal("Pre-authentication none cipher requests are not allowed.");
-			if (newkeys->mac.name != NULL && strcmp(newkeys->mac.name, "none") == 0) 
+			if (newkeys->mac.name != NULL && strcmp(newkeys->mac.name, "none") == 0)
 				debug("Requesting: NONEMAC. Authflag is %d", auth_flag);
 		}
 
@@ -1535,7 +1533,7 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 		      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 		      remote_major, remote_minor, remote_version);
 	}
-	
+
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	    remote_major, remote_minor, remote_version);
 	compat_banner(ssh, remote_version);
@@ -1584,4 +1582,3 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 		errno = oerrno;
 	return r;
 }
-
