@@ -118,7 +118,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 SKOBJS=	ssh-sk-client.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
-	sshconnect.o sshconnect2.o mux.o $(SKOBJS)
+	sshconnect.o sshconnect2.o mux.o cipher-switch.o $(SKOBJS)
 
 SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	audit.o audit-bsm.o audit-linux.o platform.o \
@@ -133,7 +133,7 @@ SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	srclimit.o sftp-server.o sftp-common.o \
 	sandbox-null.o sandbox-rlimit.o sandbox-systrace.o sandbox-darwin.o \
 	sandbox-seccomp-filter.o sandbox-capsicum.o sandbox-pledge.o \
-	sandbox-solaris.o uidswap.o $(SKOBJS)
+	sandbox-solaris.o uidswap.o cipher-switch.o $(SKOBJS)
 
 SFTP_CLIENT_OBJS=sftp-common.o sftp-client.o sftp-glob.o
 

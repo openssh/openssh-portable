@@ -81,6 +81,7 @@
 #include "serverloop.h"
 #include "ssherr.h"
 #include "metrics.h"
+#include "cipher-switch.h"
 
 extern ServerOptions options;
 

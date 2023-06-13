@@ -2341,35 +2341,6 @@ main(int ac, char **av)
 	/* Try to send all our hostkeys to the client */
 	notify_hostkeys(ssh);
 
-#ifdef WITH_OPENSSL
-	/* if we are using aes-ctr there can be issues in either a fork or sandbox
-	 * so the initial aes-ctr is defined to point to the original single process
-	 * evp. After authentication we'll be past the fork and the sandboxed privsep
-	 * so we repoint the define to the multithreaded evp. To start the threads we
-	 * then force a rekey
-	 */
-	/* We now explicitly call the mt cipher in cipher.c so we don't need
-	 * the cipher_reset_multithreaded() anymore. We just need to
-	 * force a rekey -cjr 09/08/2022 */
-
-	/* only rekey if necessary. If we don't do this gcm mode cipher breaks */
-	if (strstr(ssh_packet_get_send_ciphername(the_active_state), "ctr")) {
-		debug("Single to Multithreaded CTR cipher swap - server request");
-		/* cipher_reset_multithreaded(); */
-		ssh_packet_set_authenticated(ssh);
-		packet_request_rekeying();
-	}
-	/* do the same for multithreaded chacha20 */
-	if ((strcmp(ssh_packet_get_send_ciphername(the_active_state),
-	    "chacha20-poly1305-mt@hpnssh.org") == 0) ||
-	    (strcmp(ssh_packet_get_recv_ciphername(the_active_state),
-	    "chacha20-poly1305-mt@hpnssh.org") == 0)) {
-		debug("Server request rekey for multithreaded CC20 transition");
-		ssh_packet_set_authenticated(ssh);
-		packet_request_rekeying();
-	}
-#endif
-
 	/* Start session. */
 	do_authenticated(ssh, authctxt);
 

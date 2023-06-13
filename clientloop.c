@@ -281,7 +281,7 @@ client_x11_display_valid(const char *display)
 	for (i = 0; i < dlen; i++) {
 		if (!isalnum((u_char)display[i]) &&
 		    strchr(SSH_X11_VALID_DISPLAY_CHARS, display[i]) == NULL) {
-			debug("Invalid character '%c' in DISPLAY", display[i]);
+			debug_f("Invalid character '%c' in DISPLAY", display[i]);
 			return 0;
 		}
 	}
@@ -314,7 +314,7 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 		return -1;
 	}
 	if (xauth_path != NULL && stat(xauth_path, &st) == -1) {
-		debug("No xauth program.");
+		debug_f("No xauth program.");
 		xauth_path = NULL;
 	}
 
@@ -795,16 +795,16 @@ client_repledge(void)
 	    options.num_permitted_remote_opens != 0 ||
 	    options.enable_escape_commandline != 0) {
 		/* rfwd needs inet */
-		debug("pledge: network");
+		debug_f("pledge: network");
 		if (pledge("stdio unix inet dns proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 	} else if (options.forward_agent != 0) {
 		/* agent forwarding needs to open $SSH_AUTH_SOCK at will */
-		debug("pledge: agent");
+		debug_f("pledge: agent");
 		if (pledge("stdio unix proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 	} else {
-		debug("pledge: fork");
+		debug_f("pledge: fork");
 		if (pledge("stdio proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 	}
@@ -1290,36 +1290,36 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	time_t previous_time;
 	int conn_in_ready, conn_out_ready;
 
-	debug("Entering interactive session.");
+	debug_f("Entering interactive session.");
 	session_ident = ssh2_chan_id;
 
 	if (options.control_master &&
 	    !option_clear_or_none(options.control_path)) {
-		debug("pledge: id");
+		debug_f("pledge: id");
 		if (pledge("stdio rpath wpath cpath unix inet dns recvfd sendfd proc exec id tty",
 		    NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 
 	} else if (options.forward_x11 || options.permit_local_command) {
-		debug("pledge: exec");
+		debug_f("pledge: exec");
 		if (pledge("stdio rpath wpath cpath unix inet dns proc exec tty",
 		    NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 
 	} else if (options.update_hostkeys) {
-		debug("pledge: filesystem");
+		debug_f("pledge: filesystem");
 		if (pledge("stdio rpath wpath cpath unix inet dns proc tty",
 		    NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 
 	} else if (!option_clear_or_none(options.proxy_command) ||
 	    options.fork_after_authentication) {
-		debug("pledge: proc");
+		debug_f("pledge: proc");
 		if (pledge("stdio cpath unix inet dns proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 
 	} else {
-		debug("pledge: network");
+		debug_f("pledge: network");
 		if (pledge("stdio unix inet dns proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 	}
@@ -1393,10 +1393,10 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			break;
 
 		if (ssh_packet_is_rekeying(ssh)) {
-			debug("rekeying in progress");
+			debug_f("rekeying in progress");
 		} else if (need_rekeying) {
 			/* manual rekey request */
-			debug("need rekeying");
+			debug_f("need rekeying");
 			if ((r = kex_start_rekex(ssh)) != 0)
 				fatal_fr(r, "kex_start_rekex");
 			need_rekeying = 0;
@@ -1460,7 +1460,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		 */
 		if (control_persist_exit_time > 0) {
 			if (monotime() >= control_persist_exit_time) {
-				debug("ControlPersist timeout expired");
+				debug_f("ControlPersist timeout expired");
 				break;
 			}
 		}
@@ -1535,7 +1535,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		verbose("Bytes per second: sent %.1f, received %.1f",
 		    obytes / total_time, ibytes / total_time);
 	/* Return the exit status of the program. */
-	debug("Exit status %d", exit_status);
+	debug_f("Exit status %d", exit_status);
 	return exit_status;
 }
 
@@ -1648,7 +1648,7 @@ client_request_x11(struct ssh *ssh, const char *request_type, int rchan)
 		fatal_fr(r, "parse packet");
 	/* XXX check permission */
 	/* XXX range check originator port? */
-	debug("client_request_x11: request from %s %u", originator,
+	debug_f("client_request_x11: request from %s %u", originator,
 	    originator_port);
 	free(originator);
 	sock = x11_connect_display(ssh);
@@ -1711,14 +1711,14 @@ client_request_tun_fwd(struct ssh *ssh, int tun_mode,
 	if (tun_mode == SSH_TUNMODE_NO)
 		return 0;
 
-	debug("Requesting tun unit %d in mode %d", local_tun, tun_mode);
+	debug_f("Requesting tun unit %d in mode %d", local_tun, tun_mode);
 
 	/* Open local tunnel device */
 	if ((fd = tun_open(local_tun, tun_mode, &ifname)) == -1) {
 		error("Tunnel device open failed.");
 		return NULL;
 	}
-	debug("Tunnel forwarding using interface %s", ifname);
+	debug_f("Tunnel forwarding using interface %s", ifname);
 
         c = channel_new(ssh, "tun", SSH_CHANNEL_OPENING, fd, fd, -1,
 	    options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
@@ -1766,7 +1766,7 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	    (r = sshpkt_get_u32(ssh, &rmaxpack)) != 0)
 		goto out;
 
-	debug("client_input_channel_open: ctype %s rchan %d win %d max %d",
+	debug_f("ctype %s rchan %d win %d max %d",
 	    ctype, rchan, rwindow, rmaxpack);
 
 	if (strcmp(ctype, "forwarded-tcpip") == 0) {
@@ -1782,7 +1782,7 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	if (c != NULL && c->type == SSH_CHANNEL_MUX_CLIENT) {
 		debug3("proxied to downstream: %s", ctype);
 	} else if (c != NULL) {
-		debug("confirm %s", ctype);
+		debug_f("confirm %s", ctype);
 		c->remote_id = rchan;
 		c->have_remote_id = 1;
 		c->remote_window = rwindow;
@@ -1797,7 +1797,7 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 				sshpkt_fatal(ssh, r, "%s: send reply", __func__);
 		}
 	} else {
-		debug("failure %s", ctype);
+		debug_f("failure %s", ctype);
 		if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_OPEN_FAILURE)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, rchan)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED)) != 0 ||
@@ -1831,7 +1831,7 @@ client_input_channel_req(int type, u_int32_t seq, struct ssh *ssh)
 	    (r = sshpkt_get_u8(ssh, &reply)) != 0)
 		goto out;
 
-	debug("client_input_channel_req: channel %u rtype %s reply %d",
+	debug_f("client_input_channel_req: channel %u rtype %s reply %d",
 	    id, rtype, reply);
 
 	if (c == NULL) {
@@ -2663,7 +2663,7 @@ out:
 void client_request_metrics(struct ssh *ssh) {
 	int r;
 
-	debug("Asking server for TCP stack metrics");
+	debug_f("Asking server for TCP stack metrics");
 	/* create a pakcet of GLOBAL_REQUEST type */
 	if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
 	    /* define the type of GLOBAL_REQUEST message */
@@ -2689,7 +2689,7 @@ client_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 	if ((r = sshpkt_get_cstring(ssh, &rtype, NULL)) != 0 ||
 	    (r = sshpkt_get_u8(ssh, &want_reply)) != 0)
 		goto out;
-	debug("client_input_global_request: rtype %s want_reply %d",
+	debug_f("client_input_global_request: rtype %s want_reply %d",
 	    rtype, want_reply);
 	if (strcmp(rtype, "hostkeys-00@openssh.com") == 0)
 		success = client_input_hostkeys(ssh);
@@ -2711,7 +2711,7 @@ client_send_env(struct ssh *ssh, int id, const char *name, const char *val)
 {
 	int r;
 
-	debug("channel %d: setting env %s = \"%s\"", id, name, val);
+	debug_f("channel %d: setting env %s = \"%s\"", id, name, val);
 	channel_request_start(ssh, id, "env", 0);
 	if ((r = sshpkt_put_cstring(ssh, name)) != 0 ||
 	    (r = sshpkt_put_cstring(ssh, val)) != 0 ||
@@ -2735,7 +2735,7 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		fatal_f("channel %d: unknown channel", id);
 
 	if (options.hpn_buffer_limit) {
-		debug("Limiting receive buffer size");
+		debug_f("Limiting receive buffer size");
 		c->hpn_buffer_limit = 1;
 	}
 	
@@ -2769,7 +2769,7 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 
 	/* Transfer any environment variables from client to server */
 	if (options.num_send_env != 0 && env != NULL) {
-		debug("Sending environment.");
+		debug_f("Sending environment.");
 		for (i = 0; env[i] != NULL; i++) {
 			/* Split */
 			name = xstrdup(env[i]);
@@ -2826,9 +2826,9 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 			 * haystack. If it's 0 then we can mess with it
 			 */
 			if (pos - new_cmd == 0) {
-				debug("Rewriting scp command for hpnscp.");
+				debug_f("Rewriting scp command for hpnscp.");
 				sprintf(new_cmd, "hpn%s", (const u_char*)sshbuf_ptr(cmd));
-				debug("Command was: %s and is now %s",
+				debug_f("Command was: %s and is now %s",
 				      (const u_char*)sshbuf_ptr(cmd), new_cmd);
 				/* free the existing sshbuf 'cmd'
 				 * recreate it and then write our new_cmd into
@@ -2849,13 +2849,13 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		if (len > 900)
 			len = 900;
 		if (want_subsystem) {
-			debug("Sending subsystem: %.*s",
+			debug_f("Sending subsystem: %.*s",
 			    (int)len, (const u_char*)sshbuf_ptr(cmd));
 			channel_request_start(ssh, id, "subsystem", 1);
 			client_expect_confirm(ssh, id, "subsystem",
 			    CONFIRM_CLOSE);
 		} else {
-			debug("Sending command: %.*s",
+			debug_f("Sending command: %.*s",
 			    (int)len, (const u_char*)sshbuf_ptr(cmd));
 			channel_request_start(ssh, id, "exec", 1);
 			client_expect_confirm(ssh, id, "exec", CONFIRM_CLOSE);

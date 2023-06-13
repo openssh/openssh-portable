@@ -74,6 +74,7 @@
 #include "utf8.h"
 #include "ssh-sk.h"
 #include "sk-api.h"
+#include "cipher-switch.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -502,7 +503,8 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 		if (!tty_flag) { /* no null on tty sessions */
 			debug("Requesting none rekeying...");
 			kex_proposal_populate_entries(ssh, myproposal, s, none_cipher,
-						      options.macs, compression_alg_list(options.compression),
+						      options.macs,
+						      compression_alg_list(options.compression),
 						      options.hostkeyalgorithms);
 			fprintf(stderr, "WARNING: ENABLED NONE CIPHER!!!\n");
 
@@ -510,7 +512,8 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 			if (options.nonemac_enabled == 1) {
 				const char *none_mac = "none";
 				kex_proposal_populate_entries(ssh, myproposal, s, none_cipher,
-							      none_mac, compression_alg_list(options.compression),
+							      none_mac,
+							      compression_alg_list(options.compression),
 							      options.hostkeyalgorithms);
 				fprintf(stderr, "WARNING: ENABLED NONE MAC\n");
 			}
@@ -522,35 +525,6 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 			fprintf(stderr, "NONE cipher switch disabled when a TTY is allocated\n");
 		}
 	}
-
-#ifdef WITH_OPENSSL
-	/* if we are using aes-ctr there can be issues in either a fork or sandbox
-	 * so the initial aes-ctr is defined to point to the original single process
-	 * evp. After authentication we'll be past the fork and the sandboxed privsep
-	 * so we repoint the define to the multithreaded evp. To start the threads we
-	 * then force a rekey
-	 */
-	/* We now explicitly call the mt cipher in cipher.c so we don't need
-	 * the cipher_reset_multithreaded() anymore. We just need to
-	 * force a rekey -cjr 09/08/2022 */
-	
-	/* only do this for the ctr cipher. otherwise gcm mode breaks. */
-	if (strstr(ssh_packet_get_send_ciphername(ssh), "ctr")) {
-	  debug("Single to Multithread CTR cipher swap - client request");
-	  /* cipher_reset_multithreaded(); */
-	  ssh_packet_set_authenticated(ssh);
-	  packet_request_rekeying();
-	}
-	/* do the same for multithreaded chacha20 */
-	if ((strcmp(ssh_packet_get_send_ciphername(ssh),
-	    "chacha20-poly1305-mt@hpnssh.org") == 0) ||
-	    (strcmp(ssh_packet_get_recv_ciphername(ssh),
-	    "chacha20-poly1305-mt@hpnssh.org") == 0)) {
-		debug("Client request rekey for multithreaded CC20 transition");
-		ssh_packet_set_authenticated(ssh);
-		packet_request_rekeying();
-	}
-#endif
 
 	if (ssh_packet_connection_is_on_socket(ssh)) {
 		verbose("Authenticated to %s ([%s]:%d) using \"%s\".", host,

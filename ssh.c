@@ -108,6 +108,7 @@
 #include "ssherr.h"
 #include "myproposal.h"
 #include "utf8.h"
+#include "cipher-switch.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
@@ -1794,7 +1795,7 @@ control_persist_detach(void)
 
 /* Do fork() after authentication. Used by "ssh -f" */
 static void
-fork_postauth(void)
+fork_postauth(struct ssh *ssh)
 {
 	if (need_controlpersist_detach)
 		control_persist_detach();
@@ -1804,17 +1805,21 @@ fork_postauth(void)
 		fatal("daemon() failed: %.200s", strerror(errno));
 	if (stdfd_devnull(1, 1, !(log_is_on_stderr() && debug_flag)) == -1)
 		error_f("stdfd_devnull failed");
+
+	/* we do the cipher switch here in the event that the client
+	   is forking or has a delayed fork */
+	cipher_switch(ssh);
 }
 
 static void
-forwarding_success(void)
+forwarding_success(struct ssh *ssh)
 {
 	if (forward_confirms_pending == -1)
 		return;
 	if (--forward_confirms_pending == 0) {
 		debug_f("all expected forwarding replies received");
 		if (options.fork_after_authentication)
-			fork_postauth();
+			fork_postauth(ssh);
 	} else {
 		debug2_f("%d expected forwarding replies remaining",
 		    forward_confirms_pending);
@@ -1881,7 +1886,7 @@ ssh_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 				    "for listen port %d", rfwd->listen_port);
 		}
 	}
-	forwarding_success();
+	forwarding_success(ssh);
 }
 
 static void
@@ -1908,7 +1913,7 @@ ssh_tun_confirm(struct ssh *ssh, int id, int success, void *arg)
 	}
 
 	debug_f("tunnel forward established, id=%d", id);
-	forwarding_success();
+	forwarding_success(ssh);
 }
 
 static void
@@ -2343,9 +2348,14 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 			debug("deferring postauth fork until remote forward "
 			    "confirmation received");
 		} else
-			fork_postauth();
+			fork_postauth(ssh);
+	} else {
+		/* check to see if we are switching ciphers to
+		 * one of our parallel versions. If the client is
+		 * forking then we handle it in fork_postauth()
+		 */
+		cipher_switch(ssh);
 	}
-
 	return client_loop(ssh, tty_flag, tty_flag ?
 	    options.escape_char : SSH_ESCAPECHAR_NONE, id);
 }
