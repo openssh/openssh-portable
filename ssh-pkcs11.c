@@ -260,7 +260,7 @@ pkcs11_login_slot(struct pkcs11_provider *provider, struct pkcs11_slotinfo *si,
 	if (si->token.flags & CKF_PROTECTED_AUTHENTICATION_PATH)
 		verbose("Deferring PIN entry to reader keypad.");
 	else {
-		snprintf(prompt, sizeof(prompt), "Enter PIN for '%s': ",
+		snprintf(prompt, sizeof(prompt), "Enter PIN for '%.32s': ",
 		    si->token.label);
 		if ((pin = read_passphrase(prompt, RP_ALLOW_EOF)) == NULL) {
 			debug_f("no pin specified");
@@ -622,7 +622,8 @@ pkcs11_ecdsa_wrap(struct pkcs11_provider *provider, CK_ULONG slotidx,
 }
 #endif /* OPENSSL_HAS_ECC && HAVE_EC_KEY_METHOD_NEW */
 
-/* remove trailing spaces */
+/* remove trailing spaces. Note, that this does NOT guarantee the buffer
+ * will be null terminated if there are no trailing spaces! */
 static void
 rmspace(u_char *buf, size_t len)
 {
@@ -630,8 +631,8 @@ rmspace(u_char *buf, size_t len)
 
 	if (!len)
 		return;
-	for (i = len - 1;  i > 0; i--)
-		if (i == len - 1 || buf[i] == ' ')
+	for (i = len - 1; i > 0; i--)
+		if (buf[i] == ' ')
 			buf[i] = '\0';
 		else
 			break;
@@ -1564,8 +1565,8 @@ pkcs11_register_provider(char *provider_id, char *pin,
 	}
 	rmspace(p->info.manufacturerID, sizeof(p->info.manufacturerID));
 	rmspace(p->info.libraryDescription, sizeof(p->info.libraryDescription));
-	debug("provider %s: manufacturerID <%s> cryptokiVersion %d.%d"
-	    " libraryDescription <%s> libraryVersion %d.%d",
+	debug("provider %s: manufacturerID <%.32s> cryptokiVersion %d.%d"
+	    " libraryDescription <%.32s> libraryVersion %d.%d",
 	    provider_id,
 	    p->info.manufacturerID,
 	    p->info.cryptokiVersion.major,
@@ -1609,8 +1610,8 @@ pkcs11_register_provider(char *provider_id, char *pin,
 		rmspace(token->manufacturerID, sizeof(token->manufacturerID));
 		rmspace(token->model, sizeof(token->model));
 		rmspace(token->serialNumber, sizeof(token->serialNumber));
-		debug("provider %s slot %lu: label <%s> manufacturerID <%s> "
-		    "model <%s> serial <%s> flags 0x%lx",
+		debug("provider %s slot %lu: label <%.32s> manufacturerID <%.32s> "
+		    "model <%.16s> serial <%.16s> flags 0x%lx",
 		    provider_id, (unsigned long)i,
 		    token->label, token->manufacturerID, token->model,
 		    token->serialNumber, token->flags);
