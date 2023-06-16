@@ -967,6 +967,7 @@ do_fingerprint(struct passwd *pw)
 
 	while (getline(&line, &linesize, f) != -1) {
 		lnum++;
+                comment = NULL;
 		cp = line;
 		cp[strcspn(cp, "\n")] = '\0';
 		/* Trim leading space and comments */
