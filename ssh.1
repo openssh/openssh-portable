@@ -484,6 +484,8 @@ argument is interpreted and passed to the master process.
 Valid commands are:
 .Dq check
 (check that the master process is running),
+.Dq proxy
+(mux client speaks the ssh-packet protocol directly over unix-domain socket),
 .Dq forward
 (request forwardings without command execution),
 .Dq cancel
