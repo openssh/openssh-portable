@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.96 2023/03/08 04:43:12 guenther Exp $ */
+/* $OpenBSD: mux.c,v 1.97 2023/06/20 23:59:33 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -26,6 +26,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -960,19 +961,28 @@ mux_master_process_stdio_fwd(struct ssh *ssh, u_int rid,
 {
 	Channel *nc;
 	char *chost = NULL;
-	u_int cport, i, j;
-	int r, new_fd[2];
+	u_int _cport, i, j;
+	int ok = 0, cport, r, new_fd[2];
 	struct mux_stdio_confirm_ctx *cctx;
 
 	if ((r = sshbuf_skip_string(m)) != 0 || /* reserved */
 	    (r = sshbuf_get_cstring(m, &chost, NULL)) != 0 ||
-	    (r = sshbuf_get_u32(m, &cport)) != 0) {
+	    (r = sshbuf_get_u32(m, &_cport)) != 0) {
 		free(chost);
 		error_f("malformed message");
 		return -1;
 	}
+	if (_cport == (u_int)PORT_STREAMLOCAL)
+		cport = PORT_STREAMLOCAL;
+	else if (_cport <= INT_MAX)
+		cport = (int)_cport;
+	else {
+		free(chost);
+		error_f("invalid port 0x%x", _cport);
+		return -1;
+	}
 
-	debug2_f("channel %d: stdio fwd to %s:%u", c->self, chost, cport);
+	debug2_f("channel %d: stdio fwd to %s:%d", c->self, chost, cport);
 
 	/* Gather fds from client */
 	for(i = 0; i < 2; i++) {
@@ -1005,8 +1015,13 @@ mux_master_process_stdio_fwd(struct ssh *ssh, u_int rid,
 
 	if (options.control_master == SSHCTL_MASTER_ASK ||
 	    options.control_master == SSHCTL_MASTER_AUTO_ASK) {
-		if (!ask_permission("Allow forward to %s:%u? ",
-		    chost, cport)) {
+		if (cport == PORT_STREAMLOCAL) {
+			ok = ask_permission("Allow forward to path %s", chost);
+		} else {
+			ok = ask_permission("Allow forward to [%s]:%d? ",
+			    chost, cport);
+		}
+		if (!ok) {
 			debug2_f("stdio fwd refused by user");
 			reply_error(reply, MUX_S_PERMISSION_DENIED, rid,
 			    "Permission denied");
