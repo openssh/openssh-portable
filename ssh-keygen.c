@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.467 2023/04/12 08:53:54 jsg Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.468 2023/06/20 00:05:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -997,6 +997,7 @@ do_fingerprint(struct passwd *pw)
 		 * accept a public key prefixed with a hostname or options.
 		 * Try a bare key first, otherwise skip the leading stuff.
 		 */
+		comment = NULL;
 		if ((public = try_read_key(&cp)) == NULL) {
 			i = strtol(cp, &ep, 10);
 			if (i == 0 || ep == NULL ||
