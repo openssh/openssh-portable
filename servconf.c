@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.394 2023/06/05 13:24:36 millert Exp $ */
+/* $OpenBSD: servconf.c,v 1.395 2023/06/21 05:10:26 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1333,6 +1333,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 {
 	char *str, ***chararrayptr, **charptr, *arg, *arg2, *p, *keyword;
 	int cmdline = 0, *intptr, value, value2, n, port, oactive, r, found;
+	int ca_only = 0;
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
 	ServerOpCodes opcode;
@@ -1574,6 +1575,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 
 	case sHostbasedAcceptedAlgorithms:
 		charptr = &options->hostbased_accepted_algos;
+		ca_only = 0;
  parse_pubkey_algos:
 		arg = argv_next(&ac, &av);
 		if (!arg || *arg == '\0')
@@ -1581,7 +1583,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			    filename, linenum);
 		if (*arg != '-' &&
 		    !sshkey_names_valid2(*arg == '+' || *arg == '^' ?
-		    arg + 1 : arg, 1))
+		    arg + 1 : arg, 1, ca_only))
 			fatal("%s line %d: Bad key types '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *charptr == NULL)
@@ -1590,18 +1592,22 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 
 	case sHostKeyAlgorithms:
 		charptr = &options->hostkeyalgorithms;
+		ca_only = 0;
 		goto parse_pubkey_algos;
 
 	case sCASignatureAlgorithms:
 		charptr = &options->ca_sign_algorithms;
+		ca_only = 1;
 		goto parse_pubkey_algos;
 
 	case sPubkeyAuthentication:
 		intptr = &options->pubkey_authentication;
+		ca_only = 0;
 		goto parse_flag;
 
 	case sPubkeyAcceptedAlgorithms:
 		charptr = &options->pubkey_accepted_algos;
+		ca_only = 0;
 		goto parse_pubkey_algos;
 
 	case sPubkeyAuthOptions:
