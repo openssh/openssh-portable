@@ -1,9 +1,9 @@
 Notes:
 
 LibreSSL Support:
-Changes in LibreSSL version 3.5 and 3.6 prevent the use of the threaded AES CTR cipher. 
-In those cases HPNSSH will fallback to the serial versionof the AES CTR cipher. A warning
-is printed to stderr. 
+Changes in LibreSSL version 3.5 and 3.6 prevent the use of the threaded AES CTR cipher.
+In those cases HPNSSH will fallback to the serial version of the AES CTR cipher. A warning
+is printed to stderr.
 
 Automatic Port Fallback (in version 17v3)
 The hpnssh client now uses TCP port 2222 to connect automatically as this is the
@@ -74,7 +74,7 @@ resume enabled scp with the '-z' option. For example:
 
 'scp -Z -z /opt/hpnssh/usr/bin/scp myhugefile me@host:~'
 
-MULTI-THREADED CIPHER:
+MULTI-THREADED AES CIPHER:
 The AES cipher in CTR mode has been multithreaded (MTR-AES-CTR). This will allow ssh installations
 on hosts with multiple cores to use more than one processing core during encryption.
 Tests have show significant throughput performance increases when using MTR-AES-CTR up
@@ -85,9 +85,21 @@ thread AES-CTR (ST-AES-CTR) implementations and should be 100% backward compatib
 performance requires the MTR-AES-CTR mode be enabled on both ends of the connection.
 The MTR-AES-CTR replaces ST-AES-CTR and is used in exactly the same way with the same
 nomenclature.
-Use examples:
+Usage examples:
 		ssh -caes128-ctr you@host.com
 		scp -oCipher=aes256-ctr file you@host.com:~/file
+
+MULTI-THREADED ChaCha20-Poly1305 CIPHER:
+The default cipher used by HPN-SSH is now a threaded implementation of the
+ChaCha20-Poly1305 cipher. In tests this cipher results in an approximately 90% gain in
+throughput performance in comparison to the serial implementation found in OpenSSH.
+This cipher is fully compatible with all known existing implementations of ChaCha20-Poly1305.
+
+Internally this cipher is referred to as chacha20-poly1305-mt@hpnssh.org (CC20-MT)
+similar to how the OpenSSH implementation is known as chacha20-poly1305@openssh.com
+(CC20-S (for serial)). No changes are required on the part of the user to make use of CC20-MT.
+However, if the users doesn't want to make use of this cipher they can explicitly load CC20-S using
+'-cchach20-poly1305@openssh.com` on the command line.
 
 NONE CIPHER:
 To use the NONE option you must have the NoneEnabled switch set on the server and

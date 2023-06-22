@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2023 The Board of Trustees of Carnegie Mellon University.
+ *
+ *  Author: Mitchell Dorrell <mwd@psc.edu>
+ *  Author: Chris Rapier  <rapier@psc.edu>
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the MIT License.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the MIT License for more details.
+ *
+ * You should have received a copy of the MIT License along with this library;
+ * if not, see http://opensource.org/licenses/MIT.
+ *
+ */
+
 /* TODO: audit includes */
 
 #include "includes.h"
@@ -25,7 +43,7 @@
 #include "cipher-chachapoly-libcrypto-mt.h"
 
 /* Size of keystream to pregenerate, measured in bytes
- * we want to round up to the nearest chacha block and have 
+ * we want to round up to the nearest chacha block and have
  * 128 bytes for overhead */
 #define ROUND_UP(x,y) (((((x)-1)/(y))+1)*(y))
 #define KEYSTREAMLEN (ROUND_UP((SSH_IOBUFSZ) + 128, (CHACHA_BLOCKLEN)))
@@ -33,6 +51,8 @@
 /* BEGIN TUNABLES */
 
 /* Number of worker threads to spawn. */
+/* the goal is to ensure that main is never
+ * waiting on the worker threads for keystream data */
 #define NUMTHREADS 1
 #define NUMSTREAMS 128
 
@@ -77,6 +97,10 @@ struct chachapoly_ctx_mt {
 	u_char zeros[KEYSTREAMLEN]; /* KEYSTREAMLEN == 32768 */
 	struct threadData tds[NUMTHREADS];
 
+  /* if OpenSSL has support for Poly1305 in the MAC EVPs
+   * use that (OSSL >= 3.0) if not then it's OSSL 1.1 so
+   * use the Poly1305 digest methods. Failing that use the
+   * internal poly1305 methods */
 #ifdef OPENSSL_HAVE_POLY_EVP
 	EVP_MAC_CTX    *poly_ctx;
 #elif (OPENSSL_VERSION_NUMBER < 0x30000000UL) && defined(EVP_PKEY_POLY1305)
@@ -89,6 +113,10 @@ struct chachapoly_ctx_mt {
 #endif
 };
 
+/* generate the keystream and header
+ * we use nulls for the "data" (the zeros variable) in order to
+ * get the raw keystream
+ * Returns 0 on success and -1 on failure */
 int
 generate_keystream(struct mt_keystream * ks,u_int seqnr,struct threadData * td,
     u_char * zeros)
@@ -117,6 +145,7 @@ generate_keystream(struct mt_keystream * ks,u_int seqnr,struct threadData * td,
 	return 0;
 }
 
+/* free the EVP contexts associated with the give thread */
 void
 free_threadData(struct threadData * td)
 {
@@ -129,6 +158,8 @@ free_threadData(struct threadData * td)
 	explicit_bzero(td, sizeof(*td));
 }
 
+/* initialize the EVPs used by the worker thread
+   Returns 0 on success and -1 on failure */
 int
 initialize_threadData(struct threadData * td, const u_char *key)
 {
@@ -148,6 +179,8 @@ initialize_threadData(struct threadData * td, const u_char *key)
 	return -1;
 }
 
+/* continually load the keystream struct, which is part of the batch
+ * struct, which is part of the ctx_mt struct with keystream data */
 void
 threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 {
@@ -242,9 +275,14 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			pthread_mutex_lock(&(oldBatch->lock));
 		pthread_barrier_wait(&(oldBatch->bar_start));
 
+		/* generate keystream should always work but if it doesn't
+		 * then we do a hard stop as progressing may result in
+		 * corrupted data */
 		for (int i = threadIndex; i < NUMSTREAMS; i += NUMTHREADS) {
-			generate_keystream(&(oldBatch->streams[i]),
-			    refseqnr + i, td, ctx_mt->zeros);
+			if (generate_keystream(&(oldBatch->streams[i]),
+			      refseqnr + i, td, ctx_mt->zeros) == -1) {
+				fatal_f("generate_keystream failed in chacha20-poly1305@hpnssh.org");
+			}
 		}
 
 		pthread_barrier_wait(&(oldBatch->bar_end));
@@ -391,9 +429,11 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 	for (int i=0; i<2; i++) {
 		u_int refseqnr = ctx_mt->batches[i].batchID * NUMSTREAMS;
 		for (int j = startseqnr > refseqnr ? startseqnr - refseqnr : 0;
-		    j<NUMSTREAMS; j++) {
-			generate_keystream(&(ctx_mt->batches[i].streams[j]),
-			    refseqnr + j, mainData, ctx_mt->zeros);
+		     j<NUMSTREAMS; j++) {
+			if (generate_keystream(&(ctx_mt->batches[i].streams[j]),
+			    refseqnr + j, mainData, ctx_mt->zeros) == -1) {
+				fatal_f("generate_keystream failed in chacha20-poly1305@hpnssh.org");
+			}
 		}
 	}
 
@@ -439,6 +479,7 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 	return NULL;
 }
 
+/* a fast method to XOR the keystream against the data */
 static inline void
 fastXOR(u_char *dest, const u_char *src1, const u_char *src2, u_int len)
 {
@@ -562,7 +603,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 			pthread_create(&ctx_mt->adv_tid, NULL, (void * (*)(void *)) adv_thread, ctx_mt);
 			//adv_thread(ctx_mt);
 		}
-		
+
 		/* TODO: Nothing we need to sanitize here? */
 
 		return 0;

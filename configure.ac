@@ -5630,8 +5630,8 @@ AC_SUBST([LDFLAGS_NOPIE])
 AC_SUBST([CFLAGS_NOPIE])
 
 AC_EXEEXT
-AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \
-	openbsd-compat/Makefile openbsd-compat/regress/Makefile \
+AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init hpnsshd.init hpnsshd.service \
+	openssh.xml openbsd-compat/Makefile openbsd-compat/regress/Makefile \
 	survey.sh])
 AC_OUTPUT
 

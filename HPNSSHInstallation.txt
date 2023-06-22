@@ -1,29 +1,29 @@
 ﻿HPN-SSH Installation
 
 The process of installing HPN-SSH from source is a relatively painless process
-but does have some nuances. This document will go through the process step by 
-step to help you get the most from your installation. If you find any errors 
+but does have some nuances. This document will go through the process step by
+step to help you get the most from your installation. If you find any errors
 please contact us at hpnssh@psc.edu.
 
 
 Step 1: Get the source code.
 
-The official repository for HPN-SSH is found at 
-https://github.com/rapier1/openssh-portable. Get a copy with  
-"git clone https://github.com/rapier1/openssh-portable”. 
+The official repository for HPN-SSH is found at
+https://github.com/rapier1/openssh-portable. Get a copy with
+"git clone https://github.com/rapier1/openssh-portable”.
 
 
-Step 2: Install dependencies. 
+Step 2: Install dependencies.
 
 What you need to install is dependent on your distribution but will include:
 * OpenSSL development package
    * Debian: libssl-dev
    * Fedora: openssl-devel
 * Alternatively you can use LIbreSSL
-   * However, in this case we suggest compiling and installing libressl manually as 
-     there are few maintained linux packages for LibreSSL. 
-   * Also, LibreSSL v3.5 and v3.6 do not support the threaded AES-CTR cipher. 
-     If that’s important to you then you should use OpenSSL. 
+   * However, in this case we suggest compiling and installing libressl manually as
+     there are few maintained linux packages for LibreSSL.
+   * Also, LibreSSL v3.5 and v3.6 do not support the threaded AES-CTR cipher.
+     If that’s important to you then you should use OpenSSL.
 * Z compression library
    * Debian: zlib1g-dev
    * Fedora: zlib-devel
@@ -31,10 +31,10 @@ What you need to install is dependent on your distribution but will include:
 * Automake
 
 
-Step 3: Install optional dependencies. 
+Step 3: Install optional dependencies.
 
-This optional libraries will extend the functionality of HPN-SSH to allow the use of PAM 
-authentication, Kerberos, graphical password tools, etc. 
+This optional libraries will extend the functionality of HPN-SSH to allow the use of PAM
+authentication, Kerberos, graphical password tools, etc.
 * PAM
 * Kerberos
 * GTK
@@ -47,59 +47,59 @@ generate ./configure with “autoreconf -f -i”
 
 Step 5: Configuration
 
-Configure the installation. You can get detailed information on how to do this by 
-issuing “./configure --help”. However, commonly you will want to change the default installation 
-location of the binaries. This can be done with “--prefix=/[desired_path]”. For example, 
-if you want the binaries installed into /usr/bin as opposed to the default of 
-/usr/local/bin you’d use “./configure --prefix=/usr”. Other common options would be to 
-incorporate pam, kerberos, alternative SSL libraries, and so forth. However, for most users 
-either no additional configuration options or modifying the prefix will suffice. 
+Configure the installation. You can get detailed information on how to do this by
+issuing “./configure --help”. However, commonly you will want to change the default installation
+location of the binaries. This can be done with “--prefix=/[desired_path]”. For example,
+if you want the binaries installed into /usr/bin as opposed to the default of
+/usr/local/bin you’d use “./configure --prefix=/usr”. Other common options would be to
+incorporate pam, kerberos, alternative SSL libraries, and so forth. However, for most users
+either no additional configuration options or modifying the prefix will suffice.
 
 
 Step 6: Make
 
-Make the application with “make -j[num cores]”. So if you have an 8 core system 
+Make the application with “make -j[num cores]”. So if you have an 8 core system
 you’d use “make -j8”
 
 
 Step 7: Installation
 
-After HPN-SSH successfully builds, install it with “sudo make install”. This will install the 
-binaries, configuration files, and generate the unique host keys used. At this point you can 
-make changes to the ssh client and server default configuration. These files are 
-found, generally, in /etc/hpnssh/ssh_config and sshd_config respectively. You may want to 
-change the default port from 2222 to some other value. You may also want to enable the 
-NoneCipher and NoneMac options. For more information use “man hpnsshd_config” and 
-“man hpnssh_config”. Note: The hpnssh client expects the server to be on port 2222 but will 
-fallback to 22 if it’s not found there. So if you do change the default port you’ll need to 
-make sure the clients point at the correct port. 
+After HPN-SSH successfully builds, install it with “sudo make install”. This will install the
+binaries, configuration files, and generate the unique host keys used. At this point you can
+make changes to the ssh client and server default configuration. These files are
+found, generally, in /etc/hpnssh/ssh_config and sshd_config respectively. You may want to
+change the default port from 2222 to some other value. You may also want to enable the
+NoneCipher and NoneMac options. For more information use “man hpnsshd_config” and
+“man hpnssh_config”. Note: The hpnssh client expects the server to be on port 2222 but will
+fallback to 22 if it’s not found there. So if you do change the default port you’ll need to
+make sure the clients point at the correct port.
 
 
-Step 8: Set up the hpnsshd user. 
+Step 8: Set up the hpnsshd user.
 
-This user is part of the privilege separation routines used in the 
-pre-authentication sandbox. I suggest using the following command: 
+This user is part of the privilege separation routines used in the
+pre-authentication sandbox. I suggest using the following command:
 
-sudo useradd --system --shell /usr/sbin/nologin --comment="Privilege separated HPNSSH User" \ 
+sudo useradd --system --shell /usr/sbin/nologin --comment="Privilege separated HPNSSH User" \
 --home=/run/hpnsshd hpnsshd
 
-Alternatively, you can use vipw to add the user manually. 
+Alternatively, you can use vipw to add the user manually.
 
 
 Step 9: Finishing up.
 
-At this point you can start hpnsshd manually by running “sudo /usr/sbin/hpnsshd” 
-or whatever the full path to the hpnsshd binary might be. However, this won’t 
-restart automatically on reboot. To do this you’ll need to install an appropriate 
-systemd configuration file. If that seems like a good idea to you then following steps may be 
+At this point you can start hpnsshd manually by running “sudo /usr/sbin/hpnsshd”
+or whatever the full path to the hpnsshd binary might be. However, this won’t
+restart automatically on reboot. To do this you’ll need to install an appropriate
+systemd configuration file. If that seems like a good idea to you then following steps may be
 of help. Otherwise, you are done. Enjoy!
 
 
-Step 10: Installing a systemd startup file. 
+Step 10: Installing a systemd startup file.
 
-The correct systemd startup file depends on the distribution you are using. For system 
-using systemd (you start a service with systemctl) create a file at /lib/systemd/system/hpnssh.service 
-with the following contents NB: you may need to update the paths to match your installation: 
+The correct systemd startup file depends on the distribution you are using. For system
+using systemd (you start a service with systemctl) create a file at /lib/systemd/system/hpnsshd.service
+with the following contents NB: you may need to update the paths to match your installation:
 
 [Unit]
 Description=HPN/OpenBSD Secure Shell server
@@ -124,22 +124,28 @@ RuntimeDirectoryMode=0755
 WantedBy=multi-user.target
 Alias=hpnsshd.service
 
+Alternatively, the ./configure command will generate a hpnsshd.service file from
+hpnsshd.service.in. You can use this file by copying it to
+/libsystemd/system/hpnsshd.service instead of copying the above text.
 
-Then create the defaults file at /etc/defaults/hpnssh with the following content:
-# Default settings for openssh-server. 
+Then create the defaults file at /etc/defaults/hpnsshd with the following content:
+# Default settings for openssh-server.
 # Options to pass to sshd
-SSHD_OPTS= 
+SSHD_OPTS=
 
-Enter any runtime options you want on the SSHD_OPTS line. If you can’t think of any, simply 
-leave it blank.
+Enter any runtime options you want on the SSHD_OPTS line. If you can’t think of any, simply
+leave it blank. A sample /etc/defauls/hpnssh file may be found in defaults.hpnsshd.
 
-You must then reload the systemd service to make it aware of this new service with 
+You must then reload the systemd service to make it aware of this new service with
 sudo systemctl daemon-reload
 
-If you are using an init.d (you start a service with ‘system’) then you need to install an 
-init.d. Create the file /etc/init.d/hpnssh and copy the following into it. NB: The following is 
-for where hpnsshd is found at /usr/sbin/hpnsshd. If it is not in that location you’ll need to 
-update the paths.  
+If you are using an init.d (you start a service with ‘system’) then you need to install an
+init.d. Create the file /etc/init.d/hpnssh and copy the following into it. NB: The following is
+for where hpnsshd is found at /usr/sbin/hpnsshd. If it is not in that location you’ll need to
+update the paths.
+
+Alternatively, you may use the hpnsshd.init file created during configure. This will be
+prepopulated with the correct paths by the configure script.
 
 #! /bin/sh
 
@@ -148,7 +154,7 @@ update the paths.
 # Required-Start:        $remote_fs $syslog
 # Required-Stop:        $remote_fs $syslog
 # Default-Start:        2 3 4 5
-# Default-Stop:                
+# Default-Stop:
 # Short-Description:        OpenBSD Secure Shell server with HPN
 ### END INIT INFO
 
@@ -179,7 +185,7 @@ run_by_init() {
 
 check_for_no_start() {
     # forget it if we're trying to start, and /etc/hpnssh/sshd_not_to_be_run exists
-    if [ -e /etc/hpnssh/sshd_not_to_be_run ]; then 
+    if [ -e /etc/hpnssh/sshd_not_to_be_run ]; then
         if [ "$1" = log_end_msg ]; then
             log_end_msg 0 || true
         fi
@@ -315,29 +321,29 @@ esac
 exit 0
 
 
-Step 10: Working with SELinux. 
+Step 10: Working with SELinux.
 
-If you are using SELinux you’ll need to run a few more commands in order to grant hpnssh the 
-necessary exceptions to open sockets, files, read keys, and so forth. Run the following commands 
-to allow this. Note, I’m not sure every single one of these is needed so if someone knows better 
-please let me know. Again, double check the paths of the files being updated. 
+If you are using SELinux you’ll need to run a few more commands in order to grant hpnssh the
+necessary exceptions to open sockets, files, read keys, and so forth. Run the following commands
+to allow this. Note, I’m not sure every single one of these is needed so if someone knows better
+please let me know. Again, double check the paths of the files being updated.
 
-semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_dsa_key  
+semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_dsa_key
 semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_rsa_key
-semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_ecdsa_key 
-semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_ed25519_key 
-semanage fcontext -a -f f -t sshd_key_t /etc/hpnssh/ssh_host_dsa_key.pub 
-semanage fcontext -a -f f -t sshd_key_t /etc/hpnssh/ssh_host_rsa_key.pub 
-semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_ecdsa_key.pub 
-semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_ed25519_key.pub 
-semanage fcontext -a -f f -t sshd_exec_t /usr/sbin/hpnsshd 
-semanage fcontext -a -f f -t sshd_keygen_exec_t /usr/libexec/hpnssh/hpnsshd-keygen 
-semanage fcontext -a -f f -t bin_t /usr/libexec/hpnssh/hpnsftp-server 
-semanage fcontext -a -f f -t ssh_exec_t /usr/bin/hpnssh 
-semanage fcontext -a -f f -t ssh_agent_exec_t /usr/bin/hpnssh-agent 
-semanage fcontext -a -f f -t ssh_keygen_exec_t /usr/bin/hpnssh-keygen 
-semanage fcontext -a -f f -t etc_t /etc/pam.d/hpnsshd 
-semanage port -a -t ssh_port_t -p tcp 2222 
+semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_ecdsa_key
+semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_ed25519_key
+semanage fcontext -a -f f -t sshd_key_t /etc/hpnssh/ssh_host_dsa_key.pub
+semanage fcontext -a -f f -t sshd_key_t /etc/hpnssh/ssh_host_rsa_key.pub
+semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_ecdsa_key.pub
+semanage fcontext -a -f f -t sshd_key_t  /etc/hpnssh/ssh_host_ed25519_key.pub
+semanage fcontext -a -f f -t sshd_exec_t /usr/sbin/hpnsshd
+semanage fcontext -a -f f -t sshd_keygen_exec_t /usr/libexec/hpnssh/hpnsshd-keygen
+semanage fcontext -a -f f -t bin_t /usr/libexec/hpnssh/hpnsftp-server
+semanage fcontext -a -f f -t ssh_exec_t /usr/bin/hpnssh
+semanage fcontext -a -f f -t ssh_agent_exec_t /usr/bin/hpnssh-agent
+semanage fcontext -a -f f -t ssh_keygen_exec_t /usr/bin/hpnssh-keygen
+semanage fcontext -a -f f -t etc_t /etc/pam.d/hpnsshd
+semanage port -a -t ssh_port_t -p tcp 2222
 restorecon /usr/sbin/hpnsshd
 restorecon /etc/hpnssh/ssh*_key
 restorecon /etc/hpnssh/ssh*_key\.pub
@@ -347,4 +353,3 @@ restorecon /usr/bin/hpnssh
 restorecon /usr/bin/hpnssh-agent
 restorecon /usr/bin/hpnssh-keygen
 restorecon /etc/pam.d/hpnsshd
-

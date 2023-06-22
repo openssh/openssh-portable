@@ -303,6 +303,7 @@ clean:	regressclean
 distclean:	regressclean
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log
 	rm -f *.out core opensshd.init openssh.xml
+	rm -f hpnsshd.init hpnsshd.service
 	rm -f Makefile buildpkg.sh config.h config.status
 	rm -f survey.sh openbsd-compat/regress/Makefile *~ 
 	rm -rf autom4te.cache
