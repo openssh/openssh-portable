@@ -132,16 +132,21 @@ fdlim_get(int hard)
 {
 #if defined(HAVE_GETRLIMIT) && defined(RLIMIT_NOFILE)
 	struct rlimit rlfd;
+	rlim_t lim;
 
-	if (getrlimit(RLIMIT_NOFILE, &rlfd) == -1 ||
-	    (hard ? rlfd.rlim_max : rlfd.rlim_cur) < 0)
+	if (getrlimit(RLIMIT_NOFILE, &rlfd) == -1)
 		return -1;
-	if ((hard ? rlfd.rlim_max : rlfd.rlim_cur) == RLIM_INFINITY ||
-	    (hard ? rlfd.rlim_max : rlfd.rlim_cur) > INT_MAX)
-		return SSH_SYSFDMAX;
-	return hard ? rlfd.rlim_max : rlfd.rlim_cur;
+	lim = hard ? rlfd.rlim_max : rlfd.rlim_cur;
+	if (lim <= 0)
+		return -1;
+	if (lim == RLIM_INFINITY)
+		lim = SSH_SYSFDMAX;
+	if (lim >= INT_MAX)
+		lim = INT_MAX;
+	return lim;
 #else
-	return SSH_SYSFDMAX;
+	return (SSH_SYSFDMAX <= 0) ? -1 :
+	    ((SSH_SYSFDMAX >= INT_MAX) ? INT_MAX : SSH_SYSFDMAX);
 #endif
 }
 
