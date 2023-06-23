@@ -931,7 +931,13 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		if ((r = mac_init(mac)) != 0)
 			return r;
 	}
-	mac->enabled = 1;
+
+	/* if we are using NONE MAC then we don't need to enable the
+	 * mac routines. This disables them and we can claw back some cycles
+	 * from the CPU -cjr 3/21/2023 */
+	if (ssh->none_mac != 1)
+		mac->enabled = 1;
+
 	DBG(debug_f("cipher_init: %s", dir));
 	cipher_free(*ccp);
 	*ccp = NULL;

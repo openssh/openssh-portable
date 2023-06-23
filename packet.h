@@ -92,8 +92,11 @@ struct ssh {
 	u_long fdout_bytes;
 	u_long stdin_bytes;
 
-	/* track that we are in a none cipher/mac state */
+	/* track that we are in a none cipher state */
 	int none;
+
+	/* track if we have disabled the mac as well */
+	int none_mac;
 
 	/* use the less agressive window growth option */
 	int hpn_buffer_limit;

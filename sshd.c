@@ -1789,9 +1789,9 @@ main(int ac, char **av)
 
 		/* only enable the none MAC in context of the none cipher -cjr */
 		if (options.nonemac_enabled == 1) {
-		  char *old_macs = options.macs;
-		  xasprintf(&options.macs, "%s,none", old_macs);
-		  free(old_macs);
+			char *old_macs = options.macs;
+			xasprintf(&options.macs, "%s,none", old_macs);
+			free(old_macs);
 		}
 	}
 

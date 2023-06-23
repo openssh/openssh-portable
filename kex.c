@@ -1142,8 +1142,11 @@ kex_choose_conf(struct ssh *ssh)
 			}
 			else
 				fatal("Pre-authentication none cipher requests are not allowed.");
-			if (newkeys->mac.name != NULL && strcmp(newkeys->mac.name, "none") == 0)
+
+			if (newkeys->mac.name != NULL && strcmp(newkeys->mac.name, "none") == 0) {
 				debug("Requesting: NONEMAC. Authflag is %d", auth_flag);
+				ssh->none_mac = 1;
+			}
 		}
 
 		debug("kex: %s cipher: %s MAC: %s compression: %s",
