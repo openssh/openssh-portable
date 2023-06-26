@@ -19,11 +19,6 @@
 /* TODO: audit includes */
 
 #include "includes.h"
-/* functions in the header file are called in cipher.c
- * so we need to define the functions even if we don't
- * end up using them. So this always needs to be loaded
- * even if we aren't using openssl */
-#include "cipher-chachapoly-libcrypto-mt.h"
 #ifdef WITH_OPENSSL
 #include "openbsd-compat/openssl-compat.h"
 #endif
@@ -45,6 +40,7 @@
 
 #include "xmalloc.h"
 #include "cipher-chachapoly.h"
+#include "cipher-chachapoly-libcrypto-mt.h"
 
 /* Size of keystream to pregenerate, measured in bytes
  * we want to round up to the nearest chacha block and have
