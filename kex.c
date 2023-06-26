@@ -791,6 +791,7 @@ kex_ready(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 {
 	int r;
 
+#ifdef WITH_OPENSSL
 	char * match;
 	u_int next;
 	char * adjCTOS = xstrdup(proposal[PROPOSAL_ENC_ALGS_CTOS]);
@@ -837,6 +838,7 @@ kex_ready(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 		}
 	}
 	proposal[PROPOSAL_ENC_ALGS_STOC] = adjSTOC;
+#endif
 
 	if ((r = kex_prop2buf(ssh->kex->my, proposal)) != 0)
 		return r;
@@ -1100,6 +1102,7 @@ kex_choose_conf(struct ssh *ssh)
 			peer[nenc] = NULL;
 			goto out;
 		}
+#ifdef WITH_OPENSSL
 		if ((strcmp(newkeys->enc.name, "chacha20-poly1305@openssh.com")
 		    == 0) && (match_list("chacha20-poly1305-mt@hpnssh.org",
 		    my[nenc], NULL) != NULL)) {
@@ -1118,6 +1121,7 @@ kex_choose_conf(struct ssh *ssh)
 				    "chacha20-poly1305-mt@hpnssh.org");
 			}
 		}
+#endif
 		authlen = cipher_authlen(newkeys->enc.cipher);
 		/* ignore mac for authenticated encryption */
 		if (authlen == 0 &&

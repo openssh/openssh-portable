@@ -941,6 +941,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	DBG(debug_f("cipher_init: %s", dir));
 	cipher_free(*ccp);
 	*ccp = NULL;
+#ifdef WITH_OPENSSL
 	if (strcmp(enc->name, "chacha20-poly1305-mt@hpnssh.org") == 0) {
 		if (state->after_authentication)
 			enc->cipher = cipher_by_name(
@@ -951,6 +952,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		if (enc->cipher == NULL)
 			return r;
 	}
+#endif
 	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len, enc->iv,
 	    enc->iv_len, crypt_type ? state->p_send.seqnr : state->p_read.seqnr,
 	    crypt_type, state->after_authentication)) != 0)

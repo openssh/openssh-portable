@@ -89,9 +89,9 @@ struct sshcipher {
 #define CFLAG_CHACHAPOLY	(1<<1)
 #define CFLAG_AESCTR		(1<<2)
 #define CFLAG_NONE		(1<<3)
-#define CFLAG_MT		(1<<4)
 #define CFLAG_INTERNAL		CFLAG_NONE /* Don't use "none" for packets */
 #ifdef WITH_OPENSSL
+#define CFLAG_MT		(1<<4)
 	const EVP_CIPHER	*(*evptype)(void);
 #else
 	void	*ignored;
@@ -120,8 +120,10 @@ static struct sshcipher ciphers[] = {
 #endif
 	{ "chacha20-poly1305@openssh.com",
 				8, 64, 0, 16, CFLAG_CHACHAPOLY, NULL },
+#ifdef WITH_OPENSSL
 	{ "chacha20-poly1305-mt@hpnssh.org",
 				8, 64, 0, 16, CFLAG_CHACHAPOLY|CFLAG_MT, NULL },
+#endif
 	{ "none",               8, 0, 0, 0, CFLAG_NONE, NULL },
 
 	{ NULL,                 0, 0, 0, 0, 0, NULL }
@@ -339,17 +341,20 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 
 	cc->cipher = cipher;
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		if ((cc->cipher->flags & CFLAG_MT) != 0) {
 #ifdef WITH_OPENSSL
+		if ((cc->cipher->flags & CFLAG_MT) != 0) {
 			cc->cp_ctx_mt = chachapoly_new_mt(seqnr, key, keylen);
 			ret = cc->cp_ctx_mt != NULL ? 0 :
 			    SSH_ERR_INVALID_ARGUMENT;
-#endif
 		} else {
 			cc->cp_ctx = chachapoly_new(key, keylen);
 			ret = cc->cp_ctx != NULL ? 0 : SSH_ERR_INVALID_ARGUMENT;
 		}
+#else
+		cc->cp_ctx = chachapoly_new(key, keylen);
+		ret = cc->cp_ctx != NULL ? 0 : SSH_ERR_INVALID_ARGUMENT;
 		goto out;
+#endif
 	}
 	if ((cc->cipher->flags & CFLAG_NONE) != 0) {
 		ret = 0;
@@ -471,15 +476,17 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
    const u_char *src, u_int len, u_int aadlen, u_int authlen)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		if ((cc->cipher->flags & CFLAG_MT) != 0) {
 #ifdef WITH_OPENSSL
+		if ((cc->cipher->flags & CFLAG_MT) != 0) {
 			return chachapoly_crypt_mt(cc->cp_ctx_mt, seqnr, dest,
 			    src, len, aadlen, authlen, cc->encrypt);
-#endif
 		}
 		else
 			return chachapoly_crypt(cc->cp_ctx, seqnr, dest, src,
 			    len, aadlen, authlen, cc->encrypt);
+#endif
+		return chachapoly_crypt(cc->cp_ctx, seqnr, dest, src,
+		    len, aadlen, authlen, cc->encrypt);
 	}
 	if ((cc->cipher->flags & CFLAG_NONE) != 0) {
 		memcpy(dest, src, aadlen + len);
@@ -541,15 +548,18 @@ cipher_get_length(struct sshcipher_ctx *cc, u_int *plenp, u_int seqnr,
     const u_char *cp, u_int len)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		if ((cc->cipher->flags & CFLAG_MT) != 0) {
 #ifdef WITH_OPENSSL
+		if ((cc->cipher->flags & CFLAG_MT) != 0) {
 			return chachapoly_get_length_mt(cc->cp_ctx_mt, plenp,
 			    seqnr, cp, len);
-#endif
 		}
 		else
 			return chachapoly_get_length(cc->cp_ctx, plenp, seqnr,
 			    cp, len);
+#else
+		return chachapoly_get_length(cc->cp_ctx, plenp, seqnr,
+		    cp, len);
+#endif
 	}
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
@@ -563,15 +573,18 @@ cipher_free(struct sshcipher_ctx *cc)
 	if (cc == NULL)
 		return;
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		if ((cc->cipher->flags & CFLAG_MT) != 0) {
 #ifdef WITH_OPENSSL
+		if ((cc->cipher->flags & CFLAG_MT) != 0) {
 			chachapoly_free_mt(cc->cp_ctx_mt);
 			cc->cp_ctx_mt = NULL;
-#endif
 		} else {
 			chachapoly_free(cc->cp_ctx);
 			cc->cp_ctx = NULL;
 		}
+#else
+		chachapoly_free(cc->cp_ctx);
+		cc->cp_ctx = NULL;
+#endif
 	} else if ((cc->cipher->flags & CFLAG_AESCTR) != 0)
 		explicit_bzero(&cc->ac_ctx, sizeof(cc->ac_ctx));
 #ifdef WITH_OPENSSL
