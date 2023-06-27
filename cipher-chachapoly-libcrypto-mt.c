@@ -26,6 +26,7 @@
 #if defined(HAVE_EVP_CHACHA20) && !defined(HAVE_BROKEN_CHACHA20)
 
 #include <sys/types.h>
+#include <unistd.h> /* needed for getpid under C99 */
 #include <stdarg.h> /* needed for log.h */
 #include <string.h>
 #include <stdio.h>  /* needed for misc.h */
@@ -450,8 +451,8 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 	int ret=0;
 	/* Block workers from reading their thread IDs before we set them. */
 	pthread_mutex_lock(&(ctx_mt->tid_lock));
-	debug2_f("<main thread: pid=%u, tid=%u, ptid=0x%lx>", getpid(),
-	    gettid(), pthread_self());
+	/* was reporting the TID using gettid() but it's not portable */
+	debug2_f("<main thread: pid=%u, ptid=0x%lx>", getpid(), pthread_self());
 	for (int i=0; i<NUMTHREADS; i++) {
 		/*
 		 * If we fail to generate some threads, the thread ID will
@@ -483,6 +484,8 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 static inline void
 fastXOR(u_char *dest, const u_char *src1, const u_char *src2, u_int len)
 {
+	/* XXX this is causing an unaligned load/store error when using sanitized addresses */
+	/* Are we assuming 16 byte alignment is available everywhere? */
 	typedef __uint128_t chunk;
 	size_t i;
 	for (i=0; i < (len / sizeof(chunk)); i++)
