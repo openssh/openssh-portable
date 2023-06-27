@@ -238,6 +238,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 		 * the thread cancels, and so we can release them appropriately.
 		 */
 		pthread_mutex_lock(&(ctx_mt->batchID_lock));
+		/* XXX cast between incompatible function types from ‘int (*)(pthread_mutex_t *)’ {aka ‘int (*)(union <anonymous> *)’} to ‘void (*)(void *)’ */
 		pthread_cleanup_push((void (*)(void *)) pthread_mutex_unlock,
 		    &(ctx_mt->batchID_lock));
 		while (td->batchID == ctx_mt->batchID) {
@@ -460,6 +461,7 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 		 * and so SHOULD be ignored by pthread_cancel and pthread_join
 		 * while ctx_mt is being freed.
 		 */
+		/* XXX cast between incompatible function types from ‘void (*)(struct chachapoly_ctx_mt *)’ to ‘void * (*)(void *)’ */ 
 		if (pthread_create(&(ctx_mt->tid[i]), NULL,
 		    (void * (*)(void *))threadLoop, ctx_mt)) {
 			ret=1;
@@ -602,6 +604,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 
 		ctx_mt->seqnr = seqnr + 1;
 
+                /* XXX cast between incompatible function types from ‘void (*)(struct chachapoly_ctx_mt *)’ to ‘void * (*)(void *)’ */
 		if (__builtin_expect(ctx_mt->seqnr / NUMSTREAMS > ctx_mt->batchID,0)) {
 			pthread_create(&ctx_mt->adv_tid, NULL, (void * (*)(void *)) adv_thread, ctx_mt);
 			//adv_thread(ctx_mt);
