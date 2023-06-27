@@ -353,8 +353,8 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 #else
 		cc->cp_ctx = chachapoly_new(key, keylen);
 		ret = cc->cp_ctx != NULL ? 0 : SSH_ERR_INVALID_ARGUMENT;
-		goto out;
 #endif
+		goto out;
 	}
 	if ((cc->cipher->flags & CFLAG_NONE) != 0) {
 		ret = 0;
