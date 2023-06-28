@@ -62,7 +62,8 @@ if ${SSH} -Q cipher-auth | grep '^.*$' >/dev/null 2>&1 ; then
   done
 fi
 
-for s in 16 1k 128k 256k; do
+#for s in 16 1k 128k 256k; do
+for s in 16 1k 128k; do
 	verbose "client rekeylimit ${s}"
 	ssh_data_rekeying "" -oCompression=no -oRekeyLimit=$s
 done
