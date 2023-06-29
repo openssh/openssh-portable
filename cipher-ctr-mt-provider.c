@@ -148,10 +148,10 @@ const OSSL_DISPATCH aes_mt_funcs_128[] = {
 
 /* the ciphers found in this provider */
 const OSSL_ALGORITHM aes_mt_ciphers[] = {
-	{ "aes_ctr_mt_256", "provider=hpnssh", aes_mt_funcs_256 },
-	{ "aes_ctr_mt_192", "provider=hpnssh", aes_mt_funcs_192 },
-	{ "aes_ctr_mt_128", "provider=hpnssh", aes_mt_funcs_128 },
-	{ NULL, NULL, NULL }
+	{ "aes_ctr_mt_256", "provider=hpnssh", aes_mt_funcs_256, NULL },
+	{ "aes_ctr_mt_192", "provider=hpnssh", aes_mt_funcs_192, NULL },
+	{ "aes_ctr_mt_128", "provider=hpnssh", aes_mt_funcs_128, NULL },
+	{ NULL, NULL, NULL, NULL }
 };
 
 /* function mapping for provider methods */
