@@ -484,16 +484,17 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 
 /* a fast method to XOR the keystream against the data */
 static inline void
-fastXOR(u_char *dest, const u_char *src1, const u_char *src2, u_int len)
+fastXOR(u_char *dest, const u_char *src, const u_char *keystream, u_int len)
 {
-	/* XXX this is causing an unaligned load/store error when using sanitized addresses */
-	/* Are we assuming 16 byte alignment is available everywhere? */
-	typedef __uint128_t chunk;
+
+	/* XXX: this was __uint128_t but that was causing unaligned load errors. 
+	 * this works but we need to explore it more. */
+	typedef __uint32_t chunk;
 	size_t i;
 	for (i=0; i < (len / sizeof(chunk)); i++)
-		((chunk *)dest)[i]=((chunk *)src1)[i]^((chunk *)src2)[i];
+		((chunk *)dest)[i]=((chunk *)src)[i]^((chunk *)keystream)[i];
 	for (i=i*(sizeof(chunk) / sizeof(char)); i < len; i++)
-		dest[i]=src1[i]^src2[i];
+		dest[i]=src[i]^keystream[i];
 }
 
 void
