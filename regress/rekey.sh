@@ -23,9 +23,10 @@ ssh_data_rekeying()
 	_opts="$_opts -oCompression=no"
 #	echo "${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost cat > ${COPY}"
 	${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
-#	if [ $? -ne 0 ]; then
-#		fail "ssh failed ($@ $?)"
-#	fi
+	echo "exit code $?"
+	if [ $? -ne 0 ]; then
+		fail "ssh failed ($@ $?)"
+	fi
 	cmp ${DATA} ${COPY}		|| fail "corrupted copy ($@)"
 	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`
 	n=`expr $n - 1`
@@ -63,8 +64,7 @@ if ${SSH} -Q cipher-auth | grep '^.*$' >/dev/null 2>&1 ; then
   done
 fi
 
-#for s in 16 1k 128k 256k; do
-for s in 16 1k 128k; do
+for s in 16 1k 128k 256k; do
 	verbose "client rekeylimit ${s}"
 	ssh_data_rekeying "" -oCompression=no -oRekeyLimit=$s
 done
