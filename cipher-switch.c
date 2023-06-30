@@ -39,7 +39,6 @@
 
 void
 cipher_switch(struct ssh *ssh) {
-	debug_f ("************************ IN CIPHER SWITCH");
 #ifdef WITH_OPENSSL
 	/* get the send and receive context and extract the cipher name */
 	const void *send_cc = ssh_packet_get_send_context(ssh);
