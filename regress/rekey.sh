@@ -20,8 +20,7 @@ ssh_data_rekeying()
 		_opts="$_opts -o$_kexopt"
 	fi
 	rm -f ${COPY} ${LOG}
-	_opts="$_opts -oCompression=no"
-#	echo "${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost cat > ${COPY}"
+	_opts="$_opts -oCompression=no -cchacha20-poly1305@openssh.com"
 	${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
 	echo "exit code $?"
 	if [ $? -ne 0 ]; then
@@ -43,6 +42,9 @@ for i in `${SSH} -Q kex`; do
 	opts="$opts KexAlgorithms=$i"
 done
 for i in `${SSH} -Q cipher`; do
+	if [ "$i" = "chacha20-poly1305-mt@hpnssh.org" ]; then
+		break
+	fi
 	opts="$opts Ciphers=$i"
 done
 for i in `${SSH} -Q mac`; do
