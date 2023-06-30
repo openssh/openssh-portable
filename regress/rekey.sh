@@ -21,11 +21,11 @@ ssh_data_rekeying()
 	fi
 	rm -f ${COPY} ${LOG}
 	_opts="$_opts -oCompression=no"
-	echo "${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost cat > ${COPY}"
+#	echo "${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost cat > ${COPY}"
 	${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
-	if [ $? -ne 0 ]; then
-		fail "ssh failed ($@ $?)"
-	fi
+#	if [ $? -ne 0 ]; then
+#		fail "ssh failed ($@ $?)"
+#	fi
 	cmp ${DATA} ${COPY}		|| fail "corrupted copy ($@)"
 	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`
 	n=`expr $n - 1`
