@@ -904,6 +904,14 @@ static const struct multistate multistate_compression[] = {
 	{ "no",				COMP_NONE },
 	{ NULL, -1 }
 };
+static const struct multistate multistate_visualhostkey[] = {
+	{ "true",		SSH_VISUAL_HOSTKEY_YES },
+	{ "false",		SSH_VISUAL_HOSTKEY_NO },
+	{ "yes",		SSH_VISUAL_HOSTKEY_YES },
+	{ "no",			SSH_VISUAL_HOSTKEY_NO },
+	{ "unknown",		SSH_VISUAL_HOSTKEY_UNKNOWN },
+	{ NULL, -1 }
+};
 
 static int
 parse_multistate_value(const char *arg, const char *filename, int linenum,
@@ -1850,7 +1858,8 @@ parse_pubkey_algos:
 
 	case oVisualHostKey:
 		intptr = &options->visual_host_key;
-		goto parse_flag;
+		multistate_ptr = multistate_visualhostkey;
+		goto parse_multistate;
 
 	case oInclude:
 		if (cmdline) {

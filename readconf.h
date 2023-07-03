@@ -221,6 +221,10 @@ typedef struct {
 #define SSH_STRICT_HOSTKEY_YES	2
 #define SSH_STRICT_HOSTKEY_ASK	3
 
+#define SSH_VISUAL_HOSTKEY_NO		0
+#define SSH_VISUAL_HOSTKEY_YES	1
+#define SSH_VISUAL_HOSTKEY_UNKNOWN	2
+
 const char *kex_default_pk_alg(void);
 char	*ssh_connection_hash(const char *thishost, const char *host,
     const char *portstr, const char *user);
