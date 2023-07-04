@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.431 2023/06/05 13:24:36 millert Exp $ */
+/* $OpenBSD: channels.c,v 1.432 2023/07/04 03:59:21 dlg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1634,7 +1634,7 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 
 Channel *
 channel_connect_stdio_fwd(struct ssh *ssh,
-    const char *host_to_connect, u_short port_to_connect,
+    const char *host_to_connect, int port_to_connect,
     int in, int out, int nonblock)
 {
 	Channel *c;
@@ -1651,7 +1651,8 @@ channel_connect_stdio_fwd(struct ssh *ssh,
 	c->force_drain = 1;
 
 	channel_register_fds(ssh, c, in, out, -1, 0, 1, 0);
-	port_open_helper(ssh, c, "direct-tcpip");
+	port_open_helper(ssh, c, port_to_connect == PORT_STREAMLOCAL ?
+	    "direct-streamlocal@openssh.com" : "direct-tcpip");
 
 	return c;
 }

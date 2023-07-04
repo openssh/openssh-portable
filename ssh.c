@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.589 2023/06/21 05:08:32 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.590 2023/07/04 03:59:21 dlg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -907,7 +907,9 @@ main(int ac, char **av)
 			if (muxclient_command != 0)
 				fatal("Cannot specify stdio forward with -O");
 			if (parse_forward(&fwd, optarg, 1, 0)) {
-				options.stdio_forward_host = fwd.listen_host;
+				options.stdio_forward_host =
+				    fwd.listen_port == PORT_STREAMLOCAL ?
+				    fwd.listen_path : fwd.listen_host;
 				options.stdio_forward_port = fwd.listen_port;
 				free(fwd.connect_host);
 			} else {
