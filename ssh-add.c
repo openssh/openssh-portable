@@ -808,6 +808,7 @@ main(int argc, char **argv)
 	extern char *optarg;
 	extern int optind;
 	int agent_fd;
+	const char *errstr = NULL;
 	char *pkcs11provider = NULL, *skprovider = NULL;
 	char **dest_constraint_strings = NULL, **hostkey_files = NULL;
 	int r, i, ch, deleting = 0, ret = 0, key_only = 0, cert_only = 0;
@@ -888,16 +889,16 @@ main(int argc, char **argv)
 			confirm = 1;
 			break;
 		case 'm':
-			minleft = (u_int)strtonum(optarg, 1, UINT_MAX, NULL);
-			if (minleft == 0) {
+			minleft = (u_int)strtonum(optarg, 1, UINT_MAX, &errstr);
+			if (errstr) {
 				usage();
 				ret = 1;
 				goto done;
 			}
 			break;
 		case 'M':
-			maxsign = (u_int)strtonum(optarg, 1, UINT_MAX, NULL);
-			if (maxsign == 0) {
+			maxsign = (u_int)strtonum(optarg, 1, UINT_MAX, &errstr);
+			if (errstr) {
 				usage();
 				ret = 1;
 				goto done;
