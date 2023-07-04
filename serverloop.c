@@ -303,7 +303,7 @@ process_input(struct ssh *ssh, int connection_in)
  * Sends data from internal buffers to client program stdin.
  */
 static void
-process_output(struct ssh *ssh, int connection_out)
+process_output(struct ssh *ssh)
 {
 	int r;
 
@@ -397,7 +397,7 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		if ((r = ssh_packet_check_rekey(ssh)) != 0)
 			fatal_fr(r, "cannot start rekeying");
 		if (conn_out_ready)
-			process_output(ssh, connection_out);
+			process_output(ssh);
 	}
 	collect_children(ssh);
 	free(pfd);

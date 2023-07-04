@@ -381,7 +381,7 @@ channel_set_xtype(struct ssh *ssh, int id, const char *xctype)
  * when the channel consumer/producer is ready, e.g. shell exec'd
  */
 static void
-channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
+channel_register_fds(Channel *c, int rfd, int wfd, int efd,
     int extusage, int nonblock, int is_tty)
 {
 	int val;
@@ -488,7 +488,7 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 		fatal_fr(r, "sshbuf_set_max_size");
 	c->ostate = CHAN_OUTPUT_OPEN;
 	c->istate = CHAN_INPUT_OPEN;
-	channel_register_fds(ssh, c, rfd, wfd, efd, extusage, nonblock, 0);
+	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock, 0);
 	c->self = found;
 	c->type = type;
 	c->ctype = ctype;
@@ -1195,7 +1195,7 @@ channel_set_fds(struct ssh *ssh, int id, int rfd, int wfd, int efd,
 	if (!c->have_remote_id)
 		fatal_f("channel %d: no remote id", c->self);
 
-	channel_register_fds(ssh, c, rfd, wfd, efd, extusage, nonblock, is_tty);
+	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock, is_tty);
 	c->type = SSH_CHANNEL_OPEN;
 	c->lastused = monotime();
 	c->local_window = c->local_window_max = window_max;
@@ -1667,7 +1667,7 @@ channel_connect_stdio_fwd(struct ssh *ssh,
 	c->listening_port = 0;
 	c->force_drain = 1;
 
-	channel_register_fds(ssh, c, in, out, -1, 0, 1, 0);
+	channel_register_fds(c, in, out, -1, 0, 1, 0);
 	port_open_helper(ssh, c, port_to_connect == PORT_STREAMLOCAL ?
 	    "direct-streamlocal@openssh.com" : "direct-tcpip");
 
@@ -4632,7 +4632,7 @@ channel_connect_ctx_free(struct channel_connect *cctx)
  */
 static int
 connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
-    char *ctype, char *rname, struct channel_connect *cctx,
+    struct channel_connect *cctx,
     int *reason, const char **errmsg)
 {
 	struct addrinfo hints;
@@ -4705,8 +4705,7 @@ connect_to(struct ssh *ssh, const char *host, int port,
 	int sock;
 
 	memset(&cctx, 0, sizeof(cctx));
-	sock = connect_to_helper(ssh, host, port, SOCK_STREAM, ctype, rname,
-	    &cctx, NULL, NULL);
+	sock = connect_to_helper(ssh, host, port, SOCK_STREAM, &cctx, NULL, NULL);
 	if (sock == -1) {
 		channel_connect_ctx_free(&cctx);
 		return NULL;
@@ -4819,8 +4818,7 @@ channel_connect_to_port(struct ssh *ssh, const char *host, u_short port,
 	}
 
 	memset(&cctx, 0, sizeof(cctx));
-	sock = connect_to_helper(ssh, host, port, SOCK_STREAM, ctype, rname,
-	    &cctx, reason, errmsg);
+	sock = connect_to_helper(ssh, host, port, SOCK_STREAM, &cctx, reason, errmsg);
 	if (sock == -1) {
 		channel_connect_ctx_free(&cctx);
 		return NULL;
@@ -4951,15 +4949,14 @@ rdynamic_connect_finish(struct ssh *ssh, Channel *c)
 	}
 
 	memset(&cctx, 0, sizeof(cctx));
-	sock = connect_to_helper(ssh, c->path, c->host_port, SOCK_STREAM, NULL,
-	    NULL, &cctx, NULL, NULL);
+	sock = connect_to_helper(ssh, c->path, c->host_port, SOCK_STREAM, &cctx, NULL, NULL);
 	if (sock == -1)
 		channel_connect_ctx_free(&cctx);
 	else {
 		/* similar to SSH_CHANNEL_CONNECTING but we've already sent the open */
 		c->type = SSH_CHANNEL_RDYNAMIC_FINISH;
 		c->connect_ctx = cctx;
-		channel_register_fds(ssh, c, sock, sock, -1, 0, 1, 0);
+		channel_register_fds(c, sock, sock, -1, 0, 1, 0);
 	}
 	return sock;
 }

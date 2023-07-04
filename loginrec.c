@@ -824,7 +824,7 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 /* write a utmp entry with the system's help (pututline() and pals) */
 # ifdef UTMP_USE_LIBRARY
 static int
-utmp_write_library(struct logininfo *li, struct utmp *ut)
+utmp_write_library(struct utmp *ut)
 {
 	setutent();
 	pututline(ut);
@@ -840,7 +840,7 @@ utmp_write_library(struct logininfo *li, struct utmp *ut)
  * This is a slightly modification of code in OpenBSD's login.c
  */
 static int
-utmp_write_direct(struct logininfo *li, struct utmp *ut)
+utmp_write_direct(struct utmp *ut)
 {
 	struct utmp old_ut;
 	register int fd;
@@ -929,12 +929,12 @@ utmp_perform_login(struct logininfo *li)
 
 	construct_utmp(li, &ut);
 # ifdef UTMP_USE_LIBRARY
-	if (!utmp_write_library(li, &ut)) {
+	if (!utmp_write_library(&ut)) {
 		logit("%s: utmp_write_library() failed", __func__);
 		return (0);
 	}
 # else
-	if (!utmp_write_direct(li, &ut)) {
+	if (!utmp_write_direct(&ut)) {
 		logit("%s: utmp_write_direct() failed", __func__);
 		return (0);
 	}
@@ -950,12 +950,12 @@ utmp_perform_logout(struct logininfo *li)
 
 	construct_utmp(li, &ut);
 # ifdef UTMP_USE_LIBRARY
-	if (!utmp_write_library(li, &ut)) {
+	if (!utmp_write_library(&ut)) {
 		logit("%s: utmp_write_library() failed", __func__);
 		return (0);
 	}
 # else
-	if (!utmp_write_direct(li, &ut)) {
+	if (!utmp_write_direct(&ut)) {
 		logit("%s: utmp_write_direct() failed", __func__);
 		return (0);
 	}
@@ -999,7 +999,7 @@ utmp_write_entry(struct logininfo *li)
 /* write a utmpx entry with the system's help (pututxline() and pals) */
 # ifdef UTMPX_USE_LIBRARY
 static int
-utmpx_write_library(struct logininfo *li, struct utmpx *utx)
+utmpx_write_library(struct utmpx *utx)
 {
 	setutxent();
 	pututxline(utx);
@@ -1014,7 +1014,7 @@ utmpx_write_library(struct logininfo *li, struct utmpx *utx)
 
 /* write a utmp entry direct to the file */
 static int
-utmpx_write_direct(struct logininfo *li, struct utmpx *utx)
+utmpx_write_direct(struct utmpx *utx)
 {
 	logit("%s: not implemented!", __func__);
 	return (0);
@@ -1028,12 +1028,12 @@ utmpx_perform_login(struct logininfo *li)
 
 	construct_utmpx(li, &utx);
 # ifdef UTMPX_USE_LIBRARY
-	if (!utmpx_write_library(li, &utx)) {
+	if (!utmpx_write_library(&utx)) {
 		logit("%s: utmp_write_library() failed", __func__);
 		return (0);
 	}
 # else
-	if (!utmpx_write_direct(li, &ut)) {
+	if (!utmpx_write_direct(&utx)) {
 		logit("%s: utmp_write_direct() failed", __func__);
 		return (0);
 	}
@@ -1056,9 +1056,9 @@ utmpx_perform_logout(struct logininfo *li)
 # endif
 
 # ifdef UTMPX_USE_LIBRARY
-	utmpx_write_library(li, &utx);
+	utmpx_write_library(&utx);
 # else
-	utmpx_write_direct(li, &utx);
+	utmpx_write_direct(&utx);
 # endif
 	return (1);
 }
@@ -1261,7 +1261,7 @@ wtmp_get_entry(struct logininfo *li)
  * This is a slight modification of code in OpenBSD's logwtmp.c
  */
 static int
-wtmpx_write(struct logininfo *li, struct utmpx *utx)
+wtmpx_write(struct utmpx *utx)
 {
 #ifndef HAVE_UPDWTMPX
 	struct stat buf;
@@ -1296,7 +1296,7 @@ wtmpx_perform_login(struct logininfo *li)
 	struct utmpx utx;
 
 	construct_utmpx(li, &utx);
-	return (wtmpx_write(li, &utx));
+	return (wtmpx_write(&utx));
 }
 
 
@@ -1306,7 +1306,7 @@ wtmpx_perform_logout(struct logininfo *li)
 	struct utmpx utx;
 
 	construct_utmpx(li, &utx);
-	return (wtmpx_write(li, &utx));
+	return (wtmpx_write(&utx));
 }
 
 
