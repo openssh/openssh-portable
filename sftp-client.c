@@ -328,7 +328,7 @@ get_handle(struct sftp_conn *conn, u_int expected_id, size_t *len,
 		if ((r = sshbuf_get_u32(msg, &status)) != 0)
 			fatal_fr(r, "parse status");
 		if (errfmt != NULL)
-			error("%s: %s", errmsg, fx2txt(status));
+			error("%s: Aborting", errmsg);
 		sshbuf_free(msg);
 		return(NULL);
 	} else if (type != SSH2_FXP_HANDLE)
@@ -1570,7 +1570,7 @@ send_open(struct sftp_conn *conn, const char *path, const char *tag,
 	debug3("Sent %s message SSH2_FXP_OPEN I:%u P:%s M:0x%04x",
 	    tag, id, path, openmode);
 	if ((handle = get_handle(conn, id, &handle_len,
-	    "%s open \"%s\"", tag, path)) == NULL)
+	    "%s directory %s does not exist", tag, path)) == NULL)
 		return -1;
 	/* success */
 	*handlep = handle;
