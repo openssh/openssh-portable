@@ -944,7 +944,8 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 	char msg[1024];
 	const char *type, *fail_reason = NULL;
 	const struct hostkey_entry *host_found = NULL, *ip_found = NULL;
-	int len, cancelled_forwarding = 0, confirmed;
+	int cancelled_forwarding = 0, confirmed;
+	size_t len;
 	int local = sockaddr_is_local(hostaddr);
 	int r, want_cert = sshkey_is_cert(host_key), host_ip_differ = 0;
 	int hostkey_trusted = 0; /* Known or explicitly accepted by user */
@@ -1379,7 +1380,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		if (host_status == HOST_OK) {
 			len = strlen(msg);
 			snprintf(msg + len, sizeof(msg) - len,
-			    "\nMatching host key in %s:%lu",
+			    "\nMatching host key in %s:%zu",
 			    host_found->file, host_found->line);
 		}
 		if (options.strict_host_key_checking ==

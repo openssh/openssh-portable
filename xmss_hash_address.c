@@ -24,7 +24,7 @@ void setTreeADRS(uint32_t adrs[8], uint64_t tree){
 
 void setType(uint32_t adrs[8], uint32_t type){
   adrs[3] = type;
-  int i;
+  u_int i;
   for(i = 4; i < 8; i++){
     adrs[i] = 0;
   }

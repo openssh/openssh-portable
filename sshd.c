@@ -183,7 +183,7 @@ static char **rexec_argv;
  */
 #define	MAX_LISTEN_SOCKS	16
 static int listen_socks[MAX_LISTEN_SOCKS];
-static int num_listen_socks = 0;
+static u_int num_listen_socks = 0;
 
 /* Daemon's agent connection */
 int auth_sock = -1;
@@ -270,7 +270,7 @@ static char *listener_proctitle;
 static void
 close_listen_socks(void)
 {
-	int i;
+	u_int i;
 
 	for (i = 0; i < num_listen_socks; i++)
 		close(listen_socks[i]);
@@ -1070,8 +1070,7 @@ listen_on_addrs(struct listenaddr *la)
 			close(listen_sock);
 			continue;
 		}
-		listen_socks[num_listen_socks] = listen_sock;
-		num_listen_socks++;
+		listen_socks[num_listen_socks++] = listen_sock;
 
 		/* Start listening on the port. */
 		if (listen(listen_sock, SSH_LISTEN_BACKLOG) == -1)
@@ -1116,7 +1115,8 @@ static void
 server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 {
 	struct pollfd *pfd = NULL;
-	int i, j, ret, npfd;
+	int i, ret, npfd;
+	u_int j;
 	int ostartups = -1, startups = 0, listening = 0, lameduck = 0;
 	int startup_p[2] = { -1 , -1 }, *startup_pollfd;
 	char c = 0;
@@ -1181,9 +1181,9 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			}
 		}
 
-		for (i = 0; i < num_listen_socks; i++) {
-			pfd[i].fd = listen_socks[i];
-			pfd[i].events = POLLIN;
+		for (j = 0; j < num_listen_socks; j++) {
+			pfd[j].fd = listen_socks[j];
+			pfd[j].events = POLLIN;
 		}
 		npfd = num_listen_socks;
 		for (i = 0; i < options.max_startups; i++) {
@@ -1239,11 +1239,11 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				break;
 			}
 		}
-		for (i = 0; i < num_listen_socks; i++) {
-			if (!(pfd[i].revents & POLLIN))
+		for (j = 0; j < num_listen_socks; j++) {
+			if (!(pfd[j].revents & POLLIN))
 				continue;
 			fromlen = sizeof(from);
-			*newsock = accept(listen_socks[i],
+			*newsock = accept(listen_socks[j],
 			    (struct sockaddr *)&from, &fromlen);
 			if (*newsock == -1) {
 				if (errno != EINTR && errno != EWOULDBLOCK &&
@@ -1280,11 +1280,11 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				continue;
 			}
 
-			for (j = 0; j < options.max_startups; j++)
-				if (startup_pipes[j] == -1) {
-					startup_pipes[j] = startup_p[0];
+			for (i = 0; i < options.max_startups; i++)
+				if (startup_pipes[i] == -1) {
+					startup_pipes[i] = startup_p[0];
 					startups++;
-					startup_flags[j] = 1;
+					startup_flags[i] = 1;
 					break;
 				}
 
@@ -1549,6 +1549,7 @@ main(int ac, char **av)
 	char *fp, *line, *laddr, *logfile = NULL;
 	int config_s[2] = { -1 , -1 };
 	u_int i, j;
+	int k;
 	u_int64_t ibytes, obytes;
 	mode_t new_umask;
 	struct sshkey *key;
@@ -1570,9 +1571,9 @@ main(int ac, char **av)
 	saved_argc = ac;
 	rexec_argc = ac;
 	saved_argv = xcalloc(ac + 1, sizeof(*saved_argv));
-	for (i = 0; (int)i < ac; i++)
-		saved_argv[i] = xstrdup(av[i]);
-	saved_argv[i] = NULL;
+	for (k = 0; k < ac; k++)
+		saved_argv[k] = xstrdup(av[k]);
+	saved_argv[k] = NULL;
 
 #ifndef HAVE_SETPROCTITLE
 	/* Prepare for later setproctitle emulation */
@@ -1835,7 +1836,7 @@ main(int ac, char **av)
 	    sizeof(struct sshkey *));
 
 	if (options.host_key_agent) {
-		if (strcmp(options.host_key_agent, SSH_AUTHSOCKET_ENV_NAME))
+		if (strcmp(options.host_key_agent, SSH_AUTHSOCKET_ENV_NAME) != 0)
 			setenv(SSH_AUTHSOCKET_ENV_NAME,
 			    options.host_key_agent, 1);
 		if ((r = ssh_get_authentication_socket(NULL)) == 0)

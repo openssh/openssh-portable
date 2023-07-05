@@ -86,14 +86,16 @@ struct KbdintAuthctxt
 void
 remove_kbdint_device(const char *devname)
 {
-	int i, j;
+	size_t i, j;
 
-	for (i = 0; devices[i] != NULL; i++)
+	for (i = 0; devices[i] != NULL;) {
 		if (strcmp(devices[i]->name, devname) == 0) {
 			for (j = i; devices[j] != NULL; j++)
 				devices[j] = devices[j+1];
-			i--;
+			continue;
 		}
+		i++;
+	}
 }
 #endif
 
@@ -102,7 +104,8 @@ kbdint_alloc(const char *devs)
 {
 	KbdintAuthctxt *kbdintctxt;
 	struct sshbuf *b;
-	int i, r;
+	size_t i;
+	int r;
 
 #ifdef USE_PAM
 	if (!options.use_pam)
@@ -154,7 +157,7 @@ kbdint_next_device(Authctxt *authctxt, KbdintAuthctxt *kbdintctxt)
 {
 	size_t len;
 	char *t;
-	int i;
+	size_t i;
 
 	if (kbdintctxt->device)
 		kbdint_reset_device(kbdintctxt);

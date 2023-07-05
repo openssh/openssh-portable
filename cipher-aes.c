@@ -74,7 +74,7 @@ ssh_rijndael_cbc(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 	struct ssh_rijndael_ctx *c;
 	u_char buf[RIJNDAEL_BLOCKSIZE];
 	u_char *cprev, *cnow, *plain, *ivp;
-	int i, j, blocks = len / RIJNDAEL_BLOCKSIZE;
+	size_t i, j, blocks = len / RIJNDAEL_BLOCKSIZE;
 
 	if (len == 0)
 		return (1);

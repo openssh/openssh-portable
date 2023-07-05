@@ -855,7 +855,7 @@ emit_expansion(const char *pattern, int brace_start, int brace_end,
 		o = brace_start;
 	}
 	/* Current braced selection */
-	if (sel_end - sel_start > 0) {
+	if (sel_end > sel_start) {
 		memcpy(cp + o, pattern + sel_start,
 		    sel_end - sel_start);
 		o += sel_end - sel_start;
@@ -1395,7 +1395,7 @@ source(int argc, char **argv)
 	size_t amt, nr;
 	int fd = -1, haderr, indx;
 	char *last, *name, buf[PATH_MAX + 128], encname[PATH_MAX];
-	int len;
+	size_t len;
 
 	for (indx = 0; indx < argc; ++indx) {
 		name = argv[indx];

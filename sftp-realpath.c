@@ -61,7 +61,8 @@ sftp_realpath(const char *path, char *resolved)
 	char *p, *q, *s;
 	size_t left_len, resolved_len;
 	unsigned symlinks;
-	int serrno, slen, mem_allocated;
+	int serrno, mem_allocated;
+	ssize_t slen;
 	char left[PATH_MAX], next_token[PATH_MAX], symlink[PATH_MAX];
 
 	if (path[0] == '\0') {

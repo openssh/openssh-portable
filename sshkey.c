@@ -171,7 +171,7 @@ const struct sshkey_impl * const keyimpls[] = {
 static const struct sshkey_impl *
 sshkey_impl_from_type(int type)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; keyimpls[i] != NULL; i++) {
 		if (keyimpls[i]->type == type)
@@ -183,7 +183,7 @@ sshkey_impl_from_type(int type)
 static const struct sshkey_impl *
 sshkey_impl_from_type_nid(int type, int nid)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; keyimpls[i] != NULL; i++) {
 		if (keyimpls[i]->type == type &&
@@ -247,7 +247,7 @@ sshkey_ssh_name_plain(const struct sshkey *k)
 int
 sshkey_type_from_name(const char *name)
 {
-	int i;
+	size_t i;
 	const struct sshkey_impl *impl;
 
 	for (i = 0; keyimpls[i] != NULL; i++) {
@@ -276,7 +276,7 @@ key_type_is_ecdsa_variant(int type)
 int
 sshkey_ecdsa_nid_from_name(const char *name)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; keyimpls[i] != NULL; i++) {
 		if (!key_type_is_ecdsa_variant(keyimpls[i]->type))
@@ -345,7 +345,8 @@ sshkey_names_valid2(const char *names, int allow_wildcard, int plain_only)
 {
 	char *s, *cp, *p;
 	const struct sshkey_impl *impl;
-	int i, type;
+	size_t i;
+	int type;
 
 	if (names == NULL || strcmp(names, "") == 0)
 		return 0;
@@ -1150,7 +1151,7 @@ static int
 peek_type_nid(const char *s, size_t l, int *nid)
 {
 	const struct sshkey_impl *impl;
-	int i;
+	size_t i;
 
 	for (i = 0; keyimpls[i] != NULL; i++) {
 		impl = keyimpls[i];
@@ -2041,7 +2042,7 @@ const char *
 sshkey_sigalg_by_name(const char *name)
 {
 	const struct sshkey_impl *impl;
-	int i;
+	size_t i;
 
 	for (i = 0; keyimpls[i] != NULL; i++) {
 		impl = keyimpls[i];
@@ -2757,7 +2758,7 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 
 	if (rounds <= 0)
 		rounds = DEFAULT_ROUNDS;
-	if (passphrase == NULL || !strlen(passphrase)) {
+	if (passphrase == NULL || strlen(passphrase) == 0) {
 		ciphername = "none";
 		kdfname = "none";
 	} else if (ciphername == NULL)
@@ -2927,7 +2928,7 @@ private2_uudecode(struct sshbuf *blob, struct sshbuf **decodedp)
 
 	/* check magic */
 	if (sshbuf_len(decoded) < sizeof(AUTH_MAGIC) ||
-	    memcmp(sshbuf_ptr(decoded), AUTH_MAGIC, sizeof(AUTH_MAGIC))) {
+	    memcmp(sshbuf_ptr(decoded), AUTH_MAGIC, sizeof(AUTH_MAGIC)) != 0) {
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}

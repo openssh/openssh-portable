@@ -460,7 +460,7 @@ main(int argc, char *argv[])
 		exit(ret);
 
 	} else {
-		int i = 0;
+		size_t i = 0;
 
 		/* Construct the portlist[] array. */
 		build_ports(uport);
@@ -1106,8 +1106,7 @@ build_ports(char *p)
 	int x = 0;
 
 	if ((n = strchr(p, '-')) != NULL) {
-		*n = '\0';
-		n++;
+		*n++ = '\0';
 
 		/* Make sure the ports are in order: lowest->highest. */
 		hi = strtonum(n, 1, PORT_MAX, &errstr);
@@ -1162,7 +1161,8 @@ build_ports(char *p)
 int
 udptest(int s)
 {
-	int i, ret;
+	int ret;
+	u_int i;
 
 	for (i = 0; i <= 3; i++) {
 		if (write(s, "X", 1) == 1)
@@ -1392,7 +1392,7 @@ usage(int ret)
 #define SOCKS_V5	5
 #define SOCKS_V4	4
 #define SOCKS_NOAUTH	0
-#define SOCKS_NOMETHOD	0xff
+#define SOCKS_NOMETHOD -1
 #define SOCKS_CONNECT	1
 #define SOCKS_IPV4	1
 #define SOCKS_DOMAIN	3
@@ -1474,8 +1474,8 @@ socks_connect(const char *host, const char *port,
     int socksv, const char *proxyuser)
 {
 	int proxyfd, r, authretry = 0;
-	size_t hlen, wlen = 0;
-	unsigned char buf[1024];
+	size_t buflen, hlen, wlen = 0;
+	char buf[1024];
 	size_t cnt;
 	struct sockaddr_storage addr;
 	struct sockaddr_in *in4 = (struct sockaddr_in *)&addr;
@@ -1625,13 +1625,13 @@ socks_connect(const char *host, const char *port,
 			    "CONNECT %s:%d HTTP/1.0\r\n",
 			    host, ntohs(serverport));
 		}
-		if (r == -1 || (size_t)r >= sizeof(buf))
+		if (r == -1 || r >= (int)sizeof(buf))
 			errx(1, "hostname too long");
-		r = strlen(buf);
+		buflen = strlen(buf);
 
-		cnt = atomicio(vwrite, proxyfd, buf, r);
-		if (cnt != (size_t)r)
-			err(1, "write failed (%zu/%d)", cnt, r);
+		cnt = atomicio(vwrite, proxyfd, buf, buflen);
+		if (cnt != buflen)
+			err(1, "write failed (%zu/%zu)", cnt, buflen);
 
 		if (authretry > 1) {
 			char resp[1024];
@@ -1639,22 +1639,22 @@ socks_connect(const char *host, const char *port,
 			proxypass = getproxypass(proxyuser, proxyhost);
 			r = snprintf(buf, sizeof(buf), "%s:%s",
 			    proxyuser, proxypass);
-			if (r == -1 || (size_t)r >= sizeof(buf) ||
+			if (r == -1 || r >= (int)sizeof(buf) ||
 			    b64_ntop(buf, strlen(buf), resp,
 			    sizeof(resp)) == -1)
 				errx(1, "Proxy username/password too long");
 			r = snprintf(buf, sizeof(buf), "Proxy-Authorization: "
 			    "Basic %s\r\n", resp);
-			if (r == -1 || (size_t)r >= sizeof(buf))
+			if (r == -1 || r >= (int)sizeof(buf))
 				errx(1, "Proxy auth response too long");
-			r = strlen(buf);
-			if ((cnt = atomicio(vwrite, proxyfd, buf, r)) != (size_t)r)
-				err(1, "write failed (%zu/%d)", cnt, r);
+			buflen = strlen(buf);
+			if ((cnt = atomicio(vwrite, proxyfd, buf, buflen)) != buflen)
+				err(1, "write failed (%zu/%zu)", cnt, buflen);
 		}
 
 		/* Terminate headers */
-		if ((r = atomicio(vwrite, proxyfd, "\r\n", 2)) != 2)
-			err(1, "write failed (2/%d)", r);
+		if ((cnt = atomicio(vwrite, proxyfd, "\r\n", 2)) != 2)
+			err(1, "write failed (2/%zu)", cnt);
 
 		/* Read status reply */
 		proxy_read_line(proxyfd, buf, sizeof(buf));

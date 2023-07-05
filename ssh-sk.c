@@ -146,12 +146,12 @@ sshsk_open(const char *path)
 		goto fail;
 	}
 	version = ret->sk_api_version();
-	debug_f("provider %s implements version 0x%08lx", ret->path,
-	    (u_long)version);
+	debug_f("provider %s implements version 0x%08u", ret->path,
+	    version);
 	if ((version & SSH_SK_VERSION_MAJOR_MASK) != SSH_SK_VERSION_MAJOR) {
 		error("Provider \"%s\" implements unsupported "
-		    "version 0x%08lx (supported: 0x%08lx)",
-		    path, (u_long)version, (u_long)SSH_SK_VERSION_MAJOR);
+		    "version 0x%08u (supported: 0x%08u)",
+		    path, version, SSH_SK_VERSION_MAJOR);
 		goto fail;
 	}
 	if ((ret->sk_enroll = dlsym(ret->dlhandle, "sk_enroll")) == NULL) {

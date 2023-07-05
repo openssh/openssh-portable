@@ -495,7 +495,8 @@ authmethods_get(Authctxt *authctxt)
 {
 	struct sshbuf *b;
 	char *list;
-	int i, r;
+	size_t i;
+	int r;
 
 	if ((b = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
@@ -521,7 +522,7 @@ authmethods_get(Authctxt *authctxt)
 static Authmethod *
 authmethod_byname(const char *name)
 {
-	int i;
+	size_t i;
 
 	if (name == NULL)
 		fatal_f("NULL authentication method name");
@@ -564,8 +565,8 @@ int
 auth2_methods_valid(const char *_methods, int need_enable)
 {
 	char *methods, *omethods, *method, *p;
-	u_int i, found;
-	int ret = -1;
+	u_int i;
+	int found, ret = -1;
 
 	if (*_methods == '\0') {
 		error("empty authentication method list");
@@ -573,7 +574,8 @@ auth2_methods_valid(const char *_methods, int need_enable)
 	}
 	omethods = methods = xstrdup(_methods);
 	while ((method = strsep(&methods, ",")) != NULL) {
-		for (found = i = 0; !found && authmethods[i] != NULL; i++) {
+		found = 0;
+		for (i = 0; authmethods[i] != NULL; i++) {
 			if ((p = strchr(method, ':')) != NULL)
 				*p = '\0';
 			if (strcmp(method, authmethods[i]->name) != 0)
@@ -665,7 +667,7 @@ list_starts_with(const char *methods, const char *method,
 			return MATCH_PARTIAL;
 		l = strlen(submethod);
 		p += 1;
-		if (strncmp(submethod, p, l))
+		if (strncmp(submethod, p, l) != 0)
 			return MATCH_NONE;
 		p += l;
 		match = MATCH_BOTH;

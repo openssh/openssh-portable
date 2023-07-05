@@ -319,9 +319,9 @@ login_get_lastlog(struct logininfo *li, const uid_t uid)
 
 	if (strlcpy(li->username, pw->pw_name, sizeof(li->username)) >=
 	    sizeof(li->username)) {
-		error("%s: username too long (%lu > max %lu)", __func__,
-		    (unsigned long)strlen(pw->pw_name),
-		    (unsigned long)sizeof(li->username) - 1);
+		error("%s: username too long (%zu > max %zu)", __func__,
+		    strlen(pw->pw_name),
+		    sizeof(li->username) - 1);
 		return NULL;
 	}
 
@@ -420,7 +420,7 @@ login_set_current_time(struct logininfo *li)
 /* copy a sockaddr_* into our logininfo */
 void
 login_set_addr(struct logininfo *li, const struct sockaddr *sa,
-    const unsigned int sa_size)
+    const socklen_t sa_size)
 {
 	unsigned int bufsize = sa_size;
 
@@ -564,7 +564,7 @@ getlast_entry(struct logininfo *li)
  * sure dst has enough space, if not just copy src (ugh)
  */
 char *
-line_fullname(char *dst, const char *src, u_int dstsize)
+line_fullname(char *dst, const char *src, size_t dstsize)
 {
 	memset(dst, '\0', dstsize);
 	if ((strncmp(src, "/dev/", 5) == 0) || (dstsize < (strlen(src) + 5)))
@@ -578,7 +578,7 @@ line_fullname(char *dst, const char *src, u_int dstsize)
 
 /* line_stripname(): strip the leading '/dev' if it exists, return dst */
 char *
-line_stripname(char *dst, const char *src, int dstsize)
+line_stripname(char *dst, const char *src, size_t dstsize)
 {
 	memset(dst, '\0', dstsize);
 	if (strncmp(src, "/dev/", 5) == 0)
@@ -597,7 +597,7 @@ line_stripname(char *dst, const char *src, int dstsize)
  * termination
  */
 char *
-line_abbrevname(char *dst, const char *src, int dstsize)
+line_abbrevname(char *dst, const char *src, size_t dstsize)
 {
 	size_t len;
 
@@ -615,11 +615,11 @@ line_abbrevname(char *dst, const char *src, int dstsize)
 	len = strlen(src);
 
 	if (len > 0) {
-		if (((int)len - dstsize) > 0)
-			src +=  ((int)len - dstsize);
+		if (len > dstsize)
+			src += len - dstsize;
 
 		/* note: _don't_ change this to strlcpy */
-		strncpy(dst, src, (size_t)dstsize);
+		strncpy(dst, src, dstsize);
 	}
 
 	return (dst);

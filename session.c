@@ -891,8 +891,7 @@ read_environment_file(char ***env, u_int *envsize,
 static char *
 child_get_env(char **env, const char *name)
 {
-	int i;
-	size_t len;
+	size_t i, len;
 
 	len = strlen(name);
 	for (i=0; env[i] != NULL; i++)
@@ -909,8 +908,9 @@ static void
 read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 {
 	char **tmpenv = NULL, *var;
-	u_int i, tmpenvsize = 0;
+	u_int tmpenvsize = 0;
 	u_long mask;
+	size_t i;
 
 	/*
 	 * We don't want to copy the whole file to the child's environment,
@@ -946,7 +946,7 @@ copy_environment_denylist(char **source, char ***env, u_int *envsize,
     const char *denylist)
 {
 	char *var_name, *var_val;
-	int i;
+	size_t i;
 
 	if (source == NULL)
 		return;
@@ -1650,7 +1650,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 		exit(1);
 	} else if (s->is_subsystem == SUBSYSTEM_INT_SFTP) {
 		extern int optind, optreset;
-		int i;
+		u_int i;
 		char *p, *args;
 
 		setproctitle("%s@%s", s->pw->pw_name, INTERNAL_SFTP_NAME);

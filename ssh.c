@@ -283,8 +283,8 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 			error("ignoring bad CNAME \"%s\" for host \"%s\": %s",
 			    res->ai_canonname, name, errstr);
 		} else if (strlcpy(cname, res->ai_canonname, clen) >= clen) {
-			error_f("host \"%s\" cname \"%s\" too long (max %lu)",
-			    name,  res->ai_canonname, (u_long)clen);
+			error_f("host \"%s\" cname \"%s\" too long (max %zu)",
+			    name,  res->ai_canonname, clen);
 			if (clen > 0)
 				*cname = '\0';
 		}
@@ -367,8 +367,8 @@ resolve_addr(const char *name, int port, char *caddr, size_t clen)
 		goto fail;
 	}
 	if (strlcpy(caddr, addr, clen) >= clen) {
-		error_f("host \"%s\" addr \"%s\" too long (max %lu)",
-		    name,  addr, (u_long)clen);
+		error_f("host \"%s\" addr \"%s\" too long (max %zu)",
+		    name,  addr, clen);
 		if (clen > 0)
 			*caddr = '\0';
  fail:

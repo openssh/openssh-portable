@@ -634,7 +634,7 @@ static void
 do_convert_from_ssh2(struct passwd *pw, struct sshkey **k, int *private)
 {
 	int r, blen, escaped = 0;
-	u_int len;
+	size_t len;
 	char line[1024];
 	struct sshbuf *buf;
 	char encoded[8096];
@@ -2338,8 +2338,7 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 				if (serial2 <= serial)
 					fatal("%s:%lu: invalid serial range "
 					    "%llu:%llu", path, lnum,
-					    (unsigned long long)serial,
-					    (unsigned long long)serial2);
+					    serial, serial2);
 			}
 			if (ssh_krl_revoke_cert_by_serial_range(krl,
 			    ca, serial, serial2) != 0) {

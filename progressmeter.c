@@ -88,7 +88,7 @@ can_output(void)
 static const char *
 format_rate(off_t bytes)
 {
-	int i;
+	size_t i;
 	static char buf[STRING_SIZE(bytes) * 2 + 16];
 
 	bytes *= 100;
@@ -109,7 +109,7 @@ format_rate(off_t bytes)
 static const char *
 format_size(off_t bytes)
 {
-	int i;
+	size_t i;
 	static char buf[STRING_SIZE(bytes) + 16];
 
 	for (i = 0; bytes >= 10000 && unit[i] != 'T'; i++)

@@ -362,7 +362,7 @@ local_do_ls(const char *args)
 	if (!args || !*args)
 		local_do_shell(_PATH_LS);
 	else {
-		int len = strlen(_PATH_LS " ") + strlen(args) + 1;
+		size_t len = strlen(_PATH_LS " ") + strlen(args) + 1;
 		char *buf = xmalloc(len);
 
 		/* XXX: quoting - rip quoting code from ftp? */
@@ -848,6 +848,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
     const char *strip_path, int lflag)
 {
 	int n;
+	size_t i;
 	u_int c = 1, colspace = 0, columns = 1;
 	SFTP_DIRENT **d;
 
@@ -860,9 +861,9 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 		char *tmp;
 
 		/* Count entries for sort and find longest filename */
-		for (n = 0; d[n] != NULL; n++) {
-			if (d[n]->filename[0] != '.' || (lflag & LS_SHOW_ALL))
-				m = MAXIMUM(m, strlen(d[n]->filename));
+		for (i = 0; d[i] != NULL; i++) {
+			if (d[i]->filename[0] != '.' || (lflag & LS_SHOW_ALL))
+				m = MAXIMUM(m, strlen(d[i]->filename));
 		}
 
 		/* Add any subpath that also needs to be counted */
@@ -880,17 +881,17 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 	}
 
 	if (lflag & SORT_FLAGS) {
-		for (n = 0; d[n] != NULL; n++)
+		for (i = 0; d[i] != NULL; i++)
 			;	/* count entries */
 		sort_flag = lflag & (SORT_FLAGS|LS_REVERSE_SORT);
-		qsort(d, n, sizeof(*d), sdirent_comp);
+		qsort(d, i, sizeof(*d), sdirent_comp);
 	}
 
 	get_remote_user_groups_from_dirents(conn, d);
-	for (n = 0; d[n] != NULL && !interrupted; n++) {
+	for (i = 0; d[i] != NULL && !interrupted; i++) {
 		char *tmp, *fname;
 
-		if (d[n]->filename[0] == '.' && !(lflag & LS_SHOW_ALL))
+		if (d[i]->filename[0] == '.' && !(lflag & LS_SHOW_ALL))
 			continue;
 
 		tmp = sftp_path_append(path, d[n]->filename);
@@ -904,7 +905,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 				struct stat sb;
 
 				memset(&sb, 0, sizeof(sb));
-				attrib_to_stat(&d[n]->a, &sb);
+				attrib_to_stat(&d[i]->a, &sb);
 				lname = ls_file(fname, &sb, 1,
 				    (lflag & LS_SI_UNITS),
 				    ruser_name(sb.st_uid),
@@ -912,7 +913,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 				mprintf("%s\n", lname);
 				free(lname);
 			} else
-				mprintf("%s\n", d[n]->longname);
+				mprintf("%s\n", d[i]->longname);
 		} else {
 			mprintf("%-*s", colspace, fname);
 			if (c >= columns) {
@@ -972,7 +973,8 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 	glob_t g;
 	int err, r;
 	struct winsize ws;
-	u_int i, j, nentries, *indices = NULL, c = 1;
+	u_int *indices = NULL, c = 1;
+	size_t i, j, nentries;
 	u_int colspace = 0, columns = 1, m = 0, width = 80;
 
 	memset(&g, 0, sizeof(g));
@@ -1347,7 +1349,8 @@ parse_args(const char **cpp, int *ignore_errors, int *disable_echo, int *aflag,
 	char *cp2, **argv;
 	int base = 0;
 	long long ll;
-	int path1_mandatory = 0, i, cmdnum, optidx, argc;
+	int path1_mandatory = 0, cmdnum, optidx, argc;
+	size_t i;
 
 	/* Skip leading whitespace */
 	cp = cp + strspn(cp, WHITESPACE);
@@ -1554,7 +1557,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	int ignore_errors = 0, disable_echo = 1;
 	int aflag = 0, fflag = 0, hflag = 0, iflag = 0;
 	int lflag = 0, pflag = 0, rflag = 0, sflag = 0;
-	int cmdnum, i;
+	int cmdnum;
+	size_t i;
 	unsigned long n_arg = 0;
 	Attrib a, aa;
 	char path_buf[PATH_MAX];
@@ -1898,11 +1902,11 @@ complete_ambiguous(const char *word, char **list, size_t count)
 }
 
 /* Autocomplete a sftp command */
-static int
+static size_t
 complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
     int terminated)
 {
-	u_int y, count = 0, cmdlen, tmplen;
+	size_t y, count = 0, cmdlen, tmplen;
 	char *tmp, **list, argterm[3];
 	const LineInfo *lf;
 
@@ -1976,7 +1980,7 @@ complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
  */
 static int
 complete_is_remote(char *cmd, int cmdarg) {
-	int i;
+	size_t i;
 
 	if (cmd == NULL)
 		return -1;

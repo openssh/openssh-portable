@@ -171,7 +171,7 @@ hostbased_key_allowed(struct ssh *ssh, struct passwd *pw,
 {
 	const char *resolvedname, *ipaddr, *lookup, *reason;
 	HostStatus host_status;
-	int len;
+	size_t len;
 	char *fp;
 
 	if (auth_key_is_revoked(key))

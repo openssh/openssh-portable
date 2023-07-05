@@ -140,7 +140,7 @@ addr_sa_to_xaddr(struct sockaddr *sa, socklen_t slen, struct xaddr *xa)
 int
 addr_invert(struct xaddr *n)
 {
-	int i;
+	u_int i;
 
 	if (n == NULL)
 		return -1;
@@ -166,7 +166,7 @@ addr_invert(struct xaddr *n)
 int
 addr_netmask(int af, u_int l, struct xaddr *n)
 {
-	int i;
+	u_int i;
 
 	if (masklen_valid(af, l) != 0 || n == NULL)
 		return -1;
@@ -207,7 +207,7 @@ addr_hostmask(int af, u_int l, struct xaddr *n)
 int
 addr_and(struct xaddr *dst, const struct xaddr *a, const struct xaddr *b)
 {
-	int i;
+	u_int i;
 
 	if (dst == NULL || a == NULL || b == NULL || a->af != b->af)
 		return -1;
@@ -230,7 +230,7 @@ addr_and(struct xaddr *dst, const struct xaddr *a, const struct xaddr *b)
 int
 addr_or(struct xaddr *dst, const struct xaddr *a, const struct xaddr *b)
 {
-	int i;
+	u_int i;
 
 	if (dst == NULL || a == NULL || b == NULL || a->af != b->af)
 		return (-1);
@@ -252,7 +252,7 @@ addr_or(struct xaddr *dst, const struct xaddr *a, const struct xaddr *b)
 int
 addr_cmp(const struct xaddr *a, const struct xaddr *b)
 {
-	int i;
+	u_int i;
 
 	if (a->af != b->af)
 		return (a->af == AF_INET6 ? 1 : -1);
@@ -285,7 +285,7 @@ addr_cmp(const struct xaddr *a, const struct xaddr *b)
 int
 addr_is_all0s(const struct xaddr *a)
 {
-	int i;
+	u_int i;
 
 	switch (a->af) {
 	case AF_INET:
@@ -304,7 +304,7 @@ addr_is_all0s(const struct xaddr *a)
 void
 addr_increment(struct xaddr *a)
 {
-	int i;
+	u_int i;
 	uint32_t n;
 
 	switch (a->af) {

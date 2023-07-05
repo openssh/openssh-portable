@@ -117,7 +117,7 @@ log_level_get(void)
 SyslogFacility
 log_facility_number(char *name)
 {
-	int i;
+	size_t i;
 
 	if (name != NULL)
 		for (i = 0; log_facilities[i].name; i++)
@@ -129,7 +129,7 @@ log_facility_number(char *name)
 const char *
 log_facility_name(SyslogFacility facility)
 {
-	u_int i;
+	size_t i;
 
 	for (i = 0;  log_facilities[i].name; i++)
 		if (log_facilities[i].val == facility)
@@ -140,7 +140,7 @@ log_facility_name(SyslogFacility facility)
 LogLevel
 log_level_number(char *name)
 {
-	int i;
+	size_t i;
 
 	if (name != NULL)
 		for (i = 0; log_levels[i].name; i++)
@@ -152,7 +152,7 @@ log_level_number(char *name)
 const char *
 log_level_name(LogLevel level)
 {
-	u_int i;
+	size_t i;
 
 	for (i = 0; log_levels[i].name != NULL; i++)
 		if (log_levels[i].val == level)

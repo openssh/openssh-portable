@@ -712,7 +712,7 @@ static struct {
 static const char *
 lookup_opcode_name(ServerOpCodes code)
 {
-	u_int i;
+	size_t i;
 
 	for (i = 0; keywords[i].name != NULL; i++)
 		if (keywords[i].opcode == code)
@@ -729,7 +729,7 @@ static ServerOpCodes
 parse_token(const char *cp, const char *filename,
 	    int linenum, u_int *flags)
 {
-	u_int i;
+	size_t i;
 
 	for (i = 0; keywords[i].name; i++)
 		if (strcasecmp(cp, keywords[i].name) == 0) {
@@ -1303,8 +1303,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
 	ServerOpCodes opcode;
-	u_int i, *uintptr, uvalue, flags = 0;
-	size_t len;
+	u_int *uintptr, uvalue, flags = 0;
+	size_t len, i;
 	long long val64;
 	const struct multistate *multistate_ptr;
 	const char *errstr;
@@ -2863,7 +2863,7 @@ parse_server_config(ServerOptions *options, const char *filename,
 static const char *
 fmt_multistate_int(int val, const struct multistate *m)
 {
-	u_int i;
+	size_t i;
 
 	for (i = 0; m[i].key != NULL; i++) {
 		if (m[i].value == val)

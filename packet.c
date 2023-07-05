@@ -1075,11 +1075,11 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	u_char type, *cp, macbuf[SSH_DIGEST_MAX_LENGTH];
 	u_char tmp, padlen, pad = 0;
 	u_int authlen = 0, aadlen = 0;
-	u_int len;
+	u_int len, block_size;
 	struct sshenc *enc   = NULL;
 	struct sshmac *mac   = NULL;
 	struct sshcomp *comp = NULL;
-	int r, block_size;
+	int r;
 
 	if (state->newkeys[MODE_OUT] != NULL) {
 		enc  = &state->newkeys[MODE_OUT]->enc;
@@ -1142,7 +1142,7 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 		if (tmp > state->extra_pad)
 			return SSH_ERR_INVALID_ARGUMENT;
 		pad = state->extra_pad - tmp;
-		DBG(debug3_f("adding %d (len %d padlen %d extra_pad %d)",
+		DBG(debug3_f("adding %u (len %u padlen %u extra_pad %u)",
 		    pad, len, padlen, state->extra_pad));
 		tmp = padlen;
 		padlen += pad;
@@ -1170,7 +1170,7 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	/* packet_length includes payload, padding and padding length field */
 	POKE_U32(cp, len - 4);
 	cp[4] = padlen;
-	DBG(debug("send: len %d (includes padlen %d, aadlen %d)",
+	DBG(debug("send: len %u (includes padlen %u, aadlen %u)",
 	    len, padlen, aadlen));
 
 	/* compute MAC over seqnr and packet(length fields, payload, padding) */
@@ -1196,7 +1196,7 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 			if ((r = mac_compute(mac, state->p_send.seqnr,
 			    cp, len, macbuf, sizeof(macbuf))) != 0)
 				goto out;
-			DBG(debug("done calc MAC(EtM) out #%d",
+			DBG(debug("done calc MAC(EtM) out #%u",
 			    state->p_send.seqnr));
 		}
 		if ((r = sshbuf_put(state->output, macbuf, mac->mac_len)) != 0)
@@ -1336,7 +1336,8 @@ int
 ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 {
 	struct session_state *state = ssh->state;
-	int len, r, ms_remain = 0;
+	ssize_t len;
+	int r, ms_remain = 0;
 	struct pollfd pfd;
 	char buf[8192];
 	struct timeval start;
@@ -2007,21 +2008,21 @@ int
 ssh_packet_write_poll(struct ssh *ssh)
 {
 	struct session_state *state = ssh->state;
-	int len = sshbuf_len(state->output);
+	size_t len = sshbuf_len(state->output);
 	int r;
 
 	if (len > 0) {
-		len = write(state->connection_out,
+		ssize_t len2 = write(state->connection_out,
 		    sshbuf_ptr(state->output), len);
-		if (len == -1) {
+		if (len2 == -1) {
 			if (errno == EINTR || errno == EAGAIN ||
 			    errno == EWOULDBLOCK)
 				return 0;
 			return SSH_ERR_SYSTEM_ERROR;
 		}
-		if (len == 0)
+		if (len2 == 0)
 			return SSH_ERR_CONN_CLOSED;
-		if ((r = sshbuf_consume(state->output, len)) != 0)
+		if ((r = sshbuf_consume(state->output, len2)) != 0)
 			return r;
 	}
 	return 0;

@@ -180,7 +180,7 @@ static const struct sftp_handler extended_handlers[] = {
 static const struct sftp_handler *
 extended_handler_byname(const char *name)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; extended_handlers[i].handler != NULL; i++) {
 		if (strcmp(name, extended_handlers[i].ext_name) == 0)
@@ -1020,8 +1020,8 @@ process_setstat(u_int32_t id)
 			status = errno_to_portable(errno);
 	}
 	if (a.flags & SSH2_FILEXFER_ATTR_UIDGID) {
-		logit("set \"%s\" owner %lu group %lu", name,
-		    (u_long)a.uid, (u_long)a.gid);
+		logit("set \"%s\" owner %u group %u", name,
+		    a.uid, a.gid);
 		r = chown(name, a.uid, a.gid);
 		if (r == -1)
 			status = errno_to_portable(errno);
@@ -1081,8 +1081,8 @@ process_fsetstat(u_int32_t id)
 				status = errno_to_portable(errno);
 		}
 		if (a.flags & SSH2_FILEXFER_ATTR_UIDGID) {
-			logit("set \"%s\" owner %lu group %lu", name,
-			    (u_long)a.uid, (u_long)a.gid);
+			logit("set \"%s\" owner %u group %u", name,
+			    a.uid, a.gid);
 #ifdef HAVE_FCHOWN
 			r = fchown(fd, a.uid, a.gid);
 #else
@@ -1327,7 +1327,8 @@ process_rename(u_int32_t id)
 static void
 process_readlink(u_int32_t id)
 {
-	int r, len;
+	int r;
+	ssize_t len;
 	char buf[PATH_MAX];
 	char *path;
 
@@ -1336,7 +1337,7 @@ process_readlink(u_int32_t id)
 
 	debug3("request %u: readlink", id);
 	verbose("readlink \"%s\"", path);
-	if ((len = readlink(path, buf, sizeof(buf) - 1)) == -1)
+	if ((len = readlink(path, buf, sizeof(buf) - 1)) < 0)
 		send_status(id, errno_to_portable(errno));
 	else {
 		Stat s;
@@ -1501,8 +1502,8 @@ process_extended_lsetstat(u_int32_t id)
 			status = errno_to_portable(errno);
 	}
 	if (a.flags & SSH2_FILEXFER_ATTR_UIDGID) {
-		logit("set \"%s\" owner %lu group %lu", name,
-		    (u_long)a.uid, (u_long)a.gid);
+		logit("set \"%s\" owner %u group %u", name,
+		    a.uid, a.gid);
 		r = fchownat(AT_FDCWD, name, a.uid, a.gid,
 		    AT_SYMLINK_NOFOLLOW);
 		if (r == -1)
@@ -1805,7 +1806,8 @@ process(void)
 	u_int consumed;
 	u_char type;
 	const u_char *cp;
-	int i, r;
+	size_t i;
+	int r;
 	u_int32_t id;
 
 	buf_len = sshbuf_len(iqueue);
@@ -1901,7 +1903,8 @@ sftp_server_usage(void)
 int
 sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 {
-	int i, r, in, out, ch, skipargs = 0, log_stderr = 0;
+	int r, in, out, ch, skipargs = 0, log_stderr = 0;
+	size_t i;
 	ssize_t len, olen;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	char *cp, *homedir = NULL, uidstr[32], buf[4*4096];

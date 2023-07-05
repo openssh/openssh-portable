@@ -82,7 +82,7 @@ audit_username(void)
 const char *
 audit_event_lookup(ssh_audit_event_t ev)
 {
-	int i;
+	size_t i;
 	static struct event_lookup_struct {
 		ssh_audit_event_t event;
 		const char *name;
