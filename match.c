@@ -321,13 +321,17 @@ static char *
 filter_list(const char *proposal, const char *filter, int denylist)
 {
 	size_t len = strlen(proposal) + 1;
-	char *fix_prop = malloc(len);
-	char *orig_prop = strdup(proposal);
+	char *orig_prop, *fix_prop;
 	char *cp, *tmp;
 	int r;
 
-	if (fix_prop == NULL || orig_prop == NULL) {
-		free(orig_prop);
+	fix_prop = malloc(len);
+	if (fix_prop == NULL) {
+		return NULL;
+	}
+	
+	orig_prop = strdup(proposal);
+	if (orig_prop == NULL) {
 		free(fix_prop);
 		return NULL;
 	}
