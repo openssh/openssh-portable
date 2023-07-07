@@ -4654,8 +4654,7 @@ connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
 		 * channel_connect_ctx_free() must check ai_family
 		 * and use free() not freeaddirinfo() for AF_UNIX.
 		 */
-		ai = xmalloc(sizeof(*ai) + sizeof(*sunaddr));
-		memset(ai, 0, sizeof(*ai) + sizeof(*sunaddr));
+		ai = xcalloc(1, sizeof(*ai) + sizeof(*sunaddr));
 		ai->ai_addr = (struct sockaddr *)(ai + 1);
 		ai->ai_addrlen = sizeof(*sunaddr);
 		ai->ai_family = AF_UNIX;
