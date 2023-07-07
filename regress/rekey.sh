@@ -22,7 +22,6 @@ ssh_data_rekeying()
 	rm -f ${COPY} ${LOG}
 	_opts="$_opts -oCompression=no"
 	${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
-	echo "exit code $?"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed ($@ $?)"
 	fi
