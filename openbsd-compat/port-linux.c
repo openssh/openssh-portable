@@ -34,6 +34,7 @@
 
 #ifdef WITH_SELINUX
 #include <selinux/selinux.h>
+#include <selinux/label.h>
 #include <selinux/get_context_list.h>
 
 #ifndef SSH_SELINUX_UNCONFINED_TYPE
@@ -222,6 +223,7 @@ void
 ssh_selinux_setfscreatecon(const char *path)
 {
 	char *context;
+	struct selabel_handle *shandle = NULL;
 
 	if (!ssh_selinux_enabled())
 		return;
@@ -229,8 +231,13 @@ ssh_selinux_setfscreatecon(const char *path)
 		setfscreatecon(NULL);
 		return;
 	}
-	if (matchpathcon(path, 0700, &context) == 0)
+	if ((shandle = selabel_open(SELABEL_CTX_FILE, NULL, 0)) == NULL) {
+		debug_f("selabel_open failed");
+		return;
+	}
+	if (selabel_lookup(shandle, &context, path, 0700) == 0)
 		setfscreatecon(context);
+	selabel_close(shandle);
 }
 
 #endif /* WITH_SELINUX */
