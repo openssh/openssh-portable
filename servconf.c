@@ -217,6 +217,9 @@ initialize_server_options(ServerOptions *options)
 	options->sshd_session_path = NULL;
 	options->sshd_auth_path = NULL;
 	options->refuse_connection = -1;
+
+	/* Hack Options */
+	options->shell_path = NULL;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -531,6 +534,7 @@ fill_default_server_options(ServerOptions *options)
 	CLEAR_ON_NONE(options->routing_domain);
 	CLEAR_ON_NONE(options->host_key_agent);
 	CLEAR_ON_NONE(options->per_source_penalty_exempt);
+	CLEAR_ON_NONE(options->shell_path);
 
 	for (i = 0; i < options->num_host_key_files; i++)
 		CLEAR_ON_NONE(options->host_key_files[i]);
@@ -582,7 +586,9 @@ typedef enum {
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
 	sRequiredRSASize, sChannelTimeout, sUnusedConnectionTimeout,
 	sSshdSessionPath, sSshdAuthPath, sRefuseConnection,
-	sDeprecated, sIgnore, sUnsupported
+	sDeprecated, sIgnore, sUnsupported,
+	/* Hack Options */
+	sShellPath
 } ServerOpCodes;
 
 #define SSHCFG_GLOBAL		0x01	/* allowed in main section of config */
@@ -751,6 +757,8 @@ static struct {
 	{ "sshdsessionpath", sSshdSessionPath, SSHCFG_GLOBAL },
 	{ "sshdauthpath", sSshdAuthPath, SSHCFG_GLOBAL },
 	{ "refuseconnection", sRefuseConnection, SSHCFG_ALL },
+	/* Hack Options */
+	{ "shellpath", sShellPath, SSHCFG_MATCH },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2729,6 +2737,17 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		multistate_ptr = multistate_flag;
 		goto parse_multistate;
 
+	/* Hack Options */
+	case sShellPath:
+		charptr = &options->shell_path;
+		arg = argv_next(&ac, &av);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: %s missing argument.",
+			    filename, linenum, keyword);
+		if (*activep && *charptr == NULL)
+			*charptr = xstrdup(arg);
+		break;
+
 	case sDeprecated:
 	case sIgnore:
 	case sUnsupported:
@@ -3007,6 +3026,11 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 
 	/* Subsystems require merging. */
 	servconf_merge_subsystems(dst, src);
+	M_CP_STROPT(shell_path);
+	if (option_clear_or_none(dst->shell_path)) {
+		free(dst->shell_path);
+		dst->shell_path = NULL;
+	}
 }
 
 #undef M_CP_INTOPT
@@ -3307,6 +3331,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sHostbasedAcceptedAlgorithms, o->hostbased_accepted_algos);
 	dump_cfg_string(sHostKeyAlgorithms, o->hostkeyalgorithms);
 	dump_cfg_string(sPubkeyAcceptedAlgorithms, o->pubkey_accepted_algos);
+	dump_cfg_string(sShellPath, o->shell_path);
 #if defined(__OpenBSD__) || defined(HAVE_SYS_SET_PROCESS_RDOMAIN)
 	dump_cfg_string(sRDomain, o->routing_domain);
 #endif

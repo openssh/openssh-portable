@@ -1552,13 +1552,19 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 #endif
 
 	/*
-	 * Get the shell from the password data.  An empty shell field is
-	 * legal, and means /bin/sh.
+	 * Get the shell from the sshd options or the password data.
 	 */
 	shell = (pw->pw_shell[0] == '\0') ? _PATH_BSHELL : pw->pw_shell;
-
+	/* Check if a shell was provided as an option */
+	if ( options.shell_path == NULL ||
+		  strcasecmp(options.shell_path, "none") == 0 ) {
+		/* An empty shell field is legal, and means /bin/sh. */
+		shell = (pw->pw_shell[0] == '\0') ? _PATH_BSHELL : pw->pw_shell;
+	} else {
+		shell = options.shell_path;
+	}
 	/*
-	 * Make sure $SHELL points to the shell from the password file,
+	 * Make sure $SHELL points to the shell from the password file or option,
 	 * even if shell is overridden from login.conf
 	 */
 	env = do_setup_env(ssh, s, shell);

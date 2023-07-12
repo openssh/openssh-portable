@@ -119,8 +119,15 @@ allowed_user(struct ssh *ssh, struct passwd * pw)
 	 */
 	if (options.chroot_directory == NULL ||
 	    strcasecmp(options.chroot_directory, "none") == 0) {
-		char *shell = xstrdup((pw->pw_shell[0] == '\0') ?
+		char *shell = NULL;
+		/* Check if a shell was provided as an option */
+		if ( options.shell_path == NULL ||
+				strcasecmp(options.shell_path, "none") == 0 ) {
+			shell = xstrdup((pw->pw_shell[0] == '\0') ?
 		    _PATH_BSHELL : pw->pw_shell); /* empty = /bin/sh */
+		} else {
+			shell = xstrdup(options.shell_path);
+		}
 
 		if (stat(shell, &st) == -1) {
 			logit("User %.100s not allowed because shell %.100s "
