@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.99 2023/03/29 00:18:35 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.100 2023/07/14 05:31:44 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -48,10 +48,11 @@ dup_strings(char ***dstp, size_t *ndstp, char **src, size_t nsrc)
 
 	*dstp = NULL;
 	*ndstp = 0;
+
 	if (nsrc == 0)
 		return 0;
-
-	if ((dst = calloc(nsrc, sizeof(*src))) == NULL)
+	if (nsrc >= SIZE_MAX / sizeof(*src) ||
+	    (dst = calloc(nsrc, sizeof(*src))) == NULL)
 		return -1;
 	for (i = 0; i < nsrc; i++) {
 		if ((dst[i] = strdup(src[i])) == NULL) {

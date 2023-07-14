@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.468 2023/06/20 00:05:09 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.469 2023/07/14 05:31:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2246,7 +2246,8 @@ hash_to_blob(const char *cp, u_char **blobp, size_t *lenp,
 	 * OpenSSH base64 hashes omit trailing '='
 	 * characters; put them back for decode.
 	 */
-	tlen = strlen(cp);
+	if ((tlen = strlen(cp)) >= SIZE_MAX - 5)
+		fatal_f("hash too long: %zu bytes", tlen);
 	tmp = xmalloc(tlen + 4 + 1);
 	strlcpy(tmp, cp, tlen + 1);
 	while ((tlen % 4) != 0) {
@@ -2288,6 +2289,10 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 	if (!quiet)
 		printf("Revoking from %s\n", path);
 	while (getline(&line, &linesize, krl_spec) != -1) {
+		if (linesize >= INT_MAX) {
+			fatal_f("%s contains unparsable line, len=%zu",
+			    path, linesize);
+		}
 		lnum++;
 		was_explicit_key = was_sha1 = was_sha256 = was_hash = 0;
 		cp = line + strspn(line, " \t");

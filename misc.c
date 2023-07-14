@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.181 2023/03/03 02:37:58 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.182 2023/07/14 05:31:44 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -926,8 +926,11 @@ urldecode(const char *src)
 {
 	char *ret, *dst;
 	int ch;
+	size_t srclen;
 
-	ret = xmalloc(strlen(src) + 1);
+	if ((srclen = strlen(src)) >= SIZE_MAX)
+		fatal_f("input too large");
+	ret = xmalloc(srclen + 1);
 	for (dst = ret; *src != '\0'; src++) {
 		switch (*src) {
 		case '+':
