@@ -178,20 +178,20 @@ ssh_selinux_setup_pty(char *pwname, const char *tty)
 void
 ssh_selinux_change_context(const char *newname)
 {
-	int len, newlen;
-	char *oldctx, *newctx, *cx;
+	char *oldctx, *newctx, *cx, *cx2;
 	LogLevel log_level = SYSLOG_LEVEL_INFO;
 
 	if (!ssh_selinux_enabled())
 		return;
 
 	if (getcon(&oldctx) < 0) {
-		logit("%s: getcon failed with %s", __func__, strerror(errno));
+		logit_f("getcon failed with %s", strerror(errno));
 		return;
 	}
-	if ((cx = index(oldctx, ':')) == NULL || (cx = index(cx + 1, ':')) ==
-	    NULL) {
-		logit("%s: unparsable context %s", __func__, oldctx);
+	if ((cx = strchr(oldctx, ':')) == NULL ||
+	    (cx = strchr(cx + 1, ':')) == NULL ||
+	    (cx - oldctx) >= INT_MAX) {
+		logit_f("unparsable context %s", oldctx);
 		return;
 	}
 
@@ -203,18 +203,14 @@ ssh_selinux_change_context(const char *newname)
 	    sizeof(SSH_SELINUX_UNCONFINED_TYPE) - 1) == 0)
 		log_level = SYSLOG_LEVEL_DEBUG3;
 
-	newlen = strlen(oldctx) + strlen(newname) + 1;
-	newctx = xmalloc(newlen);
-	len = cx - oldctx + 1;
-	memcpy(newctx, oldctx, len);
-	strlcpy(newctx + len, newname, newlen - len);
-	if ((cx = index(cx + 1, ':')))
-		strlcat(newctx, cx, newlen);
-	debug3("%s: setting context from '%s' to '%s'", __func__,
-	    oldctx, newctx);
+	cx2 = strchr(cx + 1, ':');
+	xasprintf(&newctx, "%.*s%s%s", (int)(cx - oldctx + 1), oldctx,
+	    newname, cx2 == NULL ? "" : cx2);
+
+	debug3_f("setting context from '%s' to '%s'", oldctx, newctx);
 	if (setcon(newctx) < 0)
-		do_log2(log_level, "%s: setcon %s from %s failed with %s",
-		    __func__, newctx, oldctx, strerror(errno));
+		do_log2_f(log_level, "setcon %s from %s failed with %s",
+		    newctx, oldctx, strerror(errno));
 	free(oldctx);
 	free(newctx);
 }
