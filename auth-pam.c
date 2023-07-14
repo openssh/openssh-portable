@@ -848,7 +848,7 @@ sshpam_query(void *ctx, char **name, char **info,
 	size_t plen;
 	u_char type;
 	char *msg;
-	size_t len, mlen, nmsg = 0;
+	size_t len, mlen, nmesg = 0;
 	int r;
 
 	debug3("PAM: %s entering", __func__);
