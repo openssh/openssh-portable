@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.182 2023/07/14 05:31:44 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.183 2023/07/14 07:44:21 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -38,6 +38,7 @@
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
