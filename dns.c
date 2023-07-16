@@ -329,7 +329,7 @@ export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic,
 			}
 			for (i = 0; i < rdata_digest_len; i++)
 				fprintf(f, "%02x", rdata_digest[i]);
-			fprintf(f, "\n");
+			fputc('\n', f);
 			free(rdata_digest); /* from sshkey_fingerprint_raw() */
 			success = 1;
 		}

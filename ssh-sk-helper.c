@@ -361,7 +361,7 @@ main(int argc, char **argv)
 int
 main(int argc, char **argv)
 {
-	fprintf(stderr, "ssh-sk-helper: disabled at compile time\n");
+	fputs("ssh-sk-helper: disabled at compile time\n", stderr);
 	return -1;
 }
 #endif /* ENABLE_SK */

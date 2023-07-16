@@ -361,9 +361,9 @@ do_convert_to_ssh2(struct passwd *pw, struct sshkey *k)
 	sshkey_free(k);
 	sshbuf_free(b);
 
-	fprintf(stdout, "%s\n", SSH_COM_PUBLIC_BEGIN);
-	fprintf(stdout, "Comment: \"%s\"\n%s", comment, b64);
-	fprintf(stdout, "%s\n", SSH_COM_PUBLIC_END);
+	printf("%s\n", SSH_COM_PUBLIC_BEGIN);
+	printf("Comment: \"%s\"\n%s", comment, b64);
+	printf("%s\n", SSH_COM_PUBLIC_END);
 	free(b64);
 	exit(0);
 }
@@ -774,7 +774,7 @@ do_convert_from(struct passwd *pw)
 		if ((r = sshkey_write(k, stdout)) == 0)
 			ok = 1;
 		if (ok)
-			fprintf(stdout, "\n");
+			fputc('\n', stdout);
 	} else {
 		switch (k->type) {
 		case KEY_DSA:
@@ -819,8 +819,8 @@ do_print_public(struct passwd *pw)
 	if ((r = sshkey_write(prv, stdout)) != 0)
 		fatal_fr(r, "write key");
 	if (comment != NULL && *comment != '\0')
-		fprintf(stdout, " %s", comment);
-	fprintf(stdout, "\n");
+		printf(" %s", comment);
+	fputc('\n', stdout);
 	if (sshkey_is_sk(prv)) {
 		debug("sk_application: \"%s\", sk_flags 0x%02x",
 			prv->sk_application, prv->sk_flags);
@@ -862,7 +862,7 @@ do_download(struct passwd *pw)
 			free(fp);
 		} else {
 			(void) sshkey_write(keys[i], stdout); /* XXX check */
-			fprintf(stdout, "%s%s\n",
+			printf("%s%s\n",
 			    *(comments[i]) == '\0' ? "" : " ", comments[i]);
 		}
 		free(comments[i]);
@@ -2611,7 +2611,7 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 	}
 
 	if (fd == STDIN_FILENO) {
-		fputs(asig, stdout);
+		puts(asig);
 		fflush(stdout);
 	} else {
 		xasprintf(&wfile, "%s.sig", filename);
@@ -2911,7 +2911,7 @@ done:
 		while ((cp = strsep(&tmp, ",")) != NULL && *cp != '\0')
 			puts(cp);
 	} else {
-		fprintf(stderr, "No principal matched.\n");
+		fputs("No principal matched.\n", stderr);
 	}
 	sshbuf_free(sigbuf);
 	sshbuf_free(abuf);
@@ -3273,7 +3273,7 @@ confirm_sk_overwrite(const char *application, const char *user)
 static void
 usage(void)
 {
-	fprintf(stderr,
+	fputs(
 	    "usage: ssh-keygen [-q] [-a rounds] [-b bits] [-C comment] [-f output_keyfile]\n"
 	    "                  [-m format] [-N new_passphrase] [-O option]\n"
 	    "                  [-t dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
@@ -3287,12 +3287,12 @@ usage(void)
 	    "       ssh-keygen -y [-f input_keyfile]\n"
 	    "       ssh-keygen -c [-a rounds] [-C comment] [-f keyfile] [-P passphrase]\n"
 	    "       ssh-keygen -l [-v] [-E fingerprint_hash] [-f input_keyfile]\n"
-	    "       ssh-keygen -B [-f input_keyfile]\n");
+	    "       ssh-keygen -B [-f input_keyfile]\n", stderr);
 #ifdef ENABLE_PKCS11
-	fprintf(stderr,
-	    "       ssh-keygen -D pkcs11\n");
+	fputs(
+	    "       ssh-keygen -D pkcs11\n", stderr);
 #endif
-	fprintf(stderr,
+	fputs(
 	    "       ssh-keygen -F hostname [-lv] [-f known_hosts_file]\n"
 	    "       ssh-keygen -H [-f known_hosts_file]\n"
 	    "       ssh-keygen -K [-a rounds] [-w provider]\n"
@@ -3315,7 +3315,7 @@ usage(void)
 	    "       ssh-keygen -Y check-novalidate -n namespace -s signature_file\n"
 	    "       ssh-keygen -Y sign -f key_file -n namespace file [-O option] ...\n"
 	    "       ssh-keygen -Y verify -f allowed_signers_file -I signer_identity\n"
-	    "                  -n namespace -s signature_file [-r krl_file] [-O option]\n");
+	    "                  -n namespace -s signature_file [-r krl_file] [-O option]\n", stderr);
 	exit(1);
 }
 

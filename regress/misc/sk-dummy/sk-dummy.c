@@ -299,7 +299,7 @@ dump(const char *preamble, const void *sv, size_t l)
 			fprintf(stderr, "%04zu: ", i);
 		fprintf(stderr, "%02x", s[i]);
 		if (i % 16 == 15 || i == l - 1)
-			fprintf(stderr, "\n");
+			fputc('\n', stderr);
 	}
 #endif
 }

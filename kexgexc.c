@@ -128,9 +128,9 @@ input_kex_dh_gex_group(int type, u_int32_t seq, struct ssh *ssh)
 	debug("SSH2_MSG_KEX_DH_GEX_INIT sent");
 #ifdef DEBUG_KEXDH
 	DHparams_print_fp(stderr, kex->dh);
-	fprintf(stderr, "pub= ");
+	fputs("pub= ", stderr);
 	BN_print_fp(stderr, pub_key);
-	fprintf(stderr, "\n");
+	fputc('\n', stderr);
 #endif
 	debug("expecting SSH2_MSG_KEX_DH_GEX_REPLY");
 	ssh_dispatch_set(ssh, SSH2_MSG_KEX_DH_GEX_REPLY, &input_kex_dh_gex_reply);

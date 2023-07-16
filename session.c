@@ -801,7 +801,7 @@ do_motd(void)
 #endif
 		if (f) {
 			while (fgets(buf, sizeof(buf), f))
-				fputs(buf, stdout);
+				puts(buf);
 			fclose(f);
 		}
 	}
@@ -1186,7 +1186,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 
 	if (debug_flag) {
 		/* dump the environment */
-		fprintf(stderr, "Environment:\n");
+		fputs("Environment:\n", stderr);
 		for (i = 0; env[i]; i++)
 			fprintf(stderr, "  %.200s\n", env[i]);
 	}
@@ -1441,10 +1441,10 @@ static void
 do_pwchange(Session *s)
 {
 	fflush(NULL);
-	fprintf(stderr, "WARNING: Your password has expired.\n");
+	fputs( "WARNING: Your password has expired.\n", stderr);
 	if (s->ttyfd != -1) {
-		fprintf(stderr,
-		    "You must change your password now and login again!\n");
+		fputs("You must change your password now and login again!\n",
+			stderr);
 #ifdef WITH_SELINUX
 		setexeccon(NULL);
 #endif
@@ -1456,8 +1456,8 @@ do_pwchange(Session *s)
 #endif
 		perror("passwd");
 	} else {
-		fprintf(stderr,
-		    "Password change required but no TTY available.\n");
+		fputs("Password change required but no TTY available.\n",
+			stderr);
 	}
 	exit(1);
 }

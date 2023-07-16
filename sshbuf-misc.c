@@ -48,18 +48,18 @@ sshbuf_dump_data(const void *s, size_t len, FILE *f)
 			if (j < len)
 				fprintf(f, "%02x ", p[j]);
 			else
-				fprintf(f, "   ");
+				fputs("   ", f);
 		}
-		fprintf(f, " ");
+		fputc(' ', f);
 		for (j = i; j < i + 16; j++) {
 			if (j < len) {
 				if  (isascii(p[j]) && isprint(p[j]))
-					fprintf(f, "%c", p[j]);
+					fputc(p[j], f);
 				else
-					fprintf(f, ".");
+					fputc('.', f);
 			}
 		}
-		fprintf(f, "\n");
+		fputc('\n', f);
 	}
 }
 

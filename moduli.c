@@ -173,7 +173,7 @@ qfileout(FILE * ofile, u_int32_t otype, u_int32_t otests, u_int32_t otries,
 	if (BN_print_fp(ofile, omodulus) < 1)
 		return (-1);
 
-	res = fprintf(ofile, "\n");
+	res = fputc('\n', ofile);
 	fflush(ofile);
 
 	return (res > 0 ? 0 : -1);

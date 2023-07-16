@@ -1832,7 +1832,7 @@ mux_client_forward(int fd, int cancel_flag, u_int ftype, struct Forward *fwd)
 		    fwd->connect_host ? fwd->connect_host : "",
 		    fwd->connect_port);
 		if (muxclient_command == SSHMUX_COMMAND_FORWARD)
-			fprintf(stdout, "%i\n", fwd->allocated_port);
+			printf("%i\n", fwd->allocated_port);
 		break;
 	case MUX_S_PERMISSION_DENIED:
 		if ((r = sshbuf_get_cstring(m, &e, NULL)) != 0)
@@ -2340,7 +2340,7 @@ muxclient(const char *path)
 	case SSHMUX_COMMAND_TERMINATE:
 		mux_client_request_terminate(sock);
 		if (options.log_level != SYSLOG_LEVEL_QUIET)
-			fprintf(stderr, "Exit request sent.\r\n");
+			fputs("Exit request sent.\r\n", stderr);
 		exit(0);
 	case SSHMUX_COMMAND_FORWARD:
 		if (mux_client_forwards(sock, 0) != 0)
@@ -2359,7 +2359,7 @@ muxclient(const char *path)
 	case SSHMUX_COMMAND_STOP:
 		mux_client_request_stop_listening(sock);
 		if (options.log_level != SYSLOG_LEVEL_QUIET)
-			fprintf(stderr, "Stop listening request sent.\r\n");
+			fputs("Stop listening request sent.\r\n", stderr);
 		exit(0);
 	case SSHMUX_COMMAND_CANCEL_FWD:
 		if (mux_client_forwards(sock, 1) != 0)
