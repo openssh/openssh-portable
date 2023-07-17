@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.379 2023/07/17 04:08:31 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.380 2023/07/17 06:16:33 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -748,6 +748,8 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 				goto out;
 			}
 			r = check_match_ifaddrs(arg) == 1;
+			if (r == (negate ? 1 : 0))
+				this_result = result = 0;
 		} else if (strcasecmp(attrib, "tagged") == 0) {
 			criteria = xstrdup(options->tag == NULL ? "" :
 			    options->tag);
