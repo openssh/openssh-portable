@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.55 2023/03/14 07:28:47 dtucker Exp $ */
+/* $OpenBSD: krl.c,v 1.56 2023/07/17 03:57:21 djm Exp $ */
 
 #include "includes.h"
 
@@ -841,6 +841,45 @@ format_timestamp(u_int64_t timestamp, char *ts, size_t nts)
 }
 
 static int
+cert_extension_subsection(struct sshbuf *subsect, struct ssh_krl *krl)
+{
+	int r = SSH_ERR_INTERNAL_ERROR;
+	u_char critical = 1;
+	struct sshbuf *value = NULL;
+	char *name = NULL;
+
+	if ((r = sshbuf_get_cstring(subsect, &name, NULL)) != 0 ||
+	    (r = sshbuf_get_u8(subsect, &critical)) != 0 ||
+	    (r = sshbuf_froms(subsect, &value)) != 0) {
+		debug_fr(r, "parse");
+		error("KRL has invalid certificate extension subsection");
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if (sshbuf_len(subsect) != 0) {
+		error("KRL has invalid certificate extension subsection: "
+		    "trailing data");
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	debug_f("cert extension %s critical %u len %zu",
+	    name, critical, sshbuf_len(value));
+	/* no extensions are currently supported */
+	if (critical) {
+		error("KRL contains unsupported critical certificate "
+		    "subsection \"%s\"", name);
+		r = SSH_ERR_FEATURE_UNSUPPORTED;
+		goto out;
+	}
+	/* success */
+	r = 0;
+ out:
+	free(name);
+	sshbuf_free(value);
+	return r;
+}
+
+static int
 parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
@@ -931,6 +970,10 @@ parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 				key_id = NULL;
 			}
 			break;
+		case KRL_SECTION_CERT_EXTENSION:
+			if ((r = cert_extension_subsection(subsect, krl)) != 0)
+				goto out;
+			break;
 		default:
 			error("Unsupported KRL certificate section %u", type);
 			r = SSH_ERR_INVALID_FORMAT;
@@ -975,6 +1018,43 @@ blob_section(struct sshbuf *sect, struct revoked_blob_tree *target_tree,
 		}
 	}
 	return 0;
+}
+
+static int
+extension_section(struct sshbuf *sect, struct ssh_krl *krl)
+{
+	int r = SSH_ERR_INTERNAL_ERROR;
+	u_char critical = 1;
+	struct sshbuf *value = NULL;
+	char *name = NULL;
+
+	if ((r = sshbuf_get_cstring(sect, &name, NULL)) != 0 ||
+	    (r = sshbuf_get_u8(sect, &critical)) != 0 ||
+	    (r = sshbuf_froms(sect, &value)) != 0) {
+		debug_fr(r, "parse");
+		error("KRL has invalid extension section");
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if (sshbuf_len(sect) != 0) {
+		error("KRL has invalid extension section: trailing data");
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	debug_f("extension %s critical %u len %zu",
+	    name, critical, sshbuf_len(value));
+	/* no extensions are currently supported */
+	if (critical) {
+		error("KRL contains unsupported critical section \"%s\"", name);
+		r = SSH_ERR_FEATURE_UNSUPPORTED;
+		goto out;
+	}
+	/* success */
+	r = 0;
+ out:
+	free(name);
+	sshbuf_free(value);
+	return r;
 }
 
 /* Attempt to parse a KRL, checking its signature (if any) with sign_ca_keys. */
@@ -1142,6 +1222,10 @@ ssh_krl_from_blob(struct sshbuf *buf, struct ssh_krl **krlp,
 		case KRL_SECTION_FINGERPRINT_SHA256:
 			if ((r = blob_section(sect,
 			    &krl->revoked_sha256s, 32)) != 0)
+				goto out;
+			break;
+		case KRL_SECTION_EXTENSION:
+			if ((r = extension_section(sect, krl)) != 0)
 				goto out;
 			break;
 		case KRL_SECTION_SIGNATURE:
