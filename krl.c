@@ -1,3 +1,4 @@
+/* $OpenBSD: krl.c,v 1.59 2023/07/17 05:22:30 djm Exp $ */
 /*
  * Copyright (c) 2012 Damien Miller <djm@mindrot.org>
  *
@@ -13,8 +14,6 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
-/* $OpenBSD: krl.c,v 1.58 2023/07/17 05:20:15 djm Exp $ */
 
 #include "includes.h"
 
