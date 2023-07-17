@@ -5057,6 +5057,33 @@ else
 	)
 fi
 
+# check for /etc/login.defs and use it if present.
+AC_ARG_ENABLE([etc-logindefs],
+	[  --disable-etc-logindefs Disable TTCGROUP and TTYPERM from /etc/login.defs [no]],
+	[ if test "x$enableval" = "xno"; then
+		AC_MSG_NOTICE([/etc/login.defs handling disabled])
+		etc_login_defs=no
+	  else
+		etc_login_defs=yes
+	  fi ],
+	[ if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes";
+	  then
+		AC_MSG_WARN([cross compiling: not checking /etc/login.defs])
+		etc_login_defs=no
+	  else
+		etc_login_defs=yes
+	  fi ]
+)
+
+if test "x$etc_login_defs" != "xno"; then
+	AC_CHECK_FILE(["/etc/login.defs"],
+	    [ logindefs_file=/etc/login.defs ])
+	if test "x$logindefs_file" = "x/etc/login.defs"; then
+		AC_DEFINE([HAVE_ETC_LOGIN_DEFS], [1],
+			[Define if your system has /etc/login.defs])
+	fi
+fi
+
 # check for /etc/default/login and use it if present.
 AC_ARG_ENABLE([etc-default-login],
 	[  --disable-etc-default-login Disable using PATH from /etc/default/login [no]],

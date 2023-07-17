@@ -28,6 +28,7 @@
 #include <pwd.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #ifdef HAVE_UTIL_H
@@ -38,6 +39,7 @@
 #include "sshpty.h"
 #include "log.h"
 #include "misc.h"
+#include "xmalloc.h"
 
 #ifdef HAVE_PTY_H
 # include <pty.h>
@@ -52,6 +54,86 @@
 # if (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5)
 #  define __APPLE_PRIVPTY__
 # endif
+#endif
+
+
+#ifdef HAVE_ETC_LOGIN_DEFS
+
+struct logindefs_entry {
+	char* key, *value;
+};
+
+/*
+ * Reads login definitions from a file (typically /etc/login.defs)
+ * and stores them in an array for struct logindefs_entry.
+ * The returned array is null-terminated.
+ */
+
+static struct logindefs_entry** read_logindefs_file(const char* filename) {
+	FILE* f;
+	char *line = NULL, *cp;
+	size_t linesize = 0, key_end;
+	u_int lineno = 0;
+	struct logindefs_entry** vec = NULL;
+	size_t vec_cap = 0, vec_len = 0;
+
+	f = fopen(filename, "r");
+	if (!f)
+		return NULL;
+
+	while (getline(&line, &linesize, f) != -1) {
+		if (++lineno > 1000)
+			fatal("Too many lines in logindefs file %s", filename);
+
+		cp = line + strspn(line, " \t");
+		if (!*cp || *cp == '#' || *cp == '\n')
+			continue;
+
+		cp[strcspn(cp, "\n")] = '\0';
+
+		key_end = strcspn(cp, " \t");
+		if (cp[key_end] == '\0' || key_end == 0) {
+			fprintf(stderr, "Bad line %u in %.100s\n", lineno, filename);
+			continue;
+		}
+
+		struct logindefs_entry *entry = xmalloc(sizeof(struct logindefs_entry));
+
+		cp[key_end] = '\0';
+		entry->key = strdup(cp);
+		cp += key_end + 1;
+		cp += strspn(cp, " \t");
+		entry->value = strdup(cp);
+
+		/* always reserve one more for the terminating null pointer */
+		if (vec_len + 2 > vec_cap) {
+			if (vec_cap == 0)
+				vec_cap = 4;
+			else
+				vec_cap *= 2;
+			vec = xreallocarray(vec, vec_cap, sizeof(struct logindefs_entry*));
+		}
+		vec[vec_len++] = entry;
+	}
+	free(line);
+
+	if (vec)
+		vec[vec_len + 1] = NULL;
+
+	fclose(f);
+	return vec;
+}
+
+static void free_logindefs_entries(struct logindefs_entry** entries) {
+	struct logindefs_entry** e;
+	for (e = entries; *e; e++) {
+		free((*e)->key);
+		free((*e)->value);
+		free(*e);
+	}
+	free(entries);
+}
+
 #endif
 
 /*
@@ -165,17 +247,50 @@ pty_change_window_size(int ptyfd, u_int row, u_int col,
 void
 pty_setowner(struct passwd *pw, const char *tty)
 {
-	struct group *grp;
+	struct group *grp = NULL;
 	gid_t gid;
-	mode_t mode;
+	mode_t mode = 0;
 	struct stat st;
 
+#ifdef HAVE_ETC_LOGIN_DEFS
+	struct logindefs_entry **logindefs, **defp;
+	char *endptr;
+	u_long l;
+
+	logindefs = read_logindefs_file("/etc/login.defs");
+	if (logindefs) {
+		for (defp = logindefs; *defp; defp++) {
+			if (0 == strcmp((*defp)->key, "TTYGROUP")) {
+				grp = getgrnam((*defp)->value);
+				if (grp == NULL)
+					debug("%s: Group %.100s defined in /etc/login.defs "
+							"not found", __func__, (*defp)->value);
+			} else if (0 == strcmp((*defp)->key, "TTYPERM")) {
+				l = strtoul((*defp)->value, &endptr, 0);
+				if (*endptr) {
+					debug("%s: Could not parse \"%.100s\" from /etc/login.defs "
+							"to mode", __func__, (*defp)->value);
+				} else if (l <= 0 || l >= 0777) {
+					/* mode 0 is invalid, someone should be able to access the tty */
+					debug("%s: Mode %#04o in /etc/login.defs is out of range",
+							__func__, mode);
+				} else
+					mode = l;
+			}
+		}
+		free_logindefs_entries(logindefs);
+	}
+#endif
+
 	/* Determine the group to make the owner of the tty. */
-	grp = getgrnam("tty");
-	if (grp == NULL)
-		debug("%s: no tty group", __func__);
+	if (grp == NULL) {
+		grp = getgrnam("tty");
+		if (grp == NULL)
+			debug("%s: no tty group", __func__);
+	}
 	gid = (grp != NULL) ? grp->gr_gid : pw->pw_gid;
-	mode = (grp != NULL) ? 0620 : 0600;
+	if (mode == 0)
+		mode = (grp != NULL) ? 0620 : 0600;
 
 	/*
 	 * Change owner and mode of the tty as required.
