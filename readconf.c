@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.377 2023/06/21 05:10:26 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.378 2023/07/17 04:04:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -20,6 +20,7 @@
 #include <sys/wait.h>
 #include <sys/un.h>
 
+#include <net/if.h>
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
@@ -28,6 +29,9 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#ifdef HAVE_IFADDRS_H
+# include <ifaddrs.h>
+#endif
 #include <limits.h>
 #include <netdb.h>
 #ifdef HAVE_PATHS_H
@@ -577,6 +581,60 @@ execute_in_shell(const char *cmd)
 }
 
 /*
+ * Check whether a local network interface address appears in CIDR pattern-
+ * list 'addrlist'. Returns 1 if matched or 0 otherwise.
+ */
+static int
+check_match_ifaddrs(const char *addrlist)
+{
+	struct ifaddrs *ifa, *ifaddrs = NULL;
+	int r, found = 0;
+	char addr[NI_MAXHOST];
+	socklen_t salen;
+
+	if (getifaddrs(&ifaddrs) != 0) {
+		error("match localnetwork: getifaddrs failed: %s",
+		    strerror(errno));
+		return 0;
+	}
+	for (ifa = ifaddrs; ifa != NULL; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr == NULL || ifa->ifa_name == NULL ||
+		    (ifa->ifa_flags & IFF_UP) == 0)
+			continue;
+		switch (ifa->ifa_addr->sa_family) {
+		case AF_INET:
+			salen = sizeof(struct sockaddr_in);
+			break;
+		case AF_INET6:
+			salen = sizeof(struct sockaddr_in6);
+			break;
+		case AF_LINK:
+			/* ignore */
+			continue;
+		default:
+			debug2_f("interface %s: unsupported address family %d",
+			    ifa->ifa_name, ifa->ifa_addr->sa_family);
+			continue;
+		}
+		if ((r = getnameinfo(ifa->ifa_addr, salen, addr, sizeof(addr),
+		    NULL, 0, NI_NUMERICHOST)) != 0) {
+			debug2_f("interface %s getnameinfo failed: %s",
+			    ifa->ifa_name, gai_strerror(r));
+			continue;
+		}
+		debug3_f("interface %s addr %s", ifa->ifa_name, addr);
+		if (addr_match_cidr_list(addr, addrlist) == 1) {
+			debug3_f("matched interface %s: address %s in %s",
+			    ifa->ifa_name, addr, addrlist);
+			found = 1;
+			break;
+		}
+	}
+	freeifaddrs(ifaddrs);
+	return found;
+}
+
+/*
  * Parse and execute a Match directive.
  */
 static int
@@ -680,6 +738,15 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			r = match_pattern_list(pw->pw_name, arg, 0) == 1;
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
+		} else if (strcasecmp(attrib, "localnetwork") == 0) {
+			if (addr_match_cidr_list(NULL, arg) == -1) {
+				/* Error already printed */
+				result = -1;
+				goto out;
+			}
+			r = check_match_ifaddrs(arg) == 1;
+			if (r == (negate ? 1 : 0))
+				this_result = result = 0;
 		} else if (strcasecmp(attrib, "exec") == 0) {
 			char *conn_hash_hex, *keyalias;
 
@@ -733,9 +800,11 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			result = -1;
 			goto out;
 		}
-		debug3("%.200s line %d: %smatched '%s \"%.100s\"' ",
-		    filename, linenum, this_result ? "": "not ",
-		    oattrib, criteria);
+		debug3("%.200s line %d: %smatched '%s%s%.100s%s' ",
+		    filename, linenum, this_result ? "": "not ", oattrib,
+		    criteria == NULL ? "" : " \"",
+		    criteria == NULL ? "" : criteria,
+		    criteria == NULL ? "" : "\"");
 		free(criteria);
 	}
 	if (attributes == 0) {
