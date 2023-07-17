@@ -609,9 +609,11 @@ check_match_ifaddrs(const char *addrlist)
 		case AF_INET6:
 			salen = sizeof(struct sockaddr_in6);
 			break;
+#ifdef AF_LINK
 		case AF_LINK:
 			/* ignore */
 			continue;
+#endif /* AF_LINK */
 		default:
 			debug2_f("interface %s: unsupported address family %d",
 			    ifa->ifa_name, ifa->ifa_addr->sa_family);
