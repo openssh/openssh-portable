@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.378 2023/07/17 04:04:36 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.379 2023/07/17 04:08:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -144,7 +144,7 @@ static int process_config_line_depth(Options *options, struct passwd *pw,
 
 typedef enum {
 	oBadOption,
-	oHost, oMatch, oInclude,
+	oHost, oMatch, oInclude, oTag,
 	oForwardAgent, oForwardX11, oForwardX11Trusted, oForwardX11Timeout,
 	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication,
@@ -257,6 +257,7 @@ static struct {
 	{ "user", oUser },
 	{ "host", oHost },
 	{ "match", oMatch },
+	{ "tag", oTag },
 	{ "escapechar", oEscapeChar },
 	{ "globalknownhostsfile", oGlobalKnownHostsFile },
 	{ "userknownhostsfile", oUserKnownHostsFile },
@@ -745,6 +746,10 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 				goto out;
 			}
 			r = check_match_ifaddrs(arg) == 1;
+		} else if (strcasecmp(attrib, "tagged") == 0) {
+			criteria = xstrdup(options->tag == NULL ? "" :
+			    options->tag);
+			r = match_pattern_list(criteria, arg, 0) == 1;
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 		} else if (strcasecmp(attrib, "exec") == 0) {
@@ -1363,6 +1368,10 @@ parse_char_array:
 
 	case oHostname:
 		charptr = &options->hostname;
+		goto parse_string;
+
+	case oTag:
+		charptr = &options->tag;
 		goto parse_string;
 
 	case oHostKeyAlias:
@@ -2512,6 +2521,7 @@ initialize_options(Options * options)
 	options->known_hosts_command = NULL;
 	options->required_rsa_size = -1;
 	options->enable_escape_commandline = -1;
+	options->tag = NULL;
 }
 
 /*
@@ -3431,6 +3441,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
 	dump_cfg_string(oXAuthLocation, o->xauth_location);
 	dump_cfg_string(oKnownHostsCommand, o->known_hosts_command);
+	dump_cfg_string(oTag, o->tag);
 
 	/* Forwards */
 	dump_cfg_forwards(oDynamicForward, o->num_local_forwards, o->local_forwards);

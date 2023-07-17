@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.381 2023/07/17 04:04:36 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.382 2023/07/17 04:08:31 djm Exp $
 .Dd $Mdocdate: July 17 2023 $
 .Dt SSH_CONFIG 5
 .Os
@@ -144,6 +144,7 @@ The available criteria keywords are:
 .Cm localnetwork ,
 .Cm host ,
 .Cm originalhost ,
+.Cm Tag ,
 .Cm user ,
 and
 .Cm localuser .
@@ -222,6 +223,15 @@ options.
 The
 .Cm originalhost
 keyword matches against the hostname as it was specified on the command-line.
+The
+.Cm tagged
+keyword matches a tag name specified by a prior
+.Cm Tag
+directive or on the
+.Xr ssh 1
+command-line using the
+.Fl P
+flag.
 The
 .Cm user
 keyword matches against the target username on the remote host.
@@ -1886,6 +1896,10 @@ To disable TCP keepalive messages, the value should be set to
 See also
 .Cm ServerAliveInterval
 for protocol-level keepalives.
+.It Cm Tag
+Specify a configuration tag name that may be later used by a
+.Cm Match
+directive to select a block of configuation.
 .It Cm Tunnel
 Request
 .Xr tun 4
