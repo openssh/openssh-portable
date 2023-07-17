@@ -315,6 +315,13 @@ chachapoly_free_mt(struct chachapoly_ctx_mt * ctx_mt)
 	 * be safely destroyed.
 	 */
 	if (getpid() == ctx_mt->mainpid) {
+
+		/* Join advancement thread if it exists */
+		if (ctx_mt->adv_tid != ctx_mt->self_tid) {
+			debug_f("Killed advancement thread");
+			pthread_join(ctx_mt->adv_tid, NULL);
+			ctx_mt->adv_tid = ctx_mt->self_tid;
+		}
 		/*
 		 * Acquire batchID_lock, so that thread cancellations can be
 		 * sent without risking race conditions near cond. We don't need
