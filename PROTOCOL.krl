@@ -193,6 +193,10 @@ The "extension_contents" contains the body of the extension.
 
 6. KRL signature sections
 
+Note: KRL signatures are not supported by OpenSSH. OpenSSH >= 9.4 will
+refuse to load KRLs that contain signatures. We recommend the use
+of SSHSIG (`ssh-keygen -Y sign ...`) style signatures for KRLs instead.
+
 The KRL_SECTION_SIGNATURE section serves a different purpose to the
 preceding ones: to provide cryptographic authentication of a KRL that
 is retrieved over a channel that does not provide integrity protection.
@@ -215,4 +219,4 @@ Implementations that retrieve KRLs over untrusted channels must verify
 signatures. Signature sections are optional for KRLs distributed by
 trusted means.
 
-$OpenBSD: PROTOCOL.krl,v 1.6 2023/07/17 03:57:21 djm Exp $
+$OpenBSD: PROTOCOL.krl,v 1.7 2023/07/17 04:01:10 djm Exp $
