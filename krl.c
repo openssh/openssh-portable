@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.57 2023/07/17 04:01:10 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.58 2023/07/17 05:20:15 djm Exp $ */
 
 #include "includes.h"
 
@@ -1056,7 +1056,7 @@ ssh_krl_from_blob(struct sshbuf *buf, struct ssh_krl **krlp)
 	/* KRL must begin with magic string */
 	if ((r = sshbuf_cmp(buf, 0, KRL_MAGIC, sizeof(KRL_MAGIC) - 1)) != 0) {
 		debug2_f("bad KRL magic header");
-		return r;
+		return SSH_ERR_KRL_BAD_MAGIC;
 	}
 
 	if ((krl = ssh_krl_init()) == NULL) {
