@@ -24,7 +24,9 @@
 #include <pwd.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdint.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
 #include <stdarg.h>
 #include <ctype.h>
 #include <limits.h>
