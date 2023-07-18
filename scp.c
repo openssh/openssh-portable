@@ -134,7 +134,10 @@
 #include "misc.h"
 #include "progressmeter.h"
 #include "utf8.h"
-#ifdef WITH_OPENSSL 
+/* libressl doesn't support the blake2b512 digest so
+ * we need to prevent libressl from using the resume feature
+ * cjr 7/18/2023 */
+#if (defined WITH_OPENSSL) && !defined(LIBRESSL_VERSION_NUMBER)
 #include <openssl/evp.h>
 #endif
 #include "sftp.h"
@@ -206,7 +209,7 @@ char hostname[HOST_NAME_MAX + 1];
 /* defines for the resume function. Need them even if not supported */
 #define HASH_LEN 128               /*40 sha1, 64 blake2s256 128 blake2b512*/
 #define BUF_AND_HASH HASH_LEN + 64 /* length of the hash and other data to get size of buffer */
-#define HASH_BUFLEN 8192	   /* 8192 seems to be a good balance between freads 
+#define HASH_BUFLEN 8192	   /* 8192 seems to be a good balance between freads
 				    * and the digest func*/
 static void
 killchild(int signo)
@@ -618,7 +621,7 @@ main(int argc, char **argv)
 			addargs(&remote_remote_args, "-q");
 			showprogress = 0;
 			break;
-#ifdef WITH_OPENSSL			
+#if (defined WITH_OPENSSL) && !defined(LIBRESSL_VERSION_NUMBER)
 		case 'Z':
 			/* currently resume only works in SCP mode */
 			resume_flag = 1;
@@ -728,9 +731,9 @@ main(int argc, char **argv)
 	do_cmd_pid = -1;
 	/* Command to be executed on remote system using "ssh". */
 	/* In the event of an hpn to hpn connection the scp
-	 * command is rewritten to hpnscp. This happens in 
+	 * command is rewritten to hpnscp. This happens in
 	 * clientloop.c -cjr 12/12/2022 */
-	
+
 	(void) snprintf(cmd, sizeof cmd, "%s%s%s%s%s%s",
 			remote_path ? remote_path : "scp",
 			verbose_mode ? " -v" : "",
@@ -1352,10 +1355,10 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 
 /* calculate the hash of a file up to length bytes
  * this is used to determine if remote and local file
- * fragments match. There may be a more efficient process for the hashing 
- * TODO: I'd like to XXHash for the hashing but that requires that both
- * ends have xxhash installed and then dealing with fallbacks */
-#ifdef WITH_OPENSSL
+ * fragments match. There may be a more efficient process for the hashing
+ * Note: LibreSSL doesn't support blake2b512 so we can't offer them
+ * the resume feature cjr 7/18/2023 */
+#if (defined WITH_OPENSSL) && !defined(LIBRESSL_VERSION_NUMBER)
 void calculate_hash(char *filename, char *output, off_t length)
 {
 	int n, md_len;
@@ -1386,7 +1389,7 @@ void calculate_hash(char *filename, char *output, off_t length)
 
 	while (length > 0) {
 		if (length > HASH_BUFLEN)
-			/* fread returns the number of elements read. 
+			/* fread returns the number of elements read.
 			 * in this case 1. Multiply by the length to get the bytes */
 			bytes=fread(buf, HASH_BUFLEN, 1, file_ptr) * HASH_BUFLEN;
 		else
@@ -1409,7 +1412,7 @@ void calculate_hash(char *filename, char *output, off_t length)
 #else
 void calculate_hash(char *filename, char *output, off_t length)
 {
-  /* empty function for builds without openssl */
+  /* empty function for builds without openssl or are using libressl */
 }
 #endif /* WITH_OPENSSL */
 
@@ -1931,15 +1934,15 @@ sink(int argc, char **argv, const char *src)
 	int bad_match_flag = 0;
 	np = NULL; /* this was originally '/0' but that's wrong */
 	np_tmp = NULL;
-	
-	
+
+
 #define	atime	tv[0]
 #define	mtime	tv[1]
 #define	SCREWUP(str)	{ why = str; goto screwup; }
 
 #ifdef DEBUG
        fprintf (stderr, "%s: LOCAL In sink with %s\n", hostname, src);
-#endif	
+#endif
 	if (TYPE_OVERFLOW(time_t, 0) || TYPE_OVERFLOW(off_t, 0))
 		SCREWUP("Unexpected off_t/time_t size");
 
@@ -2700,7 +2703,7 @@ response(void)
 void
 usage(void)
 {
-#ifdef WITH_OPENSSL
+#if (defined WITH_OPENSSL) && !defined(LIBRESSL_VERSION_NUMBER)
 	(void) fprintf(stderr,
 	    "usage: hpnscp [-346ABCOpqRrsTvZ] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
 	    "              [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
@@ -2710,11 +2713,11 @@ usage(void)
 	(void) fprintf(stderr,
 	    "usage: hpnscp [-346ABCOpqRrsTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
 	    "              [-i identity_file] [-J destination] [-l limit]\n"
-	    "              [-o ssh_option] [-P port]" 
+	    "              [-o ssh_option] [-P port]"
 	    "              [-S program] source ... target\n");
 	exit(1);
 #endif
-	
+
 }
 
 void
