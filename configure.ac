@@ -2817,7 +2817,7 @@ if test "x$openssl" = "xyes" ; then
 #ifndef HAVE_OPENSSL_VERSION_NUM
 # define OpenSSL_version_num	SSLeay
 #endif
-# if LIBRESSL_VERSION_NUMBER >= 0x3070100fL
+# if LIBRESSL_VERSION_NUMBER > 0x3060900fL
 /* older versions of libressl don't have EVP_CIPHER_meth_ functions
  * this tests the version number and prepends Libre on the results
  * and that is checked for specifically in the case statement below
@@ -2836,7 +2836,7 @@ if test "x$openssl" = "xyes" ; then
 		]])],
 		[
 			ssl_library_ver=`cat conftest.ssllibver`
-			AC_MSG_RESULT([$ssl_library_ver])
+			AC_MSG_NOTICE([version is $ssl_library_ver])
 			# Check version is supported.
   			case "$ssl_library_ver" in
 			10000*|0*)
