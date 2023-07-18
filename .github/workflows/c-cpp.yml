@@ -2,7 +2,7 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master, pre-stage, *RC* ]
+    branches: [ master, pre-stage, '*RC*' ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
   pull_request:
     branches: [ master ]
