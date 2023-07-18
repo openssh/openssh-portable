@@ -2848,11 +2848,9 @@ if test "x$openssl" = "xyes" ; then
 				AC_MSG_ERROR([OpenSSL 1.1.x versions prior to 1.1.0g have a bug that breaks their use with OpenSSH (have "$ssl_library_ver")])
 				;;
 			101*)   ;; # 1.1.x
-				;; # LibreSSL that supports evp_cipher_meth_* functions
-			200*)   AC_MSG_ERROR([LibreSSL versions older than 3.7 are no longer supported by HPN-SSH.])
+			200*)   AC_MSG_ERROR([LibreSSL versions older than 3.7 are no longer suported by HPN-SSH.])
                                 ;; # LibreSSL unsupported versions
-			Libre*)
-				AC_MSG_RESULT([Found compatible libressl version])
+			Libre*) ;; # LibreSSL that supports evp_cipher_meth_* functions
 #			300*)   ;; # OpenSSL 3
 #			301*)   ;; # OpenSSL development branch.
 #			302*)   ;; # OpenSSL master branch
