@@ -2817,7 +2817,7 @@ if test "x$openssl" = "xyes" ; then
 #ifndef HAVE_OPENSSL_VERSION_NUM
 # define OpenSSL_version_num	SSLeay
 #endif
-# if LIBRESSL_VERSION_NUMBER > 0x3060900fL
+# if LIBRESSL_VERSION_NUMBER >= 0x3070100fL
 /* older versions of libressl don't have EVP_CIPHER_meth_ functions
  * this tests the version number and prepends Libre on the results
  * and that is checked for specifically in the case statement below
@@ -2836,9 +2836,8 @@ if test "x$openssl" = "xyes" ; then
 		]])],
 		[
 			ssl_library_ver=`cat conftest.ssllibver`
-			AC_MSG_NOTICE([version is $ssl_library_ver])
 			# Check version is supported.
-  			case "$ssl_library_ver" in
+			case "$ssl_library_ver" in
 			10000*|0*)
 				AC_MSG_ERROR([OpenSSL >= 1.1.0g required (have "$ssl_library_ver")])
 		                ;;
@@ -2849,11 +2848,11 @@ if test "x$openssl" = "xyes" ; then
 				AC_MSG_ERROR([OpenSSL 1.1.x versions prior to 1.1.0g have a bug that breaks their use with OpenSSH (have "$ssl_library_ver")])
 				;;
 			101*)   ;; # 1.1.x
-			Libre*)
-				AC_MSG_RESULT([Found compatible libressl version])
 				;; # LibreSSL that supports evp_cipher_meth_* functions
 			200*)   AC_MSG_ERROR([LibreSSL versions older than 3.7 are no longer supported by HPN-SSH.])
                                 ;; # LibreSSL unsupported versions
+			Libre*)
+				AC_MSG_RESULT([Found compatible libressl version])
 #			300*)   ;; # OpenSSL 3
 #			301*)   ;; # OpenSSL development branch.
 #			302*)   ;; # OpenSSL master branch
