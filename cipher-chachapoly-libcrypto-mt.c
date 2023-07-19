@@ -318,7 +318,6 @@ chachapoly_free_mt(struct chachapoly_ctx_mt * ctx_mt)
 
 		/* Join advancement thread if it exists */
 		if (ctx_mt->adv_tid != ctx_mt->self_tid) {
-			debug_f("Killed advancement thread");
 			pthread_join(ctx_mt->adv_tid, NULL);
 			ctx_mt->adv_tid = ctx_mt->self_tid;
 		}
