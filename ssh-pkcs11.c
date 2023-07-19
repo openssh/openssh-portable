@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.57 2023/07/19 13:55:53 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.58 2023/07/19 14:02:27 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -1530,6 +1530,10 @@ pkcs11_register_provider(char *provider_id, char *pin,
 
 	if (pkcs11_provider_lookup(provider_id) != NULL) {
 		debug_f("provider already registered: %s", provider_id);
+		goto fail;
+	}
+	if (lib_contains_symbol(provider_id, "C_GetFunctionList") != 0) {
+		error("provider %s is not a PKCS11 library", provider_id);
 		goto fail;
 	}
 	/* open shared pkcs11-library */
