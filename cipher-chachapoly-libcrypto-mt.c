@@ -104,7 +104,7 @@ struct chachapoly_ctx_mt {
    * internal poly1305 methods */
 #ifdef OPENSSL_HAVE_POLY_EVP
 	EVP_MAC_CTX    *poly_ctx;
-#elif (OPENSSL_VERSION_NUMBER < 0x30000000UL) && defined(EVP_PKEY_POLY1305)
+#elif !defined(WITH_OPENSSL3) && defined(EVP_PKEY_POLY1305)
 	EVP_PKEY_CTX   *poly_ctx;
 	EVP_MD_CTX     *md_ctx;
 	EVP_PKEY       *pkey;
@@ -393,7 +393,7 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 		explicit_bzero(&startseqnr, sizeof(startseqnr));
 		return NULL;
 	}
-#elif (OPENSSL_VERSION_NUMBER < 0x30000000UL) && defined(EVP_PKEY_POLY1305)
+#elif !defined(WITH_OPENSSL3) && defined(EVP_PKEY_POLY1305)
 	ctx_mt->md_ctx = EVP_MD_CTX_new();
 	ctx_mt->pkey = EVP_PKEY_new_mac_key(EVP_PKEY_POLY1305, NULL, ctx_mt->zeros,
 	    POLY1305_KEYLEN);
@@ -567,7 +567,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 		if (!do_encrypt) {
 			const u_char *tag = src + aadlen + len;
 			u_char expected_tag[POLY1305_TAGLEN];
-#if (OPENSSL_VERSION_NUMBER < 0x30000000UL) && defined(EVP_PKEY_POLY1305)
+#if !defined(WITH_OPENSSL3) && defined(EVP_PKEY_POLY1305)
 			EVP_PKEY_CTX_ctrl(ctx_mt->poly_ctx, -1, EVP_PKEY_OP_SIGNCTX, EVP_PKEY_CTRL_SET_MAC_KEY, POLY1305_KEYLEN, ks->poly_key);
 			EVP_DigestSignUpdate(ctx_mt->md_ctx, src, aadlen + len);
 			ctx_mt->ptaglen = POLY1305_TAGLEN;
@@ -591,7 +591,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 			/* Crypt payload */
 			fastXOR(dest+aadlen,src+aadlen,ks->mainStream,len);
 			/* calculate and append tag */
-#if (OPENSSL_VERSION_NUMBER < 0x30000000UL) && defined(EVP_PKEY_POLY1305)
+#if !defined(WITH_OPENSSL3) && defined(EVP_PKEY_POLY1305)
 			if (do_encrypt) {
 				EVP_PKEY_CTX_ctrl(ctx_mt->poly_ctx, -1, EVP_PKEY_OP_SIGNCTX, EVP_PKEY_CTRL_SET_MAC_KEY, POLY1305_KEYLEN, ks->poly_key);
 				EVP_DigestSignUpdate(ctx_mt->md_ctx, dest, aadlen + len);

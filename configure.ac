@@ -2851,21 +2851,20 @@ if test "x$openssl" = "xyes" ; then
 			200*)   AC_MSG_ERROR([LibreSSL versions older than 3.7 are no longer suported by HPN-SSH.])
                                 ;; # LibreSSL unsupported versions
 			Libre*) ;; # LibreSSL that supports evp_cipher_meth_* functions
-#			300*)   ;; # OpenSSL 3
-#			301*)   ;; # OpenSSL development branch.
-#			302*)   ;; # OpenSSL master branch
-#			*)
 			300*)
 				# OpenSSL 3; we use the 1.1x API
 				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
+				AC_DEFINE([WITH_OPENSSL3], [1], [With OpenSSL3])
 				;;
 			301*|302*)
 				# OpenSSL development branch; request 1.1x API
 				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
+				AC_DEFINE([WITH_OPENSSL3], [1], [With OpenSSL3])
 				;;
 			302*)
 				# OpenSSL Master Branch; request 1.1x API
 				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
+				AC_DEFINE([WITH_OPENSSL3], [1], [With OpenSSL3])
 				;;
 			*)
 				AC_MSG_ERROR([Unknown/unsupported OpenSSL version ("$ssl_library_ver")])

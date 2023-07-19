@@ -24,9 +24,8 @@
 
 #include "includes.h"
 
-#ifdef WITH_OPENSSL
 /* only for systems with OSSL 3 */
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 #include <stdarg.h>
 #include <string.h>
 #include <openssl/evp.h>
@@ -648,5 +647,4 @@ int aes_mt_do_cipher(void *vevp_ctx,
 	return 1;
 }
 
-#endif /*OPENSSL_VERSION_NUMBER */
-#endif /*WITH_OPENSSL*/
+#endif /*WITH_OPENSSL3*/

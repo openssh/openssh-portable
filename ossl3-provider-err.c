@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include "ossl3-provider-err.h"
 
-#ifdef WITH_OPENSSL
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 
 struct proverr_functions_st {
   const OSSL_CORE_HANDLE *core;
@@ -106,5 +105,4 @@ void proverr_set_error(const struct proverr_functions_st *handle,
   va_end(ap);
 }
 
-#endif /* OPENSSL_VERSION_NUMBER >= 0x30000000UL */
-#endif /* WITH_OPENSSL */
+#endif /* WITH_OPENSSL3 */

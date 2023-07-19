@@ -23,8 +23,7 @@
  */
 #include "includes.h"
 
-#if defined(WITH_OPENSSL)
-#if OPENSSL_VERSION_NUMBER < 0x30000000UL
+#if defined(WITH_OPENSSL) && !defined(WITH_OPENSSL3)
 #include <sys/types.h>
 
 #include <stdarg.h>
@@ -652,12 +651,6 @@ ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 }
 
 /* <friedl> */
-/* we've stipped out support for LibreSSL and OpenSSL < 1.1
- * it was getting to be too much to maintain. If LibreSSL
- * ever incorporates the meth_new() functionality we'll
- * reinstate support in configure.ac
- * cjr 2/8/2023
- */
 const EVP_CIPHER *
 evp_aes_ctr_mt(void)
 {
@@ -675,5 +668,4 @@ evp_aes_ctr_mt(void)
 #  endif /*SSH_OLD_EVP*/
 	return aes_ctr;
 }
-#endif /* OSSL VERSION NUMBER */
-#endif /* OSSL */
+#endif /* OSSL Check */

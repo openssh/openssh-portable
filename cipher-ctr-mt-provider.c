@@ -22,9 +22,8 @@
 
 #include "includes.h"
 
-#ifdef WITH_OPENSSL
 /* only for systems with OSSL 3.0+ */
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 
 #include <sys/types.h>
 #include <string.h>
@@ -388,5 +387,4 @@ static int aes_mt_set_ctx_params(void *vctx, const OSSL_PARAM params[])
     return ok;
 }
 
-#endif /*OPENSSL_VERSION_NUMBER */
-#endif /*WITH_OPENSSL*/
+#endif /*WITH_OPENSSL3*/

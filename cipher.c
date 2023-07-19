@@ -53,7 +53,7 @@
 #include "openbsd-compat/openssl-compat.h"
 
 /* for provider functions */
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 #include <openssl/err.h>
 #include <openssl/params.h>
 #include <openssl/provider.h>
@@ -381,7 +381,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	 * we load our hpnssh provider. If it doesn't (OSSL < 1.1) then we use the
 	 * _meth_new process found in cipher-ctr-mt.c */
 	if (strstr(cc->cipher->name, "ctr") && post_auth) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 		/* this version of openssl uses providers */
 		OSSL_LIB_CTX *aes_lib = NULL; /* probably not needed */
 		OSSL_PROVIDER *aes_mt_provider = NULL;
@@ -420,7 +420,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 		 * then we'd only have to call EVP_CIPHER_meth once but this
 		 * works for now. TODO: This. cjr 02.22.2023 */
 		cc->meth_ptr = type;
-#endif /* OPENSSL_VERSION_NUMBER */
+#endif /* WITH_OPENSSL3 */
 	} /* if (strstr()) */
 	if (EVP_CipherInit(cc->evp, type, NULL, (u_char *)iv,
 	    (do_encrypt == CIPHER_ENCRYPT)) == 0) {
