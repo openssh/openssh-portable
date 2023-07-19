@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.56 2023/03/08 05:33:53 tb Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.57 2023/07/19 13:55:53 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -1537,10 +1537,8 @@ pkcs11_register_provider(char *provider_id, char *pin,
 		error("dlopen %s failed: %s", provider_id, dlerror());
 		goto fail;
 	}
-	if ((getfunctionlist = dlsym(handle, "C_GetFunctionList")) == NULL) {
-		error("dlsym(C_GetFunctionList) failed: %s", dlerror());
-		goto fail;
-	}
+	if ((getfunctionlist = dlsym(handle, "C_GetFunctionList")) == NULL)
+		fatal("dlsym(C_GetFunctionList) failed: %s", dlerror());
 	p = xcalloc(1, sizeof(*p));
 	p->name = xstrdup(provider_id);
 	p->handle = handle;
