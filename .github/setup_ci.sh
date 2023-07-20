@@ -26,7 +26,7 @@ esac
 TARGETS=$@
 
 INSTALL_FIDO_PPA="no"
-COPY_PAM_MODULE="no"
+#COPY_PAM_MODULE="no"
 export DEBIAN_FRONTEND=noninteractive
 
 #echo "Setting up for '$TARGETS'"
@@ -86,7 +86,7 @@ for TARGET in $TARGETS; do
 	esac
         ;;
     *pam)
-	COPY_PAM_MODULE="yes"
+#	COPY_PAM_MODULE="yes"
         PACKAGES="$PACKAGES libpam0g-dev"
         ;;
     sk)
@@ -143,11 +143,11 @@ fi
 
 #need to copy the pam modules for sshd to hpnsshd on
 #macos with pam.
-if [ "yes" = "$COPY_PAM_MODULE" ]; then
-    if [ `uname` = "Darwin" }; then
-	sudo cp /etc/pam.d/sshd /etc/pam.d/hpnsshd
-    fi
-fi
+#if [ "yes" = "$COPY_PAM_MODULE" ]; then
+#    if [ `uname` = "Darwin" }; then
+#	sudo cp /etc/pam.d/sshd /etc/pam.d/hpnsshd
+#    fi
+#fi
 
 tries=3
 while [ ! -z "$PACKAGES" ] && [ "$tries" -gt "0" ]; do
