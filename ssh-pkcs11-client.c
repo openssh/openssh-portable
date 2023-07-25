@@ -103,10 +103,10 @@ helper_by_rsa(const RSA *rsa)
 
 }
 
+#if defined(OPENSSL_HAS_ECC) && defined(HAVE_EC_KEY_METHOD_NEW)
 static struct helper *
 helper_by_ec(const EC_KEY *ec)
 {
-#if defined(OPENSSL_HAS_ECC) && defined(HAVE_EC_KEY_METHOD_NEW)
 	size_t i;
 	const EC_KEY_METHOD *meth;
 
@@ -116,10 +116,10 @@ helper_by_ec(const EC_KEY *ec)
 		if (helpers[i] != NULL && helpers[i]->ec_meth == meth)
 			return helpers[i];
 	}
-#endif /* defined(OPENSSL_HAS_ECC) && defined(HAVE_EC_KEY_METHOD_NEW) */
 	return NULL;
 
 }
+#endif /* defined(OPENSSL_HAS_ECC) && defined(HAVE_EC_KEY_METHOD_NEW) */
 
 static void
 helper_free(struct helper *helper)
@@ -489,7 +489,9 @@ pkcs11_start_helper(const char *path)
 		close(pair[0]);
 		close(pair[1]);
 		RSA_meth_free(helper->rsa_meth);
+#if defined(OPENSSL_HAS_ECC) && defined(HAVE_EC_KEY_METHOD_NEW)
 		EC_KEY_METHOD_free(helper->ec_meth);
+#endif
 		free(helper);
 		return NULL;
 	} else if (pid == 0) {
