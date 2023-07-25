@@ -19,7 +19,8 @@
 #include "metrics.h"
 #include "ssherr.h"
 #include <stdlib.h>
-#ifdef __linux__
+#include <stdio.h>
+#if defined(__linux__) && !defined(__alpine__)
 #include <linux/version.h>
 #endif
 
@@ -45,7 +46,7 @@ metrics_write_binn_object(struct tcp_info *data, struct binn_struct *binnobj) {
  * on non linux systems we set the kernel version to 0
  * which will get us the base set of metrics from netinet/tcp.h
  */
-#ifdef __linux__
+#if (defined __linux__) && !defined(__alpine__)
 	binn_object_set_uint32(binnobj, "kernel_version", LINUX_VERSION_CODE);
 #else
 	binn_object_set_uint32(binnobj, "kernel_version", 0);

@@ -2680,6 +2680,15 @@ AC_CHECK_FUNCS([getpgrp],[
 	)
 ])
 
+# Look for OS Type (alpine, fedora, bsd, etc)
+# Only need this for alpine at the moment it may be useful in the future
+os_type=$(grep '^ID=' /etc/os-release | awk -F "=" '{print $2}')
+AC_MSG_CHECKING([OS type: "$os_type"])
+case "$os_type" in
+     alpine) AC_DEFINE([__alpine__], [1], [Alpine Linux])
+     ;;
+esac
+
 # Search for OpenSSL
 saved_CPPFLAGS="$CPPFLAGS"
 saved_LDFLAGS="$LDFLAGS"
