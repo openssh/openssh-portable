@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.97 2023/06/20 23:59:33 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.98 2023/07/26 23:06:00 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1881,7 +1881,7 @@ mux_client_request_session(int fd)
 	const char *term = NULL;
 	u_int i, echar, rid, sid, esid, exitval, type, exitval_seen;
 	extern char **environ;
-	int r, rawmode;
+	int r, rawmode = 0;
 
 	debug3_f("entering");
 
@@ -1991,9 +1991,15 @@ mux_client_request_session(int fd)
 	ssh_signal(SIGTERM, control_client_sighandler);
 	ssh_signal(SIGWINCH, control_client_sigrelay);
 
-	rawmode = tty_flag;
-	if (tty_flag)
-		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
+	if (options.fork_after_authentication)
+		daemon(1, 1);
+	else {
+		rawmode = tty_flag;
+		if (tty_flag) {
+			enter_raw_mode(
+			    options.request_tty == REQUEST_TTY_FORCE);
+		}
+	}
 
 	/*
 	 * Stick around until the controlee closes the client_fd.
