@@ -24,41 +24,11 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdarg.h>
-#ifdef HAVE_SHA2_H
-#include <sha2.h>
-#endif
 
 #include "crypto_api.h"
 #include "sk-api.h"
 
-#if defined(WITH_OPENSSL) && !defined(OPENSSL_HAS_ECC)
-# undef WITH_OPENSSL
-#endif
-
 #ifdef WITH_OPENSSL
-/*
- * We use native (or compat) SHA2, but some bits of OpenSSL conflict with
- * some native sha2 implementations.  SHA2 is no longer optional in OpenSSL,
- * so prevent conflicts as best we can.
- */
-#define USE_LIBC_SHA2	/* NetBSD 9 */
-#define SHA256_CTX	openssl_SHA256_CTX
-#define SHA512_CTX	openssl_SHA512_CTX
-#ifdef SHA1
-# undef SHA1
-#endif
-#ifdef SHA224
-# undef SHA224
-#endif
-#ifdef SHA256
-# undef SHA256
-#endif
-#ifdef SHA384
-# undef SHA384
-#endif
-#ifdef SHA512
-# undef SHA512
-#endif
 #include <openssl/opensslv.h>
 #include <openssl/sha.h>
 #include <openssl/crypto.h>
@@ -67,6 +37,15 @@
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/pem.h>
+
+/* Use OpenSSL SHA256 instead of libc */
+#define SHA256Init(x)		SHA256_Init(x)
+#define SHA256Update(x, y, z)	SHA256_Update(x, y, z)
+#define SHA256Final(x, y)	SHA256_Final(x, y)
+#define SHA2_CTX		SHA256_CTX
+
+#elif defined(HAVE_SHA2_H)
+#include <sha2.h>
 #endif /* WITH_OPENSSL */
 
 /* #define SK_DEBUG 1 */
