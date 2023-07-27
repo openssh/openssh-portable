@@ -2581,6 +2581,10 @@ if test "x$ac_cv_func_getaddrinfo" = "xyes"; then
 	    [#include <sys/types.h>
 	     #include <sys/socket.h>
 	     #include <netdb.h>])
+	AC_CHECK_DECLS([NI_IDN], [], [],
+	    [#include <sys/types.h>
+	     #include <sys/socket.h>
+	     #include <netdb.h>])
 fi
 
 if test "x$check_for_conflicting_getspnam" = "x1"; then
