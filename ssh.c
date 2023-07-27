@@ -268,8 +268,10 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 	hints.ai_family = options.address_family == -1 ?
 	    AF_UNSPEC : options.address_family;
 	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_IDN;
 	if (cname != NULL)
-		hints.ai_flags = AI_CANONNAME;
+		/* TODO: valid_domain should allow libidn2 checked hostnames. */
+		hints.ai_flags |= AI_CANONNAME/* |AI_CANONIDN */;
 	if ((gaierr = getaddrinfo(name, strport, &hints, &res)) != 0) {
 		if (logerr || (gaierr != EAI_NONAME && gaierr != EAI_NODATA))
 			loglevel = SYSLOG_LEVEL_ERROR;
@@ -345,7 +347,7 @@ resolve_addr(const char *name, int port, char *caddr, size_t clen)
 	hints.ai_family = options.address_family == -1 ?
 	    AF_UNSPEC : options.address_family;
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_NUMERICHOST|AI_NUMERICSERV;
+	hints.ai_flags = AI_NUMERICHOST|AI_NUMERICSERV|AI_IDN;
 	if ((gaierr = getaddrinfo(name, strport, &hints, &res)) != 0) {
 		debug2_f("could not resolve name %.100s as address: %s",
 		    name, ssh_gai_strerror(gaierr));

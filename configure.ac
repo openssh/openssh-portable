@@ -2569,7 +2569,15 @@ if test "x$ac_cv_func_getaddrinfo" = "xyes" && \
 fi
 
 if test "x$ac_cv_func_getaddrinfo" = "xyes"; then
-	AC_CHECK_DECLS(AI_NUMERICSERV, , ,
+	AC_CHECK_DECLS([AI_NUMERICSERV], [], [],
+	    [#include <sys/types.h>
+	     #include <sys/socket.h>
+	     #include <netdb.h>])
+	AC_CHECK_DECLS([AI_IDN], [], [],
+	    [#include <sys/types.h>
+	     #include <sys/socket.h>
+	     #include <netdb.h>])
+	AC_CHECK_DECLS([AI_CANONIDN], [], [],
 	    [#include <sys/types.h>
 	     #include <sys/socket.h>
 	     #include <netdb.h>])

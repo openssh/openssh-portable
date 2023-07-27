@@ -681,6 +681,12 @@ struct winsize {
 # if defined(HAVE_DECL_AI_NUMERICSERV) && HAVE_DECL_AI_NUMERICSERV == 0
 #   define AI_NUMERICSERV	0
 # endif
+# if defined(HAVE_DECL_AI_IDN) && HAVE_DECL_AI_IDN == 0
+#   define AI_IDN	0
+# endif
+# if defined(HAVE_DECL_AI_CANONIDN) && HAVE_DECL_AI_CANONIDN == 0
+#   define AI_CANONIDN	0
+# endif
 #endif
 
 #if defined(BROKEN_UPDWTMPX) && defined(HAVE_UPDWTMPX)
