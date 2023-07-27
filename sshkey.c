@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.136 2023/06/21 05:10:26 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.137 2023/07/27 22:23:05 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -75,7 +75,7 @@
 #define AUTH_MAGIC		"openssh-key-v1"
 #define SALT_LEN		16
 #define DEFAULT_CIPHERNAME	"aes256-ctr"
-#define	DEFAULT_ROUNDS		16
+#define	DEFAULT_ROUNDS		24
 
 /* Version identification string for SSH v1 identity files. */
 #define LEGACY_BEGIN		"SSH PRIVATE KEY FILE FORMAT 1.1\n"
