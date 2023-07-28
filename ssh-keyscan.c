@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.148 2022/12/04 23:50:49 cheloha Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.153 2023/06/21 05:06:04 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -23,6 +23,7 @@
 #include <openssl/bn.h>
 #endif
 
+#include <limits.h>
 #include <netdb.h>
 #include <errno.h>
 #ifdef HAVE_POLL_H
@@ -40,6 +41,7 @@
 #include "sshbuf.h"
 #include "sshkey.h"
 #include "cipher.h"
+#include "digest.h"
 #include "kex.h"
 #include "compat.h"
 #include "myproposal.h"
@@ -79,6 +81,8 @@ int hash_hosts = 0;		/* Hash hostname on output */
 int print_sshfp = 0;		/* Print SSHFP records instead of known_hosts */
 
 int found_one = 0;		/* Successfully found a key */
+
+int hashalg = -1;		/* Hash for SSHFP records or -1 for all */
 
 #define MAXMAXFD 256
 
@@ -128,15 +132,21 @@ fdlim_get(int hard)
 {
 #if defined(HAVE_GETRLIMIT) && defined(RLIMIT_NOFILE)
 	struct rlimit rlfd;
+	rlim_t lim;
 
 	if (getrlimit(RLIMIT_NOFILE, &rlfd) == -1)
-		return (-1);
-	if ((hard ? rlfd.rlim_max : rlfd.rlim_cur) == RLIM_INFINITY)
-		return SSH_SYSFDMAX;
-	else
-		return hard ? rlfd.rlim_max : rlfd.rlim_cur;
+		return -1;
+	lim = hard ? rlfd.rlim_max : rlfd.rlim_cur;
+	if (lim <= 0)
+		return -1;
+	if (lim == RLIM_INFINITY)
+		lim = SSH_SYSFDMAX;
+	if (lim >= INT_MAX)
+		lim = INT_MAX;
+	return lim;
 #else
-	return SSH_SYSFDMAX;
+	return (SSH_SYSFDMAX <= 0) ? -1 :
+	    ((SSH_SYSFDMAX >= INT_MAX) ? INT_MAX : SSH_SYSFDMAX);
 #endif
 }
 
@@ -310,11 +320,12 @@ keyprint_one(const char *host, struct sshkey *key)
 {
 	char *hostport = NULL, *hashed = NULL;
 	const char *known_host;
+	int r = 0;
 
 	found_one = 1;
 
 	if (print_sshfp) {
-		export_dns_rr(host, key, stdout, 0);
+		export_dns_rr(host, key, stdout, 0, hashalg);
 		return;
 	}
 
@@ -324,9 +335,9 @@ keyprint_one(const char *host, struct sshkey *key)
 		fatal("host_hash failed");
 	known_host = hash_hosts ? hashed : hostport;
 	if (!get_cert)
-		fprintf(stdout, "%s ", known_host);
-	sshkey_write(key, stdout);
-	fputs("\n", stdout);
+		r = fprintf(stdout, "%s ", known_host);
+	if (r >= 0 && sshkey_write(key, stdout) == 0)
+		(void)fputs("\n", stdout);
 	free(hashed);
 	free(hostport);
 }
@@ -493,7 +504,7 @@ congreet(int s)
 
 	/*
 	 * Read the server banner as per RFC4253 section 4.2.  The "SSH-"
-	 * protocol identification string may be preceeded by an arbitarily
+	 * protocol identification string may be preceeded by an arbitrarily
 	 * large banner which we must read and ignore.  Loop while reading
 	 * newline-terminated lines until we have one starting with "SSH-".
 	 * The ID string cannot be longer than 255 characters although the
@@ -698,9 +709,8 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-	    "usage: %s [-46cDHv] [-f file] [-p port] [-T timeout] [-t type]\n"
-	    "\t\t   [host | addrlist namelist]\n",
-	    __progname);
+	    "usage: ssh-keyscan [-46cDHv] [-f file] [-O option] [-p port] [-T timeout]\n"
+	    "                   [-t type] [host | addrlist namelist]\n");
 	exit(1);
 }
 
@@ -726,7 +736,7 @@ main(int argc, char **argv)
 	if (argc <= 1)
 		usage();
 
-	while ((opt = getopt(argc, argv, "cDHv46p:T:t:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "cDHv46O:p:T:t:f:")) != -1) {
 		switch (opt) {
 		case 'H':
 			hash_hosts = 1;
@@ -765,6 +775,14 @@ main(int argc, char **argv)
 			if (strcmp(optarg, "-") == 0)
 				optarg = NULL;
 			argv[fopt_count++] = optarg;
+			break;
+		case 'O':
+			/* Maybe other misc options in the future too */
+			if (strncmp(optarg, "hashalg=", 8) != 0)
+				fatal("Unsupported -O option");
+			if ((hashalg = ssh_digest_alg_by_name(
+			    optarg + 8)) == -1)
+				fatal("Unsupported hash algorithm");
 			break;
 		case 't':
 			get_keytypes = 0;

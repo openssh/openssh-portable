@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.370 2022/11/28 01:37:36 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.380 2023/07/17 06:16:33 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -20,6 +20,7 @@
 #include <sys/wait.h>
 #include <sys/un.h>
 
+#include <net/if.h>
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
@@ -28,6 +29,9 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#ifdef HAVE_IFADDRS_H
+# include <ifaddrs.h>
+#endif
 #include <limits.h>
 #include <netdb.h>
 #ifdef HAVE_PATHS_H
@@ -54,7 +58,6 @@
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssherr.h"
-#include "compat.h"
 #include "cipher.h"
 #include "pathnames.h"
 #include "log.h"
@@ -141,7 +144,7 @@ static int process_config_line_depth(Options *options, struct passwd *pw,
 
 typedef enum {
 	oBadOption,
-	oHost, oMatch, oInclude,
+	oHost, oMatch, oInclude, oTag,
 	oForwardAgent, oForwardX11, oForwardX11Trusted, oForwardX11Timeout,
 	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication,
@@ -254,6 +257,7 @@ static struct {
 	{ "user", oUser },
 	{ "host", oHost },
 	{ "match", oMatch },
+	{ "tag", oTag },
 	{ "escapechar", oEscapeChar },
 	{ "globalknownhostsfile", oGlobalKnownHostsFile },
 	{ "userknownhostsfile", oUserKnownHostsFile },
@@ -578,6 +582,67 @@ execute_in_shell(const char *cmd)
 }
 
 /*
+ * Check whether a local network interface address appears in CIDR pattern-
+ * list 'addrlist'. Returns 1 if matched or 0 otherwise.
+ */
+static int
+check_match_ifaddrs(const char *addrlist)
+{
+#ifdef HAVE_IFADDRS_H
+	struct ifaddrs *ifa, *ifaddrs = NULL;
+	int r, found = 0;
+	char addr[NI_MAXHOST];
+	socklen_t salen;
+
+	if (getifaddrs(&ifaddrs) != 0) {
+		error("match localnetwork: getifaddrs failed: %s",
+		    strerror(errno));
+		return 0;
+	}
+	for (ifa = ifaddrs; ifa != NULL; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr == NULL || ifa->ifa_name == NULL ||
+		    (ifa->ifa_flags & IFF_UP) == 0)
+			continue;
+		switch (ifa->ifa_addr->sa_family) {
+		case AF_INET:
+			salen = sizeof(struct sockaddr_in);
+			break;
+		case AF_INET6:
+			salen = sizeof(struct sockaddr_in6);
+			break;
+#ifdef AF_LINK
+		case AF_LINK:
+			/* ignore */
+			continue;
+#endif /* AF_LINK */
+		default:
+			debug2_f("interface %s: unsupported address family %d",
+			    ifa->ifa_name, ifa->ifa_addr->sa_family);
+			continue;
+		}
+		if ((r = getnameinfo(ifa->ifa_addr, salen, addr, sizeof(addr),
+		    NULL, 0, NI_NUMERICHOST)) != 0) {
+			debug2_f("interface %s getnameinfo failed: %s",
+			    ifa->ifa_name, gai_strerror(r));
+			continue;
+		}
+		debug3_f("interface %s addr %s", ifa->ifa_name, addr);
+		if (addr_match_cidr_list(addr, addrlist) == 1) {
+			debug3_f("matched interface %s: address %s in %s",
+			    ifa->ifa_name, addr, addrlist);
+			found = 1;
+			break;
+		}
+	}
+	freeifaddrs(ifaddrs);
+	return found;
+#else /* HAVE_IFADDRS_H */
+	error("match localnetwork: not supported on this platform");
+	return 0;
+#endif /* HAVE_IFADDRS_H */
+}
+
+/*
  * Parse and execute a Match directive.
  */
 static int
@@ -617,7 +682,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 		}
 		arg = criteria = NULL;
 		this_result = 1;
-		if ((negate = attrib[0] == '!'))
+		if ((negate = (attrib[0] == '!')))
 			attrib++;
 		/* Criterion "all" has no argument and must appear alone */
 		if (strcasecmp(attrib, "all") == 0) {
@@ -681,6 +746,21 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			r = match_pattern_list(pw->pw_name, arg, 0) == 1;
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
+		} else if (strcasecmp(attrib, "localnetwork") == 0) {
+			if (addr_match_cidr_list(NULL, arg) == -1) {
+				/* Error already printed */
+				result = -1;
+				goto out;
+			}
+			r = check_match_ifaddrs(arg) == 1;
+			if (r == (negate ? 1 : 0))
+				this_result = result = 0;
+		} else if (strcasecmp(attrib, "tagged") == 0) {
+			criteria = xstrdup(options->tag == NULL ? "" :
+			    options->tag);
+			r = match_pattern_list(criteria, arg, 0) == 1;
+			if (r == (negate ? 1 : 0))
+				this_result = result = 0;
 		} else if (strcasecmp(attrib, "exec") == 0) {
 			char *conn_hash_hex, *keyalias;
 
@@ -734,9 +814,11 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			result = -1;
 			goto out;
 		}
-		debug3("%.200s line %d: %smatched '%s \"%.100s\"' ",
-		    filename, linenum, this_result ? "": "not ",
-		    oattrib, criteria);
+		debug3("%.200s line %d: %smatched '%s%s%.100s%s' ",
+		    filename, linenum, this_result ? "": "not ", oattrib,
+		    criteria == NULL ? "" : " \"",
+		    criteria == NULL ? "" : criteria,
+		    criteria == NULL ? "" : "\"");
 		free(criteria);
 	}
 	if (attributes == 0) {
@@ -946,7 +1028,7 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
 	char **cpptr, ***cppptr, fwdarg[256];
 	u_int i, *uintptr, uvalue, max_entries = 0;
 	int r, oactive, negated, opcode, *intptr, value, value2, cmdline = 0;
-	int remotefwd, dynamicfwd;
+	int remotefwd, dynamicfwd, ca_only = 0;
 	LogLevel *log_level_ptr;
 	SyslogFacility *log_facility_ptr;
 	long long val64;
@@ -1297,6 +1379,10 @@ parse_char_array:
 		charptr = &options->hostname;
 		goto parse_string;
 
+	case oTag:
+		charptr = &options->tag;
+		goto parse_string;
+
 	case oHostKeyAlias:
 		charptr = &options->host_key_alias;
 		goto parse_string;
@@ -1442,6 +1528,7 @@ parse_int:
 
 	case oHostKeyAlgorithms:
 		charptr = &options->hostkeyalgorithms;
+		ca_only = 0;
 parse_pubkey_algos:
 		arg = argv_next(&ac, &av);
 		if (!arg || *arg == '\0') {
@@ -1451,7 +1538,7 @@ parse_pubkey_algos:
 		}
 		if (*arg != '-' &&
 		    !sshkey_names_valid2(*arg == '+' || *arg == '^' ?
-		    arg + 1 : arg, 1)) {
+		    arg + 1 : arg, 1, ca_only)) {
 			error("%s line %d: Bad key types '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 			goto out;
@@ -1462,6 +1549,7 @@ parse_pubkey_algos:
 
 	case oCASignatureAlgorithms:
 		charptr = &options->ca_sign_algorithms;
+		ca_only = 1;
 		goto parse_pubkey_algos;
 
 	case oLogLevel:
@@ -1568,37 +1656,38 @@ parse_pubkey_algos:
 	case oPermitRemoteOpen:
 		uintptr = &options->num_permitted_remote_opens;
 		cppptr = &options->permitted_remote_opens;
-		arg = argv_next(&ac, &av);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing %s specification",
-			    filename, linenum, lookup_opcode_name(opcode));
 		uvalue = *uintptr;	/* modified later */
-		if (strcmp(arg, "any") == 0 || strcmp(arg, "none") == 0) {
-			if (*activep && uvalue == 0) {
-				*uintptr = 1;
-				*cppptr = xcalloc(1, sizeof(**cppptr));
-				(*cppptr)[0] = xstrdup(arg);
-			}
-			break;
-		}
+		i = 0;
 		while ((arg = argv_next(&ac, &av)) != NULL) {
 			arg2 = xstrdup(arg);
-			p = hpdelim(&arg);
-			if (p == NULL) {
-				fatal("%s line %d: missing host in %s",
-				    filename, linenum,
-				    lookup_opcode_name(opcode));
-			}
-			p = cleanhostname(p);
-			/*
-			 * don't want to use permitopen_port to avoid
-			 * dependency on channels.[ch] here.
-			 */
-			if (arg == NULL ||
-			    (strcmp(arg, "*") != 0 && a2port(arg) <= 0)) {
-				fatal("%s line %d: bad port number in %s",
-				    filename, linenum,
-				    lookup_opcode_name(opcode));
+			/* Allow any/none only in first position */
+			if (strcasecmp(arg, "none") == 0 ||
+			    strcasecmp(arg, "any") == 0) {
+				if (i > 0 || ac > 0) {
+					error("%s line %d: keyword %s \"%s\" "
+					    "argument must appear alone.",
+					    filename, linenum, keyword, arg);
+					free(arg2);
+					goto out;
+				}
+			} else {
+				p = hpdelim(&arg);
+				if (p == NULL) {
+					fatal("%s line %d: missing host in %s",
+					    filename, linenum,
+					    lookup_opcode_name(opcode));
+				}
+				p = cleanhostname(p);
+				/*
+				 * don't want to use permitopen_port to avoid
+				 * dependency on channels.[ch] here.
+				 */
+				if (arg == NULL || (strcmp(arg, "*") != 0 &&
+				    a2port(arg) <= 0)) {
+					fatal("%s line %d: bad port number "
+					    "in %s", filename, linenum,
+					    lookup_opcode_name(opcode));
+				}
 			}
 			if (*activep && uvalue == 0) {
 				opt_array_append(filename, linenum,
@@ -1606,7 +1695,11 @@ parse_pubkey_algos:
 				    cppptr, uintptr, arg2);
 			}
 			free(arg2);
+			i++;
 		}
+		if (i == 0)
+			fatal("%s line %d: missing %s specification",
+			    filename, linenum, lookup_opcode_name(opcode));
 		break;
 
 	case oClearAllForwardings:
@@ -2113,10 +2206,12 @@ parse_pubkey_algos:
 
 	case oHostbasedAcceptedAlgorithms:
 		charptr = &options->hostbased_accepted_algos;
+		ca_only = 0;
 		goto parse_pubkey_algos;
 
 	case oPubkeyAcceptedAlgorithms:
 		charptr = &options->pubkey_accepted_algos;
+		ca_only = 0;
 		goto parse_pubkey_algos;
 
 	case oAddKeysToAgent:
@@ -2127,15 +2222,13 @@ parse_pubkey_algos:
 		value2 = 0; /* unlimited lifespan by default */
 		if (value == 3 && arg2 != NULL) {
 			/* allow "AddKeysToAgent confirm 5m" */
-			if ((value2 = convtime(arg2)) == -1 ||
-			    value2 > INT_MAX) {
+			if ((value2 = convtime(arg2)) == -1) {
 				error("%s line %d: invalid time value.",
 				    filename, linenum);
 				goto out;
 			}
 		} else if (value == -1 && arg2 == NULL) {
-			if ((value2 = convtime(arg)) == -1 ||
-			    value2 > INT_MAX) {
+			if ((value2 = convtime(arg)) == -1) {
 				error("%s line %d: unsupported option",
 				    filename, linenum);
 				goto out;
@@ -2323,6 +2416,7 @@ void
 initialize_options(Options * options)
 {
 	memset(options, 'X', sizeof(*options));
+	options->host_arg = NULL;
 	options->forward_agent = -1;
 	options->forward_agent_sock_path = NULL;
 	options->forward_x11 = -1;
@@ -2436,6 +2530,7 @@ initialize_options(Options * options)
 	options->known_hosts_command = NULL;
 	options->required_rsa_size = -1;
 	options->enable_escape_commandline = -1;
+	options->tag = NULL;
 }
 
 /*
@@ -3274,6 +3369,7 @@ dump_client_config(Options *o, const char *host)
 	free(all_key);
 
 	/* Most interesting options first: user, host, port */
+	dump_cfg_string(oHost, o->host_arg);
 	dump_cfg_string(oUser, o->user);
 	dump_cfg_string(oHostname, host);
 	dump_cfg_int(oPort, o->port);
@@ -3354,6 +3450,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
 	dump_cfg_string(oXAuthLocation, o->xauth_location);
 	dump_cfg_string(oKnownHostsCommand, o->known_hosts_command);
+	dump_cfg_string(oTag, o->tag);
 
 	/* Forwards */
 	dump_cfg_forwards(oDynamicForward, o->num_local_forwards, o->local_forwards);

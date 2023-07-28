@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.100 2022/06/03 04:30:47 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.103 2023/07/19 14:02:27 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -96,6 +96,7 @@ int	 parse_absolute_time(const char *, uint64_t *);
 void	 format_absolute_time(uint64_t, char *, size_t);
 int	 path_absolute(const char *);
 int	 stdfd_devnull(int, int, int);
+int	 lib_contains_symbol(const char *, const char *);
 
 void	 sock_set_v6only(int);
 
@@ -208,6 +209,15 @@ void	opt_array_append2(const char *file, const int line,
 	    const char *directive, char ***array, int **iarray, u_int *lp,
 	    const char *s, int i);
 
+struct timespec;
+void ptimeout_init(struct timespec *pt);
+void ptimeout_deadline_sec(struct timespec *pt, long sec);
+void ptimeout_deadline_ms(struct timespec *pt, long ms);
+void ptimeout_deadline_monotime(struct timespec *pt, time_t when);
+int ptimeout_get_ms(struct timespec *pt);
+struct timespec *ptimeout_get_tsp(struct timespec *pt);
+int ptimeout_isset(struct timespec *pt);
+
 /* readpass.c */
 
 #define RP_ECHO			0x0001
@@ -230,5 +240,8 @@ void	notify_complete(struct notifier_ctx *, const char *, ...)
 
 typedef void (*sshsig_t)(int);
 sshsig_t ssh_signal(int, sshsig_t);
+
+/* On OpenBSD time_t is int64_t which is long long. */
+/* #define SSH_TIME_T_MAX LLONG_MAX */
 
 #endif /* _MISC_H */

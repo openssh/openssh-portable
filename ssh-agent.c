@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.294 2022/12/04 11:03:11 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.300 2023/07/19 13:56:33 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -80,7 +80,6 @@
 #include "sshbuf.h"
 #include "sshkey.h"
 #include "authfd.h"
-#include "compat.h"
 #include "log.h"
 #include "misc.h"
 #include "digest.h"
@@ -169,6 +168,12 @@ char socket_dir[PATH_MAX];
 
 /* Pattern-list of allowed PKCS#11/Security key paths */
 static char *allowed_providers;
+
+/*
+ * Allows PKCS11 providers or SK keys that use non-internal providers to
+ * be added over a remote connection (identified by session-bind@openssh.com).
+ */
+static int remote_add_provider;
 
 /* locking */
 #define LOCK_SIZE	32
@@ -844,8 +849,8 @@ process_sign_request2(SocketEntry *e)
 	}
 	/* Success */
 	ok = 0;
- send:
 	debug_f("good signature");
+ send:
 	notify_complete(notifier, "User presence confirmed");
 
 	if (ok == 0) {
@@ -1024,8 +1029,8 @@ parse_dest_constraint(struct sshbuf *m, struct dest_constraint *dc)
 		error_fr(r, "parse");
 		goto out;
 	}
-	if ((r = parse_dest_constraint_hop(frombuf, &dc->from) != 0) ||
-	    (r = parse_dest_constraint_hop(tobuf, &dc->to) != 0))
+	if ((r = parse_dest_constraint_hop(frombuf, &dc->from)) != 0 ||
+	    (r = parse_dest_constraint_hop(tobuf, &dc->to)) != 0)
 		goto out; /* already logged */
 	if (elen != 0) {
 		error_f("unsupported extensions (len %zu)", elen);
@@ -1229,6 +1234,12 @@ process_add_identity(SocketEntry *e)
 		if (strcasecmp(sk_provider, "internal") == 0) {
 			debug_f("internal provider");
 		} else {
+			if (e->nsession_ids != 0 && !remote_add_provider) {
+				verbose("failed add of SK provider \"%.100s\": "
+				    "remote addition of providers is disabled",
+				    sk_provider);
+				goto out;
+			}
 			if (realpath(sk_provider, canonical_provider) == NULL) {
 				verbose("failed provider \"%.100s\": "
 				    "realpath: %s", sk_provider,
@@ -1390,6 +1401,11 @@ process_add_smartcard_key(SocketEntry *e)
 	if (parse_key_constraints(e->request, NULL, &death, &seconds, &confirm,
 	    NULL, &dest_constraints, &ndest_constraints) != 0) {
 		error_f("failed to parse constraints");
+		goto send;
+	}
+	if (e->nsession_ids != 0 && !remote_add_provider) {
+		verbose("failed PKCS#11 add of \"%.100s\": remote addition of "
+		    "providers is disabled", provider);
 		goto send;
 	}
 	if (realpath(provider, canonical_provider) == NULL) {
@@ -1961,7 +1977,6 @@ cleanup_exit(int i)
 	_exit(i);
 }
 
-/*ARGSUSED*/
 static void
 cleanup_handler(int sig)
 {
@@ -2022,8 +2037,8 @@ main(int ac, char **av)
 	sanitise_stdfd();
 
 	/* drop */
-	setegid(getgid());
-	setgid(getgid());
+	(void)setegid(getgid());
+	(void)setgid(getgid());
 
 	platform_disable_tracing(0);	/* strict=no */
 
@@ -2052,7 +2067,9 @@ main(int ac, char **av)
 			break;
 		case 'O':
 			if (strcmp(optarg, "no-restrict-websafe") == 0)
-				restrict_websafe  = 0;
+				restrict_websafe = 0;
+			else if (strcmp(optarg, "allow-remote-pkcs11") == 0)
+				remote_add_provider = 1;
 			else
 				fatal("Unknown -O option");
 			break;

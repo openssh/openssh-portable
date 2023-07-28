@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.165 2022/09/19 10:43:12 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.171 2023/04/30 22:54:22 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -68,10 +68,10 @@
 extern volatile sig_atomic_t interrupted;
 extern int showprogress;
 
-/* Default size of buffer for up/download */
+/* Default size of buffer for up/download (fix sftp.1 scp.1 if changed) */
 #define DEFAULT_COPY_BUFLEN	32768
 
-/* Default number of concurrent outstanding requests */
+/* Default number of concurrent xfer requests (fix sftp.1 scp.1 if changed) */
 #define DEFAULT_NUM_REQUESTS	64
 
 /* Minimum amount of data to read at a time */
@@ -149,7 +149,6 @@ request_find(struct requests *requests, u_int id)
 	return req;
 }
 
-/* ARGSUSED */
 static int
 sftpio(void *_bwlimit, size_t amount)
 {
@@ -566,17 +565,26 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 
 		/* If the caller did not specify, find a good value */
 		if (transfer_buflen == 0) {
-			ret->download_buflen = limits.read_length;
-			ret->upload_buflen = limits.write_length;
-			debug("Using server download size %u", ret->download_buflen);
-			debug("Using server upload size %u", ret->upload_buflen);
+			ret->download_buflen = MINIMUM(limits.read_length,
+			    SFTP_MAX_MSG_LENGTH - 1024);
+			ret->upload_buflen = MINIMUM(limits.write_length,
+			    SFTP_MAX_MSG_LENGTH - 1024);
+			ret->download_buflen = MAXIMUM(ret->download_buflen, 64);
+			ret->upload_buflen = MAXIMUM(ret->upload_buflen, 64);
+			debug3("server upload/download buffer sizes "
+			    "%llu / %llu; using %u / %u",
+			    (unsigned long long)limits.write_length,
+			    (unsigned long long)limits.read_length,
+			    ret->upload_buflen, ret->download_buflen);
 		}
 
 		/* Use the server limit to scale down our value only */
 		if (num_requests == 0 && limits.open_handles) {
 			ret->num_requests =
 			    MINIMUM(DEFAULT_NUM_REQUESTS, limits.open_handles);
-			debug("Server handle limit %llu; using %u",
+			if (ret->num_requests == 0)
+				ret->num_requests = 1;
+			debug3("server handle limit %llu; using %u",
 			    (unsigned long long)limits.open_handles,
 			    ret->num_requests);
 		}
@@ -1592,7 +1600,7 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 	u_char *handle;
 	int local_fd = -1, write_error;
 	int read_error, write_errno, lmodified = 0, reordered = 0, r;
-	u_int64_t offset = 0, size, highwater;
+	u_int64_t offset = 0, size, highwater = 0, maxack = 0;
 	u_int mode, id, buflen, num_req, max_req, status = SSH2_FX_OK;
 	off_t progress_counter;
 	size_t handle_len;
@@ -1639,7 +1647,6 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 		error("open local \"%s\": %s", local_path, strerror(errno));
 		goto fail;
 	}
-	offset = highwater = 0;
 	if (resume_flag) {
 		if (fstat(local_fd, &st) == -1) {
 			error("stat local \"%s\": %s",
@@ -1660,7 +1667,7 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 				close(local_fd);
 			return -1;
 		}
-		offset = highwater = st.st_size;
+		offset = highwater = maxack = st.st_size;
 	}
 
 	/* Read from remote and write to local */
@@ -1742,11 +1749,21 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 				write_errno = errno;
 				write_error = 1;
 				max_req = 0;
+			} else {
+				/*
+				 * Track both the highest offset acknowledged
+				 * and the highest *contiguous* offset
+				 * acknowledged.
+				 * We'll need the latter for ftruncate()ing
+				 * interrupted transfers.
+				 */
+				if (maxack < req->offset + len)
+					maxack = req->offset + len;
+				if (!reordered && req->offset <= highwater)
+					highwater = maxack;
+				else if (!reordered && req->offset > highwater)
+					reordered = 1;
 			}
-			else if (!reordered && req->offset <= highwater)
-				highwater = req->offset + len;
-			else if (!reordered && req->offset > highwater)
-				reordered = 1;
 			progress_counter += len;
 			free(data);
 
@@ -1795,12 +1812,19 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 	/* Sanity check */
 	if (TAILQ_FIRST(&requests) != NULL)
 		fatal("Transfer complete, but requests still in queue");
+
+	if (!read_error && !write_error && !interrupted) {
+		/* we got everything */
+		highwater = maxack;
+	}
+
 	/*
 	 * Truncate at highest contiguous point to avoid holes on interrupt,
 	 * or unconditionally if writing in place.
 	 */
 	if (inplace_flag || read_error || write_error || interrupted) {
-		if (reordered && resume_flag) {
+		if (reordered && resume_flag &&
+		    (read_error || write_error || interrupted)) {
 			error("Unable to resume download of \"%s\": "
 			    "server reordered requests", local_path);
 		}
@@ -2000,7 +2024,7 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 	struct stat sb;
 	Attrib a, t, *c = NULL;
 	u_int32_t startid, ackid;
-	u_int64_t highwater = 0;
+	u_int64_t highwater = 0, maxack = 0;
 	struct request *ack = NULL;
 	struct requests acks;
 	size_t handle_len;
@@ -2142,8 +2166,16 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 			    ack->id, ack->len, (unsigned long long)ack->offset);
 			++ackid;
 			progress_counter += ack->len;
+			/*
+			 * Track both the highest offset acknowledged and the
+			 * highest *contiguous* offset acknowledged.
+			 * We'll need the latter for ftruncate()ing
+			 * interrupted transfers.
+			 */
+			if (maxack < ack->offset + ack->len)
+				maxack = ack->offset + ack->len;
 			if (!reordered && ack->offset <= highwater)
-				highwater = ack->offset + ack->len;
+				highwater = maxack;
 			else if (!reordered && ack->offset > highwater) {
 				debug3_f("server reordered ACKs");
 				reordered = 1;
@@ -2160,6 +2192,10 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 		stop_progress_meter();
 	free(data);
 
+	if (status == SSH2_FX_OK && !interrupted) {
+		/* we got everything */
+		highwater = maxack;
+	}
 	if (status != SSH2_FX_OK) {
 		error("write remote \"%s\": %s", remote_path, fx2txt(status));
 		status = SSH2_FX_FAILURE;
@@ -2887,6 +2923,10 @@ path_append(const char *p1, const char *p2)
 	return(ret);
 }
 
+/*
+ * Arg p must be dynamically allocated.  It will either be returned or
+ * freed and a replacement allocated.  Caller must free returned string.
+ */
 char *
 make_absolute(char *p, const char *pwd)
 {

@@ -4,13 +4,15 @@ PACKAGES=""
 
  . .github/configs $@
 
-case "`./config.guess`" in
+host=`./config.guess`
+echo "config.guess: $host"
+case "$host" in
 *cygwin)
 	PACKAGER=setup
-	echo Setting CYGWIN sustem environment variable.
+	echo Setting CYGWIN system environment variable.
 	setx CYGWIN "binmode"
-	chmod -R go-rw /cygdrive/d/a
-	umask 077
+	echo Removing extended ACLs so umask works as expected.
+	setfacl -b . regress
 	PACKAGES="$PACKAGES,autoconf,automake,cygwin-devel,gcc-core"
 	PACKAGES="$PACKAGES,make,openssl-devel,zlib-devel"
 	;;
@@ -124,6 +126,10 @@ for TARGET in $TARGETS; do
         esac
         PACKAGES="${PACKAGES} putty-tools"
        ;;
+    boringssl)
+        INSTALL_BORINGSSL=1
+        PACKAGES="${PACKAGES} cmake ninja-build"
+       ;;
     valgrind*)
        PACKAGES="$PACKAGES valgrind"
        ;;
@@ -139,16 +145,29 @@ if [ "yes" = "$INSTALL_FIDO_PPA" ]; then
     sudo apt-add-repository -y ppa:yubico/stable
 fi
 
-if [ "x" != "x$PACKAGES" ]; then
+tries=3
+while [ ! -z "$PACKAGES" ] && [ "$tries" -gt "0" ]; do
     case "$PACKAGER" in
     apt)
 	sudo apt update -qq
-	sudo apt install -qy $PACKAGES
+	if sudo apt install -qy $PACKAGES; then
+		PACKAGES=""
+	fi
 	;;
     setup)
-	/cygdrive/c/setup.exe -q -P `echo "$PACKAGES" | tr ' ' ,`
+	if /cygdrive/c/setup.exe -q -P `echo "$PACKAGES" | tr ' ' ,`; then
+		PACKAGES=""
+	fi
 	;;
     esac
+    if [ ! -z "$PACKAGES" ]; then
+	sleep 90
+    fi
+    tries=$(($tries - 1))
+done
+if [ ! -z "$PACKAGES" ]; then
+	echo "Package installation failed."
+	exit 1
 fi
 
 if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
@@ -185,4 +204,13 @@ if [ ! -z "${INSTALL_LIBRESSL}" ]; then
          cd libressl-${INSTALL_LIBRESSL} &&
          ./configure --prefix=/opt/libressl && make -j2 && sudo make install)
     fi
+fi
+
+if [ ! -z "${INSTALL_BORINGSSL}" ]; then
+    (cd ${HOME} && git clone https://boringssl.googlesource.com/boringssl &&
+     cd ${HOME}/boringssl && mkdir build && cd build &&
+     cmake -GNinja  -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. && ninja &&
+     mkdir -p /opt/boringssl/lib &&
+     cp ${HOME}/boringssl/build/crypto/libcrypto.a /opt/boringssl/lib &&
+     cp -r ${HOME}/boringssl/include /opt/boringssl)
 fi

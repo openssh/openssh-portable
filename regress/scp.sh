@@ -1,4 +1,4 @@
-#	$OpenBSD: scp.sh,v 1.16 2022/10/30 18:42:07 dtucker Exp $
+#	$OpenBSD: scp.sh,v 1.18 2023/01/13 04:47:34 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="scp"
@@ -16,6 +16,8 @@ DIFFOPT="-rN"
 if ! diff -N ${SRC}/scp.sh ${SRC}/scp.sh 2>/dev/null; then
 	DIFFOPT="-r"
 fi
+
+maybe_add_scp_path_to_sshd
 
 SRC=`dirname ${SCRIPT}`
 cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.scp
@@ -35,7 +37,7 @@ for mode in scp sftp ; do
 	else
 		scpopts="-s -D ${SFTPSERVER}"
 	fi
-	verbose "tid: simple copy local file to local file"
+	verbose "$tag: simple copy local file to local file"
 	scpclean
 	$SCP $scpopts ${DATA} ${COPY} || fail "copy failed"
 	cmp ${DATA} ${COPY} || fail "corrupted copy"

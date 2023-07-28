@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.34 2022/06/03 04:31:54 djm Exp $
+#	$OpenBSD: multiplex.sh,v 1.36 2023/03/01 09:29:32 dtucker Exp $
 #	Placed in the Public Domain.
 
 make_tmpdir
@@ -24,6 +24,7 @@ wait_for_mux_master_ready()
 	fatal "mux master never becomes ready"
 }
 
+maybe_add_scp_path_to_sshd
 start_sshd
 
 start_mux_master()
@@ -86,7 +87,7 @@ cmp ${DATA} ${COPY}		|| fail "scp: corrupted copy of ${DATA}"
 rm -f ${COPY}
 verbose "test $tid: forward"
 trace "forward over TCP/IP and check result"
-$NC -N -l 127.0.0.1 $((${PORT} + 1)) < ${DATA} > /dev/null &
+$NC -N -l 127.0.0.1 $((${PORT} + 1)) < ${DATA} >`ssh_logfile nc` &
 netcat_pid=$!
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -L127.0.0.1:$((${PORT} + 2)):127.0.0.1:$((${PORT} + 1)) otherhost >>$TEST_SSH_LOGFILE 2>&1
 sleep 1  # XXX remove once race fixed
