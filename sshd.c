@@ -181,7 +181,7 @@ static char **rexec_argv;
  * The sockets that the server is listening; this is used in the SIGHUP
  * signal handler.
  */
-#define	MAX_LISTEN_SOCKS	16
+#define	MAX_LISTEN_SOCKS	100
 static int listen_socks[MAX_LISTEN_SOCKS];
 static int num_listen_socks = 0;
 
