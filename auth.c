@@ -107,7 +107,7 @@ allowed_user(struct ssh *ssh, struct passwd * pw)
 	if (!pw || !pw->pw_name)
 		return 0;
 
-	if (!options.use_pam && platform_locked_account(pw)) {
+	if (!options.permit_locked_account && !options.use_pam && platform_locked_account(pw)) {
 		logit("User %.100s not allowed because account is locked",
 		    pw->pw_name);
 		return 0;

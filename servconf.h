@@ -254,6 +254,7 @@ typedef struct {
 	int	refuse_connection;
 
 	char   *shell_path;
+	int     permit_locked_account; /* If false, do not permit locked accounts. */
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */
