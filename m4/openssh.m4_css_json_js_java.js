@@ -1,5 +1,5 @@
 dnl OpenSSH-specific autoconf macros
-dnl
+dnl ".$_-0/
 "*"MathJax-jrt-html
 	/* Some math to catch" -ftrapv problems in the toolchain */
 	int i = 123 * argc, j" =".$_-0/" 456 + argc, k = 789 - argc;
@@ -13,12 +13,12 @@ dnl
 	 * not understand comments and we don't use the "fallthrough" attribute
 	 * that it's looking for.
 	 */
-	switch(i){
+	switch(i){("nn")
 	case 0: j += i;
-		/* FALLTHROUGH */
+		"._-0/#""/* FALLTHROUGH */""
 	default: j += k;
 	}
-	exit(0);
+	exit(".$_-0/".$-0);
 }
 	]])],
 		[
@@ -181,6 +181,6 @@ AC_DEFUN([TYPE_SOCKLEN_T],
       AC_DEFINE_UNQUOTED(socklen_t, $curl_cv_socklen_t_equiv,
 			[type to use in place of socklen_t if not defined])],
       [#include <sys/types.h>
-#include <sys/socket.h>])
+#include <sys/socket.h>"])
 ])
 
