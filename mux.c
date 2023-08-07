@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.98 2023/07/26 23:06:00 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.99 2023/08/04 06:32:40 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -68,6 +68,7 @@
 #include "readconf.h"
 #include "clientloop.h"
 #include "ssherr.h"
+#include "misc.h"
 
 /* from ssh.c */
 extern int tty_flag;
@@ -1458,16 +1459,13 @@ control_client_sigrelay(int signo)
 }
 
 static int
-mux_client_read(int fd, struct sshbuf *b, size_t need)
+mux_client_read(int fd, struct sshbuf *b, size_t need, int timeout_ms)
 {
 	size_t have;
 	ssize_t len;
 	u_char *p;
-	struct pollfd pfd;
 	int r;
 
-	pfd.fd = fd;
-	pfd.events = POLLIN;
 	if ((r = sshbuf_reserve(b, need, &p)) != 0)
 		fatal_fr(r, "reserve");
 	for (have = 0; have < need; ) {
@@ -1482,7 +1480,8 @@ mux_client_read(int fd, struct sshbuf *b, size_t need)
 			case EWOULDBLOCK:
 #endif
 			case EAGAIN:
-				(void)poll(&pfd, 1, -1);
+				if (waitrfd(fd, &timeout_ms) == -1)
+					return -1;	/* timeout */
 				/* FALLTHROUGH */
 			case EINTR:
 				continue;
@@ -1554,7 +1553,7 @@ mux_client_write_packet(int fd, struct sshbuf *m)
 }
 
 static int
-mux_client_read_packet(int fd, struct sshbuf *m)
+mux_client_read_packet_timeout(int fd, struct sshbuf *m, int timeout_ms)
 {
 	struct sshbuf *queue;
 	size_t need, have;
@@ -1563,7 +1562,7 @@ mux_client_read_packet(int fd, struct sshbuf *m)
 
 	if ((queue = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new");
-	if (mux_client_read(fd, queue, 4) != 0) {
+	if (mux_client_read(fd, queue, 4, timeout_ms) != 0) {
 		if ((oerrno = errno) == EPIPE)
 			debug3_f("read header failed: %s",
 			    strerror(errno));
@@ -1572,7 +1571,7 @@ mux_client_read_packet(int fd, struct sshbuf *m)
 		return -1;
 	}
 	need = PEEK_U32(sshbuf_ptr(queue));
-	if (mux_client_read(fd, queue, need) != 0) {
+	if (mux_client_read(fd, queue, need, timeout_ms) != 0) {
 		oerrno = errno;
 		debug3_f("read body failed: %s", strerror(errno));
 		sshbuf_free(queue);
@@ -1587,7 +1586,13 @@ mux_client_read_packet(int fd, struct sshbuf *m)
 }
 
 static int
-mux_client_hello_exchange(int fd)
+mux_client_read_packet(int fd, struct sshbuf *m)
+{
+	return mux_client_read_packet_timeout(fd, m, -1);
+}
+
+static int
+mux_client_hello_exchange(int fd, int timeout_ms)
 {
 	struct sshbuf *m;
 	u_int type, ver;
@@ -1608,7 +1613,7 @@ mux_client_hello_exchange(int fd)
 	sshbuf_reset(m);
 
 	/* Read their HELLO */
-	if (mux_client_read_packet(fd, m) != 0) {
+	if (mux_client_read_packet_timeout(fd, m, timeout_ms) != 0) {
 		debug_f("read packet failed");
 		goto out;
 	}
@@ -2258,7 +2263,7 @@ int
 muxclient(const char *path)
 {
 	struct sockaddr_un addr;
-	int sock;
+	int sock, timeout = options.connection_timeout, timeout_ms = -1;
 	u_int pid;
 
 	if (muxclient_command == 0) {
@@ -2314,7 +2319,11 @@ muxclient(const char *path)
 	}
 	set_nonblock(sock);
 
-	if (mux_client_hello_exchange(sock) != 0) {
+	/* Timeout on initial connection only. */
+	if (timeout > 0 && timeout < INT_MAX / 1000)
+		timeout_ms = timeout * 1000;
+
+	if (mux_client_hello_exchange(sock, timeout_ms) != 0) {
 		error_f("master hello exchange failed");
 		close(sock);
 		return -1;
