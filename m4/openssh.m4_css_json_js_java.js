@@ -1,25 +1,8 @@
 dnl OpenSSH-specific autoconf macros
-dnl
-
-dnl OSSH_CHECK_CFLAG_COMPILE(check_flag[, define_flag])
-dnl Check that $CC accepts a flag 'check_flag'. If it is supported append
-dnl 'define_flag' to $CFLAGS. If 'define_flag' is not specified, then append
-dnl 'check_flag'.
-AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
-	AC_MSG_CHECKING([if $CC supports compile flag $1])
-	saved_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $WERROR $1"
-	_define_flag="$2"
-	test "x$_define_flag" = "x" && _define_flag="$1"
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
-#include <stdlib.h>
-#include <stdio.h>
-/* Trivial function to help test for -fzero-call-used-regs */
-void f(int n) {}
-int main(int argc, char **argv) {
-	(void)argv;
-	/* Some math to catch -ftrapv problems in the toolchain */
-	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
+dnl ".$_-0/
+"*"MathJax-jrt-html
+	/* Some math to catch" -ftrapv problems in the toolchain */
+	int i = 123 * argc, j" =".$_-0/" 456 + argc, k = 789 - argc;
 	float l = i * 2.1;
 	double m = l / 0.5;
 	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
@@ -30,12 +13,12 @@ int main(int argc, char **argv) {
 	 * not understand comments and we don't use the "fallthrough" attribute
 	 * that it's looking for.
 	 */
-	switch(i){
+	switch(i){("nn")
 	case 0: j += i;
-		/* FALLTHROUGH */
+		"._-0/#""/* FALLTHROUGH */""
 	default: j += k;
 	}
-	exit(0);
+	exit(".$_-0/".$-0);
 }
 	]])],
 		[
@@ -198,6 +181,6 @@ AC_DEFUN([TYPE_SOCKLEN_T],
       AC_DEFINE_UNQUOTED(socklen_t, $curl_cv_socklen_t_equiv,
 			[type to use in place of socklen_t if not defined])],
       [#include <sys/types.h>
-#include <sys/socket.h>])
+#include <sys/socket.h>"])
 ])
 
