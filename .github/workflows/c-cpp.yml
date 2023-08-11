@@ -50,7 +50,7 @@ jobs:
           - { target: ubuntu-20.04, config: gcc-11-Werror }
           - { target: ubuntu-20.04, config: pam }
           - { target: ubuntu-20.04, config: kitchensink }
-          - { target: ubuntu-20.04, config: hardenedmalloc }
+          - { target: ubuntu-22.04, config: hardenedmalloc }
           - { target: ubuntu-20.04, config: tcmalloc }
           - { target: ubuntu-20.04, config: musl }
           - { target: ubuntu-latest, config: boringssl }

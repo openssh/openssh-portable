@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.256 2023/03/31 05:56:36 dtucker Exp $ */
+/* $OpenBSD: scp.c,v 1.257 2023/07/14 05:31:44 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -838,8 +838,13 @@ emit_expansion(const char *pattern, int brace_start, int brace_end,
     int sel_start, int sel_end, char ***patternsp, size_t *npatternsp)
 {
 	char *cp;
-	int o = 0, tail_len = strlen(pattern + brace_end + 1);
+	size_t pattern_len;
+	int o = 0, tail_len;
 
+	if ((pattern_len = strlen(pattern)) == 0 || pattern_len >= INT_MAX)
+		return -1;
+
+	tail_len = strlen(pattern + brace_end + 1);
 	if ((cp = malloc(brace_start + (sel_end - sel_start) +
 	    tail_len + 1)) == NULL)
 		return -1;

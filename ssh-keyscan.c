@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.152 2023/03/31 04:21:56 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.153 2023/06/21 05:06:04 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -23,6 +23,7 @@
 #include <openssl/bn.h>
 #endif
 
+#include <limits.h>
 #include <netdb.h>
 #include <errno.h>
 #ifdef HAVE_POLL_H
@@ -131,15 +132,21 @@ fdlim_get(int hard)
 {
 #if defined(HAVE_GETRLIMIT) && defined(RLIMIT_NOFILE)
 	struct rlimit rlfd;
+	rlim_t lim;
 
 	if (getrlimit(RLIMIT_NOFILE, &rlfd) == -1)
-		return (-1);
-	if ((hard ? rlfd.rlim_max : rlfd.rlim_cur) == RLIM_INFINITY)
-		return SSH_SYSFDMAX;
-	else
-		return hard ? rlfd.rlim_max : rlfd.rlim_cur;
+		return -1;
+	lim = hard ? rlfd.rlim_max : rlfd.rlim_cur;
+	if (lim <= 0)
+		return -1;
+	if (lim == RLIM_INFINITY)
+		lim = SSH_SYSFDMAX;
+	if (lim >= INT_MAX)
+		lim = INT_MAX;
+	return lim;
 #else
-	return SSH_SYSFDMAX;
+	return (SSH_SYSFDMAX <= 0) ? -1 :
+	    ((SSH_SYSFDMAX >= INT_MAX) ? INT_MAX : SSH_SYSFDMAX);
 #endif
 }
 
