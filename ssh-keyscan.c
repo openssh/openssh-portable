@@ -137,8 +137,6 @@ fdlim_get(int hard)
 	if (getrlimit(RLIMIT_NOFILE, &rlfd) == -1)
 		return -1;
 	lim = hard ? rlfd.rlim_max : rlfd.rlim_cur;
-	if (lim <= 0)
-		return -1;
 	if (lim == RLIM_INFINITY)
 		lim = SSH_SYSFDMAX;
 	if (lim >= INT_MAX)
