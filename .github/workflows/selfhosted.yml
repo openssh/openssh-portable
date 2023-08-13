@@ -40,6 +40,8 @@ jobs:
           - obsd67
           - obsd69
           - obsd70
+          - obsd72
+          - obsd73
           - obsdsnap
           - obsdsnap-i386
           - openindiana
