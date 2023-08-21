@@ -205,6 +205,10 @@ case "$config" in
 		;;
 	esac
 	;;
+    zlib-develop)
+	INSTALL_ZLIB=develop
+	CONFIGFLAGS="--with-zlib=/opt/zlib --with-rpath=-Wl,-rpath,"
+	;;
     *)
 	echo "Unknown configuration $config"
 	exit 1
