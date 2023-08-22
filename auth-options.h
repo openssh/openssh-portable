@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.h,v 1.29 2019/11/25 00:54:23 djm Exp $ */
+/* $OpenBSD: auth-options.h,v 1.31 2021/07/23 03:57:20 djm Exp $ */
 
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
@@ -23,7 +23,10 @@ struct passwd;
 struct sshkey;
 
 /* Maximum number of permitopen/permitlisten directives to accept */
-#define SSH_AUTHOPT_PERMIT_MAX 4096
+#define SSH_AUTHOPT_PERMIT_MAX	4096
+
+/* Maximum number of environment directives to accept */
+#define SSH_AUTHOPT_ENV_MAX	1024
 
 /*
  * sshauthopt represents key options parsed from authorized_keys or
@@ -71,6 +74,8 @@ struct sshauthopt {
 
 	/* Key requires user presence asserted */
 	int no_require_user_presence;
+	/* Key requires user verification (e.g. PIN) */
+	int require_verify;
 };
 
 struct sshauthopt *sshauthopt_new(void);

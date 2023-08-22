@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "includes.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -24,15 +26,6 @@ struct version_test {
 	long libver;
 	int result;
 } version_tests[] = {
-	/* built with 0.9.8b release headers */
-	{ 0x0090802fL, 0x0090802fL, 1},	/* exact match */
-	{ 0x0090802fL, 0x0090804fL, 1},	/* newer library fix version: ok */
-	{ 0x0090802fL, 0x0090801fL, 1},	/* older library fix version: ok */
-	{ 0x0090802fL, 0x0090702fL, 0},	/* older library minor version: NO */
-	{ 0x0090802fL, 0x0090902fL, 0},	/* newer library minor version: NO */
-	{ 0x0090802fL, 0x0080802fL, 0},	/* older library major version: NO */
-	{ 0x0090802fL, 0x1000100fL, 0},	/* newer library major version: NO */
-
 	/* built with 1.0.1b release headers */
 	{ 0x1000101fL, 0x1000101fL, 1},/* exact match */
 	{ 0x1000101fL, 0x1000102fL, 1},	/* newer library patch version: ok */
@@ -42,6 +35,26 @@ struct version_test {
 	{ 0x1000101fL, 0x1010101fL, 0},	/* newer library minor version: NO */
 	{ 0x1000101fL, 0x0000101fL, 0},	/* older library major version: NO */
 	{ 0x1000101fL, 0x2000101fL, 0},	/* newer library major version: NO */
+
+	/* built with 1.1.1b release headers */
+	{ 0x1010101fL, 0x1010101fL, 1},/* exact match */
+	{ 0x1010101fL, 0x1010102fL, 1},	/* newer library patch version: ok */
+	{ 0x1010101fL, 0x1010100fL, 1},	/* older library patch version: ok */
+	{ 0x1010101fL, 0x1010201fL, 1},	/* newer library fix version: ok */
+	{ 0x1010101fL, 0x1010001fL, 0},	/* older library fix version: NO */
+	{ 0x1010101fL, 0x1020001fL, 0},	/* newer library minor version: NO */
+	{ 0x1010101fL, 0x0010101fL, 0},	/* older library major version: NO */
+	{ 0x1010101fL, 0x2010101fL, 0},	/* newer library major version: NO */
+
+	/* built with 3.0.1 release headers */
+	{ 0x3010101fL, 0x3010101fL, 1},/* exact match */
+	{ 0x3010101fL, 0x3010102fL, 1},	/* newer library patch version: ok */
+	{ 0x3010101fL, 0x3010100fL, 1},	/* older library patch version: ok */
+	{ 0x3010101fL, 0x3010201fL, 1},	/* newer library fix version: ok */
+	{ 0x3010101fL, 0x3010001fL, 1},	/* older library fix version: ok */
+	{ 0x3010101fL, 0x3020001fL, 1},	/* newer library minor version: ok */
+	{ 0x3010101fL, 0x1010101fL, 0},	/* older library major version: NO */
+	{ 0x3010101fL, 0x4010101fL, 0},	/* newer library major version: NO */
 };
 
 void
@@ -54,6 +67,7 @@ fail(long hver, long lver, int result)
 int
 main(void)
 {
+#ifdef WITH_OPENSSL
 	unsigned int i;
 	int res;
 	long hver, lver;
@@ -65,5 +79,6 @@ main(void)
 		if (ssh_compatible_openssl(hver, lver) != res)
 			fail(hver, lver, res);
 	}
+#endif
 	exit(0);
 }

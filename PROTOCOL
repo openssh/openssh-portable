@@ -102,6 +102,8 @@ OpenSSH supports the use of ECDH in Curve25519 for key exchange as
 described at:
 http://git.libssh.org/users/aris/libssh.git/plain/doc/curve25519-sha256@libssh.org.txt?h=curve25519
 
+This is identical to curve25519-sha256 as later published in RFC8731.
+
 2. Connection protocol changes
 
 2.1. connection: Channel write close extension "eow@openssh.com"
@@ -140,7 +142,7 @@ window space and may be sent even if no window space is available.
 NB. due to certain broken SSH implementations aborting upon receipt
 of this message (in contravention of RFC4254 section 5.4), this
 message is only sent to OpenSSH peers (identified by banner).
-Other SSH implementations may be whitelisted to receive this message
+Other SSH implementations may be listed to receive this message
 upon request.
 
 2.2. connection: disallow additional sessions extension
@@ -169,7 +171,7 @@ Note that this is not a general defence against compromised clients
 NB. due to certain broken SSH implementations aborting upon receipt
 of this message, the no-more-sessions request is only sent to OpenSSH
 servers (identified by banner). Other SSH implementations may be
-whitelisted to receive this message upon request.
+listed to receive this message upon request.
 
 2.3. connection: Tunnel forward extension "tun@openssh.com"
 
@@ -194,7 +196,7 @@ layer 2 frames or layer 3 packets. It may take one of the following values:
 	SSH_TUNMODE_ETHERNET     2		/* layer 2 frames */
 
 The "tunnel unit number" specifies the remote interface number, or may
-be 0x7fffffff to allow the server to automatically chose an interface. A
+be 0x7fffffff to allow the server to automatically choose an interface. A
 server that is not willing to open a client-specified unit should refuse
 the request with a SSH_MSG_CHANNEL_OPEN_FAILURE error. On successful
 open, the server should reply with SSH_MSG_CHANNEL_OPEN_SUCCESS.
@@ -292,13 +294,14 @@ has completed.
 
 	byte		SSH_MSG_GLOBAL_REQUEST
 	string		"hostkeys-00@openssh.com"
+	char		0 /* want-reply */
 	string[]	hostkeys
 
 Upon receiving this message, a client should check which of the
 supplied host keys are present in known_hosts.
 
 Note that the server may send key types that the client does not
-support. The client should disgregard such keys if they are received.
+support. The client should disregard such keys if they are received.
 
 If the client identifies any keys that are not present for the host,
 it should send a "hostkeys-prove@openssh.com" message to request the
@@ -341,9 +344,41 @@ signal to a session attached to a channel. OpenSSH supports one
 extension signal "INFO@openssh.com" that allows sending SIGINFO on
 BSD-derived systems.
 
-3. SFTP protocol changes
+3. Authentication protocol changes
 
-3.1. sftp: Reversal of arguments to SSH_FXP_SYMLINK
+3.1. Host-bound public key authentication
+
+This is trivial change to the traditional "publickey" authentication
+method. The authentication request is identical to the original method
+but for the name and one additional field:
+
+	byte		SSH2_MSG_USERAUTH_REQUEST
+	string		username
+	string		"ssh-connection"
+	string		"publickey-hostbound-v00@openssh.com"
+	bool		has_signature
+	string		pkalg
+	string		public key
+	string		server host key
+
+Because the entire SSH2_MSG_USERAUTH_REQUEST message is included in
+the signed data, this ensures that a binding between the destination
+user, the server identity and the session identifier is visible to the
+signer. OpenSSH uses this binding via signed data to implement per-key
+restrictions in ssh-agent.
+
+A server may advertise this method using the SSH2_MSG_EXT_INFO
+mechanism (RFC8308), with the following message:
+
+	string		"publickey-hostbound@openssh.com"
+	string		"0" (version)
+
+Clients should prefer host-bound authentication when advertised by
+server.
+
+4. SFTP protocol changes
+
+4.1. sftp: Reversal of arguments to SSH_FXP_SYMLINK
 
 When OpenSSH's sftp-server was implemented, the order of the arguments
 to the SSH_FXP_SYMLINK method was inadvertently reversed. Unfortunately,
@@ -356,7 +391,7 @@ SSH_FXP_SYMLINK as follows:
 	string		targetpath
 	string		linkpath
 
-3.2. sftp: Server extension announcement in SSH_FXP_VERSION
+4.2. sftp: Server extension announcement in SSH_FXP_VERSION
 
 OpenSSH's sftp-server lists the extensions it supports using the
 standard extension announcement mechanism in the SSH_FXP_VERSION server
@@ -377,7 +412,7 @@ ever changed in an incompatible way. The server MAY advertise the same
 extension with multiple versions (though this is unlikely). Clients MUST
 check the version number before attempting to use the extension.
 
-3.3. sftp: Extension request "posix-rename@openssh.com"
+4.3. sftp: Extension request "posix-rename@openssh.com"
 
 This operation provides a rename operation with POSIX semantics, which
 are different to those provided by the standard SSH_FXP_RENAME in
@@ -394,7 +429,7 @@ rename(oldpath, newpath) and will respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
-3.4. sftp: Extension requests "statvfs@openssh.com" and
+4.4. sftp: Extension requests "statvfs@openssh.com" and
          "fstatvfs@openssh.com"
 
 These requests correspond to the statvfs and fstatvfs POSIX system
@@ -435,7 +470,7 @@ The values of the f_flag bitmask are as follows:
 Both the "statvfs@openssh.com" and "fstatvfs@openssh.com" extensions are
 advertised in the SSH_FXP_VERSION hello with version "2".
 
-3.5. sftp: Extension request "hardlink@openssh.com"
+4.5. sftp: Extension request "hardlink@openssh.com"
 
 This request is for creating a hard link to a regular file. This
 request is implemented as a SSH_FXP_EXTENDED request with the
@@ -451,7 +486,7 @@ link(oldpath, newpath) and will respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
-3.6. sftp: Extension request "fsync@openssh.com"
+4.6. sftp: Extension request "fsync@openssh.com"
 
 This request asks the server to call fsync(2) on an open file handle.
 
@@ -459,15 +494,191 @@ This request asks the server to call fsync(2) on an open file handle.
 	string		"fsync@openssh.com"
 	string		handle
 
-One receiving this request, a server will call fsync(handle_fd) and will
+On receiving this request, a server will call fsync(handle_fd) and will
 respond with a SSH_FXP_STATUS message.
 
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
-4. Miscellaneous changes
+4.7. sftp: Extension request "lsetstat@openssh.com"
 
-4.1 Public key format
+This request is like the "setstat" command, but sets file attributes on
+symlinks.  It is implemented as a SSH_FXP_EXTENDED request with the
+following format:
+
+	uint32		id
+	string		"lsetstat@openssh.com"
+	string		path
+	ATTRS		attrs
+
+See the "setstat" command for more details.
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
+4.8. sftp: Extension request "limits@openssh.com"
+
+This request is used to determine various limits the server might impose.
+Clients should not attempt to exceed these limits as the server might sever
+the connection immediately.
+
+	uint32		id
+	string		"limits@openssh.com"
+
+The server will respond with a SSH_FXP_EXTENDED_REPLY reply:
+
+	uint32		id
+	uint64		max-packet-length
+	uint64		max-read-length
+	uint64		max-write-length
+	uint64		max-open-handles
+
+The 'max-packet-length' applies to the total number of bytes in a
+single SFTP packet.  Servers SHOULD set this at least to 34000.
+
+The 'max-read-length' is the largest length in a SSH_FXP_READ packet.
+Even if the client requests a larger size, servers will usually respond
+with a shorter SSH_FXP_DATA packet.  Servers SHOULD set this at least to
+32768.
+
+The 'max-write-length' is the largest length in a SSH_FXP_WRITE packet
+the server will accept.  Servers SHOULD set this at least to 32768.
+
+The 'max-open-handles' is the maximum number of active handles that the
+server allows (e.g. handles created by SSH_FXP_OPEN and SSH_FXP_OPENDIR
+packets).  Servers MAY count internal file handles against this limit
+(e.g. system logging or stdout/stderr), so clients SHOULD NOT expect to
+open this many handles in practice.
+
+If the server doesn't enforce a specific limit, then the field may be
+set to 0.  This implies the server relies on the OS to enforce limits
+(e.g. available memory or file handles), and such limits might be
+dynamic.  The client SHOULD take care to not try to exceed reasonable
+limits.
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
+4.9. sftp: Extension request "expand-path@openssh.com"
+
+This request supports canonicalisation of relative paths and
+those that need tilde-expansion, i.e. "~", "~/..." and "~user/..."
+These paths are expanded using shell-like rules and the resultant
+path is canonicalised similarly to SSH2_FXP_REALPATH.
+
+It is implemented as a SSH_FXP_EXTENDED request with the following
+format:
+
+	uint32		id
+	string		"expand-path@openssh.com"
+	string		path
+
+Its reply is the same format as that of SSH2_FXP_REALPATH.
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
+4.10. sftp: Extension request "copy-data"
+
+This request asks the server to copy data from one open file handle and
+write it to a different open file handle.  This avoids needing to transfer
+the data across the network twice (a download followed by an upload).
+
+	byte		SSH_FXP_EXTENDED
+	uint32		id
+	string		"copy-data"
+	string		read-from-handle
+	uint64		read-from-offset
+	uint64		read-data-length
+	string		write-to-handle
+	uint64		write-to-offset
+
+The server will copy read-data-length bytes starting from
+read-from-offset from the read-from-handle and write them to
+write-to-handle starting from write-to-offset, and then respond with a
+SSH_FXP_STATUS message.
+
+It's equivalent to issuing a series of SSH_FXP_READ requests on
+read-from-handle and a series of requests of SSH_FXP_WRITE on
+write-to-handle.
+
+If read-from-handle and write-to-handle are the same, the server will
+fail the request and respond with a SSH_FX_INVALID_PARAMETER message.
+
+If read-data-length is 0, then the server will read data from the
+read-from-handle until EOF is reached.
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
+This request is identical to the "copy-data" request documented in:
+
+https://tools.ietf.org/html/draft-ietf-secsh-filexfer-extensions-00#section-7
+
+4.11. sftp: Extension request "home-directory"
+
+This request asks the server to expand the specified user's home directory.
+An empty username implies the current user.  This can be used by the client
+to expand ~/ type paths locally.
+
+	byte		SSH_FXP_EXTENDED
+	uint32		id
+	string		"home-directory"
+	string		username
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
+This provides similar information as the "expand-path@openssh.com" extension.
+
+This request is identical to the "home-directory" request documented in:
+
+https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-extensions-00#section-5
+
+4.12. sftp: Extension request "users-groups-by-id@openssh.com"
+
+This request asks the server to return user and/or group names that
+correspond to one or more IDs (e.g. as returned from a SSH_FXP_STAT
+request). This may be used by the client to provide usernames in
+directory listings.
+
+	byte		SSH_FXP_EXTENDED
+	uint32		id
+	string		"users-groups-by-id@openssh.com"
+	string		uids
+	string		gids
+
+Where "uids" and "gids" consists of one or more integer user or group
+identifiers:
+
+	uint32		id-0
+	...
+
+The server will reply with a SSH_FXP_EXTENDED_REPLY:
+
+	byte		SSH_FXP_EXTENDED_REPLY
+	string		usernames
+	string		groupnames
+
+Where "username" and "groupnames" consists of names in identical request
+order to "uids" and "gids" respectively:
+
+	string		name-0
+	...
+
+If a name cannot be identified for a given user or group ID, an empty
+string will be returned in its place.
+
+It is acceptable for either "uids" or "gids" to be an empty set, in
+which case the respective "usernames" or "groupnames" list will also
+be empty.
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
+5. Miscellaneous changes
+
+5.1 Public key format
 
 OpenSSH public keys, as generated by ssh-keygen(1) and appearing in
 authorized_keys files, are formatted as a single line of text consisting
@@ -478,22 +689,27 @@ section 6.6 for RSA and DSA keys, RFC5656 section 3.1 for ECDSA keys
 and the "New public key formats" section of PROTOCOL.certkeys for the
 OpenSSH certificate formats.
 
-4.2 Private key format
+5.2 Private key format
 
 OpenSSH private keys, as generated by ssh-keygen(1) use the format
 described in PROTOCOL.key by default. As a legacy option, PEM format
 (RFC7468) private keys are also supported for RSA, DSA and ECDSA keys
 and were the default format before OpenSSH 7.8.
 
-4.3 KRL format
+5.3 KRL format
 
 OpenSSH supports a compact format for Key Revocation Lists (KRLs). This
 format is described in the PROTOCOL.krl file.
 
-4.4 Connection multiplexing
+5.4 Connection multiplexing
 
 OpenSSH's connection multiplexing uses messages as described in
 PROTOCOL.mux over a Unix domain socket for communications between a
 master instance and later clients.
 
-$OpenBSD: PROTOCOL,v 1.36 2018/10/02 12:51:58 djm Exp $
+5.5. Agent protocol extensions
+
+OpenSSH extends the usual agent protocol. These changes are documented
+in the PROTOCOL.agent file.
+
+$OpenBSD: PROTOCOL,v 1.48 2022/11/07 01:53:01 dtucker Exp $

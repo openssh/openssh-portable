@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.149 2020/01/06 02:00:46 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.168 2023/07/06 22:17:59 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -67,6 +67,8 @@
 #include "ssherr.h"
 #include "digest.h"
 #include "ssh-sk.h"
+#include "sk-api.h"
+#include "hostfile.h"
 
 /* argv0 */
 extern char *__progname;
@@ -75,7 +77,6 @@ extern char *__progname;
 static char *default_files[] = {
 #ifdef WITH_OPENSSL
 	_PATH_SSH_CLIENT_ID_RSA,
-	_PATH_SSH_CLIENT_ID_DSA,
 #ifdef OPENSSL_HAS_ECC
 	_PATH_SSH_CLIENT_ID_ECDSA,
 	_PATH_SSH_CLIENT_ID_ECDSA_SK,
@@ -84,6 +85,7 @@ static char *default_files[] = {
 	_PATH_SSH_CLIENT_ID_ED25519,
 	_PATH_SSH_CLIENT_ID_ED25519_SK,
 	_PATH_SSH_CLIENT_ID_XMSS,
+	_PATH_SSH_CLIENT_ID_DSA,
 	NULL
 };
 
@@ -105,10 +107,57 @@ static void
 clear_pass(void)
 {
 	if (pass) {
-		explicit_bzero(pass, strlen(pass));
-		free(pass);
+		freezero(pass, strlen(pass));
 		pass = NULL;
 	}
+}
+
+static int
+delete_one(int agent_fd, const struct sshkey *key, const char *comment,
+    const char *path, int qflag)
+{
+	int r;
+
+	if ((r = ssh_remove_identity(agent_fd, key)) != 0) {
+		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
+		    path, ssh_err(r));
+		return r;
+	}
+	if (!qflag) {
+		fprintf(stderr, "Identity removed: %s %s (%s)\n", path,
+		    sshkey_type(key), comment ? comment : "no comment");
+	}
+	return 0;
+}
+
+static int
+delete_stdin(int agent_fd, int qflag)
+{
+	char *line = NULL, *cp;
+	size_t linesize = 0;
+	struct sshkey *key = NULL;
+	int lnum = 0, r, ret = -1;
+
+	while (getline(&line, &linesize, stdin) != -1) {
+		lnum++;
+		sshkey_free(key);
+		key = NULL;
+		line[strcspn(line, "\n")] = '\0';
+		cp = line + strspn(line, " \t");
+		if (*cp == '#' || *cp == '\0')
+			continue;
+		if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
+			fatal_f("sshkey_new");
+		if ((r = sshkey_read(key, &cp)) != 0) {
+			error_r(r, "(stdin):%d: invalid key", lnum);
+			continue;
+		}
+		if (delete_one(agent_fd, key, cp, "(stdin)", qflag) == 0)
+			ret = 0;
+	}
+	sshkey_free(key);
+	free(line);
+	return ret;
 }
 
 static int
@@ -118,19 +167,15 @@ delete_file(int agent_fd, const char *filename, int key_only, int qflag)
 	char *certpath = NULL, *comment = NULL;
 	int r, ret = -1;
 
+	if (strcmp(filename, "-") == 0)
+		return delete_stdin(agent_fd, qflag);
+
 	if ((r = sshkey_load_public(filename, &public,  &comment)) != 0) {
 		printf("Bad key file %s: %s\n", filename, ssh_err(r));
 		return -1;
 	}
-	if ((r = ssh_remove_identity(agent_fd, public)) == 0) {
-		if (!qflag) {
-			fprintf(stderr, "Identity removed: %s (%s)\n",
-			    filename, comment);
-		}
+	if (delete_one(agent_fd, public, comment, filename, qflag) == 0)
 		ret = 0;
-	} else
-		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
-		    filename, ssh_err(r));
 
 	if (key_only)
 		goto out;
@@ -141,8 +186,7 @@ delete_file(int agent_fd, const char *filename, int key_only, int qflag)
 	xasprintf(&certpath, "%s-cert.pub", filename);
 	if ((r = sshkey_load_public(certpath, &cert, &comment)) != 0) {
 		if (r != SSH_ERR_SYSTEM_ERROR || errno != ENOENT)
-			error("Failed to load certificate \"%s\": %s",
-			    certpath, ssh_err(r));
+			error_r(r, "Failed to load certificate \"%s\"", certpath);
 		goto out;
 	}
 
@@ -150,15 +194,8 @@ delete_file(int agent_fd, const char *filename, int key_only, int qflag)
 		fatal("Certificate %s does not match private key %s",
 		    certpath, filename);
 
-	if ((r = ssh_remove_identity(agent_fd, cert)) == 0) {
-		if (!qflag) {
-			fprintf(stderr, "Identity removed: %s (%s)\n",
-			    certpath, comment);
-		}
+	if (delete_one(agent_fd, cert, comment, certpath, qflag) == 0)
 		ret = 0;
-	} else
-		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
-		    certpath, ssh_err(r));
 
  out:
 	sshkey_free(cert);
@@ -195,7 +232,8 @@ delete_all(int agent_fd, int qflag)
 
 static int
 add_file(int agent_fd, const char *filename, int key_only, int qflag,
-    const char *skprovider)
+    const char *skprovider, struct dest_constraint **dest_constraints,
+    size_t ndest_constraints)
 {
 	struct sshkey *private, *cert;
 	char *comment = NULL;
@@ -224,9 +262,7 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 			return -1;
 		}
 	}
-	if ((keyblob = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
-	if ((r = sshkey_load_file(fd, keyblob)) != 0) {
+	if ((r = sshbuf_load_fd(fd, &keyblob)) != 0) {
 		fprintf(stderr, "Error loading key \"%s\": %s\n",
 		    filename, ssh_err(r));
 		sshbuf_free(keyblob);
@@ -302,10 +338,10 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 			fprintf(stderr, "Skipping update: ");
 			if (left == minleft) {
 				fprintf(stderr,
-				   "required signatures left (%d).\n", left);
+				    "required signatures left (%d).\n", left);
 			} else {
 				fprintf(stderr,
-				   "more signatures left (%d) than"
+				    "more signatures left (%d) than"
 				    " required (%d).\n", left, minleft);
 			}
 			ssh_free_identitylist(idlist);
@@ -314,16 +350,20 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 		ssh_free_identitylist(idlist);
 	}
 
-	if (!sshkey_is_sk(private))
-		skprovider = NULL; /* Don't send constraint for other keys */
-	else if (skprovider == NULL) {
-		fprintf(stderr, "Cannot load security key %s without "
-		    "provider\n", filename);
-		goto out;
+	if (sshkey_is_sk(private)) {
+		if (skprovider == NULL) {
+			fprintf(stderr, "Cannot load FIDO key %s "
+			    "without provider\n", filename);
+			goto out;
+		}
+	} else {
+		/* Don't send provider constraint for other keys */
+		skprovider = NULL;
 	}
 
 	if ((r = ssh_add_identity_constrained(agent_fd, private, comment,
-	    lifetime, confirm, maxsign, skprovider)) == 0) {
+	    lifetime, confirm, maxsign, skprovider,
+	    dest_constraints, ndest_constraints)) == 0) {
 		ret = 0;
 		if (!qflag) {
 			fprintf(stderr, "Identity added: %s (%s)\n",
@@ -350,8 +390,7 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 	xasprintf(&certpath, "%s-cert.pub", filename);
 	if ((r = sshkey_load_public(certpath, &cert, NULL)) != 0) {
 		if (r != SSH_ERR_SYSTEM_ERROR || errno != ENOENT)
-			error("Failed to load certificate \"%s\": %s",
-			    certpath, ssh_err(r));
+			error_r(r, "Failed to load certificate \"%s\"", certpath);
 		goto out;
 	}
 
@@ -360,25 +399,26 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 		    certpath, filename);
 		sshkey_free(cert);
 		goto out;
-	} 
+	}
 
 	/* Graft with private bits */
 	if ((r = sshkey_to_certified(private)) != 0) {
-		error("%s: sshkey_to_certified: %s", __func__, ssh_err(r));
+		error_fr(r, "sshkey_to_certified");
 		sshkey_free(cert);
 		goto out;
 	}
 	if ((r = sshkey_cert_copy(cert, private)) != 0) {
-		error("%s: sshkey_cert_copy: %s", __func__, ssh_err(r));
+		error_fr(r, "sshkey_cert_copy");
 		sshkey_free(cert);
 		goto out;
 	}
 	sshkey_free(cert);
 
 	if ((r = ssh_add_identity_constrained(agent_fd, private, comment,
-	    lifetime, confirm, maxsign, skprovider)) != 0) {
-		error("Certificate %s (%s) add failed: %s", certpath,
-		    private->cert->key_id, ssh_err(r));
+	    lifetime, confirm, maxsign, skprovider,
+	    dest_constraints, ndest_constraints)) != 0) {
+		error_r(r, "Certificate %s (%s) add failed", certpath,
+		    private->cert->key_id);
 		goto out;
 	}
 	/* success */
@@ -404,7 +444,8 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 }
 
 static int
-update_card(int agent_fd, int add, const char *id, int qflag)
+update_card(int agent_fd, int add, const char *id, int qflag,
+    struct dest_constraint **dest_constraints, size_t ndest_constraints)
 {
 	char *pin = NULL;
 	int r, ret = -1;
@@ -416,7 +457,7 @@ update_card(int agent_fd, int add, const char *id, int qflag)
 	}
 
 	if ((r = ssh_update_card(agent_fd, add, id, pin == NULL ? "" : pin,
-	    lifetime, confirm)) == 0) {
+	    lifetime, confirm, dest_constraints, ndest_constraints)) == 0) {
 		ret = 0;
 		if (!qflag) {
 			fprintf(stderr, "Card %s: %s\n",
@@ -436,25 +477,26 @@ test_key(int agent_fd, const char *filename)
 {
 	struct sshkey *key = NULL;
 	u_char *sig = NULL;
+	const char *alg = NULL;
 	size_t slen = 0;
 	int r, ret = -1;
 	char data[1024];
 
 	if ((r = sshkey_load_public(filename, &key, NULL)) != 0) {
-		error("Couldn't read public key %s: %s", filename, ssh_err(r));
+		error_r(r, "Couldn't read public key %s", filename);
 		return -1;
 	}
+	if (sshkey_type_plain(key->type) == KEY_RSA)
+		alg = "rsa-sha2-256";
 	arc4random_buf(data, sizeof(data));
 	if ((r = ssh_agent_sign(agent_fd, key, &sig, &slen, data, sizeof(data),
-	    NULL, 0)) != 0) {
-		error("Agent signature failed for %s: %s",
-		    filename, ssh_err(r));
+	    alg, 0)) != 0) {
+		error_r(r, "Agent signature failed for %s", filename);
 		goto done;
 	}
 	if ((r = sshkey_verify(key, sig, slen, data, sizeof(data),
-	    NULL, 0, NULL)) != 0) {
-		error("Signature verification failed for %s: %s",
-		    filename, ssh_err(r));
+	    alg, 0, NULL)) != 0) {
+		error_r(r, "Signature verification failed for %s", filename);
 		goto done;
 	}
 	/* success */
@@ -523,8 +565,7 @@ lock_agent(int agent_fd, int lock)
 			fprintf(stderr, "Passwords do not match.\n");
 			passok = 0;
 		}
-		explicit_bzero(p2, strlen(p2));
-		free(p2);
+		freezero(p2, strlen(p2));
 	}
 	if (passok) {
 		if ((r = ssh_lock_agent(agent_fd, lock, p1)) == 0) {
@@ -535,33 +576,36 @@ lock_agent(int agent_fd, int lock)
 			    lock ? "" : "un", ssh_err(r));
 		}
 	}
-	explicit_bzero(p1, strlen(p1));
-	free(p1);
+	freezero(p1, strlen(p1));
 	return (ret);
 }
 
 static int
-load_resident_keys(int agent_fd, const char *skprovider, int qflag)
+load_resident_keys(int agent_fd, const char *skprovider, int qflag,
+    struct dest_constraint **dest_constraints, size_t ndest_constraints)
 {
-	struct sshkey **keys;
-	size_t nkeys, i;
+	struct sshsk_resident_key **srks;
+	size_t nsrks, i;
+	struct sshkey *key;
 	int r, ok = 0;
 	char *fp;
 
-	pass = read_passphrase("Enter PIN for security key: ", RP_ALLOW_STDIN);
-	if ((r = sshsk_load_resident(skprovider, NULL, pass,
-	    &keys, &nkeys)) != 0) {
-		error("Unable to load resident keys: %s", ssh_err(r));
+	pass = read_passphrase("Enter PIN for authenticator: ", RP_ALLOW_STDIN);
+	if ((r = sshsk_load_resident(skprovider, NULL, pass, 0,
+	    &srks, &nsrks)) != 0) {
+		error_r(r, "Unable to load resident keys");
 		return r;
 	}
-	for (i = 0; i < nkeys; i++) {
-		if ((fp = sshkey_fingerprint(keys[i],
+	for (i = 0; i < nsrks; i++) {
+		key = srks[i]->key;
+		if ((fp = sshkey_fingerprint(key,
 		    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
-			fatal("%s: sshkey_fingerprint failed", __func__);
-		if ((r = ssh_add_identity_constrained(agent_fd, keys[i], "",
-		    lifetime, confirm, maxsign, skprovider)) != 0) {
+			fatal_f("sshkey_fingerprint failed");
+		if ((r = ssh_add_identity_constrained(agent_fd, key, "",
+		    lifetime, confirm, maxsign, skprovider,
+		    dest_constraints, ndest_constraints)) != 0) {
 			error("Unable to add key %s %s",
-			    sshkey_type(keys[i]), fp);
+			    sshkey_type(key), fp);
 			free(fp);
 			ok = r;
 			continue;
@@ -570,7 +614,7 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag)
 			ok = 1;
 		if (!qflag) {
 			fprintf(stderr, "Resident identity added: %s %s\n",
-			    sshkey_type(keys[i]), fp);
+			    sshkey_type(key), fp);
 			if (lifetime != 0) {
 				fprintf(stderr,
 				    "Lifetime set to %d seconds\n", lifetime);
@@ -581,51 +625,161 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag)
 			}
 		}
 		free(fp);
-		sshkey_free(keys[i]);
 	}
-	free(keys);
-	if (nkeys == 0)
+	sshsk_free_resident_keys(srks, nsrks);
+	if (nsrks == 0)
 		return SSH_ERR_KEY_NOT_FOUND;
 	return ok == 1 ? 0 : ok;
 }
 
 static int
 do_file(int agent_fd, int deleting, int key_only, char *file, int qflag,
-    const char *skprovider)
+    const char *skprovider, struct dest_constraint **dest_constraints,
+    size_t ndest_constraints)
 {
 	if (deleting) {
 		if (delete_file(agent_fd, file, key_only, qflag) == -1)
 			return -1;
 	} else {
-		if (add_file(agent_fd, file, key_only, qflag, skprovider) == -1)
+		if (add_file(agent_fd, file, key_only, qflag, skprovider,
+		    dest_constraints, ndest_constraints) == -1)
 			return -1;
 	}
 	return 0;
 }
 
+/* Append string 's' to a NULL-terminated array of strings */
+static void
+stringlist_append(char ***listp, const char *s)
+{
+	size_t i = 0;
+
+	if (*listp == NULL)
+		*listp = xcalloc(2, sizeof(**listp));
+	else {
+		for (i = 0; (*listp)[i] != NULL; i++)
+			; /* count */
+		*listp = xrecallocarray(*listp, i + 1, i + 2, sizeof(**listp));
+	}
+	(*listp)[i] = xstrdup(s);
+}
+
+static void
+parse_dest_constraint_hop(const char *s, struct dest_constraint_hop *dch,
+    char **hostkey_files)
+{
+	char *user = NULL, *host, *os, *path;
+	size_t i;
+	struct hostkeys *hostkeys;
+	const struct hostkey_entry *hke;
+	int r, want_ca;
+
+	memset(dch, '\0', sizeof(*dch));
+	os = xstrdup(s);
+	if ((host = strchr(os, '@')) == NULL)
+		host = os;
+	else {
+		*host++ = '\0';
+		user = os;
+	}
+	cleanhostname(host);
+	/* Trivial case: username@ (all hosts) */
+	if (*host == '\0') {
+		if (user == NULL) {
+			fatal("Invalid key destination constraint \"%s\": "
+			    "does not specify user or host", s);
+		}
+		dch->user = xstrdup(user);
+		/* other fields left blank */
+		free(os);
+		return;
+	}
+	if (hostkey_files == NULL)
+		fatal_f("no hostkey files");
+	/* Otherwise we need to look up the keys for this hostname */
+	hostkeys = init_hostkeys();
+	for (i = 0; hostkey_files[i]; i++) {
+		path = tilde_expand_filename(hostkey_files[i], getuid());
+		debug2_f("looking up host keys for \"%s\" in %s", host, path);
+                load_hostkeys(hostkeys, host, path, 0);
+		free(path);
+	}
+	dch->user = user == NULL ? NULL : xstrdup(user);
+	dch->hostname = xstrdup(host);
+	for (i = 0; i < hostkeys->num_entries; i++) {
+		hke = hostkeys->entries + i;
+		want_ca = hke->marker == MRK_CA;
+		if (hke->marker != MRK_NONE && !want_ca)
+			continue;
+		debug3_f("%s%s%s: adding %s %skey from %s:%lu as key %u",
+		    user == NULL ? "": user, user == NULL ? "" : "@",
+		    host, sshkey_type(hke->key), want_ca ? "CA " : "",
+		    hke->file, hke->line, dch->nkeys);
+		dch->keys = xrecallocarray(dch->keys, dch->nkeys,
+		    dch->nkeys + 1, sizeof(*dch->keys));
+		dch->key_is_ca = xrecallocarray(dch->key_is_ca, dch->nkeys,
+		    dch->nkeys + 1, sizeof(*dch->key_is_ca));
+		if ((r = sshkey_from_private(hke->key,
+		    &(dch->keys[dch->nkeys]))) != 0)
+			fatal_fr(r, "sshkey_from_private");
+		dch->key_is_ca[dch->nkeys] = want_ca;
+		dch->nkeys++;
+	}
+	if (dch->nkeys == 0)
+		fatal("No host keys found for destination \"%s\"", host);
+	free_hostkeys(hostkeys);
+	free(os);
+	return;
+}
+
+static void
+parse_dest_constraint(const char *s, struct dest_constraint ***dcp,
+    size_t *ndcp, char **hostkey_files)
+{
+	struct dest_constraint *dc;
+	char *os, *cp;
+
+	dc = xcalloc(1, sizeof(*dc));
+	os = xstrdup(s);
+	if ((cp = strchr(os, '>')) == NULL) {
+		/* initial hop; no 'from' hop specified */
+		parse_dest_constraint_hop(os, &dc->to, hostkey_files);
+	} else {
+		/* two hops specified */
+		*(cp++) = '\0';
+		parse_dest_constraint_hop(os, &dc->from, hostkey_files);
+		parse_dest_constraint_hop(cp, &dc->to, hostkey_files);
+		if (dc->from.user != NULL) {
+			fatal("Invalid key constraint %s: cannot specify "
+			    "user on 'from' host", os);
+		}
+	}
+	/* XXX eliminate or error on duplicates */
+	debug2_f("constraint %zu: %s%s%s (%u keys) > %s%s%s (%u keys)", *ndcp,
+	    dc->from.user ? dc->from.user : "", dc->from.user ? "@" : "",
+	    dc->from.hostname ? dc->from.hostname : "(ORIGIN)", dc->from.nkeys,
+	    dc->to.user ? dc->to.user : "", dc->to.user ? "@" : "",
+	    dc->to.hostname ? dc->to.hostname : "(ANY)", dc->to.nkeys);
+	*dcp = xrecallocarray(*dcp, *ndcp, *ndcp + 1, sizeof(**dcp));
+	(*dcp)[(*ndcp)++] = dc;
+	free(os);
+}
+
+
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [options] [file ...]\n", __progname);
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "  -l          List fingerprints of all identities.\n");
-	fprintf(stderr, "  -E hash     Specify hash algorithm used for fingerprints.\n");
-	fprintf(stderr, "  -L          List public key parameters of all identities.\n");
-	fprintf(stderr, "  -k          Load only keys and not certificates.\n");
-	fprintf(stderr, "  -c          Require confirmation to sign using identities\n");
-	fprintf(stderr, "  -m minleft  Maxsign is only changed if less than minleft are left (for XMSS)\n");
-	fprintf(stderr, "  -M maxsign  Maximum number of signatures allowed (for XMSS)\n");
-	fprintf(stderr, "  -t life     Set lifetime (in seconds) when adding identities.\n");
-	fprintf(stderr, "  -d          Delete identity.\n");
-	fprintf(stderr, "  -D          Delete all identities.\n");
-	fprintf(stderr, "  -x          Lock agent.\n");
-	fprintf(stderr, "  -X          Unlock agent.\n");
-	fprintf(stderr, "  -s pkcs11   Add keys from PKCS#11 provider.\n");
-	fprintf(stderr, "  -e pkcs11   Remove keys provided by PKCS#11 provider.\n");
-	fprintf(stderr, "  -T pubkey   Test if ssh-agent can access matching private key.\n");
-	fprintf(stderr, "  -S provider Specify security key provider.\n");
-	fprintf(stderr, "  -q          Be quiet after a successful operation.\n");
-	fprintf(stderr, "  -v          Be more verbose.\n");
+	fprintf(stderr,
+"usage: ssh-add [-cDdKkLlqvXx] [-E fingerprint_hash] [-H hostkey_file]\n"
+"               [-h destination_constraint] [-S provider] [-t life]\n"
+#ifdef WITH_XMSS
+"               [-M maxsign] [-m minleft]\n"
+#endif
+"               [file ...]\n"
+"       ssh-add -s pkcs11\n"
+"       ssh-add -e pkcs11\n"
+"       ssh-add -T pubkey ...\n"
+	);
 }
 
 int
@@ -635,10 +789,13 @@ main(int argc, char **argv)
 	extern int optind;
 	int agent_fd;
 	char *pkcs11provider = NULL, *skprovider = NULL;
+	char **dest_constraint_strings = NULL, **hostkey_files = NULL;
 	int r, i, ch, deleting = 0, ret = 0, key_only = 0, do_download = 0;
 	int xflag = 0, lflag = 0, Dflag = 0, qflag = 0, Tflag = 0;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_INFO;
+	struct dest_constraint **dest_constraints = NULL;
+	size_t ndest_constraints = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -665,7 +822,7 @@ main(int argc, char **argv)
 
 	skprovider = getenv("SSH_SK_PROVIDER");
 
-	while ((ch = getopt(argc, argv, "vklLcdDTxXE:e:M:m:Oqs:S:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "vkKlLcdDTxXE:e:h:H:M:m:qs:S:t:")) != -1) {
 		switch (ch) {
 		case 'v':
 			if (log_level == SYSLOG_LEVEL_INFO)
@@ -678,17 +835,23 @@ main(int argc, char **argv)
 			if (fingerprint_hash == -1)
 				fatal("Invalid hash algorithm \"%s\"", optarg);
 			break;
+		case 'H':
+			stringlist_append(&hostkey_files, optarg);
+			break;
+		case 'h':
+			stringlist_append(&dest_constraint_strings, optarg);
+			break;
 		case 'k':
 			key_only = 1;
+			break;
+		case 'K':
+			do_download = 1;
 			break;
 		case 'l':
 		case 'L':
 			if (lflag != 0)
 				fatal("-%c flag already specified", lflag);
 			lflag = ch;
-			break;
-		case 'O':
-			do_download = 1;
 			break;
 		case 'x':
 		case 'X':
@@ -700,7 +863,7 @@ main(int argc, char **argv)
 			confirm = 1;
 			break;
 		case 'm':
-			minleft = (int)strtonum(optarg, 1, UINT_MAX, NULL);
+			minleft = (u_int)strtonum(optarg, 1, UINT_MAX, NULL);
 			if (minleft == 0) {
 				usage();
 				ret = 1;
@@ -708,7 +871,7 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'M':
-			maxsign = (int)strtonum(optarg, 1, UINT_MAX, NULL);
+			maxsign = (u_int)strtonum(optarg, 1, UINT_MAX, NULL);
 			if (maxsign == 0) {
 				usage();
 				ret = 1;
@@ -732,7 +895,8 @@ main(int argc, char **argv)
 			pkcs11provider = optarg;
 			break;
 		case 't':
-			if ((lifetime = convtime(optarg)) == -1) {
+			if ((lifetime = convtime(optarg)) == -1 ||
+			    lifetime < 0 || (u_long)lifetime > UINT32_MAX) {
 				fprintf(stderr, "Invalid lifetime\n");
 				ret = 1;
 				goto done;
@@ -773,6 +937,20 @@ main(int argc, char **argv)
 		skprovider = "internal";
 #endif
 
+	if (hostkey_files == NULL) {
+		/* use defaults from readconf.c */
+		stringlist_append(&hostkey_files, _PATH_SSH_USER_HOSTFILE);
+		stringlist_append(&hostkey_files, _PATH_SSH_USER_HOSTFILE2);
+		stringlist_append(&hostkey_files, _PATH_SSH_SYSTEM_HOSTFILE);
+		stringlist_append(&hostkey_files, _PATH_SSH_SYSTEM_HOSTFILE2);
+	}
+	if (dest_constraint_strings != NULL) {
+		for (i = 0; dest_constraint_strings[i] != NULL; i++) {
+			parse_dest_constraint(dest_constraint_strings[i],
+			  &dest_constraints, &ndest_constraints, hostkey_files);
+		}
+	}
+
 	argc -= optind;
 	argv += optind;
 	if (Tflag) {
@@ -785,14 +963,15 @@ main(int argc, char **argv)
 	}
 	if (pkcs11provider != NULL) {
 		if (update_card(agent_fd, !deleting, pkcs11provider,
-		    qflag) == -1)
+		    qflag, dest_constraints, ndest_constraints) == -1)
 			ret = 1;
 		goto done;
 	}
 	if (do_download) {
 		if (skprovider == NULL)
 			fatal("Cannot download keys without provider");
-		if (load_resident_keys(agent_fd, skprovider, qflag) != 0)
+		if (load_resident_keys(agent_fd, skprovider, qflag,
+		    dest_constraints, ndest_constraints) != 0)
 			ret = 1;
 		goto done;
 	}
@@ -815,7 +994,8 @@ main(int argc, char **argv)
 			if (stat(buf, &st) == -1)
 				continue;
 			if (do_file(agent_fd, deleting, key_only, buf,
-			    qflag, skprovider) == -1)
+			    qflag, skprovider,
+			    dest_constraints, ndest_constraints) == -1)
 				ret = 1;
 			else
 				count++;
@@ -825,7 +1005,8 @@ main(int argc, char **argv)
 	} else {
 		for (i = 0; i < argc; i++) {
 			if (do_file(agent_fd, deleting, key_only,
-			    argv[i], qflag, skprovider) == -1)
+			    argv[i], qflag, skprovider,
+			    dest_constraints, ndest_constraints) == -1)
 				ret = 1;
 		}
 	}

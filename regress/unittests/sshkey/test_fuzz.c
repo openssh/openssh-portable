@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_fuzz.c,v 1.11 2019/11/25 10:32:35 djm Exp $ */
+/* 	$OpenBSD: test_fuzz.c,v 1.13 2021/12/14 21:25:27 deraadt Exp $ */
 /*
  * Fuzz tests for key parsing
  *
@@ -8,7 +8,6 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/param.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -19,12 +18,14 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef WITH_OPENSSL
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include <openssl/objects.h>
 #ifdef OPENSSL_HAS_NISTP256
 # include <openssl/ec.h>
+#endif
 #endif
 
 #include "../test_helper/test_helper.h"
@@ -88,7 +89,7 @@ sig_fuzz(struct sshkey *k, const char *sig_alg)
 		fuzzers |= FUZZ_2_BIT_FLIP;
 
 	ASSERT_INT_EQ(sshkey_sign(k, &sig, &l, c, sizeof(c),
-	    sig_alg, NULL, 0), 0);
+	    sig_alg, NULL, NULL, 0), 0);
 	ASSERT_SIZE_T_GT(l, 0);
 	fuzz = fuzz_begin(fuzzers, sig, l);
 	ASSERT_INT_EQ(sshkey_verify(k, sig, l, c, sizeof(c), NULL, 0, NULL), 0);

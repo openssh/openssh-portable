@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.23 2017/04/30 23:34:55 djm Exp $
+#	$OpenBSD: integrity.sh,v 1.25 2023/03/01 09:29:32 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -18,7 +18,7 @@ macs="$macs `${SSH} -Q cipher-auth`"
 #	>> $OBJ/ssh_proxy
 
 # sshd-command for proxy (see test-exec.sh)
-cmd="$SUDO sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy"
+cmd="$SUDO env SSH_SK_HELPER="$SSH_SK_HELPER" sh ${OBJ}/sshd-log-wrapper.sh -i -f $OBJ/sshd_proxy"
 
 for m in $macs; do
 	trace "test $tid: mac $m"

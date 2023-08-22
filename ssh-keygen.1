@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.190 2020/01/06 07:43:28 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.229 2023/07/23 20:04:45 naddy Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: January 6 2020 $
+.Dd $Mdocdate: July 23 2023 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -44,20 +44,24 @@
 .Sh SYNOPSIS
 .Nm ssh-keygen
 .Op Fl q
+.Op Fl a Ar rounds
 .Op Fl b Ar bits
 .Op Fl C Ar comment
 .Op Fl f Ar output_keyfile
 .Op Fl m Ar format
+.Op Fl N Ar new_passphrase
 .Op Fl O Ar option
 .Op Fl t Cm dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa
-.Op Fl N Ar new_passphrase
 .Op Fl w Ar provider
+.Op Fl Z Ar cipher
 .Nm ssh-keygen
 .Fl p
+.Op Fl a Ar rounds
 .Op Fl f Ar keyfile
 .Op Fl m Ar format
 .Op Fl N Ar new_passphrase
 .Op Fl P Ar old_passphrase
+.Op Fl Z Ar cipher
 .Nm ssh-keygen
 .Fl i
 .Op Fl f Ar input_keyfile
@@ -71,6 +75,7 @@
 .Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl c
+.Op Fl a Ar rounds
 .Op Fl C Ar comment
 .Op Fl f Ar keyfile
 .Op Fl P Ar passphrase
@@ -93,6 +98,7 @@
 .Op Fl f Ar known_hosts_file
 .Nm ssh-keygen
 .Fl K
+.Op Fl a Ar rounds
 .Op Fl w Ar provider
 .Nm ssh-keygen
 .Fl R Ar hostname
@@ -104,12 +110,12 @@
 .Nm ssh-keygen
 .Fl M Cm generate
 .Op Fl O Ar option
-.Ar
+.Ar output_file
 .Nm ssh-keygen
 .Fl M Cm screen
-.Fl f Ar input_file
+.Op Fl f Ar input_file
 .Op Fl O Ar option
-.Ar
+.Ar output_file
 .Nm ssh-keygen
 .Fl I Ar certificate_identity
 .Fl s Ar ca_key
@@ -125,6 +131,7 @@
 .Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl A
+.Op Fl a Ar rounds
 .Op Fl f Ar prefix_path
 .Nm ssh-keygen
 .Fl k
@@ -135,19 +142,32 @@
 .Ar
 .Nm ssh-keygen
 .Fl Q
+.Op Fl l
 .Fl f Ar krl_file
 .Ar
 .Nm ssh-keygen
+.Fl Y Cm find-principals
+.Op Fl O Ar option
+.Fl s Ar signature_file
+.Fl f Ar allowed_signers_file
+.Nm ssh-keygen
+.Fl Y Cm match-principals
+.Fl I Ar signer_identity
+.Fl f Ar allowed_signers_file
+.Nm ssh-keygen
 .Fl Y Cm check-novalidate
+.Op Fl O Ar option
 .Fl n Ar namespace
 .Fl s Ar signature_file
 .Nm ssh-keygen
 .Fl Y Cm sign
+.Op Fl O Ar option
 .Fl f Ar key_file
 .Fl n Ar namespace
 .Ar
 .Nm ssh-keygen
 .Fl Y Cm verify
+.Op Fl O Ar option
 .Fl f Ar allowed_signers_file
 .Fl I Ar signer_identity
 .Fl n Ar namespace
@@ -243,15 +263,17 @@ keys may be converted using this option in conjunction with the
 .Fl p
 (change passphrase) flag.
 .Pp
-After a key is generated, instructions below detail where the keys
+After a key is generated,
+.Nm
+will ask where the keys
 should be placed to be activated.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl A
-For each of the key types (rsa, dsa, ecdsa and ed25519)
-for which host keys
-do not exist, generate the host keys with the default key file path,
+Generate host keys of all default key types (rsa, ecdsa, and
+ed25519) if they do not already exist.
+The host keys are generated with the default key file path,
 an empty passphrase, default bits for the key type, and default comment.
 If
 .Fl f
@@ -262,9 +284,12 @@ This is used by
 to generate new host keys.
 .It Fl a Ar rounds
 When saving a private key, this option specifies the number of KDF
-(key derivation function) rounds used.
+(key derivation function, currently
+.Xr bcrypt_pbkdf 3 )
+rounds used.
 Higher numbers result in slower passphrase verification and increased
 resistance to brute-force password cracking (should the keys be stolen).
+The default is 16 rounds.
 .It Fl B
 Show the bubblebabble digest of specified private or public key file.
 .It Fl b Ar bits
@@ -347,12 +372,12 @@ to use on files that mix hashed and non-hashed names.
 .It Fl h
 When signing a key, create a host certificate instead of a user
 certificate.
-Please see the
+See the
 .Sx CERTIFICATES
 section for details.
 .It Fl I Ar certificate_identity
 Specify the key identity when signing a public key.
-Please see the
+See the
 .Sx CERTIFICATES
 section for details.
 .It Fl i
@@ -369,6 +394,11 @@ The default import format is
 Download resident keys from a FIDO authenticator.
 Public and private key files will be written to the current directory for
 each downloaded key.
+If multiple FIDO authenticators are attached, keys will be downloaded from
+the first touched authenticator.
+See the
+.Sx FIDO AUTHENTICATOR
+section for more information.
 .It Fl k
 Generate a KRL file.
 In this mode,
@@ -442,7 +472,7 @@ Provides the new passphrase.
 Specify one or more principals (user or host names) to be included in
 a certificate when signing a key.
 Multiple principals may be specified, separated by commas.
-Please see the
+See the
 .Sx CERTIFICATES
 section for details.
 .It Fl O Ar option
@@ -460,36 +490,47 @@ listed in the
 .Sx MODULI GENERATION
 section may be specified.
 .Pp
-When generating a key that will be hosted on a FIDO authenticator,
-this flag may be used to specify key-specific options.
-Those supported at present are:
+When generating FIDO authenticator-backed keys, the options listed in the
+.Sx FIDO AUTHENTICATOR
+section may be specified.
+.Pp
+When performing signature-related options using the
+.Fl Y
+flag, the following options are accepted:
 .Bl -tag -width Ds
-.It Cm application
-Override the default FIDO application/origin string of
-.Dq ssh: .
-This may be useful when generating host or domain-specific resident keys.
-.It Cm device
-Explicitly specify a
-.Xr fido 4
-device to use, rather than letting the token middleware select one.
-.It Cm no-touch-required
-Indicate that the generated private key should not require touch
-events (user presence) when making signatures.
-Note that
-.Xr sshd 8
-will refuse such signatures by default, unless overridden via
-an authorized_keys option.
-.It Cm resident
-Indicate that the key should be stored on the FIDO authenticator itself.
-Resident keys may be supported on FIDO2 tokens and typically require that
-a PIN be set on the token prior to generation.
-Resident keys may be loaded off the token using
-.Xr ssh-add 1 .
-.It Cm user
-A username to be associated with a resident key,
-overriding the empty default username.
-Specifying a username may be useful when generating multiple resident keys
-for the same application name.
+.It Cm hashalg Ns = Ns Ar algorithm
+Selects the hash algorithm to use for hashing the message to be signed.
+Valid algorithms are
+.Dq sha256
+and
+.Dq sha512.
+The default is
+.Dq sha512.
+.It Cm print-pubkey
+Print the full public key to standard output after signature verification.
+.It Cm verify-time Ns = Ns Ar timestamp
+Specifies a time to use when validating signatures instead of the current
+time.
+The time may be specified as a date or time in the YYYYMMDD[Z] or
+in YYYYMMDDHHMM[SS][Z] formats.
+Dates and times will be interpreted in the current system time zone unless
+suffixed with a Z character, which causes them to be interpreted in the
+UTC time zone.
+.El
+.Pp
+When generating SSHFP DNS records from public keys using the
+.Fl r
+flag, the following options are accepted:
+.Bl -tag -width Ds
+.It Cm hashalg Ns = Ns Ar algorithm
+Selects a hash algorithm to use when printing SSHFP records using the
+.Fl D
+flag.
+Valid algorithms are
+.Dq sha1
+and
+.Dq sha256 .
+The default is to print both.
 .El
 .Pp
 The
@@ -505,6 +546,9 @@ containing the private key, for the old passphrase, and twice for the
 new passphrase.
 .It Fl Q
 Test whether keys have been revoked in a KRL.
+If the
+.Fl l
+option is also specified then the contents of the KRL will be printed.
 .It Fl q
 Silence
 .Nm ssh-keygen .
@@ -524,7 +568,7 @@ Print the SSHFP fingerprint resource record named
 for the specified public key file.
 .It Fl s Ar ca_key
 Certify (sign) a public key using the specified CA key.
-Please see the
+See the
 .Sx CERTIFICATES
 section for details.
 .Pp
@@ -557,7 +601,9 @@ and
 (the default).
 .It Fl U
 When used in combination with
-.Fl s ,
+.Fl s
+or
+.Fl Y Cm sign ,
 this option indicates that a CA key resides in a
 .Xr ssh-agent 1 .
 See the
@@ -575,31 +621,67 @@ A validity interval may consist of a single time, indicating that the
 certificate is valid beginning now and expiring at that time, or may consist
 of two times separated by a colon to indicate an explicit time interval.
 .Pp
-The start time may be specified as the string
+The start time may be specified as:
+.Bl -bullet -compact
+.It
+The string
 .Dq always
-to indicate the certificate has no specified start time,
-a date in YYYYMMDD format, a time in YYYYMMDDHHMM[SS] format,
-a relative time (to the current time) consisting of a minus sign followed by
-an interval in the format described in the
+to indicate the certificate has no specified start time.
+.It
+A date or time in the system time zone formatted as YYYYMMDD or
+YYYYMMDDHHMM[SS].
+.It
+A date or time in the UTC time zone as YYYYMMDDZ or YYYYMMDDHHMM[SS]Z.
+.It
+A relative time before the current system time consisting of a minus sign
+followed by an interval in the format described in the
 TIME FORMATS section of
 .Xr sshd_config 5 .
+.It
+A raw seconds since epoch (Jan 1 1970 00:00:00 UTC) as a hexadecimal
+number beginning with
+.Dq 0x .
+.El
 .Pp
-The end time may be specified as a YYYYMMDD date, a YYYYMMDDHHMM[SS] time,
-a relative time starting with a plus character or the string
+The end time may be specified similarly to the start time:
+.Bl -bullet -compact
+.It
+The string
 .Dq forever
-to indicate that the certificate has no expirty date.
+to indicate the certificate has no specified end time.
+.It
+A date or time in the system time zone formatted as YYYYMMDD or
+YYYYMMDDHHMM[SS].
+.It
+A date or time in the UTC time zone as YYYYMMDDZ or YYYYMMDDHHMM[SS]Z.
+.It
+A relative time after the current system time consisting of a plus sign
+followed by an interval in the format described in the
+TIME FORMATS section of
+.Xr sshd_config 5 .
+.It
+A raw seconds since epoch (Jan 1 1970 00:00:00 UTC) as a hexadecimal
+number beginning with
+.Dq 0x .
+.El
 .Pp
 For example:
-.Dq +52w1d
-(valid from now to 52 weeks and one day from now),
-.Dq -4w:+4w
-(valid from four weeks ago to four weeks from now),
-.Dq 20100101123000:20110101123000
-(valid from 12:30 PM, January 1st, 2010 to 12:30 PM, January 1st, 2011),
-.Dq -1d:20110101
-(valid from yesterday to midnight, January 1st, 2011).
-.Dq -1m:forever
-(valid from one minute ago and never expiring).
+.Bl -tag -width Ds
+.It +52w1d
+Valid from now to 52 weeks and one day from now.
+.It -4w:+4w
+Valid from four weeks ago to four weeks from now.
+.It 20100101123000:20110101123000
+Valid from 12:30 PM, January 1st, 2010 to 12:30 PM, January 1st, 2011.
+.It 20100101123000Z:20110101123000Z
+Similar, but interpreted in the UTC time zone rather than the system time zone.
+.It -1d:20110101
+Valid from yesterday to midnight, January 1st, 2011.
+.It 0x1:0x2000000000
+Valid from roughly early 1970 to May 2033.
+.It -1m:forever
+Valid from one minute ago and never expiring.
+.El
 .It Fl v
 Verbose mode.
 Causes
@@ -614,6 +696,26 @@ The maximum is 3.
 Specifies a path to a library that will be used when creating
 FIDO authenticator-hosted keys, overriding the default of using
 the internal USB HID support.
+.It Fl Y Cm find-principals
+Find the principal(s) associated with the public key of a signature,
+provided using the
+.Fl s
+flag in an authorized signers file provided using the
+.Fl f
+flag.
+The format of the allowed signers file is documented in the
+.Sx ALLOWED SIGNERS
+section below.
+If one or more matching principals are found, they are returned on
+standard output.
+.It Fl Y Cm match-principals
+Find principal matching the principal name provided using the
+.Fl I
+flag in the authorized signers file specified using the
+.Fl f
+flag.
+If one or more matching principals are found, they are returned on
+standard output.
 .It Fl Y Cm check-novalidate
 Checks that a signature generated using
 .Nm
@@ -631,7 +733,7 @@ Successful testing of the signature is signalled by
 .Nm
 returning a zero exit status.
 .It Fl Y Cm sign
-Cryptographically sign a file or some data using a SSH key.
+Cryptographically sign a file or some data using an SSH key.
 When signing,
 .Nm
 accepts zero or more files to sign on the command-line - if no files
@@ -689,6 +791,13 @@ returning a zero exit status.
 .It Fl y
 This option will read a private
 OpenSSH format file and print an OpenSSH public key to stdout.
+.It Fl Z Ar cipher
+Specifies the cipher to use for encryption when writing an OpenSSH-format
+private key file.
+The list of available ciphers may be obtained using
+.Qq ssh -Q cipher .
+The default is
+.Dq aes256-ctr .
 .It Fl z Ar serial_number
 Specifies a serial number to be embedded in the certificate to distinguish
 this certificate from others from the same CA.
@@ -756,8 +865,7 @@ Valid generator values are 2, 3, and 5.
 .Pp
 Screened DH groups may be installed in
 .Pa /etc/moduli .
-It is important that this file contains moduli of a range of bit lengths and
-that both ends of a connection share common moduli.
+It is important that this file contains moduli of a range of bit lengths.
 .Pp
 A number of options are available for moduli generation and screening via the
 .Fl O
@@ -921,9 +1029,9 @@ by
 Allows X11 forwarding.
 .Pp
 .It Ic no-touch-required
-Do not require signatures made using this key require demonstration
-of user presence (e.g. by having the user touch the key).
-This option only makes sense for the Security Key algorithms
+Do not require signatures made using this key include demonstration
+of user presence (e.g. by having the user touch the authenticator).
+This option only makes sense for the FIDO authenticator algorithms
 .Cm ecdsa-sk
 and
 .Cm ed25519-sk .
@@ -934,6 +1042,16 @@ The
 .Ar address_list
 is a comma-separated list of one or more address/netmask pairs in CIDR
 format.
+.Pp
+.It Ic verify-required
+Require signatures made using this key indicate that the user was first
+verified.
+This option only makes sense for the FIDO authenticator algorithms
+.Cm ecdsa-sk
+and
+.Cm ed25519-sk .
+Currently PIN authentication is the only supported verification method,
+but other methods may be supported in the future.
 .El
 .Pp
 At present, no standard options are valid for host keys.
@@ -944,7 +1062,7 @@ The
 option allows specification of certificate start and end times.
 A certificate that is presented at a time outside this range will not be
 considered valid.
-By default, certificates are valid from
+By default, certificates are valid from the
 .Ux
 Epoch to the distant future.
 .Pp
@@ -953,7 +1071,77 @@ public key must be trusted by
 .Xr sshd 8
 or
 .Xr ssh 1 .
-Please refer to those manual pages for details.
+Refer to those manual pages for details.
+.Sh FIDO AUTHENTICATOR
+.Nm
+is able to generate FIDO authenticator-backed keys, after which
+they may be used much like any other key type supported by OpenSSH, so
+long as the hardware authenticator is attached when the keys are used.
+FIDO authenticators generally require the user to explicitly authorise
+operations by touching or tapping them.
+FIDO keys consist of two parts: a key handle part stored in the
+private key file on disk, and a per-device private key that is unique
+to each FIDO authenticator and that cannot be exported from the
+authenticator hardware.
+These are combined by the hardware at authentication time to derive
+the real key that is used to sign authentication challenges.
+Supported key types are
+.Cm ecdsa-sk
+and
+.Cm ed25519-sk .
+.Pp
+The options that are valid for FIDO keys are:
+.Bl -tag -width Ds
+.It Cm application
+Override the default FIDO application/origin string of
+.Dq ssh: .
+This may be useful when generating host or domain-specific resident keys.
+The specified application string must begin with
+.Dq ssh: .
+.It Cm challenge Ns = Ns Ar path
+Specifies a path to a challenge string that will be passed to the
+FIDO authenticator during key generation.
+The challenge string may be used as part of an out-of-band
+protocol for key enrollment
+(a random challenge is used by default).
+.It Cm device
+Explicitly specify a
+.Xr fido 4
+device to use, rather than letting the authenticator middleware select one.
+.It Cm no-touch-required
+Indicate that the generated private key should not require touch
+events (user presence) when making signatures.
+Note that
+.Xr sshd 8
+will refuse such signatures by default, unless overridden via
+an authorized_keys option.
+.It Cm resident
+Indicate that the key handle should be stored on the FIDO
+authenticator itself.
+This makes it easier to use the authenticator on multiple computers.
+Resident keys may be supported on FIDO2 authenticators and typically
+require that a PIN be set on the authenticator prior to generation.
+Resident keys may be loaded off the authenticator using
+.Xr ssh-add 1 .
+Storing both parts of a key on a FIDO authenticator increases the likelihood
+of an attacker being able to use a stolen authenticator device.
+.It Cm user
+A username to be associated with a resident key,
+overriding the empty default username.
+Specifying a username may be useful when generating multiple resident keys
+for the same application name.
+.It Cm verify-required
+Indicate that this private key should require user verification for
+each signature.
+Not all FIDO authenticators support this option.
+Currently PIN authentication is the only supported verification method,
+but other methods may be supported in the future.
+.It Cm write-attestation Ns = Ns Ar path
+May be used at key generation time to record the attestation data
+returned from FIDO authenticators during key generation.
+This information is potentially sensitive.
+By default, this information is discarded.
+.El
 .Sh KEY REVOCATION LISTS
 .Nm
 is able to manage OpenSSH format Key Revocation Lists (KRLs).
@@ -1048,7 +1236,7 @@ Empty lines and lines starting with a
 .Ql #
 are ignored as comments.
 .Pp
-The principals field is a pattern-list (See PATTERNS in
+The principals field is a pattern-list (see PATTERNS in
 .Xr ssh_config 5 )
 consisting of one or more comma-separated USER@DOMAIN identity patterns
 that are accepted for signing.
@@ -1065,11 +1253,19 @@ are case-insensitive):
 .It Cm cert-authority
 Indicates that this key is accepted as a certificate authority (CA) and
 that certificates signed by this CA may be accepted for verification.
-.It Cm namespaces="namespace-list"
+.It Cm namespaces Ns = Ns "namespace-list"
 Specifies a pattern-list of namespaces that are accepted for this key.
 If this option is present, the signature namespace embedded in the
 signature object and presented on the verification command-line must
 match the specified list before the key will be considered acceptable.
+.It Cm valid-after Ns = Ns "timestamp"
+Indicates that the key is valid for use at or after the specified timestamp,
+which may be a date or time in the YYYYMMDD[Z] or YYYYMMDDHHMM[SS][Z] formats.
+Dates and times will be interpreted in the current system time zone unless
+suffixed with a Z character, which causes them to be interpreted in the UTC
+time zone.
+.It Cm valid-before Ns = Ns "timestamp"
+Indicates that the key is valid for use at or before the specified timestamp.
 .El
 .Pp
 When verifying signatures made by certificates, the expected principal
@@ -1088,7 +1284,9 @@ user2@example.com namespaces="file" ssh-ed25519 AAA41...
 .Sh ENVIRONMENT
 .Bl -tag -width Ds
 .It Ev SSH_SK_PROVIDER
-Specifies the path to a library used to interact with FIDO authenticators.
+Specifies a path to a library that will be used when loading any
+FIDO authenticator-hosted keys, overriding the default of using
+the built-in USB HID support.
 .El
 .Sh FILES
 .Bl -tag -width Ds -compact

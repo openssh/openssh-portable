@@ -8,9 +8,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.87 2019/11/30 07:07:59 jmc Exp $
+.\" $OpenBSD: scp.1,v 1.112 2022/12/16 07:13:22 djm Exp $
 .\"
-.Dd $Mdocdate: November 30 2019 $
+.Dd $Mdocdate: December 16 2022 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -18,8 +18,9 @@
 .Nd OpenSSH secure file copy
 .Sh SYNOPSIS
 .Nm scp
-.Op Fl 346BCpqrTv
+.Op Fl 346ABCOpqRrsTv
 .Op Fl c Ar cipher
+.Op Fl D Ar sftp_server_path
 .Op Fl F Ar ssh_config
 .Op Fl i Ar identity_file
 .Op Fl J Ar destination
@@ -27,15 +28,18 @@
 .Op Fl o Ar ssh_option
 .Op Fl P Ar port
 .Op Fl S Ar program
+.Op Fl X Ar sftp_option
 .Ar source ... target
 .Sh DESCRIPTION
 .Nm
 copies files between hosts on a network.
-It uses
+.Pp
+.Nm
+uses the SFTP protocol over a
 .Xr ssh 1
-for data transfer, and uses the same authentication and provides the
-same security as
-.Xr ssh 1 .
+connection for data transfer, and uses the same authentication and provides
+the same security as a login session.
+.Pp
 .Nm
 will ask for passwords or passphrases if they are needed for
 authentication.
@@ -62,10 +66,10 @@ as host specifiers.
 .Pp
 When copying between two remote hosts, if the URI format is used, a
 .Ar port
-may only be specified on the
+cannot be specified on the
 .Ar target
 if the
-.Fl 3
+.Fl R
 option is used.
 .Pp
 The options are as follows:
@@ -74,7 +78,13 @@ The options are as follows:
 Copies between two remote hosts are transferred through the local host.
 Without this option the data is copied directly between the two remote
 hosts.
-Note that this option disables the progress meter.
+Note that, when using the legacy SCP protocol (via the
+.Fl O
+flag), this option
+selects batch mode for the second host as
+.Nm
+cannot ask for passwords or passphrases for both hosts.
+This mode is the default.
 .It Fl 4
 Forces
 .Nm
@@ -83,6 +93,11 @@ to use IPv4 addresses only.
 Forces
 .Nm
 to use IPv6 addresses only.
+.It Fl A
+Allows forwarding of
+.Xr ssh-agent 1
+to the remote system.
+The default is not to forward an authentication agent.
 .It Fl B
 Selects batch mode (prevents asking for passwords or passphrases).
 .It Fl C
@@ -96,6 +111,11 @@ to enable compression.
 Selects the cipher to use for encrypting the data transfer.
 This option is directly passed to
 .Xr ssh 1 .
+.It Fl D Ar sftp_server_path
+Connect directly to a local SFTP server program rather than a
+remote one via
+.Xr ssh 1 .
+This option may be useful in debugging the client and server.
 .It Fl F Ar ssh_config
 Specifies an alternative
 per-user configuration file for
@@ -122,6 +142,13 @@ This option is directly passed to
 .Xr ssh 1 .
 .It Fl l Ar limit
 Limits the used bandwidth, specified in Kbit/s.
+.It Fl O
+Use the legacy SCP protocol for file transfers instead of the SFTP protocol.
+Forcing the use of the SCP protocol may be necessary for servers that do
+not implement SFTP, for backwards-compatibility for particular filename
+wildcard patterns and for expanding paths with a
+.Sq ~
+prefix for older SFTP servers.
 .It Fl o Ar ssh_option
 Can be used to pass options to
 .Nm ssh
@@ -146,7 +173,6 @@ For full details of the options listed below, and their possible values, see
 .It CanonicalizePermittedCNAMEs
 .It CASignatureAlgorithms
 .It CertificateFile
-.It ChallengeResponseAuthentication
 .It CheckHostIP
 .It Ciphers
 .It Compression
@@ -160,8 +186,8 @@ For full details of the options listed below, and their possible values, see
 .It GSSAPIDelegateCredentials
 .It HashKnownHosts
 .It Host
+.It HostbasedAcceptedAlgorithms
 .It HostbasedAuthentication
-.It HostbasedKeyTypes
 .It HostKeyAlgorithms
 .It HostKeyAlias
 .It Hostname
@@ -172,6 +198,7 @@ For full details of the options listed below, and their possible values, see
 .It KbdInteractiveAuthentication
 .It KbdInteractiveDevices
 .It KexAlgorithms
+.It KnownHostsCommand
 .It LogLevel
 .It MACs
 .It NoHostAuthenticationForLocalhost
@@ -182,9 +209,10 @@ For full details of the options listed below, and their possible values, see
 .It PreferredAuthentications
 .It ProxyCommand
 .It ProxyJump
-.It PubkeyAcceptedKeyTypes
+.It PubkeyAcceptedAlgorithms
 .It PubkeyAuthentication
 .It RekeyLimit
+.It RequiredRSASize
 .It SendEnv
 .It ServerAliveInterval
 .It ServerAliveCountMax
@@ -202,14 +230,23 @@ Note that this option is written with a capital
 .Sq P ,
 because
 .Fl p
-is already reserved for preserving the times and modes of the file.
+is already reserved for preserving the times and mode bits of the file.
 .It Fl p
-Preserves modification times, access times, and modes from the
-original file.
+Preserves modification times, access times, and file mode bits from the
+source file.
 .It Fl q
 Quiet mode: disables the progress meter as well as warning and diagnostic
 messages from
 .Xr ssh 1 .
+.It Fl R
+Copies between two remote hosts are performed by connecting to the origin
+host and executing
+.Nm
+there.
+This requires that
+.Nm
+running on the origin host can authenticate to the destination host without
+requiring a password.
 .It Fl r
 Recursively copy entire directories.
 Note that
@@ -241,6 +278,19 @@ and
 to print debugging messages about their progress.
 This is helpful in
 debugging connection, authentication, and configuration problems.
+.It Fl X Ar sftp_option
+Specify an option that controls aspects of SFTP protocol behaviour.
+The valid options are:
+.Bl -tag -width Ds
+.It Cm nrequests Ns = Ns Ar value
+Controls how many concurrent SFTP read or write requests may be in progress
+at any point in time during a download or upload.
+By default 64 requests may be active concurrently.
+.It Cm buffer Ns = Ns Ar value
+Controls the maximum buffer size for a single SFTP read/write operation used
+during download or upload.
+By default a 32KB buffer is used.
+.El
 .El
 .Sh EXIT STATUS
 .Ex -std scp
@@ -251,12 +301,25 @@ debugging connection, authentication, and configuration problems.
 .Xr ssh-agent 1 ,
 .Xr ssh-keygen 1 ,
 .Xr ssh_config 5 ,
+.Xr sftp-server 8 ,
 .Xr sshd 8
 .Sh HISTORY
 .Nm
 is based on the rcp program in
 .Bx
 source code from the Regents of the University of California.
+.Pp
+Since OpenSSH 9.0,
+.Nm
+has used the SFTP protocol for transfers by default.
 .Sh AUTHORS
 .An Timo Rinne Aq Mt tri@iki.fi
 .An Tatu Ylonen Aq Mt ylo@cs.hut.fi
+.Sh CAVEATS
+The legacy SCP protocol (selected by the
+.Fl O
+flag) requires execution of the remote user's shell to perform
+.Xr glob 3
+pattern matching.
+This requires careful quoting of any characters that have special meaning to
+the remote shell, such as quote characters.

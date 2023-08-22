@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.11 2019/07/30 05:04:49 djm Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.18 2022/01/22 00:43:43 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -30,6 +30,7 @@
 #include <string.h>
 #include <resolv.h>
 #include <ctype.h>
+#include <unistd.h>
 
 #include "ssherr.h"
 #define SSHBUF_INTERNAL
@@ -63,9 +64,9 @@ sshbuf_dump_data(const void *s, size_t len, FILE *f)
 }
 
 void
-sshbuf_dump(struct sshbuf *buf, FILE *f)
+sshbuf_dump(const struct sshbuf *buf, FILE *f)
 {
-	fprintf(f, "buffer %p len = %zu\n", buf, sshbuf_len(buf));
+	fprintf(f, "buffer len = %zu\n", sshbuf_len(buf));
 	sshbuf_dump_data(sshbuf_ptr(buf), sshbuf_len(buf), f);
 }
 
@@ -156,18 +157,58 @@ sshbuf_b64tod(struct sshbuf *buf, const char *b64)
 	if ((p = malloc(plen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((nlen = b64_pton(b64, p, plen)) < 0) {
-		explicit_bzero(p, plen);
-		free(p);
+		freezero(p, plen);
 		return SSH_ERR_INVALID_FORMAT;
 	}
 	if ((r = sshbuf_put(buf, p, nlen)) < 0) {
-		explicit_bzero(p, plen);
-		free(p);
+		freezero(p, plen);
 		return r;
 	}
-	explicit_bzero(p, plen);
-	free(p);
+	freezero(p, plen);
 	return 0;
+}
+
+int
+sshbuf_dtourlb64(const struct sshbuf *d, struct sshbuf *b64, int wrap)
+{
+	int r = SSH_ERR_INTERNAL_ERROR;
+	u_char *p;
+	struct sshbuf *b = NULL;
+	size_t i, l;
+
+	if ((b = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	/* Encode using regular base64; we'll transform it once done */
+	if ((r = sshbuf_dtob64(d, b, wrap)) != 0)
+		goto out;
+	/* remove padding from end of encoded string*/
+	for (;;) {
+		l = sshbuf_len(b);
+		if (l <= 1 || sshbuf_ptr(b) == NULL) {
+			r = SSH_ERR_INTERNAL_ERROR;
+			goto out;
+		}
+		if (sshbuf_ptr(b)[l - 1] != '=')
+			break;
+		if ((r = sshbuf_consume_end(b, 1)) != 0)
+			goto out;
+	}
+	/* Replace characters with rfc4648 equivalents */
+	l = sshbuf_len(b);
+	if ((p = sshbuf_mutable_ptr(b)) == NULL) {
+		r = SSH_ERR_INTERNAL_ERROR;
+		goto out;
+	}
+	for (i = 0; i < l; i++) {
+		if (p[i] == '+')
+			p[i] = '-';
+		else if (p[i] == '/')
+			p[i] = '_';
+	}
+	r = sshbuf_putb(b64, b);
+ out:
+	sshbuf_free(b);
+	return r;
 }
 
 char *
@@ -227,5 +268,41 @@ sshbuf_find(const struct sshbuf *b, size_t start_offset,
 		return SSH_ERR_INVALID_FORMAT;
 	if (offsetp != NULL)
 		*offsetp = (const u_char *)p - sshbuf_ptr(b);
+	return 0;
+}
+
+int
+sshbuf_read(int fd, struct sshbuf *buf, size_t maxlen, size_t *rlen)
+{
+	int r, oerrno;
+	size_t adjust;
+	ssize_t rr;
+	u_char *d;
+
+	if (rlen != NULL)
+		*rlen = 0;
+	if ((r = sshbuf_reserve(buf, maxlen, &d)) != 0)
+		return r;
+	rr = read(fd, d, maxlen);
+	oerrno = errno;
+
+	/* Adjust the buffer to include only what was actually read */
+	if ((adjust = maxlen - (rr > 0 ? rr : 0)) != 0) {
+		if ((r = sshbuf_consume_end(buf, adjust)) != 0) {
+			/* avoid returning uninitialised data to caller */
+			memset(d + rr, '\0', adjust);
+			return SSH_ERR_INTERNAL_ERROR; /* shouldn't happen */
+		}
+	}
+	if (rr < 0) {
+		errno = oerrno;
+		return SSH_ERR_SYSTEM_ERROR;
+	} else if (rr == 0) {
+		errno = EPIPE;
+		return SSH_ERR_SYSTEM_ERROR;
+	}
+	/* success */
+	if (rlen != NULL)
+		*rlen = (size_t)rr;
 	return 0;
 }

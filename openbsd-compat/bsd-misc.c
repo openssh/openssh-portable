@@ -107,7 +107,7 @@ const char *strerror(int e)
 #endif
 
 #ifndef HAVE_UTIMES
-int utimes(char *filename, struct timeval *tvp)
+int utimes(const char *filename, struct timeval *tvp)
 {
 	struct utimbuf ub;
 
@@ -129,7 +129,9 @@ utimensat(int fd, const char *path, const struct timespec times[2],
     int flag)
 {
 	struct timeval tv[2];
+# ifdef HAVE_FUTIMES
 	int ret, oflags = O_WRONLY;
+# endif
 
 	tv[0].tv_sec = times[0].tv_sec;
 	tv[0].tv_usec = times[0].tv_nsec / 1000;
@@ -410,6 +412,14 @@ getsid(pid_t pid)
 }
 #endif
 
+#ifndef HAVE_KILLPG
+int
+killpg(pid_t pgrp, int sig)
+{
+	return kill(pgrp, sig);
+}
+#endif
+
 #ifdef FFLUSH_NULL_BUG
 #undef fflush
 int _ssh_compat_fflush(FILE *f)
@@ -434,5 +444,17 @@ localtime_r(const time_t *timep, struct tm *result)
 	struct tm *tm = localtime(timep);
 	*result = *tm;
 	return result;
+}
+#endif
+
+#ifdef ASAN_OPTIONS
+const char *__asan_default_options(void) {
+	return ASAN_OPTIONS;
+}
+#endif
+
+#ifdef MSAN_OPTIONS
+const char *__msan_default_options(void) {
+	return MSAN_OPTIONS;
 }
 #endif

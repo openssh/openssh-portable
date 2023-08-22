@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.5 2018/07/04 13:51:45 djm Exp $ */
+/* 	$OpenBSD: tests.c,v 1.8 2021/12/14 21:25:27 deraadt Exp $ */
 /*
  * Regress test for matching functions
  *
@@ -8,7 +8,6 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/param.h>
 #include <stdio.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -105,7 +104,7 @@ tests(void)
 
 #define CHECK_FILTER(string,filter,expected) \
 	do { \
-		char *result = match_filter_blacklist((string), (filter)); \
+		char *result = match_filter_denylist((string), (filter)); \
 		ASSERT_STRING_EQ(result, expected); \
 		free(result); \
 	} while (0)

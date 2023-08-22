@@ -17,6 +17,8 @@
 
 /* OPENBSD ORIGINAL: regress/lib/libc/strtonum/strtonumtest.c */
 
+#include "includes.h"
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,7 +57,7 @@ test(const char *p, long long lb, long long ub, int ok)
 	}
 }
 
-int main(int argc, char *argv[])
+int main(void)
 {
 	test("1", 0, 10, 1);
 	test("0", -2, 5, 1);

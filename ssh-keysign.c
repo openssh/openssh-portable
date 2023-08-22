@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.63 2019/11/18 16:10:05 naddy Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.71 2022/08/01 11:09:26 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -62,7 +62,7 @@
 extern char *__progname;
 
 static int
-valid_request(struct passwd *pw, char *host, struct sshkey **ret,
+valid_request(struct passwd *pw, char *host, struct sshkey **ret, char **pkalgp,
     u_char *data, size_t datalen)
 {
 	struct sshbuf *b;
@@ -75,36 +75,41 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret,
 
 	if (ret != NULL)
 		*ret = NULL;
+	if (pkalgp != NULL)
+		*pkalgp = NULL;
 	fail = 0;
 
 	if ((b = sshbuf_from(data, datalen)) == NULL)
-		fatal("%s: sshbuf_from failed", __func__);
+		fatal_f("sshbuf_from failed");
 
-	/* session id, currently limited to SHA1 (20 bytes) or SHA256 (32) */
+	/* session id */
 	if ((r = sshbuf_get_string(b, NULL, &len)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (len != 20 && len != 32)
+		fatal_fr(r, "parse session ID");
+	if (len != 20 && /* SHA1 */
+	    len != 32 && /* SHA256 */
+	    len != 48 && /* SHA384 */
+	    len != 64)   /* SHA512 */
 		fail++;
 
 	if ((r = sshbuf_get_u8(b, &type)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse type");
 	if (type != SSH2_MSG_USERAUTH_REQUEST)
 		fail++;
 
 	/* server user */
 	if ((r = sshbuf_skip_string(b)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse user");
 
 	/* service */
 	if ((r = sshbuf_get_cstring(b, &p, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse service");
 	if (strcmp("ssh-connection", p) != 0)
 		fail++;
 	free(p);
 
 	/* method */
 	if ((r = sshbuf_get_cstring(b, &p, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse method");
 	if (strcmp("hostbased", p) != 0)
 		fail++;
 	free(p);
@@ -112,23 +117,21 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret,
 	/* pubkey */
 	if ((r = sshbuf_get_cstring(b, &pkalg, NULL)) != 0 ||
 	    (r = sshbuf_get_string(b, &pkblob, &blen)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse pk");
 
 	pktype = sshkey_type_from_name(pkalg);
 	if (pktype == KEY_UNSPEC)
 		fail++;
 	else if ((r = sshkey_from_blob(pkblob, blen, &key)) != 0) {
-		error("%s: bad key blob: %s", __func__, ssh_err(r));
+		error_fr(r, "decode key");
 		fail++;
 	} else if (key->type != pktype)
 		fail++;
-	free(pkalg);
-	free(pkblob);
 
 	/* client host name, handle trailing dot */
 	if ((r = sshbuf_get_cstring(b, &p, &len)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	debug2("%s: check expect chost %s got %s", __func__, host, p);
+		fatal_fr(r, "parse hostname");
+	debug2_f("check expect chost %s got %s", host, p);
 	if (strlen(host) != len - 1)
 		fail++;
 	else if (p[len - 1] != '.')
@@ -139,7 +142,7 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret,
 
 	/* local user */
 	if ((r = sshbuf_get_cstring(b, &luser, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse luser");
 
 	if (strcmp(pw->pw_name, luser) != 0)
 		fail++;
@@ -150,12 +153,21 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret,
 		fail++;
 	sshbuf_free(b);
 
-	debug3("%s: fail %d", __func__, fail);
+	debug3_f("fail %d", fail);
 
-	if (fail)
-		sshkey_free(key);
-	else if (ret != NULL)
-		*ret = key;
+	if (!fail) {
+		if (ret != NULL) {
+			*ret = key;
+			key = NULL;
+		}
+		if (pkalgp != NULL) {
+			*pkalgp = pkalg;
+			pkalg = NULL;
+		}
+	}
+	sshkey_free(key);
+	free(pkalg);
+	free(pkblob);
 
 	return (fail ? -1 : 0);
 }
@@ -170,7 +182,7 @@ main(int argc, char **argv)
 	struct passwd *pw;
 	int r, key_fd[NUM_KEYTYPES], i, found, version = 2, fd;
 	u_char *signature, *data, rver;
-	char *host, *fp;
+	char *host, *fp, *pkalg;
 	size_t slen, dlen;
 
 	if (pledge("stdio rpath getpw dns id", NULL) != 0)
@@ -207,10 +219,13 @@ main(int argc, char **argv)
 	initialize_options(&options);
 	(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw, "", "",
 	    &options, 0, NULL);
-	fill_default_options(&options);
+	(void)fill_default_options(&options);
 	if (options.enable_ssh_keysign != 1)
 		fatal("ssh-keysign not enabled in %s",
 		    _PATH_HOST_CONFIG_FILE);
+
+	if (pledge("stdio dns", NULL) != 0)
+		fatal("%s: pledge: %s", __progname, strerror(errno));
 
 	for (i = found = 0; i < NUM_KEYTYPES; i++) {
 		if (key_fd[i] != -1)
@@ -228,7 +243,7 @@ main(int argc, char **argv)
 		    NULL, &key, NULL);
 		close(key_fd[i]);
 		if (r != 0)
-			debug("parse key %d: %s", i, ssh_err(r));
+			debug_r(r, "parse key %d", i);
 		else if (key != NULL) {
 			keys[i] = key;
 			found = 1;
@@ -237,28 +252,26 @@ main(int argc, char **argv)
 	if (!found)
 		fatal("no hostkey found");
 
-	if (pledge("stdio dns", NULL) != 0)
-		fatal("%s: pledge: %s", __progname, strerror(errno));
-
 	if ((b = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __progname);
 	if (ssh_msg_recv(STDIN_FILENO, b) < 0)
-		fatal("ssh_msg_recv failed");
+		fatal("%s: ssh_msg_recv failed", __progname);
 	if ((r = sshbuf_get_u8(b, &rver)) != 0)
-		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+		fatal_r(r, "%s: buffer error", __progname);
 	if (rver != version)
-		fatal("bad version: received %d, expected %d", rver, version);
+		fatal("%s: bad version: received %d, expected %d",
+		    __progname, rver, version);
 	if ((r = sshbuf_get_u32(b, (u_int *)&fd)) != 0)
-		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+		fatal_r(r, "%s: buffer error", __progname);
 	if (fd < 0 || fd == STDIN_FILENO || fd == STDOUT_FILENO)
-		fatal("bad fd = %d", fd);
+		fatal("%s: bad fd = %d", __progname, fd);
 	if ((host = get_local_name(fd)) == NULL)
-		fatal("cannot get local name for fd");
+		fatal("%s: cannot get local name for fd", __progname);
 
 	if ((r = sshbuf_get_string(b, &data, &dlen)) != 0)
-		fatal("%s: buffer error: %s", __progname, ssh_err(r));
-	if (valid_request(pw, host, &key, data, dlen) < 0)
-		fatal("not a valid request");
+		fatal_r(r, "%s: buffer error", __progname);
+	if (valid_request(pw, host, &key, &pkalg, data, dlen) < 0)
+		fatal("%s: not a valid request", __progname);
 	free(host);
 
 	found = 0;
@@ -273,21 +286,21 @@ main(int argc, char **argv)
 		if ((fp = sshkey_fingerprint(key, options.fingerprint_hash,
 		    SSH_FP_DEFAULT)) == NULL)
 			fatal("%s: sshkey_fingerprint failed", __progname);
-		fatal("no matching hostkey found for key %s %s",
+		fatal("%s: no matching hostkey found for key %s %s", __progname,
 		    sshkey_type(key), fp ? fp : "");
 	}
 
 	if ((r = sshkey_sign(keys[i], &signature, &slen, data, dlen,
-	    NULL, NULL, 0)) != 0)
-		fatal("sshkey_sign failed: %s", ssh_err(r));
+	    pkalg, NULL, NULL, 0)) != 0)
+		fatal_r(r, "%s: sshkey_sign failed", __progname);
 	free(data);
 
 	/* send reply */
 	sshbuf_reset(b);
 	if ((r = sshbuf_put_string(b, signature, slen)) != 0)
-		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+		fatal_r(r, "%s: buffer error", __progname);
 	if (ssh_msg_send(STDOUT_FILENO, version, b) == -1)
-		fatal("ssh_msg_send failed");
+		fatal("%s: ssh_msg_send failed", __progname);
 
 	return (0);
 }

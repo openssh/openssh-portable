@@ -34,6 +34,7 @@
 
 #ifdef WITH_SELINUX
 #include <selinux/selinux.h>
+#include <selinux/label.h>
 #include <selinux/get_context_list.h>
 
 #ifndef SSH_SELINUX_UNCONFINED_TYPE
@@ -55,11 +56,10 @@ ssh_selinux_enabled(void)
 }
 
 /* Return the default security context for the given username */
-static security_context_t
+static char *
 ssh_selinux_getctxbyname(char *pwname)
 {
-	security_context_t sc = NULL;
-	char *sename = NULL, *lvl = NULL;
+	char *sc = NULL, *sename = NULL, *lvl = NULL;
 	int r;
 
 #ifdef HAVE_GETSEUSERBYNAME
@@ -105,7 +105,7 @@ ssh_selinux_getctxbyname(char *pwname)
 void
 ssh_selinux_setup_exec_context(char *pwname)
 {
-	security_context_t user_ctx = NULL;
+	char *user_ctx = NULL;
 
 	if (!ssh_selinux_enabled())
 		return;
@@ -136,9 +136,7 @@ ssh_selinux_setup_exec_context(char *pwname)
 void
 ssh_selinux_setup_pty(char *pwname, const char *tty)
 {
-	security_context_t new_tty_ctx = NULL;
-	security_context_t user_ctx = NULL;
-	security_context_t old_tty_ctx = NULL;
+	char *new_tty_ctx = NULL, *user_ctx = NULL, *old_tty_ctx = NULL;
 	security_class_t chrclass;
 
 	if (!ssh_selinux_enabled())
@@ -180,20 +178,20 @@ ssh_selinux_setup_pty(char *pwname, const char *tty)
 void
 ssh_selinux_change_context(const char *newname)
 {
-	int len, newlen;
-	char *oldctx, *newctx, *cx;
-	void (*switchlog) (const char *fmt,...) = logit;
+	char *oldctx, *newctx, *cx, *cx2;
+	LogLevel log_level = SYSLOG_LEVEL_INFO;
 
 	if (!ssh_selinux_enabled())
 		return;
 
-	if (getcon((security_context_t *)&oldctx) < 0) {
-		logit("%s: getcon failed with %s", __func__, strerror(errno));
+	if (getcon(&oldctx) < 0) {
+		logit_f("getcon failed with %s", strerror(errno));
 		return;
 	}
-	if ((cx = index(oldctx, ':')) == NULL || (cx = index(cx + 1, ':')) ==
-	    NULL) {
-		logit ("%s: unparseable context %s", __func__, oldctx);
+	if ((cx = strchr(oldctx, ':')) == NULL ||
+	    (cx = strchr(cx + 1, ':')) == NULL ||
+	    (cx - oldctx) >= INT_MAX) {
+		logit_f("unparsable context %s", oldctx);
 		return;
 	}
 
@@ -203,19 +201,15 @@ ssh_selinux_change_context(const char *newname)
 	 */
 	if (strncmp(cx, SSH_SELINUX_UNCONFINED_TYPE,
 	    sizeof(SSH_SELINUX_UNCONFINED_TYPE) - 1) == 0)
-		switchlog = debug3;
+		log_level = SYSLOG_LEVEL_DEBUG3;
 
-	newlen = strlen(oldctx) + strlen(newname) + 1;
-	newctx = xmalloc(newlen);
-	len = cx - oldctx + 1;
-	memcpy(newctx, oldctx, len);
-	strlcpy(newctx + len, newname, newlen - len);
-	if ((cx = index(cx + 1, ':')))
-		strlcat(newctx, cx, newlen);
-	debug3("%s: setting context from '%s' to '%s'", __func__,
-	    oldctx, newctx);
+	cx2 = strchr(cx + 1, ':');
+	xasprintf(&newctx, "%.*s%s%s", (int)(cx - oldctx + 1), oldctx,
+	    newname, cx2 == NULL ? "" : cx2);
+
+	debug3_f("setting context from '%s' to '%s'", oldctx, newctx);
 	if (setcon(newctx) < 0)
-		switchlog("%s: setcon %s from %s failed with %s", __func__,
+		do_log2_f(log_level, "setcon %s from %s failed with %s",
 		    newctx, oldctx, strerror(errno));
 	free(oldctx);
 	free(newctx);
@@ -224,7 +218,8 @@ ssh_selinux_change_context(const char *newname)
 void
 ssh_selinux_setfscreatecon(const char *path)
 {
-	security_context_t context;
+	char *context;
+	struct selabel_handle *shandle = NULL;
 
 	if (!ssh_selinux_enabled())
 		return;
@@ -232,8 +227,13 @@ ssh_selinux_setfscreatecon(const char *path)
 		setfscreatecon(NULL);
 		return;
 	}
-	if (matchpathcon(path, 0700, &context) == 0)
+	if ((shandle = selabel_open(SELABEL_CTX_FILE, NULL, 0)) == NULL) {
+		debug_f("selabel_open failed");
+		return;
+	}
+	if (selabel_lookup(shandle, &context, path, 0700) == 0)
 		setfscreatecon(context);
+	selabel_close(shandle);
 }
 
 #endif /* WITH_SELINUX */

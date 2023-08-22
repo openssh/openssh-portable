@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-chroot.sh,v 1.7 2018/11/22 08:48:32 dtucker Exp $
+#	$OpenBSD: sftp-chroot.sh,v 1.9 2023/05/12 06:37:42 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sftp in chroot"
@@ -9,23 +9,39 @@ PRIVDATA=${CHROOT}/${FILENAME}
 trap "${SUDO} rm -f ${PRIVDATA}" 0
 
 if [ -z "$SUDO" -a ! -w /var/run ]; then
-	echo "need SUDO to create file in /var/run, test won't work without"
-	echo SKIPPED
-	exit 0
+	skip "need SUDO to create file in /var/run, test won't work without"
 fi
 
 if ! $OBJ/check-perm -m chroot "$CHROOT" ; then
-  echo "skipped: $CHROOT is unsuitable as ChrootDirectory"
-  exit 0
+  skip "$CHROOT is unsuitable as ChrootDirectory"
 fi
 
 $SUDO sh -c "echo mekmitastdigoat > $PRIVDATA" || \
 	fatal "create $PRIVDATA failed"
 
-start_sshd -oChrootDirectory=$CHROOT -oForceCommand="internal-sftp -d /"
+echo "ForceCommand internal-sftp -d /" >> $OBJ/sshd_config
+
+start_sshd -oChrootDirectory=$CHROOT
 
 verbose "test $tid: get"
 ${SFTP} -S "$SSH" -F $OBJ/ssh_config host:/${FILENAME} $COPY \
     >>$TEST_REGRESS_LOGFILE 2>&1 || \
 	fatal "Fetch ${FILENAME} failed"
 cmp $PRIVDATA $COPY || fail "$PRIVDATA $COPY differ"
+
+stop_sshd
+
+verbose "test $tid: match"
+cat << EOF >> $OBJ/sshd_config
+Match All
+	ChrootDirectory $CHROOT
+EOF
+start_sshd
+$SUDO sh -c "echo orpheanbeholder > $PRIVDATA" || \
+	fatal "create $PRIVDATA failed"
+${SFTP} -S "$SSH" -F $OBJ/ssh_config host:/${FILENAME} $COPY \
+    >>$TEST_REGRESS_LOGFILE 2>&1 || \
+	fatal "Fetch ${FILENAME} failed"
+cmp $PRIVDATA $COPY || fail "$PRIVDATA $COPY differ"
+
+stop_sshd

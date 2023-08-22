@@ -66,7 +66,9 @@ enum
 #endif /* IPTOS_LOWDELAY */
 
 /*
- * Definitions for DiffServ Codepoints as per RFC2474
+ * Definitions for DiffServ Codepoints as per RFCs 2474, 3246, 4594 & 8622.
+ * These are the 6 most significant bits as they appear on the wire, so the
+ * two least significant bits must be zero.
  */
 #ifndef IPTOS_DSCP_AF11
 # define	IPTOS_DSCP_AF11		0x28
@@ -96,6 +98,9 @@ enum
 #ifndef IPTOS_DSCP_EF
 # define	IPTOS_DSCP_EF		0xb8
 #endif /* IPTOS_DSCP_EF */
+#ifndef IPTOS_DSCP_LE
+# define	IPTOS_DSCP_LE		0x04
+#endif /* IPTOS_DSCP_LE */
 #ifndef IPTOS_PREC_CRITIC_ECP
 # define IPTOS_PREC_CRITIC_ECP		0xa0
 #endif
@@ -244,14 +249,26 @@ typedef unsigned short int u_int16_t;
 #  endif
 #  if (SIZEOF_INT == 4)
 typedef unsigned int u_int32_t;
-#    if defined(HAVE_DECL_UINT32_MAX) && (HAVE_DECL_UINT32_MAX == 0)
-#      define UINT32_MAX	UINT_MAX
-#    endif
 #  else
 #    error "32 bit int type not found."
 #  endif
 # endif
 #define __BIT_TYPES_DEFINED__
+#endif
+
+#if !defined(LLONG_MIN) && defined(LONG_LONG_MIN)
+#define LLONG_MIN LONG_LONG_MIN
+#endif
+#if !defined(LLONG_MAX) && defined(LONG_LONG_MAX)
+#define LLONG_MAX LONG_LONG_MAX
+#endif
+
+#ifndef UINT32_MAX
+# if defined(HAVE_DECL_UINT32_MAX) && (HAVE_DECL_UINT32_MAX == 0)
+#  if (SIZEOF_INT == 4)
+#    define UINT32_MAX	UINT_MAX
+#  endif
+# endif
 #endif
 
 /* 64-bit types */
@@ -287,6 +304,12 @@ typedef long long intmax_t;
 
 #ifndef HAVE_UINTMAX_T
 typedef unsigned long long uintmax_t;
+#endif
+
+#if SIZEOF_TIME_T == SIZEOF_LONG_LONG_INT
+# define SSH_TIME_T_MAX LLONG_MAX
+#else
+# define SSH_TIME_T_MAX INT_MAX
 #endif
 
 #ifndef HAVE_U_CHAR
@@ -509,6 +532,39 @@ struct winsize {
 	(((tsp)->tv_sec == (usp)->tv_sec) ?				\
 	    ((tsp)->tv_nsec cmp (usp)->tv_nsec) :			\
 	    ((tsp)->tv_sec cmp (usp)->tv_sec))
+#endif
+
+/* Operations on timespecs. */
+#ifndef timespecclear
+#define	timespecclear(tsp)		(tsp)->tv_sec = (tsp)->tv_nsec = 0
+#endif
+#ifndef timespeccmp
+#define	timespeccmp(tsp, usp, cmp)					\
+	(((tsp)->tv_sec == (usp)->tv_sec) ?				\
+	    ((tsp)->tv_nsec cmp (usp)->tv_nsec) :			\
+	    ((tsp)->tv_sec cmp (usp)->tv_sec))
+#endif
+#ifndef timespecadd
+#define	timespecadd(tsp, usp, vsp)					\
+	do {								\
+		(vsp)->tv_sec = (tsp)->tv_sec + (usp)->tv_sec;		\
+		(vsp)->tv_nsec = (tsp)->tv_nsec + (usp)->tv_nsec;	\
+		if ((vsp)->tv_nsec >= 1000000000L) {			\
+			(vsp)->tv_sec++;				\
+			(vsp)->tv_nsec -= 1000000000L;			\
+		}							\
+	} while (0)
+#endif
+#ifndef timespecsub
+#define	timespecsub(tsp, usp, vsp)					\
+	do {								\
+		(vsp)->tv_sec = (tsp)->tv_sec - (usp)->tv_sec;		\
+		(vsp)->tv_nsec = (tsp)->tv_nsec - (usp)->tv_nsec;	\
+		if ((vsp)->tv_nsec < 0) {				\
+			(vsp)->tv_sec--;				\
+			(vsp)->tv_nsec += 1000000000L;			\
+		}							\
+	} while (0)
 #endif
 
 #ifndef __P
@@ -814,10 +870,6 @@ struct winsize {
 # define getgroups(a,b) ((a)==0 && (b)==NULL ? NGROUPS_MAX : getgroups((a),(b)))
 #endif
 
-#if defined(HAVE_MMAP) && defined(BROKEN_MMAP)
-# undef HAVE_MMAP
-#endif
-
 #ifndef IOV_MAX
 # if defined(_XOPEN_IOV_MAX)
 #  define	IOV_MAX		_XOPEN_IOV_MAX
@@ -883,4 +935,11 @@ struct winsize {
 # define USE_SYSTEM_GLOB
 #endif
 
+/*
+ * sntrup761 uses variable length arrays and c99-style declarations after code,
+ * so only enable if the compiler supports them.
+ */
+#if defined(VARIABLE_LENGTH_ARRAYS) && defined(VARIABLE_DECLARATION_AFTER_CODE)
+# define USE_SNTRUP761X25519 1
+#endif
 #endif /* _DEFINES_H */

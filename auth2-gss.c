@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.29 2018/07/31 03:10:27 djm Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.34 2023/03/31 04:22:27 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -44,8 +44,11 @@
 #include "misc.h"
 #include "servconf.h"
 #include "packet.h"
+#include "kex.h"
 #include "ssh-gss.h"
 #include "monitor_wrap.h"
+
+#define SSH_GSSAPI_MAX_MECHS	2048
 
 extern ServerOptions options;
 
@@ -59,7 +62,7 @@ static int input_gssapi_errtok(int, u_int32_t, struct ssh *);
  * how to check local user kuserok and the like)
  */
 static int
-userauth_gssapi(struct ssh *ssh)
+userauth_gssapi(struct ssh *ssh, const char *method)
 {
 	Authctxt *authctxt = ssh->authctxt;
 	gss_OID_desc goid = {0, NULL};
@@ -71,10 +74,14 @@ userauth_gssapi(struct ssh *ssh)
 	u_char *doid = NULL;
 
 	if ((r = sshpkt_get_u32(ssh, &mechs)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse packet");
 
 	if (mechs == 0) {
-		debug("Mechanism negotiation is not supported");
+		logit_f("mechanism negotiation is not supported");
+		return (0);
+	} else if (mechs > SSH_GSSAPI_MAX_MECHS) {
+		logit_f("too many mechanisms requested %u > %u", mechs,
+		    SSH_GSSAPI_MAX_MECHS);
 		return (0);
 	}
 
@@ -85,7 +92,7 @@ userauth_gssapi(struct ssh *ssh)
 
 		present = 0;
 		if ((r = sshpkt_get_string(ssh, &doid, &len)) != 0)
-			fatal("%s: %s", __func__, ssh_err(r));
+			fatal_fr(r, "parse oid");
 
 		if (len > 2 && doid[0] == SSH_GSS_OIDTYPE &&
 		    doid[1] == len - 2) {
@@ -93,7 +100,7 @@ userauth_gssapi(struct ssh *ssh)
 			goid.length   = len - 2;
 			ssh_gssapi_test_oid_supported(&ms, &goid, &present);
 		} else {
-			logit("Badly formed OID received");
+			logit_f("badly formed OID received");
 		}
 	} while (mechs > 0 && !present);
 
@@ -104,7 +111,7 @@ userauth_gssapi(struct ssh *ssh)
 	}
 
 	if (!authctxt->valid || authctxt->user == NULL) {
-		debug2("%s: disabled because of invalid user", __func__);
+		debug2_f("disabled because of invalid user");
 		free(doid);
 		return (0);
 	}
@@ -123,7 +130,7 @@ userauth_gssapi(struct ssh *ssh)
 	if ((r = sshpkt_start(ssh, SSH2_MSG_USERAUTH_GSSAPI_RESPONSE)) != 0 ||
 	    (r = sshpkt_put_string(ssh, doid, len)) != 0 ||
 	    (r = sshpkt_send(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal_fr(r, "send packet");
 
 	free(doid);
 
@@ -152,7 +159,7 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 	gssctxt = authctxt->methoddata;
 	if ((r = sshpkt_get_string(ssh, &p, &len)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse packet");
 
 	recv_tok.value = p;
 	recv_tok.length = len;
@@ -168,7 +175,7 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 			    (r = sshpkt_put_string(ssh, send_tok.value,
 			    send_tok.length)) != 0 ||
 			    (r = sshpkt_send(ssh)) != 0)
-				fatal("%s: %s", __func__, ssh_err(r));
+				fatal_fr(r, "send ERRTOK packet");
 		}
 		authctxt->postponed = 0;
 		ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
@@ -180,7 +187,7 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 			    (r = sshpkt_put_string(ssh, send_tok.value,
 			    send_tok.length)) != 0 ||
 			    (r = sshpkt_send(ssh)) != 0)
-				fatal("%s: %s", __func__, ssh_err(r));
+				fatal_fr(r, "send TOKEN packet");
 		}
 		if (maj_status == GSS_S_COMPLETE) {
 			ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
@@ -216,7 +223,7 @@ input_gssapi_errtok(int type, u_int32_t plen, struct ssh *ssh)
 	gssctxt = authctxt->methoddata;
 	if ((r = sshpkt_get_string(ssh, &p, &len)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse packet");
 	recv_tok.value = p;
 	recv_tok.length = len;
 
@@ -258,7 +265,7 @@ input_gssapi_exchange_complete(int type, u_int32_t plen, struct ssh *ssh)
 	 */
 
 	if ((r = sshpkt_get_end(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse packet");
 
 	authenticated = PRIVSEP(ssh_gssapi_userok(authctxt->user));
 
@@ -293,16 +300,16 @@ input_gssapi_mic(int type, u_int32_t plen, struct ssh *ssh)
 	gssctxt = authctxt->methoddata;
 
 	if ((r = sshpkt_get_string(ssh, &p, &len)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse packet");
 	if ((b = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	mic.value = p;
 	mic.length = len;
 	ssh_gssapi_buildmic(b, authctxt->user, authctxt->service,
-	    "gssapi-with-mic");
+	    "gssapi-with-mic", ssh->kex->session_id);
 
 	if ((gssbuf.value = sshbuf_mutable_ptr(b)) == NULL)
-		fatal("%s: sshbuf_mutable_ptr failed", __func__);
+		fatal_f("sshbuf_mutable_ptr failed");
 	gssbuf.length = sshbuf_len(b);
 
 	if (!GSS_ERROR(PRIVSEP(ssh_gssapi_checkmic(gssctxt, &gssbuf, &mic))))
@@ -328,6 +335,7 @@ input_gssapi_mic(int type, u_int32_t plen, struct ssh *ssh)
 
 Authmethod method_gssapi = {
 	"gssapi-with-mic",
+	NULL,
 	userauth_gssapi,
 	&options.gss_authentication
 };

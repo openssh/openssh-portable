@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.21 2019/09/06 05:23:55 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.26 2021/11/18 03:31:44 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -50,7 +50,7 @@
 
 struct pkcs11_keyinfo {
 	struct sshkey	*key;
-	char		*providername;
+	char		*providername, *label;
 	TAILQ_ENTRY(pkcs11_keyinfo) next;
 };
 
@@ -63,13 +63,14 @@ struct sshbuf *iqueue;
 struct sshbuf *oqueue;
 
 static void
-add_key(struct sshkey *k, char *name)
+add_key(struct sshkey *k, char *name, char *label)
 {
 	struct pkcs11_keyinfo *ki;
 
 	ki = xcalloc(1, sizeof(*ki));
 	ki->providername = xstrdup(name);
 	ki->key = k;
+	ki->label = xstrdup(label);
 	TAILQ_INSERT_TAIL(&pkcs11_keylist, ki, next);
 }
 
@@ -83,6 +84,7 @@ del_keys_by_name(char *name)
 		if (!strcmp(ki->providername, name)) {
 			TAILQ_REMOVE(&pkcs11_keylist, ki, next);
 			free(ki->providername);
+			free(ki->label);
 			sshkey_free(ki->key);
 			free(ki);
 		}
@@ -96,7 +98,8 @@ lookup_key(struct sshkey *k)
 	struct pkcs11_keyinfo *ki;
 
 	TAILQ_FOREACH(ki, &pkcs11_keylist, next) {
-		debug("check %p %s", ki, ki->providername);
+		debug("check %s %s %s", sshkey_type(ki->key),
+		    ki->providername, ki->label);
 		if (sshkey_equal(k, ki->key))
 			return (ki->key);
 	}
@@ -109,7 +112,7 @@ send_msg(struct sshbuf *m)
 	int r;
 
 	if ((r = sshbuf_put_stringb(oqueue, m)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "enqueue");
 }
 
 static void
@@ -121,37 +124,35 @@ process_add(void)
 	u_char *blob;
 	size_t blen;
 	struct sshbuf *msg;
+	char **labels = NULL;
 
 	if ((msg = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(iqueue, &pin, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if ((nkeys = pkcs11_add_provider(name, pin, &keys)) > 0) {
+		fatal_fr(r, "parse");
+	if ((nkeys = pkcs11_add_provider(name, pin, &keys, &labels)) > 0) {
 		if ((r = sshbuf_put_u8(msg,
 		    SSH2_AGENT_IDENTITIES_ANSWER)) != 0 ||
 		    (r = sshbuf_put_u32(msg, nkeys)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "compose");
 		for (i = 0; i < nkeys; i++) {
 			if ((r = sshkey_to_blob(keys[i], &blob, &blen)) != 0) {
-				debug("%s: sshkey_to_blob: %s",
-				    __func__, ssh_err(r));
+				debug_fr(r, "encode key");
 				continue;
 			}
 			if ((r = sshbuf_put_string(msg, blob, blen)) != 0 ||
-			    (r = sshbuf_put_cstring(msg, name)) != 0)
-				fatal("%s: buffer error: %s",
-				    __func__, ssh_err(r));
+			    (r = sshbuf_put_cstring(msg, labels[i])) != 0)
+				fatal_fr(r, "compose key");
 			free(blob);
-			add_key(keys[i], name);
+			add_key(keys[i], name, labels[i]);
+			free(labels[i]);
 		}
-	} else {
-		if ((r = sshbuf_put_u8(msg, SSH_AGENT_FAILURE)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
-		if ((r = sshbuf_put_u32(msg, -nkeys)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	}
-	free(keys);
+	} else if ((r = sshbuf_put_u8(msg, SSH_AGENT_FAILURE)) != 0 ||
+	    (r = sshbuf_put_u32(msg, -nkeys)) != 0)
+		fatal_fr(r, "compose");
+	free(labels);
+	free(keys); /* keys themselves are transferred to pkcs11_keylist */
 	free(pin);
 	free(name);
 	send_msg(msg);
@@ -166,14 +167,14 @@ process_del(void)
 	int r;
 
 	if ((msg = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(iqueue, &pin, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse");
 	del_keys_by_name(name);
 	if ((r = sshbuf_put_u8(msg, pkcs11_del_provider(name) == 0 ?
 	    SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "compose");
 	free(pin);
 	free(name);
 	send_msg(msg);
@@ -193,10 +194,10 @@ process_sign(void)
 	if ((r = sshbuf_get_string(iqueue, &blob, &blen)) != 0 ||
 	    (r = sshbuf_get_string(iqueue, &data, &dlen)) != 0 ||
 	    (r = sshbuf_get_u32(iqueue, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse");
 
 	if ((r = sshkey_from_blob(blob, blen, &key)) != 0)
-		error("%s: sshkey_from_blob: %s", __func__, ssh_err(r));
+		fatal_fr(r, "decode key");
 	else {
 		if ((found = lookup_key(key)) != NULL) {
 #ifdef WITH_OPENSSL
@@ -222,26 +223,25 @@ process_sign(void)
 				if (ret != 0)
 					ok = 0;
 				else
-					error("%s: ECDSA_sign"
-					    " returns %d", __func__, ret);
+					error_f("ECDSA_sign returned %d", ret);
 				slen = xslen;
 #endif /* OPENSSL_HAS_ECC */
 			} else
-				error("%s: don't know how to sign with key "
-				    "type %d", __func__, (int)key->type);
+				error_f("don't know how to sign with key "
+				    "type %d", (int)key->type);
 #endif /* WITH_OPENSSL */
 		}
 		sshkey_free(key);
 	}
 	if ((msg = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	if (ok == 0) {
 		if ((r = sshbuf_put_u8(msg, SSH2_AGENT_SIGN_RESPONSE)) != 0 ||
 		    (r = sshbuf_put_string(msg, signature, slen)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "compose response");
 	} else {
 		if ((r = sshbuf_put_u8(msg, SSH2_AGENT_FAILURE)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "compose failure response");
 	}
 	free(data);
 	free(blob);
@@ -273,7 +273,7 @@ process(void)
 		return;
 	if ((r = sshbuf_consume(iqueue, 4)) != 0 ||
 	    (r = sshbuf_get_u8(iqueue, &type)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "parse type/len");
 	buf_len -= 4;
 	switch (type) {
 	case SSH_AGENTC_ADD_SMARTCARD_KEY:
@@ -304,7 +304,7 @@ process(void)
 	}
 	if (msg_len > consumed) {
 		if ((r = sshbuf_consume(iqueue, msg_len - consumed)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "consume");
 	}
 }
 
@@ -319,7 +319,7 @@ cleanup_exit(int i)
 int
 main(int argc, char **argv)
 {
-	int r, ch, in, out, max, log_stderr = 0;
+	int r, ch, in, out, log_stderr = 0;
 	ssize_t len;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_ERROR;
@@ -351,20 +351,13 @@ main(int argc, char **argv)
 	log_init(__progname, log_level, log_facility, log_stderr);
 
 	pkcs11_init(0);
-
 	in = STDIN_FILENO;
 	out = STDOUT_FILENO;
 
-	max = 0;
-	if (in > max)
-		max = in;
-	if (out > max)
-		max = out;
-
 	if ((iqueue = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 	if ((oqueue = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 
 	while (1) {
 		memset(pfd, 0, sizeof(pfd));
@@ -380,7 +373,7 @@ main(int argc, char **argv)
 		    (r = sshbuf_check_reserve(oqueue, MAX_MSG_LENGTH)) == 0)
 			pfd[0].events = POLLIN;
 		else if (r != SSH_ERR_NO_BUFFER_SPACE)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "reserve");
 
 		if (sshbuf_len(oqueue) > 0)
 			pfd[1].events = POLLOUT;
@@ -392,7 +385,7 @@ main(int argc, char **argv)
 		}
 
 		/* copy stdin to iqueue */
-		if ((pfd[0].revents & (POLLIN|POLLERR)) != 0) {
+		if ((pfd[0].revents & (POLLIN|POLLHUP|POLLERR)) != 0) {
 			len = read(in, buf, sizeof buf);
 			if (len == 0) {
 				debug("read eof");
@@ -400,10 +393,8 @@ main(int argc, char **argv)
 			} else if (len < 0) {
 				error("read: %s", strerror(errno));
 				cleanup_exit(1);
-			} else if ((r = sshbuf_put(iqueue, buf, len)) != 0) {
-				fatal("%s: buffer error: %s",
-				    __func__, ssh_err(r));
-			}
+			} else if ((r = sshbuf_put(iqueue, buf, len)) != 0)
+				fatal_fr(r, "sshbuf_put");
 		}
 		/* send oqueue to stdout */
 		if ((pfd[1].revents & (POLLOUT|POLLHUP)) != 0) {
@@ -412,10 +403,8 @@ main(int argc, char **argv)
 			if (len < 0) {
 				error("write: %s", strerror(errno));
 				cleanup_exit(1);
-			} else if ((r = sshbuf_consume(oqueue, len)) != 0) {
-				fatal("%s: buffer error: %s",
-				    __func__, ssh_err(r));
-			}
+			} else if ((r = sshbuf_consume(oqueue, len)) != 0)
+				fatal_fr(r, "consume");
 		}
 
 		/*
@@ -426,7 +415,7 @@ main(int argc, char **argv)
 		if ((r = sshbuf_check_reserve(oqueue, MAX_MSG_LENGTH)) == 0)
 			process();
 		else if (r != SSH_ERR_NO_BUFFER_SPACE)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "reserve");
 	}
 }
 

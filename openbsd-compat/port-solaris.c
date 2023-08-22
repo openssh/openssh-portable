@@ -17,11 +17,8 @@
 #include "config.h"
 #include "includes.h"
 
-#ifdef USE_SOLARIS_PROCESS_CONTRACTS
-
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/param.h>
 
 #include <errno.h>
 #ifdef HAVE_FCNTL_H
@@ -31,11 +28,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "log.h"
+
+#ifdef USE_SOLARIS_PROCESS_CONTRACTS
+
 #include <libcontract.h>
 #include <sys/contract/process.h>
 #include <sys/ctfs.h>
-
-#include "log.h"
 
 #define CT_TEMPLATE	CTFS_ROOT "/process/template"
 #define CT_LATEST	CTFS_ROOT "/process/latest"

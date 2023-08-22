@@ -23,39 +23,6 @@
 
 #include "openbsd-compat/bsd-signal.h"
 
-#undef signal
-
-mysig_t
-mysignal(int sig, mysig_t act)
-{
-#ifdef HAVE_SIGACTION
-	struct sigaction sa, osa;
-
-	if (sigaction(sig, NULL, &osa) == -1)
-		return (mysig_t) -1;
-	if (osa.sa_handler != act) {
-		memset(&sa, 0, sizeof(sa));
-		sigemptyset(&sa.sa_mask);
-		sa.sa_flags = 0;
-		if (sig == SIGALRM) {
-#ifdef SA_INTERRUPT
-			sa.sa_flags |= SA_INTERRUPT;
-#endif
-		} else {
-#ifdef SA_RESTART
-			sa.sa_flags |= SA_RESTART;
-#endif
-		}
-		sa.sa_handler = act;
-		if (sigaction(sig, &sa, NULL) == -1)
-			return (mysig_t) -1;
-	}
-	return (osa.sa_handler);
-#else
-	return (signal(sig, act));
-#endif
-}
-
 #if !defined(HAVE_STRSIGNAL)
 char *strsignal(int sig)
 {

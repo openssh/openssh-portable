@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.h,v 1.9 2020/01/06 02:00:47 djm Exp $ */
+/* $OpenBSD: ssh-sk.h,v 1.11 2021/10/28 02:54:18 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -23,13 +23,19 @@ struct sshkey;
 struct sk_option;
 
 /* Version of protocol expected from ssh-sk-helper */
-#define SSH_SK_HELPER_VERSION		4
+#define SSH_SK_HELPER_VERSION		5
 
 /* ssh-sk-helper messages */
 #define SSH_SK_HELPER_ERROR		0	/* Only valid H->C */
 #define SSH_SK_HELPER_SIGN		1
 #define SSH_SK_HELPER_ENROLL		2
 #define SSH_SK_HELPER_LOAD_RESIDENT	3
+
+struct sshsk_resident_key {
+	struct sshkey *key;
+	uint8_t *user_id;
+	size_t user_id_len;
+};
 
 /*
  * Enroll (generate) a new security-key hosted private key of given type
@@ -63,7 +69,11 @@ int sshsk_sign(const char *provider_path, struct sshkey *key,
  * Returns 0 on success or a ssherr.h error code on failure.
  */
 int sshsk_load_resident(const char *provider_path, const char *device,
-    const char *pin, struct sshkey ***keysp, size_t *nkeysp);
+    const char *pin, u_int flags, struct sshsk_resident_key ***srksp,
+    size_t *nsrksp);
+
+/* Free an array of sshsk_resident_key (as returned from sshsk_load_resident) */
+void sshsk_free_resident_keys(struct sshsk_resident_key **srks, size_t nsrks);
 
 #endif /* _SSH_SK_H */
 

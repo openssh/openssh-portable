@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.218 2019/11/27 05:38:43 dtucker Exp $ */
+/* $OpenBSD: serverloop.c,v 1.236 2023/03/08 04:43:12 guenther Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -50,6 +50,9 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <limits.h>
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#endif
 #include <signal.h>
 #include <string.h>
 #include <termios.h>
@@ -66,7 +69,6 @@
 #include "canohost.h"
 #include "sshpty.h"
 #include "channels.h"
-#include "compat.h"
 #include "ssh2.h"
 #include "sshkey.h"
 #include "cipher.h"
@@ -87,11 +89,6 @@ extern struct sshauthopt *auth_opts;
 extern int use_privsep;
 
 static int no_more_sessions = 0; /* Disallow further sessions. */
-
-/*
- * This SIGCHLD kludge is used to detect when the child exits.  The server
- * will exit after that, as soon as forwarded connections have terminated.
- */
 
 static volatile sig_atomic_t child_terminated = 0;	/* The child has terminated. */
 
@@ -115,62 +112,12 @@ bind_permitted(int port, uid_t uid)
 	return 1;
 }
 
-/*
- * we write to this pipe if a SIGCHLD is caught in order to avoid
- * the race between select() and child_terminated
- */
-static int notify_pipe[2];
-static void
-notify_setup(void)
-{
-	if (pipe(notify_pipe) == -1) {
-		error("pipe(notify_pipe) failed %s", strerror(errno));
-	} else if ((fcntl(notify_pipe[0], F_SETFD, FD_CLOEXEC) == -1) ||
-	    (fcntl(notify_pipe[1], F_SETFD, FD_CLOEXEC) == -1)) {
-		error("fcntl(notify_pipe, F_SETFD) failed %s", strerror(errno));
-		close(notify_pipe[0]);
-		close(notify_pipe[1]);
-	} else {
-		set_nonblock(notify_pipe[0]);
-		set_nonblock(notify_pipe[1]);
-		return;
-	}
-	notify_pipe[0] = -1;	/* read end */
-	notify_pipe[1] = -1;	/* write end */
-}
-static void
-notify_parent(void)
-{
-	if (notify_pipe[1] != -1)
-		(void)write(notify_pipe[1], "", 1);
-}
-static void
-notify_prepare(fd_set *readset)
-{
-	if (notify_pipe[0] != -1)
-		FD_SET(notify_pipe[0], readset);
-}
-static void
-notify_done(fd_set *readset)
-{
-	char c;
-
-	if (notify_pipe[0] != -1 && FD_ISSET(notify_pipe[0], readset))
-		while (read(notify_pipe[0], &c, 1) != -1)
-			debug2("%s: reading", __func__);
-}
-
-/*ARGSUSED*/
 static void
 sigchld_handler(int sig)
 {
-	int save_errno = errno;
 	child_terminated = 1;
-	notify_parent();
-	errno = save_errno;
 }
 
-/*ARGSUSED*/
 static void
 sigterm_handler(int sig)
 {
@@ -184,7 +131,8 @@ client_alive_check(struct ssh *ssh)
 	int r, channel_id;
 
 	/* timeout, check to see how many we have had */
-	if (ssh_packet_inc_alive_timeouts(ssh) >
+	if (options.client_alive_count_max > 0 &&
+	    ssh_packet_inc_alive_timeouts(ssh) >
 	    options.client_alive_count_max) {
 		sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 		logit("Timeout, client not responding from %s", remote_id);
@@ -200,41 +148,58 @@ client_alive_check(struct ssh *ssh)
 		    (r = sshpkt_put_cstring(ssh, "keepalive@openssh.com"))
 		    != 0 ||
 		    (r = sshpkt_put_u8(ssh, 1)) != 0) /* boolean: want reply */
-			fatal("%s: %s", __func__, ssh_err(r));
+			fatal_fr(r, "compose");
 	} else {
 		channel_request_start(ssh, channel_id,
 		    "keepalive@openssh.com", 1);
 	}
 	if ((r = sshpkt_send(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal_fr(r, "send");
 }
 
 /*
- * Sleep in select() until we can do something.  This will initialize the
- * select masks.  Upon return, the masks will indicate which descriptors
- * have data or can accept data.  Optionally, a maximum time can be specified
- * for the duration of the wait (0 = infinite).
+ * Sleep in ppoll() until we can do something.
+ * Optionally, a maximum time can be specified for the duration of
+ * the wait (0 = infinite).
  */
 static void
 wait_until_can_do_something(struct ssh *ssh,
-    int connection_in, int connection_out,
-    fd_set **readsetp, fd_set **writesetp, int *maxfdp,
-    u_int *nallocp, u_int64_t max_time_ms)
+    int connection_in, int connection_out, struct pollfd **pfdp,
+    u_int *npfd_allocp, u_int *npfd_activep, sigset_t *sigsetp,
+    int *conn_in_readyp, int *conn_out_readyp)
 {
-	struct timeval tv, *tvp;
+	struct timespec timeout;
+	char remote_id[512];
 	int ret;
-	time_t minwait_secs = 0;
 	int client_alive_scheduled = 0;
-	/* time we last heard from the client OR sent a keepalive */
-	static time_t last_client_time;
+	u_int p;
+	time_t now;
+	static time_t last_client_time, unused_connection_expiry;
 
-	/* Allocate and update select() masks for channel descriptors. */
-	channel_prepare_select(ssh, readsetp, writesetp, maxfdp,
-	    nallocp, &minwait_secs);
+	*conn_in_readyp = *conn_out_readyp = 0;
 
-	/* XXX need proper deadline system for rekey/client alive */
-	if (minwait_secs != 0)
-		max_time_ms = MINIMUM(max_time_ms, (u_int)minwait_secs * 1000);
+	/* Prepare channel poll. First two pollfd entries are reserved */
+	ptimeout_init(&timeout);
+	channel_prepare_poll(ssh, pfdp, npfd_allocp, npfd_activep, 2, &timeout);
+	now = monotime();
+	if (*npfd_activep < 2)
+		fatal_f("bad npfd %u", *npfd_activep); /* shouldn't happen */
+	if (options.rekey_interval > 0 && !ssh_packet_is_rekeying(ssh)) {
+		ptimeout_deadline_sec(&timeout,
+		    ssh_packet_get_rekey_timeout(ssh));
+	}
+
+	/*
+	 * If no channels are open and UnusedConnectionTimeout is set, then
+	 * start the clock to terminate the connection.
+	 */
+	if (options.unused_connection_timeout != 0) {
+		if (channel_still_open(ssh) || unused_connection_expiry == 0) {
+			unused_connection_expiry = now +
+			    options.unused_connection_timeout;
+		}
+		ptimeout_deadline_monotime(&timeout, unused_connection_expiry);
+	}
 
 	/*
 	 * if using client_alive, set the max timeout accordingly,
@@ -245,70 +210,66 @@ wait_until_can_do_something(struct ssh *ssh,
 	 * analysis more difficult, but we're not doing it yet.
 	 */
 	if (options.client_alive_interval) {
-		uint64_t keepalive_ms =
-		    (uint64_t)options.client_alive_interval * 1000;
-
-		if (max_time_ms == 0 || max_time_ms > keepalive_ms) {
-			max_time_ms = keepalive_ms;
-			client_alive_scheduled = 1;
-		}
+		/* Time we last heard from the client OR sent a keepalive */
+		if (last_client_time == 0)
+			last_client_time = now;
+		ptimeout_deadline_sec(&timeout, options.client_alive_interval);
+		/* XXX ? deadline_monotime(last_client_time + alive_interval) */
+		client_alive_scheduled = 1;
 	}
 
 #if 0
 	/* wrong: bad condition XXX */
 	if (channel_not_very_much_buffered_data())
 #endif
-	FD_SET(connection_in, *readsetp);
-	notify_prepare(*readsetp);
-
-	/*
-	 * If we have buffered packet data going to the client, mark that
-	 * descriptor.
-	 */
-	if (ssh_packet_have_data_to_write(ssh))
-		FD_SET(connection_out, *writesetp);
+	/* Monitor client connection on reserved pollfd entries */
+	(*pfdp)[0].fd = connection_in;
+	(*pfdp)[0].events = POLLIN;
+	(*pfdp)[1].fd = connection_out;
+	(*pfdp)[1].events = ssh_packet_have_data_to_write(ssh) ? POLLOUT : 0;
 
 	/*
 	 * If child has terminated and there is enough buffer space to read
 	 * from it, then read as much as is available and exit.
 	 */
 	if (child_terminated && ssh_packet_not_very_much_data_to_write(ssh))
-		if (max_time_ms == 0 || client_alive_scheduled)
-			max_time_ms = 100;
-
-	if (max_time_ms == 0)
-		tvp = NULL;
-	else {
-		tv.tv_sec = max_time_ms / 1000;
-		tv.tv_usec = 1000 * (max_time_ms % 1000);
-		tvp = &tv;
-	}
+		ptimeout_deadline_ms(&timeout, 100);
 
 	/* Wait for something to happen, or the timeout to expire. */
-	ret = select((*maxfdp)+1, *readsetp, *writesetp, NULL, tvp);
+	ret = ppoll(*pfdp, *npfd_activep, ptimeout_get_tsp(&timeout), sigsetp);
 
 	if (ret == -1) {
-		memset(*readsetp, 0, *nallocp);
-		memset(*writesetp, 0, *nallocp);
+		for (p = 0; p < *npfd_activep; p++)
+			(*pfdp)[p].revents = 0;
 		if (errno != EINTR)
-			error("select: %.100s", strerror(errno));
-	} else if (client_alive_scheduled) {
-		time_t now = monotime();
+			fatal_f("ppoll: %.100s", strerror(errno));
+		return;
+	}
 
-		/*
-		 * If the select timed out, or returned for some other reason
-		 * but we haven't heard from the client in time, send keepalive.
-		 */
-		if (ret == 0 || (last_client_time != 0 && last_client_time +
-		    options.client_alive_interval <= now)) {
+	*conn_in_readyp = (*pfdp)[0].revents != 0;
+	*conn_out_readyp = (*pfdp)[1].revents != 0;
+
+	now = monotime(); /* need to reset after ppoll() */
+	/* ClientAliveInterval probing */
+	if (client_alive_scheduled) {
+		if (ret == 0 &&
+		    now > last_client_time + options.client_alive_interval) {
+			/* ppoll timed out and we're due to probe */
 			client_alive_check(ssh);
 			last_client_time = now;
-		} else if (FD_ISSET(connection_in, *readsetp)) {
+		} else if (ret != 0 && *conn_in_readyp) {
+			/* Data from peer; reset probe timer. */
 			last_client_time = now;
 		}
 	}
 
-	notify_done(*readsetp);
+	/* UnusedConnectionTimeout handling */
+	if (unused_connection_expiry != 0 &&
+	    now > unused_connection_expiry && !channel_still_open(ssh)) {
+		sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
+		logit("terminating inactive connection from %s", remote_id);
+		cleanup_exit(255);
+	}
 }
 
 /*
@@ -316,51 +277,40 @@ wait_until_can_do_something(struct ssh *ssh,
  * in buffers and processed later.
  */
 static int
-process_input(struct ssh *ssh, fd_set *readset, int connection_in)
+process_input(struct ssh *ssh, int connection_in)
 {
-	int r, len;
-	char buf[16384];
+	int r;
 
-	/* Read and buffer any input data from the client. */
-	if (FD_ISSET(connection_in, readset)) {
-		len = read(connection_in, buf, sizeof(buf));
-		if (len == 0) {
+	if ((r = ssh_packet_process_read(ssh, connection_in)) == 0)
+		return 0; /* success */
+	if (r == SSH_ERR_SYSTEM_ERROR) {
+		if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK)
+			return 0;
+		if (errno == EPIPE) {
 			verbose("Connection closed by %.100s port %d",
 			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 			return -1;
-		} else if (len == -1) {
-			if (errno != EINTR && errno != EAGAIN &&
-			    errno != EWOULDBLOCK) {
-				verbose("Read error from remote host "
-				    "%.100s port %d: %.100s",
-				    ssh_remote_ipaddr(ssh),
-				    ssh_remote_port(ssh), strerror(errno));
-				cleanup_exit(255);
-			}
-		} else {
-			/* Buffer any received data. */
-			if ((r = ssh_packet_process_incoming(ssh, buf, len))
-			    != 0)
-				fatal("%s: ssh_packet_process_incoming: %s",
-				    __func__, ssh_err(r));
 		}
+		verbose("Read error from remote host %s port %d: %s",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+		    strerror(errno));
+		cleanup_exit(255);
 	}
-	return 0;
+	return -1;
 }
 
 /*
  * Sends data from internal buffers to client program stdin.
  */
 static void
-process_output(struct ssh *ssh, fd_set *writeset, int connection_out)
+process_output(struct ssh *ssh, int connection_out)
 {
 	int r;
 
 	/* Send any buffered packet data to the client. */
-	if (FD_ISSET(connection_out, writeset)) {
-		if ((r = ssh_packet_write_poll(ssh)) != 0)
-			fatal("%s: ssh_packet_write_poll: %s",
-			    __func__, ssh_err(r));
+	if ((r = ssh_packet_write_poll(ssh)) != 0) {
+		sshpkt_fatal(ssh, r, "%s: ssh_packet_write_poll",
+		    __func__);
 	}
 }
 
@@ -374,13 +324,8 @@ static void
 collect_children(struct ssh *ssh)
 {
 	pid_t pid;
-	sigset_t oset, nset;
 	int status;
 
-	/* block SIGCHLD while we check for dead children */
-	sigemptyset(&nset);
-	sigaddset(&nset, SIGCHLD);
-	sigprocmask(SIG_BLOCK, &nset, &oset);
 	if (child_terminated) {
 		debug("Received SIGCHLD.");
 		while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
@@ -389,34 +334,31 @@ collect_children(struct ssh *ssh)
 				session_close_by_pid(ssh, pid, status);
 		child_terminated = 0;
 	}
-	sigprocmask(SIG_SETMASK, &oset, NULL);
 }
 
 void
 server_loop2(struct ssh *ssh, Authctxt *authctxt)
 {
-	fd_set *readset = NULL, *writeset = NULL;
-	int max_fd;
-	u_int nalloc = 0, connection_in, connection_out;
-	u_int64_t rekey_timeout_ms = 0;
+	struct pollfd *pfd = NULL;
+	u_int npfd_alloc = 0, npfd_active = 0;
+	int r, conn_in_ready, conn_out_ready;
+	u_int connection_in, connection_out;
+	sigset_t bsigset, osigset;
 
 	debug("Entering interactive session for SSH2.");
 
-	signal(SIGCHLD, sigchld_handler);
+	if (sigemptyset(&bsigset) == -1 || sigaddset(&bsigset, SIGCHLD) == -1)
+		error_f("bsigset setup: %s", strerror(errno));
+	ssh_signal(SIGCHLD, sigchld_handler);
 	child_terminated = 0;
 	connection_in = ssh_packet_get_connection_in(ssh);
 	connection_out = ssh_packet_get_connection_out(ssh);
 
 	if (!use_privsep) {
-		signal(SIGTERM, sigterm_handler);
-		signal(SIGINT, sigterm_handler);
-		signal(SIGQUIT, sigterm_handler);
+		ssh_signal(SIGTERM, sigterm_handler);
+		ssh_signal(SIGINT, sigterm_handler);
+		ssh_signal(SIGQUIT, sigterm_handler);
 	}
-
-	notify_setup();
-
-	max_fd = MAXIMUM(connection_in, connection_out);
-	max_fd = MAXIMUM(max_fd, notify_pipe[0]);
 
 	server_init_dispatch(ssh);
 
@@ -426,16 +368,20 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		if (!ssh_packet_is_rekeying(ssh) &&
 		    ssh_packet_not_very_much_data_to_write(ssh))
 			channel_output_poll(ssh);
-		if (options.rekey_interval > 0 &&
-		    !ssh_packet_is_rekeying(ssh)) {
-			rekey_timeout_ms = ssh_packet_get_rekey_timeout(ssh) *
-			    1000;
-		} else {
-			rekey_timeout_ms = 0;
-		}
 
+		/*
+		 * Block SIGCHLD while we check for dead children, then pass
+		 * the old signal mask through to ppoll() so that it'll wake
+		 * up immediately if a child exits after we've called waitpid().
+		 */
+		if (sigprocmask(SIG_BLOCK, &bsigset, &osigset) == -1)
+			error_f("bsigset sigprocmask: %s", strerror(errno));
+		collect_children(ssh);
 		wait_until_can_do_something(ssh, connection_in, connection_out,
-		    &readset, &writeset, &max_fd, &nalloc, rekey_timeout_ms);
+		    &pfd, &npfd_alloc, &npfd_active, &osigset,
+		    &conn_in_ready, &conn_out_ready);
+		if (sigprocmask(SIG_UNBLOCK, &bsigset, &osigset) == -1)
+			error_f("osigset sigprocmask: %s", strerror(errno));
 
 		if (received_sigterm) {
 			logit("Exiting on signal %d", (int)received_sigterm);
@@ -443,17 +389,18 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 			cleanup_exit(255);
 		}
 
-		collect_children(ssh);
-		if (!ssh_packet_is_rekeying(ssh))
-			channel_after_select(ssh, readset, writeset);
-		if (process_input(ssh, readset, connection_in) < 0)
+		channel_after_poll(ssh, pfd, npfd_active);
+		if (conn_in_ready &&
+		    process_input(ssh, connection_in) < 0)
 			break;
-		process_output(ssh, writeset, connection_out);
+		/* A timeout may have triggered rekeying */
+		if ((r = ssh_packet_check_rekey(ssh)) != 0)
+			fatal_fr(r, "cannot start rekeying");
+		if (conn_out_ready)
+			process_output(ssh, connection_out);
 	}
 	collect_children(ssh);
-
-	free(readset);
-	free(writeset);
+	free(pfd);
 
 	/* free all channels, no more reads and writes */
 	channel_free_all(ssh);
@@ -490,17 +437,17 @@ server_request_direct_tcpip(struct ssh *ssh, int *reason, const char **errmsg)
 	    (r = sshpkt_get_end(ssh)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
 	if (target_port > 0xFFFF) {
-		error("%s: invalid target port", __func__);
+		error_f("invalid target port");
 		*reason = SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED;
 		goto out;
 	}
 	if (originator_port > 0xFFFF) {
-		error("%s: invalid originator port", __func__);
+		error_f("invalid originator port");
 		*reason = SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED;
 		goto out;
 	}
 
-	debug("%s: originator %s port %u, target %s port %u", __func__,
+	debug_f("originator %s port %u, target %s port %u",
 	    originator, originator_port, target, target_port);
 
 	/* XXX fine grained permissions */
@@ -533,7 +480,7 @@ server_request_direct_streamlocal(struct ssh *ssh)
 	int r;
 
 	if (pw == NULL || !the_authctxt->valid)
-		fatal("%s: no/invalid user", __func__);
+		fatal_f("no/invalid user");
 
 	if ((r = sshpkt_get_cstring(ssh, &target, NULL)) != 0 ||
 	    (r = sshpkt_get_cstring(ssh, &originator, NULL)) != 0 ||
@@ -541,11 +488,11 @@ server_request_direct_streamlocal(struct ssh *ssh)
 	    (r = sshpkt_get_end(ssh)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
 	if (originator_port > 0xFFFF) {
-		error("%s: invalid originator port", __func__);
+		error_f("invalid originator port");
 		goto out;
 	}
 
-	debug("%s: originator %s port %d, target %s", __func__,
+	debug_f("originator %s port %d, target %s",
 	    originator, originator_port, target);
 
 	/* XXX fine grained permissions */
@@ -593,7 +540,7 @@ server_request_tun(struct ssh *ssh)
 	if ((r = sshpkt_get_u32(ssh, &tun)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse device", __func__);
 	if (tun > INT_MAX) {
-		debug("%s: invalid tun", __func__);
+		debug_f("invalid tun");
 		goto done;
 	}
 	if (auth_opts->force_tun_device != -1) {
@@ -682,12 +629,10 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	    (r = sshpkt_get_u32(ssh, &rwindow)) != 0 ||
 	    (r = sshpkt_get_u32(ssh, &rmaxpack)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
-	debug("%s: ctype %s rchan %u win %u max %u", __func__,
+	debug_f("ctype %s rchan %u win %u max %u",
 	    ctype, rchan, rwindow, rmaxpack);
 
-	if (rchan > INT_MAX) {
-		error("%s: invalid remote channel ID", __func__);
-	} else if (strcmp(ctype, "session") == 0) {
+	if (strcmp(ctype, "session") == 0) {
 		c = server_request_session(ssh);
 	} else if (strcmp(ctype, "direct-tcpip") == 0) {
 		c = server_request_direct_tcpip(ssh, &reason, &errmsg);
@@ -697,8 +642,8 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 		c = server_request_tun(ssh);
 	}
 	if (c != NULL) {
-		debug("%s: confirm %s", __func__, ctype);
-		c->remote_id = (int)rchan;
+		debug_f("confirm %s", ctype);
+		c->remote_id = rchan;
 		c->have_remote_id = 1;
 		c->remote_window = rwindow;
 		c->remote_maxpacket = rmaxpack;
@@ -714,7 +659,7 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 			}
 		}
 	} else {
-		debug("%s: failure %s", __func__, ctype);
+		debug_f("failure %s", ctype);
 		if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_OPEN_FAILURE)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, rchan)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, reason)) != 0 ||
@@ -735,23 +680,23 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 	struct sshbuf *resp = NULL;
 	struct sshbuf *sigbuf = NULL;
 	struct sshkey *key = NULL, *key_pub = NULL, *key_prv = NULL;
-	int r, ndx, kexsigtype, use_kexsigtype, success = 0;
+	int r, ndx, success = 0;
 	const u_char *blob;
+	const char *sigalg, *kex_rsa_sigalg = NULL;
 	u_char *sig = 0;
 	size_t blen, slen;
 
 	if ((resp = sshbuf_new()) == NULL || (sigbuf = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new", __func__);
-
-	kexsigtype = sshkey_type_plain(
-	    sshkey_type_from_name(ssh->kex->hostkey_alg));
+		fatal_f("sshbuf_new");
+	if (sshkey_type_plain(sshkey_type_from_name(
+	    ssh->kex->hostkey_alg)) == KEY_RSA)
+		kex_rsa_sigalg = ssh->kex->hostkey_alg;
 	while (ssh_packet_remaining(ssh) > 0) {
 		sshkey_free(key);
 		key = NULL;
 		if ((r = sshpkt_get_string_direct(ssh, &blob, &blen)) != 0 ||
 		    (r = sshkey_from_blob(blob, blen, &key)) != 0) {
-			error("%s: couldn't parse key: %s",
-			    __func__, ssh_err(r));
+			error_fr(r, "parse key");
 			goto out;
 		}
 		/*
@@ -759,8 +704,7 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 		 * before attempting to sign anything with it.
 		 */
 		if ((ndx = ssh->kex->host_key_index(key, 1, ssh)) == -1) {
-			error("%s: unknown host %s key",
-			    __func__, sshkey_type(key));
+			error_f("unknown host %s key", sshkey_type(key));
 			goto out;
 		}
 		/*
@@ -769,7 +713,7 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 		 */
 		if ((key_prv = get_hostkey_by_index(ndx)) == NULL &&
 		    (key_pub = get_hostkey_public_by_index(ndx, ssh)) == NULL) {
-			error("%s: can't retrieve hostkey %d", __func__, ndx);
+			error_f("can't retrieve hostkey %d", ndx);
 			goto out;
 		}
 		sshbuf_reset(sigbuf);
@@ -779,19 +723,26 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 		 * For RSA keys, prefer to use the signature type negotiated
 		 * during KEX to the default (SHA1).
 		 */
-		use_kexsigtype = kexsigtype == KEY_RSA &&
-		    sshkey_type_plain(key->type) == KEY_RSA;
+		sigalg = NULL;
+		if (sshkey_type_plain(key->type) == KEY_RSA) {
+			if (kex_rsa_sigalg != NULL)
+				sigalg = kex_rsa_sigalg;
+			else if (ssh->kex->flags & KEX_RSA_SHA2_512_SUPPORTED)
+				sigalg = "rsa-sha2-512";
+			else if (ssh->kex->flags & KEX_RSA_SHA2_256_SUPPORTED)
+				sigalg = "rsa-sha2-256";
+		}
+		debug3_f("sign %s key (index %d) using sigalg %s",
+		    sshkey_type(key), ndx, sigalg == NULL ? "default" : sigalg);
 		if ((r = sshbuf_put_cstring(sigbuf,
 		    "hostkeys-prove-00@openssh.com")) != 0 ||
-		    (r = sshbuf_put_string(sigbuf,
-		    ssh->kex->session_id, ssh->kex->session_id_len)) != 0 ||
+		    (r = sshbuf_put_stringb(sigbuf,
+		    ssh->kex->session_id)) != 0 ||
 		    (r = sshkey_puts(key, sigbuf)) != 0 ||
 		    (r = ssh->kex->sign(ssh, key_prv, key_pub, &sig, &slen,
-		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf),
-		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL)) != 0 ||
+		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf), sigalg)) != 0 ||
 		    (r = sshbuf_put_string(resp, sig, slen)) != 0) {
-			error("%s: couldn't prepare signature: %s",
-			    __func__, ssh_err(r));
+			error_fr(r, "assemble signature");
 			goto out;
 		}
 	}
@@ -820,19 +771,19 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 
 	memset(&fwd, 0, sizeof(fwd));
 	if (pw == NULL || !the_authctxt->valid)
-		fatal("%s: no/invalid user", __func__);
+		fatal_f("no/invalid user");
 
 	if ((r = sshpkt_get_cstring(ssh, &rtype, NULL)) != 0 ||
 	    (r = sshpkt_get_u8(ssh, &want_reply)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
-	debug("%s: rtype %s want_reply %d", __func__, rtype, want_reply);
+	debug_f("rtype %s want_reply %d", rtype, want_reply);
 
 	/* -R style forwarding */
 	if (strcmp(rtype, "tcpip-forward") == 0) {
 		if ((r = sshpkt_get_cstring(ssh, &fwd.listen_host, NULL)) != 0 ||
 		    (r = sshpkt_get_u32(ssh, &port)) != 0)
 			sshpkt_fatal(ssh, r, "%s: parse tcpip-forward", __func__);
-		debug("%s: tcpip-forward listen %s port %u", __func__,
+		debug_f("tcpip-forward listen %s port %u",
 		    fwd.listen_host, port);
 		if (port <= INT_MAX)
 			fwd.listen_port = (int)port;
@@ -843,7 +794,7 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 		    options.disable_forwarding ||
 		    (!want_reply && fwd.listen_port == 0) ||
 		    (fwd.listen_port != 0 &&
-		     !bind_permitted(fwd.listen_port, pw->pw_uid))) {
+		    !bind_permitted(fwd.listen_port, pw->pw_uid))) {
 			success = 0;
 			ssh_packet_send_debug(ssh, "Server has disabled port forwarding.");
 		} else {
@@ -852,16 +803,16 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 			    &allocated_listen_port, &options.fwd_opts);
 		}
 		if ((resp = sshbuf_new()) == NULL)
-			fatal("%s: sshbuf_new", __func__);
+			fatal_f("sshbuf_new");
 		if (allocated_listen_port != 0 &&
 		    (r = sshbuf_put_u32(resp, allocated_listen_port)) != 0)
-			fatal("%s: sshbuf_put_u32: %s", __func__, ssh_err(r));
+			fatal_fr(r, "sshbuf_put_u32");
 	} else if (strcmp(rtype, "cancel-tcpip-forward") == 0) {
 		if ((r = sshpkt_get_cstring(ssh, &fwd.listen_host, NULL)) != 0 ||
 		    (r = sshpkt_get_u32(ssh, &port)) != 0)
 			sshpkt_fatal(ssh, r, "%s: parse cancel-tcpip-forward", __func__);
 
-		debug("%s: cancel-tcpip-forward addr %s port %d", __func__,
+		debug_f("cancel-tcpip-forward addr %s port %d",
 		    fwd.listen_host, port);
 		if (port <= INT_MAX) {
 			fwd.listen_port = (int)port;
@@ -870,7 +821,7 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 	} else if (strcmp(rtype, "streamlocal-forward@openssh.com") == 0) {
 		if ((r = sshpkt_get_cstring(ssh, &fwd.listen_path, NULL)) != 0)
 			sshpkt_fatal(ssh, r, "%s: parse streamlocal-forward@openssh.com", __func__);
-		debug("%s: streamlocal-forward listen path %s", __func__,
+		debug_f("streamlocal-forward listen path %s",
 		    fwd.listen_path);
 
 		/* check permissions */
@@ -889,7 +840,7 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 	} else if (strcmp(rtype, "cancel-streamlocal-forward@openssh.com") == 0) {
 		if ((r = sshpkt_get_cstring(ssh, &fwd.listen_path, NULL)) != 0)
 			sshpkt_fatal(ssh, r, "%s: parse cancel-streamlocal-forward@openssh.com", __func__);
-		debug("%s: cancel-streamlocal-forward path %s", __func__,
+		debug_f("cancel-streamlocal-forward path %s",
 		    fwd.listen_path);
 
 		success = channel_cancel_rport_listener(ssh, &fwd);
@@ -945,8 +896,7 @@ server_input_channel_req(int type, u_int32_t seq, struct ssh *ssh)
 		success = session_input_channel_req(ssh, c, rtype);
 	if (want_reply && !(c->flags & CHAN_CLOSE_SENT)) {
 		if (!c->have_remote_id)
-			fatal("%s: channel %d: no remote_id",
-			    __func__, c->self);
+			fatal_f("channel %d: no remote_id", c->self);
 		if ((r = sshpkt_start(ssh, success ?
 		    SSH2_MSG_CHANNEL_SUCCESS : SSH2_MSG_CHANNEL_FAILURE)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||

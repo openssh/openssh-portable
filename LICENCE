@@ -210,22 +210,14 @@ OpenSSH contains no GPL code.
 
 8) Portable OpenSSH contains the following additional licenses:
 
-    a) md5crypt.c, md5crypt.h
-
-	 * "THE BEER-WARE LICENSE" (Revision 42):
-	 * <phk@login.dknet.dk> wrote this file.  As long as you retain this
-	 * notice you can do whatever you want with this stuff. If we meet
-	 * some day, and you think this stuff is worth it, you can buy me a
-	 * beer in return.   Poul-Henning Kamp
-
-    b) snprintf replacement
+    a) snprintf replacement
 
 	* Copyright Patrick Powell 1995
 	* This code is based on code written by Patrick Powell
 	* (papowell@astart.com) It may be used for any purpose as long as this
 	* notice remains intact on all source code distributions
 
-    c) Compatibility code (openbsd-compat)
+    b) Compatibility code (openbsd-compat)
 
        Apart from the previously mentioned licenses, various pieces of code
        in the openbsd-compat/ subdirectory are licensed as follows:
@@ -239,6 +231,7 @@ OpenSSH contains no GPL code.
 	Eric P. Allman
 	The Regents of the University of California
 	Constantin S. Svintsoff
+	Kungliga Tekniska Högskolan
 
 	* Redistribution and use in source and binary forms, with or without
 	* modification, are permitted provided that the following conditions
@@ -314,6 +307,65 @@ OpenSSH contains no GPL code.
 	* authorization.                                                           *
 	****************************************************************************/
 
+       The Blowfish cipher implementation is licensed by Niels Provos under
+       a 3-clause BSD license:
+
+         * Blowfish - a fast block cipher designed by Bruce Schneier
+         *
+         * Copyright 1997 Niels Provos <provos@physnet.uni-hamburg.de>
+         * All rights reserved.
+         *
+         * Redistribution and use in source and binary forms, with or without
+         * modification, are permitted provided that the following conditions
+         * are met:
+         * 1. Redistributions of source code must retain the above copyright
+         *    notice, this list of conditions and the following disclaimer.
+         * 2. Redistributions in binary form must reproduce the above copyright
+         *    notice, this list of conditions and the following disclaimer in the
+         *    documentation and/or other materials provided with the distribution.
+         * 3. The name of the author may not be used to endorse or promote products
+         *    derived from this software without specific prior written permission.
+         *
+         * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+         * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+         * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+         * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+         * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+         * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+         * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+         * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+         * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+         * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+       Some replacement code is licensed by the NetBSD foundation under a
+       2-clause BSD license:
+
+         * Copyright (c) 2001 The NetBSD Foundation, Inc.
+         * All rights reserved.
+         *
+         * This code is derived from software contributed to The NetBSD Foundation
+         * by Todd Vierling.
+         *
+         * Redistribution and use in source and binary forms, with or without
+         * modification, are permitted provided that the following conditions
+         * are met:
+         * 1. Redistributions of source code must retain the above copyright
+         *    notice, this list of conditions and the following disclaimer.
+         * 2. Redistributions in binary form must reproduce the above copyright
+         *    notice, this list of conditions and the following disclaimer in the
+         *    documentation and/or other materials provided with the distribution.
+         *
+         * THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS
+         * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+         * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+         * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS
+         * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+         * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+         * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+         * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+         * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+         * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+         * POSSIBILITY OF SUCH DAMAGE.
 
 ------
 $OpenBSD: LICENCE,v 1.20 2017/04/30 23:26:16 djm Exp $

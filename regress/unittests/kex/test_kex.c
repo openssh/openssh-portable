@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_kex.c,v 1.4 2019/01/21 12:35:20 djm Exp $ */
+/* 	$OpenBSD: test_kex.c,v 1.6 2021/12/14 21:25:27 deraadt Exp $ */
 /*
  * Regress test KEX
  *
@@ -8,7 +8,6 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/param.h>
 #include <stdio.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -152,6 +151,7 @@ do_kex_with_key(char *kex, int keytype, int bits)
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 	server2->kex->kex[KEX_C25519_SHA256] = kex_gen_server;
+	server2->kex->kex[KEX_KEM_SNTRUP761X25519_SHA512] = kex_gen_server;
 	server2->kex->load_host_public_key = server->kex->load_host_public_key;
 	server2->kex->load_host_private_key = server->kex->load_host_private_key;
 	server2->kex->sign = server->kex->sign;
@@ -201,5 +201,8 @@ kex_tests(void)
 	do_kex("diffie-hellman-group-exchange-sha1");
 	do_kex("diffie-hellman-group14-sha1");
 	do_kex("diffie-hellman-group1-sha1");
+# ifdef USE_SNTRUP761X25519
+	do_kex("sntrup761x25519-sha512@openssh.com");
+# endif /* USE_SNTRUP761X25519 */
 #endif /* WITH_OPENSSL */
 }

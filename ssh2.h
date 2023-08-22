@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh2.h,v 1.18 2016/05/04 14:22:33 markus Exp $ */
+/* $OpenBSD: ssh2.h,v 1.20 2023/08/14 03:37:00 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 /*
- * draft-ietf-secsh-architecture-05.txt
+ * RFC4251:
  *
  *   Transport layer protocol:
  *
@@ -85,6 +85,7 @@
 #define SSH2_MSG_SERVICE_REQUEST			5
 #define SSH2_MSG_SERVICE_ACCEPT				6
 #define SSH2_MSG_EXT_INFO				7
+#define SSH2_MSG_NEWCOMPRESS				8
 
 /* transport layer: alg negotiation */
 

@@ -1,3 +1,4 @@
+/* $OpenBSD: sshsig.h,v 1.11 2021/11/27 07:14:46 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -23,7 +24,8 @@ struct sshsigopt;
 struct sshkey_sig_details;
 
 typedef int sshsig_signer(struct sshkey *, u_char **, size_t *,
-    const u_char *, size_t, const char *, const char *, u_int, void *);
+    const u_char *, size_t, const char *, const char *, const char *,
+    u_int, void *);
 
 /* Buffer-oriented API */
 
@@ -33,7 +35,7 @@ typedef int sshsig_signer(struct sshkey *, u_char **, size_t *,
  * out is populated with the detached signature, or NULL on failure.
  */
 int sshsig_signb(struct sshkey *key, const char *hashalg,
-    const char *sk_provider, const struct sshbuf *message,
+    const char *sk_provider, const char *sk_pin, const struct sshbuf *message,
     const char *sig_namespace, struct sshbuf **out,
     sshsig_signer *signer, void *signer_ctx);
 
@@ -54,7 +56,8 @@ int sshsig_verifyb(struct sshbuf *signature,
  * out is populated with the detached signature, or NULL on failure.
  */
 int sshsig_sign_fd(struct sshkey *key, const char *hashalg,
-    const char *sk_provider, int fd, const char *sig_namespace,
+    const char *sk_provider, const char *sk_pin,
+    int fd, const char *sig_namespace,
     struct sshbuf **out, sshsig_signer *signer, void *signer_ctx);
 
 /*
@@ -83,7 +86,7 @@ int sshsig_dearmor(struct sshbuf *sig, struct sshbuf **out);
  * an allowed_keys file. Returns 0 on success.
  */
 int sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
-    const char *principal, const char *ns);
+    const char *principal, const char *ns, uint64_t verify_time);
 
 /* Parse zero or more allowed_keys signature options */
 struct sshsigopt *sshsigopt_parse(const char *opts,
@@ -91,5 +94,18 @@ struct sshsigopt *sshsigopt_parse(const char *opts,
 
 /* Free signature options */
 void sshsigopt_free(struct sshsigopt *opts);
+
+/* Get public key from signature */
+int sshsig_get_pubkey(struct sshbuf *signature, struct sshkey **pubkey);
+
+/* Find principal in allowed_keys file, given a sshkey. Returns
+ * 0 on success.
+ */
+int sshsig_find_principals(const char *path, const struct sshkey *sign_key,
+    uint64_t verify_time, char **principal);
+
+/* Find all principals in allowed_keys file matching *principal */
+int sshsig_match_principals(const char *path,
+	const char *principal, char ***principalsp, size_t *nprincipalsp);
 
 #endif /* SSHSIG_H */

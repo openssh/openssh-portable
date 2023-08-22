@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.131 2019/12/21 02:19:13 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.151 2023/07/17 04:08:31 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -28,6 +28,7 @@ struct allowed_cname {
 };
 
 typedef struct {
+	char   *host_arg;	/* Host arg as specified on command line. */
 	int     forward_agent;	/* Forward authentication agent. */
 	char   *forward_agent_sock_path; /* Optional path of the agent. */
 	int     forward_x11;	/* Forward X11 display. */
@@ -38,8 +39,6 @@ typedef struct {
 	struct ForwardOptions fwd_opts;	/* forwarding options */
 	int     pubkey_authentication;	/* Try ssh2 pubkey authentication. */
 	int     hostbased_authentication;	/* ssh2's rhosts_rsa */
-	int     challenge_response_authentication;
-					/* Try S/Key or TIS, authentication. */
 	int     gss_authentication;	/* Try GSS authentication */
 	int     gss_deleg_creds;	/* Delegate GSS credentials */
 	int     password_authentication;	/* Try password
@@ -55,7 +54,8 @@ typedef struct {
 	int	ip_qos_bulk;		/* IP ToS/DSCP/class for bulk traffic */
 	SyslogFacility log_facility;	/* Facility for system logging. */
 	LogLevel log_level;	/* Level for logging. */
-
+	u_int	num_log_verbose;	/* Verbose log overrides */
+	char   **log_verbose;
 	int     port;		/* Port to connect. */
 	int     address_family;
 	int     connection_attempts;	/* Max attempts (seconds) before
@@ -70,6 +70,7 @@ typedef struct {
 	char   *kex_algorithms;	/* SSH2 kex methods in order of preference. */
 	char   *ca_sign_algorithms;	/* Allowed CA signature algorithms */
 	char   *hostname;	/* Real host to connect. */
+	char   *tag;		/* Configuration tag name. */
 	char   *host_key_alias;	/* hostname alias for .ssh/known_hosts */
 	char   *proxy_command;	/* Proxy command for connecting the host. */
 	char   *user;		/* User to log in as. */
@@ -97,6 +98,7 @@ typedef struct {
 	struct sshkey *certificates[SSH_MAX_CERTIFICATE_FILES];
 
 	int	add_keys_to_agent;
+	int	add_keys_to_agent_lifespan;
 	char   *identity_agent;		/* Optional path to ssh-agent socket */
 
 	/* Local TCP/IP forward requests. */
@@ -107,6 +109,10 @@ typedef struct {
 	int     num_remote_forwards;
 	struct Forward *remote_forwards;
 	int	clear_forwardings;
+
+	/* Restrict remote dynamic forwarding */
+	char  **permitted_remote_opens;
+	u_int	num_permitted_remote_opens;
 
 	/* stdio forwarding (-W) host and port */
 	char   *stdio_forward_host;
@@ -120,10 +126,10 @@ typedef struct {
 	int	server_alive_interval;
 	int	server_alive_count_max;
 
-	int     num_send_env;
-	char   **send_env;
-	int     num_setenv;
-	char   **setenv;
+	u_int	num_send_env;
+	char	**send_env;
+	u_int	num_setenv;
+	char	**setenv;
 
 	char	*control_path;
 	int	control_master;
@@ -142,6 +148,9 @@ typedef struct {
 	int	visual_host_key;
 
 	int	request_tty;
+	int	session_type;
+	int	stdin_null;
+	int	fork_after_authentication;
 
 	int	proxy_use_fdpass;
 
@@ -159,16 +168,26 @@ typedef struct {
 
 	int	 update_hostkeys; /* one of SSH_UPDATE_HOSTKEYS_* */
 
-	char   *hostbased_key_types;
-	char   *pubkey_key_types;
+	char   *hostbased_accepted_algos;
+	char   *pubkey_accepted_algos;
 
 	char   *jump_user;
 	char   *jump_host;
 	int	jump_port;
 	char   *jump_extra;
 
+	char   *known_hosts_command;
+
+	int	required_rsa_size;	/* minimum size of RSA keys */
+	int	enable_escape_commandline;	/* ~C commandline */
+
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;
+
+#define SSH_PUBKEY_AUTH_NO	0x00
+#define SSH_PUBKEY_AUTH_UNBOUND	0x01
+#define SSH_PUBKEY_AUTH_HBOUND	0x02
+#define SSH_PUBKEY_AUTH_ALL	0x03
 
 #define SSH_CANONICALISE_NO	0
 #define SSH_CANONICALISE_YES	1
@@ -185,6 +204,10 @@ typedef struct {
 #define REQUEST_TTY_YES		2
 #define REQUEST_TTY_FORCE	3
 
+#define SESSION_TYPE_NONE	0
+#define SESSION_TYPE_SUBSYSTEM	1
+#define SESSION_TYPE_DEFAULT	2
+
 #define SSHCONF_CHECKPERM	1  /* check permissions on config file */
 #define SSHCONF_USERCONF	2  /* user provided config file not system */
 #define SSHCONF_FINAL		4  /* Final pass over config, after canon. */
@@ -199,9 +222,13 @@ typedef struct {
 #define SSH_STRICT_HOSTKEY_YES	2
 #define SSH_STRICT_HOSTKEY_ASK	3
 
+const char *kex_default_pk_alg(void);
+char	*ssh_connection_hash(const char *thishost, const char *host,
+    const char *portstr, const char *user);
 void     initialize_options(Options *);
-void     fill_default_options(Options *);
+int      fill_default_options(Options *);
 void	 fill_default_options_for_canonicalization(Options *);
+void	 free_options(Options *o);
 int	 process_config_line(Options *, struct passwd *, const char *,
     const char *, char *, const char *, int, int *, int);
 int	 read_config_file(const char *, struct passwd *, const char *,
@@ -211,6 +238,7 @@ int	 parse_jump(const char *, Options *, int);
 int	 parse_ssh_uri(const char *, char **, char **, int *);
 int	 default_ssh_port(void);
 int	 option_clear_or_none(const char *);
+int	 config_has_permitted_cnames(Options *);
 void	 dump_client_config(Options *o, const char *host);
 
 void	 add_local_forward(Options *, const struct Forward *);

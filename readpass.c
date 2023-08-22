@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.60 2019/12/06 03:06:08 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.70 2022/05/27 04:27:49 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -58,27 +58,27 @@ ssh_askpass(char *askpass, const char *msg, const char *env_hint)
 	void (*osigchld)(int);
 
 	if (fflush(stdout) != 0)
-		error("%s: fflush: %s", __func__, strerror(errno));
+		error_f("fflush: %s", strerror(errno));
 	if (askpass == NULL)
 		fatal("internal error: askpass undefined");
 	if (pipe(p) == -1) {
-		error("%s: pipe: %s", __func__, strerror(errno));
+		error_f("pipe: %s", strerror(errno));
 		return NULL;
 	}
-	osigchld = signal(SIGCHLD, SIG_DFL);
+	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
 	if ((pid = fork()) == -1) {
-		error("%s: fork: %s", __func__, strerror(errno));
-		signal(SIGCHLD, osigchld);
+		error_f("fork: %s", strerror(errno));
+		ssh_signal(SIGCHLD, osigchld);
 		return NULL;
 	}
 	if (pid == 0) {
 		close(p[0]);
 		if (dup2(p[1], STDOUT_FILENO) == -1)
-			fatal("%s: dup2: %s", __func__, strerror(errno));
+			fatal_f("dup2: %s", strerror(errno));
 		if (env_hint != NULL)
 			setenv("SSH_ASKPASS_PROMPT", env_hint, 1);
 		execlp(askpass, askpass, msg, (char *)NULL);
-		fatal("%s: exec(%s): %s", __func__, askpass, strerror(errno));
+		fatal_f("exec(%s): %s", askpass, strerror(errno));
 	}
 	close(p[1]);
 
@@ -98,7 +98,7 @@ ssh_askpass(char *askpass, const char *msg, const char *env_hint)
 	while ((ret = waitpid(pid, &status, 0)) == -1)
 		if (errno != EINTR)
 			break;
-	signal(SIGCHLD, osigchld);
+	ssh_signal(SIGCHLD, osigchld);
 	if (ret == -1 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
 		explicit_bzero(buf, sizeof(buf));
 		return NULL;
@@ -117,21 +117,36 @@ ssh_askpass(char *askpass, const char *msg, const char *env_hint)
  * Reads a passphrase from /dev/tty with echo turned off/on.  Returns the
  * passphrase (allocated with xmalloc).  Exits if EOF is encountered. If
  * RP_ALLOW_STDIN is set, the passphrase will be read from stdin if no
- * tty is available
+ * tty is or askpass program is available
  */
 char *
 read_passphrase(const char *prompt, int flags)
 {
 	char cr = '\r', *askpass = NULL, *ret, buf[1024];
-	int rppflags, use_askpass = 0, ttyfd;
+	int rppflags, ttyfd, use_askpass = 0, allow_askpass = 0;
 	const char *askpass_hint = NULL;
+	const char *s;
+
+	if ((s = getenv("DISPLAY")) != NULL)
+		allow_askpass = *s != '\0';
+	if ((s = getenv(SSH_ASKPASS_REQUIRE_ENV)) != NULL) {
+		if (strcasecmp(s, "force") == 0) {
+			use_askpass = 1;
+			allow_askpass = 1;
+		} else if (strcasecmp(s, "prefer") == 0)
+			use_askpass = allow_askpass;
+		else if (strcasecmp(s, "never") == 0)
+			allow_askpass = 0;
+	}
 
 	rppflags = (flags & RP_ECHO) ? RPP_ECHO_ON : RPP_ECHO_OFF;
-	if (flags & RP_USE_ASKPASS)
+	if (use_askpass)
+		debug_f("requested to askpass");
+	else if (flags & RP_USE_ASKPASS)
 		use_askpass = 1;
 	else if (flags & RP_ALLOW_STDIN) {
 		if (!isatty(STDIN_FILENO)) {
-			debug("read_passphrase: stdin is not a tty");
+			debug_f("stdin is not a tty");
 			use_askpass = 1;
 		}
 	} else {
@@ -147,16 +162,16 @@ read_passphrase(const char *prompt, int flags)
 			(void)write(ttyfd, &cr, 1);
 			close(ttyfd);
 		} else {
-			debug("read_passphrase: can't open %s: %s", _PATH_TTY,
+			debug_f("can't open %s: %s", _PATH_TTY,
 			    strerror(errno));
 			use_askpass = 1;
 		}
 	}
 
-	if ((flags & RP_USE_ASKPASS) && getenv("DISPLAY") == NULL)
+	if ((flags & RP_USE_ASKPASS) && !allow_askpass)
 		return (flags & RP_ALLOW_EOF) ? NULL : xstrdup("");
 
-	if (use_askpass && getenv("DISPLAY")) {
+	if (use_askpass && allow_askpass) {
 		if (getenv(SSH_ASKPASS_ENV))
 			askpass = getenv(SSH_ASKPASS_ENV);
 		else
@@ -207,6 +222,14 @@ ask_permission(const char *fmt, ...)
 	return (allowed);
 }
 
+static void
+writemsg(const char *msg)
+{
+	(void)write(STDERR_FILENO, "\r", 1);
+	(void)write(STDERR_FILENO, msg, strlen(msg));
+	(void)write(STDERR_FILENO, "\r\n", 2);
+}
+
 struct notifier_ctx {
 	pid_t pid;
 	void (*osigchld)(int);
@@ -217,66 +240,81 @@ notify_start(int force_askpass, const char *fmt, ...)
 {
 	va_list args;
 	char *prompt = NULL;
-	int devnull;
-	pid_t pid;
-	void (*osigchld)(int);
-	const char *askpass;
-	struct notifier_ctx *ret;
+	pid_t pid = -1;
+	void (*osigchld)(int) = NULL;
+	const char *askpass, *s;
+	struct notifier_ctx *ret = NULL;
 
 	va_start(args, fmt);
 	xvasprintf(&prompt, fmt, args);
 	va_end(args);
 
 	if (fflush(NULL) != 0)
-		error("%s: fflush: %s", __func__, strerror(errno));
+		error_f("fflush: %s", strerror(errno));
 	if (!force_askpass && isatty(STDERR_FILENO)) {
-		(void)write(STDERR_FILENO, "\r", 1);
-		(void)write(STDERR_FILENO, prompt, strlen(prompt));
-		(void)write(STDERR_FILENO, "\r\n", 2);
-		free(prompt);
-		return NULL;
+		writemsg(prompt);
+		goto out_ctx;
 	}
 	if ((askpass = getenv("SSH_ASKPASS")) == NULL)
 		askpass = _PATH_SSH_ASKPASS_DEFAULT;
-	if (getenv("DISPLAY") == NULL || *askpass == '\0') {
-		debug3("%s: cannot notify", __func__);
-		free(prompt);
-		return NULL;
+	if (*askpass == '\0') {
+		debug3_f("cannot notify: no askpass");
+		goto out;
 	}
-	osigchld = signal(SIGCHLD, SIG_DFL);
+	if (getenv("DISPLAY") == NULL &&
+	    ((s = getenv(SSH_ASKPASS_REQUIRE_ENV)) == NULL ||
+	    strcmp(s, "force") != 0)) {
+		debug3_f("cannot notify: no display");
+		goto out;
+	}
+	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
 	if ((pid = fork()) == -1) {
-		error("%s: fork: %s", __func__, strerror(errno));
-		signal(SIGCHLD, osigchld);
+		error_f("fork: %s", strerror(errno));
+		ssh_signal(SIGCHLD, osigchld);
 		free(prompt);
 		return NULL;
 	}
 	if (pid == 0) {
-		if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1)
-			fatal("%s: open %s", __func__, strerror(errno));
-		if (dup2(devnull, STDIN_FILENO) == -1 ||
-		    dup2(devnull, STDOUT_FILENO) == -1)
-			fatal("%s: dup2: %s", __func__, strerror(errno));
+		if (stdfd_devnull(1, 1, 0) == -1)
+			fatal_f("stdfd_devnull failed");
 		closefrom(STDERR_FILENO + 1);
 		setenv("SSH_ASKPASS_PROMPT", "none", 1); /* hint to UI */
 		execlp(askpass, askpass, prompt, (char *)NULL);
-		error("%s: exec(%s): %s", __func__, askpass, strerror(errno));
+		error_f("exec(%s): %s", askpass, strerror(errno));
 		_exit(1);
 		/* NOTREACHED */
 	}
+ out_ctx:
 	if ((ret = calloc(1, sizeof(*ret))) == NULL) {
-		kill(pid, SIGTERM);
-		fatal("%s: calloc failed", __func__);
+		if (pid != -1)
+			kill(pid, SIGTERM);
+		fatal_f("calloc failed");
 	}
 	ret->pid = pid;
 	ret->osigchld = osigchld;
+ out:
 	free(prompt);
 	return ret;
 }
 
 void
-notify_complete(struct notifier_ctx *ctx)
+notify_complete(struct notifier_ctx *ctx, const char *fmt, ...)
 {
 	int ret;
+	char *msg = NULL;
+	va_list args;
+
+	if (ctx != NULL && fmt != NULL && ctx->pid == -1) {
+		/*
+		 * notify_start wrote to stderr, so send conclusion message
+		 * there too
+		*/
+		va_start(args, fmt);
+		xvasprintf(&msg, fmt, args);
+		va_end(args);
+		writemsg(msg);
+		free(msg);
+	}
 
 	if (ctx == NULL || ctx->pid <= 0) {
 		free(ctx);
@@ -288,7 +326,7 @@ notify_complete(struct notifier_ctx *ctx)
 			break;
 	}
 	if (ret == -1)
-		fatal("%s: waitpid: %s", __func__, strerror(errno));
-	signal(SIGCHLD, ctx->osigchld);
+		fatal_f("waitpid: %s", strerror(errno));
+	ssh_signal(SIGCHLD, ctx->osigchld);
 	free(ctx);
 }

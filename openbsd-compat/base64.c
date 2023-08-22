@@ -49,7 +49,6 @@
 #if (!defined(HAVE_B64_NTOP) && !defined(HAVE___B64_NTOP)) || (!defined(HAVE_B64_PTON) && !defined(HAVE___B64_PTON))
 
 #include <sys/types.h>
-#include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -211,7 +210,7 @@ b64_pton(char const *src, u_char *target, size_t targsize)
 			break;
 
 		pos = strchr(Base64, ch);
-		if (pos == 0) 		/* A non-base64 character. */
+		if (pos == 0)		/* A non-base64 character. */
 			return (-1);
 
 		switch (state) {

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-common.c,v 1.31 2018/09/13 15:23:32 millert Exp $ */
+/* $OpenBSD: sftp-common.c,v 1.34 2023/03/31 04:00:37 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -136,7 +136,9 @@ decode_attrib(struct sshbuf *b, Attrib *a)
 		u_int i, count;
 
 		if ((r = sshbuf_get_u32(b, &count)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			return r;
+		if (count > 0x100000)
+			return SSH_ERR_INVALID_FORMAT;
 		for (i = 0; i < count; i++) {
 			if ((r = sshbuf_get_cstring(b, &type, NULL)) != 0 ||
 			    (r = sshbuf_get_string(b, &data, &dlen)) != 0)
@@ -212,21 +214,25 @@ fx2txt(int status)
  * drwxr-xr-x    5 markus   markus       1024 Jan 13 18:39 .ssh
  */
 char *
-ls_file(const char *name, const struct stat *st, int remote, int si_units)
+ls_file(const char *name, const struct stat *st, int remote, int si_units,
+    const char *user, const char *group)
 {
 	int ulen, glen, sz = 0;
 	struct tm *ltime = localtime(&st->st_mtime);
-	const char *user, *group;
 	char buf[1024], lc[8], mode[11+1], tbuf[12+1], ubuf[11+1], gbuf[11+1];
 	char sbuf[FMT_SCALED_STRSIZE];
 	time_t now;
 
 	strmode(st->st_mode, mode);
 	if (remote) {
-		snprintf(ubuf, sizeof ubuf, "%u", (u_int)st->st_uid);
-		user = ubuf;
-		snprintf(gbuf, sizeof gbuf, "%u", (u_int)st->st_gid);
-		group = gbuf;
+		if (user == NULL) {
+			snprintf(ubuf, sizeof ubuf, "%u", (u_int)st->st_uid);
+			user = ubuf;
+		}
+		if (group == NULL) {
+			snprintf(gbuf, sizeof gbuf, "%u", (u_int)st->st_gid);
+			group = gbuf;
+		}
 		strlcpy(lc, "?", sizeof(lc));
 	} else {
 		user = user_from_uid(st->st_uid, 0);

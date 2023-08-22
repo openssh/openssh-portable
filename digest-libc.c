@@ -1,4 +1,4 @@
-/* $OpenBSD: digest-libc.c,v 1.6 2017/05/08 22:57:38 djm Exp $ */
+/* $OpenBSD: digest-libc.c,v 1.7 2020/02/26 13:40:09 jsg Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  * Copyright (c) 2014 Markus Friedl.  All rights reserved.
@@ -34,6 +34,16 @@
 #endif
 #ifdef HAVE_SHA2_H
 #include <sha2.h>
+#endif
+
+#if !defined(SHA256_BLOCK_LENGTH) && defined(SHA256_HMAC_BLOCK_SIZE)
+#define SHA256_BLOCK_LENGTH SHA256_HMAC_BLOCK_SIZE
+#endif
+#if !defined(SHA384_BLOCK_LENGTH) && defined(SHA512_HMAC_BLOCK_SIZE)
+#define SHA384_BLOCK_LENGTH SHA512_HMAC_BLOCK_SIZE
+#endif
+#if !defined(SHA512_BLOCK_LENGTH) && defined(SHA512_HMAC_BLOCK_SIZE)
+#define SHA512_BLOCK_LENGTH SHA512_HMAC_BLOCK_SIZE
 #endif
 
 #include "ssherr.h"
@@ -230,8 +240,7 @@ ssh_digest_free(struct ssh_digest_ctx *ctx)
 		if (digest) {
 			explicit_bzero(ctx->mdctx, digest->ctx_len);
 			free(ctx->mdctx);
-			explicit_bzero(ctx, sizeof(*ctx));
-			free(ctx);
+			freezero(ctx, sizeof(*ctx));
 		}
 	}
 }

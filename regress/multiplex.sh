@@ -1,12 +1,10 @@
-#	$OpenBSD: multiplex.sh,v 1.30 2019/07/05 04:03:13 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.36 2023/03/01 09:29:32 dtucker Exp $
 #	Placed in the Public Domain.
 
 make_tmpdir
 CTL=${SSH_REGRESS_TMP}/ctl-sock
 
 tid="connection multiplexing"
-
-NC=$OBJ/netcat
 
 trace "will use ProxyCommand $proxycmd"
 if config_defined DISABLE_FD_PASSING ; then
@@ -18,7 +16,7 @@ P=3301  # test port
 
 wait_for_mux_master_ready()
 {
-	for i in 1 2 3 4 5; do
+	for i in 1 2 3 4 5 6 7 8 9; do
 		${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck otherhost \
 		    >/dev/null 2>&1 && return 0
 		sleep $i
@@ -26,6 +24,7 @@ wait_for_mux_master_ready()
 	fatal "mux master never becomes ready"
 }
 
+maybe_add_scp_path_to_sshd
 start_sshd
 
 start_mux_master()
@@ -40,14 +39,24 @@ start_mux_master()
 
 start_mux_master
 
-verbose "test $tid: envpass"
-trace "env passing over multiplexed connection"
+verbose "test $tid: setenv"
+trace "setenv over multiplexed connection"
 _XXX_TEST=blah ${SSH} -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" -S$CTL otherhost sh << 'EOF'
 	test X"$_XXX_TEST" = X"blah"
 EOF
 if [ $? -ne 0 ]; then
 	fail "environment not found"
 fi
+
+verbose "test $tid: envpass"
+trace "env passing over multiplexed connection"
+${SSH} -F $OBJ/ssh_config -oSetEnv="_XXX_TEST=foo" -S$CTL otherhost sh << 'EOF'
+	test X"$_XXX_TEST" = X"foo"
+EOF
+if [ $? -ne 0 ]; then
+	fail "environment not found"
+fi
+
 
 verbose "test $tid: transfer"
 rm -f ${COPY}
@@ -78,7 +87,7 @@ cmp ${DATA} ${COPY}		|| fail "scp: corrupted copy of ${DATA}"
 rm -f ${COPY}
 verbose "test $tid: forward"
 trace "forward over TCP/IP and check result"
-$NC -N -l 127.0.0.1 $((${PORT} + 1)) < ${DATA} > /dev/null &
+$NC -N -l 127.0.0.1 $((${PORT} + 1)) < ${DATA} >`ssh_logfile nc` &
 netcat_pid=$!
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -L127.0.0.1:$((${PORT} + 2)):127.0.0.1:$((${PORT} + 1)) otherhost >>$TEST_SSH_LOGFILE 2>&1
 sleep 1  # XXX remove once race fixed
@@ -99,22 +108,24 @@ kill $netcat_pid 2>/dev/null
 rm -f ${COPY} $OBJ/unix-[123].fwd
 
 for s in 0 1 4 5 44; do
-	trace "exit status $s over multiplexed connection"
-	verbose "test $tid: status $s"
-	${SSH} -F $OBJ/ssh_config -S $CTL otherhost exit $s
+   for mode in "" "-Oproxy"; do
+	trace "exit status $s over multiplexed connection ($mode)"
+	verbose "test $tid: status $s ($mode)"
+	${SSH} -F $OBJ/ssh_config -S $CTL $mode otherhost exit $s
 	r=$?
 	if [ $r -ne $s ]; then
 		fail "exit code mismatch: $r != $s"
 	fi
 
 	# same with early close of stdout/err
-	trace "exit status $s with early close over multiplexed connection"
-	${SSH} -F $OBJ/ssh_config -S $CTL -n otherhost \
+	trace "exit status $s with early close over multiplexed connection ($mode)"
+	${SSH} -F $OBJ/ssh_config -S $CTL -n $mode otherhost \
                 exec sh -c \'"sleep 2; exec > /dev/null 2>&1; sleep 3; exit $s"\'
 	r=$?
 	if [ $r -ne $s ]; then
 		fail "exit code (with sleep) mismatch: $r != $s"
 	fi
+   done
 done
 
 verbose "test $tid: cmd check"

@@ -89,7 +89,7 @@ struct __res_state _res;
 
 #ifndef GETSHORT
 #define GETSHORT(s, cp) { \
-	register u_char *t_cp = (u_char *)(cp); \
+	u_char *t_cp = (u_char *)(cp); \
 	(s) = ((u_int16_t)t_cp[0] << 8) \
 	    | ((u_int16_t)t_cp[1]) \
 	    ; \
@@ -99,7 +99,7 @@ struct __res_state _res;
 
 #ifndef GETLONG
 #define GETLONG(l, cp) { \
-	register u_char *t_cp = (u_char *)(cp); \
+	u_char *t_cp = (u_char *)(cp); \
 	(l) = ((u_int32_t)t_cp[0] << 24) \
 	    | ((u_int32_t)t_cp[1] << 16) \
 	    | ((u_int32_t)t_cp[2] << 8) \
@@ -110,36 +110,41 @@ struct __res_state _res;
 #endif
 
 /*
+ * If the system doesn't have _getshort/_getlong or that are not exactly what
+ * we need then use local replacements, avoiding name collisions.
+ */
+#if !defined(HAVE__GETSHORT) || !defined(HAVE__GETLONG) || \
+    !defined(HAVE_DECL__GETSHORT) || HAVE_DECL__GETSHORT == 0 || \
+    !defined(HAVE_DECL__GETLONG) || HAVE_DECL__GETLONG == 0
+# ifdef _getshort
+#  undef _getshort
+# endif
+# ifdef _getlong
+#  undef _getlong
+# endif
+# define _getshort(x) (_ssh_compat_getshort(x))
+# define _getlong(x) (_ssh_compat_getlong(x))
+/*
  * Routines to insert/extract short/long's.
  */
-
-#ifndef HAVE__GETSHORT
 static u_int16_t
-_getshort(msgp)
-	register const u_char *msgp;
+_getshort(const u_char *msgp)
 {
-	register u_int16_t u;
+	u_int16_t u;
 
 	GETSHORT(u, msgp);
 	return (u);
 }
-#elif defined(HAVE_DECL__GETSHORT) && (HAVE_DECL__GETSHORT == 0)
-u_int16_t _getshort(register const u_char *);
-#endif
 
-#ifndef HAVE__GETLONG
 static u_int32_t
-_getlong(msgp)
-	register const u_char *msgp;
+_getlong(const u_char *msgp)
 {
-	register u_int32_t u;
+	u_int32_t u;
 
 	GETLONG(u, msgp);
 	return (u);
 }
-#elif defined(HAVE_DECL__GETLONG) && (HAVE_DECL__GETLONG == 0)
-u_int32_t _getlong(register const u_char *);
-#endif
+#endif /* missing _getshort/_getlong */
 
 /* ************** */
 
@@ -385,6 +390,9 @@ parse_dns_response(const u_char *answer, int size)
 	struct dns_response *resp;
 	const u_char *cp;
 
+	if (size < HFIXEDSZ)
+		return (NULL);
+
 	/* allocate memory for the response */
 	resp = calloc(1, sizeof(*resp));
 	if (resp == NULL)
@@ -451,14 +459,22 @@ parse_dns_qsection(const u_char *answer, int size, const u_char **cp, int count)
 	int i, length;
 	char name[MAXDNAME];
 
-	for (i = 1, head = NULL, prev = NULL; i <= count; i++, prev = curr) {
+#define NEED(need) \
+	do { \
+		if (*cp + need > answer + size) \
+			goto fail; \
+	} while (0)
 
-		/* allocate and initialize struct */
-		curr = calloc(1, sizeof(struct dns_query));
-		if (curr == NULL) {
+	for (i = 1, head = NULL, prev = NULL; i <= count; i++, prev = curr) {
+		if (*cp >= answer + size) {
+ fail:
 			free_dns_query(head);
 			return (NULL);
 		}
+		/* allocate and initialize struct */
+		curr = calloc(1, sizeof(struct dns_query));
+		if (curr == NULL)
+			goto fail;
 		if (head == NULL)
 			head = curr;
 		if (prev != NULL)
@@ -476,16 +492,20 @@ parse_dns_qsection(const u_char *answer, int size, const u_char **cp, int count)
 			free_dns_query(head);
 			return (NULL);
 		}
+		NEED(length);
 		*cp += length;
 
 		/* type */
+		NEED(INT16SZ);
 		curr->type = _getshort(*cp);
 		*cp += INT16SZ;
 
 		/* class */
+		NEED(INT16SZ);
 		curr->class = _getshort(*cp);
 		*cp += INT16SZ;
 	}
+#undef NEED
 
 	return (head);
 }
@@ -498,14 +518,23 @@ parse_dns_rrsection(const u_char *answer, int size, const u_char **cp,
 	int i, length;
 	char name[MAXDNAME];
 
-	for (i = 1, head = NULL, prev = NULL; i <= count; i++, prev = curr) {
+#define NEED(need) \
+	do { \
+		if (*cp + need > answer + size) \
+			goto fail; \
+	} while (0)
 
-		/* allocate and initialize struct */
-		curr = calloc(1, sizeof(struct dns_rr));
-		if (curr == NULL) {
+	for (i = 1, head = NULL, prev = NULL; i <= count; i++, prev = curr) {
+		if (*cp >= answer + size) {
+ fail:
 			free_dns_rr(head);
 			return (NULL);
 		}
+
+		/* allocate and initialize struct */
+		curr = calloc(1, sizeof(struct dns_rr));
+		if (curr == NULL)
+			goto fail;
 		if (head == NULL)
 			head = curr;
 		if (prev != NULL)
@@ -523,25 +552,31 @@ parse_dns_rrsection(const u_char *answer, int size, const u_char **cp,
 			free_dns_rr(head);
 			return (NULL);
 		}
+		NEED(length);
 		*cp += length;
 
 		/* type */
+		NEED(INT16SZ);
 		curr->type = _getshort(*cp);
 		*cp += INT16SZ;
 
 		/* class */
+		NEED(INT16SZ);
 		curr->class = _getshort(*cp);
 		*cp += INT16SZ;
 
 		/* ttl */
+		NEED(INT32SZ);
 		curr->ttl = _getlong(*cp);
 		*cp += INT32SZ;
 
 		/* rdata size */
+		NEED(INT16SZ);
 		curr->size = _getshort(*cp);
 		*cp += INT16SZ;
 
 		/* rdata itself */
+		NEED(curr->size);
 		curr->rdata = malloc(curr->size);
 		if (curr->rdata == NULL) {
 			free_dns_rr(head);
@@ -550,6 +585,7 @@ parse_dns_rrsection(const u_char *answer, int size, const u_char **cp,
 		memcpy(curr->rdata, *cp, curr->size);
 		*cp += curr->size;
 	}
+#undef NEED
 
 	return (head);
 }

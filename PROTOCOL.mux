@@ -15,7 +15,7 @@ Most messages from the client to the server contain a "request id"
 field. This field is returned in replies as "client request id" to
 facilitate matching of responses to requests.
 
-Many muliplexing (mux) client requests yield immediate responses from
+Many multiplexing (mux) client requests yield immediate responses from
 the mux process; requesting a forwarding, performing an alive check or
 requesting the master terminate itself fall in to this category.
 
@@ -39,7 +39,7 @@ messages between the client and server. The client therefore must
 speak a significant subset of the SSH protocol, but in return is able
 to access basically the full suite of connection protocol features.
 Moreover, as no file descriptor passing is required, the connection
-supporting a proxy client may iteself be forwarded or relayed to another
+supporting a proxy client may itself be forwarded or relayed to another
 host if necessary.
 
 1. Connection setup
@@ -216,7 +216,7 @@ MUX_S_FAILURE.
 
 9. Requesting proxy mode
 
-A client may request that the the control connection be placed in proxy
+A client may request that the control connection be placed in proxy
 mode:
 
 	uint32	MUX_C_PROXY
@@ -295,4 +295,4 @@ XXX session inspection via master
 XXX signals via mux request
 XXX list active connections via mux
 
-$OpenBSD: PROTOCOL.mux,v 1.11 2018/09/26 07:30:05 djm Exp $
+$OpenBSD: PROTOCOL.mux,v 1.13 2022/01/01 01:55:30 jsg Exp $

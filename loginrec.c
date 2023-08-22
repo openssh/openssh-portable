@@ -181,6 +181,7 @@
 #include "auth.h"
 #include "sshbuf.h"
 #include "ssherr.h"
+#include "misc.h"
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -778,6 +779,9 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 	strncpy(utx->ut_host, li->hostname,
 	    MIN_SIZEOF(utx->ut_host, li->hostname));
 # endif
+# ifdef HAVE_SS_IN_UTMPX
+	utx->ut_ss = li->hostaddr.sa_storage;
+# endif
 # ifdef HAVE_ADDR_IN_UTMPX
 	/* this is just a 32-bit IP address */
 	if (li->hostaddr.sa.sa_family == AF_INET)
@@ -798,7 +802,7 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 # endif
 # ifdef HAVE_SYSLEN_IN_UTMPX
 	/* ut_syslen is the length of the utx_host string */
-	utx->ut_syslen = MIN(strlen(li->hostname), sizeof(utx->ut_host));
+	utx->ut_syslen = MINIMUM(strlen(li->hostname), sizeof(utx->ut_host));
 # endif
 }
 #endif /* USE_UTMPX || USE_WTMPX */

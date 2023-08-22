@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.311 2019/12/21 20:22:34 naddy Exp $
-.Dd $Mdocdate: December 21 2019 $
+.\" $OpenBSD: sshd.8,v 1.324 2023/02/10 06:39:27 jmc Exp $
+.Dd $Mdocdate: February 10 2023 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -43,7 +43,7 @@
 .Sh SYNOPSIS
 .Nm sshd
 .Bk -words
-.Op Fl 46DdeiqTt
+.Op Fl 46DdeGiqTtV
 .Op Fl C Ar connection_spec
 .Op Fl c Ar host_certificate_file
 .Op Fl E Ar log_file
@@ -58,8 +58,7 @@
 .Nm
 (OpenSSH Daemon) is the daemon program for
 .Xr ssh 1 .
-Together these programs replace rlogin and rsh,
-and provide secure encrypted communications between two untrusted hosts
+It provides secure encrypted communications between two untrusted hosts
 over an insecure network.
 .Pp
 .Nm
@@ -107,7 +106,7 @@ supplied in any order, either with multiple
 .Fl C
 options or as a comma-separated list.
 The keywords are
-.Dq addr,
+.Dq addr ,
 .Dq user ,
 .Dq host ,
 .Dq laddr ,
@@ -135,7 +134,9 @@ This allows easy monitoring of
 Debug mode.
 The server sends verbose debug output to standard error,
 and does not put itself in the background.
-The server also will not fork and will only process one connection.
+The server also will not
+.Xr fork 2
+and will only process one connection.
 This option is only intended for debugging for the server.
 Multiple
 .Fl d
@@ -153,6 +154,15 @@ The default is
 .Pa /etc/ssh/sshd_config .
 .Nm
 refuses to start if there is no configuration file.
+.It Fl G
+Parse and print configuration file.
+Check the validity of the configuration file, output the effective configuration
+to stdout and then exit.
+Optionally,
+.Cm Match
+rules may be applied by specifying the connection parameters using one or more
+.Fl C
+options.
 .It Fl g Ar login_grace_time
 Gives the grace time for clients to authenticate themselves (default
 120 seconds).
@@ -207,6 +217,11 @@ Optionally,
 rules may be applied by specifying the connection parameters using one or more
 .Fl C
 options.
+This is similar to the
+.Fl G
+flag, but it includes the additional testing performed by the
+.Fl t
+flag.
 .It Fl t
 Test mode.
 Only check the validity of the configuration file and sanity of the keys.
@@ -216,7 +231,7 @@ reliably as configuration options may change.
 .It Fl u Ar len
 This option is used to specify the size of the field
 in the
-.Li utmp
+.Vt utmp
 structure that holds the remote host name.
 If the resolved host name is longer than
 .Ar len ,
@@ -244,6 +259,8 @@ USER@HOST pattern in
 .Cm AllowUsers
 or
 .Cm DenyUsers .
+.It Fl V
+Display the version number and exit.
 .El
 .Sh AUTHENTICATION
 The OpenSSH SSH daemon supports SSH protocol 2 only.
@@ -302,7 +319,12 @@ things like allocating a pseudo-tty, forwarding X11 connections,
 forwarding TCP connections, or forwarding the authentication agent
 connection over the secure channel.
 .Pp
-After this, the client either requests a shell or execution of a command.
+After this, the client either requests an interactive shell or execution
+or a non-interactive command, which
+.Nm
+will execute via the user's shell using its
+.Fl c
+option.
 The sides then enter session mode.
 In this mode, either side may send
 data at any time, and such data is forwarded to/from the shell or
@@ -355,7 +377,8 @@ exists and the
 option is set, runs it; else if
 .Pa /etc/ssh/sshrc
 exists, runs
-it; otherwise runs xauth.
+it; otherwise runs
+.Xr xauth 1 .
 The
 .Dq rc
 files are given the X11
@@ -526,8 +549,9 @@ controlled via the
 option.
 .It Cm expiry-time="timespec"
 Specifies a time after which the key will not be accepted.
-The time may be specified as a YYYYMMDD date or a YYYYMMDDHHMM[SS] time
-in the system time-zone.
+The time may be specified as a YYYYMMDD[Z] date or a YYYYMMDDHHMM[SS][Z] time.
+Dates and times will be interpreted in the system time zone unless suffixed
+by a Z character, in which case they will be interpreted in the UTC time zone.
 .It Cm from="pattern-list"
 Specifies that in addition to public key authentication, either the canonical
 name of the remote host or its IP address must be present in the
@@ -600,8 +624,8 @@ IPv6 addresses can be specified by enclosing the address in square brackets.
 Multiple
 .Cm permitopen
 options may be applied separated by commas.
-No pattern matching is performed on the specified hostnames,
-they must be literal domains or addresses.
+No pattern matching or name lookup is performed on the
+specified hostnames, they must be literal host names and/or addresses.
 A port specification of
 .Cm *
 matches any port.
@@ -631,12 +655,19 @@ This option only makes sense for the FIDO authenticator algorithms
 .Cm ecdsa-sk
 and
 .Cm ed25519-sk .
+.It Cm verify-required
+Require that signatures made using this key attest that they verified
+the user, e.g. via a PIN.
+This option only makes sense for the FIDO authenticator algorithms
+.Cm ecdsa-sk
+and
+.Cm ed25519-sk .
 .It Cm restrict
 Enable all restrictions, i.e. disable port, agent and X11 forwarding,
 as well as disabling PTY allocation
 and execution of
 .Pa ~/.ssh/rc .
-If any future restriction capabilities are added to authorized_keys files
+If any future restriction capabilities are added to authorized_keys files,
 they will be included in this set.
 .It Cm tunnel="n"
 Force a
@@ -658,24 +689,25 @@ option.
 .Pp
 An example authorized_keys file:
 .Bd -literal -offset 3n
-# Comments allowed at start of line
-ssh-rsa AAAAB3Nza...LiPk== user@example.net
-from="*.sales.example.net,!pc.sales.example.net" ssh-rsa
-AAAAB2...19Q== john@example.net
-command="dump /home",no-pty,no-port-forwarding ssh-rsa
-AAAAC3...51R== example.net
-permitopen="192.0.2.1:80",permitopen="192.0.2.2:25" ssh-rsa
-AAAAB5...21S==
-permitlisten="localhost:8080",permitopen="localhost:22000" ssh-rsa
-AAAAB5...21S==
-tunnel="0",command="sh /etc/netstart tun0" ssh-rsa AAAA...==
-jane@example.net
-restrict,command="uptime" ssh-rsa AAAA1C8...32Tv==
-user@example.net
-restrict,pty,command="nethack" ssh-rsa AAAA1f8...IrrC5==
-user@example.net
-no-touch-required sk-ecdsa-sha2-nistp256@openssh.com AAAAInN...Ko==
-user@example.net
+# Comments are allowed at start of line. Blank lines are allowed.
+# Plain key, no restrictions
+ssh-rsa ...
+# Forced command, disable PTY and all forwarding
+restrict,command="dump /home" ssh-rsa ...
+# Restriction of ssh -L forwarding destinations
+permitopen="192.0.2.1:80",permitopen="192.0.2.2:25" ssh-rsa ...
+# Restriction of ssh -R forwarding listeners
+permitlisten="localhost:8080",permitlisten="[::1]:22000" ssh-rsa ...
+# Configuration for tunnel forwarding
+tunnel="0",command="sh /etc/netstart tun0" ssh-rsa ...
+# Override of restriction to allow PTY allocation
+restrict,pty,command="nethack" ssh-rsa ...
+# Allow FIDO key without requiring touch
+no-touch-required sk-ecdsa-sha2-nistp256@openssh.com ...
+# Require user-verification (e.g. PIN or biometric) for FIDO key
+verify-required sk-ecdsa-sha2-nistp256@openssh.com ...
+# Trust CA key, allow touch-less FIDO if requested in certificate
+cert-authority,no-touch-required,principals="user_a" ssh-rsa ...
 .Ed
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
 The
@@ -688,7 +720,7 @@ be prepared by the administrator (optional), and the per-user file is
 maintained automatically: whenever the user connects to an unknown host,
 its key is added to the per-user file.
 .Pp
-Each line in these files contains the following fields: markers (optional),
+Each line in these files contains the following fields: marker (optional),
 hostnames, keytype, base64-encoded key, comment.
 The fields are separated by spaces.
 .Pp
@@ -797,7 +829,6 @@ names to their hashed representations.
 An example ssh_known_hosts file:
 .Bd -literal -offset 3n
 # Comments allowed at start of line
-closenet,...,192.0.2.53 1024 37 159...93 closenet.example.net
 cvs.example.net,192.0.2.10 ssh-rsa AAAA1234.....=
 # A hashed hostname
 |1|JfKTdBh7rNbXkVAQCRp4OQoPfmI=|USECr3SWf1JUPsms5AqfD5QfxkM= ssh-rsa
