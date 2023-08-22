@@ -450,8 +450,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 {
 	int on = 1, saved_timeout_ms = *timeout_ms;
 	int oerrno, sock = -1, attempt;
-	char ntop[NI_MAXHOST];
-	char strport[6 /* strlen(" port ") */ + NI_MAXSERV];
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct addrinfo *ai;
 
 	debug3_f("entering");
@@ -482,12 +481,6 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 				error_f("getnameinfo failed");
 				errno = oerrno;
 				continue;
-			}
-			if (ai->ai_family == AF_LOCAL) {
-				memset(strport, 0, sizeof(strport));
-			} else {
-				snprintf(strport, sizeof(strport), " port %s",
-				    strport);
 			}
 			debug("Connecting to %.200s [%.100s]%s.",
 				host, ntop, strport);
