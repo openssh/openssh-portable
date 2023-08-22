@@ -470,7 +470,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 		for (ai = aitop; ai; ai = ai->ai_next) {
 			if (ai->ai_family != AF_INET &&
 			    ai->ai_family != AF_INET6 &&
-			    ai->ai_family != AF_LOCAL) {
+			    ai->ai_family != AF_UNIX) {
 				errno = EAFNOSUPPORT;
 				continue;
 			}
