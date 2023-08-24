@@ -1506,7 +1506,7 @@ verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key,
 			goto out;
 		if (sshkey_is_cert(plain))
 			sshkey_drop_cert(plain);
-		if (verify_host_key_dns(host, hostaddr, plain, &flags) == 0) {
+		if (verify_host_key_dns(host, hostaddr, plain, &flags, options.ldns_anchor_file) == 0) {
 			if (flags & DNS_VERIFY_FOUND) {
 				if (options.verify_host_key_dns == 1 &&
 				    flags & DNS_VERIFY_MATCH &&

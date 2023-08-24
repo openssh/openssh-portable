@@ -51,6 +51,7 @@
 #include <string.h>
 
 #include <ldns/ldns.h>
+#include <ldns/keys.h>
 
 #include "getrrsetbyname.h"
 #include "log.h"
@@ -62,7 +63,7 @@
 int
 getrrsetbyname(const char *hostname, unsigned int rdclass,
 	       unsigned int rdtype, unsigned int flags,
-	       struct rrsetinfo **res)
+	       struct rrsetinfo **res, const char *ldns_anchor_file)
 {
 	int result;
 	unsigned int i, j, index_ans, index_sig;
@@ -75,6 +76,7 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	ldns_rr_list *rrsigs = NULL, *rrdata = NULL;
 	ldns_status err;
 	ldns_rr *rr;
+	ldns_rr *tmp_rr;
 
 	/* check for invalid class and type */
 	if (rdclass > 0xffff || rdtype > 0xffff) {
@@ -100,6 +102,17 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	    LDNS_STATUS_OK) {
 		result = ERRSET_FAIL;
 		goto fail;
+	}
+
+	/* Add additional anchor file */
+	if ( ldns_anchor_file != NULL ) {
+		tmp_rr = ldns_read_anchor_file(ldns_anchor_file);
+		if ((err = ldns_resolver_push_dnssec_anchor(ldns_res, tmp_rr)) != \
+		   LDNS_STATUS_OK) {
+			result = ERRSET_FAIL;
+			goto fail;
+		}
+		ldns_rr_free(tmp_rr);
 	}
 
 #ifdef LDNS_DEBUG

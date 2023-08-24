@@ -1233,6 +1233,12 @@ is enabled, one more time to obtain the host key matching the server's
 address.
 If the command exits abnormally or returns a non-zero exit status then the
 connection is terminated.
+.It Cm LDNSAnchorFile
+Specifies the DNSSEC anchor file for use with the LDNS-Library. The file may be
+found in
+.Pa /etc/unbound/root.key .
+This file is used to validate DNSSEC. This is needed if ssh is compiled with ldns for DNSSEC support and the anchor option is not set in
+.Pa /etc/resolv.conf .
 .It Cm LocalCommand
 Specifies a command to execute on the local machine after successfully
 connecting to the server.
