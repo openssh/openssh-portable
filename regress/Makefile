@@ -237,7 +237,7 @@ t-exec:	${LTESTS:=.sh}
 		done; \
 		if [ "x$${skip}" = "xno" ]; then \
 			echo "run test $${TEST}" ... 1>&2; \
-			(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} ${TEST_SHELL} ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+			(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} ${TEST_SHELL} ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || (echo return value: $$?; echo capturing logs; cat *.log; exit 1); \
 		else \
 			echo skip test $${TEST} 1>&2; \
 		fi; \
