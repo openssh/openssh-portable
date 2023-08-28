@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.385 2023/08/28 05:32:28 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.386 2023/08/28 09:52:09 djm Exp $
 .Dd $Mdocdate: August 28 2023 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1373,7 +1373,8 @@ The argument to this keyword must be
 or an interval specifier of the form
 .Cm interval:milliseconds
 (e.g.\&
-.Cm interval:80 for 80 milliseconds ) .
+.Cm interval:80
+for 80 milliseconds).
 The default is to obscure keystrokes using a 20ms packet interval.
 Note that smaller intervals will result in higher fake keystroke packet rates.
 .It Cm PasswordAuthentication
