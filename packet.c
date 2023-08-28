@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.311 2023/08/28 03:28:43 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.312 2023/08/28 03:31:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2081,6 +2081,18 @@ ssh_packet_not_very_much_data_to_write(struct ssh *ssh)
 		return sshbuf_len(ssh->state->output) < 16384;
 	else
 		return sshbuf_len(ssh->state->output) < 128 * 1024;
+}
+
+/*
+ * returns true when there are at most a few keystrokes of data to write
+ * and the connection is in interactive mode.
+ */
+
+int
+ssh_packet_interactive_data_to_write(struct ssh *ssh)
+{
+	return ssh->state->interactive_mode &&
+	    sshbuf_len(ssh->state->output) < 256;
 }
 
 void
