@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.396 2023/07/17 05:26:38 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.397 2023/08/29 02:50:10 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2030,7 +2030,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				fatal("%s line %d: %s integer value %s.",
 				    filename, linenum, keyword, errstr);
 		}
-		if (*activep)
+		if (*activep && options->per_source_max_startups == -1)
 			options->per_source_max_startups = value;
 		break;
 
