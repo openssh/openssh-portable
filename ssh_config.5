@@ -2215,6 +2215,8 @@ for example
 would refer to the user's .ssh directory.
 If a specified environment variable does not exist then an error will be
 returned and the setting for that keyword will be ignored.
+The special environment variable ${RANDOM} is supported and expands to a
+random non-negative number of at most 5 digits.
 .Pp
 The keywords
 .Cm CertificateFile ,

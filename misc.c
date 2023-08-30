@@ -1259,6 +1259,7 @@ vdollar_percent_expand(int *parseerror, int dollar, int percent,
 	int r, missingvar = 0;
 	char *ret = NULL, *var, *varend, *val;
 	size_t len;
+	char random[7];
 
 	if ((buf = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
@@ -1301,7 +1302,16 @@ vdollar_percent_expand(int *parseerror, int dollar, int percent,
 			}
 			var = xmalloc(len + 1);
 			(void)strlcpy(var, string, len + 1);
-			if ((val = getenv(var)) == NULL) {
+			val = NULL;
+			if (strcmp(var, "RANDOM") == 0) {
+				/*
+				 * Generate a random 5-digit number to support the
+				 * special ${RANDOM} environment variable.
+				 */
+				snprintf(random, sizeof(random), "%d", arc4random_uniform(1e6));
+				val = random;
+			}
+			if (val == NULL && (val = getenv(var)) == NULL) {
 				error_f("env var ${%s} has no value", var);
 				missingvar = 1;
 			} else {
