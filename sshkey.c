@@ -2761,10 +2761,8 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 		kdfname = "none";
 	} else if (ciphername == NULL)
 		ciphername = DEFAULT_CIPHERNAME;
-#ifdef WITH_OPENSSL
 	else if (strcmp(ciphername, "chacha20-poly1305-mt@hpnssh.org") == 0)
 		ciphername = "chacha20-poly1305@openssh.com";
-#endif
 	if ((cipher = cipher_by_name(ciphername)) == NULL) {
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
