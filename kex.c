@@ -809,7 +809,7 @@ patch_list(char * orig)
 			adj = xreallocarray(adj,
 			    strlen(adj) /* original string length */
 			    + 1 /* for the original null-terminator */
-			    + strlen(cppstr) /* make room for ccpstr */
+			    + strlen(ccpstr) /* make room for ccpstr */
 			    + 1 /* make room for the comma delimiter */
 			    , sizeof(char));
 			/*
