@@ -1114,6 +1114,10 @@ kex_choose_conf(struct ssh *ssh)
 		if ((strcmp(newkeys->enc.name, "chacha20-poly1305@openssh.com")
 		    == 0) && (match_list("chacha20-poly1305-mt@hpnssh.org",
 		    my[nenc], NULL) != NULL)) {
+			/*
+			 * if we're using the serial CC20 cipher while the
+			 * multithreaded implementation is an option...
+			 */
 			free(newkeys->enc.name);
 			newkeys->enc.cipher = cipher_by_name(
 			    "chacha20-poly1305-mt@hpnssh.org");
@@ -1128,6 +1132,7 @@ kex_choose_conf(struct ssh *ssh)
 				newkeys->enc.name = xstrdup(
 				    "chacha20-poly1305-mt@hpnssh.org");
 			}
+			/* we promote to the multithreaded implementation */
 		}
 #endif
 		authlen = cipher_authlen(newkeys->enc.cipher);
