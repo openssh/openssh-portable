@@ -903,7 +903,17 @@ sshkey_xmss_encrypt_state(const struct sshkey *k, struct sshbuf *b,
 	    state->enc_keyiv == NULL ||
 	    state->enc_ciphername == NULL)
 		return SSH_ERR_INTERNAL_ERROR;
-#ifdef WITH_OPENSSL
+	/*
+	 * chacha20-poly1305-mt@hpnssh.org and chacha20-poly1305@openssh.com
+	 * represent different implementations of the same cipher. For key
+	 * encryption purposes, they're equivalent, and the multithreaded
+	 * implementation is excessive. It can be assumed that references to the
+	 * multithreaded implementation in this context are unintentional, so
+	 * these checks should look for the serial implementation instead.
+	 *
+	 * Additionally, the following code is safe regardless of whether the
+	 * multithreaded implementation is enabled, so no #ifdefs are necessary.
+	 */
 	if (strcmp(state->enc_ciphername, "chacha20-poly1305-mt@hpnssh.org")
 	    == 0) {
 		if ((cipher = cipher_by_name("chacha20-poly1305@openssh.com"))
@@ -917,12 +927,6 @@ sshkey_xmss_encrypt_state(const struct sshkey *k, struct sshbuf *b,
 			goto out;
 		}
 	}
-#else
-	if ((cipher = cipher_by_name(state->enc_ciphername)) == NULL) {
-		r = SSH_ERR_INTERNAL_ERROR;
-		goto out;
-	}
-#endif
 	blocksize = cipher_blocksize(cipher);
 	keylen = cipher_keylen(cipher);
 	ivlen = cipher_ivlen(cipher);
@@ -1011,6 +1015,17 @@ sshkey_xmss_decrypt_state(const struct sshkey *k, struct sshbuf *encoded,
 	    state->enc_keyiv == NULL ||
 	    state->enc_ciphername == NULL)
 		return SSH_ERR_INTERNAL_ERROR;
+	/*
+	 * chacha20-poly1305-mt@hpnssh.org and chacha20-poly1305@openssh.com
+	 * represent different implementations of the same cipher. For key
+	 * encryption purposes, they're equivalent, and the multithreaded
+	 * implementation is excessive. It can be assumed that references to the
+	 * multithreaded implementation in this context are unintentional, so
+	 * these checks should look for the serial implementation instead.
+	 *
+	 * Additionally, the following code is safe regardless of whether the
+	 * multithreaded implementation is enabled, so no #ifdefs are necessary.
+	 */
 	if (strcmp(state->enc_ciphername, "chacha20-poly1305-mt@hpnssh.org")
 	    == 0) {
 		if ((cipher = cipher_by_name("chacha20-poly1305@openssh.com"))
