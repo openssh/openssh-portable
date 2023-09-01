@@ -42,7 +42,9 @@
 #include <openssl/evp.h>
 #endif
 #include "cipher-chachapoly.h"
+#ifdef WITH_OPENSSL
 #include "cipher-chachapoly-libcrypto-mt.h"
+#endif
 #include "cipher-aesctr.h"
 
 #define CIPHER_ENCRYPT		1

@@ -73,7 +73,9 @@ struct sshcipher_ctx {
 	EVP_CIPHER_CTX *evp;
 	const EVP_CIPHER *meth_ptr; /*used to free memory in aes_ctr_mt */
 	struct chachapoly_ctx *cp_ctx;
+#ifdef WITH_OPENSSL
 	struct chachapoly_ctx_mt *cp_ctx_mt;
+#endif
 	struct aesctr_ctx ac_ctx; /* XXX union with evp? */
 	const struct sshcipher *cipher;
 };
