@@ -1227,8 +1227,6 @@ channel_tcpwinsz(struct ssh *ssh)
 	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
 		tcpwinsz = SSHBUF_SIZE_MAX;
 
-//	debug3_f("tcp connection %d, Receive window: %d",
-//	       ssh_packet_get_connection_in(ssh), tcpwinsz);
 	return tcpwinsz;
 }
 
@@ -2376,9 +2374,6 @@ channel_check_window(struct ssh *ssh, Channel *c)
 		    (r = sshpkt_send(ssh)) != 0) {
 			fatal_fr(r, "channel %i", c->self);
 		}
-//		debug3_f("channel %d: window %d sent adjust %d",
-//		    c->self, c->local_window,
-//		    c->local_consumed + addition);
 		c->local_window += c->local_consumed + addition;
 		c->local_consumed = 0;
 	}
@@ -2967,9 +2962,6 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 			 */
 			if (CHANNEL_EFD_INPUT_ACTIVE(c))
 				{}
-//				debug2("channel %d: "
-//				    "ibuf_empty delayed efd %d/(%zu)",
-//				    c->self, c->efd, sshbuf_len(c->extended));
 			else
 				chan_ibuf_empty(ssh, c);
 		}
