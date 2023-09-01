@@ -786,58 +786,66 @@ kex_free(struct kex *kex)
 	free(kex);
 }
 
+/*
+ * This function seeks through a comma-separated list and checks for instances
+ * of the multithreaded CC20 cipher. If found, it then ensures that the serial
+ * CC20 cipher is also in the list, adding it if necessary.
+ */
+char *
+patch_list(char * orig)
+{
+	char * adj = xstrdup(orig);
+	char * match;
+	u_int next;
+
+	const char * ccpstr = "chacha20-poly1305@openssh.com";
+	const char * ccpmtstr = "chacha20-poly1305-mt@hpnssh.org";
+
+	match = match_list(ccpmtstr, orig, &next);
+	if (match != NULL) { /* CC20-MT found in the list */
+		free(match);
+		match = match_list(ccpstr, orig, NULL);
+		if (match == NULL) { /* CC20-Serial NOT found in the list */
+			adj = xreallocarray(adj,
+			    strlen(adj) /* original string length */
+			    + 1 /* for the original null-terminator */
+			    + strlen(cppstr) /* make room for ccpstr */
+			    + 1 /* make room for the comma delimiter */
+			    , sizeof(char));
+			/*
+			 * adj[next] points to the character after the CC20-MT
+			 * string. adj[next] might be ',' or '\0' at this point.
+			 */
+			adj[next] = ',';
+			/* adj + next + 1 is the character after that comma */
+			memcpy(adj + next + 1, ccpstr, strlen(ccpstr));
+			/* rewrite the rest of the original list */
+			memcpy(adj + next + 1 + strlen(ccpstr), orig + next,
+			    strlen(orig + next) + 1);
+		} else { /* CC20-Serial found in the list, nothing to do */
+			free(match);
+		}
+	}
+
+	return adj;
+}
+
 int
 kex_ready(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 {
 	int r;
 
 #ifdef WITH_OPENSSL
-	char * match;
-	u_int next;
-	char * adjCTOS = xstrdup(proposal[PROPOSAL_ENC_ALGS_CTOS]);
-	char * origCTOS = proposal[PROPOSAL_ENC_ALGS_CTOS];
-	char * adjSTOC = xstrdup(proposal[PROPOSAL_ENC_ALGS_STOC]);
-	char * origSTOC = proposal[PROPOSAL_ENC_ALGS_STOC];
+	proposal[PROPOSAL_ENC_ALGS_CTOS] =
+	    patch_list(proposal[PROPOSAL_ENC_ALGS_CTOS]);
+	proposal[PROPOSAL_ENC_ALGS_STOC] =
+	    patch_list(proposal[PROPOSAL_ENC_ALGS_STOC]);
 
-	const char * ccpstr = "chacha20-poly1305@openssh.com";
-	const char * ccpmtstr = "chacha20-poly1305-mt@hpnssh.org";
-
-	match = match_list(ccpmtstr, proposal[PROPOSAL_ENC_ALGS_CTOS], &next);
-	if (match != NULL) {
-		free(match);
-		match = match_list(ccpstr, proposal[PROPOSAL_ENC_ALGS_CTOS],
-		    NULL);
-		if (match == NULL) {
-			adjCTOS = xreallocarray(adjCTOS, strlen(adjCTOS) +
-			    1 + strlen(ccpstr) + 1, sizeof(char));
-			/* ','  string          '\0' */
-			adjCTOS[next] = ',';
-			memcpy(adjCTOS + next + 1, ccpstr, strlen(ccpstr));
-			memcpy(adjCTOS + next + 1 + strlen(ccpstr),
-			    origCTOS + next, strlen(origCTOS + next) + 1);
-		} else {
-			free(match);
-		}
-	}
-	proposal[PROPOSAL_ENC_ALGS_CTOS] = adjCTOS;
-	match = match_list(ccpmtstr, proposal[PROPOSAL_ENC_ALGS_STOC], &next);
-	if (match != NULL) {
-		free(match);
-		match = match_list(ccpstr, proposal[PROPOSAL_ENC_ALGS_STOC],
-		    NULL);
-		if (match == NULL) {
-			adjSTOC = xreallocarray(adjSTOC, strlen(adjSTOC) +
-			    1 + strlen(ccpstr) + 1, sizeof(char));
-			/* ','  string          '\0' */
-			adjSTOC[next] = ',';
-			memcpy(adjSTOC + next + 1, ccpstr, strlen(ccpstr));
-			memcpy(adjSTOC + next + 1 + strlen(ccpstr),
-			    origSTOC + next, strlen(origSTOC + next) + 1);
-		} else {
-			free(match);
-		}
-	}
-	proposal[PROPOSAL_ENC_ALGS_STOC] = adjSTOC;
+	/*
+	 * TODO: Likely memory leak here. The original contents of
+	 * proposal[PROPOSAL_ENC_ALGS_CTOS] are no longer accessible or
+	 * freeable.
+	 */
 #endif
 
 	if ((r = kex_prop2buf(ssh->kex->my, proposal)) != 0)
