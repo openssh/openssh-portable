@@ -2761,6 +2761,11 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 		kdfname = "none";
 	} else if (ciphername == NULL)
 		ciphername = DEFAULT_CIPHERNAME;
+	/*
+	 * NOTE: Without OpenSSL, this string comparison is still safe, even
+	 * though it will never match because the multithreaded cipher is not
+	 * enabled.
+	 */
 	else if (strcmp(ciphername, "chacha20-poly1305-mt@hpnssh.org") == 0)
 		ciphername = "chacha20-poly1305@openssh.com";
 	if ((cipher = cipher_by_name(ciphername)) == NULL) {
