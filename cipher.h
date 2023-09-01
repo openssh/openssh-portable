@@ -50,6 +50,9 @@
 #define CIPHER_ENCRYPT		1
 #define CIPHER_DECRYPT		0
 
+#define CIPHER_MULTITHREAD	1
+#define CIPHER_SERIAL		0
+
 struct sshcipher;
 struct sshcipher_ctx;
 
