@@ -481,9 +481,6 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
 			return chachapoly_crypt_mt(cc->cp_ctx_mt, seqnr, dest,
 			    src, len, aadlen, authlen, cc->encrypt);
 		}
-		else
-			return chachapoly_crypt(cc->cp_ctx, seqnr, dest, src,
-			    len, aadlen, authlen, cc->encrypt);
 #endif
 		return chachapoly_crypt(cc->cp_ctx, seqnr, dest, src,
 		    len, aadlen, authlen, cc->encrypt);
@@ -553,13 +550,9 @@ cipher_get_length(struct sshcipher_ctx *cc, u_int *plenp, u_int seqnr,
 			return chachapoly_get_length_mt(cc->cp_ctx_mt, plenp,
 			    seqnr, cp, len);
 		}
-		else
-			return chachapoly_get_length(cc->cp_ctx, plenp, seqnr,
-			    cp, len);
-#else
+#endif
 		return chachapoly_get_length(cc->cp_ctx, plenp, seqnr,
 		    cp, len);
-#endif
 	}
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
