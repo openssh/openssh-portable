@@ -318,7 +318,7 @@ cipher_warning_message(const struct sshcipher_ctx *cc)
 int
 cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
     const u_char *key, u_int keylen, const u_char *iv, u_int ivlen,
-    u_int seqnr, int do_encrypt, int post_auth)
+    u_int seqnr, int do_encrypt, int enable_threads)
 {
 	struct sshcipher_ctx *cc = NULL;
 	int ret = SSH_ERR_INTERNAL_ERROR;
@@ -382,7 +382,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	 * start the threaded cipher. If OSSL supports providers (OSSL 3.0+) then
 	 * we load our hpnssh provider. If it doesn't (OSSL < 1.1) then we use the
 	 * _meth_new process found in cipher-ctr-mt.c */
-	if (strstr(cc->cipher->name, "ctr") && post_auth) {
+	if (strstr(cc->cipher->name, "ctr") && enable_threads) {
 #ifdef WITH_OPENSSL3
 		/* this version of openssl uses providers */
 		OSSL_LIB_CTX *aes_lib = NULL; /* probably not needed */
