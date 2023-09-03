@@ -132,6 +132,8 @@
 
 */
 
+#define PATH_MAX_SUN		(sizeof((struct sockaddr_un *)0)->sun_path)
+
 static int read_config_file_depth(const char *filename, struct passwd *pw,
     const char *host, const char *original_host, Options *options,
     int flags, int *activep, int *want_final_pass, int depth);

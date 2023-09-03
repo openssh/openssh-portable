@@ -20,7 +20,6 @@
 
 #define SSH_MAX_HOSTS_FILES	32
 #define MAX_CANON_DOMAINS	32
-#define PATH_MAX_SUN		(sizeof((struct sockaddr_un *)0)->sun_path)
 
 struct allowed_cname {
 	char *source_list;

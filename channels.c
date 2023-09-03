@@ -3898,7 +3898,7 @@ channel_setup_fwd_listener_streamlocal(struct ssh *ssh, int type,
 	switch (type) {
 	case SSH_CHANNEL_UNIX_LISTENER:
 		if (fwd->connect_path != NULL) {
-			if (strlen(fwd->connect_path) > sizeof(sunaddr.sun_path)) {
+			if (strlen(fwd->connect_path) >= sizeof(sunaddr.sun_path)) {
 				error("Local connecting path too long: %s",
 				    fwd->connect_path);
 				return 0;
@@ -3931,7 +3931,7 @@ channel_setup_fwd_listener_streamlocal(struct ssh *ssh, int type,
 		error("No forward path name.");
 		return 0;
 	}
-	if (strlen(fwd->listen_path) > sizeof(sunaddr.sun_path)) {
+	if (strlen(fwd->listen_path) >= sizeof(sunaddr.sun_path)) {
 		error("Local listening path too long: %s", fwd->listen_path);
 		return 0;
 	}
@@ -4618,7 +4618,7 @@ connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
 		struct sockaddr_un *sunaddr;
 		struct addrinfo *ai;
 
-		if (strlen(name) > sizeof(sunaddr->sun_path)) {
+		if (strlen(name) >= sizeof(sunaddr->sun_path)) {
 			error("%.100s: %.100s", name, strerror(ENAMETOOLONG));
 			return -1;
 		}

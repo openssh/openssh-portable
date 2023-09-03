@@ -87,7 +87,7 @@ get_random_bytes_prngd(unsigned char *buf, int len,
 		strlcpy(addr_un->sun_path, socket_path,
 		    sizeof(addr_un->sun_path));
 		addr_len = offsetof(struct sockaddr_un, sun_path) +
-		    strlen(socket_path) + 1;
+		    strlen(socket_path);
 	}
 
 	old_sigpipe = ssh_signal(SIGPIPE, SIG_IGN);
