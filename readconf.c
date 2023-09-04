@@ -132,6 +132,7 @@
 
 */
 
+/* Maximum length of an unix path, including trailing nul byte */
 #define PATH_MAX_SUN		(sizeof((struct sockaddr_un *)0)->sun_path)
 
 static int read_config_file_depth(const char *filename, struct passwd *pw,
