@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.397 2023/08/29 02:50:10 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.398 2023/09/06 23:21:36 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1942,13 +1942,22 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			fatal("%s line %d: %s missing argument.",
 			    filename, linenum, keyword);
 		if (!*activep) {
-			arg = argv_next(&ac, &av);
+			argv_consume(&ac);
 			break;
 		}
-		for (i = 0; i < options->num_subsystems; i++)
-			if (strcmp(arg, options->subsystem_name[i]) == 0)
-				fatal("%s line %d: Subsystem '%s' "
-				    "already defined.", filename, linenum, arg);
+		found = 0;
+		for (i = 0; i < options->num_subsystems; i++) {
+			if (strcmp(arg, options->subsystem_name[i]) == 0) {
+				found = 1;
+				break;
+			}
+		}
+		if (found) {
+			debug("%s line %d: Subsystem '%s' already defined.",
+			    filename, linenum, arg);
+			argv_consume(&ac);
+			break;
+		}
 		options->subsystem_name[options->num_subsystems] = xstrdup(arg);
 		arg = argv_next(&ac, &av);
 		if (!arg || *arg == '\0')
