@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.400 2023/09/06 23:26:37 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.401 2023/09/06 23:35:35 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -643,7 +643,7 @@ static struct {
 	{ "macs", sMacs, SSHCFG_GLOBAL },
 	{ "protocol", sIgnore, SSHCFG_GLOBAL },
 	{ "gatewayports", sGatewayPorts, SSHCFG_ALL },
-	{ "subsystem", sSubsystem, SSHCFG_GLOBAL },
+	{ "subsystem", sSubsystem, SSHCFG_ALL },
 	{ "maxstartups", sMaxStartups, SSHCFG_GLOBAL },
 	{ "persourcemaxstartups", sPerSourceMaxStartups, SSHCFG_GLOBAL },
 	{ "persourcenetblocksize", sPerSourceNetBlockSize, SSHCFG_GLOBAL },
@@ -2694,6 +2694,47 @@ int parse_server_match_testspec(struct connection_info *ci, char *spec)
 	return 0;
 }
 
+void
+servconf_merge_subsystems(ServerOptions *dst, ServerOptions *src)
+{
+	u_int i, j, found;
+
+	for (i = 0; i < src->num_subsystems; i++) {
+		found = 0;
+		for (j = 0; j < dst->num_subsystems; j++) {
+			if (strcmp(src->subsystem_name[i],
+			    dst->subsystem_name[j]) == 0) {
+				found = 1;
+				break;
+			}
+		}
+		if (found) {
+			debug_f("override \"%s\"", dst->subsystem_name[j]);
+			free(dst->subsystem_command[j]);
+			free(dst->subsystem_args[j]);
+			dst->subsystem_command[j] =
+			    xstrdup(src->subsystem_command[i]);
+			dst->subsystem_args[j] =
+			    xstrdup(src->subsystem_args[i]);
+			continue;
+		}
+		debug_f("add \"%s\"", src->subsystem_name[i]);
+		dst->subsystem_name = xrecallocarray(
+		    dst->subsystem_name, dst->num_subsystems,
+		    dst->num_subsystems + 1, sizeof(dst->subsystem_name));
+		dst->subsystem_command = xrecallocarray(
+		    dst->subsystem_command, dst->num_subsystems,
+		    dst->num_subsystems + 1, sizeof(dst->subsystem_command));
+		dst->subsystem_args = xrecallocarray(
+		    dst->subsystem_args, dst->num_subsystems,
+		    dst->num_subsystems + 1, sizeof(dst->subsystem_args));
+		j = dst->num_subsystems++;
+		dst->subsystem_name[j] = xstrdup(src->subsystem_name[i]);
+		dst->subsystem_command[j] = xstrdup(src->subsystem_command[i]);
+		dst->subsystem_args[j] = xstrdup(src->subsystem_args[i]);
+	}
+}
+
 /*
  * Copy any supported values that are set.
  *
@@ -2800,6 +2841,9 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		free(dst->chroot_directory);
 		dst->chroot_directory = NULL;
 	}
+
+	/* Subsystems require merging. */
+	servconf_merge_subsystems(dst, src);
 }
 
 #undef M_CP_INTOPT
