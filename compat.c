@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.119 2021/09/10 05:46:09 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.126 2023/03/06 12:14:48 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -36,7 +36,6 @@
 #include "compat.h"
 #include "log.h"
 #include "match.h"
-#include "kex.h"
 
 /* determine bug flags from SSH protocol banner */
 void
@@ -77,26 +76,8 @@ compat_banner(struct ssh *ssh, const char *version)
 		{ "3.0.*",		SSH_BUG_DEBUG },
 		{ "3.0 SecureCRT*",	SSH_OLD_SESSIONID },
 		{ "1.7 SecureFX*",	SSH_OLD_SESSIONID },
-		{ "1.2.18*,"
-		  "1.2.19*,"
-		  "1.2.20*,"
-		  "1.2.21*,"
-		  "1.2.22*",		SSH_BUG_IGNOREMSG },
-		{ "1.3.2*",		/* F-Secure */
-					SSH_BUG_IGNOREMSG },
 		{ "Cisco-1.*",		SSH_BUG_DHGEX_LARGE|
 					SSH_BUG_HOSTKEYS },
-		{ "*SSH Compatible Server*",			/* Netscreen */
-					SSH_BUG_PASSWORDPAD },
-		{ "*OSU_0*,"
-		  "OSU_1.0*,"
-		  "OSU_1.1*,"
-		  "OSU_1.2*,"
-		  "OSU_1.3*,"
-		  "OSU_1.4*,"
-		  "OSU_1.5alpha1*,"
-		  "OSU_1.5alpha2*,"
-		  "OSU_1.5alpha3*",	SSH_BUG_PASSWORDPAD },
 		{ "*SSH_Version_Mapper*",
 					SSH_BUG_SCANNER },
 		{ "PuTTY_Local:*,"	/* dev versions < Sep 2014 */
@@ -156,53 +137,30 @@ compat_banner(struct ssh *ssh, const char *version)
 	debug_f("no match: %s", version);
 }
 
+/* Always returns pointer to allocated memory, caller must free. */
 char *
-compat_cipher_proposal(struct ssh *ssh, char *cipher_prop)
+compat_kex_proposal(struct ssh *ssh, const char *p)
 {
-	if (!(ssh->compat & SSH_BUG_BIGENDIANAES))
-		return cipher_prop;
-	debug2_f("original cipher proposal: %s", cipher_prop);
-	if ((cipher_prop = match_filter_denylist(cipher_prop, "aes*")) == NULL)
-		fatal("match_filter_denylist failed");
-	debug2_f("compat cipher proposal: %s", cipher_prop);
-	if (*cipher_prop == '\0')
-		fatal("No supported ciphers found");
-	return cipher_prop;
-}
+	char *cp = NULL, *cp2 = NULL;
 
-char *
-compat_pkalg_proposal(struct ssh *ssh, char *pkalg_prop)
-{
-	if (!(ssh->compat & SSH_BUG_RSASIGMD5))
-		return pkalg_prop;
-	debug2_f("original public key proposal: %s", pkalg_prop);
-	if ((pkalg_prop = match_filter_denylist(pkalg_prop, "ssh-rsa")) == NULL)
-		fatal("match_filter_denylist failed");
-	debug2_f("compat public key proposal: %s", pkalg_prop);
-	if (*pkalg_prop == '\0')
-		fatal("No supported PK algorithms found");
-	return pkalg_prop;
-}
-
-char *
-compat_kex_proposal(struct ssh *ssh, char *p)
-{
 	if ((ssh->compat & (SSH_BUG_CURVE25519PAD|SSH_OLD_DHGEX)) == 0)
-		return p;
+		return xstrdup(p);
 	debug2_f("original KEX proposal: %s", p);
 	if ((ssh->compat & SSH_BUG_CURVE25519PAD) != 0)
-		if ((p = match_filter_denylist(p,
+		if ((cp = match_filter_denylist(p,
 		    "curve25519-sha256@libssh.org")) == NULL)
 			fatal("match_filter_denylist failed");
 	if ((ssh->compat & SSH_OLD_DHGEX) != 0) {
-		if ((p = match_filter_denylist(p,
+		if ((cp2 = match_filter_denylist(cp ? cp : p,
 		    "diffie-hellman-group-exchange-sha256,"
 		    "diffie-hellman-group-exchange-sha1")) == NULL)
 			fatal("match_filter_denylist failed");
+		free(cp);
+		cp = cp2;
 	}
-	debug2_f("compat KEX proposal: %s", p);
-	if (*p == '\0')
+	if (cp == NULL || *cp == '\0')
 		fatal("No supported key exchange algorithms found");
-	return p;
+	debug2_f("compat KEX proposal: %s", cp);
+	return cp;
 }
 

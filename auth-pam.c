@@ -252,7 +252,6 @@ static Authctxt *sshpam_authctxt = NULL;
 static const char *sshpam_password = NULL;
 static char *sshpam_rhost = NULL;
 static char *sshpam_laddr = NULL;
-static char *sshpam_conninfo = NULL;
 
 /* Some PAM implementations don't implement this */
 #ifndef HAVE_PAM_GETENVLIST
@@ -352,11 +351,12 @@ import_environments(struct sshbuf *b)
 	/* Import environment from subprocess */
 	if ((r = sshbuf_get_u32(b, &num_env)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (num_env > 1024)
-		fatal("%s: received %u environment variables, expected <= 1024",
-		    __func__, num_env);
+	if (num_env > 1024) {
+		fatal_f("received %u environment variables, expected <= 1024",
+		    num_env);
+	}
 	sshpam_env = xcalloc(num_env + 1, sizeof(*sshpam_env));
-	debug3("PAM: num env strings %d", num_env);
+	debug3("PAM: num env strings %u", num_env);
 	for(i = 0; i < num_env; i++) {
 		if ((r = sshbuf_get_cstring(b, &(sshpam_env[i]), NULL)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -366,7 +366,11 @@ import_environments(struct sshbuf *b)
 	/* Import PAM environment from subprocess */
 	if ((r = sshbuf_get_u32(b, &num_env)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	debug("PAM: num PAM env strings %d", num_env);
+	if (num_env > 1024) {
+		fatal_f("received %u PAM env variables, expected <= 1024",
+		    num_env);
+	}
+	debug("PAM: num PAM env strings %u", num_env);
 	for (i = 0; i < num_env; i++) {
 		if ((r = sshbuf_get_cstring(b, &env, NULL)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -688,6 +692,7 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 {
 	const char *pam_user, *user = authctxt->user;
 	const char **ptr_pam_user = &pam_user;
+	int r;
 
 #if defined(PAM_SUN_CODEBASE) && defined(PAM_MAX_RESP_SIZE)
 	/* Protect buggy PAM implementations from excessively long usernames */
@@ -729,9 +734,6 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 		    options.use_dns));
 		sshpam_laddr = get_local_ipaddr(
 		    ssh_packet_get_connection_in(ssh));
-		xasprintf(&sshpam_conninfo, "SSH_CONNECTION=%.50s %d %.50s %d",
-		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
-		    sshpam_laddr, ssh_local_port(ssh));
 	}
 	if (sshpam_rhost != NULL) {
 		debug("PAM: setting PAM_RHOST to \"%s\"", sshpam_rhost);
@@ -742,8 +744,17 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 			sshpam_handle = NULL;
 			return (-1);
 		}
+	}
+	if (ssh != NULL && sshpam_laddr != NULL) {
+		char *conninfo;
+
 		/* Put SSH_CONNECTION in the PAM environment too */
-		pam_putenv(sshpam_handle, sshpam_conninfo);
+		xasprintf(&conninfo, "SSH_CONNECTION=%.50s %d %.50s %d",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+		    sshpam_laddr, ssh_local_port(ssh));
+		if ((r = pam_putenv(sshpam_handle, conninfo)) != PAM_SUCCESS)
+			logit("pam_putenv: %s", pam_strerror(sshpam_handle, r));
+		free(conninfo);
 	}
 
 #ifdef PAM_TTY_KLUDGE
@@ -837,7 +848,7 @@ sshpam_query(void *ctx, char **name, char **info,
 	size_t plen;
 	u_char type;
 	char *msg;
-	size_t len, mlen;
+	size_t len, mlen, nmesg = 0;
 	int r;
 
 	debug3("PAM: %s entering", __func__);
@@ -850,6 +861,8 @@ sshpam_query(void *ctx, char **name, char **info,
 	plen = 0;
 	*echo_on = xmalloc(sizeof(u_int));
 	while (ssh_msg_recv(ctxt->pam_psock, buffer) == 0) {
+		if (++nmesg > PAM_MAX_NUM_MSG)
+			fatal_f("too many query messages");
 		if ((r = sshbuf_get_u8(buffer, &type)) != 0 ||
 		    (r = sshbuf_get_cstring(buffer, &msg, &mlen)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));

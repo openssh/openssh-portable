@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.116 2021/12/19 22:12:54 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.119 2023/08/28 03:28:43 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -109,6 +109,9 @@ enum kex_exchange {
 #define KEX_INIT_SENT			0x0001
 #define KEX_INITIAL			0x0002
 #define KEX_HAS_PUBKEY_HOSTBOUND	0x0004
+#define KEX_RSA_SHA2_256_SUPPORTED 	0x0008 /* only set in server for now */
+#define KEX_RSA_SHA2_512_SUPPORTED 	0x0010 /* only set in server for now */
+#define KEX_HAS_PING		 	0x0020
 
 struct sshenc {
 	char	*name;
@@ -180,6 +183,9 @@ int	 kex_names_valid(const char *);
 char	*kex_alg_list(char);
 char	*kex_names_cat(const char *, const char *);
 int	 kex_assemble_names(char **, const char *, const char *);
+void	 kex_proposal_populate_entries(struct ssh *, char *prop[PROPOSAL_MAX],
+    const char *, const char *, const char *, const char *, const char *);
+void	 kex_proposal_free_entries(char *prop[PROPOSAL_MAX]);
 
 int	 kex_exchange_identification(struct ssh *, int, const char *);
 

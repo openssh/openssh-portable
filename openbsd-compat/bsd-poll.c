@@ -15,10 +15,13 @@
  */
 
 #include "includes.h"
-#if !defined(HAVE_PPOLL) || !defined(HAVE_POLL)
+#if !defined(HAVE_PPOLL) || !defined(HAVE_POLL) || defined(BROKEN_POLL)
 
 #include <sys/types.h>
 #include <sys/time.h>
+#ifdef HAVE_SYS_PARAM_H
+# include <sys/param.h>
+#endif
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif
@@ -29,12 +32,12 @@
 #include <unistd.h>
 #include "bsd-poll.h"
 
-#ifndef HAVE_PPOLL
+#if !defined(HAVE_PPOLL) || defined(BROKEN_POLL)
 /*
  * A minimal implementation of ppoll(2), built on top of pselect(2).
  *
- * Only supports POLLIN and POLLOUT flags in pfd.events, and POLLIN, POLLOUT
- * and POLLERR flags in revents.
+ * Only supports POLLIN, POLLOUT and POLLPRI flags in pfd.events and
+ * revents. Notably POLLERR, POLLHUP and POLLNVAL are not supported.
  *
  * Supports pfd.fd = -1 meaning "unused" although it's not standard.
  */
@@ -44,9 +47,8 @@ ppoll(struct pollfd *fds, nfds_t nfds, const struct timespec *tmoutp,
     const sigset_t *sigmask)
 {
 	nfds_t i;
-	int saved_errno, ret, fd, maxfd = 0;
-	fd_set *readfds = NULL, *writefds = NULL, *exceptfds = NULL;
-	size_t nmemb;
+	int ret, fd, maxfd = 0;
+	fd_set readfds, writefds, exceptfds;
 
 	for (i = 0; i < nfds; i++) {
 		fd = fds[i].fd;
@@ -57,32 +59,23 @@ ppoll(struct pollfd *fds, nfds_t nfds, const struct timespec *tmoutp,
 		maxfd = MAX(maxfd, fd);
 	}
 
-	nmemb = howmany(maxfd + 1 , NFDBITS);
-	if ((readfds = calloc(nmemb, sizeof(fd_mask))) == NULL ||
-	    (writefds = calloc(nmemb, sizeof(fd_mask))) == NULL ||
-	    (exceptfds = calloc(nmemb, sizeof(fd_mask))) == NULL) {
-		saved_errno = ENOMEM;
-		ret = -1;
-		goto out;
-	}
-
 	/* populate event bit vectors for the events we're interested in */
+	FD_ZERO(&readfds);
+	FD_ZERO(&writefds);
+	FD_ZERO(&exceptfds);
 	for (i = 0; i < nfds; i++) {
 		fd = fds[i].fd;
 		if (fd == -1)
 			continue;
-		if (fds[i].events & POLLIN) {
-			FD_SET(fd, readfds);
-			FD_SET(fd, exceptfds);
-		}
-		if (fds[i].events & POLLOUT) {
-			FD_SET(fd, writefds);
-			FD_SET(fd, exceptfds);
-		}
+		if (fds[i].events & POLLIN)
+			FD_SET(fd, &readfds);
+		if (fds[i].events & POLLOUT)
+			FD_SET(fd, &writefds);
+		if (fds[i].events & POLLPRI)
+			FD_SET(fd, &exceptfds);
 	}
 
-	ret = pselect(maxfd + 1, readfds, writefds, exceptfds, tmoutp, sigmask);
-	saved_errno = errno;
+	ret = pselect(maxfd + 1, &readfds, &writefds, &exceptfds, tmoutp, sigmask);
 
 	/* scan through select results and set poll() flags */
 	for (i = 0; i < nfds; i++) {
@@ -90,28 +83,19 @@ ppoll(struct pollfd *fds, nfds_t nfds, const struct timespec *tmoutp,
 		fds[i].revents = 0;
 		if (fd == -1)
 			continue;
-		if (FD_ISSET(fd, readfds)) {
+		if ((fds[i].events & POLLIN) && FD_ISSET(fd, &readfds))
 			fds[i].revents |= POLLIN;
-		}
-		if (FD_ISSET(fd, writefds)) {
+		if ((fds[i].events & POLLOUT) && FD_ISSET(fd, &writefds))
 			fds[i].revents |= POLLOUT;
-		}
-		if (FD_ISSET(fd, exceptfds)) {
-			fds[i].revents |= POLLERR;
-		}
+		if ((fds[i].events & POLLPRI) && FD_ISSET(fd, &exceptfds))
+			fds[i].revents |= POLLPRI;
 	}
 
-out:
-	free(readfds);
-	free(writefds);
-	free(exceptfds);
-	if (ret == -1)
-		errno = saved_errno;
 	return ret;
 }
-#endif /* HAVE_PPOLL */
+#endif /* !HAVE_PPOLL || BROKEN_POLL */
 
-#ifndef HAVE_POLL
+#if !defined(HAVE_POLL) || defined(BROKEN_POLL)
 int
 poll(struct pollfd *fds, nfds_t nfds, int timeout)
 {
@@ -126,6 +110,6 @@ poll(struct pollfd *fds, nfds_t nfds, int timeout)
 
 	return ppoll(fds, nfds, tsp, NULL);
 }
-#endif /* HAVE_POLL */
+#endif /* !HAVE_POLL || BROKEN_POLL */
 
-#endif /* HAVE_PPOLL || HAVE_POLL */
+#endif /* !HAVE_PPOLL || !HAVE_POLL || BROKEN_POLL */

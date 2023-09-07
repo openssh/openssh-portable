@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.141 2020/06/18 23:33:38 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.144 2023/03/14 07:26:25 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -211,6 +211,8 @@ sshkey_try_load_public(struct sshkey **kp, const char *filename,
 	int r;
 	struct sshkey *k = NULL;
 
+	if (kp == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
 	*kp = NULL;
 	if (commentp != NULL)
 		*commentp = NULL;
@@ -368,7 +370,7 @@ sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
  * Returns success if the specified "key" is listed in the file "filename",
  * SSH_ERR_KEY_NOT_FOUND: if the key is not listed or another error.
  * If "strict_type" is set then the key type must match exactly,
- * otherwise a comparison that ignores certficiate data is performed.
+ * otherwise a comparison that ignores certificate data is performed.
  * If "check_ca" is set and "key" is a certificate, then its CA key is
  * also checked and sshkey_in_file() will return success if either is found.
  */
@@ -501,20 +503,25 @@ sshkey_save_public(const struct sshkey *key, const char *path,
 		return SSH_ERR_SYSTEM_ERROR;
 	if ((f = fdopen(fd, "w")) == NULL) {
 		r = SSH_ERR_SYSTEM_ERROR;
+		close(fd);
 		goto fail;
 	}
 	if ((r = sshkey_write(key, f)) != 0)
 		goto fail;
 	fprintf(f, " %s\n", comment);
-	if (ferror(f) || fclose(f) != 0) {
+	if (ferror(f)) {
 		r = SSH_ERR_SYSTEM_ERROR;
+		goto fail;
+	}
+	if (fclose(f) != 0) {
+		r = SSH_ERR_SYSTEM_ERROR;
+		f = NULL;
  fail:
-		oerrno = errno;
-		if (f != NULL)
+		if (f != NULL) {
+			oerrno = errno;
 			fclose(f);
-		else
-			close(fd);
-		errno = oerrno;
+			errno = oerrno;
+		}
 		return r;
 	}
 	return 0;

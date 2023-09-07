@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.21 2021/04/03 06:58:30 djm Exp $ */
+/* $OpenBSD: umac.c,v 1.23 2023/03/07 01:30:52 djm Exp $ */
 /* -----------------------------------------------------------------------
  *
  * umac.c -- C Implementation UMAC Message Authentication
@@ -233,7 +233,8 @@ static void pdf_init(pdf_ctx *pc, aes_int_key prf_key)
     explicit_bzero(buf, sizeof(buf));
 }
 
-static void pdf_gen_xor(pdf_ctx *pc, const UINT8 nonce[8], UINT8 buf[8])
+static void pdf_gen_xor(pdf_ctx *pc, const UINT8 nonce[8],
+    UINT8 buf[UMAC_OUTPUT_LEN])
 {
     /* 'ndx' indicates that we'll be using the 0th or 1st eight bytes
      * of the AES output. If last time around we returned the ndx-1st
@@ -1177,7 +1178,7 @@ static int uhash(uhash_ctx_t ahc, u_char *msg, long len, u_char *res)
 /* The UMAC interface has two interfaces, an all-at-once interface where
  * the entire message to be authenticated is passed to UMAC in one buffer,
  * and a sequential interface where the message is presented a little at a
- * time. The all-at-once is more optimaized than the sequential version and
+ * time. The all-at-once is more optimized than the sequential version and
  * should be preferred when the sequential interface is not required.
  */
 struct umac_ctx {

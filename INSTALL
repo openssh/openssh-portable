@@ -1,9 +1,10 @@
 1. Prerequisites
 ----------------
 
-A C compiler.  Any C89 or better compiler should work.  Where supported,
-configure will attempt to enable the compiler's run-time integrity checking
-options.  Some notes about specific compilers:
+A C compiler.  Any C89 or better compiler that supports variadic macros
+should work.  Where supported, configure will attempt to enable the
+compiler's run-time integrity checking options.  Some notes about
+specific compilers:
  - clang: -ftrapv and -sanitize=integer require the compiler-rt runtime
   (CC=clang LDFLAGS=--rtlib=compiler-rt ./configure)
 
@@ -16,16 +17,12 @@ The remaining items are optional.
 
 A working installation of zlib:
 Zlib 1.1.4 or 1.2.1.2 or greater (earlier 1.2.x versions have problems):
-http://www.gzip.org/zlib/
+https://zlib.net/
 
 libcrypto from either of LibreSSL or OpenSSL.  Building without libcrypto
 is supported but severely restricts the available ciphers and algorithms.
- - LibreSSL (https://www.libressl.org/)
- - OpenSSL (https://www.openssl.org) with any of the following versions:
-   - 1.0.x >= 1.0.1 or 1.1.0 >= 1.1.0g or any 1.1.1
-
-Note that due to a bug in EVP_CipherInit OpenSSL 1.1 versions prior to
-1.1.0g can't be used.
+ - LibreSSL (https://www.libressl.org/) 3.1.0 or greater
+ - OpenSSL (https://www.openssl.org) 1.1.1 or greater
 
 LibreSSL/OpenSSL should be compiled as a position-independent library
 (i.e. -fPIC, eg by configuring OpenSSL as "./config [options] -fPIC"

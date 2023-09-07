@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.354 2021/12/19 22:14:47 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.367 2023/08/01 08:15:04 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -56,7 +56,6 @@
 #include "cipher.h"
 #include "sshkey.h"
 #include "kex.h"
-#include "myproposal.h"
 #include "sshconnect.h"
 #include "authfile.h"
 #include "dh.h"
@@ -96,6 +95,11 @@ static const struct ssh_conn_info *xxx_conn_info;
 static int
 verify_host_key_callback(struct sshkey *hostkey, struct ssh *ssh)
 {
+	int r;
+
+	if ((r = sshkey_check_rsa_length(hostkey,
+	    options.required_rsa_size)) != 0)
+		fatal_r(r, "Bad server host key");
 	if (verify_host_key(xxx_host, xxx_hostaddr, hostkey,
 	    xxx_conn_info) == -1)
 		fatal("Host key verification failed.");
@@ -216,13 +220,17 @@ void
 ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
     const struct ssh_conn_info *cinfo)
 {
-	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
-	char *s, *all_key;
+	char *myproposal[PROPOSAL_MAX];
+	char *s, *all_key, *hkalgs = NULL;
 	int r, use_known_hosts_order = 0;
 
 	xxx_host = host;
 	xxx_hostaddr = hostaddr;
 	xxx_conn_info = cinfo;
+
+	if (options.rekey_limit || options.rekey_interval)
+		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
+		    options.rekey_interval);
 
 	/*
 	 * If the user has not specified HostkeyAlgorithms, or has only
@@ -243,30 +251,15 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 
 	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
 		fatal_f("kex_names_cat");
-	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(ssh, s);
-	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-	    compat_cipher_proposal(ssh, options.ciphers);
-	myproposal[PROPOSAL_ENC_ALGS_STOC] =
-	    compat_cipher_proposal(ssh, options.ciphers);
-	myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-	    myproposal[PROPOSAL_COMP_ALGS_STOC] =
-	    (char *)compression_alg_list(options.compression);
-	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
-	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
-	if (use_known_hosts_order) {
-		/* Query known_hosts and prefer algorithms that appear there */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(ssh,
-		    order_hostkeyalgs(host, hostaddr, port, cinfo));
-	} else {
-		/* Use specified HostkeyAlgorithms exactly */
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(ssh, options.hostkeyalgorithms);
-	}
 
-	if (options.rekey_limit || options.rekey_interval)
-		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
-		    options.rekey_interval);
+	if (use_known_hosts_order)
+		hkalgs = order_hostkeyalgs(host, hostaddr, port, cinfo);
+
+	kex_proposal_populate_entries(ssh, myproposal, s, options.ciphers,
+	    options.macs, compression_alg_list(options.compression),
+	    hkalgs ? hkalgs : options.hostkeyalgorithms);
+
+	free(hkalgs);
 
 	/* start key exchange */
 	if ((r = kex_setup(ssh, myproposal)) != 0)
@@ -290,6 +283,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	ssh_dispatch_run_fatal(ssh, DISPATCH_BLOCK, &ssh->kex->done);
 
 	/* remove ext-info from the KEX proposals for rekeying */
+	free(myproposal[PROPOSAL_KEX_ALGS]);
 	myproposal[PROPOSAL_KEX_ALGS] =
 	    compat_kex_proposal(ssh, options.kex_algorithms);
 	if ((r = kex_prop2buf(ssh->kex->my, myproposal)) != 0)
@@ -303,6 +297,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    (r = ssh_packet_write_wait(ssh)) != 0)
 		fatal_fr(r, "send packet");
 #endif
+	kex_proposal_free_entries(myproposal);
 }
 
 /*
@@ -497,7 +492,6 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	}
 }
 
-/* ARGSUSED */
 static int
 input_userauth_service_accept(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -529,7 +523,6 @@ input_userauth_service_accept(int type, u_int32_t seq, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_ext_info(int type, u_int32_t seqnr, struct ssh *ssh)
 {
@@ -574,7 +567,6 @@ userauth(struct ssh *ssh, char *authlist)
 	}
 }
 
-/* ARGSUSED */
 static int
 input_userauth_error(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -582,7 +574,6 @@ input_userauth_error(int type, u_int32_t seq, struct ssh *ssh)
 	return 0;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_banner(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -602,7 +593,6 @@ input_userauth_banner(int type, u_int32_t seq, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_success(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -635,7 +625,6 @@ input_userauth_success_unexpected(int type, u_int32_t seq, struct ssh *ssh)
 }
 #endif
 
-/* ARGSUSED */
 static int
 input_userauth_failure(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -696,7 +685,6 @@ format_identity(Identity *id)
 	return ret;
 }
 
-/* ARGSUSED */
 static int
 input_userauth_pk_ok(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -904,7 +892,6 @@ process_gssapi_token(struct ssh *ssh, gss_buffer_t recv_tok)
 	return status;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_response(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -949,7 +936,6 @@ input_gssapi_response(int type, u_int32_t plen, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -982,7 +968,6 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 	return r;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_errtok(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -1017,7 +1002,6 @@ input_gssapi_errtok(int type, u_int32_t plen, struct ssh *ssh)
 	return 0;
 }
 
-/* ARGSUSED */
 static int
 input_gssapi_error(int type, u_int32_t plen, struct ssh *ssh)
 {
@@ -1095,7 +1079,6 @@ userauth_passwd(struct ssh *ssh)
 /*
  * parse PASSWD_CHANGEREQ, prompt user and send SSH2_MSG_USERAUTH_REQUEST
  */
-/* ARGSUSED */
 static int
 input_userauth_passwd_changereq(int type, u_int32_t seqnr, struct ssh *ssh)
 {
@@ -1231,7 +1214,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat, const char *alg)
 {
 	struct sshkey *sign_key = NULL, *prv = NULL;
-	int retried = 0, r = SSH_ERR_INTERNAL_ERROR;
+	int is_agent = 0, retried = 0, r = SSH_ERR_INTERNAL_ERROR;
 	struct notifier_ctx *notifier = NULL;
 	char *fp = NULL, *pin = NULL, *prompt = NULL;
 
@@ -1251,6 +1234,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	if (id->key != NULL &&
 	    (id->isprivate || (id->key->flags & SSHKEY_FLAG_EXT))) {
 		sign_key = id->key;
+		is_agent = 1;
 	} else {
 		/* Load the private key from the file. */
 		if ((prv = load_identity_file(id)) == NULL)
@@ -1262,34 +1246,31 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 			goto out;
 		}
 		sign_key = prv;
-		if (sshkey_is_sk(sign_key)) {
-			if ((sign_key->sk_flags &
-			    SSH_SK_USER_VERIFICATION_REQD)) {
+	}
  retry_pin:
-				xasprintf(&prompt, "Enter PIN for %s key %s: ",
-				    sshkey_type(sign_key), id->filename);
-				pin = read_passphrase(prompt, 0);
-			}
-			if ((sign_key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
-				/* XXX should batch mode just skip these? */
-				if ((fp = sshkey_fingerprint(sign_key,
-				    options.fingerprint_hash,
-				    SSH_FP_DEFAULT)) == NULL)
-					fatal_f("fingerprint failed");
-				notifier = notify_start(options.batch_mode,
-				    "Confirm user presence for key %s %s",
-				    sshkey_type(sign_key), fp);
-				free(fp);
-			}
-		}
+	/* Prompt for touch for non-agent FIDO keys that request UP */
+	if (!is_agent && sshkey_is_sk(sign_key) &&
+	    (sign_key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
+		/* XXX should batch mode just skip these? */
+		if ((fp = sshkey_fingerprint(sign_key,
+		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+			fatal_f("fingerprint failed");
+		notifier = notify_start(options.batch_mode,
+		    "Confirm user presence for key %s %s",
+		    sshkey_type(sign_key), fp);
+		free(fp);
 	}
 	if ((r = sshkey_sign(sign_key, sigp, lenp, data, datalen,
 	    alg, options.sk_provider, pin, compat)) != 0) {
 		debug_fr(r, "sshkey_sign");
-		if (pin == NULL && !retried && sshkey_is_sk(sign_key) &&
+		if (!retried && pin == NULL && !is_agent &&
+		    sshkey_is_sk(sign_key) &&
 		    r == SSH_ERR_KEY_WRONG_PASSPHRASE) {
 			notify_complete(notifier, NULL);
 			notifier = NULL;
+			xasprintf(&prompt, "Enter PIN for %s key %s: ",
+			    sshkey_type(sign_key), id->filename);
+			pin = read_passphrase(prompt, 0);
 			retried = 1;
 			goto retry_pin;
 		}
@@ -1318,7 +1299,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 static int
 id_filename_matches(Identity *id, Identity *private_id)
 {
-	const char *suffixes[] = { ".pub", "-cert.pub", NULL };
+	static const char * const suffixes[] = { ".pub", "-cert.pub", NULL };
 	size_t len = strlen(id->filename), plen = strlen(private_id->filename);
 	size_t i, slen;
 
@@ -1604,6 +1585,13 @@ load_identity_file(Identity *id)
 			private = NULL;
 			quit = 1;
 		}
+		if (!quit && (r = sshkey_check_rsa_length(private,
+		    options.required_rsa_size)) != 0) {
+			debug_fr(r, "Skipping key %s", id->filename);
+			sshkey_free(private);
+			private = NULL;
+			quit = 1;
+		}
 		if (!quit && private != NULL && id->agent_fd == -1 &&
 		    !(id->key && id->isprivate))
 			maybe_add_key_to_agent(id->filename, private, comment,
@@ -1750,6 +1738,12 @@ pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 	/* list of keys supported by the agent */
 	if ((r = get_agent_identities(ssh, &agent_fd, &idlist)) == 0) {
 		for (j = 0; j < idlist->nkeys; j++) {
+			if ((r = sshkey_check_rsa_length(idlist->keys[j],
+			    options.required_rsa_size)) != 0) {
+				debug_fr(r, "ignoring %s agent key",
+				    sshkey_ssh_name(idlist->keys[j]));
+				continue;
+			}
 			found = 0;
 			TAILQ_FOREACH(id, &files, next) {
 				/*
@@ -1855,20 +1849,6 @@ pubkey_reset(Authctxt *authctxt)
 }
 
 static int
-try_identity(struct ssh *ssh, Identity *id)
-{
-	if (!id->key)
-		return (0);
-	if (sshkey_type_plain(id->key->type) == KEY_RSA &&
-	    (ssh->compat & SSH_BUG_RSASIGMD5) != 0) {
-		debug("Skipped %s key %s for RSA/MD5 server",
-		    sshkey_type(id->key), id->filename);
-		return (0);
-	}
-	return 1;
-}
-
-static int
 userauth_pubkey(struct ssh *ssh)
 {
 	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
@@ -1888,17 +1868,15 @@ userauth_pubkey(struct ssh *ssh)
 		 * private key instead
 		 */
 		if (id->key != NULL) {
-			if (try_identity(ssh, id)) {
-				ident = format_identity(id);
-				debug("Offering public key: %s", ident);
-				free(ident);
-				sent = send_pubkey_test(ssh, id);
-			}
+			ident = format_identity(id);
+			debug("Offering public key: %s", ident);
+			free(ident);
+			sent = send_pubkey_test(ssh, id);
 		} else {
 			debug("Trying private key: %s", id->filename);
 			id->key = load_identity_file(id);
 			if (id->key != NULL) {
-				if (try_identity(ssh, id)) {
+				if (id->key != NULL) {
 					id->isprivate = 1;
 					sent = sign_and_send_pubkey(ssh, id);
 				}
@@ -2069,7 +2047,8 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 		if (dup2(sock, STDERR_FILENO + 1) == -1)
 			fatal_f("dup2: %s", strerror(errno));
 		sock = STDERR_FILENO + 1;
-		fcntl(sock, F_SETFD, 0);	/* keep the socket on exec */
+		if (fcntl(sock, F_SETFD, 0) == -1) /* keep the socket on exec */
+			debug3_f("fcntl F_SETFD: %s", strerror(errno));
 		closefrom(sock + 1);
 
 		debug3_f("[child] pid=%ld, exec %s",
@@ -2169,9 +2148,9 @@ userauth_hostbased(struct ssh *ssh)
 			if (authctxt->sensitive->keys[i] == NULL ||
 			    authctxt->sensitive->keys[i]->type == KEY_UNSPEC)
 				continue;
-			if (match_pattern_list(
+			if (!sshkey_match_keyname_to_sigalgs(
 			    sshkey_ssh_name(authctxt->sensitive->keys[i]),
-			    authctxt->active_ktype, 0) != 1)
+			    authctxt->active_ktype))
 				continue;
 			/* we take and free the key */
 			private = authctxt->sensitive->keys[i];
@@ -2197,7 +2176,8 @@ userauth_hostbased(struct ssh *ssh)
 		error_f("sshkey_fingerprint failed");
 		goto out;
 	}
-	debug_f("trying hostkey %s %s", sshkey_ssh_name(private), fp);
+	debug_f("trying hostkey %s %s using sigalg %s",
+	    sshkey_ssh_name(private), fp, authctxt->active_ktype);
 
 	/* figure out a name for the client host */
 	lname = get_local_name(ssh_packet_get_connection_in(ssh));

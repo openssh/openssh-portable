@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.162 2021/12/19 22:12:07 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.167 2023/08/28 09:48:11 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -46,7 +46,6 @@
 #include "sshbuf.h"
 #include "misc.h"
 #include "servconf.h"
-#include "compat.h"
 #include "sshkey.h"
 #include "hostfile.h"
 #include "auth.h"
@@ -92,6 +91,7 @@ static int input_service_request(int, u_int32_t, struct ssh *);
 static int input_userauth_request(int, u_int32_t, struct ssh *);
 
 /* helper */
+static Authmethod *authmethod_byname(const char *);
 static Authmethod *authmethod_lookup(Authctxt *, const char *);
 static char *authmethods_get(Authctxt *authctxt);
 
@@ -177,7 +177,6 @@ do_authentication2(struct ssh *ssh)
 	ssh->authctxt = NULL;
 }
 
-/*ARGSUSED*/
 static int
 input_service_request(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -219,6 +218,7 @@ input_service_request(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 #define MIN_FAIL_DELAY_SECONDS 0.005
+#define MAX_FAIL_DELAY_SECONDS 5.0
 static double
 user_specific_delay(const char *user)
 {
@@ -244,6 +244,12 @@ ensure_minimum_time_since(double start, double seconds)
 	struct timespec ts;
 	double elapsed = monotime_double() - start, req = seconds, remain;
 
+	if (elapsed > MAX_FAIL_DELAY_SECONDS) {
+		debug3_f("elapsed %0.3lfms exceeded the max delay "
+		    "requested %0.3lfms)", elapsed*1000, req*1000);
+		return;
+	}
+
 	/* if we've already passed the requested time, scale up */
 	while ((remain = seconds - elapsed) < 0.0)
 		seconds *= 2;
@@ -255,7 +261,6 @@ ensure_minimum_time_since(double start, double seconds)
 	nanosleep(&ts, NULL);
 }
 
-/*ARGSUSED*/
 static int
 input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 {
@@ -278,6 +283,8 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 	if ((style = strchr(user, ':')) != NULL)
 		*style++ = 0;
 
+	if (authctxt->attempt >= 1024)
+		auth_maxtries_exceeded(ssh);
 	if (authctxt->attempt++ == 0) {
 		/* setup auth context */
 		authctxt->pw = PRIVSEP(getpwnamallow(ssh, user));
@@ -286,6 +293,7 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 			authctxt->valid = 1;
 			debug2_f("setting up authctxt for %s", user);
 		} else {
+			authctxt->valid = 0;
 			/* Invalid user, fake password information */
 			authctxt->pw = fakepw();
 #ifdef SSH_AUDIT_EVENTS
@@ -333,7 +341,7 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 		debug2("input_userauth_request: try method %s", method);
 		authenticated =	m->userauth(ssh, method);
 	}
-	if (!authctxt->authenticated)
+	if (!authctxt->authenticated && strcmp(method, "none") != 0)
 		ensure_minimum_time_since(tstart,
 		    user_specific_delay(authctxt->user));
 	userauth_finish(ssh, authenticated, method, NULL);
@@ -362,9 +370,10 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *packet_method,
 		}
 		if (authctxt->postponed)
 			fatal("INTERNAL ERROR: authenticated and postponed");
-		if ((m = authmethod_lookup(authctxt, method)) == NULL)
+		/* prefer primary authmethod name to possible synonym */
+		if ((m = authmethod_byname(method)) == NULL)
 			fatal("INTERNAL ERROR: bad method %s", method);
-		method = m->name; /* prefer primary name to possible synonym */
+		method = m->name;
 	}
 
 	/* Special handling for root */
@@ -504,23 +513,40 @@ authmethods_get(Authctxt *authctxt)
 }
 
 static Authmethod *
-authmethod_lookup(Authctxt *authctxt, const char *name)
+authmethod_byname(const char *name)
 {
 	int i;
 
-	if (name != NULL)
-		for (i = 0; authmethods[i] != NULL; i++)
-			if (authmethods[i]->enabled != NULL &&
-			    *(authmethods[i]->enabled) != 0 &&
-			    (strcmp(name, authmethods[i]->name) == 0 ||
-			    (authmethods[i]->synonym != NULL &&
-			    strcmp(name, authmethods[i]->synonym) == 0)) &&
-			    auth2_method_allowed(authctxt,
-			    authmethods[i]->name, NULL))
-				return authmethods[i];
-	debug2("Unrecognized authentication method name: %s",
-	    name ? name : "NULL");
+	if (name == NULL)
+		fatal_f("NULL authentication method name");
+	for (i = 0; authmethods[i] != NULL; i++) {
+		if (strcmp(name, authmethods[i]->name) == 0 ||
+		    (authmethods[i]->synonym != NULL &&
+		    strcmp(name, authmethods[i]->synonym) == 0))
+			return authmethods[i];
+	}
+	debug_f("unrecognized authentication method name: %s", name);
 	return NULL;
+}
+
+static Authmethod *
+authmethod_lookup(Authctxt *authctxt, const char *name)
+{
+	Authmethod *method;
+
+	if ((method = authmethod_byname(name)) == NULL)
+		return NULL;
+
+	if (method->enabled == NULL || *(method->enabled) == 0) {
+		debug3_f("method %s not enabled", name);
+		return NULL;
+	}
+	if (!auth2_method_allowed(authctxt, method->name, NULL)) {
+		debug3_f("method %s not allowed "
+		    "by AuthenticationMethods", name);
+		return NULL;
+	}
+	return method;
 }
 
 /*

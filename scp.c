@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.241 2021/10/24 21:24:17 deraadt Exp $ */
+/* $OpenBSD: scp.c,v 1.257 2023/07/14 05:31:44 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -106,6 +106,9 @@
 #include <libgen.h>
 #endif
 #include <limits.h>
+#ifdef HAVE_UTIL_H
+# include <util.h>
+#endif
 #include <locale.h>
 #include <pwd.h>
 #include <signal.h>
@@ -130,6 +133,7 @@
 #include "misc.h"
 #include "progressmeter.h"
 #include "utf8.h"
+#include "sftp.h"
 
 #include "sftp-common.h"
 #include "sftp-client.h"
@@ -175,6 +179,10 @@ char *ssh_program = _PATH_SSH_PROGRAM;
 pid_t do_cmd_pid = -1;
 pid_t do_cmd_pid2 = -1;
 
+/* SFTP copy parameters */
+size_t sftp_copy_buflen;
+size_t sftp_nrequests;
+
 /* Needed for sftp */
 volatile sig_atomic_t interrupted = 0;
 
@@ -186,11 +194,11 @@ killchild(int signo)
 {
 	if (do_cmd_pid > 1) {
 		kill(do_cmd_pid, signo ? signo : SIGTERM);
-		waitpid(do_cmd_pid, NULL, 0);
+		(void)waitpid(do_cmd_pid, NULL, 0);
 	}
 	if (do_cmd_pid2 > 1) {
 		kill(do_cmd_pid2, signo ? signo : SIGTERM);
-		waitpid(do_cmd_pid2, NULL, 0);
+		(void)waitpid(do_cmd_pid2, NULL, 0);
 	}
 
 	if (signo)
@@ -271,7 +279,11 @@ int
 do_cmd(char *program, char *host, char *remuser, int port, int subsystem,
     char *cmd, int *fdin, int *fdout, pid_t *pid)
 {
-	int pin[2], pout[2], reserved[2];
+#ifdef USE_PIPES
+	int pin[2], pout[2];
+#else
+	int sv[2];
+#endif
 
 	if (verbose_mode)
 		fmprintf(stderr,
@@ -282,22 +294,14 @@ do_cmd(char *program, char *host, char *remuser, int port, int subsystem,
 	if (port == -1)
 		port = sshport;
 
-	/*
-	 * Reserve two descriptors so that the real pipes won't get
-	 * descriptors 0 and 1 because that will screw up dup2 below.
-	 */
-	if (pipe(reserved) == -1)
+#ifdef USE_PIPES
+	if (pipe(pin) == -1 || pipe(pout) == -1)
 		fatal("pipe: %s", strerror(errno));
-
+#else
 	/* Create a socket pair for communicating with ssh. */
-	if (pipe(pin) == -1)
-		fatal("pipe: %s", strerror(errno));
-	if (pipe(pout) == -1)
-		fatal("pipe: %s", strerror(errno));
-
-	/* Free the reserved descriptors. */
-	close(reserved[0]);
-	close(reserved[1]);
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == -1)
+		fatal("socketpair: %s", strerror(errno));
+#endif
 
 	ssh_signal(SIGTSTP, suspchild);
 	ssh_signal(SIGTTIN, suspchild);
@@ -305,15 +309,30 @@ do_cmd(char *program, char *host, char *remuser, int port, int subsystem,
 
 	/* Fork a child to execute the command on the remote host using ssh. */
 	*pid = fork();
-	if (*pid == 0) {
+	switch (*pid) {
+	case -1:
+		fatal("fork: %s", strerror(errno));
+	case 0:
 		/* Child. */
+#ifdef USE_PIPES
+		if (dup2(pin[0], STDIN_FILENO) == -1 ||
+		    dup2(pout[1], STDOUT_FILENO) == -1) {
+			error("dup2: %s", strerror(errno));
+			_exit(1);
+		}
+		close(pin[0]);
 		close(pin[1]);
 		close(pout[0]);
-		dup2(pin[0], 0);
-		dup2(pout[1], 1);
-		close(pin[0]);
 		close(pout[1]);
-
+#else
+		if (dup2(sv[0], STDIN_FILENO) == -1 ||
+		    dup2(sv[0], STDOUT_FILENO) == -1) {
+			error("dup2: %s", strerror(errno));
+			_exit(1);
+		}
+		close(sv[0]);
+		close(sv[1]);
+#endif
 		replacearg(&args, 0, "%s", program);
 		if (port != -1) {
 			addargs(&args, "-p");
@@ -331,19 +350,24 @@ do_cmd(char *program, char *host, char *remuser, int port, int subsystem,
 
 		execvp(program, args.list);
 		perror(program);
-		exit(1);
-	} else if (*pid == -1) {
-		fatal("fork: %s", strerror(errno));
+		_exit(1);
+	default:
+		/* Parent.  Close the other side, and return the local side. */
+#ifdef USE_PIPES
+		close(pin[0]);
+		close(pout[1]);
+		*fdout = pin[1];
+		*fdin = pout[0];
+#else
+		close(sv[0]);
+		*fdin = sv[1];
+		*fdout = sv[1];
+#endif
+		ssh_signal(SIGTERM, killchild);
+		ssh_signal(SIGINT, killchild);
+		ssh_signal(SIGHUP, killchild);
+		return 0;
 	}
-	/* Parent.  Close the other side, and return the local side. */
-	close(pin[0]);
-	*fdout = pin[1];
-	close(pout[1]);
-	*fdin = pout[0];
-	ssh_signal(SIGTERM, killchild);
-	ssh_signal(SIGINT, killchild);
-	ssh_signal(SIGHUP, killchild);
-	return 0;
 }
 
 /*
@@ -370,8 +394,10 @@ do_cmd2(char *host, char *remuser, int port, char *cmd,
 	/* Fork a child to execute the command on the remote host using ssh. */
 	pid = fork();
 	if (pid == 0) {
-		dup2(fdin, 0);
-		dup2(fdout, 1);
+		if (dup2(fdin, 0) == -1)
+			perror("dup2");
+		if (dup2(fdout, 1) == -1)
+			perror("dup2");
 
 		replacearg(&args, 0, "%s", ssh_program);
 		if (port != -1) {
@@ -443,18 +469,17 @@ void throughlocal_sftp(struct sftp_conn *, struct sftp_conn *,
 int
 main(int argc, char **argv)
 {
-	int ch, fflag, tflag, status, n;
+	int ch, fflag, tflag, status, r, n;
 	char **newargv, *argv0;
 	const char *errstr;
 	extern char *optarg;
 	extern int optind;
 	enum scp_mode_e mode = MODE_SFTP;
 	char *sftp_direct = NULL;
+	long long llv;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
-
-	seed_rng();
 
 	msetlocale();
 
@@ -481,7 +506,7 @@ main(int argc, char **argv)
 
 	fflag = Tflag = tflag = 0;
 	while ((ch = getopt(argc, argv,
-	    "12346ABCTdfOpqRrstvD:F:J:M:P:S:c:i:l:o:")) != -1) {
+	    "12346ABCTdfOpqRrstvD:F:J:M:P:S:c:i:l:o:X:")) != -1) {
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
@@ -561,6 +586,31 @@ main(int argc, char **argv)
 			addargs(&args, "-q");
 			addargs(&remote_remote_args, "-q");
 			showprogress = 0;
+			break;
+		case 'X':
+			/* Please keep in sync with sftp.c -X */
+			if (strncmp(optarg, "buffer=", 7) == 0) {
+				r = scan_scaled(optarg + 7, &llv);
+				if (r == 0 && (llv <= 0 || llv > 256 * 1024)) {
+					r = -1;
+					errno = EINVAL;
+				}
+				if (r == -1) {
+					fatal("Invalid buffer size \"%s\": %s",
+					     optarg + 7, strerror(errno));
+				}
+				sftp_copy_buflen = (size_t)llv;
+			} else if (strncmp(optarg, "nrequests=", 10) == 0) {
+				llv = strtonum(optarg + 10, 1, 256 * 1024,
+				    &errstr);
+				if (errstr != NULL) {
+					fatal("Invalid number of requests "
+					    "\"%s\": %s", optarg + 10, errstr);
+				}
+				sftp_nrequests = (size_t)llv;
+			} else {
+				fatal("Invalid -X option");
+			}
 			break;
 
 		/* Server options. */
@@ -788,8 +838,13 @@ emit_expansion(const char *pattern, int brace_start, int brace_end,
     int sel_start, int sel_end, char ***patternsp, size_t *npatternsp)
 {
 	char *cp;
-	int o = 0, tail_len = strlen(pattern + brace_end + 1);
+	size_t pattern_len;
+	int o = 0, tail_len;
 
+	if ((pattern_len = strlen(pattern)) == 0 || pattern_len >= INT_MAX)
+		return -1;
+
+	tail_len = strlen(pattern + brace_end + 1);
 	if ((cp = malloc(brace_start + (sel_end - sel_start) +
 	    tail_len + 1)) == NULL)
 		return -1;
@@ -967,13 +1022,14 @@ do_sftp_connect(char *host, char *user, int port, char *sftp_direct,
 			return NULL;
 
 	} else {
-		args.list = NULL;
+		freeargs(&args);
 		addargs(&args, "sftp-server");
 		if (do_cmd(sftp_direct, host, NULL, -1, 0, "sftp",
 		    reminp, remoutp, pidp) < 0)
 			return NULL;
 	}
-	return do_init(*reminp, *remoutp, 32768, 64, limit_kbps);
+	return do_init(*reminp, *remoutp,
+	    sftp_copy_buflen, sftp_nrequests, limit_kbps);
 }
 
 void
@@ -985,6 +1041,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	struct sftp_conn *conn = NULL, *conn2 = NULL;
 	arglist alist;
 	int i, r, status;
+	struct stat sb;
 	u_int j;
 
 	memset(&alist, '\0', sizeof(alist));
@@ -1127,6 +1184,11 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				errs = 1;
 		} else {	/* local to remote */
 			if (mode == MODE_SFTP) {
+				/* no need to glob: already done by shell */
+				if (stat(argv[i], &sb) != 0) {
+					fatal("stat local \"%s\": %s", argv[i],
+					    strerror(errno));
+				}
 				if (remin == -1) {
 					/* Connect to remote now */
 					conn = do_sftp_connect(thost, tuser,
@@ -1250,13 +1312,18 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 static char *
 prepare_remote_path(struct sftp_conn *conn, const char *path)
 {
+	size_t nslash;
+
 	/* Handle ~ prefixed paths */
-	if (*path != '~')
-		return xstrdup(path);
 	if (*path == '\0' || strcmp(path, "~") == 0)
 		return xstrdup(".");
-	if (strncmp(path, "~/", 2) == 0)
-		return xstrdup(path + 2);
+	if (*path != '~')
+		return xstrdup(path);
+	if (strncmp(path, "~/", 2) == 0) {
+		if ((nslash = strspn(path + 2, "/")) == strlen(path + 2))
+			return xstrdup(".");
+		return xstrdup(path + 2 + nslash);
+	}
 	if (can_expand_path(conn))
 		return do_expand_path(conn, path);
 	/* No protocol extension */
@@ -1269,10 +1336,16 @@ void
 source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 {
 	char *target = NULL, *filename = NULL, *abs_dst = NULL;
-	int target_is_dir;
+	int src_is_dir, target_is_dir;
+	Attrib a;
+	struct stat st;
 
+	memset(&a, '\0', sizeof(a));
+	if (stat(src, &st) != 0)
+		fatal("stat local \"%s\": %s", src, strerror(errno));
+	src_is_dir = S_ISDIR(st.st_mode);
 	if ((filename = basename(src)) == NULL)
-		fatal("basename %s: %s", src, strerror(errno));
+		fatal("basename \"%s\": %s", src, strerror(errno));
 
 	/*
 	 * No need to glob here - the local shell already took care of
@@ -1282,8 +1355,12 @@ source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 		cleanup_exit(255);
 	target_is_dir = remote_is_dir(conn, target);
 	if (targetshouldbedirectory && !target_is_dir) {
-		fatal("Target is not a directory, but more files selected "
-		    "for upload");
+		debug("target directory \"%s\" does not exist", target);
+		a.flags = SSH2_FILEXFER_ATTR_PERMISSIONS;
+		a.perm = st.st_mode | 0700; /* ensure writable */
+		if (do_mkdir(conn, target, &a, 1) != 0)
+			cleanup_exit(255); /* error already logged */
+		target_is_dir = 1;
 	}
 	if (target_is_dir)
 		abs_dst = path_append(target, filename);
@@ -1293,15 +1370,14 @@ source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 	}
 	debug3_f("copying local %s to remote %s", src, abs_dst);
 
-	if (local_is_dir(src) && iamrecursive) {
+	if (src_is_dir && iamrecursive) {
 		if (upload_dir(conn, src, abs_dst, pflag,
-		    SFTP_PROGRESS_ONLY, 0, 0, 1) != 0) {
-			error("failed to upload directory %s to %s",
-				src, abs_dst);
+		    SFTP_PROGRESS_ONLY, 0, 0, 1, 1) != 0) {
+			error("failed to upload directory %s to %s", src, targ);
 			errs = 1;
 		}
-	} else if (do_upload(conn, src, abs_dst, pflag, 0, 0) != 0) {
-		error("failed to upload file %s to %s", src, abs_dst);
+	} else if (do_upload(conn, src, abs_dst, pflag, 0, 0, 1) != 0) {
+		error("failed to upload file %s to %s", src, targ);
 		errs = 1;
 	}
 
@@ -1477,34 +1553,63 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	char *abs_dst = NULL;
 	glob_t g;
 	char *filename, *tmp = NULL;
-	int i, r, err = 0;
+	int i, r, err = 0, dst_is_dir;
+	struct stat st;
 
 	memset(&g, 0, sizeof(g));
+
 	/*
 	 * Here, we need remote glob as SFTP can not depend on remote shell
 	 * expansions
 	 */
-
 	if ((abs_src = prepare_remote_path(conn, src)) == NULL) {
 		err = -1;
 		goto out;
 	}
 
 	debug3_f("copying remote %s to local %s", abs_src, dst);
-	if ((r = remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
+	if ((r = remote_glob(conn, abs_src, GLOB_NOCHECK|GLOB_MARK,
+	    NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
-			error("%s: too many glob matches", abs_src);
+			error("%s: too many glob matches", src);
 		else
-			error("%s: %s", abs_src, strerror(ENOENT));
+			error("%s: %s", src, strerror(ENOENT));
 		err = -1;
 		goto out;
 	}
 
-	if (g.gl_matchc > 1 && !local_is_dir(dst)) {
-		error("Multiple files match pattern, but destination "
-		    "\"%s\" is not a directory", dst);
-		err = -1;
-		goto out;
+	/* Did we actually get any matches back from the glob? */
+	if (g.gl_matchc == 0 && g.gl_pathc == 1 && g.gl_pathv[0] != 0) {
+		/*
+		 * If nothing matched but a path returned, then it's probably
+		 * a GLOB_NOCHECK result. Check whether the unglobbed path
+		 * exists so we can give a nice error message early.
+		 */
+		if (do_stat(conn, g.gl_pathv[0], 1) == NULL) {
+			error("%s: %s", src, strerror(ENOENT));
+			err = -1;
+			goto out;
+		}
+	}
+
+	if ((r = stat(dst, &st)) != 0)
+		debug2_f("stat local \"%s\": %s", dst, strerror(errno));
+	dst_is_dir = r == 0 && S_ISDIR(st.st_mode);
+
+	if (g.gl_matchc > 1 && !dst_is_dir) {
+		if (r == 0) {
+			error("Multiple files match pattern, but destination "
+			    "\"%s\" is not a directory", dst);
+			err = -1;
+			goto out;
+		}
+		debug2_f("creating destination \"%s\"", dst);
+		if (mkdir(dst, 0777) != 0) {
+			error("local mkdir \"%s\": %s", dst, strerror(errno));
+			err = -1;
+			goto out;
+		}
+		dst_is_dir = 1;
 	}
 
 	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
@@ -1515,7 +1620,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 			goto out;
 		}
 
-		if (local_is_dir(dst))
+		if (dst_is_dir)
 			abs_dst = path_append(dst, filename);
 		else
 			abs_dst = xstrdup(dst);
@@ -1523,11 +1628,11 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		debug("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (globpath_is_dir(g.gl_pathv[i]) && iamrecursive) {
 			if (download_dir(conn, g.gl_pathv[i], abs_dst, NULL,
-			    pflag, SFTP_PROGRESS_ONLY, 0, 0, 1) == -1)
+			    pflag, SFTP_PROGRESS_ONLY, 0, 0, 1, 1) == -1)
 				err = -1;
 		} else {
 			if (do_download(conn, g.gl_pathv[i], abs_dst, NULL,
-			    pflag, 0, 0) == -1)
+			    pflag, 0, 0, 1) == -1)
 				err = -1;
 		}
 		free(abs_dst);
@@ -1704,7 +1809,8 @@ sink(int argc, char **argv, const char *src)
 		}
 		if (npatterns > 0) {
 			for (n = 0; n < npatterns; n++) {
-				if (fnmatch(patterns[n], cp, 0) == 0)
+				if (strcmp(patterns[n], cp) == 0 ||
+				    fnmatch(patterns[n], cp, 0) == 0)
 					break;
 			}
 			if (n >= npatterns)
@@ -1889,19 +1995,34 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 
 	targetisdir = remote_is_dir(to, target);
 	if (!targetisdir && targetshouldbedirectory) {
-		error("%s: destination is not a directory", target);
+		error("%s: destination is not a directory", targ);
 		err = -1;
 		goto out;
 	}
 
 	debug3_f("copying remote %s to remote %s", abs_src, target);
-	if ((r = remote_glob(from, abs_src, GLOB_MARK, NULL, &g)) != 0) {
+	if ((r = remote_glob(from, abs_src, GLOB_NOCHECK|GLOB_MARK,
+	    NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
-			error("%s: too many glob matches", abs_src);
+			error("%s: too many glob matches", src);
 		else
-			error("%s: %s", abs_src, strerror(ENOENT));
+			error("%s: %s", src, strerror(ENOENT));
 		err = -1;
 		goto out;
+	}
+
+	/* Did we actually get any matches back from the glob? */
+	if (g.gl_matchc == 0 && g.gl_pathc == 1 && g.gl_pathv[0] != 0) {
+		/*
+		 * If nothing matched but a path returned, then it's probably
+		 * a GLOB_NOCHECK result. Check whether the unglobbed path
+		 * exists so we can give a nice error message early.
+		 */
+		if (do_stat(from, g.gl_pathv[0], 1) == NULL) {
+			error("%s: %s", src, strerror(ENOENT));
+			err = -1;
+			goto out;
+		}
 	}
 
 	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
@@ -1986,8 +2107,8 @@ usage(void)
 {
 	(void) fprintf(stderr,
 	    "usage: scp [-346ABCOpqRrsTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
-	    "           [-i identity_file] [-J destination] [-l limit]\n"
-	    "           [-o ssh_option] [-P port] [-S program] source ... target\n");
+	    "           [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
+	    "           [-P port] [-S program] [-X sftp_option] source ... target\n");
 	exit(1);
 }
 
@@ -2139,8 +2260,8 @@ cleanup_exit(int i)
 	if (remout2 > 0)
 		close(remout2);
 	if (do_cmd_pid > 0)
-		waitpid(do_cmd_pid, NULL, 0);
+		(void)waitpid(do_cmd_pid, NULL, 0);
 	if (do_cmd_pid2 > 0)
-		waitpid(do_cmd_pid2, NULL, 0);
+		(void)waitpid(do_cmd_pid2, NULL, 0);
 	exit(i);
 }

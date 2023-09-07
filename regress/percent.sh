@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.13 2021/07/25 12:13:03 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.17 2023/03/27 03:56:50 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -12,6 +12,7 @@ USER=`id -u -n`
 USERID=`id -u`
 HOST=`hostname | cut -f1 -d.`
 HOSTNAME=`hostname`
+HASH=""
 
 # Localcommand is evaluated after connection because %T is not available
 # until then.  Because of this we use a different method of exercising it,
@@ -21,7 +22,8 @@ echo "permitlocalcommand yes" >> $OBJ/ssh_proxy
 
 trial()
 {
-	opt="$1"; arg="$2"; expect="$3"
+	opt="$1"; arg="$2"
+	expect=`echo "$3" | sed 's|^//|/|'` # approximate realpath
 
 	trace "test $opt=$arg $expect"
 	rm -f $OBJ/actual
@@ -64,7 +66,8 @@ trial()
 }
 
 for i in matchexec localcommand remotecommand controlpath identityagent \
-    forwardagent localforward remoteforward userknownhostsfile; do
+    forwardagent localforward remoteforward revokedhostkeys \
+    userknownhostsfile; do
 	verbose $tid $i percent
 	case "$i" in
 	localcommand|userknownhostsfile)
@@ -78,10 +81,12 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 		trial $i '%T' NONE
 	fi
 	# Matches implementation in readconf.c:ssh_connection_hash()
-	HASH=`printf "${HOSTNAME}127.0.0.1${PORT}$REMUSER" |
-	    $OPENSSL_BIN sha1 | cut -f2 -d' '`
+	if [ ! -z "${OPENSSL_BIN}" ]; then
+		HASH=`printf "${HOSTNAME}127.0.0.1${PORT}$REMUSER" |
+		    $OPENSSL_BIN sha1 | cut -f2 -d' '`
+		trial $i '%C' $HASH
+	fi
 	trial $i '%%' '%'
-	trial $i '%C' $HASH
 	trial $i '%i' $USERID
 	trial $i '%h' 127.0.0.1
 	trial $i '%L' $HOST
@@ -95,8 +100,13 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	# containing %d for UserKnownHostsFile
 	if [ "$i" != "userknownhostsfile" ]; then
 		trial $i '%d' $HOME
-		trial $i '%%/%C/%i/%h/%d/%L/%l/%n/%p/%r/%u' \
-		    "%/$HASH/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
+		in='%%/%i/%h/%d/%L/%l/%n/%p/%r/%u'
+		out="%/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
+		if [ ! -z "${HASH}" ]; then
+			in="$in/%C"
+			out="$out/$HASH"
+		fi
+		trial $i "$in" "$out"
 	fi
 done
 

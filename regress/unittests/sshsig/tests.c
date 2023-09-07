@@ -18,8 +18,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef WITH_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/crypto.h>
+#endif
 
 #include "ssherr.h"
 #include "authfile.h"
@@ -85,7 +87,7 @@ tests(void)
 
 #ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
-	ERR_load_CRYPTO_strings();
+	ERR_load_crypto_strings();
 #endif
 
 	TEST_START("load data");

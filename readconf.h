@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.146 2021/12/19 22:14:47 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.152 2023/08/28 03:31:16 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -28,6 +28,7 @@ struct allowed_cname {
 };
 
 typedef struct {
+	char   *host_arg;	/* Host arg as specified on command line. */
 	int     forward_agent;	/* Forward authentication agent. */
 	char   *forward_agent_sock_path; /* Optional path of the agent. */
 	int     forward_x11;	/* Forward X11 display. */
@@ -69,6 +70,7 @@ typedef struct {
 	char   *kex_algorithms;	/* SSH2 kex methods in order of preference. */
 	char   *ca_sign_algorithms;	/* Allowed CA signature algorithms */
 	char   *hostname;	/* Real host to connect. */
+	char   *tag;		/* Configuration tag name. */
 	char   *host_key_alias;	/* hostname alias for .ssh/known_hosts */
 	char   *proxy_command;	/* Proxy command for connecting the host. */
 	char   *user;		/* User to log in as. */
@@ -124,10 +126,10 @@ typedef struct {
 	int	server_alive_interval;
 	int	server_alive_count_max;
 
-	int     num_send_env;
-	char   **send_env;
-	int     num_setenv;
-	char   **setenv;
+	u_int	num_send_env;
+	char	**send_env;
+	u_int	num_setenv;
+	char	**setenv;
 
 	char	*control_path;
 	int	control_master;
@@ -176,6 +178,10 @@ typedef struct {
 
 	char   *known_hosts_command;
 
+	int	required_rsa_size;	/* minimum size of RSA keys */
+	int	enable_escape_commandline;	/* ~C commandline */
+	int	obscure_keystroke_timing_interval;
+
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;
 
@@ -216,6 +222,11 @@ typedef struct {
 #define SSH_STRICT_HOSTKEY_NEW	1
 #define SSH_STRICT_HOSTKEY_YES	2
 #define SSH_STRICT_HOSTKEY_ASK	3
+
+/* ObscureKeystrokes parameters */
+#define SSH_KEYSTROKE_DEFAULT_INTERVAL_MS	20
+#define SSH_KEYSTROKE_CHAFF_MIN_MS		1024
+#define SSH_KEYSTROKE_CHAFF_RNG_MS		2048
 
 const char *kex_default_pk_alg(void);
 char	*ssh_connection_hash(const char *thishost, const char *host,

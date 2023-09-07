@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.26 2021/11/28 07:21:26 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.32 2023/04/06 03:56:02 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -491,7 +491,7 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 {
 	char *hex, rbuf[8192], hash[SSH_DIGEST_MAX_LENGTH];
 	ssize_t n, total = 0;
-	struct ssh_digest_ctx *ctx;
+	struct ssh_digest_ctx *ctx = NULL;
 	int alg, oerrno, r = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL;
 
@@ -514,7 +514,6 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 				continue;
 			oerrno = errno;
 			error_f("read: %s", strerror(errno));
-			ssh_digest_free(ctx);
 			errno = oerrno;
 			r = SSH_ERR_SYSTEM_ERROR;
 			goto out;
@@ -549,9 +548,11 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 	/* success */
 	r = 0;
  out:
+	oerrno = errno;
 	sshbuf_free(b);
 	ssh_digest_free(ctx);
 	explicit_bzero(hash, sizeof(hash));
+	errno = oerrno;
 	return r;
 }
 
@@ -739,7 +740,7 @@ parse_principals_key_and_options(const char *path, u_long linenum, char *line,
 		return SSH_ERR_KEY_NOT_FOUND; /* blank or all-comment line */
 
 	/* format: identity[,identity...] [option[,option...]] key */
-	if ((tmp = strdelimw(&cp)) == NULL) {
+	if ((tmp = strdelimw(&cp)) == NULL || cp == NULL) {
 		error("%s:%lu: invalid line", path, linenum);
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
@@ -774,6 +775,11 @@ parse_principals_key_and_options(const char *path, u_long linenum, char *line,
 		opts = cp;
 		if (sshkey_advance_past_options(&cp) != 0) {
 			error("%s:%lu: invalid options", path, linenum);
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+		if (cp == NULL || *cp == '\0') {
+			error("%s:%lu: missing key", path, linenum);
 			r = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
@@ -820,6 +826,7 @@ cert_filter_principals(const char *path, u_long linenum,
 	const char *reason;
 	struct sshbuf *nprincipals;
 	int r = SSH_ERR_INTERNAL_ERROR, success = 0;
+	u_int i;
 
 	oprincipals = principals = *principalsp;
 	*principalsp = NULL;
@@ -830,22 +837,23 @@ cert_filter_principals(const char *path, u_long linenum,
 	}
 
 	while ((cp = strsep(&principals, ",")) != NULL && *cp != '\0') {
-		if (strcspn(cp, "!?*") != strlen(cp)) {
-			debug("%s:%lu: principal \"%s\" not authorized: "
-			    "contains wildcards", path, linenum, cp);
-			continue;
-		}
-		/* Check against principals list in certificate */
+		/* Check certificate validity */
 		if ((r = sshkey_cert_check_authority(cert, 0, 1, 0,
-		    verify_time, cp, &reason)) != 0) {
+		    verify_time, NULL, &reason)) != 0) {
 			debug("%s:%lu: principal \"%s\" not authorized: %s",
 			    path, linenum, cp, reason);
 			continue;
 		}
-		if ((r = sshbuf_putf(nprincipals, "%s%s",
-		    sshbuf_len(nprincipals) != 0 ? "," : "", cp)) != 0) {
-			error_f("buffer error");
-			goto out;
+		/* Return all matching principal names from the cert */
+		for (i = 0; i < cert->cert->nprincipals; i++) {
+			if (match_pattern(cert->cert->principals[i], cp)) {
+				if ((r = sshbuf_putf(nprincipals, "%s%s",
+					sshbuf_len(nprincipals) != 0 ? "," : "",
+						cert->cert->principals[i])) != 0) {
+					error_f("buffer error");
+					goto out;
+				}
+			}
 		}
 	}
 	if (sshbuf_len(nprincipals) == 0) {
@@ -921,7 +929,7 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 	}
 
 	/* Check whether options preclude the use of this key */
-	if (sigopts->namespaces != NULL &&
+	if (sigopts->namespaces != NULL && sig_namespace != NULL &&
 	    match_pattern_list(sig_namespace, sigopts->namespaces, 0) != 1) {
 		error("%s:%lu: key is not permitted for use in signature "
 		    "namespace \"%s\"", path, linenum, sig_namespace);
@@ -969,7 +977,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	char *line = NULL;
 	size_t linesize = 0;
 	u_long linenum = 0;
-	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
+	int r = SSH_ERR_KEY_NOT_FOUND, oerrno;
 
 	/* Check key and principal against file */
 	if ((f = fopen(path, "r")) == NULL) {
@@ -999,7 +1007,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	/* Either we hit an error parsing or we simply didn't find the key */
 	fclose(f);
 	free(line);
-	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+	return r;
 }
 
 int
@@ -1010,7 +1018,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 	char *line = NULL;
 	size_t linesize = 0;
 	u_long linenum = 0;
-	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
+	int r = SSH_ERR_KEY_NOT_FOUND, oerrno;
 
 	if ((f = fopen(path, "r")) == NULL) {
 		oerrno = errno;
@@ -1020,7 +1028,6 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 
-	r = SSH_ERR_KEY_NOT_FOUND;
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
 		r = check_allowed_keys_line(path, linenum, line,
@@ -1048,7 +1055,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 	fclose(f);
-	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+	return r;
 }
 
 int

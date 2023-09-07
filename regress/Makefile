@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.119 2021/12/19 22:20:12 djm Exp $
+#	$OpenBSD: Makefile,v 1.125 2023/05/17 05:52:01 djm Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -100,8 +100,10 @@ LTESTS= 	connect \
 		sshsig \
 		knownhosts \
 		knownhosts-command \
-		agent-restrict
-
+		agent-restrict \
+		hostbased \
+		channel-timeout \
+		connection-timeout
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
@@ -129,14 +131,15 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		rsa_ssh2_crnl.prv scp-ssh-wrapper.exe \
 		scp-ssh-wrapper.scp setuid-allowed sftp-server.log \
 		sftp-server.sh sftp.log ssh-log-wrapper.sh ssh.log \
+		ssh-agent.log ssh-add.log slow-sftp-server.sh \
 		ssh-rsa_oldfmt knownhosts_command \
 		ssh_config ssh_config.* ssh_proxy ssh_proxy_bak \
 		ssh_proxy_* sshd.log sshd_config sshd_config.* \
 		sshd_config.* sshd_proxy sshd_proxy.* sshd_proxy_bak \
 		sshd_proxy_orig t10.out t10.out.pub t12.out t12.out.pub \
 		t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub \
-		t8.out t8.out.pub t9.out t9.out.pub testdata \
-		user_*key* user_ca* user_key*
+		t8.out t8.out.pub t9.out t9.out.pub \
+		timestamp testdata user_*key* user_ca* user_key*
 
 # Enable all malloc(3) randomisations and checks
 TEST_ENV=      "MALLOC_OPTIONS=CFGJRSUX"
@@ -219,7 +222,15 @@ t12: $(OBJ)/t12.out
 
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
+	_started=""; test -z "${LTESTS_FROM}" && _started=1 ;\
 	for TEST in ""$?; do \
+		if [ -z "$$_started" ] ; then \
+			if [ "x$$TEST" = "x${LTESTS_FROM}.sh" ]; then \
+				_started=1; \
+			else \
+				continue; \
+			fi ; \
+		fi ; \
 		skip=no; \
 		for t in ""$${SKIP_LTESTS}; do \
 			if [ "x$${t}.sh" = "x$${TEST}" ]; then skip=yes; fi; \

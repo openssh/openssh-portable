@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-client.c,v 1.10 2021/10/28 02:54:18 djm Exp $ */
+/* $OpenBSD: ssh-sk-client.c,v 1.12 2022/01/14 03:34:00 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -232,7 +232,6 @@ sshsk_sign(const char *provider, struct sshkey *key,
     u_int compat, const char *pin)
 {
 	int oerrno, r = SSH_ERR_INTERNAL_ERROR;
-	char *fp = NULL;
 	struct sshbuf *kbuf = NULL, *req = NULL, *resp = NULL;
 
 	*sigp = NULL;
@@ -262,12 +261,6 @@ sshsk_sign(const char *provider, struct sshkey *key,
 		goto out;
 	}
 
-	if ((fp = sshkey_fingerprint(key, SSH_FP_HASH_DEFAULT,
-	    SSH_FP_DEFAULT)) == NULL) {
-		error_f("sshkey_fingerprint failed");
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
 	if ((r = client_converse(req, &resp, SSH_SK_HELPER_SIGN)) != 0)
 		goto out;
 
@@ -414,8 +407,7 @@ sshsk_load_resident(const char *provider_path, const char *device,
 	*srksp = NULL;
 	*nsrksp = 0;
 
-	if ((resp = sshbuf_new()) == NULL ||
-	    (kbuf = sshbuf_new()) == NULL ||
+	if ((kbuf = sshbuf_new()) == NULL ||
 	    (req = sshbuf_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;

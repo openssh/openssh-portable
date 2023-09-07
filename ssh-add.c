@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.162 2021/12/19 22:10:24 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.168 2023/07/06 22:17:59 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -77,7 +77,6 @@ extern char *__progname;
 static char *default_files[] = {
 #ifdef WITH_OPENSSL
 	_PATH_SSH_CLIENT_ID_RSA,
-	_PATH_SSH_CLIENT_ID_DSA,
 #ifdef OPENSSL_HAS_ECC
 	_PATH_SSH_CLIENT_ID_ECDSA,
 	_PATH_SSH_CLIENT_ID_ECDSA_SK,
@@ -86,6 +85,7 @@ static char *default_files[] = {
 	_PATH_SSH_CLIENT_ID_ED25519,
 	_PATH_SSH_CLIENT_ID_ED25519_SK,
 	_PATH_SSH_CLIENT_ID_XMSS,
+	_PATH_SSH_CLIENT_ID_DSA,
 	NULL
 };
 
@@ -125,7 +125,7 @@ delete_one(int agent_fd, const struct sshkey *key, const char *comment,
 	}
 	if (!qflag) {
 		fprintf(stderr, "Identity removed: %s %s (%s)\n", path,
-		    sshkey_type(key), comment);
+		    sshkey_type(key), comment ? comment : "no comment");
 	}
 	return 0;
 }
@@ -356,11 +356,6 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 			    "without provider\n", filename);
 			goto out;
 		}
-		if ((private->sk_flags & SSH_SK_USER_VERIFICATION_REQD) != 0) {
-			fprintf(stderr, "FIDO verify-required key %s is not "
-			    "currently supported by ssh-agent\n", filename);
-			goto out;
-		}
 	} else {
 		/* Don't send provider constraint for other keys */
 		skprovider = NULL;
@@ -404,7 +399,7 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 		    certpath, filename);
 		sshkey_free(cert);
 		goto out;
-	} 
+	}
 
 	/* Graft with private bits */
 	if ((r = sshkey_to_certified(private)) != 0) {
@@ -482,6 +477,7 @@ test_key(int agent_fd, const char *filename)
 {
 	struct sshkey *key = NULL;
 	u_char *sig = NULL;
+	const char *alg = NULL;
 	size_t slen = 0;
 	int r, ret = -1;
 	char data[1024];
@@ -490,14 +486,16 @@ test_key(int agent_fd, const char *filename)
 		error_r(r, "Couldn't read public key %s", filename);
 		return -1;
 	}
+	if (sshkey_type_plain(key->type) == KEY_RSA)
+		alg = "rsa-sha2-256";
 	arc4random_buf(data, sizeof(data));
 	if ((r = ssh_agent_sign(agent_fd, key, &sig, &slen, data, sizeof(data),
-	    NULL, 0)) != 0) {
+	    alg, 0)) != 0) {
 		error_r(r, "Agent signature failed for %s", filename);
 		goto done;
 	}
 	if ((r = sshkey_verify(key, sig, slen, data, sizeof(data),
-	    NULL, 0, NULL)) != 0) {
+	    alg, 0, NULL)) != 0) {
 		error_r(r, "Signature verification failed for %s", filename);
 		goto done;
 	}
@@ -772,8 +770,8 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-"usage: ssh-add [-cDdKkLlqvXx] [-E fingerprint_hash] [-S provider] [-t life]\n"
-"               [-H hostkey_file] [-h destination]\n"
+"usage: ssh-add [-cDdKkLlqvXx] [-E fingerprint_hash] [-H hostkey_file]\n"
+"               [-h destination_constraint] [-S provider] [-t life]\n"
 #ifdef WITH_XMSS
 "               [-M maxsign] [-m minleft]\n"
 #endif
@@ -865,7 +863,7 @@ main(int argc, char **argv)
 			confirm = 1;
 			break;
 		case 'm':
-			minleft = (int)strtonum(optarg, 1, UINT_MAX, NULL);
+			minleft = (u_int)strtonum(optarg, 1, UINT_MAX, NULL);
 			if (minleft == 0) {
 				usage();
 				ret = 1;
@@ -873,7 +871,7 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'M':
-			maxsign = (int)strtonum(optarg, 1, UINT_MAX, NULL);
+			maxsign = (u_int)strtonum(optarg, 1, UINT_MAX, NULL);
 			if (maxsign == 0) {
 				usage();
 				ret = 1;

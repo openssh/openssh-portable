@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-restrict.sh,v 1.1 2021/12/19 22:20:12 djm Exp $
+#	$OpenBSD: agent-restrict.sh,v 1.6 2023/03/01 09:29:32 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="agent restrictions"
@@ -39,18 +39,22 @@ Host host_$h
 	Hostname host_$h
 	HostkeyAlias host_$h
 	IdentityFile $OBJ/user_$h
-	ProxyCommand ${SUDO} env SSH_SK_HELPER=\"$SSH_SK_HELPER\" sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy_host_$h
+	ProxyCommand ${SUDO} env SSH_SK_HELPER=\"$SSH_SK_HELPER\" ${OBJ}/sshd-log-wrapper.sh -i -f $OBJ/sshd_proxy_host_$h
 _EOF
 	# Variant with no specified keys.
 	cat << _EOF >> $OBJ/ssh_proxy_noid
 Host host_$h
 	Hostname host_$h
 	HostkeyAlias host_$h
-	ProxyCommand ${SUDO} env SSH_SK_HELPER=\"$SSH_SK_HELPER\" sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy_host_$h
+	ProxyCommand ${SUDO} env SSH_SK_HELPER=\"$SSH_SK_HELPER\" ${OBJ}/sshd-log-wrapper.sh -i -f $OBJ/sshd_proxy_host_$h
 _EOF
 done
 cat $OBJ/ssh_proxy.bak >> $OBJ/ssh_proxy
 cat $OBJ/ssh_proxy.bak >> $OBJ/ssh_proxy_noid
+
+LC_ALL=C
+export LC_ALL
+echo "SetEnv LC_ALL=${LC_ALL}" >> sshd_proxy
 
 verbose "prepare known_hosts"
 rm -f $OBJ/known_hosts
@@ -80,13 +84,13 @@ reset_keys() {
 	_command=""
 	case "$_whichcmd" in
 	authinfo)	_command="cat \$SSH_USER_AUTH" ;;
-	keylist)		_command="ssh-add -L | cut -d' ' -f-2 | sort" ;;
+	keylist)		_command="$SSHADD -L | cut -d' ' -f-2 | sort" ;;
 	*)		fatal "unsupported command $_whichcmd" ;;
 	esac
 	trace "reset keys"
 	>$OBJ/authorized_keys_$USER
 	for h in e d c b a; do
-		(printf "restrict,agent-forwarding,command=\"$_command\" ";
+		(printf "%s" "restrict,agent-forwarding,command=\"$_command\" ";
 		 cat $OBJ/user_$h.pub) >> $OBJ/authorized_keys_$USER
 	done
 }
@@ -328,7 +332,7 @@ if test ! -z "\$me" ; then
 	cat \$SSH_USER_AUTH
 fi
 echo AGENT
-ssh-add -L | grep ^ssh | cut -d" " -f-2 | sort
+$SSHADD -L | egrep "^ssh" | cut -d" " -f-2 | sort
 if test -z "\$next" ; then 
 	touch $OBJ/done
 	echo "FINISH"

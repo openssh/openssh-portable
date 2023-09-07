@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.92 2021/10/02 03:17:01 dtucker Exp $ */
+/* $OpenBSD: hostfile.c,v 1.95 2023/02/21 06:48:18 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -515,14 +515,23 @@ add_host_to_hostfile(const char *filename, const char *host,
     const struct sshkey *key, int store_hash)
 {
 	FILE *f;
-	int success;
+	int success, addnl = 0;
 
 	if (key == NULL)
 		return 1;	/* XXX ? */
 	hostfile_create_user_ssh_dir(filename, 0);
-	f = fopen(filename, "a");
+	f = fopen(filename, "a+");
 	if (!f)
 		return 0;
+	/* Make sure we have a terminating newline. */
+	if (fseek(f, -1L, SEEK_END) == 0 && fgetc(f) != '\n')
+		addnl = 1;
+	if (fseek(f, 0L, SEEK_END) != 0 || (addnl && fputc('\n', f) != '\n')) {
+		error("Failed to add terminating newline to %s: %s",
+		   filename, strerror(errno));
+		fclose(f);
+		return 0;
+	}
 	success = write_host_entry(f, host, NULL, key, store_hash);
 	fclose(f);
 	return success;
@@ -642,7 +651,7 @@ hostfile_replace_entries(const char *filename, const char *host, const char *ip,
 	/* Re-add the requested keys */
 	want = HKF_MATCH_HOST | (ip == NULL ? 0 : HKF_MATCH_IP);
 	for (i = 0; i < nkeys; i++) {
-		if ((want & ctx.match_keys[i]) == want)
+		if (keys[i] == NULL || (want & ctx.match_keys[i]) == want)
 			continue;
 		if ((fp = sshkey_fingerprint(keys[i], hash_alg,
 		    SSH_FP_DEFAULT)) == NULL) {

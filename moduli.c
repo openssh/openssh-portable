@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.37 2019/11/15 06:00:20 djm Exp $ */
+/* $OpenBSD: moduli.c,v 1.39 2023/03/02 06:41:56 dtucker Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -184,20 +184,20 @@ qfileout(FILE * ofile, u_int32_t otype, u_int32_t otests, u_int32_t otries,
  ** Sieve p's and q's with small factors
  */
 static void
-sieve_large(u_int32_t s)
+sieve_large(u_int32_t s32)
 {
-	u_int32_t r, u;
+	u_int64_t r, u, s = s32;
 
-	debug3("sieve_large %u", s);
+	debug3("sieve_large %u", s32);
 	largetries++;
 	/* r = largebase mod s */
-	r = BN_mod_word(largebase, s);
+	r = BN_mod_word(largebase, s32);
 	if (r == 0)
 		u = 0; /* s divides into largebase exactly */
 	else
 		u = s - r; /* largebase+u is first entry divisible by s */
 
-	if (u < largebits * 2) {
+	if (u < largebits * 2ULL) {
 		/*
 		 * The sieve omits p's and q's divisible by 2, so ensure that
 		 * largebase+u is odd. Then, step through the sieve in
@@ -218,7 +218,7 @@ sieve_large(u_int32_t s)
 	else
 		u = s - r; /* p+u is first entry divisible by s */
 
-	if (u < largebits * 4) {
+	if (u < largebits * 4ULL) {
 		/*
 		 * The sieve omits p's divisible by 4, so ensure that
 		 * largebase+u is not. Then, step through the sieve in
@@ -452,7 +452,7 @@ write_checkpoint(char *cpfile, u_int32_t lineno)
 {
 	FILE *fp;
 	char tmp[PATH_MAX];
-	int r;
+	int r, writeok, closeok;
 
 	r = snprintf(tmp, sizeof(tmp), "%s.XXXXXXXXXX", cpfile);
 	if (r < 0 || r >= PATH_MAX) {
@@ -469,13 +469,16 @@ write_checkpoint(char *cpfile, u_int32_t lineno)
 		close(r);
 		return;
 	}
-	if (fprintf(fp, "%lu\n", (unsigned long)lineno) > 0 && fclose(fp) == 0
-	    && rename(tmp, cpfile) == 0)
+	writeok = (fprintf(fp, "%lu\n", (unsigned long)lineno) > 0);
+	closeok = (fclose(fp) == 0);
+	if (writeok && closeok && rename(tmp, cpfile) == 0) {
 		debug3("wrote checkpoint line %lu to '%s'",
 		    (unsigned long)lineno, cpfile);
-	else
+	} else {
 		logit("failed to write to checkpoint file '%s': %s", cpfile,
 		    strerror(errno));
+		(void)unlink(tmp);
+	}
 }
 
 static unsigned long

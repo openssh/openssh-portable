@@ -1,4 +1,4 @@
-/* $OpenBSD: dns.c,v 1.41 2021/07/19 03:13:28 dtucker Exp $ */
+/* $OpenBSD: dns.c,v 1.44 2023/03/10 04:06:21 dtucker Exp $ */
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -43,7 +43,7 @@
 #include "log.h"
 #include "digest.h"
 
-static const char *errset_text[] = {
+static const char * const errset_text[] = {
 	"success",		/* 0 ERRSET_SUCCESS */
 	"out of memory",	/* 1 ERRSET_NOMEMORY */
 	"general failure",	/* 2 ERRSET_FAIL */
@@ -258,6 +258,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 		if (!dns_read_key(&hostkey_algorithm, &dnskey_digest_type,
 		    &hostkey_digest, &hostkey_digest_len, hostkey)) {
 			error("Error calculating key fingerprint.");
+			free(dnskey_digest);
 			freerrset(fingerprints);
 			return -1;
 		}
@@ -301,7 +302,8 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
  * Export the fingerprint of a key as a DNS resource record
  */
 int
-export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic)
+export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic,
+    int alg)
 {
 	u_int8_t rdata_pubkey_algorithm = 0;
 	u_int8_t rdata_digest_type = SSHFP_HASH_RESERVED;
@@ -311,6 +313,8 @@ export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic)
 	int success = 0;
 
 	for (dtype = SSHFP_HASH_SHA1; dtype < SSHFP_HASH_MAX; dtype++) {
+		if (alg != -1 && dtype != alg)
+			continue;
 		rdata_digest_type = dtype;
 		if (dns_read_key(&rdata_pubkey_algorithm, &rdata_digest_type,
 		    &rdata_digest, &rdata_digest_len, key)) {
