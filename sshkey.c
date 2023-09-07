@@ -2845,9 +2845,9 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 	sshbuf_reset(blob);
 
 	/* assemble uuencoded key */
-	if ((r = sshbuf_put(blob, MARK_BEGIN, MARK_BEGIN_LEN)) != 0 ||
+	if ((r = sshbuf_put(blob, MARK_BEGIN + '\n', MARK_BEGIN_LEN + 1)) != 0 ||
 	    (r = sshbuf_dtob64(encoded, blob, 1)) != 0 ||
-	    (r = sshbuf_put(blob, MARK_END, MARK_END_LEN)) != 0)
+	    (r = sshbuf_put(blob, MARK_END + '\n', MARK_END_LEN + 1)) != 0)
 		goto out;
 
 	/* success */
