@@ -282,6 +282,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			if (pthread_mutex_lock(&(oldBatch->lock)))
 				goto fail;
 		}
+		/* TODO: pthread_barrier_wait will hang if any thread dies */
 		pthread_barrier_wait(&(oldBatch->bar_start));
 
 		/* generate keystream should always work but if it doesn't
@@ -294,6 +295,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			}
 		}
 
+		/* TODO: pthread_barrier_wait will hang if any thread dies */
 		pthread_barrier_wait(&(oldBatch->bar_end));
 		oldBatch->batchID = newBatchID;
 		if (threadIndex == 0)
