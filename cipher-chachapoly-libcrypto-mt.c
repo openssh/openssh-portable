@@ -189,14 +189,14 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 	pthread_t self;
 	int threadIndex = -1;
 
-	if(pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL))
+	if (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL))
 		goto fail;
 
 	/*
 	 * Wait for main thread to fill in thread IDs. The main thread won't
 	 * release the lock until it's safe to proceed.
 	 */
-	if(pthread_mutex_lock(&(ctx_mt->tid_lock)))
+	if (pthread_mutex_lock(&(ctx_mt->tid_lock)))
 		goto fail;
 	/* We don't need to hold the lock for any reason. */
 	pthread_mutex_unlock(&(ctx_mt->tid_lock));
