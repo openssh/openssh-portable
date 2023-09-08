@@ -188,6 +188,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 	struct threadData * td;
 	pthread_t self;
 	int threadIndex = -1;
+	int retcode = 0;
 
 	if (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL))
 		goto fail;
@@ -253,18 +254,16 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			 * destroy the locks using standard pthread calls.
 			 */
 			/* Wait for main to update batchID and signal us. */
-			if (pthread_cond_wait(&(ctx_mt->cond),
-			    &(ctx_mt->batchID_lock))) {
-				pthread_cleanup_pop(0);
-				pthread_mutex_unlock(&(ctx_mt->batchID_lock));
-				goto fail;
-			}
+			retcode = pthread_cond_wait(&(ctx_mt->cond),
+			    &(ctx_mt->batchID_lock));
 			/* Briefly allow cancellations again. */
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			pthread_testcancel();
 			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		}
 		pthread_cleanup_pop(0);
+		if (retcode != 0) /* thread failed to wait, so it's spinning! */
+			goto fail;
 		/*
 		 * The main thread changed ctx_mt->batchID, and we
 		 * noticed, so update our internal value and move on.
