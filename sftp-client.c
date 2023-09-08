@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.171 2023/04/30 22:54:22 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.172 2023/09/08 05:50:12 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1890,6 +1890,7 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	SFTP_DIRENT **dir_entries;
 	char *filename, *new_src = NULL, *new_dst = NULL;
 	mode_t mode = 0777, tmpmode = mode;
+	Attrib *a, ldirattrib, lsym;
 
 	if (depth >= MAX_DIR_DEPTH) {
 		error("Maximum directory depth exceeded: %d levels", depth);
@@ -1898,10 +1899,14 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 
 	debug2_f("download dir remote \"%s\" to local \"%s\"", src, dst);
 
-	if (dirattrib == NULL &&
-	    (dirattrib = do_stat(conn, src, 1)) == NULL) {
-		error("stat remote \"%s\" directory failed", src);
-		return -1;
+	if (dirattrib == NULL) {
+		if ((a = do_stat(conn, src, 1)) == NULL) {
+			error("stat remote \"%s\" directory failed", src);
+			return -1;
+		}
+		/* Don't let this be clobbered by later do_stat calls */
+		ldirattrib = *a;
+		dirattrib = &ldirattrib;
 	}
 	if (!S_ISDIR(dirattrib->perm)) {
 		error("\"%s\" is not a directory", src);
@@ -1936,25 +1941,35 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		new_dst = path_append(dst, filename);
 		new_src = path_append(src, filename);
 
-		if (S_ISDIR(dir_entries[i]->a.perm)) {
+		a = &dir_entries[i]->a;
+		if (S_ISLNK(a->perm)) {
+			if (!follow_link_flag) {
+				logit("download \"%s\": not a regular file",
+				    new_src);
+				continue;
+			}
+			/* Replace the stat contents with the symlink target */
+			if ((a = do_stat(conn, new_src, 1)) == NULL) {
+				logit("remote stat \"%s\" failed", new_src);
+				ret = -1;
+				continue;
+			}
+			/* Don't let this be clobbered by later do_stat calls */
+			lsym = *a;
+			a = &lsym;
+		}
+
+		if (S_ISDIR(a->perm)) {
 			if (strcmp(filename, ".") == 0 ||
 			    strcmp(filename, "..") == 0)
 				continue;
 			if (download_dir_internal(conn, new_src, new_dst,
-			    depth + 1, &(dir_entries[i]->a), preserve_flag,
+			    depth + 1, a, preserve_flag,
 			    print_flag, resume_flag,
 			    fsync_flag, follow_link_flag, inplace_flag) == -1)
 				ret = -1;
-		} else if (S_ISREG(dir_entries[i]->a.perm) ||
-		    (follow_link_flag && S_ISLNK(dir_entries[i]->a.perm))) {
-			/*
-			 * If this is a symlink then don't send the link's
-			 * Attrib. do_download() will do a FXP_STAT operation
-			 * and get the link target's attributes.
-			 */
-			if (do_download(conn, new_src, new_dst,
-			    S_ISLNK(dir_entries[i]->a.perm) ? NULL :
-			    &(dir_entries[i]->a),
+		} else if (S_ISREG(a->perm)) {
+			if (do_download(conn, new_src, new_dst, a,
 			    preserve_flag, resume_flag, fsync_flag,
 			    inplace_flag) == -1) {
 				error("Download of file %s to %s failed",
@@ -2299,21 +2314,33 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		new_dst = path_append(dst, filename);
 		new_src = path_append(src, filename);
 
+		if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0)
+			continue;
 		if (lstat(new_src, &sb) == -1) {
 			logit("local lstat \"%s\": %s", filename,
 			    strerror(errno));
 			ret = -1;
-		} else if (S_ISDIR(sb.st_mode)) {
-			if (strcmp(filename, ".") == 0 ||
-			    strcmp(filename, "..") == 0)
+			continue;
+		}
+		if (S_ISLNK(sb.st_mode)) {
+			if (!follow_link_flag) {
+				logit("%s: not a regular file", filename);
 				continue;
-
+			}
+			/* Replace the stat contents with the symlink target */
+			if (stat(new_src, &sb) == -1) {
+				logit("local stat \"%s\": %s", filename,
+				    strerror(errno));
+				ret = -1;
+				continue;
+			}
+		}
+		if (S_ISDIR(sb.st_mode)) {
 			if (upload_dir_internal(conn, new_src, new_dst,
 			    depth + 1, preserve_flag, print_flag, resume,
 			    fsync_flag, follow_link_flag, inplace_flag) == -1)
 				ret = -1;
-		} else if (S_ISREG(sb.st_mode) ||
-		    (follow_link_flag && S_ISLNK(sb.st_mode))) {
+		} else if (S_ISREG(sb.st_mode)) {
 			if (do_upload(conn, new_src, new_dst,
 			    preserve_flag, resume, fsync_flag,
 			    inplace_flag) == -1) {
