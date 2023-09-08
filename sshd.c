@@ -47,6 +47,7 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/resource.h>
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
@@ -1116,6 +1117,8 @@ static void
 server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 {
 	struct pollfd *pfd = NULL;
+	struct rlimit nfiles_limit;
+	unsigned long int socksz;
 	int i, j, ret, npfd;
 	int ostartups = -1, startups = 0, listening = 0, lameduck = 0;
 	int startup_p[2] = { -1 , -1 }, *startup_pollfd;
@@ -1146,6 +1149,22 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 	sigaddset(&nsigset, SIGQUIT);
 
 	/* sized for worst-case */
+	if (getrlimit(RLIMIT_NOFILE, &nfiles_limit) < 0)
+		fatal_f("getting open files limit: %s",	strerror(errno));
+
+	socksz = (unsigned long int)num_listen_socks + options.max_startups;
+	if (nfiles_limit.rlim_max < socksz)
+		fatal("MaxStartups full setting cannot be greater than "
+				"the hard open file ulimit");
+
+	if (socksz > nfiles_limit.rlim_cur) {
+		nfiles_limit.rlim_cur = socksz;
+
+		if (setrlimit(RLIMIT_NOFILE, &nfiles_limit) < 0)
+			fatal_f("setting open files limit: %s",
+					strerror(errno));
+	}
+
 	pfd = xcalloc(num_listen_socks + options.max_startups,
 	    sizeof(struct pollfd));
 
