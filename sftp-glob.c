@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-glob.c,v 1.31 2022/10/24 21:51:55 djm Exp $ */
+/* $OpenBSD: sftp-glob.c,v 1.32 2023/09/08 05:56:13 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -51,7 +51,7 @@ fudge_opendir(const char *path)
 
 	r = xcalloc(1, sizeof(*r));
 
-	if (do_readdir(cur.conn, path, &r->dir)) {
+	if (sftp_readdir(cur.conn, path, &r->dir)) {
 		free(r);
 		return(NULL);
 	}
@@ -103,32 +103,32 @@ fudge_readdir(struct SFTP_OPENDIR *od)
 static void
 fudge_closedir(struct SFTP_OPENDIR *od)
 {
-	free_sftp_dirents(od->dir);
+	sftp_free_dirents(od->dir);
 	free(od);
 }
 
 static int
 fudge_lstat(const char *path, struct stat *st)
 {
-	Attrib *a;
+	Attrib a;
 
-	if (!(a = do_lstat(cur.conn, path, 1)))
-		return(-1);
+	if (sftp_lstat(cur.conn, path, 1, &a) != 0)
+		return -1;
 
-	attrib_to_stat(a, st);
+	attrib_to_stat(&a, st);
 
-	return(0);
+	return 0;
 }
 
 static int
 fudge_stat(const char *path, struct stat *st)
 {
-	Attrib *a;
+	Attrib a;
 
-	if (!(a = do_stat(cur.conn, path, 1)))
-		return(-1);
+	if (sftp_stat(cur.conn, path, 1, &a) != 0)
+		return -1;
 
-	attrib_to_stat(a, st);
+	attrib_to_stat(&a, st);
 
 	return(0);
 }
