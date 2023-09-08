@@ -342,10 +342,13 @@ chachapoly_free_mt(struct chachapoly_ctx_mt * ctx_mt)
 		 * to acquire tid_lock, since we're only reading, and the main
 		 * thread is the only writer, which is us!
 		 */
-		pthread_mutex_lock(&(ctx_mt->batchID_lock));
-		for (int i=0; i<NUMTHREADS; i++)
-			pthread_cancel(ctx_mt->tid[i]);
-		pthread_mutex_unlock(&(ctx_mt->batchID_lock));
+		if (pthread_mutex_lock(&(ctx_mt->batchID_lock)) == 0) {
+			for (int i=0; i<NUMTHREADS; i++)
+				pthread_cancel(ctx_mt->tid[i]);
+			pthread_mutex_unlock(&(ctx_mt->batchID_lock));
+		} else /* crashing is better than leaving threads behind */
+			goto cleanuperror;
+
 		/*
 		 * At this point, the only threads which might not cancel are
 		 * the ones currently stuck on pthread_cond_wait(), so free them
@@ -362,7 +365,8 @@ chachapoly_free_mt(struct chachapoly_ctx_mt * ctx_mt)
 			 * Busy threads will encounter a cancellation point when
 			 * they finish their work.
 			 */
-			pthread_join(ctx_mt->tid[i], NULL);
+			if (pthread_join(ctx_mt->tid[i], NULL) != 0)
+				goto cleanuperror;
 			debug2_f("Joined thread %d", i);
 		}
 		/* All threads are joined. Everything is serial now. */
@@ -377,12 +381,20 @@ chachapoly_free_mt(struct chachapoly_ctx_mt * ctx_mt)
 		}
 	}
 
-	/* The threads are all dead, so cleanup their data structures. */
+	/* Hope the threads are all dead, so cleanup their data structures. */
 	for (int i=0; i<NUMTHREADS; i++)
 		free_threadData(&(ctx_mt->tds[i]));
 
 	/* Zero and free the whole multithreaded cipher context. */
 	freezero(ctx_mt, sizeof(*ctx_mt));
+
+	return;
+
+ cleanuperror:
+	for (int i=0; i<NUMTHREADS; i++)
+		free_threadData(&(ctx_mt->tds[i]));
+	freezero(ctx_mt, sizeof(*ctx_mt));
+	fatal_f("Failed to properly clean up the cipher context.");
 }
 
 struct chachapoly_ctx_mt *
