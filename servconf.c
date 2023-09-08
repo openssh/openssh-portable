@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.401 2023/09/06 23:35:35 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.402 2023/09/08 06:34:24 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1957,15 +1957,15 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		options->subsystem_name = xrecallocarray(
 		    options->subsystem_name, options->num_subsystems,
 		    options->num_subsystems + 1,
-		    sizeof(options->subsystem_name));
+		    sizeof(*options->subsystem_name));
 		options->subsystem_command = xrecallocarray(
 		    options->subsystem_command, options->num_subsystems,
 		    options->num_subsystems + 1,
-		    sizeof(options->subsystem_command));
+		    sizeof(*options->subsystem_command));
 		options->subsystem_args = xrecallocarray(
 		    options->subsystem_args, options->num_subsystems,
 		    options->num_subsystems + 1,
-		    sizeof(options->subsystem_args));
+		    sizeof(*options->subsystem_args));
 		options->subsystem_name[options->num_subsystems] = xstrdup(arg);
 		arg = argv_next(&ac, &av);
 		if (!arg || *arg == '\0') {
@@ -2721,13 +2721,13 @@ servconf_merge_subsystems(ServerOptions *dst, ServerOptions *src)
 		debug_f("add \"%s\"", src->subsystem_name[i]);
 		dst->subsystem_name = xrecallocarray(
 		    dst->subsystem_name, dst->num_subsystems,
-		    dst->num_subsystems + 1, sizeof(dst->subsystem_name));
+		    dst->num_subsystems + 1, sizeof(*dst->subsystem_name));
 		dst->subsystem_command = xrecallocarray(
 		    dst->subsystem_command, dst->num_subsystems,
-		    dst->num_subsystems + 1, sizeof(dst->subsystem_command));
+		    dst->num_subsystems + 1, sizeof(*dst->subsystem_command));
 		dst->subsystem_args = xrecallocarray(
 		    dst->subsystem_args, dst->num_subsystems,
-		    dst->num_subsystems + 1, sizeof(dst->subsystem_args));
+		    dst->num_subsystems + 1, sizeof(*dst->subsystem_args));
 		j = dst->num_subsystems++;
 		dst->subsystem_name[j] = xstrdup(src->subsystem_name[i]);
 		dst->subsystem_command[j] = xstrdup(src->subsystem_command[i]);
