@@ -256,6 +256,8 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			/* Wait for main to update batchID and signal us. */
 			retcode = pthread_cond_wait(&(ctx_mt->cond),
 			    &(ctx_mt->batchID_lock));
+			if (retcode != 0)
+				break;
 			/* Briefly allow cancellations again. */
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			pthread_testcancel();
