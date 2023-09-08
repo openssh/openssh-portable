@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.173 2023/09/08 05:56:13 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.174 2023/09/08 06:10:02 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2706,7 +2706,7 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	SFTP_DIRENT **dir_entries;
 	char *filename, *new_from_path = NULL, *new_to_path = NULL;
 	mode_t mode = 0777;
-	Attrib curdir, ldirattrib, newdir;
+	Attrib *a, curdir, ldirattrib, newdir, lsym;
 
 	debug2_f("crossload dir src \"%s\" to dst \"%s\"", from_path, to_path);
 
@@ -2771,25 +2771,33 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 		new_from_path = sftp_path_append(from_path, filename);
 		new_to_path = sftp_path_append(to_path, filename);
 
-		if (S_ISDIR(dir_entries[i]->a.perm)) {
+		a = &dir_entries[i]->a;
+		if (S_ISLNK(a->perm)) {
+			if (!follow_link_flag) {
+				logit("%s: not a regular file", filename);
+				continue;
+			}
+			/* Replace the stat contents with the symlink target */
+			if (sftp_stat(from, new_from_path, 1, &lsym) != 0) {
+				logit("remote stat \"%s\" failed",
+				    new_from_path);
+				ret = -1;
+				continue;
+			}
+			a = &lsym;
+		}
+		if (S_ISDIR(a->perm)) {
 			if (strcmp(filename, ".") == 0 ||
 			    strcmp(filename, "..") == 0)
 				continue;
 			if (crossload_dir_internal(from, to,
 			    new_from_path, new_to_path,
-			    depth + 1, &(dir_entries[i]->a), preserve_flag,
+			    depth + 1, a, preserve_flag,
 			    print_flag, follow_link_flag) == -1)
 				ret = -1;
-		} else if (S_ISREG(dir_entries[i]->a.perm) ||
-		    (follow_link_flag && S_ISLNK(dir_entries[i]->a.perm))) {
-			/*
-			 * If this is a symlink then don't send the link's
-			 * Attrib. sftp_download() will do a FXP_STAT operation
-			 * and get the link target's attributes.
-			 */
-			if (sftp_crossload(from, to, new_from_path, new_to_path,
-			    S_ISLNK(dir_entries[i]->a.perm) ? NULL :
-			    &(dir_entries[i]->a), preserve_flag) == -1) {
+		} else if (S_ISREG(a->perm)) {
+			if (sftp_crossload(from, to, new_from_path,
+			    new_to_path, a, preserve_flag) == -1) {
 				error("crossload \"%s\" to \"%s\" failed",
 				    new_from_path, new_to_path);
 				ret = -1;
