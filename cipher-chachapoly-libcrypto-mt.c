@@ -189,14 +189,15 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 	pthread_t self;
 	int threadIndex = -1;
 
-	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+	if(pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL))
+		goto fail;
 
 	/*
 	 * Wait for main thread to fill in thread IDs. The main thread won't
 	 * release the lock until it's safe to proceed.
 	 */
-	/* TODO: Add error checks for all pthread_mutex calls */
-	pthread_mutex_lock(&(ctx_mt->tid_lock));
+	if(pthread_mutex_lock(&(ctx_mt->tid_lock)))
+		goto fail;
 	/* We don't need to hold the lock for any reason. */
 	pthread_mutex_unlock(&(ctx_mt->tid_lock));
 
@@ -237,7 +238,8 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 		 * we can ensure that the locks will be in a known state when
 		 * the thread cancels, and so we can release them appropriately.
 		 */
-		pthread_mutex_lock(&(ctx_mt->batchID_lock));
+		if (pthread_mutex_lock(&(ctx_mt->batchID_lock)))
+			goto fail;
 		pthread_cleanup_push((void *) pthread_mutex_unlock,
 		    &(ctx_mt->batchID_lock));
 		while (td->batchID == ctx_mt->batchID) {
@@ -251,8 +253,12 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			 * destroy the locks using standard pthread calls.
 			 */
 			/* Wait for main to update batchID and signal us. */
-			pthread_cond_wait(&(ctx_mt->cond),
-			    &(ctx_mt->batchID_lock));
+			if (pthread_cond_wait(&(ctx_mt->cond),
+			    &(ctx_mt->batchID_lock))) {
+				pthread_cleanup_pop(0);
+				pthread_mutex_unlock(&(ctx_mt->batchID_lock));
+				goto fail;
+			}
 			/* Briefly allow cancellations again. */
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			pthread_testcancel();
@@ -272,8 +278,10 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 		u_int newBatchID = oldBatch->batchID + 2;
 		u_int refseqnr = newBatchID * NUMSTREAMS;
 
-		if (threadIndex == 0)
-			pthread_mutex_lock(&(oldBatch->lock));
+		if (threadIndex == 0) {
+			if (pthread_mutex_lock(&(oldBatch->lock)))
+				goto fail;
+		}
 		pthread_barrier_wait(&(oldBatch->bar_start));
 
 		/* generate keystream should always work but if it doesn't
@@ -281,7 +289,7 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 		 * corrupted data */
 		for (int i = threadIndex; i < NUMSTREAMS; i += NUMTHREADS) {
 			if (generate_keystream(&(oldBatch->streams[i]),
-			      refseqnr + i, td, ctx_mt->zeros) == -1) {
+			    refseqnr + i, td, ctx_mt->zeros) == -1) {
 				fatal_f("generate_keystream failed in chacha20-poly1305@hpnssh.org");
 			}
 		}
@@ -292,6 +300,11 @@ threadLoop (struct chachapoly_ctx_mt * ctx_mt)
 			pthread_mutex_unlock(&(oldBatch->lock));
 	}
 	/* This will never happen. */
+	return;
+
+  fail:
+	/* Don't need to do anything special here */
+	/* The main thread will notice if the keystreams are outdated */
 	return;
 }
 
