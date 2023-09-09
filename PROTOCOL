@@ -690,6 +690,7 @@ identifiers:
 The server will reply with a SSH_FXP_EXTENDED_REPLY:
 
 	byte		SSH_FXP_EXTENDED_REPLY
+	uint32		id
 	string		usernames
 	string		groupnames
 
