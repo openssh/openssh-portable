@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.258 2023/09/08 05:56:13 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.259 2023/09/10 23:12:32 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -186,7 +186,7 @@ size_t sftp_nrequests;
 /* Needed for sftp */
 volatile sig_atomic_t interrupted = 0;
 
-int remote_glob(struct sftp_conn *, const char *, int,
+int sftp_glob(struct sftp_conn *, const char *, int,
     int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
 
 static void
@@ -1568,7 +1568,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	}
 
 	debug3_f("copying remote %s to local %s", abs_src, dst);
-	if ((r = remote_glob(conn, abs_src, GLOB_NOCHECK|GLOB_MARK,
+	if ((r = sftp_glob(conn, abs_src, GLOB_NOCHECK|GLOB_MARK,
 	    NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
 			error("%s: too many glob matches", src);
@@ -2001,7 +2001,7 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 	}
 
 	debug3_f("copying remote %s to remote %s", abs_src, target);
-	if ((r = remote_glob(from, abs_src, GLOB_NOCHECK|GLOB_MARK,
+	if ((r = sftp_glob(from, abs_src, GLOB_NOCHECK|GLOB_MARK,
 	    NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE)
 			error("%s: too many glob matches", src);

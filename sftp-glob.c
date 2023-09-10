@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-glob.c,v 1.32 2023/09/08 05:56:13 djm Exp $ */
+/* $OpenBSD: sftp-glob.c,v 1.33 2023/09/10 23:12:32 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -32,7 +32,7 @@
 #include "sftp-common.h"
 #include "sftp-client.h"
 
-int remote_glob(struct sftp_conn *, const char *, int,
+int sftp_glob(struct sftp_conn *, const char *, int,
     int (*)(const char *, int), glob_t *);
 
 struct SFTP_OPENDIR {
@@ -134,7 +134,7 @@ fudge_stat(const char *path, struct stat *st)
 }
 
 int
-remote_glob(struct sftp_conn *conn, const char *pattern, int flags,
+sftp_glob(struct sftp_conn *conn, const char *pattern, int flags,
     int (*errfunc)(const char *, int), glob_t *pglob)
 {
 	int r;

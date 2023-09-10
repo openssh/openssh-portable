@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.235 2023/09/08 05:56:13 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.236 2023/09/10 23:12:32 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -110,7 +110,7 @@ struct complete_ctx {
 	char **remote_pathp;
 };
 
-int remote_glob(struct sftp_conn *, const char *, int,
+int sftp_glob(struct sftp_conn *, const char *, int,
     int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
 
 extern char *__progname;
@@ -655,7 +655,7 @@ process_get(struct sftp_conn *conn, const char *src, const char *dst,
 	memset(&g, 0, sizeof(g));
 
 	debug3("Looking up %s", abs_src);
-	if ((r = remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
+	if ((r = sftp_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
 		if (r == GLOB_NOSPACE) {
 			error("Too many matches for \"%s\".", abs_src);
 		} else {
@@ -977,7 +977,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 
 	memset(&g, 0, sizeof(g));
 
-	if ((r = remote_glob(conn, path,
+	if ((r = sftp_glob(conn, path,
 	    GLOB_MARK|GLOB_NOCHECK|GLOB_BRACE|GLOB_KEEPSTAT|GLOB_NOSORT,
 	    NULL, &g)) != 0 ||
 	    (g.gl_pathc && !g.gl_matchc)) {
@@ -1618,7 +1618,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		break;
 	case I_RM:
 		path1 = make_absolute_pwd_glob(path1, *pwd);
-		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
+		sftp_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 			if (!quiet)
 				mprintf("Removing %s\n", g.gl_pathv[i]);
@@ -1722,7 +1722,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		attrib_clear(&a);
 		a.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 		a.perm = n_arg;
-		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
+		sftp_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 			if (!quiet)
 				mprintf("Changing mode on %s\n",
@@ -1736,7 +1736,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	case I_CHOWN:
 	case I_CHGRP:
 		path1 = make_absolute_pwd_glob(path1, *pwd);
-		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
+		sftp_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 			if ((hflag ? sftp_lstat : sftp_stat)(conn,
 			    g.gl_pathv[i], 0, &aa) != 0) {
@@ -2017,7 +2017,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 	memset(&g, 0, sizeof(g));
 	if (remote != LOCAL) {
 		tmp = make_absolute_pwd_glob(tmp, remote_path);
-		remote_glob(conn, tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
+		sftp_glob(conn, tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
 	} else
 		(void)glob(tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
 
