@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.397 2023/09/10 03:25:53 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.398 2023/09/10 03:51:55 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -555,7 +555,7 @@ set_next_interval(const struct timespec *now, struct timespec *next_interval,
 	 * 1. Each interval has some random jitter applied to make the
 	 *    interval-to-interval time unpredictable.
 	 * 2. The overall interval rate is also randomly perturbed for each
-	 *    each chaffing session to make the average rate unpredictable.
+	 *    chaffing session to make the average rate unpredictable.
 	 */
 	if (starting)
 		rate_fuzz = arc4random_uniform(fuzz_ns);
