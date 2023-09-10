@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.396 2023/09/04 00:08:14 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.397 2023/09/10 03:25:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -117,6 +117,9 @@
 
 /* Permitted RSA signature algorithms for UpdateHostkeys proofs */
 #define HOSTKEY_PROOF_RSA_ALGS	"rsa-sha2-512,rsa-sha2-256"
+
+/* Uncertainty (in percent) of keystroke timing intervals */
+#define SSH_KEYSTROKE_TIMING_FUZZ 10
 
 /* import options */
 extern Options options;
@@ -528,6 +531,43 @@ send_chaff(struct ssh *ssh)
 	return 1;
 }
 
+/* Sets the next interval to send a keystroke or chaff packet */
+static void
+set_next_interval(const struct timespec *now, struct timespec *next_interval,
+    u_int interval_ms, int starting)
+{
+	struct timespec tmp;
+	long long interval_ns, fuzz_ns;
+	static long long rate_fuzz;
+
+	interval_ns = interval_ms * (1000LL * 1000);
+	fuzz_ns = (interval_ns * SSH_KEYSTROKE_TIMING_FUZZ) / 100;
+	/* Center fuzz around requested interval */
+	if (fuzz_ns > INT_MAX)
+		fuzz_ns = INT_MAX;
+	if (fuzz_ns > interval_ns) {
+		/* Shouldn't happen */
+		fatal_f("internal error: fuzz %u%% %lldns > interval %lldns",
+		    SSH_KEYSTROKE_TIMING_FUZZ, fuzz_ns, interval_ns);
+	}
+	/*
+	 * Randomise the keystroke/chaff intervals in two ways:
+	 * 1. Each interval has some random jitter applied to make the
+	 *    interval-to-interval time unpredictable.
+	 * 2. The overall interval rate is also randomly perturbed for each
+	 *    each chaffing session to make the average rate unpredictable.
+	 */
+	if (starting)
+		rate_fuzz = arc4random_uniform(fuzz_ns);
+	interval_ns -= fuzz_ns;
+	interval_ns += arc4random_uniform(fuzz_ns) + rate_fuzz;
+
+	tmp.tv_sec = interval_ns / (1000 * 1000 * 1000);
+	tmp.tv_nsec = interval_ns % (1000 * 1000 * 1000);
+
+	timespecadd(now, &tmp, next_interval);
+}
+
 /*
  * Performs keystroke timing obfuscation. Returns non-zero if the
  * output fd should be polled.
@@ -591,12 +631,12 @@ obfuscate_keystroke_timing(struct ssh *ssh, struct timespec *timeout,
 	 */
 	if (!active && ssh_packet_interactive_data_to_write(ssh) &&
 	    channel_did_enqueue && ssh_packet_have_data_to_write(ssh)) {
-		debug3_f("starting: interval %d",
+		debug3_f("starting: interval ~%dms",
 		    options.obscure_keystroke_timing_interval);
 		just_started = had_keystroke = active = 1;
 		nchaff = 0;
-		ms_to_timespec(&tmp, options.obscure_keystroke_timing_interval);
-		timespecadd(&now, &tmp, &next_interval);
+		set_next_interval(&now, &next_interval,
+		    options.obscure_keystroke_timing_interval, 1);
 	}
 
 	/* Don't hold off if obfuscation inactive */
@@ -629,8 +669,8 @@ obfuscate_keystroke_timing(struct ssh *ssh, struct timespec *timeout,
 	n = (n < 0) ? 1 : n + 1;
 
 	/* Advance to the next interval */
-	ms_to_timespec(&tmp, options.obscure_keystroke_timing_interval * n);
-	timespecadd(&now, &tmp, &next_interval);
+	set_next_interval(&now, &next_interval,
+	    options.obscure_keystroke_timing_interval * n, 0);
 	return 1;
 }
 
