@@ -43,6 +43,13 @@
 #include "cipher-chachapoly.h"
 #include "cipher-chachapoly-libcrypto-mt.h"
 
+#ifndef likely
+# define likely(x)   __builtin_expect(!!(x), 1)
+#endif
+#ifndef unlikely
+# define unlikely(x) __builtin_expect(!!(x), 0)
+#endif
+
 /* Size of keystream to pregenerate, measured in bytes
  * we want to round up to the nearest chacha block and have
  * 128 bytes for overhead */
@@ -65,38 +72,29 @@ struct mt_keystream {
 	u_char mainStream[KEYSTREAMLEN];      /* KEYSTREAMLEN == 32768 */
 };
 
-struct mt_keystream_batch {
-	u_int batchID;
-	pthread_mutex_t lock;
-	pthread_barrier_t bar_start;
-	pthread_barrier_t bar_end;
-	struct mt_keystream streams[NUMSTREAMS];
-};
-
 struct threadData {
 	EVP_CIPHER_CTX * main_evp;
 	EVP_CIPHER_CTX * header_evp;
 	u_char seqbuf[16];
+};
 
+struct mt_keystream_batch {
 	u_int batchID;
+	struct threadData tds[NUMTHREADS];
+	struct mt_keystream streams[NUMSTREAMS];
 };
 
 struct chachapoly_ctx_mt {
 	u_int seqnr;
 	u_int batchID;
-	pthread_mutex_t batchID_lock;
 
 	struct mt_keystream_batch batches[2];
 
-	pthread_t tid[NUMTHREADS];
-	pthread_mutex_t tid_lock;
-	pthread_t adv_tid;
+	pthread_t manager_tid[2];
 	pthread_t self_tid;
 
 	pid_t mainpid;
-	pthread_cond_t cond;
 	u_char zeros[KEYSTREAMLEN]; /* KEYSTREAMLEN == 32768 */
-	struct threadData tds[NUMTHREADS];
 
   /* if OpenSSL has support for Poly1305 in the MAC EVPs
    * use that (OSSL >= 3.0) if not then it's OSSL 1.1 so
@@ -114,13 +112,19 @@ struct chachapoly_ctx_mt {
 #endif
 };
 
+struct manager_thread_args {
+	struct chachapoly_ctx_mt * ctx_mt;
+	u_int oldBatchID;
+	int retval;
+};
+
 /* generate the keystream and header
  * we use nulls for the "data" (the zeros variable) in order to
  * get the raw keystream
  * Returns 0 on success and -1 on failure */
 int
-generate_keystream(struct mt_keystream * ks,u_int seqnr,struct threadData * td,
-    u_char * zeros)
+generate_keystream(struct mt_keystream * ks, u_int seqnr,
+    struct threadData * td, u_char * zeros)
 {
 	/* generate poly1305 key */
 	memset(td->seqbuf, 0, sizeof(td->seqbuf));
@@ -180,135 +184,62 @@ initialize_threadData(struct threadData * td, const u_char *key)
 	return -1;
 }
 
-/* continually load the keystream struct, which is part of the batch
- * struct, which is part of the ctx_mt struct with keystream data */
-void
-threadLoop (struct chachapoly_ctx_mt * ctx_mt)
+struct worker_thread_args {
+	u_int batchID;
+	struct mt_keystream_batch * batch;
+	int threadIndex;
+	u_char * zeros;
+	int retval;
+};
+
+struct worker_thread_args *
+worker_thread(struct worker_thread_args * args)
 {
-	struct threadData * td;
-	pthread_t self;
-	int threadIndex = -1;
-	int retcode = 0;
+	if (args == NULL)
+		return NULL;
+	if (args->batch == NULL || args->zeros == NULL) {
+		args->retval = 1;
+		return args;
+	}
+	int threadIndex = args->threadIndex;
+	struct threadData * td = &(args->batch->tds[threadIndex]);
 
-	if (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL))
-		goto fail;
-
-	/*
-	 * Wait for main thread to fill in thread IDs. The main thread won't
-	 * release the lock until it's safe to proceed.
-	 */
-	if (pthread_mutex_lock(&(ctx_mt->tid_lock)))
-		goto fail;
-	/* We don't need to hold the lock for any reason. */
-	pthread_mutex_unlock(&(ctx_mt->tid_lock));
-
-	/* Initialize to an impossible number to enable error checking */
-	threadIndex = -1;
-	self = pthread_self();
-	/* Get thread ID index */
-	for (int i=0; i<NUMTHREADS; i++) {
-		if (pthread_equal(self, ctx_mt->tid[i])) {
-			threadIndex=i;
-			break;
+	u_int refseqnr = args->batchID * NUMSTREAMS;
+	for (int i = threadIndex; i < NUMSTREAMS; i += NUMTHREADS) {
+		if (generate_keystream(&(args->batch->streams[i]), refseqnr + i,
+		    td, args->zeros) == -1) {
+			args->retval = 1;
+			return args;
 		}
 	}
-	if (threadIndex == -1) { /* the for-loop completed without matching */
-		/* stderr is thread safe, but SSH debug() might not be */
-		fprintf(stderr,"%s: Thread ID not found! Exiting!",__func__);
-		return;
+
+	args->retval = 0;
+	return args;
+}
+
+int
+join_manager_thread(pthread_t manager_tid)
+{
+	struct manager_thread_args * args;
+	if (pthread_join(manager_tid, (void **) &args) == 0) {
+		if (args == NULL) {
+			debug_f("Manager thread returned NULL!");
+			return 1;
+		} else if (args == PTHREAD_CANCELED) {
+			debug_f("Manager thread canceled!");
+			return 1;
+		} else if (args->retval != 0) {
+			debug_f("Manager thread error (%d)", args->retval);
+			free(args);
+			return 1;
+		} else {
+			free(args);
+			return 0;
+		}
+	} else {
+		debug_f("pthread_join error!");
+		return 1;
 	}
-	/* Now that we have the thread ID, grab the thread data. */
-	td = &(ctx_mt->tds[threadIndex]);
-
-	while (1) {
-		/*
-		 * This is mostly just textbook pthread_cond_wait(), used to
-		 * wait for ctx_mt->batchID to change. Once the main thread
-		 * changes ctx_mt->batchID, it broadcasts to ctx_mt->cond, which
-		 * triggers all threads which were waiting at ctx_mt->cond to
-		 * proceed. The threads check to see if ctx_mt->batchID REALLY
-		 * changed (hypothetically, ctx_mt->cond could be erroneously
-		 * triggered), and if so, proceed to generate the next batch.
-		 *
-		 * If a thread is canceled while it's holding batchID_lock, it
-		 * must free that lock before terminating, so a cleanup handler
-		 * is registered using pthread_cleanup_push(...) and later
-		 * deregistered using pthread_cleanup_pop(0).
-		 *
-		 * By restricting cancellations to two carefully chosen points,
-		 * we can ensure that the locks will be in a known state when
-		 * the thread cancels, and so we can release them appropriately.
-		 */
-		if (pthread_mutex_lock(&(ctx_mt->batchID_lock)))
-			goto fail;
-		pthread_cleanup_push((void *) pthread_mutex_unlock,
-		    &(ctx_mt->batchID_lock));
-		while (td->batchID == ctx_mt->batchID) {
-			/* Briefly allow cancellations here. */
-			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-			pthread_testcancel();
-			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-			/*
-			 * Definitely disallow cancellations DURING the
-			 * cond_wait, otherwise it becomes impossible to
-			 * destroy the locks using standard pthread calls.
-			 */
-			/* Wait for main to update batchID and signal us. */
-			retcode = pthread_cond_wait(&(ctx_mt->cond),
-			    &(ctx_mt->batchID_lock));
-			if (retcode != 0)
-				break;
-			/* Briefly allow cancellations again. */
-			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-			pthread_testcancel();
-			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-		}
-		pthread_cleanup_pop(0);
-		if (retcode != 0) /* thread failed to wait, so it's spinning! */
-			goto fail;
-		/*
-		 * The main thread changed ctx_mt->batchID, and we
-		 * noticed, so update our internal value and move on.
-		 */
-		td->batchID = ctx_mt->batchID;
-		pthread_mutex_unlock(&(ctx_mt->batchID_lock));
-
-		struct mt_keystream_batch * oldBatch =
-		    &(ctx_mt->batches[(td->batchID - 1) % 2]);
-
-		u_int newBatchID = oldBatch->batchID + 2;
-		u_int refseqnr = newBatchID * NUMSTREAMS;
-
-		if (threadIndex == 0) {
-			if (pthread_mutex_lock(&(oldBatch->lock)))
-				goto fail;
-		}
-		/* TODO: pthread_barrier_wait will hang if any thread dies */
-		pthread_barrier_wait(&(oldBatch->bar_start));
-
-		/* generate keystream should always work but if it doesn't
-		 * then we do a hard stop as progressing may result in
-		 * corrupted data */
-		for (int i = threadIndex; i < NUMSTREAMS; i += NUMTHREADS) {
-			if (generate_keystream(&(oldBatch->streams[i]),
-			    refseqnr + i, td, ctx_mt->zeros) == -1) {
-				fatal_f("generate_keystream failed in chacha20-poly1305@hpnssh.org");
-			}
-		}
-
-		/* TODO: pthread_barrier_wait will hang if any thread dies */
-		pthread_barrier_wait(&(oldBatch->bar_end));
-		oldBatch->batchID = newBatchID;
-		if (threadIndex == 0)
-			pthread_mutex_unlock(&(oldBatch->lock));
-	}
-	/* This will never happen. */
-	return;
-
-  fail:
-	/* Don't need to do anything special here */
-	/* The main thread will notice if the keystreams are outdated */
-	return;
 }
 
 void
@@ -334,77 +265,30 @@ chachapoly_free_mt(struct chachapoly_ctx_mt * ctx_mt)
 #endif
 
 	/*
-	 * Only cleanup the threads and mutexes if we are the PID that
-	 * initialized them! If we're a fork, the threads don't really exist,
-	 * and the the mutexes (and cond) are in an unknown state, which can't
-	 * be safely destroyed.
+	 * Only cleanup the manager threads if we are the PID that initialized
+	 * them! If we're a fork, the threads don't really exist.
 	 */
+
 	if (getpid() == ctx_mt->mainpid) {
-
-		/* Join advancement thread if it exists */
-		if (ctx_mt->adv_tid != ctx_mt->self_tid) {
-			pthread_join(ctx_mt->adv_tid, NULL);
-			ctx_mt->adv_tid = ctx_mt->self_tid;
+		if (ctx_mt->manager_tid[0] != ctx_mt->self_tid) {
+			join_manager_thread(ctx_mt->manager_tid[0]);
+			ctx_mt->manager_tid[0] = ctx_mt->self_tid;
 		}
-		/*
-		 * Acquire batchID_lock, so that thread cancellations can be
-		 * sent without risking race conditions near cond. We don't need
-		 * to acquire tid_lock, since we're only reading, and the main
-		 * thread is the only writer, which is us!
-		 */
-		if (pthread_mutex_lock(&(ctx_mt->batchID_lock)) == 0) {
-			for (int i=0; i<NUMTHREADS; i++)
-				pthread_cancel(ctx_mt->tid[i]);
-			pthread_mutex_unlock(&(ctx_mt->batchID_lock));
-		} else /* crashing is better than leaving threads behind */
-			goto cleanuperror;
-
-		/*
-		 * At this point, the only threads which might not cancel are
-		 * the ones currently stuck on pthread_cond_wait(), so free them
-		 * now. There's a cancellation point immediately after the
-		 * cond_wait() to prevent them from starting new work.
-		 */
-		for (int i=0; i<NUMTHREADS; i++)
-			pthread_cond_broadcast(&(ctx_mt->cond));
-		/* All threads are canceled or will cancel very soon. */
-		for (int i=0; i<NUMTHREADS; i++) {
-			debug2_f("Joining thread %d: %lx", i, ctx_mt->tid[i]);
-			/*
-			 * If the thread was already idle, this won't block.
-			 * Busy threads will encounter a cancellation point when
-			 * they finish their work.
-			 */
-			if (pthread_join(ctx_mt->tid[i], NULL) != 0)
-				goto cleanuperror;
-			debug2_f("Joined thread %d", i);
-		}
-		/* All threads are joined. Everything is serial now. */
-		pthread_mutex_destroy(&(ctx_mt->tid_lock));
-		pthread_mutex_destroy(&(ctx_mt->batchID_lock));
-		pthread_cond_destroy(&(ctx_mt->cond));
-		for (int i=0; i<2; i++) {
-			pthread_mutex_destroy(&(ctx_mt->batches[i].lock));
-			pthread_barrier_destroy(
-			    &(ctx_mt->batches[i].bar_start));
-			pthread_barrier_destroy(&(ctx_mt->batches[i].bar_end));
+		if (ctx_mt->manager_tid[1] != ctx_mt->self_tid) {
+			join_manager_thread(ctx_mt->manager_tid[1]);
+			ctx_mt->manager_tid[1] = ctx_mt->self_tid;
 		}
 	}
 
-	/* Hope the threads are all dead, so cleanup their data structures. */
-	for (int i=0; i<NUMTHREADS; i++)
-		free_threadData(&(ctx_mt->tds[i]));
+	/* Cleanup thread data structures. */
+	for (int i=0; i<2; i++)
+		for (int j=0; j<NUMTHREADS; j++)
+			free_threadData(&(ctx_mt->batches[i].tds[j]));
 
 	/* Zero and free the whole multithreaded cipher context. */
 	freezero(ctx_mt, sizeof(*ctx_mt));
 
 	return;
-
- cleanuperror:
-	for (int i=0; i<NUMTHREADS; i++)
-		free_threadData(&(ctx_mt->tds[i]));
-	freezero(ctx_mt, sizeof(*ctx_mt));
-	fatal_f("Failed to properly clean up the cipher context.");
 }
 
 struct chachapoly_ctx_mt *
@@ -418,165 +302,99 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 
 #ifdef OPENSSL_HAVE_POLY_EVP
 	EVP_MAC *mac = NULL;
-	if ((mac = EVP_MAC_fetch(NULL, "POLY1305", NULL)) == NULL) {
-		freezero(ctx_mt, sizeof(*ctx_mt));
-		explicit_bzero(&startseqnr, sizeof(startseqnr));
-		return NULL;
-	}
-	if ((ctx_mt->poly_ctx = EVP_MAC_CTX_new(mac)) == NULL) {
-		freezero(ctx_mt, sizeof(*ctx_mt));
-		explicit_bzero(&startseqnr, sizeof(startseqnr));
-		return NULL;
-	}
+	if ((mac = EVP_MAC_fetch(NULL, "POLY1305", NULL)) == NULL)
+		goto fail;
+	if ((ctx_mt->poly_ctx = EVP_MAC_CTX_new(mac)) == NULL)
+		goto fail;
 #elif !defined(WITH_OPENSSL3) && defined(EVP_PKEY_POLY1305)
-	if ((ctx_mt->md_ctx = EVP_MD_CTX_new()) == NULL) {
-		freezero(ctx_mt, sizeof(*ctx_mt));
-		explicit_bzero(&startseqnr, sizeof(startseqnr));
-		return NULL;
-	}
+	if ((ctx_mt->md_ctx = EVP_MD_CTX_new()) == NULL)
+		goto fail;
 	if ((ctx_mt->pkey = EVP_PKEY_new_mac_key(EVP_PKEY_POLY1305, NULL,
-	    ctx_mt->zeros, POLY1305_KEYLEN)) == NULL) {
-		EVP_MD_CTX_free(ctx_mt->md_ctx);
-		freezero(ctx_mt, sizeof(*ctx_mt));
-		explicit_bzero(&startseqnr, sizeof(startseqnr));
-		return NULL;
-	}
+	    ctx_mt->zeros, POLY1305_KEYLEN)) == NULL)
+		goto fail;
 	if (EVP_DigestSignInit(ctx_mt->md_ctx, &ctx_mt->poly_ctx, NULL, NULL,
-	    ctx_mt->pkey) == 0) {
-		EVP_PKEY_free(ctx_mt->pkey);
-		EVP_MD_CTX_free(ctx_mt->md_ctx);
-		freezero(ctx_mt, sizeof(*ctx_mt));
-		explicit_bzero(&startseqnr, sizeof(startseqnr));
-		return NULL;
-	}
+	    ctx_mt->pkey) == 0)
+		goto fail;
 #else
 	ctx_mt->poly_ctx = NULL;
 #endif
 
-	if (pthread_mutex_init(&ctx_mt->batchID_lock, NULL) != 0)
-		goto failinitmutexbatchIDlock;
-	if (pthread_mutex_init(&(ctx_mt->tid_lock), NULL) != 0)
-		goto failinitmutexTID;
-	if (pthread_cond_init(&(ctx_mt->cond), NULL) != 0)
-		goto failinitcond;
-
 	ctx_mt->batches[ctx_mt->batchID % 2].batchID = ctx_mt->batchID;
-	ctx_mt->batches[(ctx_mt->batchID + 1) % 2].batchID = ctx_mt->batchID + 1;
-
-	int mutexI;
-	for (mutexI = 0; mutexI < 2; mutexI++) {
-		struct mt_keystream_batch * batch = &(ctx_mt->batches[mutexI]);
-		if (pthread_mutex_init(&(batch->lock), NULL) != 0)
-			break;
-		/*
-		 * TODO: these are likely to change, don't worry about error
-		 * checking here
-		 */
-		pthread_barrier_init(&(batch->bar_start), NULL, NUMTHREADS);
-		pthread_barrier_init(&(batch->bar_end), NULL, NUMTHREADS);
-	}
-	if (mutexI < 2) {
-		/* Backtrack starting with 'mutexI - 1' */
-		for (mutexI--; mutexI >= 0; mutexI--) {
-			struct mt_keystream_batch * batch =
-			    &(ctx_mt->batches[mutexI]);
-			pthread_mutex_destroy(&(batch->lock));
-		}
-		goto failinitmutex;
-	}
+	ctx_mt->batches[(ctx_mt->batchID + 1) % 2].batchID =
+	    ctx_mt->batchID + 1;
 
 	int tDataI;
+	/* initialize batches[0] tds */
 	for (tDataI = 0; tDataI < NUMTHREADS; tDataI++) {
-		if (initialize_threadData(&(ctx_mt->tds[tDataI]), key) != 0)
+		if (initialize_threadData(&(ctx_mt->batches[0].tds[tDataI]),
+		    key) != 0)
 			break;
-		ctx_mt->tds[tDataI].batchID = ctx_mt->batchID;
 	}
 	if (tDataI < NUMTHREADS) {
 		/* Backtrack starting with 'tDataI - 1' */
 		for (tDataI--; tDataI >= 0; tDataI--)
-			free_threadData(&(ctx_mt->tds[tDataI]));
-		goto failinitthreadData;
+			free_threadData(&(ctx_mt->batches[0].tds[tDataI]));
+		goto fail;
+	}
+	/* initialize batches[1] tds */
+	for (tDataI = 0; tDataI < NUMTHREADS; tDataI++) {
+		if (initialize_threadData(&(ctx_mt->batches[1].tds[tDataI]),
+		    key) != 0)
+			break;
+	}
+	if (tDataI < NUMTHREADS) {
+		/* Backtrack starting with 'tDataI - 1' */
+		for (tDataI--; tDataI >= 0; tDataI--)
+			free_threadData(&(ctx_mt->batches[1].tds[tDataI]));
+		/* Free the batches[0] tds too */
+		for (tDataI = NUMTHREADS; tDataI >= 0; tDataI--)
+			free_threadData(&(ctx_mt->batches[0].tds[tDataI]));
+		goto fail;
 	}
 
-	struct threadData * mainData;
+	struct threadData mainData;
+	if (initialize_threadData(&mainData, key) != 0) {
+		chachapoly_free_mt(ctx_mt);
+		explicit_bzero(&startseqnr, sizeof(startseqnr));
+		return NULL;
+	}
 
-#if NUMTHREADS == 0
-	/* There are none to borrow, so initialize our own. */
-	struct threadData td;
-	initialize_threadData(&td, key)
-	mainData = &td;
-#else
-	/* Borrow ctx_mt->tds[0] to do initial keystream generation. */
-	mainData = &(ctx_mt->tds[0]);
-#endif
-
+	int genKSfailed = 0;
 	for (int i=0; i<2; i++) {
 		u_int refseqnr = ctx_mt->batches[i].batchID * NUMSTREAMS;
 		for (int j = startseqnr > refseqnr ? startseqnr - refseqnr : 0;
 		     j<NUMSTREAMS; j++) {
 			if (generate_keystream(&(ctx_mt->batches[i].streams[j]),
-			    refseqnr + j, mainData, ctx_mt->zeros) == -1) {
-				fatal_f("generate_keystream failed in chacha20-poly1305@hpnssh.org");
+			    refseqnr + j, &mainData, ctx_mt->zeros) == -1) {
+				debug_f("generate_keystream failed in "
+				    "chacha20-poly1305@hpnssh.org");
+				genKSfailed = 1;
+				break; /* imperfect, but it helps */
 			}
 		}
 	}
 
-#if NUMTHREADS == 0
-	free_threadData(&td);
-#endif
+	free_threadData(&mainData);
 
-	/* Spawn threads. */
+	if (genKSfailed != 0) {
+		chachapoly_free_mt(ctx_mt);
+		explicit_bzero(&startseqnr, sizeof(startseqnr));
+		return NULL;
+	}
 
 	/* Store the PID so that in the future, we can tell if we're a fork */
 	ctx_mt->mainpid = getpid();
 	ctx_mt->self_tid = pthread_self();
-	ctx_mt->adv_tid = ctx_mt->self_tid;
-	int ret=0;
-	/* Block workers from reading their thread IDs before we set them. */
-	if (pthread_mutex_lock(&(ctx_mt->tid_lock)) != 0)
-		goto faillockprethreads;
+	ctx_mt->manager_tid[0] = ctx_mt->self_tid;
+	ctx_mt->manager_tid[1] = ctx_mt->self_tid;
 	/* was reporting the TID using gettid() but it's not portable */
 	debug2_f("<main thread: pid=%u, ptid=0x%lx>", getpid(), pthread_self());
-	for (int i=0; i<NUMTHREADS; i++) {
-		/*
-		 * If we fail to generate some threads, the thread ID will
-		 * remain zeroed, which is unlikely to ever match a real thread,
-		 * and so SHOULD be ignored by pthread_cancel and pthread_join
-		 * while ctx_mt is being freed.
-		 */
-		if (pthread_create(&(ctx_mt->tid[i]), NULL,
-		    (void *)threadLoop, ctx_mt)) {
-			ret=1;
-			break; /* No point in wasting time... */
-		}
-	}
-	pthread_mutex_unlock(&(ctx_mt->tid_lock));
-	if (ret) /* failed while starting a thread */
-		goto failthreads;
 
 	/* Success! */
 	explicit_bzero(&startseqnr, sizeof(startseqnr));
 	return ctx_mt;
 
- failthreads:
-	chachapoly_free_mt(ctx_mt);
-	explicit_bzero(&startseqnr, sizeof(startseqnr));
-	return NULL;
- faillockprethreads:
-	for (int i = 0; i < NUMTHREADS; i++)
-		free_threadData(&(ctx_mt->tds[i]));
- failinitthreadData:
-	for (int i = 0; i < 2; i++) {
-		struct mt_keystream_batch * batch = &(ctx_mt->batches[i]);
-		pthread_mutex_destroy(&(batch->lock));
-	}
- failinitmutex:
-	pthread_cond_destroy(&(ctx_mt->cond));
- failinitcond:
-	pthread_mutex_destroy(&(ctx_mt->tid_lock));
- failinitmutexTID:
-	pthread_mutex_destroy(&ctx_mt->batchID_lock);
- failinitmutexbatchIDlock:
+ fail:
 #ifdef OPENSSL_HAVE_POLY_EVP
 	if (ctx_mt->poly_ctx != NULL) {
 		EVP_MAC_CTX_free(ctx_mt->poly_ctx);
@@ -612,30 +430,84 @@ fastXOR(u_char *dest, const u_char *src, const u_char *keystream, u_int len)
 		dest[i]=src[i]^keystream[i];
 }
 
-void
-adv_thread(struct chachapoly_ctx_mt * ctx_mt) {
-	u_int newBatchID = ctx_mt->seqnr / NUMSTREAMS;
-	struct mt_keystream_batch * newBatch =
-	    &(ctx_mt->batches[newBatchID % 2]);
-	pthread_mutex_lock(&(newBatch->lock));
-	u_int found_batchID = newBatch->batchID;
-	pthread_mutex_unlock(&(newBatch->lock));
-	if (found_batchID != newBatchID) {
-		debug_f("Post-crypt batch miss! Seeking %u, found %u. Looping.",
-		    newBatchID, found_batchID);
-		while (found_batchID != newBatchID) {
-			pthread_mutex_lock(&(newBatch->lock));
-			found_batchID = newBatch->batchID;
-			pthread_mutex_unlock(&(newBatch->lock));
-		}
-		debug_f("Loop exit.");
+struct manager_thread_args *
+manager_thread(struct manager_thread_args * margs) {
+	if (margs == NULL)
+		return NULL;
+
+	struct chachapoly_ctx_mt * ctx_mt = margs->ctx_mt;
+	if (ctx_mt == NULL) {
+		margs->retval = 1;
+		return margs;
 	}
 
-	pthread_mutex_lock(&(ctx_mt->batchID_lock));
-	ctx_mt->batchID = ctx_mt->batchID + 1;
-	pthread_mutex_unlock(&(ctx_mt->batchID_lock));
+	u_int oldBatchID = margs->oldBatchID;
 
-	pthread_cond_broadcast(&(ctx_mt->cond));
+	struct mt_keystream_batch * batch = &(ctx_mt->batches[oldBatchID % 2]);
+	if (batch->batchID != oldBatchID) {
+		debug_f("Post-crypt batch miss! Seeking %u, found %u. Failing.",
+		    oldBatchID, batch->batchID);
+		margs->retval = 1;
+		return margs;
+	}
+
+	margs->retval = 0;
+	u_int batchID = oldBatchID + 2;
+
+	pthread_t tid[NUMTHREADS];
+	struct worker_thread_args * wargs = malloc(NUMTHREADS * sizeof(*wargs));
+	int ti;
+	for (ti = 0; ti < NUMTHREADS; ti++) {
+		wargs[ti].batchID = batchID;
+		wargs[ti].batch = batch;
+		wargs[ti].threadIndex = ti;
+		wargs[ti].zeros = ctx_mt->zeros;
+		if (pthread_create(&(tid[ti]), NULL, (void *) worker_thread,
+		    &(wargs[ti])) != 0) {
+			margs->retval = 1;
+			break;
+		}
+	}
+	for (; ti < NUMTHREADS; ti++) /* for error condition */
+		tid[ti] = pthread_self();
+		
+	struct worker_thread_args * retwargs;
+
+	for (ti = 0; ti < NUMTHREADS; ti++) {
+		if (tid[ti] == pthread_self()) {
+			margs->retval = 1; /* redundant, but harmless */
+			continue;
+		}
+		if (pthread_join(tid[ti], (void **) &retwargs) == 0) {
+			if (retwargs == NULL) {
+				debug_f("Worker thread returned NULL!");
+				margs->retval = 1;
+			} else if (retwargs == PTHREAD_CANCELED) {
+				debug_f("Worker thread canceled!");
+				margs->retval = 1;
+			} else {
+				if (retwargs->retval != 0) {
+					debug_f("Worker thread error (%d)",
+					    retwargs->retval);
+					margs->retval = 1;
+				}
+				if (retwargs != &(wargs[ti])) {
+					debug_f("Worker thread didn't return "
+					    "expected structure!");
+					margs->retval = 1;
+				}
+			}
+		} else {
+			debug_f("pthread_join error!");
+			margs->retval = 1;
+		}
+	}
+
+	if (margs->retval == 0) {
+		batch->batchID = batchID;
+	}
+
+	return margs;
 }
 
 int
@@ -648,36 +520,37 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 		 * TODO: this is EXTREMELY RARE, may never happen at all (only
 		 * if the fork calls crypt), so we should tell the compiler.
 		 */
-		/* The worker threads don't exist, so regenerate ctx_mt */
+		/* The worker threads don't exist, we could spawn them? */
 		debug_f("Fork called crypt without workers!");
 		chachapoly_free_mt(ctx_mt);
 		return SSH_ERR_INTERNAL_ERROR;
 	}
 #endif
 
-	if (__builtin_expect(ctx_mt->adv_tid != ctx_mt->self_tid,0)) {
-		pthread_join(ctx_mt->adv_tid, NULL);
-		ctx_mt->adv_tid = ctx_mt->self_tid;
+	pthread_t * manager_tid = &(ctx_mt->manager_tid[ctx_mt->batchID % 2]);
+	if (unlikely(*manager_tid != ctx_mt->self_tid)) {
+		int ret = join_manager_thread(*manager_tid);
+		*manager_tid = ctx_mt->self_tid;
+		if (ret != 0)
+			return SSH_ERR_INTERNAL_ERROR;
 	}
 
 	struct mt_keystream_batch * batch =
 	    &(ctx_mt->batches[ctx_mt->batchID % 2]);
-#ifdef SAFETY
-	u_int found_batchID = batch->batchID;
-#endif
+	
 	struct mt_keystream * ks = &(batch->streams[seqnr % NUMSTREAMS]);
 
 	int r = SSH_ERR_INTERNAL_ERROR;
 
 #ifdef SAFETY
-	if (found_batchID == ctx_mt->batchID) { /* Safety check */
-		explicit_bzero(&found_batchID, sizeof(found_batchID));
+	if (batch->batchID == ctx_mt->batchID) { /* Safety check */
 #endif
 		/* check tag before anything else */
 		if (!do_encrypt) {
 			const u_char *tag = src + aadlen + len;
 			u_char expected_tag[POLY1305_TAGLEN];
 #if !defined(WITH_OPENSSL3) && defined(EVP_PKEY_POLY1305)
+			/* TODO: return code checking! */
 			EVP_PKEY_CTX_ctrl(ctx_mt->poly_ctx, -1, EVP_PKEY_OP_SIGNCTX, EVP_PKEY_CTRL_SET_MAC_KEY, POLY1305_KEYLEN, ks->poly_key);
 			EVP_DigestSignUpdate(ctx_mt->md_ctx, src, aadlen + len);
 			ctx_mt->ptaglen = POLY1305_TAGLEN;
@@ -702,6 +575,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 			fastXOR(dest+aadlen,src+aadlen,ks->mainStream,len);
 			/* calculate and append tag */
 #if !defined(WITH_OPENSSL3) && defined(EVP_PKEY_POLY1305)
+			/* TODO: return code checking! */
 			if (do_encrypt) {
 				EVP_PKEY_CTX_ctrl(ctx_mt->poly_ctx, -1, EVP_PKEY_OP_SIGNCTX, EVP_PKEY_CTRL_SET_MAC_KEY, POLY1305_KEYLEN, ks->poly_key);
 				EVP_DigestSignUpdate(ctx_mt->md_ctx, dest, aadlen + len);
@@ -720,9 +594,20 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 
 		ctx_mt->seqnr = seqnr + 1;
 
-		if (__builtin_expect(ctx_mt->seqnr / NUMSTREAMS > ctx_mt->batchID,0)) {
-			pthread_create(&ctx_mt->adv_tid, NULL, (void *) adv_thread, ctx_mt);
-			//adv_thread(ctx_mt);
+		if (unlikely(ctx_mt->seqnr / NUMSTREAMS > ctx_mt->batchID)) {
+			struct manager_thread_args * args =
+			    malloc(sizeof(*args));
+			if (args == NULL) {
+				return SSH_ERR_INTERNAL_ERROR;
+			}
+			args->ctx_mt = ctx_mt;
+			args->oldBatchID = ctx_mt->batchID;
+			if (pthread_create(&(ctx_mt->manager_tid[ctx_mt->batchID
+			    % 2]), NULL, (void *) manager_thread, args) != 0) {
+				free(args);
+				return SSH_ERR_INTERNAL_ERROR;
+			}
+			ctx_mt->batchID = ctx_mt->seqnr / NUMSTREAMS;
 		}
 
 		/* TODO: Nothing we need to sanitize here? */
@@ -731,7 +616,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 #ifdef SAFETY
 	} else { /* Bad, it's the wrong batch. */
 		debug_f( "Pre-crypt batch miss! Seeking %u, found %u. Failing.",
-		    ctx_mt->batchID, found_batchID);
+		    ctx_mt->batchID, batch->batchID);
 		return SSH_ERR_INTERNAL_ERROR;
 	}
 #endif
@@ -752,24 +637,23 @@ chachapoly_get_length_mt(struct chachapoly_ctx_mt *ctx_mt, u_int *plenp,
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 
-	if (ctx_mt->adv_tid != ctx_mt->self_tid) {
-		pthread_join(ctx_mt->adv_tid, NULL);
-		ctx_mt->adv_tid = ctx_mt->self_tid;
+	pthread_t * manager_tid = &(ctx_mt->manager_tid[ctx_mt->batchID % 2]);
+	if (unlikely(*manager_tid != ctx_mt->self_tid)) {
+		int ret = join_manager_thread(*manager_tid);
+		*manager_tid = ctx_mt->self_tid;
+		if (ret != 0)
+			return SSH_ERR_INTERNAL_ERROR;
 	}
 
 	u_char buf[4];
 #ifdef SAFETY
 	u_int sought_batchID = seqnr / NUMSTREAMS;
-	u_int found_batchID;
 #endif
 	struct mt_keystream_batch * batch =
 	    &(ctx_mt->batches[ctx_mt->batchID % 2]);
 	struct mt_keystream * ks = &(batch->streams[seqnr % NUMSTREAMS]);
 #ifdef SAFETY
-	found_batchID = batch->batchID;
-
-	if (found_batchID == sought_batchID) {
-		explicit_bzero(&found_batchID, sizeof(found_batchID));
+	if (batch->batchID == sought_batchID) {
 #endif
 		for (u_int i=0; i < sizeof(buf); i++)
 			buf[i]=ks->headerStream[i] ^ cp[i];
@@ -778,8 +662,7 @@ chachapoly_get_length_mt(struct chachapoly_ctx_mt *ctx_mt, u_int *plenp,
 #ifdef SAFETY
 	} else {
 		debug_f("Batch miss! Seeking %u, found %u. Failing.",
-		    sought_batchID, found_batchID);
-		explicit_bzero(&found_batchID, sizeof(found_batchID));
+		    sought_batchID, batch->batchID);
 		return SSH_ERR_INTERNAL_ERROR;
 	}
 #endif
