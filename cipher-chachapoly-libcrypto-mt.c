@@ -420,7 +420,7 @@ static inline void
 fastXOR(u_char *dest, const u_char *src, const u_char *keystream, u_int len)
 {
 
-	/* XXX: this was __uint128_t but that was causing unaligned load errors. 
+	/* XXX: this was __uint128_t but that was causing unaligned load errors.
 	 * this works but we need to explore it more. */
 	typedef uint32_t chunk;
 	size_t i;
@@ -470,7 +470,7 @@ manager_thread(struct manager_thread_args * margs) {
 	}
 	for (; ti < NUMTHREADS; ti++) /* for error condition */
 		tid[ti] = pthread_self();
-		
+
 	struct worker_thread_args * retwargs;
 
 	for (ti = 0; ti < NUMTHREADS; ti++) {
@@ -502,6 +502,7 @@ manager_thread(struct manager_thread_args * margs) {
 			margs->retval = 1;
 		}
 	}
+	free(wargs);
 
 	if (margs->retval == 0) {
 		batch->batchID = batchID;
@@ -537,7 +538,7 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 
 	struct mt_keystream_batch * batch =
 	    &(ctx_mt->batches[ctx_mt->batchID % 2]);
-	
+
 	struct mt_keystream * ks = &(batch->streams[seqnr % NUMSTREAMS]);
 
 	int r = SSH_ERR_INTERNAL_ERROR;
