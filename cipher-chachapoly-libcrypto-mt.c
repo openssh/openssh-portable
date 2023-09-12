@@ -62,7 +62,10 @@
 /* the goal is to ensure that main is never
  * waiting on the worker threads for keystream data */
 #define NUMTHREADS 1
-#define NUMSTREAMS 128
+
+/* 64 seems to be a pretty blance between memory and performance
+ * 128 is another option with somewhat higher memory consumption */
+#define NUMSTREAMS 64
 
 /* END TUNABLES */
 
