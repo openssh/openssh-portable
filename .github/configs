@@ -165,7 +165,7 @@ case "$config" in
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
 	;;
-    valgrind-[1-5]|valgrind-unit)
+    valgrind-[1-7]|valgrind-unit)
 	# rlimit sandbox and FORTIFY_SOURCE confuse Valgrind.
 	CONFIGFLAGS="--without-sandbox --without-hardening"
 	CONFIGFLAGS="$CONFIGFLAGS --with-cppflags=-D_FORTIFY_SOURCE=0"
