@@ -74,6 +74,7 @@
 #include "utf8.h"
 #include "ssh-sk.h"
 #include "sk-api.h"
+#include "cipher-switch.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -83,6 +84,13 @@
 extern char *client_version_string;
 extern char *server_version_string;
 extern Options options;
+
+/*
+ * tty_flag is set in ssh.c. Use this in ssh_userauth2:
+ * if it is set, then prevent the switch to the null cipher.
+ */
+
+extern int tty_flag;
 
 /*
  * SSH2 key exchange
@@ -482,6 +490,42 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 
 	if (!authctxt.success)
 		fatal("Authentication failed.");
+
+	/*
+	 * If the user wants to use the none cipher and/or none mac, do it post authentication
+	 * and only if the right conditions are met -- both of the NONE commands
+	 * must be true and there must be no tty allocated.
+	 */
+	if (options.none_switch == 1 && options.none_enabled == 1) {
+		char *myproposal[PROPOSAL_MAX];
+		char *s = NULL;
+		const char *none_cipher = "none";
+		if (!tty_flag) { /* no null on tty sessions */
+			debug("Requesting none rekeying...");
+			kex_proposal_populate_entries(ssh, myproposal, s, none_cipher,
+						      options.macs,
+						      compression_alg_list(options.compression),
+						      options.hostkeyalgorithms);
+			fprintf(stderr, "WARNING: ENABLED NONE CIPHER!!!\n");
+
+			/* NONEMAC can only be used in context of the NONE CIPHER */
+			if (options.nonemac_enabled == 1) {
+				const char *none_mac = "none";
+				kex_proposal_populate_entries(ssh, myproposal, s, none_cipher,
+							      none_mac,
+							      compression_alg_list(options.compression),
+							      options.hostkeyalgorithms);
+				fprintf(stderr, "WARNING: ENABLED NONE MAC\n");
+			}
+			kex_prop2buf(ssh->kex->my, myproposal);
+			packet_request_rekeying();
+		} else {
+			/* requested NONE cipher when in a tty */
+			debug("Cannot switch to NONE cipher with tty allocated");
+			fprintf(stderr, "NONE cipher switch disabled when a TTY is allocated\n");
+		}
+	}
+
 	if (ssh_packet_connection_is_on_socket(ssh)) {
 		verbose("Authenticated to %s ([%s]:%d) using \"%s\".", host,
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),

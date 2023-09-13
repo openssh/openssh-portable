@@ -71,8 +71,6 @@ for mode in scp sftp ; do
 	for i in $(cd ${DIR} && echo *); do
 		cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
 	done
-
-	# TODO: scp -3
 done
 
 scpclean

@@ -52,6 +52,8 @@
 #include "dispatch.h"
 #include "pathnames.h"
 #include "ssherr.h"
+#include "canohost.h"
+
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
@@ -72,6 +74,8 @@ extern Authmethod method_hostbased;
 #ifdef GSSAPI
 extern Authmethod method_gssapi;
 #endif
+
+static int log_flag = 0;
 
 Authmethod *authmethods[] = {
 	&method_none,
@@ -101,6 +105,9 @@ static char *authmethods_get(Authctxt *authctxt);
 #define MATCH_PARTIAL	3	/* method matches, submethod can't be checked */
 static int list_starts_with(const char *, const char *, const char *);
 
+/* read the user banner from the path in sshd_config
+ * this isn't to read it on the client side but to read
+ * it into what we are going to send on the server side */
 char *
 auth2_read_banner(void)
 {
@@ -271,6 +278,11 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 	    (r = sshpkt_get_cstring(ssh, &method, NULL)) != 0)
 		goto out;
 	debug("userauth-request for user %s service %s method %s", user, service, method);
+	if (!log_flag) {
+		logit("SSH: Server;Ltype: Authname;Remote: %s-%d;Name: %s",
+		      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh), user);
+		log_flag = 1;
+	}
 	debug("attempt %d failures %d", authctxt->attempt, authctxt->failures);
 
 	if ((style = strchr(user, ':')) != NULL)

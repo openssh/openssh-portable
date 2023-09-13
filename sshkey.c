@@ -1567,7 +1567,8 @@ sshkey_shield_private(struct sshkey *k)
 	    stderr);
 #endif
 	if ((r = cipher_init(&cctx, cipher, keyiv, cipher_keylen(cipher),
-	    keyiv + cipher_keylen(cipher), cipher_ivlen(cipher), 1)) != 0)
+	    keyiv + cipher_keylen(cipher), cipher_ivlen(cipher), 0,
+	    CIPHER_ENCRYPT, CIPHER_SERIAL)) != 0)
 		goto out;
 
 	/* Serialise and encrypt the private key using the ephemeral key */
@@ -1596,8 +1597,8 @@ sshkey_shield_private(struct sshkey *k)
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = cipher_crypt(cctx, 0, enc,
-	    sshbuf_ptr(prvbuf), sshbuf_len(prvbuf), 0, 0)) != 0)
+	if ((r = cipher_crypt(cctx, 0, enc, sshbuf_ptr(prvbuf),
+	    sshbuf_len(prvbuf), 0, 0)) != 0)
 		goto out;
 #ifdef DEBUG_PK
 	fprintf(stderr, "%s: encrypted\n", __func__);
@@ -1702,7 +1703,8 @@ sshkey_unshield_private(struct sshkey *k)
 	    keyiv, SSH_DIGEST_MAX_LENGTH)) != 0)
 		goto out;
 	if ((r = cipher_init(&cctx, cipher, keyiv, cipher_keylen(cipher),
-	    keyiv + cipher_keylen(cipher), cipher_ivlen(cipher), 0)) != 0)
+	    keyiv + cipher_keylen(cipher), cipher_ivlen(cipher), 0,
+	    CIPHER_DECRYPT, CIPHER_SERIAL)) != 0)
 		goto out;
 #ifdef DEBUG_PK
 	fprintf(stderr, "%s: key+iv\n", __func__);
@@ -1722,8 +1724,8 @@ sshkey_unshield_private(struct sshkey *k)
 	fprintf(stderr, "%s: encrypted\n", __func__);
 	sshbuf_dump_data(k->shielded_private, k->shielded_len, stderr);
 #endif
-	if ((r = cipher_crypt(cctx, 0, cp,
-	    k->shielded_private, k->shielded_len, 0, 0)) != 0)
+	if ((r = cipher_crypt(cctx, 0, cp, k->shielded_private, k->shielded_len,
+	    0, 0)) != 0)
 		goto out;
 #ifdef DEBUG_PK
 	fprintf(stderr, "%s: serialised\n", __func__);
@@ -2761,6 +2763,13 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 		kdfname = "none";
 	} else if (ciphername == NULL)
 		ciphername = DEFAULT_CIPHERNAME;
+	/*
+	 * NOTE: Without OpenSSL, this string comparison is still safe, even
+	 * though it will never match because the multithreaded cipher is not
+	 * enabled.
+	 */
+	else if (strcmp(ciphername, "chacha20-poly1305-mt@hpnssh.org") == 0)
+		ciphername = "chacha20-poly1305@openssh.com";
 	if ((cipher = cipher_by_name(ciphername)) == NULL) {
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
@@ -2795,8 +2804,8 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 		r = SSH_ERR_KEY_UNKNOWN_CIPHER;
 		goto out;
 	}
-	if ((r = cipher_init(&ciphercontext, cipher, key, keylen,
-	    key + keylen, ivlen, 1)) != 0)
+	if ((r = cipher_init(&ciphercontext, cipher, key, keylen, key + keylen,
+	    ivlen, 0, CIPHER_ENCRYPT, CIPHER_SERIAL)) != 0)
 		goto out;
 
 	if ((r = sshbuf_put(encoded, AUTH_MAGIC, sizeof(AUTH_MAGIC))) != 0 ||
@@ -2837,8 +2846,8 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 	if ((r = sshbuf_reserve(encoded,
 	    sshbuf_len(encrypted) + authlen, &cp)) != 0)
 		goto out;
-	if ((r = cipher_crypt(ciphercontext, 0, cp,
-	    sshbuf_ptr(encrypted), sshbuf_len(encrypted), 0, authlen)) != 0)
+	if ((r = cipher_crypt(ciphercontext, 0, cp, sshbuf_ptr(encrypted),
+	    sshbuf_len(encrypted), 0, authlen)) != 0)
 		goto out;
 
 	sshbuf_reset(blob);
@@ -2983,6 +2992,8 @@ private2_decrypt(struct sshbuf *decoded, const char *passphrase,
 	    (r = sshbuf_get_u32(decoded, &encrypted_len)) != 0)
 		goto out;
 
+	if (strcmp(ciphername, "chacha20-poly1305-mt@hpnssh.org") == 0)
+		strcpy(ciphername, "chacha20-poly1305@openssh.com");
 	if ((cipher = cipher_by_name(ciphername)) == NULL) {
 		r = SSH_ERR_KEY_UNKNOWN_CIPHER;
 		goto out;
@@ -3037,8 +3048,8 @@ private2_decrypt(struct sshbuf *decoded, const char *passphrase,
 
 	/* decrypt private portion of key */
 	if ((r = sshbuf_reserve(decrypted, encrypted_len, &dp)) != 0 ||
-	    (r = cipher_init(&ciphercontext, cipher, key, keylen,
-	    key + keylen, ivlen, 0)) != 0)
+	    (r = cipher_init(&ciphercontext, cipher, key, keylen, key + keylen,
+	    ivlen, 0, CIPHER_DECRYPT, CIPHER_SERIAL)) != 0)
 		goto out;
 	if ((r = cipher_crypt(ciphercontext, 0, dp, sshbuf_ptr(decoded),
 	    encrypted_len, 0, authlen)) != 0) {

@@ -35,13 +35,13 @@
 .\"
 .\" $OpenBSD: ssh_config.5,v 1.383 2023/07/17 05:36:14 jsg Exp $
 .Dd $Mdocdate: July 17 2023 $
-.Dt SSH_CONFIG 5
+.Dt HPNSSH_CONFIG 5
 .Os
 .Sh NAME
-.Nm ssh_config
-.Nd OpenSSH client configuration file
+.Nm hpnssh_config
+.Nd HPN/OpenSSH client configuration file
 .Sh DESCRIPTION
-.Xr ssh 1
+.Xr hpnssh 1
 obtains configuration data from the following sources in
 the following order:
 .Pp
@@ -53,8 +53,21 @@ user's configuration file
 .Pq Pa ~/.ssh/config
 .It
 system-wide configuration file
-.Pq Pa /etc/ssh/ssh_config
+.Pq Pa /etc/hpnssh/ssh_config
 .El
+.Pp
+.Xr hpnssh 1
+is fully compatible with OpenSSH's ssh and uses the same configuration format, directives, and options.
+.Xr hpnssh 1
+can use the same configuration file as
+.Xr ssh 1
+though the inverse is not necessarily true. This is because
+.Xr hpnssh 1
+has some additional options which are discussed below. As such users should either not
+use
+.Xr hpnssh 1
+specific directives in their default ssh_config files or ensure that they always use a
+custom config file. 
 .Pp
 Unless noted otherwise, for each parameter, the first obtained value
 will be used.
@@ -633,6 +646,11 @@ If set to a time in seconds, or a time in any of the formats documented in
 then the backgrounded master connection will automatically terminate
 after it has remained idle (with no client connections) for the
 specified time.
+.It Cm DisableMTAES
+Switch the encryption cipher being used from the multithreaded MT-AES-CTR cipher
+back to the stock single-threaded AES-CTR cipher. This may prove to be more
+effcient in some circumstances. Default is 
+.Cm no. HPNSSH only.
 .It Cm DynamicForward
 Specifies that a TCP port on the local machine be forwarded
 over the secure channel, and the application
@@ -983,6 +1001,28 @@ Numeric IP addresses are also permitted (both on the command line and in
 .Cm Hostname
 specifications).
 The default is the name given on the command line.
+.It Cm HPNDisabled
+In some situations, such as transfers on a local area network, the impact
+of the HPN code produces a net decrease in performance. In these cases it is
+helpful to disable the HPN functionality. By default HPNDisabled is set to 
+.Cm no. HPNSSH only.
+.It Cm HPNBufferLimit
+This option will force the hpnssh receive buffer to grow more slowly and limits
+the growth to one half of the TCP receive buffer. This option can prove useful
+in situation where a high speed path with larger RTTs are writing to a slower
+device or file system. Enabling this option will reduce performance but may provide
+a more stable connection. The option only impacts the receiving side of the connection. 
+For example, a client receiving data from a server but not a client sending data.
+By default this option is set to 
+.Cm no. HPNSSH only.
+.It Cm HPNBufferSize
+This is the default buffer size, in kilobytes, the HPN functionality uses when interacting
+with nonHPN SSH installations. Conceptually this is similar to the TcpRcvBuf
+option as applied to the internal SSH flow control. This value can range from
+1KB to 64MB (1-65536). Use of oversized or undersized buffers can cause performance
+problems depending on the length of the network path. The default size of this buffer
+is 2MB. 
+.Cm HPNSSH only.
 .It Cm IdentitiesOnly
 Specifies that
 .Xr ssh 1
@@ -1347,6 +1387,63 @@ hmac-sha2-256,hmac-sha2-512,hmac-sha1
 .Pp
 The list of available MAC algorithms may also be obtained using
 .Qq ssh -Q mac .
+.It Cm Metrics
+Indicate that the ssh client should gather and write TCP stack metrics from the
+TCP_INFO socket structure on compliant operating systems to a text file. 
+These metrics will be collected from both the local and remote hosts if metrics 
+are supported by the version of SSH and TCP_INFO is supported by the 
+operating system. Currently operating system support is limited to Linux 
+version 3.7 and greater, NetBSD, and FreeBSD (version 6 or greater). 
+
+If one of the hosts does not support the Metrics option then only data
+from the the host that does will be reported. See the HPN-README file 
+for more detail.  
+
+The argument to the keyword must be 
+.Cm yes
+or 
+.Cm no
+(the default). 
+
+See 
+.Cm MetricsInterval 
+and 
+.Cm MetricsPath 
+for more metrics options.
+.Cm HPNSSH only. 
+.It Cm MetricsInterval
+The frequency, in seconds, with which the TCP_INFO struct will be polled. The 
+default value is 5 seconds.
+
+.Cm Metrics 
+must be set to 
+.Cm yes
+fot this option to have any effect.
+.Cm HPNSSH only.
+.It Cm MetricsPath
+The file path where
+.Cm Metrics
+should write the TCP stack metrics. 
+
+The default is 
+.Sm off
+.Ar ./ssh_stack_metrics.local  
+ and 
+.Ar ./ssh_stack_metrics.remote 
+.Sm on
+
+The user may specify any other filepath and filename that they have write 
+access to. E.g. MetricsPath=/tmp/my_metrics. The suffix of .local
+and .remote will be appended to this path. Files are 
+.Cm not 
+overwritten by subsequent metrics sessions. Instead, data from new sessions
+will be appended if the file already exists. 
+
+.Cm Metrics 
+must be set to 
+.Cm yes
+fot this option to have any effect.
+.Cm HPNSSH only.
 .It Cm NoHostAuthenticationForLocalhost
 Disable host authentication for localhost (loopback addresses).
 The argument to this keyword must be
@@ -1354,6 +1451,36 @@ The argument to this keyword must be
 or
 .Cm no
 (the default).
+.It Cm NoneEnabled
+Enable or disable the use of the None cipher. Care must always be used
+when enabling this as it will allow users to send data in the clear. However,
+it is important to note that authentication information remains encrypted
+even if this option is enabled. Default is 
+.Cm no. HPNSSH only.
+.It Cm NoneMacEnabled
+Enable or disable the use of the None MAC. When this is enabled ssh
+will *not* provide data integrity of any data being transmitted between hosts. Use
+with caution as it, unlike just using NoneEnabled, doesn't provide data integrity and
+protection against man-in-the-middle attacks. As with NoneEnabled all authentication
+remains encrypted and integrity is ensured. Default is 
+.Cm no. HPNSSH only.
+.It Cm NoneSwitch
+Switch the encryption cipher being used to the None cipher after
+authentication takes place. NoneEnabled must be enabled on both the client
+and server side of the connection. When the connection switches to the NONE
+cipher a warning is sent to STDERR. The connection attempt will fail with an
+error if a client requests a NoneSwitch from the server that does not explicitly
+have NoneEnabled set to yes. Note: The NONE cipher cannot be used in
+interactive (shell) sessions and it will fail silently. Set to 
+.Cm no 
+by default. 
+.Cm HPNSSH only.
+.Pp
+.Cm Note: 
+this options cannot actualy be set in the ssh_config file. It must be
+set on the command line use -oNoneEnabled. This is to prevent it from being 
+used accidentally. It is included here for completeness as neither NoneMacEnabled
+or NoneCipherEnabled have any effect without this option. 
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up.
 The argument to this keyword must be an integer.
@@ -1900,6 +2027,21 @@ for protocol-level keepalives.
 Specify a configuration tag name that may be later used by a
 .Cm Match
 directive to select a block of configuration.
+.It Cm TcpRcvBuf
+Set the TCP socket receive buffer to n Kilobytes. It can be set up to the
+maximum socket size allowed by the system. This is useful in situations where
+the tcp receive window is set low but the maximum buffer size is set
+higher (as is typical). This works on a per TCP connection basis. You can also
+use this to artifically limit the transfer rate of the connection. In these
+cases the throughput will be no more than n/RTT. The minimum buffer size is 1KB.
+Default is the current system wide tcp receive buffer size. 
+.Cm HPNSSH only.
+.It Cm TcpRcvBufPoll
+Enable of disable the polling of the tcp receive buffer through the life
+of the connection. You would want to make sure that this option is enabled
+for systems making use of autotuning kernels (linux 2.4.24+, 2.6, MS Vista).
+Default is 
+.Cm yes. HPNSSH only.
 .It Cm Tunnel
 Request
 .Xr tun 4
@@ -2241,3 +2383,11 @@ removed many bugs, re-added newer features and
 created OpenSSH.
 .An Markus Friedl
 contributed the support for SSH protocol versions 1.5 and 2.0.
+.An Chris Rapier, 
+.An Michael Stevens, 
+.An Ben Bennet, 
+and 
+.An Mike Tasota 
+developed the HPN extensions at the Pittsburgh Supercomuting Center 
+with grants from Cisco, the National Library of Medicine, and 
+the National Science Foundation.

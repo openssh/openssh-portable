@@ -35,13 +35,13 @@
 .\"
 .\" $OpenBSD: ssh.1,v 1.437 2023/07/23 20:04:45 naddy Exp $
 .Dd $Mdocdate: July 23 2023 $
-.Dt SSH 1
+.Dt HPNSSH 1
 .Os
 .Sh NAME
-.Nm ssh
-.Nd OpenSSH remote login client
+.Nm hpnssh
+.Nd HPN/OpenSSH remote login client
 .Sh SYNOPSIS
-.Nm ssh
+.Nm hpnssh
 .Op Fl 46AaCfGgKkMNnqsTtVvXxYy
 .Op Fl B Ar bind_interface
 .Op Fl b Ar bind_address
@@ -76,6 +76,9 @@ two untrusted hosts over an insecure network.
 X11 connections, arbitrary TCP ports and
 .Ux Ns -domain
 sockets can also be forwarded over the secure channel.
+.Nm
+is binary compatible with the more well known OpenSSH and uses the same configuration
+directives, methods, and keywords except where noted. 
 .Pp
 .Nm
 connects and logs into the specified
@@ -117,7 +120,7 @@ to use IPv6 addresses only.
 .Pp
 .It Fl A
 Enables forwarding of connections from an authentication agent such as
-.Xr ssh-agent 1 .
+.Xr hpnssh-agent 1 .
 This can also be specified on a per-host basis in a configuration file.
 .Pp
 Agent forwarding should be enabled with caution.
@@ -236,7 +239,7 @@ disables any escapes and makes the session fully transparent.
 Specifies an alternative per-user configuration file.
 If a configuration file is given on the command line,
 the system-wide configuration file
-.Pq Pa /etc/ssh/ssh_config
+.Pq Pa /etc/hpnssh/ssh_config
 will be ignored.
 The default for the per-user configuration file is
 .Pa ~/.ssh/config .
@@ -256,7 +259,7 @@ This implies
 .Fl n .
 The recommended way to start X11 programs at a remote site is with
 something like
-.Ic ssh -f host xterm .
+.Ic hpnssh -f host xterm .
 .Pp
 If the
 .Cm ExitOnForwardFailure
@@ -269,7 +272,7 @@ before placing itself in the background.
 Refer to the description of
 .Cm ForkAfterAuthentication
 in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for details.
 .Pp
 .It Fl G
@@ -297,7 +300,7 @@ Selects a file from which the identity (private key) for
 public key authentication is read.
 You can also specify a public key file to use the corresponding
 private key that is loaded in
-.Xr ssh-agent 1
+.Xr hpnssh-agent 1
 when the private key file is not present locally.
 The default is
 .Pa ~/.ssh/id_rsa ,
@@ -422,13 +425,13 @@ options places
 into
 .Dq master
 mode but with confirmation required using
-.Xr ssh-askpass 1
+.Xr hpnssh-askpass 1
 before each operation that changes the multiplexing state
 (e.g. opening a new session).
 Refer to the description of
 .Cm ControlMaster
 in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for details.
 .Pp
 .It Fl m Ar mac_spec
@@ -446,7 +449,7 @@ This is useful for just forwarding ports.
 Refer to the description of
 .Cm SessionType
 in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for details.
 .Pp
 .It Fl n
@@ -458,7 +461,7 @@ This must be used when
 is run in the background.
 A common trick is to use this to run X11 programs on a remote machine.
 For example,
-.Ic ssh -n shadows.cs.hut.fi emacs &
+.Ic hpnssh -n shadows.cs.hut.fi emacs &
 will start an emacs on shadows.cs.hut.fi, and the X11
 connection will be automatically forwarded over an encrypted channel.
 The
@@ -472,7 +475,7 @@ option.)
 Refer to the description of
 .Cm StdinNull
 in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for details.
 .Pp
 .It Fl O Ar ctl_cmd
@@ -499,7 +502,7 @@ Can be used to give options in the format used in the configuration file.
 This is useful for specifying options for which there is no separate
 command-line flag.
 For full details of the options listed below, and their possible values, see
-.Xr ssh_config 5 .
+.Xr hpnssh_config 5 .
 .Pp
 .Bl -tag -width Ds -offset indent -compact
 .It AddKeysToAgent
@@ -522,6 +525,7 @@ For full details of the options listed below, and their possible values, see
 .It ControlMaster
 .It ControlPath
 .It ControlPersist
+.It DisableMTAES*
 .It DynamicForward
 .It EnableEscapeCommandline
 .It EscapeChar
@@ -543,6 +547,9 @@ For full details of the options listed below, and their possible values, see
 .It HostKeyAlgorithms
 .It HostKeyAlias
 .It Hostname
+.It HPNDisabled*
+.It HPNBufferLimit*
+.It HPNBufferSize*
 .It IdentitiesOnly
 .It IdentityAgent
 .It IdentityFile
@@ -556,7 +563,13 @@ For full details of the options listed below, and their possible values, see
 .It LogLevel
 .It MACs
 .It Match
+.It Metrics
+.It MetricsInterval
+.It MetricsPath
 .It NoHostAuthenticationForLocalhost
+.It NoneCipherEnabled*
+.It NoneEnabled*
+.It NoneMacEnabled*
 .It NumberOfPasswordPrompts
 .It PasswordAuthentication
 .It PermitLocalCommand
@@ -584,6 +597,8 @@ For full details of the options listed below, and their possible values, see
 .It StreamLocalBindUnlink
 .It StrictHostKeyChecking
 .It TCPKeepAlive
+.It TcpRcvBuf*
+.It TcpRcvBufPoll*
 .It Tunnel
 .It TunnelDevice
 .It UpdateHostKeys
@@ -592,6 +607,8 @@ For full details of the options listed below, and their possible values, see
 .It VerifyHostKeyDNS
 .It VisualHostKey
 .It XAuthLocation
+.Pp
+.It * Hpnssh specific configuration option.  
 .El
 .Pp
 .It Fl P Ar tag
@@ -638,9 +655,9 @@ flag),
 .Ar sig
 (supported signature algorithms).
 Alternatively, any keyword from
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 or
-.Xr sshd_config 5
+.Xr hpnsshd_config 5
 that takes an algorithm list may be used as an alias for the corresponding
 query_option.
 .Pp
@@ -714,7 +731,7 @@ Specifying a remote
 will only succeed if the server's
 .Cm GatewayPorts
 option is enabled (see
-.Xr sshd_config 5 ) .
+.Xr hpnsshd_config 5 ) .
 .Pp
 If the
 .Ar port
@@ -736,19 +753,19 @@ Refer to the description of
 and
 .Cm ControlMaster
 in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for details.
 .Pp
 .It Fl s
 May be used to request invocation of a subsystem on the remote system.
 Subsystems facilitate the use of SSH
 as a secure transport for other applications (e.g.\&
-.Xr sftp 1 ) .
+.Xr hpnsftp 1 ) .
 The subsystem is specified as the remote command.
 Refer to the description of
 .Cm SessionType
 in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for details.
 .Pp
 .It Fl T
@@ -820,7 +837,7 @@ See also the
 and
 .Cm TunnelDevice
 directives in
-.Xr ssh_config 5 .
+.Xr hpnssh_config 5 .
 .Pp
 If the
 .Cm Tunnel
@@ -849,7 +866,7 @@ Refer to the
 option and the
 .Cm ForwardX11Trusted
 directive in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for more information.
 .Pp
 .It Fl x
@@ -871,7 +888,7 @@ By default this information is sent to stderr.
 may additionally obtain configuration data from
 a per-user configuration file and a system-wide configuration file.
 The file format and configuration options are described in
-.Xr ssh_config 5 .
+.Xr hpnssh_config 5 .
 .Sh AUTHENTICATION
 The OpenSSH SSH client supports SSH protocol 2.
 .Pp
@@ -904,7 +921,7 @@ Additionally, the server
 .Em must
 be able to verify the client's
 host key (see the description of
-.Pa /etc/ssh/ssh_known_hosts
+.Pa /etc/hpnssh/ssh_known_hosts
 and
 .Pa ~/.ssh/known_hosts ,
 below)
@@ -955,7 +972,7 @@ or higher (e.g. by using the
 flag).
 .Pp
 The user creates their key pair by running
-.Xr ssh-keygen 1 .
+.Xr hpnssh-keygen 1 .
 This stores the private key in
 .Pa ~/.ssh/id_dsa
 (DSA),
@@ -1004,17 +1021,17 @@ signed certificates are used.
 This has the advantage that a single trusted certification authority
 can be used in place of many public/private keys.
 See the CERTIFICATES section of
-.Xr ssh-keygen 1
+.Xr hpnssh-keygen 1
 for more information.
 .Pp
 The most convenient way to use public key or certificate authentication
 may be with an authentication agent.
 See
-.Xr ssh-agent 1
+.Xr hpnssh-agent 1
 and (optionally) the
 .Cm AddKeysToAgent
 directive in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for more information.
 .Pp
 Keyboard-interactive authentication works as follows:
@@ -1043,7 +1060,7 @@ Host keys are stored in
 .Pa ~/.ssh/known_hosts
 in the user's home directory.
 Additionally, the file
-.Pa /etc/ssh/ssh_known_hosts
+.Pa /etc/hpnssh/ssh_known_hosts
 is automatically checked for known hosts.
 Any new hosts are automatically added to the user's file.
 If a host's identification ever changes,
@@ -1146,7 +1163,7 @@ for dynamic port-forwardings.
 allows the user to execute a local command if the
 .Ic PermitLocalCommand
 option is enabled in
-.Xr ssh_config 5 .
+.Xr hpnssh_config 5 .
 Basic help is available, using the
 .Fl h
 option.
@@ -1189,7 +1206,7 @@ nickname
 .Dq pinky ,
 using the standard IRC port, 6667:
 .Bd -literal -offset 4n
-$ ssh -f -L 6667:localhost:6667 server.example.com sleep 10
+$ hpnssh -f -L 6667:localhost:6667 server.example.com sleep 10
 $ irc -c '#users' pinky IRC/127.0.0.1
 .Ed
 .Pp
@@ -1267,14 +1284,14 @@ a fingerprint of the server's public key is presented to the user
 .Cm StrictHostKeyChecking
 has been disabled).
 Fingerprints can be determined using
-.Xr ssh-keygen 1 :
+.Xr hpnssh-keygen 1 :
 .Pp
-.Dl $ ssh-keygen -l -f /etc/ssh/ssh_host_rsa_key
+.Dl $ hpnssh-keygen -l -f /etc/hpnssh/ssh_host_rsa_key
 .Pp
 If the fingerprint is already known, it can be matched
 and the key can be accepted or rejected.
 If only legacy (MD5) fingerprints for the server are available, the
-.Xr ssh-keygen 1
+.Xr hpnssh-keygen 1
 .Fl E
 option may be used to downgrade the fingerprint algorithm to match.
 .Pp
@@ -1299,7 +1316,7 @@ host key is the same, not guaranteed proof.
 To get a listing of the fingerprints along with their random art for
 all known hosts, the following command line can be used:
 .Pp
-.Dl $ ssh-keygen -lv -f ~/.ssh/known_hosts
+.Dl $ hpnssh-keygen -lv -f ~/.ssh/known_hosts
 .Pp
 If the fingerprint is unknown,
 an alternative method of verification is available:
@@ -1315,7 +1332,7 @@ In this example, we are connecting a client to a server,
 The SSHFP resource records should first be added to the zonefile for
 host.example.com:
 .Bd -literal -offset indent
-$ ssh-keygen -r host.example.com.
+$ hpnssh-keygen -r host.example.com.
 .Ed
 .Pp
 The output lines will have to be added to the zonefile.
@@ -1325,7 +1342,7 @@ To check that the zone is answering fingerprint queries:
 .Pp
 Finally the client connects:
 .Bd -literal -offset indent
-$ ssh -o "VerifyHostKeyDNS ask" host.example.com
+$ hpnssh -o "VerifyHostKeyDNS ask" host.example.com
 [...]
 Matching host key fingerprint found in DNS.
 Are you sure you want to continue connecting (yes/no)?
@@ -1334,7 +1351,7 @@ Are you sure you want to continue connecting (yes/no)?
 See the
 .Cm VerifyHostKeyDNS
 option in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for more information.
 .Sh SSH-BASED VIRTUAL PRIVATE NETWORKS
 .Nm
@@ -1344,7 +1361,7 @@ using the
 network pseudo-device,
 allowing two networks to be joined securely.
 The
-.Xr sshd_config 5
+.Xr hpnsshd_config 5
 configuration option
 .Cm PermitTunnel
 controls whether the server supports this,
@@ -1358,7 +1375,7 @@ at 192.168.1.15, allows it.
 .Pp
 On the client:
 .Bd -literal -offset indent
-# ssh -f -w 0:1 192.168.1.15 true
+# hpnssh -f -w 0:1 192.168.1.15 true
 # ifconfig tun0 10.1.1.1 10.1.1.2 netmask 255.255.255.252
 # route add 10.0.99.0/24 10.1.1.2
 .Ed
@@ -1496,12 +1513,12 @@ If the current session has no tty,
 this variable is not set.
 .It Ev SSH_TUNNEL
 Optionally set by
-.Xr sshd 8
+.Xr hpnsshd 8
 to contain the interface names assigned if tunnel forwarding was
 requested by the client.
 .It Ev SSH_USER_AUTH
 Optionally set by
-.Xr sshd 8 ,
+.Xr hpnsshd 8 ,
 this variable may contain a pathname to a file that lists the authentication
 methods successfully used when the session was established, including any
 public keys that were used.
@@ -1524,7 +1541,7 @@ change their environment.
 For more information, see the
 .Cm PermitUserEnvironment
 option in
-.Xr sshd_config 5 .
+.Xr hpnsshd_config 5 .
 .Sh FILES
 .Bl -tag -width Ds -compact
 .It Pa ~/.rhosts
@@ -1532,7 +1549,7 @@ This file is used for host-based authentication (see above).
 On some machines this file may need to be
 world-readable if the user's home directory is on an NFS partition,
 because
-.Xr sshd 8
+.Xr hpnsshd 8
 reads it as root.
 Additionally, this file must be owned by the user,
 and must not have write permissions for anyone else.
@@ -1557,7 +1574,7 @@ and not accessible by others.
 Lists the public keys (DSA, ECDSA, Ed25519, RSA)
 that can be used for logging in as this user.
 The format of this file is described in the
-.Xr sshd 8
+.Xr hpnsshd 8
 manual page.
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
@@ -1565,7 +1582,7 @@ permissions are read/write for the user, and not accessible by others.
 .It Pa ~/.ssh/config
 This is the per-user configuration file.
 The file format and configuration options are described in
-.Xr ssh_config 5 .
+.Xr hpnssh_config 5 .
 Because of the potential for abuse, this file must have strict permissions:
 read/write for the user, and not writable by others.
 .Pp
@@ -1604,7 +1621,7 @@ sensitive and can (but need not) be readable by anyone.
 Contains a list of host keys for all hosts the user has logged into
 that are not already in the systemwide list of known host keys.
 See
-.Xr sshd 8
+.Xr hpnsshd 8
 for further details of the format of this file.
 .Pp
 .It Pa ~/.ssh/rc
@@ -1613,7 +1630,7 @@ Commands in this file are executed by
 when the user logs in, just before the user's shell (or command) is
 started.
 See the
-.Xr sshd 8
+.Xr hpnsshd 8
 manual page for more information.
 .Pp
 .It Pa /etc/hosts.equiv
@@ -1626,35 +1643,35 @@ This file is used in exactly the same way as
 but allows host-based authentication without permitting login with
 rlogin/rsh.
 .Pp
-.It Pa /etc/ssh/ssh_config
+.It Pa /etc/hpnssh/ssh_config
 Systemwide configuration file.
 The file format and configuration options are described in
-.Xr ssh_config 5 .
+.Xr hpnssh_config 5 .
 .Pp
-.It Pa /etc/ssh/ssh_host_key
-.It Pa /etc/ssh/ssh_host_dsa_key
-.It Pa /etc/ssh/ssh_host_ecdsa_key
-.It Pa /etc/ssh/ssh_host_ed25519_key
-.It Pa /etc/ssh/ssh_host_rsa_key
+.It Pa /etc/hpnssh/ssh_host_key
+.It Pa /etc/hpnssh/ssh_host_dsa_key
+.It Pa /etc/hpnssh/ssh_host_ecdsa_key
+.It Pa /etc/hpnssh/ssh_host_ed25519_key
+.It Pa /etc/hpnssh/ssh_host_rsa_key
 These files contain the private parts of the host keys
 and are used for host-based authentication.
 .Pp
-.It Pa /etc/ssh/ssh_known_hosts
+.It Pa /etc/hpnssh/ssh_known_hosts
 Systemwide list of known host keys.
 This file should be prepared by the
 system administrator to contain the public host keys of all machines in the
 organization.
 It should be world-readable.
 See
-.Xr sshd 8
+.Xr hpnsshd 8
 for further details of the format of this file.
 .Pp
-.It Pa /etc/ssh/sshrc
+.It Pa /etc/hpnssh/sshrc
 Commands in this file are executed by
 .Nm
 when the user logs in, just before the user's shell (or command) is started.
 See the
-.Xr sshd 8
+.Xr hpnsshd 8
 manual page for more information.
 .El
 .Sh EXIT STATUS
@@ -1662,16 +1679,16 @@ manual page for more information.
 exits with the exit status of the remote command or with 255
 if an error occurred.
 .Sh SEE ALSO
-.Xr scp 1 ,
-.Xr sftp 1 ,
-.Xr ssh-add 1 ,
-.Xr ssh-agent 1 ,
-.Xr ssh-keygen 1 ,
-.Xr ssh-keyscan 1 ,
+.Xr hpnscp 1 ,
+.Xr hpnsftp 1 ,
+.Xr hpnssh-add 1 ,
+.Xr hpnssh-agent 1 ,
+.Xr hpnssh-keygen 1 ,
+.Xr hpnssh-keyscan 1 ,
 .Xr tun 4 ,
-.Xr ssh_config 5 ,
-.Xr ssh-keysign 8 ,
-.Xr sshd 8
+.Xr hpnssh_config 5 ,
+.Xr hpnssh-keysign 8 ,
+.Xr hpnsshd 8
 .Sh STANDARDS
 .Rs
 .%A S. Lehtinen
@@ -1794,3 +1811,7 @@ removed many bugs, re-added newer features and
 created OpenSSH.
 Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
+Chris Rapier, Michael Stevens, Ben Bennet, and Mike Tasota developed
+the HPN extensions at the Pittsburgh Supercomuting Center with grants
+from Cisco, the National Library of Medicine, and the National Science
+Foundation. 
