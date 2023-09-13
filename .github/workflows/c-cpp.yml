@@ -21,8 +21,6 @@ jobs:
           - macos-11
           - macos-12
           - macos-13
-          - windows-2019
-          - windows-2022
         config: [default]
         # Then we include any extra configs we want to test for specific VMs.
         include:
