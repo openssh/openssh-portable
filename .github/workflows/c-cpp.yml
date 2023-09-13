@@ -31,8 +31,8 @@ jobs:
           - { target: ubuntu-20.04, config: valgrind-3 }
           - { target: ubuntu-20.04, config: valgrind-4 }
           - { target: ubuntu-20.04, config: valgrind-5 }
-#	  - { target: ubuntu-20.04, config: valgrind-6 }
-#	  - { target: ubuntu-20.04, config: valgrind-7 }
+          - { target: ubuntu-20.04, config: valgrind-6 }
+          - { target: ubuntu-20.04, config: valgrind-7 }
           - { target: ubuntu-20.04, config: c89 }
           - { target: ubuntu-20.04, config: clang-6.0 }
           - { target: ubuntu-20.04, config: clang-8 }
