@@ -121,6 +121,14 @@ struct manager_thread_args {
 	int retval;
 };
 
+struct worker_thread_args {
+	u_int batchID;
+	struct mt_keystream_batch * batch;
+	int threadIndex;
+	u_char * zeros;
+	int retval;
+};
+
 /* generate the keystream and header
  * we use nulls for the "data" (the zeros variable) in order to
  * get the raw keystream
@@ -187,27 +195,21 @@ initialize_threadData(struct threadData * td, const u_char *key)
 	return -1;
 }
 
-struct worker_thread_args {
-	u_int batchID;
-	struct mt_keystream_batch * batch;
-	int threadIndex;
-	u_char * zeros;
-	int retval;
-};
-
 struct worker_thread_args *
 worker_thread(struct worker_thread_args * args)
 {
+	/* check first */
 	if (args == NULL)
 		return NULL;
 	if (args->batch == NULL || args->zeros == NULL) {
 		args->retval = 1;
 		return args;
 	}
+
 	int threadIndex = args->threadIndex;
 	struct threadData * td = &(args->batch->tds[threadIndex]);
-
 	u_int refseqnr = args->batchID * NUMSTREAMS;
+
 	for (int i = threadIndex; i < NUMSTREAMS; i += NUMTHREADS) {
 		if (generate_keystream(&(args->batch->streams[i]), refseqnr + i,
 		    td, args->zeros) == -1) {
@@ -302,6 +304,9 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 	/* Initialize the sequence number. When rekeying, this won't be zero. */
 	ctx_mt->seqnr = startseqnr;
 	ctx_mt->batchID = startseqnr / NUMSTREAMS;
+	struct threadData mainData;
+	int tDataI;
+	int genKSfailed = 0;
 
 #ifdef OPENSSL_HAVE_POLY_EVP
 	EVP_MAC *mac = NULL;
@@ -326,7 +331,6 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 	ctx_mt->batches[(ctx_mt->batchID + 1) % 2].batchID =
 	    ctx_mt->batchID + 1;
 
-	int tDataI;
 	/* initialize batches[0] tds */
 	for (tDataI = 0; tDataI < NUMTHREADS; tDataI++) {
 		if (initialize_threadData(&(ctx_mt->batches[0].tds[tDataI]),
@@ -355,14 +359,12 @@ chachapoly_new_mt(u_int startseqnr, const u_char * key, u_int keylen)
 		goto fail;
 	}
 
-	struct threadData mainData;
 	if (initialize_threadData(&mainData, key) != 0) {
 		chachapoly_free_mt(ctx_mt);
 		explicit_bzero(&startseqnr, sizeof(startseqnr));
 		return NULL;
 	}
 
-	int genKSfailed = 0;
 	for (int i=0; i<2; i++) {
 		u_int refseqnr = ctx_mt->batches[i].batchID * NUMSTREAMS;
 		for (int j = startseqnr > refseqnr ? startseqnr - refseqnr : 0;
@@ -427,6 +429,7 @@ fastXOR(u_char *dest, const u_char *src, const u_char *keystream, u_int len)
 	 * this works but we need to explore it more. */
 	typedef uint32_t chunk;
 	size_t i;
+
 	for (i=0; i < (len / sizeof(chunk)); i++)
 		((chunk *)dest)[i]=((chunk *)src)[i]^((chunk *)keystream)[i];
 	for (i=i*(sizeof(chunk) / sizeof(char)); i < len; i++)
@@ -435,6 +438,7 @@ fastXOR(u_char *dest, const u_char *src, const u_char *keystream, u_int len)
 
 struct manager_thread_args *
 manager_thread(struct manager_thread_args * margs) {
+	/* make sure we have valid data before proceeding */
 	if (margs == NULL)
 		return NULL;
 
@@ -460,6 +464,7 @@ manager_thread(struct manager_thread_args * margs) {
 	pthread_t tid[NUMTHREADS];
 	struct worker_thread_args * wargs = malloc(NUMTHREADS * sizeof(*wargs));
 	int ti;
+
 	for (ti = 0; ti < NUMTHREADS; ti++) {
 		wargs[ti].batchID = batchID;
 		wargs[ti].batch = batch;
@@ -554,11 +559,19 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 			const u_char *tag = src + aadlen + len;
 			u_char expected_tag[POLY1305_TAGLEN];
 #if !defined(WITH_OPENSSL3) && defined(EVP_PKEY_POLY1305)
-			/* TODO: return code checking! */
-			EVP_PKEY_CTX_ctrl(ctx_mt->poly_ctx, -1, EVP_PKEY_OP_SIGNCTX, EVP_PKEY_CTRL_SET_MAC_KEY, POLY1305_KEYLEN, ks->poly_key);
-			EVP_DigestSignUpdate(ctx_mt->md_ctx, src, aadlen + len);
+			if ((EVP_PKEY_CTX_ctrl(ctx_mt->poly_ctx, -1,
+			    EVP_PKEY_OP_SIGNCTX, EVP_PKEY_CTRL_SET_MAC_KEY,
+			    POLY1305_KEYLEN, ks->poly_key) <= 0) ||
+			    (EVP_DigestSignUpdate(ctx_mt->md_ctx, src, aadlen + len) == 0)) {
+				debug_f("SSL error while decrypting poly1305 tag");
+				return SSH_ERR_INTERNAL_ERROR;
+			}
 			ctx_mt->ptaglen = POLY1305_TAGLEN;
-			EVP_DigestSignFinal(ctx_mt->md_ctx, expected_tag, &ctx_mt->ptaglen);
+			if (EVP_DigestSignFinal(ctx_mt->md_ctx, expected_tag,
+			    &ctx_mt->ptaglen) == 0) {
+				debug_f("SSL error while finalizing decyrpted poly1305");
+				return SSH_ERR_INTERNAL_ERROR;
+			}
 #else
 			poly1305_auth(ctx_mt->poly_ctx, expected_tag, src,
 			    aadlen + len, ks->poly_key);
@@ -579,12 +592,20 @@ chachapoly_crypt_mt(struct chachapoly_ctx_mt *ctx_mt, u_int seqnr, u_char *dest,
 			fastXOR(dest+aadlen,src+aadlen,ks->mainStream,len);
 			/* calculate and append tag */
 #if !defined(WITH_OPENSSL3) && defined(EVP_PKEY_POLY1305)
-			/* TODO: return code checking! */
 			if (do_encrypt) {
-				EVP_PKEY_CTX_ctrl(ctx_mt->poly_ctx, -1, EVP_PKEY_OP_SIGNCTX, EVP_PKEY_CTRL_SET_MAC_KEY, POLY1305_KEYLEN, ks->poly_key);
-				EVP_DigestSignUpdate(ctx_mt->md_ctx, dest, aadlen + len);
+				if ((EVP_PKEY_CTX_ctrl(ctx_mt->poly_ctx, -1,
+				    EVP_PKEY_OP_SIGNCTX, EVP_PKEY_CTRL_SET_MAC_KEY,
+				    POLY1305_KEYLEN, ks->poly_key) <=0) ||
+				    (EVP_DigestSignUpdate(ctx_mt->md_ctx, dest, aadlen + len) == 0)) {
+					debug_f ("SSL error while encrypting poly1305 tag");
+					return SSH_ERR_INTERNAL_ERROR;
+				}
 				ctx_mt->ptaglen = POLY1305_TAGLEN;
-				EVP_DigestSignFinal(ctx_mt->md_ctx, dest+aadlen+len, &ctx_mt->ptaglen);
+				if (EVP_DigestSignFinal(ctx_mt->md_ctx, dest+aadlen+len,
+				    &ctx_mt->ptaglen) == 0) {
+					debug_f("SSL error while finalizing decyrpted poly1305");
+					return SSH_ERR_INTERNAL_ERROR;
+				}
 			}
 #else
 			if (do_encrypt)
