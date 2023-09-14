@@ -415,7 +415,7 @@ thread_loop(void *x)
 /* this may also benefit from upgrading to the EVP API */
 static int
 ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
-    u_int len)
+    size_t len)
 {
 	typedef union {
 #ifdef CIPHER_INT128_OK
