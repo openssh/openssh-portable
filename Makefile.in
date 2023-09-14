@@ -298,6 +298,45 @@ clean:	regressclean
 	rm -f regress/misc/sk-dummy/*.o
 	rm -f regress/misc/sk-dummy/*.lo
 	rm -f regress/misc/sk-dummy/sk-dummy.so
+	rm -f regress/agent-ca.pub
+	rm -f regress/agent.log
+	rm -f regress/allowed_signers
+	rm -f regress/authkeys_orig
+	rm -f regress/command
+	rm -f regress/data.2
+	rm -f regress/done
+	rm -f regress/expect_*
+	rm -f regress/host.sk-ssh-ed25519@openssh.com
+	rm -f regress/host_*
+	rm -f regress/revoked_keys
+	rm -f regress/sigca-key
+	rm -f regress/sigca-key.pub
+	rm -f regress/sk-ssh-ed25519@openssh.com*
+	rm -f regress/ssh-ed25519*
+	rm -f regress/ssh_output
+	rm -f regress/ssh_proxy.bak
+	rm -f regress/sshd-log-wrapper.sh
+	rm -f regress/sshd_config_minimal
+	rm -f regress/sshd_proxy_host_*
+	rm -f regress/sshsig-agent-sk-ssh-ed25519@openssh.com*
+	rm -f regress/sshsig-agent-ssh-ed25519*
+	rm -f regress/sshsig-sk-ssh-ed25519@openssh.com*
+	rm -f regress/sshsig-ssh-ed25519*
+	rm -f regress/user_*
+	rm -f regress/wrong-key*
+	rm -f regress/*agent*.pub
+	rm -f regress/sk-ecdsa-sha2-nistp256@openssh.com*.pub
+	rm -f regress/ssh-dss*.pub
+	rm -f regress/ssh-rsa*.pub
+	rm -f regress/*.sig
+	rm -f regress/sk-ecdsa-sha2-nistp256@openssh.com
+	rm -f regress/sk-ecdsa-sha2-nistp256@openssh.com-agent-private
+	rm -f regress/ssh-dss
+	rm -f regress/ssh-dss-agent-private
+	rm -f regress/ssh-rsa
+	rm -f regress/ssh-rsa-agent-private
+	rm -f regress/ecdsa-sha2-*
+	rm -f regress/host.sk-ecdsa-sha2-nistp256@openssh.com
 	(cd openbsd-compat && $(MAKE) clean)
 
 distclean:	regressclean

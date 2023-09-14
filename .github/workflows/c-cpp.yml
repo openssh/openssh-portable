@@ -50,7 +50,8 @@ jobs:
           - { target: ubuntu-20.04, config: kitchensink }
           - { target: ubuntu-22.04, config: hardenedmalloc }
           - { target: ubuntu-20.04, config: tcmalloc }
-          - { target: ubuntu-20.04, config: musl }
+#	  musl doesn't work because it doesn't know about linux/tcp.h
+#         - { target: ubuntu-20.04, config: musl }
           - { target: ubuntu-latest, config: libressl-master }
           - { target: ubuntu-latest, config: libressl-3.7.2 }
           - { target: ubuntu-latest, config: libressl-3.7.1 }
