@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.309 2023/03/03 10:23:42 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.310 2023/04/06 03:21:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -332,12 +332,10 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	state = ssh->state;
 	state->connection_in = fd_in;
 	state->connection_out = fd_out;
-	if ((r = cipher_init(&state->send_context, none,
-			     (const u_char *)"", 0, NULL, 0,
-			     CIPHER_ENCRYPT, state->after_authentication)) != 0 ||
-	    (r = cipher_init(&state->receive_context, none,
-			     (const u_char *)"", 0, NULL, 0,
-			     CIPHER_DECRYPT, state->after_authentication)) != 0) {
+	if ((r = cipher_init(&state->send_context, none, (const u_char *)"", 0,
+	    NULL, 0, 0, CIPHER_ENCRYPT, state->after_authentication)) != 0 ||
+	    (r = cipher_init(&state->receive_context, none, (const u_char *)"",
+	    0, NULL, 0, 0, CIPHER_DECRYPT, state->after_authentication)) != 0) {
 		error_fr(r, "cipher_init failed");
 		free(ssh); /* XXX need ssh_free_session_state? */
 		return NULL;
@@ -933,13 +931,31 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		if ((r = mac_init(mac)) != 0)
 			return r;
 	}
-	mac->enabled = 1;
+
+	/* if we are using NONE MAC then we don't need to enable the
+	 * mac routines. This disables them and we can claw back some cycles
+	 * from the CPU -cjr 3/21/2023 */
+	if (ssh->none_mac != 1)
+		mac->enabled = 1;
+
 	DBG(debug_f("cipher_init: %s", dir));
 	cipher_free(*ccp);
 	*ccp = NULL;
-	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len,
-			     enc->iv, enc->iv_len, crypt_type,
-			     state->after_authentication)) != 0)
+#ifdef WITH_OPENSSL
+	if (strcmp(enc->name, "chacha20-poly1305-mt@hpnssh.org") == 0) {
+		if (state->after_authentication)
+			enc->cipher = cipher_by_name(
+			    "chacha20-poly1305-mt@hpnssh.org");
+		else
+			enc->cipher = cipher_by_name(
+			    "chacha20-poly1305@openssh.com");
+		if (enc->cipher == NULL)
+			return r;
+	}
+#endif
+	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len, enc->iv,
+	    enc->iv_len, crypt_type ? state->p_send.seqnr : state->p_read.seqnr,
+	    crypt_type, state->after_authentication)) != 0)
 		return r;
 	if (!state->cipher_warning_done &&
 	    (wmsg = cipher_warning_message(*ccp)) != NULL) {
@@ -1241,8 +1257,8 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	    sshbuf_len(state->outgoing_packet) + authlen, &cp)) != 0)
 		goto out;
 	if ((r = cipher_crypt(state->send_context, state->p_send.seqnr, cp,
-	    sshbuf_ptr(state->outgoing_packet),
-	    len - aadlen, aadlen, authlen)) != 0)
+	    sshbuf_ptr(state->outgoing_packet), len - aadlen, aadlen, authlen))
+	    != 0)
 		goto out;
 	/* append unencrypted MAC */
 	if (mac && mac->enabled) {
@@ -1565,9 +1581,9 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	aadlen = (mac && mac->enabled && mac->etm) || authlen ? 4 : 0;
 
 	if (aadlen && state->packlen == 0) {
-		if (cipher_get_length(state->receive_context,
-		    &state->packlen, state->p_read.seqnr,
-		    sshbuf_ptr(state->input), sshbuf_len(state->input)) != 0)
+		if (cipher_get_length(state->receive_context, &state->packlen,
+		    state->p_read.seqnr, sshbuf_ptr(state->input),
+		    sshbuf_len(state->input)) != 0)
 			return 0;
 		if (state->packlen < 1 + 4 ||
 		    state->packlen > packet_max_size) {
@@ -1951,7 +1967,7 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 	case SSH_ERR_NO_COMPRESS_ALG_MATCH:
 	case SSH_ERR_NO_KEX_ALG_MATCH:
 	case SSH_ERR_NO_HOSTKEY_ALG_MATCH:
-		if (ssh && ssh->kex && ssh->kex->failed_choice) {
+		if (ssh->kex && ssh->kex->failed_choice) {
 			ssh_packet_clear_keys(ssh);
 			errno = oerrno;
 			logdie("Unable to negotiate with %s: %s. "
@@ -2806,9 +2822,16 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 	return 0;
 }
 
-/* need this for the moment for the aes-ctr cipher */
+/* used for cipher switching
+ * only called in cipher-swtich.c */
 void *
 ssh_packet_get_send_context(struct ssh *ssh)
 {
         return ssh->state->send_context;
+}
+
+void *
+ssh_packet_get_receive_context(struct ssh *ssh)
+{
+        return ssh->state->receive_context;
 }

@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2022 The Board of Trustees of Carnegie Mellon University.
+ *
+ *  Author: Chris Rapier <rapier@psc.edu>
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the MIT License.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the MIT License for more details.
+ *
+ * You should have received a copy of the MIT License along with this library;
+ * if not, see http://opensource.org/licenses/MIT.
+ *
+ */
+
 #ifndef METRICS_H
 #define METRICS_H
 
@@ -6,9 +23,9 @@
 /* linux, freebsd, and netbsd have tcp_info structs.
  * I don't know about other systems so we disable this
  * functionality for them */
-#if defined __linux__ || defined __FreeBSD__ || defined __NetBSD__
+#if defined __linux__ || defined __FreeBSD__ || defined __NetBSD__ && !defined(__alpine__)
 #define TCP_INFO 1
-#if defined __linux__
+#if defined __linux__ && !defined(__alpine__)
 #include <linux/tcp.h>
 #else
 #include <netinet/tcp.h>

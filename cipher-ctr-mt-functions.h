@@ -36,9 +36,8 @@
 #include <openssl/aes.h>
 #endif
 
-#ifdef WITH_OPENSSL
 /* only for systems with OSSL 3 */
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 
 /*-------------------- TUNABLES --------------------*/
 /* maximum number of threads and queues */
@@ -139,6 +138,5 @@ void *aes_mt_newctx_256(void *);
 void *aes_mt_newctx_192(void *);
 void *aes_mt_newctx_128(void *);
 
-#endif /* VERSION NUMBER */
 #endif /* WITH OPENSSL */
 #endif /* CTR_MT_FUNCS */

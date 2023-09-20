@@ -3,8 +3,7 @@
 #include <string.h>
 #include "num.h"
 
-#ifdef WITH_OPENSSL
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 
 typedef enum { BIG = 1, LITTLE = -1 }  endian_t;
 typedef enum { NEGATIVE = 0xff, POSITIVE = 0x00 } sign_t;
@@ -154,5 +153,4 @@ static struct resultdesc provnum_copy(struct numdesc dest, struct numdesc src)
 
 implement_provnum(size_t, OSSL_PARAM_UNSIGNED_INTEGER)
 
-#endif /* OPENSSL_VERSION_NUMBER >= 0x30000000UL */
-#endif /* WITH_OPENSSL */
+#endif /* WITH_OPENSSL3 */

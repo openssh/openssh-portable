@@ -92,8 +92,11 @@ struct ssh {
 	u_long fdout_bytes;
 	u_long stdin_bytes;
 
-	/* track that we are in a none cipher/mac state */
+	/* track that we are in a none cipher state */
 	int none;
+
+	/* track if we have disabled the mac as well */
+	int none_mac;
 
 	/* use the less agressive window growth option */
 	int hpn_buffer_limit;
@@ -185,7 +188,7 @@ time_t	 ssh_packet_get_rekey_timeout(struct ssh *);
 void	*ssh_packet_get_input(struct ssh *);
 void	*ssh_packet_get_output(struct ssh *);
 void	*ssh_packet_get_receive_context(struct ssh *);
-void	*ssh_packet_get_send_context(struct ssh *);
+void    *ssh_packet_get_send_context(struct ssh *);
 
 /* for forced packet rekeying post auth */
 void	 packet_request_rekeying(void);

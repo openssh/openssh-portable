@@ -24,9 +24,8 @@
 
 #include "includes.h"
 
-#ifdef WITH_OPENSSL
 /* only for systems with OSSL 3 */
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 #include <stdarg.h>
 #include <string.h>
 #include <openssl/evp.h>
@@ -518,10 +517,17 @@ int aes_mt_start_threads(void *vevp_ctx, const u_char *key,
 		aes_mt_ctx->ridx = 0;
 		aes_mt_ctx->struct_id = global_struct_id++;
 
-		/* Start threads */
+		/* Start threads. Make sure we have enough stack space (under alpine)
+		* and aren't using more than we need (linux). This can be as low as
+		* 512KB but that's a minimum. 1024KB gives us a little headroom if we
+		* need it */
+#define STACK_SIZE (1024 * 1024)
+                pthread_attr_t attr;
+                pthread_attr_init(&attr);
+                pthread_attr_setstacksize(&attr, STACK_SIZE);
 		for (int i = 0; i < cipher_threads; i++) {
 			pthread_rwlock_wrlock(&aes_mt_ctx->tid_lock);
-			if (pthread_create(&aes_mt_ctx->tid[i], NULL, thread_loop, aes_mt_ctx) != 0)
+			if (pthread_create(&aes_mt_ctx->tid[i], &attr, thread_loop, aes_mt_ctx) != 0)
 				fatal ("AES-CTR MT Could not create thread in %s", __func__);
 			else {
 				aes_mt_ctx->id[i] = i;
@@ -648,5 +654,4 @@ int aes_mt_do_cipher(void *vevp_ctx,
 	return 1;
 }
 
-#endif /*OPENSSL_VERSION_NUMBER */
-#endif /*WITH_OPENSSL*/
+#endif /*WITH_OPENSSL3*/

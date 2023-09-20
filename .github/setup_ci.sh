@@ -4,7 +4,9 @@ PACKAGES=""
 
  . .github/configs $@
 
-case "`./config.guess`" in
+host=`./config.guess`
+echo "config.guess: $host"
+case "$host" in
 *cygwin)
 	PACKAGER=setup
 	echo Setting CYGWIN system environment variable.
@@ -26,6 +28,7 @@ esac
 TARGETS=$@
 
 INSTALL_FIDO_PPA="no"
+#COPY_PAM_MODULE="no"
 export DEBIAN_FRONTEND=noninteractive
 
 #echo "Setting up for '$TARGETS'"
@@ -85,6 +88,7 @@ for TARGET in $TARGETS; do
 	esac
         ;;
     *pam)
+#	COPY_PAM_MODULE="yes"
         PACKAGES="$PACKAGES libpam0g-dev"
         ;;
     sk)
@@ -124,6 +128,10 @@ for TARGET in $TARGETS; do
         esac
         PACKAGES="${PACKAGES} putty-tools"
        ;;
+    boringssl)
+        INSTALL_BORINGSSL=1
+        PACKAGES="${PACKAGES} cmake ninja-build"
+       ;;
     valgrind*)
        PACKAGES="$PACKAGES valgrind"
        ;;
@@ -138,6 +146,14 @@ if [ "yes" = "$INSTALL_FIDO_PPA" ]; then
     sudo apt install -qy software-properties-common
     sudo apt-add-repository -y ppa:yubico/stable
 fi
+
+#need to copy the pam modules for sshd to hpnsshd on
+#macos with pam.
+#if [ "yes" = "$COPY_PAM_MODULE" ]; then
+#    if [ `uname` = "Darwin" }; then
+#	sudo cp /etc/pam.d/sshd /etc/pam.d/hpnsshd
+#    fi
+#fi
 
 tries=3
 while [ ! -z "$PACKAGES" ] && [ "$tries" -gt "0" ]; do
@@ -198,4 +214,13 @@ if [ ! -z "${INSTALL_LIBRESSL}" ]; then
          cd libressl-${INSTALL_LIBRESSL} &&
          ./configure --prefix=/opt/libressl && make -j2 && sudo make install)
     fi
+fi
+
+if [ ! -z "${INSTALL_BORINGSSL}" ]; then
+    (cd ${HOME} && git clone https://boringssl.googlesource.com/boringssl &&
+     cd ${HOME}/boringssl && mkdir build && cd build &&
+     cmake -GNinja  -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. && ninja &&
+     mkdir -p /opt/boringssl/lib &&
+     cp ${HOME}/boringssl/build/crypto/libcrypto.a /opt/boringssl/lib &&
+     cp -r ${HOME}/boringssl/include /opt/boringssl)
 fi

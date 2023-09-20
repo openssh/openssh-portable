@@ -22,9 +22,8 @@
 
 #include "includes.h"
 
-#ifdef WITH_OPENSSL
 /* only for systems with OSSL 3.0+ */
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 
 #include <sys/types.h>
 #include <string.h>
@@ -148,10 +147,10 @@ const OSSL_DISPATCH aes_mt_funcs_128[] = {
 
 /* the ciphers found in this provider */
 const OSSL_ALGORITHM aes_mt_ciphers[] = {
-	{ "aes_ctr_mt_256", "provider=hpnssh", aes_mt_funcs_256 },
-	{ "aes_ctr_mt_192", "provider=hpnssh", aes_mt_funcs_192 },
-	{ "aes_ctr_mt_128", "provider=hpnssh", aes_mt_funcs_128 },
-	{ NULL, NULL, NULL }
+	{ "aes_ctr_mt_256", "provider=hpnssh", aes_mt_funcs_256, NULL },
+	{ "aes_ctr_mt_192", "provider=hpnssh", aes_mt_funcs_192, NULL },
+	{ "aes_ctr_mt_128", "provider=hpnssh", aes_mt_funcs_128, NULL },
+	{ NULL, NULL, NULL, NULL }
 };
 
 /* function mapping for provider methods */
@@ -388,5 +387,4 @@ static int aes_mt_set_ctx_params(void *vctx, const OSSL_PARAM params[])
     return ok;
 }
 
-#endif /*OPENSSL_VERSION_NUMBER */
-#endif /*WITH_OPENSSL*/
+#endif /*WITH_OPENSSL3*/

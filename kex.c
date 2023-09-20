@@ -786,10 +786,67 @@ kex_free(struct kex *kex)
 	free(kex);
 }
 
+/*
+ * This function seeks through a comma-separated list and checks for instances
+ * of the multithreaded CC20 cipher. If found, it then ensures that the serial
+ * CC20 cipher is also in the list, adding it if necessary.
+ */
+char *
+patch_list(char * orig)
+{
+	char * adj = xstrdup(orig);
+	char * match;
+	u_int next;
+
+	const char * ccpstr = "chacha20-poly1305@openssh.com";
+	const char * ccpmtstr = "chacha20-poly1305-mt@hpnssh.org";
+
+	match = match_list(ccpmtstr, orig, &next);
+	if (match != NULL) { /* CC20-MT found in the list */
+		free(match);
+		match = match_list(ccpstr, orig, NULL);
+		if (match == NULL) { /* CC20-Serial NOT found in the list */
+			adj = xreallocarray(adj,
+			    strlen(adj) /* original string length */
+			    + 1 /* for the original null-terminator */
+			    + strlen(ccpstr) /* make room for ccpstr */
+			    + 1 /* make room for the comma delimiter */
+			    , sizeof(char));
+			/*
+			 * adj[next] points to the character after the CC20-MT
+			 * string. adj[next] might be ',' or '\0' at this point.
+			 */
+			adj[next] = ',';
+			/* adj + next + 1 is the character after that comma */
+			memcpy(adj + next + 1, ccpstr, strlen(ccpstr));
+			/* rewrite the rest of the original list */
+			memcpy(adj + next + 1 + strlen(ccpstr), orig + next,
+			    strlen(orig + next) + 1);
+		} else { /* CC20-Serial found in the list, nothing to do */
+			free(match);
+		}
+	}
+
+	return adj;
+}
+
 int
 kex_ready(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 {
 	int r;
+
+#ifdef WITH_OPENSSL
+	proposal[PROPOSAL_ENC_ALGS_CTOS] =
+	    patch_list(proposal[PROPOSAL_ENC_ALGS_CTOS]);
+	proposal[PROPOSAL_ENC_ALGS_STOC] =
+	    patch_list(proposal[PROPOSAL_ENC_ALGS_STOC]);
+
+	/*
+	 * TODO: Likely memory leak here. The original contents of
+	 * proposal[PROPOSAL_ENC_ALGS_CTOS] are no longer accessible or
+	 * freeable.
+	 */
+#endif
 
 	if ((r = kex_prop2buf(ssh->kex->my, proposal)) != 0)
 		return r;
@@ -985,7 +1042,7 @@ kex_choose_conf(struct ssh *ssh)
 	int r, first_kex_follows;
 	int auth_flag = 0;
 	int log_flag = 0;
-	
+
 	auth_flag = packet_authentication_state(ssh);
 	debug("AUTH STATE IS %d", auth_flag);
 
@@ -1053,6 +1110,31 @@ kex_choose_conf(struct ssh *ssh)
 			peer[nenc] = NULL;
 			goto out;
 		}
+#ifdef WITH_OPENSSL
+		if ((strcmp(newkeys->enc.name, "chacha20-poly1305@openssh.com")
+		    == 0) && (match_list("chacha20-poly1305-mt@hpnssh.org",
+		    my[nenc], NULL) != NULL)) {
+			/*
+			 * if we're using the serial CC20 cipher while the
+			 * multithreaded implementation is an option...
+			 */
+			free(newkeys->enc.name);
+			newkeys->enc.cipher = cipher_by_name(
+			    "chacha20-poly1305-mt@hpnssh.org");
+			if (newkeys->enc.cipher == NULL) {
+				error_f("%s cipher not found.",
+				    "chacha20-poly1305-mt@hpnssh.org");
+				r = SSH_ERR_INTERNAL_ERROR;
+				kex->failed_choice = peer[nenc];
+				peer[nenc] = NULL;
+				goto out;
+			} else {
+				newkeys->enc.name = xstrdup(
+				    "chacha20-poly1305-mt@hpnssh.org");
+			}
+			/* we promote to the multithreaded implementation */
+		}
+#endif
 		authlen = cipher_authlen(newkeys->enc.cipher);
 		/* ignore mac for authenticated encryption */
 		if (authlen == 0 &&
@@ -1077,8 +1159,11 @@ kex_choose_conf(struct ssh *ssh)
 			}
 			else
 				fatal("Pre-authentication none cipher requests are not allowed.");
-			if (newkeys->mac.name != NULL && strcmp(newkeys->mac.name, "none") == 0) 
+
+			if (newkeys->mac.name != NULL && strcmp(newkeys->mac.name, "none") == 0) {
 				debug("Requesting: NONEMAC. Authflag is %d", auth_flag);
+				ssh->none_mac = 1;
+			}
 		}
 
 		debug("kex: %s cipher: %s MAC: %s compression: %s",
@@ -1468,7 +1553,7 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 		      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 		      remote_major, remote_minor, remote_version);
 	}
-	
+
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	    remote_major, remote_minor, remote_version);
 	compat_banner(ssh, remote_version);
@@ -1517,4 +1602,3 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 		errno = oerrno;
 	return r;
 }
-

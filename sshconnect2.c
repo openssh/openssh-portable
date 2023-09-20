@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.366 2023/03/09 07:11:05 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.367 2023/08/01 08:15:04 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -74,6 +74,7 @@
 #include "utf8.h"
 #include "ssh-sk.h"
 #include "sk-api.h"
+#include "cipher-switch.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -502,7 +503,8 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 		if (!tty_flag) { /* no null on tty sessions */
 			debug("Requesting none rekeying...");
 			kex_proposal_populate_entries(ssh, myproposal, s, none_cipher,
-						      options.macs, compression_alg_list(options.compression),
+						      options.macs,
+						      compression_alg_list(options.compression),
 						      options.hostkeyalgorithms);
 			fprintf(stderr, "WARNING: ENABLED NONE CIPHER!!!\n");
 
@@ -510,7 +512,8 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 			if (options.nonemac_enabled == 1) {
 				const char *none_mac = "none";
 				kex_proposal_populate_entries(ssh, myproposal, s, none_cipher,
-							      none_mac, compression_alg_list(options.compression),
+							      none_mac,
+							      compression_alg_list(options.compression),
 							      options.hostkeyalgorithms);
 				fprintf(stderr, "WARNING: ENABLED NONE MAC\n");
 			}
@@ -522,26 +525,6 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 			fprintf(stderr, "NONE cipher switch disabled when a TTY is allocated\n");
 		}
 	}
-
-#ifdef WITH_OPENSSL
-	/* if we are using aes-ctr there can be issues in either a fork or sandbox
-	 * so the initial aes-ctr is defined to point to the original single process
-	 * evp. After authentication we'll be past the fork and the sandboxed privsep
-	 * so we repoint the define to the multithreaded evp. To start the threads we
-	 * then force a rekey
-	 */
-	/* We now explicitly call the mt cipher in cipher.c so we don't need
-	 * the cipher_reset_multithreaded() anymore. We just need to
-	 * force a rekey -cjr 09/08/2022 */
-	const void *cc = ssh_packet_get_send_context(ssh);
-	/* only do this for the ctr cipher. otherwise gcm mode breaks. */
-	if (strstr(cipher_ctx_name(cc), "ctr")) {
-	  debug("Single to Multithread CTR cipher swap - client request");
-	  /* cipher_reset_multithreaded(); */
-	  ssh_packet_set_authenticated(ssh);
-	  packet_request_rekeying();
-	}
-#endif
 
 	if (ssh_packet_connection_is_on_socket(ssh)) {
 		verbose("Authenticated to %s ([%s]:%d) using \"%s\".", host,
@@ -1929,12 +1912,10 @@ userauth_pubkey(struct ssh *ssh)
 		 * private key instead
 		 */
 		if (id->key != NULL) {
-			if (id->key != NULL) {
-				ident = format_identity(id);
-				debug("Offering public key: %s", ident);
-				free(ident);
-				sent = send_pubkey_test(ssh, id);
-			}
+			ident = format_identity(id);
+			debug("Offering public key: %s", ident);
+			free(ident);
+			sent = send_pubkey_test(ssh, id);
 		} else {
 			debug("Trying private key: %s", id->filename);
 			id->key = load_identity_file(id);

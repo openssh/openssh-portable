@@ -94,7 +94,7 @@
 #include "monitor_wrap.h"
 #include "sftp.h"
 #include "atomicio.h"
-
+#include "cipher-switch.h"
 
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
@@ -456,7 +456,7 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 		return -1;
 	case 0:
 		is_child = 1;
-	  
+
 		/*
 		 * Create a new session and process group since the 4.4BSD
 		 * setlogin() affects the entire process group.
@@ -546,6 +546,8 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 	session_set_fds(ssh, s, inout[1], inout[1], err[1],
 	    s->is_subsystem, 0);
 #endif
+	/* switch to the parallel ciphers if necessary */
+	cipher_switch(ssh);
 	return 0;
 }
 
@@ -599,7 +601,7 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 		return -1;
 	case 0:
 		is_child = 1;
-	
+
 		close(fdout);
 		close(ptymaster);
 
@@ -648,6 +650,8 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 	ssh_packet_set_interactive(ssh, 1,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 	session_set_fds(ssh, s, ptyfd, fdout, -1, 1, 1);
+	/* switch to the parallel cipher if appropriate */
+	cipher_switch(ssh);
 	return 0;
 }
 
@@ -1329,7 +1333,7 @@ safely_chroot(const char *path, uid_t uid)
 			memcpy(component, path, cp - path);
 			component[cp - path] = '\0';
 		}
-	
+
 		debug3_f("checking '%s'", component);
 
 		if (stat(component, &st) != 0)
@@ -1409,7 +1413,7 @@ do_setusercontext(struct passwd *pw)
 			perror("unable to set user context (setuser)");
 			exit(1);
 		}
-		/* 
+		/*
 		 * FreeBSD's setusercontext() will not apply the user's
 		 * own umask setting unless running with the user's UID.
 		 */
@@ -2725,4 +2729,3 @@ session_get_remote_name_or_ip(struct ssh *ssh, u_int utmp_size, int use_dns)
 		remote = ssh_remote_ipaddr(ssh);
 	return remote;
 }
-

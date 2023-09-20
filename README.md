@@ -61,7 +61,7 @@ See the [Build-time Customisation](#build-time-customisation) section below for 
 If building from git, you'll need [autoconf](https://www.gnu.org/software/autoconf/) installed to build the ``configure`` script. The following commands will check out and build portable OpenSSH from git:
 
 ```
-git clone https://github.com/rapier1/openssh-portable
+git clone https://github.com/rapier1/hpn-ssh
 cd openssh-portable
 autoreconf
 ./configure

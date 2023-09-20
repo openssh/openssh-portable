@@ -1,8 +1,7 @@
 /* CC0 license applied, see LICENCE.md */
 
 #include "includes.h"
-#ifdef WITH_OPENSSL
-#if OPENSSL_VERSION_NUMBER >= 0x30000000UL
+#ifdef WITH_OPENSSL3
 #include <stdint.h>
 #include <openssl/core.h>
 #include <openssl/core_dispatch.h>
@@ -71,5 +70,4 @@ void proverr_set_error_debug(const struct proverr_functions_st *handle,
                              const char *file, int line, const char *func);
 void proverr_set_error(const struct proverr_functions_st *handle,
                        uint32_t reason, const char *fmt, ...);
-#endif /* OPENSSL_VERSION_NUMBER >= 0x30000000UL */
-#endif /* WITH_OPENSSL */
+#endif /* WITH_OPENSSL3 */
