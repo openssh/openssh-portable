@@ -34,6 +34,8 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>
+#include <openssl/core_names.h>
+#include <openssl/param_build.h>
 #endif
 
 #include "crypto_api.h"
@@ -477,6 +479,86 @@ sshkey_type_certified(int type)
 }
 
 #ifdef WITH_OPENSSL
+int
+sshkey_calculate_signature(EVP_PKEY *pkey, int hash_alg, u_char **sigp,
+    int *lenp, const u_char *data, size_t datalen)
+{
+	EVP_MD_CTX *ctx = NULL;
+	u_char *sig = NULL;
+	int ret, slen;
+	size_t len;
+
+	if (sigp == NULL || lenp == NULL) {
+		return SSH_ERR_INVALID_ARGUMENT;
+	}
+
+	slen = EVP_PKEY_get_size(pkey);
+	if (slen <= 0 || slen > SSHBUF_MAX_BIGNUM)
+		return SSH_ERR_INVALID_ARGUMENT;
+
+	len = slen;
+	if ((sig = malloc(slen)) == NULL) {
+		return SSH_ERR_ALLOC_FAIL;
+	}
+
+	if ((ctx = EVP_MD_CTX_new()) == NULL) {
+		ret = SSH_ERR_ALLOC_FAIL;
+		goto error;
+	}
+	if (EVP_DigestSignInit(ctx, NULL, ssh_digest_to_md(hash_alg),
+	        NULL, pkey) != 1 ||
+	    EVP_DigestSignUpdate(ctx, data, datalen) != 1 ||
+	    EVP_DigestSignFinal(ctx, sig, &len) != 1) {
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto error;
+	}
+
+	*sigp = sig;
+	*lenp = len;
+	/* Now owned by the caller */
+	sig = NULL;
+	ret = 0;
+
+error:
+	EVP_MD_CTX_free(ctx);
+	free(sig);
+	return ret;
+}
+
+int
+sshkey_verify_signature(EVP_PKEY *pkey, int hash_alg, const u_char *data,
+    size_t datalen, u_char *sigbuf, int siglen)
+{
+	EVP_MD_CTX *ctx = NULL;
+	int ret;
+
+	if ((ctx = EVP_MD_CTX_new()) == NULL) {
+		return SSH_ERR_ALLOC_FAIL;
+	}
+	if (EVP_DigestVerifyInit(ctx, NULL, ssh_digest_to_md(hash_alg),
+	    NULL, pkey) != 1 ||
+	    EVP_DigestVerifyUpdate(ctx, data, datalen) != 1) {
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto done;
+	}
+	ret = EVP_DigestVerifyFinal(ctx, sigbuf, siglen);
+	switch (ret) {
+	case 1:
+		ret = 0;
+		break;
+	case 0:
+		ret = SSH_ERR_SIGNATURE_INVALID;
+		break;
+	default:
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		break;
+	}
+
+done:
+	EVP_MD_CTX_free(ctx);
+	return ret;
+}
+
 /* XXX: these are really begging for a table-driven approach */
 int
 sshkey_curve_name_to_nid(const char *name)
@@ -3704,3 +3786,27 @@ sshkey_set_filename(struct sshkey *k, const char *filename)
 	return 0;
 }
 #endif /* WITH_XMSS */
+
+#ifdef WITH_OPENSSL
+EVP_PKEY *
+sshkey_create_evp(OSSL_PARAM_BLD *param_bld, EVP_PKEY_CTX *ctx)
+{
+  	EVP_PKEY *ret = NULL;
+  	OSSL_PARAM *params = NULL;
+  	if (param_bld == NULL || ctx == NULL) {
+  		/* debug2_f("param_bld or ctx is NULL"); */
+  		return NULL;
+  	}
+  	if ((params = OSSL_PARAM_BLD_to_param(param_bld)) == NULL) {
+  		/* debug2_f("Could not build param list"); */
+  		return NULL;
+  	}
+  	if (EVP_PKEY_fromdata_init(ctx) != 1 ||
+  	    EVP_PKEY_fromdata(ctx, &ret, EVP_PKEY_KEYPAIR, params) != 1) {
+  		/* debug2_f("EVP_PKEY_fromdata failed"); */
+  		OSSL_PARAM_free(params);
+  		return NULL;
+  	}
+  	return ret;
+}
+#endif /* WITH_OPENSSL */

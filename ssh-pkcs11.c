@@ -620,6 +620,14 @@ pkcs11_ecdsa_wrap(struct pkcs11_provider *provider, CK_ULONG slotidx,
 
 	return (0);
 }
+
+int
+is_ecdsa_pkcs11(EC_KEY *ecdsa)
+{
+	if (EC_KEY_get_ex_data(ecdsa, ec_key_idx) != NULL)
+		return 1;
+	return 0;
+}
 #endif /* OPENSSL_HAS_ECC && HAVE_EC_KEY_METHOD_NEW */
 
 /* remove trailing spaces */
@@ -822,6 +830,14 @@ fail:
 	return (key);
 }
 #endif /* OPENSSL_HAS_ECC && HAVE_EC_KEY_METHOD_NEW */
+
+int
+is_rsa_pkcs11(RSA *rsa)
+{
+	if (RSA_get_ex_data(rsa, rsa_idx) != NULL)
+		return 1;
+	return 0;
+}
 
 static struct sshkey *
 pkcs11_fetch_rsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,

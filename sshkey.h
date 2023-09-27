@@ -31,6 +31,9 @@
 #ifdef WITH_OPENSSL
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
+#include <openssl/evp.h>
+#include <openssl/param_build.h>
+#include <openssl/core_names.h>
 # ifdef OPENSSL_HAS_ECC
 #  include <openssl/ec.h>
 #  include <openssl/ecdsa.h>
@@ -266,6 +269,10 @@ const char	*sshkey_ssh_name(const struct sshkey *);
 const char	*sshkey_ssh_name_plain(const struct sshkey *);
 int		 sshkey_names_valid2(const char *, int, int);
 char		*sshkey_alg_list(int, int, int, char);
+int		 sshkey_calculate_signature(EVP_PKEY*, int, u_char **,
+    int *, const u_char *, size_t);
+int		 sshkey_verify_signature(EVP_PKEY *, int, const u_char *,
+    size_t, u_char *, int);
 
 int	 sshkey_from_blob(const u_char *, size_t, struct sshkey **);
 int	 sshkey_fromb(struct sshbuf *, struct sshkey **);
@@ -322,6 +329,13 @@ int	 sshkey_private_serialize_maxsign(struct sshkey *key,
 
 void	 sshkey_sig_details_free(struct sshkey_sig_details *);
 
+#ifdef WITH_OPENSSL
+EVP_PKEY  *sshkey_create_evp(OSSL_PARAM_BLD *, EVP_PKEY_CTX *);
+int   ssh_create_evp_dss(const struct sshkey *, EVP_PKEY **);
+int   ssh_create_evp_rsa(const struct sshkey *, EVP_PKEY **);
+int   ssh_create_evp_ec(EC_KEY *, int, EVP_PKEY **);
+#endif /* WITH_OPENSSL */
+
 #ifdef SSHKEY_INTERNAL
 int	sshkey_sk_fields_equal(const struct sshkey *a, const struct sshkey *b);
 void	sshkey_sk_cleanup(struct sshkey *k);
@@ -334,6 +348,10 @@ int	sshkey_private_deserialize_sk(struct sshbuf *buf, struct sshkey *k);
 #ifdef WITH_OPENSSL
 int	check_rsa_length(const RSA *rsa); /* XXX remove */
 #endif
+#endif
+
+#ifdef ENABLE_PKCS11
+int pkcs11_get_ecdsa_idx(void);
 #endif
 
 #if !defined(WITH_OPENSSL)
