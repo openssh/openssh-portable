@@ -436,9 +436,9 @@ channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
 	} else if (nonblock) {
 		if (rfd != -1)
 			set_nonblock(rfd);
-		if (wfd != -1)
+		if (wfd >= 0)
 			set_nonblock(wfd);
-		if (efd != -1)
+		if (efd >= 0)
 			set_nonblock(efd);
 	}
 }

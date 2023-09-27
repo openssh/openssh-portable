@@ -543,7 +543,7 @@ server_request_tun(struct ssh *ssh)
 		debug_f("invalid tun");
 		goto done;
 	}
-	if (auth_opts->force_tun_device != -1) {
+	if (auth_opts->force_tun_device >= 0) {
 		if (tun != SSH_TUNID_ANY &&
 		    auth_opts->force_tun_device != (int)tun)
 			goto done;

@@ -260,6 +260,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 			error("Error calculating key fingerprint.");
 			free(dnskey_digest);
 			freerrset(fingerprints);
+			free(dnskey_digest);
 			return -1;
 		}
 
