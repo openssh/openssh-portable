@@ -130,7 +130,7 @@ static void l_tree(unsigned char *leaf, unsigned char *wots_pk, const xmss_param
      //if ( l % 2 == 1 ) {
      if (l & 1) {
        //pk[floor(l / 2) + 1] = pk[l];
-       memcpy(wots_pk+(l>>1)*n, wots_pk+(l-1)*n, n);
+       memmove(wots_pk+(l>>1)*n, wots_pk+(l-1)*n, n);
        //l = ceil(l / 2);
        l=(l>>1)+1;
      }
