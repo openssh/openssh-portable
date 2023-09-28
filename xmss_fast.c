@@ -467,17 +467,18 @@ static void bds_round(bds_state *state, const unsigned long leaf_idx, const unsi
   memcpy(node_addr, addr, 12);
   setType(node_addr, 2);
 
-  for (i = 0; i < h; i++) {
-    if (! ((leaf_idx >> i) & 1)) {
-      tau = i;
-      break;
-    }
-  }
-
   if (tau > 0) {
-    memcpy(buf,     state->auth + (tau-1) * n, n);
-    // we need to do this before refreshing state->keep to prevent overwriting
-    memcpy(buf + n, state->keep + ((tau-1) >> 1) * n, n);
+    if (leaf_idx != ~0) {
+      tau = __builtin_ctzl(~leaf_idx);
+      if (tau > h)
+        tau = h;
+    }
+
+    if (tau > 0) {
+      memcpy(buf, state->auth + (tau - 1) * n, n);
+      // we need to do this before refreshing state->keep to prevent overwriting
+      memcpy(buf + n, state->keep + ((tau - 1) >> 1) * n, n);
+    }
   }
   if (!((leaf_idx >> (tau + 1)) & 1) && (tau < h - 1)) {
     memcpy(state->keep + (tau >> 1)*n, state->auth + tau*n, n);
