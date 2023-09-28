@@ -72,18 +72,23 @@ test_expand(void)
 	log_init("test_misc", SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_AUTH, 1);
 	TEST_DONE();
 
+#define ASSERT_STRING_EQ_FREE(x, y) do { \
+	char *str = (x); \
+	ASSERT_STRING_EQ(str, (y)); \
+	free(str); \
+} while(0)
 	TEST_START("percent_expand");
-	ASSERT_STRING_EQ(percent_expand("%%", "%h", "foo", NULL), "%");
-	ASSERT_STRING_EQ(percent_expand("%h", "h", "foo", NULL), "foo");
-	ASSERT_STRING_EQ(percent_expand("%h ", "h", "foo", NULL), "foo ");
-	ASSERT_STRING_EQ(percent_expand(" %h", "h", "foo", NULL), " foo");
-	ASSERT_STRING_EQ(percent_expand(" %h ", "h", "foo", NULL), " foo ");
-	ASSERT_STRING_EQ(percent_expand(" %a%b ", "a", "foo", "b", "bar", NULL),
+	ASSERT_STRING_EQ_FREE(percent_expand("%%", "%h", "foo", NULL), "%");
+	ASSERT_STRING_EQ_FREE(percent_expand("%h", "h", "foo", NULL), "foo");
+	ASSERT_STRING_EQ_FREE(percent_expand("%h ", "h", "foo", NULL), "foo ");
+	ASSERT_STRING_EQ_FREE(percent_expand(" %h", "h", "foo", NULL), " foo");
+	ASSERT_STRING_EQ_FREE(percent_expand(" %h ", "h", "foo", NULL), " foo ");
+	ASSERT_STRING_EQ_FREE(percent_expand(" %a%b ", "a", "foo", "b", "bar", NULL),
 	    " foobar ");
 	TEST_DONE();
 
 	TEST_START("percent_dollar_expand");
-	ASSERT_STRING_EQ(percent_dollar_expand("%h${FOO}", "h", "foo", NULL),
+	ASSERT_STRING_EQ_FREE(percent_dollar_expand("%h${FOO}", "h", "foo", NULL),
 	    "foobar");
 	TEST_DONE();
 }
