@@ -20,7 +20,7 @@
 
 #ifdef WITH_OPENSSL
 #include <openssl/bn.h>
-#include <openssl/rsa.h>
+#include <openssl/evp.h>
 #include <openssl/dsa.h>
 #include <openssl/objects.h>
 #ifdef OPENSSL_HAS_NISTP256
@@ -83,47 +83,47 @@ load_bignum(const char *name)
 	return ret;
 }
 
-const BIGNUM *
+BIGNUM *
 rsa_n(struct sshkey *k)
 {
-	const BIGNUM *n = NULL;
+	BIGNUM *n = NULL;
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_key(k->rsa, &n, NULL, NULL);
+	ASSERT_PTR_NE(k->pkey, NULL);
+	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_N, &n);
 	return n;
 }
 
-const BIGNUM *
+BIGNUM *
 rsa_e(struct sshkey *k)
 {
-	const BIGNUM *e = NULL;
+	BIGNUM *e = NULL;
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_key(k->rsa, NULL, &e, NULL);
+	ASSERT_PTR_NE(k->pkey, NULL);
+	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_E, &e);
 	return e;
 }
 
-const BIGNUM *
+BIGNUM *
 rsa_p(struct sshkey *k)
 {
-	const BIGNUM *p = NULL;
+	BIGNUM *p = NULL;
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_factors(k->rsa, &p, NULL);
+	ASSERT_PTR_NE(k->pkey, NULL);
+	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_FACTOR1, &p);
 	return p;
 }
 
-const BIGNUM *
+BIGNUM *
 rsa_q(struct sshkey *k)
 {
-	const BIGNUM *q = NULL;
+	BIGNUM *q = NULL;
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_factors(k->rsa, NULL, &q);
+	ASSERT_PTR_NE(k->pkey, NULL);
+	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_FACTOR2, &q);
 	return q;
 }
 

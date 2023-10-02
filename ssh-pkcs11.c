@@ -796,12 +796,6 @@ pkcs11_fetch_ecdsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		goto fail;
 	}
 
-	nid = sshkey_ecdsa_key_to_nid(ec);
-	if (nid < 0) {
-		error("couldn't get curve nid");
-		goto fail;
-	}
-
 	if (pkcs11_ecdsa_wrap(p, slotidx, &key_attr[0], ec))
 		goto fail;
 
@@ -810,12 +804,33 @@ pkcs11_fetch_ecdsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		error("sshkey_new failed");
 		goto fail;
 	}
+	key->pkey = EVP_PKEY_new();
+	if (key->pkey == NULL) {
+		error("EVP_PKEY_new failed");
+		sshkey_free(key);
+		key = NULL;
+		goto fail;
+	}
 
-	key->ecdsa = ec;
+	if (EVP_PKEY_set1_EC_KEY(key->pkey, ec) <= 0) {
+		error("EVP_PKEY_set1_EC_KEY failed");
+		sshkey_free(key);
+		key = NULL;
+		goto fail;
+	}
+
+	nid = sshkey_ecdsa_key_to_nid(key->pkey);
+	if (nid < 0) {
+		error("couldn't get curve nid");
+		sshkey_free(key);
+		key = NULL;
+		goto fail;
+	}
+
+
 	key->ecdsa_nid = nid;
 	key->type = KEY_ECDSA;
 	key->flags |= SSHKEY_FLAG_EXT;
-	ec = NULL;	/* now owned by key */
 
 fail:
 	for (i = 0; i < 3; i++)
@@ -915,10 +930,22 @@ pkcs11_fetch_rsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		goto fail;
 	}
 
-	key->rsa = rsa;
+	key->pkey = EVP_PKEY_new();
+	if (key->pkey == NULL) {
+		error("EVP_PKEY_new failed");
+		sshkey_free(key);
+		key = NULL;
+		goto fail;
+	}
+	if (EVP_PKEY_set1_RSA(key->pkey, rsa) <= 0) {
+		error("EVP_PKEY_set1_RSA failed");
+		sshkey_free(key);
+		key = NULL;
+		goto fail;
+	}
+
 	key->type = KEY_RSA;
 	key->flags |= SSHKEY_FLAG_EXT;
-	rsa = NULL;	/* now owned by key */
 
 fail:
 	for (i = 0; i < 3; i++)
@@ -1030,10 +1057,22 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 			goto out;
 		}
 
-		key->rsa = rsa;
+		key->pkey = EVP_PKEY_new();
+		if (key->pkey == NULL) {
+			error("EVP_PKEY_new failed");
+			sshkey_free(key);
+			key = NULL;
+			goto out;
+		}
+		if (EVP_PKEY_set1_RSA(key->pkey, rsa) <= 0) {
+			error("EVP_PKEY_set1_RSA failed");
+			sshkey_free(key);
+			key = NULL;
+			goto out;
+		}
+
 		key->type = KEY_RSA;
 		key->flags |= SSHKEY_FLAG_EXT;
-		rsa = NULL;	/* now owned by key */
 #if defined(OPENSSL_HAS_ECC) && defined(HAVE_EC_KEY_METHOD_NEW)
 	} else if (EVP_PKEY_base_id(evp) == EVP_PKEY_EC) {
 		if (EVP_PKEY_get0_EC_KEY(evp) == NULL) {
@@ -1045,7 +1084,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 			goto out;
 		}
 
-		nid = sshkey_ecdsa_key_to_nid(ec);
+		nid = sshkey_ecdsa_key_to_nid(evp);
 		if (nid < 0) {
 			error("couldn't get curve nid");
 			goto out;
@@ -1060,11 +1099,25 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 			goto out;
 		}
 
-		key->ecdsa = ec;
+		key->pkey = EVP_PKEY_new();
+		if (key->pkey == NULL) {
+			error("EVP_PKEY_new failed");
+			sshkey_free(key);
+			key = NULL;
+			goto out;
+		}
+
+		if (EVP_PKEY_set1_EC_KEY(key->pkey, ec) <= 0) {
+			error("EVP_PKEY_set1_EC_KEY failed");
+			sshkey_free(key);
+			key = NULL;
+			goto out;
+		}
+
 		key->ecdsa_nid = nid;
 		key->type = KEY_ECDSA;
 		key->flags |= SSHKEY_FLAG_EXT;
-		ec = NULL;	/* now owned by key */
+
 #endif /* OPENSSL_HAS_ECC && HAVE_EC_KEY_METHOD_NEW */
 	} else {
 		error("unknown certificate key type");

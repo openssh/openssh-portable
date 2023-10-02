@@ -25,9 +25,9 @@
 
 #ifdef WITH_OPENSSL
 #include <openssl/bn.h>
-#ifdef OPENSSL_HAS_ECC
-# include <openssl/ec.h>
-#endif /* OPENSSL_HAS_ECC */
+#include <openssl/ec.h>
+#include <openssl/evp.h>
+#include <openssl/core_names.h>
 
 #include "ssherr.h"
 #include "sshbuf.h"
@@ -55,77 +55,13 @@ sshbuf_get_bignum2(struct sshbuf *buf, BIGNUM **valp)
 	return 0;
 }
 
-#ifdef OPENSSL_HAS_ECC
-static int
-get_ec(const u_char *d, size_t len, EC_POINT *v, const EC_GROUP *g)
-{
-	/* Refuse overlong bignums */
-	if (len == 0 || len > SSHBUF_MAX_ECPOINT)
-		return SSH_ERR_ECPOINT_TOO_LARGE;
-	/* Only handle uncompressed points */
-	if (*d != POINT_CONVERSION_UNCOMPRESSED)
-		return SSH_ERR_INVALID_FORMAT;
-	if (v != NULL && EC_POINT_oct2point(g, v, d, len, NULL) != 1)
-		return SSH_ERR_INVALID_FORMAT; /* XXX assumption */
-	return 0;
-}
-
 int
-sshbuf_get_ec(struct sshbuf *buf, EC_POINT *v, const EC_GROUP *g)
+sshbuf_get_ec(struct sshbuf *buf, u_char **pub, size_t *publen)
 {
-	const u_char *d;
-	size_t len;
-	int r;
-
-	if ((r = sshbuf_peek_string_direct(buf, &d, &len)) < 0)
-		return r;
-	if ((r = get_ec(d, len, v, g)) != 0)
-		return r;
-	/* Skip string */
-	if (sshbuf_get_string_direct(buf, NULL, NULL) != 0) {
-		/* Shouldn't happen */
-		SSHBUF_DBG(("SSH_ERR_INTERNAL_ERROR"));
-		SSHBUF_ABORT();
-		return SSH_ERR_INTERNAL_ERROR;
-	}
-	return 0;
+	/* the public key is in the buffer in octet string UNCOMPRESSED
+	 * format. See sshbuf_put_ec */
+	return sshbuf_get_string(buf, pub, publen);
 }
-
-int
-sshbuf_get_eckey(struct sshbuf *buf, EC_KEY *v)
-{
-	EC_POINT *pt = EC_POINT_new(EC_KEY_get0_group(v));
-	int r;
-	const u_char *d;
-	size_t len;
-
-	if (pt == NULL) {
-		SSHBUF_DBG(("SSH_ERR_ALLOC_FAIL"));
-		return SSH_ERR_ALLOC_FAIL;
-	}
-	if ((r = sshbuf_peek_string_direct(buf, &d, &len)) < 0) {
-		EC_POINT_free(pt);
-		return r;
-	}
-	if ((r = get_ec(d, len, pt, EC_KEY_get0_group(v))) != 0) {
-		EC_POINT_free(pt);
-		return r;
-	}
-	if (EC_KEY_set_public_key(v, pt) != 1) {
-		EC_POINT_free(pt);
-		return SSH_ERR_ALLOC_FAIL; /* XXX assumption */
-	}
-	EC_POINT_free(pt);
-	/* Skip string */
-	if (sshbuf_get_string_direct(buf, NULL, NULL) != 0) {
-		/* Shouldn't happen */
-		SSHBUF_DBG(("SSH_ERR_INTERNAL_ERROR"));
-		SSHBUF_ABORT();
-		return SSH_ERR_INTERNAL_ERROR;
-	}
-	return 0;	
-}
-#endif /* OPENSSL_HAS_ECC */
 
 int
 sshbuf_put_bignum2(struct sshbuf *buf, const BIGNUM *v)
@@ -151,7 +87,7 @@ sshbuf_put_bignum2(struct sshbuf *buf, const BIGNUM *v)
 
 #ifdef OPENSSL_HAS_ECC
 int
-sshbuf_put_ec(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
+sshbuf_put_ecbuf(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
 {
 	u_char d[SSHBUF_MAX_ECPOINT];
 	size_t len;
@@ -171,10 +107,29 @@ sshbuf_put_ec(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
 }
 
 int
-sshbuf_put_eckey(struct sshbuf *buf, const EC_KEY *v)
+sshbuf_put_ec(struct sshbuf *buf, EVP_PKEY *pkey)
 {
-	return sshbuf_put_ec(buf, EC_KEY_get0_public_key(v),
-	    EC_KEY_get0_group(v));
+	u_char d[SSHBUF_MAX_ECPOINT];
+	size_t len;
+	int ret;
+	const EC_KEY *ec = EVP_PKEY_get0_EC_KEY(pkey);
+
+	if (ec == NULL)
+		return SSH_ERR_LIBCRYPTO_ERROR;
+
+	return sshbuf_put_ecbuf(buf, EC_KEY_get0_public_key(ec),
+	    EC_KEY_get0_group(ec));
+/* FIXME beldmit */
+#if 0
+	/* this works since openssl version of 3.0.8 */
+	if (EVP_PKEY_get_octet_string_param(pkey, OSSL_PKEY_PARAM_PUB_KEY,
+	    				    d, SSHBUF_MAX_ECPOINT, &len) != 1)
+		return len > SSHBUF_MAX_ECPOINT ? SSH_ERR_INVALID_ARGUMENT :
+						  SSH_ERR_LIBCRYPTO_ERROR;
+	ret = sshbuf_put_string(buf, d, len);
+	explicit_bzero(d, len);
+	return ret;
+#endif
 }
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */

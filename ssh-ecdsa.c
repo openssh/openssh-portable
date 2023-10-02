@@ -31,7 +31,6 @@
 #include <sys/types.h>
 
 #include <openssl/bn.h>
-#include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/evp.h>
 #include <openssl/core_names.h>
@@ -67,30 +66,18 @@ ssh_ecdsa_size(const struct sshkey *key)
 static void
 ssh_ecdsa_cleanup(struct sshkey *k)
 {
-	EC_KEY_free(k->ecdsa);
-	k->ecdsa = NULL;
+	EVP_PKEY_free(k->pkey);
+	k->pkey = NULL;
 }
 
 static int
 ssh_ecdsa_equal(const struct sshkey *a, const struct sshkey *b)
 {
-	const EC_GROUP *grp_a, *grp_b;
-	const EC_POINT *pub_a, *pub_b;
+	/* FIXME OpenSSL 1.1.1 */
+	if (EVP_PKEY_eq(a->pkey, b->pkey) == 1)
+		return 1;
 
-	if (a->ecdsa == NULL || b->ecdsa == NULL)
-		return 0;
-	if ((grp_a = EC_KEY_get0_group(a->ecdsa)) == NULL ||
-	    (grp_b = EC_KEY_get0_group(b->ecdsa)) == NULL)
-		return 0;
-	if ((pub_a = EC_KEY_get0_public_key(a->ecdsa)) == NULL ||
-	    (pub_b = EC_KEY_get0_public_key(b->ecdsa)) == NULL)
-		return 0;
-	if (EC_GROUP_cmp(grp_a, grp_b, NULL) != 0)
-		return 0;
-	if (EC_POINT_cmp(grp_a, pub_a, pub_b, NULL) != 0)
-		return 0;
-
-	return 1;
+	return 0;
 }
 
 static int
@@ -99,11 +86,11 @@ ssh_ecdsa_serialize_public(const struct sshkey *key, struct sshbuf *b,
 {
 	int r;
 
-	if (key->ecdsa == NULL)
+	if (key->pkey == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
 	if ((r = sshbuf_put_cstring(b,
 	    sshkey_curve_nid_to_name(key->ecdsa_nid))) != 0 ||
-	    (r = sshbuf_put_eckey(b, key->ecdsa)) != 0)
+	    (r = sshbuf_put_ec(b, key->pkey)) != 0)
 		return r;
 
 	return 0;
@@ -114,14 +101,20 @@ ssh_ecdsa_serialize_private(const struct sshkey *key, struct sshbuf *b,
     enum sshkey_serialize_rep opts)
 {
 	int r;
+	BIGNUM *priv = NULL;
 
 	if (!sshkey_is_cert(key)) {
 		if ((r = ssh_ecdsa_serialize_public(key, b, opts)) != 0)
 			return r;
 	}
-	if ((r = sshbuf_put_bignum2(b,
-	    EC_KEY_get0_private_key(key->ecdsa))) != 0)
-		return r;
+	/* FIXME OpenSSL 1.1.1 */
+	if (EVP_PKEY_get_bn_param(key->pkey, OSSL_PKEY_PARAM_PRIV_KEY, &priv) != 1 ||
+	    (r = sshbuf_put_bignum2(b, priv) != 0)) {
+		BN_clear_free(priv);
+	        return r;
+	}
+
+	BN_clear_free(priv);
 	return 0;
 }
 
@@ -143,26 +136,43 @@ ssh_ecdsa_generate(struct sshkey *k, int bits)
 		EVP_PKEY_free(res);
 		return SSH_ERR_LIBCRYPTO_ERROR;
 	}
-	/* This function is deprecated in OpenSSL 3.0 but OpenSSH doesn't worry about it*/
-	k->ecdsa = EVP_PKEY_get1_EC_KEY(res);
-	if (k->ecdsa)
-		EC_KEY_set_asn1_flag(k->ecdsa, OPENSSL_EC_NAMED_CURVE);
 
-	EVP_PKEY_CTX_free(ctx);
-	EVP_PKEY_free(res);
- 	return (k->ecdsa) ? 0 : SSH_ERR_LIBCRYPTO_ERROR;
+	k->pkey = res;
+ 	return 0;
 }
 
 static int
 ssh_ecdsa_copy_public(const struct sshkey *from, struct sshkey *to)
 {
+	const EC_KEY *ec_from;
+	EC_KEY *ec_to = NULL;
+
+	ec_from = EVP_PKEY_get0_EC_KEY(from->pkey);
+	if (ec_from == NULL)
+		return SSH_ERR_LIBCRYPTO_ERROR;
+
 	to->ecdsa_nid = from->ecdsa_nid;
-	if ((to->ecdsa = EC_KEY_new_by_curve_name(from->ecdsa_nid)) == NULL)
+	if ((ec_to = EC_KEY_new_by_curve_name(from->ecdsa_nid)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if (EC_KEY_set_public_key(to->ecdsa,
-	    EC_KEY_get0_public_key(from->ecdsa)) != 1)
-		return SSH_ERR_LIBCRYPTO_ERROR; /* caller will free k->ecdsa */
+	if (EC_KEY_set_public_key(ec_to,
+	    EC_KEY_get0_public_key(ec_from)) != 1) {
+		EC_KEY_free(ec_to);
+		return SSH_ERR_LIBCRYPTO_ERROR;
+	}
+	EVP_PKEY_free(to->pkey);
+	to->pkey = NULL;
+	if ((to->pkey = EVP_PKEY_new()) == NULL) {
+		EC_KEY_free(ec_to);
+		return SSH_ERR_ALLOC_FAIL;
+	}
+	if (EVP_PKEY_set1_EC_KEY(to->pkey, ec_to) != 1) {
+		EC_KEY_free(ec_to);
+		return SSH_ERR_LIBCRYPTO_ERROR;
+	}
+
+	EC_KEY_free(ec_to);
 	return 0;
+
 }
 
 static int
@@ -171,6 +181,9 @@ ssh_ecdsa_deserialize_public(const char *ktype, struct sshbuf *b,
 {
 	int r;
 	char *curve = NULL;
+	unsigned char *pub = NULL;
+	size_t publen = 0;
+	EVP_PKEY *pkey = NULL;
 
 	if ((key->ecdsa_nid = sshkey_ecdsa_nid_from_name(ktype)) == -1)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -180,30 +193,29 @@ ssh_ecdsa_deserialize_public(const char *ktype, struct sshbuf *b,
 		r = SSH_ERR_EC_CURVE_MISMATCH;
 		goto out;
 	}
-	EC_KEY_free(key->ecdsa);
-	key->ecdsa = NULL;
-	if ((key->ecdsa = EC_KEY_new_by_curve_name(key->ecdsa_nid)) == NULL) {
-		r = SSH_ERR_LIBCRYPTO_ERROR;
+	if ((r = sshbuf_get_ec(b, &pub, &publen)) != 0) /*XXX*/
 		goto out;
-	}
-	if ((r = sshbuf_get_eckey(b, key->ecdsa)) != 0)
+	if ((r = ssh_create_evp_ec(pub, publen, NULL, key->ecdsa_nid, &pkey) != 0))
 		goto out;
-	if (sshkey_ec_validate_public(EC_KEY_get0_group(key->ecdsa),
-	    EC_KEY_get0_public_key(key->ecdsa)) != 0) {
-		r = SSH_ERR_KEY_INVALID_EC_VALUE;
-		goto out;
-	}
+	EVP_PKEY_free(key->pkey);
+	key->pkey = pkey;
+	pkey = NULL;
 	/* success */
 	r = 0;
 #ifdef DEBUG_PK
-	sshkey_dump_ec_point(EC_KEY_get0_group(key->ecdsa),
-	    EC_KEY_get0_public_key(key->ecdsa));
+	{
+		EC_KEY *ec = EVP_PKEY_get0_EC_KEY(key->pkey);
+		shkey_dump_ec_point(EC_KEY_get0_group(ec),
+		   EC_KEY_get0_public_key(ec));
+	}
 #endif
  out:
+	EVP_PKEY_free(pkey);
 	free(curve);
+	free(pub);
 	if (r != 0) {
-		EC_KEY_free(key->ecdsa);
-		key->ecdsa = NULL;
+		EVP_PKEY_free(key->pkey);
+		key->pkey = NULL;
 	}
 	return r;
 }
@@ -214,6 +226,7 @@ ssh_ecdsa_deserialize_private(const char *ktype, struct sshbuf *b,
 {
 	int r;
 	BIGNUM *exponent = NULL;
+	EC_KEY *ec = NULL;
 
 	if (!sshkey_is_cert(key)) {
 		if ((r = ssh_ecdsa_deserialize_public(ktype, b, key)) != 0)
@@ -221,16 +234,28 @@ ssh_ecdsa_deserialize_private(const char *ktype, struct sshbuf *b,
 	}
 	if ((r = sshbuf_get_bignum2(b, &exponent)) != 0)
 		goto out;
-	if (EC_KEY_set_private_key(key->ecdsa, exponent) != 1) {
+	if ((ec = EVP_PKEY_get1_EC_KEY(key->pkey)) == NULL) {
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
-	if ((r = sshkey_ec_validate_private(key->ecdsa)) != 0)
+	if (EC_KEY_set_private_key(ec, exponent) != 1) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
+	}
+#if 0
+	/* FIXME open question */
+	if ((r = sshkey_ec_validate_private(ec)) != 0)
+		goto out;
+#endif
+	if (EVP_PKEY_set1_EC_KEY(key->pkey, ec) != 1) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
 	/* success */
 	r = 0;
  out:
 	BN_clear_free(exponent);
+	EC_KEY_free(ec);
 	return r;
 }
 
@@ -240,7 +265,6 @@ ssh_ecdsa_sign(struct sshkey *key,
     const u_char *data, size_t dlen,
     const char *alg, const char *sk_provider, const char *sk_pin, u_int compat)
 {
-	EVP_PKEY *pkey = NULL;
 	ECDSA_SIG *esig = NULL;
 	unsigned char *sigb = NULL;
 	const unsigned char *psig;
@@ -255,28 +279,15 @@ ssh_ecdsa_sign(struct sshkey *key,
 	if (sigp != NULL)
 		*sigp = NULL;
 
-	if (key == NULL || key->ecdsa == NULL ||
+	if (key == NULL || key->pkey == NULL ||
 	    sshkey_type_plain(key->type) != KEY_ECDSA)
 		return SSH_ERR_INVALID_ARGUMENT;
 
 	if ((hash_alg = sshkey_ec_nid_to_hash_alg(key->ecdsa_nid)) == -1)
 		return SSH_ERR_INTERNAL_ERROR;
 
-#ifdef ENABLE_PKCS11
-	if (is_ecdsa_pkcs11(key->ecdsa)) {
-		if ((pkey = EVP_PKEY_new()) == NULL ||
-		    EVP_PKEY_set1_EC_KEY(pkey, key->ecdsa) != 1)
-			return SSH_ERR_ALLOC_FAIL;
-	} else {
-#endif
-		if ((ret = ssh_create_evp_ec(key->ecdsa, key->ecdsa_nid, &pkey)) != 0)
-			return ret;
-#ifdef ENABLE_PKCS11
-	}
-#endif
-	ret = sshkey_calculate_signature(pkey, hash_alg, &sigb, &len, data,
+	ret = sshkey_calculate_signature(key->pkey, hash_alg, &sigb, &len, data,
 	    dlen);
-	EVP_PKEY_free(pkey);
 	if (ret < 0) {
 		goto out;
 	}
@@ -322,7 +333,6 @@ ssh_ecdsa_verify(const struct sshkey *key,
     const u_char *data, size_t dlen, const char *alg, u_int compat,
     struct sshkey_sig_details **detailsp)
 {
-	EVP_PKEY *pkey = NULL;
 	ECDSA_SIG *esig = NULL;
 	BIGNUM *sig_r = NULL, *sig_s = NULL;
 	int hash_alg, len;
@@ -331,7 +341,7 @@ ssh_ecdsa_verify(const struct sshkey *key,
 	char *ktype = NULL;
 	unsigned char *sigb = NULL, *psig = NULL;
 
-	if (key == NULL || key->ecdsa == NULL ||
+	if (key == NULL || key->pkey == NULL ||
 	    sshkey_type_plain(key->type) != KEY_ECDSA ||
 	    sig == NULL || siglen == 0)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -392,11 +402,7 @@ ssh_ecdsa_verify(const struct sshkey *key,
 		goto out;
 	}
 
-  	if (ssh_create_evp_ec(key->ecdsa, key->ecdsa_nid, &pkey) != 0)
-		goto out;
-	ret = sshkey_verify_signature(pkey, hash_alg, data, dlen, sigb, len);
-	EVP_PKEY_free(pkey);
-
+	ret = sshkey_verify_signature(key->pkey, hash_alg, data, dlen, sigb, len);
  out:
 	free(sigb);
 	sshbuf_free(sigbuf);
@@ -409,22 +415,16 @@ ssh_ecdsa_verify(const struct sshkey *key,
 }
 
 int
-ssh_create_evp_ec(EC_KEY *k, int ecdsa_nid, EVP_PKEY **pkey)
+ssh_create_evp_ec(u_char *pubkey, size_t pubkey_len, BIGNUM *privkey,
+		  int ecdsa_nid, EVP_PKEY **pkey)
 {
 	OSSL_PARAM_BLD *param_bld = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
-  	BN_CTX *bn_ctx = NULL;
-  	uint8_t *pub_ser = NULL; 
   	const char *group_name;
-  	const EC_POINT *pub = NULL;
-  	const BIGNUM *priv = NULL;
   	int ret = 0;
 
-	if (k == NULL)
-    		return SSH_ERR_INVALID_ARGUMENT;
   	if ((ctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL)) == NULL ||
-      	    (param_bld = OSSL_PARAM_BLD_new()) == NULL ||
-      	    (bn_ctx = BN_CTX_new()) == NULL) {
+      	    (param_bld = OSSL_PARAM_BLD_new()) == NULL) {
     		ret = SSH_ERR_ALLOC_FAIL;
     		goto out;
   	}
@@ -437,37 +437,20 @@ ssh_create_evp_ec(EC_KEY *k, int ecdsa_nid, EVP_PKEY **pkey)
     		ret = SSH_ERR_LIBCRYPTO_ERROR;
     		goto out;
 	}
-  	if ((pub = EC_KEY_get0_public_key(k)) != NULL) {
-    		const EC_GROUP *group;
-    		size_t len;
-
-		group = EC_KEY_get0_group(k);
-		len = EC_POINT_point2oct(group, pub,
-		    POINT_CONVERSION_UNCOMPRESSED, NULL, 0, NULL);
-		if ((pub_ser = malloc(len)) == NULL) {
-			ret = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		EC_POINT_point2oct(group,
-		    pub,
-		    POINT_CONVERSION_UNCOMPRESSED,
-		    pub_ser,
-		    len,
-		    bn_ctx);
-		if (OSSL_PARAM_BLD_push_octet_string(param_bld,
-		    OSSL_PKEY_PARAM_PUB_KEY,
-		    pub_ser,
-		    len) != 1) {
-			ret = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
-	}
-  	if ((priv = EC_KEY_get0_private_key(k)) != NULL &&
-	    OSSL_PARAM_BLD_push_BN(param_bld,
-               OSSL_PKEY_PARAM_PRIV_KEY, priv) != 1) {
+	if (pubkey != NULL &&
+	    OSSL_PARAM_BLD_push_octet_string(param_bld,
+		    			     OSSL_PKEY_PARAM_PUB_KEY,
+					     pubkey,
+					     pubkey_len) != 1) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
-  	}
+	}
+	if (privkey != NULL &&
+	    OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_PRIV_KEY,
+		    		   privkey) != 1) {
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
   	if ((*pkey = sshkey_create_evp(param_bld, ctx)) == NULL) {
     		ret = SSH_ERR_LIBCRYPTO_ERROR;
     		goto out;
@@ -476,8 +459,6 @@ ssh_create_evp_ec(EC_KEY *k, int ecdsa_nid, EVP_PKEY **pkey)
 out:
   	OSSL_PARAM_BLD_free(param_bld);
   	EVP_PKEY_CTX_free(ctx);
-  	BN_CTX_free(bn_ctx);
-  	free(pub_ser);
   	return ret;
 }
 

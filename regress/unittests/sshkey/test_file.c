@@ -47,6 +47,8 @@ sshkey_file_tests(void)
 	struct sshbuf *buf, *pw;
 #ifdef WITH_OPENSSL
 	BIGNUM *a, *b, *c;
+	u_char *pubkey = NULL;
+	size_t pubkey_len;
 #endif
 	char *cp;
 
@@ -269,12 +271,21 @@ sshkey_file_tests(void)
 #ifndef OPENSSL_IS_BORINGSSL /* lacks EC_POINT_point2bn() */
 	a = load_bignum("ecdsa_1.param.priv");
 	b = load_bignum("ecdsa_1.param.pub");
-	c = EC_POINT_point2bn(EC_KEY_get0_group(k1->ecdsa),
-	    EC_KEY_get0_public_key(k1->ecdsa), POINT_CONVERSION_UNCOMPRESSED,
-	    NULL, NULL);
+	ASSERT_INT_EQ(EVP_PKEY_get_octet_string_param(k1->pkey,
+	    OSSL_PKEY_PARAM_PUB_KEY, NULL, 0, &pubkey_len), 1);
+	pubkey = malloc(pubkey_len);
+	ASSERT_PTR_NE(pubkey, NULL);
+	ASSERT_INT_EQ(EVP_PKEY_get_octet_string_param(k1->pkey,
+	    OSSL_PKEY_PARAM_PUB_KEY, pubkey, pubkey_len, NULL), 1);
+	c = BN_new();
 	ASSERT_PTR_NE(c, NULL);
-	ASSERT_BIGNUM_EQ(EC_KEY_get0_private_key(k1->ecdsa), a);
+	ASSERT_PTR_NE(BN_bin2bn(pubkey, pubkey_len, c), NULL);
 	ASSERT_BIGNUM_EQ(b, c);
+	BN_clear_free(c);
+	c = NULL;
+	ASSERT_INT_EQ(EVP_PKEY_get_bn_param(k1->pkey, OSSL_PKEY_PARAM_PRIV_KEY,
+	    &c), 1);
+	ASSERT_BIGNUM_EQ(c, a);
 	BN_free(a);
 	BN_free(b);
 	BN_free(c);

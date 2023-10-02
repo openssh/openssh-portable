@@ -36,19 +36,9 @@
 # include <openssl/evp.h>
 # include <openssl/core_names.h>
 # include <openssl/param_build.h>
-# ifdef OPENSSL_HAS_ECC
-#  include <openssl/ec.h>
-# else /* OPENSSL_HAS_ECC */
-#  define EC_KEY	void
-#  define EC_GROUP	void
-#  define EC_POINT	void
-# endif /* OPENSSL_HAS_ECC */
 #else /* WITH_OPENSSL */
 # define DH		void
 # define BIGNUM		void
-# define EC_KEY		void
-# define EC_GROUP	void
-# define EC_POINT	void
 #endif /* WITH_OPENSSL */
 
 #define KEX_COOKIE_LEN	16
@@ -174,8 +164,7 @@ struct kex {
 	/* kex specific state */
 	DH	*dh;			/* DH */
 	u_int	min, max, nbits;	/* GEX */
-	EC_KEY	*ec_client_key;		/* ECDH */
-	const EC_GROUP *ec_group;	/* ECDH */
+	EVP_PKEY *pkey;
 	u_char c25519_client_key[CURVE25519_SIZE]; /* 25519 + KEM */
 	u_char c25519_client_pubkey[CURVE25519_SIZE]; /* 25519 */
 	u_char sntrup761_client_key[crypto_kem_sntrup761_SECRETKEYBYTES]; /* KEM */
@@ -264,12 +253,6 @@ int	kex_create_evp_dh(EVP_PKEY **, const BIGNUM *, const BIGNUM *,
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH) || defined(DEBUG_KEXECDH)
 void	dump_digest(const char *, const u_char *, int);
-#endif
-
-#if !defined(WITH_OPENSSL) || !defined(OPENSSL_HAS_ECC)
-# undef EC_KEY
-# undef EC_GROUP
-# undef EC_POINT
 #endif
 
 #endif
