@@ -109,9 +109,6 @@ sshbuf_put_ecbuf(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
 int
 sshbuf_put_ec(struct sshbuf *buf, EVP_PKEY *pkey)
 {
-	u_char d[SSHBUF_MAX_ECPOINT];
-	size_t len;
-	int ret;
 	const EC_KEY *ec = EVP_PKEY_get0_EC_KEY(pkey);
 
 	if (ec == NULL)
@@ -121,6 +118,10 @@ sshbuf_put_ec(struct sshbuf *buf, EVP_PKEY *pkey)
 	    EC_KEY_get0_group(ec));
 /* FIXME beldmit */
 #if 0
+	u_char d[SSHBUF_MAX_ECPOINT];
+	size_t len;
+	int ret;
+
 	/* this works since openssl version of 3.0.8 */
 	if (EVP_PKEY_get_octet_string_param(pkey, OSSL_PKEY_PARAM_PUB_KEY,
 	    				    d, SSHBUF_MAX_ECPOINT, &len) != 1)

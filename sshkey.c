@@ -3658,7 +3658,6 @@ sshkey_create_evp(OSSL_PARAM_BLD *param_bld, EVP_PKEY_CTX *ctx)
 {
   	EVP_PKEY *ret = NULL;
   	OSSL_PARAM *params = NULL;
-	int rc;
   	if (param_bld == NULL || ctx == NULL) {
   		/* debug2_f("param_bld or ctx is NULL"); */
   		return NULL;
