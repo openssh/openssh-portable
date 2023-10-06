@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-pkcs11.sh,v 1.10 2023/10/06 03:25:14 djm Exp $
+#	$OpenBSD: agent-pkcs11.sh,v 1.11 2023/10/06 03:32:15 djm Exp $
 #	Placed in the Public Domain.
 
 tid="pkcs11 agent test"
@@ -78,7 +78,7 @@ $OPENSSL_BIN genpkey \
 $OPENSSL_BIN genpkey -paramfile $ECPARAM > $EC || fatal "genpkey EC fail"
 $OPENSSL_BIN pkcs8 -nocrypt -in $EC > $ECP8 || fatal "pkcs8 EC fail"
 softhsm2-util --slot "$slot" --label 02 --id 02 \
-    --pin "$TEST_SSH_PIN" --import $ECP8 || fatal "softhasm import EC fail"
+    --pin "$TEST_SSH_PIN" --import $ECP8 || fatal "softhsm import EC fail"
 
 trace "start agent"
 eval `${SSHAGENT} ${EXTRA_AGENT_ARGS} -s` > /dev/null
