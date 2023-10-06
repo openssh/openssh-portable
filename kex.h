@@ -39,6 +39,7 @@
 #else /* WITH_OPENSSL */
 # define DH		void
 # define BIGNUM		void
+# define EVP_PKEY	void
 #endif /* WITH_OPENSSL */
 
 #define KEX_COOKIE_LEN	16

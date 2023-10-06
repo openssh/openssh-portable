@@ -35,10 +35,12 @@ struct sshkey *
 	    u_int32_t *);
 #endif
 
+#if defined WITH_OPENSSL
 #ifdef HAVE_EC_KEY_METHOD_NEW
 int is_ecdsa_pkcs11(EC_KEY *ecdsa);
 #endif
 int is_rsa_pkcs11(RSA *rsa);
+#endif
 
 #if !defined(WITH_OPENSSL) && defined(ENABLE_PKCS11)
 #undef ENABLE_PKCS11

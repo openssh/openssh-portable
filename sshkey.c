@@ -1444,9 +1444,6 @@ sshkey_ecdsa_key_to_nid(EVP_PKEY *pkey)
 }
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
-	OSSL_PARAM *params = NULL;
-	EVP_PKEY_CTX *ctx = NULL;
-
 int
 sshkey_generate(int type, u_int bits, struct sshkey **keyp)
 {
@@ -1661,9 +1658,6 @@ sshkey_shield_private(struct sshkey *k)
 	fprintf(stderr, "%s: encrypted\n", __func__);
 	sshbuf_dump_data(enc, enclen, stderr);
 #endif
-	OSSL_PARAM_free(params);
-	EVP_PKEY_CTX_free(ctx);
-
 	/* Make a scrubbed, public-only copy of our private key argument */
 	if ((r = sshkey_from_private(k, &kswap)) != 0)
 		goto out;
@@ -2636,7 +2630,6 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 	sshkey_free(k);
 	free(expect_sk_application);
 	free(expect_ed25519_pk);
-	EVP_PKEY_CTX_free(ctx);
 	return r;
 }
 
