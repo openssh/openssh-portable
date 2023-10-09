@@ -117,7 +117,7 @@ pty_make_controlling_tty(int *ttyfd, const char *tty)
 	 * tty.
 	 */
 	fd = open(_PATH_TTY, O_RDWR | O_NOCTTY);
-	if (fd >= 0) {
+	if (fd < 0) {
 		error("Failed to disconnect from controlling tty.");
 		close(fd);
 	}
