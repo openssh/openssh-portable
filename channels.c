@@ -2361,8 +2361,6 @@ channel_check_window(struct ssh *ssh, Channel *c)
 			c->local_window_max += addition;
 			sshbuf_set_window_max(c->output, c->local_window_max);
 			sshbuf_set_window_max(c->input, c->local_window_max);
-			//c->output->window_max = c->local_window_max;
-			//c->input->window_max = c->local_window_max;
 			debug("Channel %d: Window growth to %d by %d bytes",c->self,
 			      c->local_window_max, addition);
 		}
