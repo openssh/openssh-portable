@@ -37,8 +37,10 @@
 #include <openssl/dh.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 #include <openssl/core_names.h>
 #include <openssl/param_build.h>
+#endif
 
 #include "sshkey.h"
 #include "kex.h"
@@ -117,7 +119,7 @@ kex_dh_compute_key(struct kex *kex, BIGNUM *dh_pub, struct sshbuf *out)
 		goto out;
 	}
 
-	if ((ctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL)) == NULL) {
+	if ((ctx = EVP_PKEY_CTX_new(pkey, NULL)) == NULL) {
 		error_f("Could not init EVP_PKEY_CTX for dh");
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -241,5 +243,50 @@ kex_dh_dec(struct kex *kex, const struct sshbuf *dh_blob,
 	kex->dh = NULL;
 	sshbuf_free(buf);
 	return r;
+}
+/* 
+ * Creates an EVP_PKEY from the given parameters and keys.
+ * The private key can be omitted.
+ */
+int
+kex_create_evp_dh(EVP_PKEY **pkey, const BIGNUM *p, const BIGNUM *q,
+    const BIGNUM *g, const BIGNUM *pub, const BIGNUM *priv)
+{
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	OSSL_PARAM_BLD *param_bld = NULL;
+	EVP_PKEY_CTX *ctx = NULL;
+	int r = 0;
+
+	/* create EVP_PKEY-DH key */
+	if ((ctx = EVP_PKEY_CTX_new_from_name(NULL, "DH", NULL)) == NULL ||
+	    (param_bld = OSSL_PARAM_BLD_new()) == NULL) {
+		error_f("EVP_PKEY_CTX or PARAM_BLD init failed");
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_FFC_P, p) != 1 ||
+	    OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_FFC_Q, q) != 1 ||
+	    OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_FFC_G, g) != 1 ||
+	    OSSL_PARAM_BLD_push_BN(param_bld,
+	        OSSL_PKEY_PARAM_PUB_KEY, pub) != 1) {
+		error_f("Failed pushing params to OSSL_PARAM_BLD");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	if (priv != NULL &&
+	    OSSL_PARAM_BLD_push_BN(param_bld,
+	        OSSL_PKEY_PARAM_PRIV_KEY, priv) != 1) {
+		error_f("Failed pushing private key to OSSL_PARAM_BLD");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	if ((*pkey = sshkey_create_evp(param_bld, ctx)) == NULL)
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+out:
+	OSSL_PARAM_BLD_free(param_bld);
+	EVP_PKEY_CTX_free(ctx);
+	return r;
+#else
+#endif
 }
 #endif /* WITH_OPENSSL */

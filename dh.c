@@ -37,8 +37,10 @@
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 #include <openssl/evp.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 #include <openssl/core_names.h>
 #include <openssl/param_build.h>
+#endif
 
 #include "dh.h"
 #include "pathnames.h"
@@ -286,6 +288,7 @@ dh_pub_is_valid(const DH *dh, const BIGNUM *dh_pub)
 int
 dh_gen_key(DH *dh, int need)
 {
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	const BIGNUM *dh_p, *dh_g;
 	BIGNUM *pub_key = NULL, *priv_key = NULL;
 	EVP_PKEY *pkey = NULL;
@@ -381,6 +384,32 @@ out:
 	BN_clear_free(pub_key);
 	BN_clear_free(priv_key);
 	return r;
+#else
+	int pbits;
+	const BIGNUM *dh_p, *pub_key;
+
+	DH_get0_pqg(dh, &dh_p, NULL, NULL);
+
+	if (need < 0 || dh_p == NULL ||
+	    (pbits = BN_num_bits(dh_p)) <= 0 ||
+	    need > INT_MAX / 2 || 2 * need > pbits)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (need < 256)
+		need = 256;
+	/*
+	 * Pollard Rho, Big step/Little Step attacks are O(sqrt(n)),
+	 * so double requested need here.
+	 */
+	if (!DH_set_length(dh, MINIMUM(need * 2, pbits - 1)))
+		return SSH_ERR_LIBCRYPTO_ERROR;
+
+	if (DH_generate_key(dh) == 0)
+		return SSH_ERR_LIBCRYPTO_ERROR;
+	DH_get0_key(dh, &pub_key, NULL);
+	if (!dh_pub_is_valid(dh, pub_key))
+		return SSH_ERR_INVALID_FORMAT;
+	return 0;
+#endif
 }
 
 DH *

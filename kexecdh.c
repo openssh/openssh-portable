@@ -35,9 +35,11 @@
 #include <signal.h>
 
 #include <openssl/evp.h>
+#include <openssl/err.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 #include <openssl/core_names.h>
 #include <openssl/param_build.h>
-#include <openssl/err.h>
+#endif
 
 #include "sshkey.h"
 #include "kex.h"
@@ -55,6 +57,7 @@ generate_ec_keys(int ec_nid)
 {
 	EVP_PKEY *pkey = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	OSSL_PARAM_BLD *param_bld = NULL;
 	OSSL_PARAM *params = NULL;
 	const char *group_name;
@@ -75,10 +78,21 @@ generate_ec_keys(int ec_nid)
 		error_f("Could not generate ec keys");
 		goto out;
 	}
+#else
+	if ((ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL)) == NULL ||
+	    EVP_PKEY_keygen_init(ctx) != 1 ||
+            EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx, ec_nid) <= 0 ||
+	    EVP_PKEY_keygen(ctx, &pkey) != 1) {
+		error_f("Could not generate ec keys");
+		goto out;
+	}
+#endif
 out:
 	EVP_PKEY_CTX_free(ctx);
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	OSSL_PARAM_BLD_free(param_bld);
 	OSSL_PARAM_free(params);
+#endif
 	return pkey;
 }
 
@@ -160,12 +174,16 @@ kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
 	struct sshbuf *buf = NULL;
 	BIGNUM *shared_secret = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
-	EVP_PKEY *dh_pkey = NULL;
+	EVP_PKEY *peer_key = NULL;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	OSSL_PARAM_BLD *param_bld = NULL;
 	OSSL_PARAM *params = NULL;
+	const char *group_name;
+#else
+	EC_KEY *ec = NULL;
+#endif
 	u_char *kbuf = NULL, *pub = NULL;
 	size_t klen = 0, publen;
-	const char *group_name;
 	int r;
 
 	*shared_secretp = NULL;
@@ -177,16 +195,20 @@ kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
 	if ((r = sshbuf_put_stringb(buf, ec_blob)) != 0)
 		goto out;
 
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	if ((r = sshbuf_get_ec(buf, &pub, &publen)) != 0)
 		goto out;
 	sshbuf_reset(buf);
-	if ((ctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL)) == NULL ||
-	    (param_bld = OSSL_PARAM_BLD_new()) == NULL) {
+	if ((group_name = OSSL_EC_curve_nid2name(kex->ec_nid)) == NULL) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	if ((ctx = EVP_PKEY_CTX_new(pkey, NULL)) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((group_name = OSSL_EC_curve_nid2name(kex->ec_nid)) == NULL) {
-		r = SSH_ERR_LIBCRYPTO_ERROR;
+	if ((param_bld = OSSL_PARAM_BLD_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
 	if (OSSL_PARAM_BLD_push_octet_string(param_bld,
@@ -194,28 +216,46 @@ kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
 	    OSSL_PARAM_BLD_push_utf8_string(param_bld,
 	        OSSL_PKEY_PARAM_GROUP_NAME, group_name, 0) != 1 ||
 	    (params = OSSL_PARAM_BLD_to_param(param_bld)) == NULL) {
-		error_f("Failed to set params for dh_pkey");
+		error_f("Failed to set params for peer_key");
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
 	if (EVP_PKEY_fromdata_init(ctx) != 1 ||
-	    EVP_PKEY_fromdata(ctx, &dh_pkey,
+	    EVP_PKEY_fromdata(ctx, &peer_key,
 	        EVP_PKEY_PUBLIC_KEY, params) != 1 ||
 	    EVP_PKEY_public_check(ctx) != 1) {
 		error_f("Peer public key import failed");
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
+#else
+	if ((ec = EC_KEY_new_by_curve_name(kex->ec_nid)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((r = sshbuf_get_eckey(ec_blob, ec)) != 0)
+		goto out;
+
+	if ((peer_key = EVP_PKEY_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+
+	if (EVP_PKEY_set1_EC_KEY(peer_key, ec) != 1) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+#endif
 
 #ifdef DEBUG_KEXECDH
 	fputs("public key:\n", stderr);
-	EVP_PKEY_print_public_fp(stderr, dh_pkey, 0, NULL);
+	EVP_PKEY_print_public_fp(stderr, peer_key, 0, NULL);
 #endif
 	EVP_PKEY_CTX_free(ctx);
 	ctx = NULL;
-	if ((ctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL)) == NULL ||
+	if ((ctx = EVP_PKEY_CTX_new(pkey, NULL)) == NULL ||
 	    EVP_PKEY_derive_init(ctx) != 1 ||
-	    EVP_PKEY_derive_set_peer(ctx, dh_pkey) != 1 ||
+	    EVP_PKEY_derive_set_peer(ctx, peer_key) != 1 ||
 	    EVP_PKEY_derive(ctx, NULL, &klen) != 1) {
 		error_f("Failed to get derive information");
 		r = SSH_ERR_LIBCRYPTO_ERROR;
@@ -243,9 +283,13 @@ kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
 	buf = NULL;
  out:
 	EVP_PKEY_CTX_free(ctx);
-	EVP_PKEY_free(dh_pkey);
+	EVP_PKEY_free(peer_key);
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	OSSL_PARAM_BLD_free(param_bld);
 	OSSL_PARAM_free(params);
+#else
+	EC_KEY_free(ec);
+#endif
 	BN_clear_free(shared_secret);
 	freezero(kbuf, klen);
 	freezero(pub, publen);
