@@ -229,6 +229,7 @@ static int rdynamic_connect_finish(struct ssh *, Channel *);
 /* Setup helper */
 static void channel_handler_init(struct ssh_channels *sc);
 
+/* default values to enable hpn and the initial buffer size */
 static int hpn_disabled = 0;
 static int hpn_buffer_size = 2 * 1024 * 1024;
 

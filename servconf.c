@@ -190,7 +190,6 @@ initialize_server_options(ServerOptions *options)
 	options->authorized_principals_command_user = NULL;
 	options->tcp_rcv_buf_poll = -1;
 	options->hpn_disabled = -1;
-	options->hpn_buffer_size = -1;
 	options->none_enabled = -1;
 	options->nonemac_enabled = -1;
 	options->hpn_buffer_limit = -1;
@@ -448,39 +447,6 @@ fill_default_server_options(ServerOptions *options)
 		options->hpn_disabled = 0;
 	if (options->hpn_buffer_limit == -1)
 		options->hpn_buffer_limit = 0;
-
-	if (options->hpn_buffer_size == -1) {
-		/* option not explicitly set. Now we have to figure out */
-		/* what value to use */
-		if (options->hpn_disabled == 1) {
-			options->hpn_buffer_size = CHAN_SES_WINDOW_DEFAULT;
-		} else {
-			/* get the current RCV size and set it to that */
-			/*create a socket but don't connect it */
-			/* we use that the get the rcv socket size */
-			sock = socket(AF_INET, SOCK_STREAM, 0);
-			getsockopt(sock, SOL_SOCKET, SO_RCVBUF,
-				   &socksize, &socksizelen);
-			close(sock);
-			options->hpn_buffer_size = socksize;
-			debug("HPN Buffer Size: %d", options->hpn_buffer_size);
-		}
-	} else {
-		/* we have to do this in case the user sets both values in a contradictory */
-		/* manner. hpn_disabled overrrides hpn_buffer_size*/
-		if (options->hpn_disabled <= 0) {
-			if (options->hpn_buffer_size == 0)
-				options->hpn_buffer_size = 1;
-			/* limit the maximum buffer to SSHBUF_SIZE_MAX (currently 256MB) */
-			if (options->hpn_buffer_size > (SSHBUF_SIZE_MAX / 1024)) {
-				options->hpn_buffer_size = SSHBUF_SIZE_MAX;
-			} else {
-				options->hpn_buffer_size *= 1024;
-			}
-		} else
-			options->hpn_buffer_size = CHAN_TCP_WINDOW_DEFAULT;
-	}
-
 	if (options->ip_qos_interactive == -1)
 		options->ip_qos_interactive = IPTOS_DSCP_AF21;
 	if (options->ip_qos_bulk == -1)
@@ -563,7 +529,7 @@ typedef enum {
 	sKbdInteractiveAuthentication, sListenAddress, sAddressFamily,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sNoneEnabled, sNoneMacEnabled, sHPNBufferLimit,
-	sTcpRcvBufPoll, sHPNDisabled, sHPNBufferSize,
+	sTcpRcvBufPoll, sHPNDisabled,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sAllowTcpForwarding, sCompression,
@@ -731,7 +697,6 @@ static struct {
 	{ "trustedusercakeys", sTrustedUserCAKeys, SSHCFG_ALL },
 	{ "authorizedprincipalsfile", sAuthorizedPrincipalsFile, SSHCFG_ALL },
 	{ "hpndisabled", sHPNDisabled, SSHCFG_ALL },
-	{ "hpnbuffersize", sHPNBufferSize, SSHCFG_ALL },
 	{ "tcprcvbufpoll", sTcpRcvBufPoll, SSHCFG_ALL },
 	{ "noneenabled", sNoneEnabled, SSHCFG_ALL },
 	{ "nonemacenabled", sNoneMacEnabled, SSHCFG_ALL },
@@ -1631,10 +1596,6 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 	case sHPNDisabled:
 		intptr = &options->hpn_disabled;
 		goto parse_flag;
-
-	case sHPNBufferSize:
-		intptr = &options->hpn_buffer_size;
-		goto parse_int;
 
 	case sIgnoreUserKnownHosts:
 		intptr = &options->ignore_user_known_hosts;

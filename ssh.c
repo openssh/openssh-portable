@@ -2157,7 +2157,7 @@ hpn_options_init(struct ssh *ssh)
 	if (tty_flag)
 		options.hpn_buffer_size = CHAN_SES_WINDOW_DEFAULT;
 	else
-		options.hpn_buffer_size = 2 * 1024 * 1024;
+		options.hpn_buffer_size = (2 * 1024 * 1024);
 
 	if (ssh->compat & SSH_BUG_LARGEWINDOW) {
 		debug("HPN to Non-HPN connection");
@@ -2177,30 +2177,6 @@ hpn_options_init(struct ssh *ssh)
 			debug("socksize %d", socksize);
 			options.hpn_buffer_size = socksize;
 			debug("HPNBufferSize set to TCP RWIN: %d", options.hpn_buffer_size);
-		} else {
-			if (options.tcp_rcv_buf > 0) {
-				/*
-				 * Create a socket but don't connect it:
-				 * we use that the get the rcv socket size
-				 */
-				sock = socket(AF_INET, SOCK_STREAM, 0);
-				/*
-				 * If they are using the tcp_rcv_buf option,
-				 * attempt to set the buffer size to that.
-				 */
-				if (options.tcp_rcv_buf) {
-					socksizelen = sizeof(options.tcp_rcv_buf);
-					setsockopt(sock, SOL_SOCKET, SO_RCVBUF,
-						   &options.tcp_rcv_buf, socksizelen);
-				}
-				socksizelen = sizeof(socksize);
-				getsockopt(sock, SOL_SOCKET, SO_RCVBUF,
-					   &socksize, &socksizelen);
-				close(sock);
-				debug("socksize %d", socksize);
-				options.hpn_buffer_size = socksize;
-				debug("HPNBufferSize set to user TCPRcvBuf: %d", options.hpn_buffer_size);
-			}
 		}
 	}
 

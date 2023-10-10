@@ -170,7 +170,7 @@ typedef enum {
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
-	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
+	oTcpRcvBufPoll, oHPNDisabled,
 	oNoneEnabled, oNoneMacEnabled, oNoneSwitch, oHPNBufferLimit,
 	oMetrics, oMetricsPath, oMetricsInterval, oFallback, oFallbackPort,
 	oVisualHostKey,
@@ -339,9 +339,7 @@ static struct {
 	{ "securitykeyprovider", oSecurityKeyProvider },
 	{ "knownhostscommand", oKnownHostsCommand },
 	{ "tcprcvbufpoll", oTcpRcvBufPoll },
-	{ "tcprcvbuf", oTcpRcvBuf },
 	{ "hpndisabled", oHPNDisabled },
-	{ "hpnbuffersize", oHPNBufferSize },
 	{ "requiredrsasize", oRequiredRSASize },
 	{ "enableescapecommandline", oEnableEscapeCommandline },
 	{ "obscurekeystroketiming", oObscureKeystrokeTiming },
@@ -1238,10 +1236,6 @@ parse_time:
 		intptr = &options->hpn_disabled;
 		goto parse_flag;
 
-	case oHPNBufferSize:
-		intptr = &options->hpn_buffer_size;
-		goto parse_int;
-
 	case oTcpRcvBufPoll:
 		intptr = &options->tcp_rcv_buf_poll;
 		goto parse_flag;
@@ -1552,10 +1546,6 @@ parse_int:
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
-
-	case oTcpRcvBuf:
-		intptr = &options->tcp_rcv_buf;
-		goto parse_int;
 
 	case oCiphers:
 		arg = argv_next(&ac, &av);
@@ -2644,12 +2634,10 @@ initialize_options(Options * options)
 	options->metrics_path = NULL;
 	options->metrics_interval = -1;
 	options->hpn_disabled = -1;
-	options->hpn_buffer_size = -1;
 	options->hpn_buffer_limit = -1;
 	options->fallback = -1;
 	options->fallback_port = -1;
 	options->tcp_rcv_buf_poll = -1;
-	options->tcp_rcv_buf = -1;
 	options->session_type = -1;
 	options->stdin_null = -1;
 	options->fork_after_authentication = -1;
@@ -2821,24 +2809,8 @@ fill_default_options(Options * options)
 		options->server_alive_count_max = 3;
 	if (options->hpn_disabled == -1)
 		options->hpn_disabled = 0;
-	if (options->hpn_buffer_size > -1) {
-		/* if a user tries to set the size to 0 set it to 1KB */
-		if (options->hpn_buffer_size == 0)
-			options->hpn_buffer_size = 1;
-		/* limit the buffer to SSHBUF_SIZE_MAX (currently 256MB) */
-		if (options->hpn_buffer_size > (SSHBUF_SIZE_MAX / 1024)) {
-			options->hpn_buffer_size = SSHBUF_SIZE_MAX;
-			debug("User requested buffer larger than 256MB. Request reverted to 256MB");
-		} else
-			options->hpn_buffer_size *= 1024;
-		debug("hpn_buffer_size set to %d", options->hpn_buffer_size);
-	}
 	if (options->hpn_buffer_limit == -1)
 		options->hpn_buffer_limit = 0;
-	if (options->tcp_rcv_buf == 0)
-		options->tcp_rcv_buf = 1;
-	if (options->tcp_rcv_buf > -1)
-		options->tcp_rcv_buf *=1024;
 	if (options->tcp_rcv_buf_poll == -1)
 		options->tcp_rcv_buf_poll = 1;
 	if (options->none_switch == -1)
