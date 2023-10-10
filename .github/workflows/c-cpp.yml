@@ -38,10 +38,6 @@ jobs:
           - { target: ubuntu-20.04, config: clang-10 }
           - { target: ubuntu-20.04, config: clang-11 }
           - { target: ubuntu-20.04, config: clang-12-Werror }
-          - { target: ubuntu-20.04, config: clang-sanitize-address }
-          - { target: ubuntu-20.04, config: clang-sanitize-undefined }
-          - { target: ubuntu-20.04, config: gcc-sanitize-address }
-          - { target: ubuntu-20.04, config: gcc-sanitize-undefined }
           - { target: ubuntu-20.04, config: gcc-7 }
           - { target: ubuntu-20.04, config: gcc-8 }
           - { target: ubuntu-20.04, config: gcc-10 }
@@ -77,6 +73,10 @@ jobs:
           - { target: ubuntu-22.04, config: selinux }
           - { target: ubuntu-22.04, config: kitchensink }
           - { target: ubuntu-22.04, config: without-openssl }
+          - { target: ubuntu-22.04, config: clang-sanitize-address }
+          - { target: ubuntu-22.04, config: clang-sanitize-undefined }
+          - { target: ubuntu-22.04, config: gcc-sanitize-address }
+          - { target: ubuntu-22.04, config: gcc-sanitize-undefined }
 # we know pam doesn't work because we can't install a new pam file
 # for hpnssh via the CI test methods
 #          - { target: macos-11, config: pam }
