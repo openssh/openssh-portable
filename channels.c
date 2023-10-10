@@ -231,7 +231,6 @@ static void channel_handler_init(struct ssh_channels *sc);
 
 /* default values to enable hpn and the initial buffer size */
 static int hpn_disabled = 0;
-static int hpn_buffer_size = 2 * 1024 * 1024;
 
 /* -- channel core */
 
@@ -3779,11 +3778,10 @@ channel_fwd_bind_addr(struct ssh *ssh, const char *listen_addr, int *wildcardp,
 }
 
 void
-channel_set_hpn(int external_hpn_disabled, int external_hpn_buffer_size)
+channel_set_hpn_disabled(int external_hpn_disabled)
 {
 	hpn_disabled = external_hpn_disabled;
-	hpn_buffer_size = external_hpn_buffer_size;
-	debug("HPN Disabled: %d, HPN Buffer Size: %d", hpn_disabled, hpn_buffer_size);
+	debug("HPN Disabled: %d", hpn_disabled);
 }
 
 static int
@@ -3925,10 +3923,8 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 		}
 
 		/* Allocate a channel number for the socket. */
-		/* explicitly test for hpn disabled option. if true use smaller window size */
 		c = channel_new(ssh, "port-listener", type, sock, sock, -1,
-		    hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : hpn_buffer_size,
-		    CHAN_TCP_PACKET_DEFAULT, 0, "port listener", 1);
+		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "port listener", 1);
 		c->path = xstrdup(host);
 		c->host_port = fwd->connect_port;
 		c->listening_addr = addr == NULL ? NULL : xstrdup(addr);
@@ -5096,8 +5092,7 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 		sock = socks[n];
 		nc = channel_new(ssh, "x11-listener",
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
-				 hpn_disabled ? CHAN_X11_WINDOW_DEFAULT : hpn_buffer_size,
-				 CHAN_X11_PACKET_DEFAULT,
+				 CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 				 0, "X11 inet listener", 1);
 		nc->single_connection = single_connection;
 		(*chanids)[n] = nc->self;

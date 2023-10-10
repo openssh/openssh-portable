@@ -282,10 +282,6 @@ void
 fill_default_server_options(ServerOptions *options)
 {
 	u_int i;
-	/* needed for hpn socket tests */
-	int sock;
-	int socksize;
-	int socksizelen = sizeof(int);
 
 	/* Portable-specific options */
 	if (options->use_pam == -1)

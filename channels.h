@@ -400,5 +400,5 @@ void	 chan_write_failed(struct ssh *, Channel *);
 void	 chan_obuf_empty(struct ssh *, Channel *);
 
 /* hpn handler */
-void     channel_set_hpn(int, int);
+void     channel_set_hpn_disabled(int);
 #endif

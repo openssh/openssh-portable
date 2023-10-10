@@ -2266,8 +2266,7 @@ session_set_fds(struct ssh *ssh, Session *s,
         channel_set_fds(ssh, s->chanid,
 			fdout, fdin, fderr,
 			ignore_fderr ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
-			1, is_tty,
-			options.hpn_disabled ? CHAN_SES_WINDOW_DEFAULT : options.hpn_buffer_size);
+			1, is_tty, CHAN_SES_WINDOW_DEFAULT);
 }
 
 /*
