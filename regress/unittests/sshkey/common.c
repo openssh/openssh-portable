@@ -92,19 +92,22 @@ rsa_n(struct sshkey *k)
 	BIGNUM *n = NULL;
 #if (OPENSSL_VERSION_NUMBER < 0x30000000L)
 	RSA *rsa = NULL;
+	BIGNUM *res = NULL;
 #endif
 
 	ASSERT_PTR_NE(k, NULL);
 	ASSERT_PTR_NE(k->pkey, NULL);
 #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_N, &n);
+	return n;
 #else
 	rsa = EVP_PKEY_get1_RSA(k->pkey);
 	ASSERT_PTR_NE(rsa, NULL);
 	RSA_get0_key(rsa, &n, NULL, NULL);
 	RSA_free(rsa);
+	res = BN_dup(n);
+	return res;
 #endif
-	return n;
 }
 
 BIGNUM *
@@ -113,19 +116,22 @@ rsa_e(struct sshkey *k)
 	BIGNUM *e = NULL;
 #if (OPENSSL_VERSION_NUMBER < 0x30000000L)
 	RSA *rsa = NULL;
+	BIGNUM *res = NULL;
 #endif
 
 	ASSERT_PTR_NE(k, NULL);
 	ASSERT_PTR_NE(k->pkey, NULL);
 #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_E, &e);
+	return e;
 #else
 	rsa = EVP_PKEY_get1_RSA(k->pkey);
 	ASSERT_PTR_NE(rsa, NULL);
 	RSA_get0_key(rsa, NULL, &e, NULL);
 	RSA_free(rsa);
+	res = BN_dup(e);
+	return res;
 #endif
-	return e;
 }
 
 BIGNUM *
@@ -134,19 +140,22 @@ rsa_p(struct sshkey *k)
 	BIGNUM *p = NULL;
 #if (OPENSSL_VERSION_NUMBER < 0x30000000L)
 	RSA *rsa = NULL;
+	BIGNUM *res = NULL;
 #endif
 
 	ASSERT_PTR_NE(k, NULL);
 	ASSERT_PTR_NE(k->pkey, NULL);
 #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_FACTOR1, &p);
+	return p;
 #else
 	rsa = EVP_PKEY_get1_RSA(k->pkey);
 	ASSERT_PTR_NE(rsa, NULL);
 	RSA_get0_factors(rsa, &p, NULL);
 	RSA_free(rsa);
+	res = BN_dup(p);
+	return res;
 #endif
-	return p;
 }
 
 BIGNUM *
@@ -155,19 +164,22 @@ rsa_q(struct sshkey *k)
 	BIGNUM *q = NULL;
 #if (OPENSSL_VERSION_NUMBER < 0x30000000L)
 	RSA *rsa = NULL;
+	BIGNUM *res = NULL;
 #endif
 
 	ASSERT_PTR_NE(k, NULL);
 	ASSERT_PTR_NE(k->pkey, NULL);
 #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_FACTOR2, &q);
+	return q;
 #else
 	rsa = EVP_PKEY_get1_RSA(k->pkey);
 	ASSERT_PTR_NE(rsa, NULL);
 	RSA_get0_factors(rsa, NULL, &q);
 	RSA_free(rsa);
+	res = BN_dup(q);
+	return res;
 #endif
-	return q;
 }
 
 const BIGNUM *
