@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.595 2023/10/11 22:42:26 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.596 2023/10/11 23:23:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -184,9 +184,10 @@ usage(void)
 "           [-c cipher_spec] [-D [bind_address:]port] [-E log_file]\n"
 "           [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]\n"
 "           [-J destination] [-L address] [-l login_name] [-m mac_spec]\n"
-"           [-O ctl_cmd] [-o option] [-P tag] [-p port] [-Q query_option]\n"
-"           [-R address] [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]\n"
+"           [-O ctl_cmd] [-o option] [-P tag] [-p port] [-R address]\n"
+"           [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]\n"
 "           destination [command [argument ...]]\n"
+"       ssh [-Q query_option]\n"
 	);
 	exit(255);
 }
