@@ -115,9 +115,6 @@ Subsystem	sftp	/usr/libexec/hpnsftp-server
 # disable hpn performance boosts
 #HPNDisabled no
 
-# buffer size for hpn to non-hpn connections
-#HPNBufferSize 2048
-
 # allow the use of the none cipher
 #NoneEnabled no
 

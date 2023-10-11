@@ -1015,14 +1015,6 @@ a more stable connection. The option only impacts the receiving side of the conn
 For example, a client receiving data from a server but not a client sending data.
 By default this option is set to 
 .Cm no. HPNSSH only.
-.It Cm HPNBufferSize
-This is the default buffer size, in kilobytes, the HPN functionality uses when interacting
-with nonHPN SSH installations. Conceptually this is similar to the TcpRcvBuf
-option as applied to the internal SSH flow control. This value can range from
-1KB to 64MB (1-65536). Use of oversized or undersized buffers can cause performance
-problems depending on the length of the network path. The default size of this buffer
-is 2MB. 
-.Cm HPNSSH only.
 .It Cm IdentitiesOnly
 Specifies that
 .Xr ssh 1
@@ -2046,15 +2038,6 @@ for protocol-level keepalives.
 Specify a configuration tag name that may be later used by a
 .Cm Match
 directive to select a block of configuration.
-.It Cm TcpRcvBuf
-Set the TCP socket receive buffer to n Kilobytes. It can be set up to the
-maximum socket size allowed by the system. This is useful in situations where
-the tcp receive window is set low but the maximum buffer size is set
-higher (as is typical). This works on a per TCP connection basis. You can also
-use this to artifically limit the transfer rate of the connection. In these
-cases the throughput will be no more than n/RTT. The minimum buffer size is 1KB.
-Default is the current system wide tcp receive buffer size. 
-.Cm HPNSSH only.
 .It Cm TcpRcvBufPoll
 Enable of disable the polling of the tcp receive buffer through the life
 of the connection. You would want to make sure that this option is enabled
