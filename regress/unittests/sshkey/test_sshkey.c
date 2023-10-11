@@ -292,6 +292,7 @@ sshkey_tests(void)
 	TEST_START("generate KEY_ECDSA");
 	ASSERT_INT_EQ(sshkey_generate(KEY_ECDSA, 256, &ke), 0);
 	ASSERT_PTR_NE(ke, NULL);
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	ASSERT_PTR_NE(ke->pkey, NULL);
 	ASSERT_INT_EQ(EVP_PKEY_get_octet_string_param(ke->pkey,
 	    OSSL_PKEY_PARAM_PUB_KEY, NULL, 0, &pubkey_len), 1);
@@ -299,6 +300,11 @@ sshkey_tests(void)
 	ASSERT_INT_EQ(EVP_PKEY_get_bn_param(ke->pkey,
 	    OSSL_PKEY_PARAM_PRIV_KEY, &p), 1);
 	BN_clear_free(p);
+#else
+	ASSERT_PTR_NE(EVP_PKEY_get0_EC_KEY(ke->pkey), NULL);
+	ASSERT_PTR_NE(EC_KEY_get0_public_key(EVP_PKEY_get0_EC_KEY(ke->pkey)), NULL);
+	ASSERT_PTR_NE(EC_KEY_get0_private_key(EVP_PKEY_get0_EC_KEY(ke->pkey)), NULL);
+#endif
 	TEST_DONE();
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
@@ -356,11 +362,16 @@ sshkey_tests(void)
 	ASSERT_PTR_NE(ke, k1);
 	ASSERT_INT_EQ(k1->type, KEY_ECDSA);
 	ASSERT_PTR_NE(k1->pkey, NULL);
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	ASSERT_INT_EQ(EVP_PKEY_get_octet_string_param(ke->pkey,
 	    OSSL_PKEY_PARAM_PUB_KEY, NULL, 0, &pubkey_len), 1);
 	ASSERT_INT_EQ(EVP_PKEY_get_bn_param(k1->pkey,
 	    OSSL_PKEY_PARAM_PRIV_KEY, &p), 1);
 	BN_clear_free(p);
+#else
+	ASSERT_PTR_NE(EC_KEY_get0_public_key(EVP_PKEY_get0_EC_KEY(ke->pkey)), NULL);
+	ASSERT_PTR_EQ(EC_KEY_get0_private_key(EVP_PKEY_get0_EC_KEY(k1->pkey)), NULL);
+#endif
 	ASSERT_INT_EQ(k1->ecdsa_nid, ke->ecdsa_nid);
 	TEST_DONE();
 

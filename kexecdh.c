@@ -194,9 +194,8 @@ kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
 	}
 	if ((r = sshbuf_put_stringb(buf, ec_blob)) != 0)
 		goto out;
-
 #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
-	if ((r = sshbuf_get_ec(buf, &pub, &publen)) != 0)
+	if ((r = sshbuf_get_string(buf, &pub, &publen)) != 0)
 		goto out;
 	sshbuf_reset(buf);
 	if ((group_name = OSSL_EC_curve_nid2name(kex->ec_nid)) == NULL) {
@@ -233,7 +232,7 @@ kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = sshbuf_get_eckey(ec_blob, ec)) != 0)
+	if ((r = sshbuf_get_eckey(buf, ec)) != 0)
 		goto out;
 
 	if ((peer_key = EVP_PKEY_new()) == NULL) {

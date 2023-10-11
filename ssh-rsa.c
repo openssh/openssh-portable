@@ -23,8 +23,10 @@
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 #include <openssl/core_names.h>
 #include <openssl/param_build.h>
+#endif
 
 #include <stdarg.h>
 #include <string.h>
@@ -66,10 +68,13 @@ ssh_rsa_cleanup(struct sshkey *k)
 static int
 ssh_rsa_equal(const struct sshkey *a, const struct sshkey *b)
 {
-	/* FIXME OpenSSL 1.1.1 */
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	if (EVP_PKEY_eq(a->pkey, b->pkey) == 1)
 		return 1;
-
+#else
+	if (EVP_PKEY_cmp(a->pkey, b->pkey) == 1)
+		return 1;
+#endif
 	return 0;
 }
 
@@ -130,6 +135,7 @@ ssh_rsa_serialize_private(const struct sshkey *key, struct sshbuf *b,
 static int
 ssh_rsa_generate(struct sshkey *k, int bits)
 {
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	EVP_PKEY_CTX *ctx = NULL;
 	EVP_PKEY *res = NULL;
 	BIGNUM *f4 = NULL;
@@ -175,6 +181,41 @@ ssh_rsa_generate(struct sshkey *k, int bits)
 	EVP_PKEY_CTX_free(ctx);
 	BN_free(f4);
 	return ret;
+#else
+	RSA *private = NULL;
+	BIGNUM *f4 = NULL;
+	EVP_PKEY *res = NULL;
+	int ret = SSH_ERR_INTERNAL_ERROR;
+
+	if (bits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
+	    bits > SSHBUF_MAX_BIGNUM * 8)
+		return SSH_ERR_KEY_LENGTH;
+	if ((private = RSA_new()) == NULL || (f4 = BN_new()) == NULL) {
+		ret = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (!BN_set_word(f4, RSA_F4) ||
+	    !RSA_generate_key_ex(private, bits, f4, NULL)) {
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+
+	if ((res = EVP_PKEY_new()) == NULL) {
+		ret = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (EVP_PKEY_set1_RSA(res, private) != 1) {
+		EVP_PKEY_free(res);
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	k->pkey = res;
+	ret = 0;
+ out:
+	RSA_free(private);
+	BN_free(f4);
+	return ret;
+#endif
 }
 
 static int
@@ -580,7 +621,7 @@ openssh_RSA_verify(int hash_alg, const u_char *data, size_t datalen,
 	size_t rsasize = 0;
 	int ret;
 
-	rsasize = EVP_PKEY_get_size(pkey);
+	rsasize = EVP_PKEY_size(pkey);
 	if (rsasize <= 0 || rsasize > SSHBUF_MAX_BIGNUM ||
 	    siglen == 0 || siglen > rsasize) {
 		ret = SSH_ERR_INVALID_ARGUMENT;
@@ -594,6 +635,7 @@ done:
 	return ret;
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 int
 ssh_create_evp_rsa(const BIGNUM *n, const BIGNUM *e, const BIGNUM *d,
     const BIGNUM *p, const BIGNUM *q, const BIGNUM *dmp1, 
@@ -661,6 +703,7 @@ out:
   	EVP_PKEY_CTX_free(ctx);
   	return ret;
 }
+#endif
 
 static const struct sshkey_impl_funcs sshkey_rsa_funcs = {
 	/* .size = */		ssh_rsa_size,

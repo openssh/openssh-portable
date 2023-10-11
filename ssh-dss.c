@@ -32,8 +32,10 @@
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
 #include <openssl/evp.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 #include <openssl/core_names.h>
 #include <openssl/param_build.h>
+#endif
 
 #include <stdarg.h>
 #include <string.h>
@@ -433,6 +435,7 @@ ssh_dss_verify(const struct sshkey *key,
 int
 ssh_create_evp_dss(const struct sshkey *k, EVP_PKEY **pkey)
 {
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
   	OSSL_PARAM_BLD *param_bld = NULL;
   	EVP_PKEY_CTX *ctx = NULL;
   	const BIGNUM *p = NULL, *q = NULL, *g = NULL, *pub = NULL, *priv = NULL;
@@ -487,6 +490,18 @@ out:
   	OSSL_PARAM_BLD_free(param_bld);
   	EVP_PKEY_CTX_free(ctx);
   	return ret;
+#else
+	EVP_PKEY * res = EVP_PKEY_new();
+	if (res == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+
+	if (EVP_PKEY_set1_DSA(res, k->dsa) == 0) {
+		EVP_PKEY_free(res);
+		return SSH_ERR_LIBCRYPTO_ERROR;
+	}
+	*pkey = res;
+	return 0;
+#endif
 }
 
 static const struct sshkey_impl_funcs sshkey_dss_funcs = {

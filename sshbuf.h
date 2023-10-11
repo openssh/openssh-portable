@@ -23,6 +23,7 @@
 #include <stdio.h>
 #ifdef WITH_OPENSSL
 # include <openssl/bn.h>
+# include <openssl/ec.h>
 #endif /* WITH_OPENSSL */
 
 #define SSHBUF_SIZE_MAX		0x8000000	/* Hard maximum size */
@@ -215,7 +216,9 @@ int	sshbuf_get_bignum2_bytes_direct(struct sshbuf *buf,
 #ifdef WITH_OPENSSL
 int	sshbuf_get_bignum2(struct sshbuf *buf, BIGNUM **valp);
 int	sshbuf_put_bignum2(struct sshbuf *buf, const BIGNUM *v);
-int	sshbuf_get_ec(struct sshbuf *buf, u_char **pub, size_t *publen);
+/* FIXME beldmit should accept EVP_PKEY * */
+int	sshbuf_get_ec(struct sshbuf *buf, EC_POINT *v, const EC_GROUP *g);
+int	sshbuf_get_eckey(struct sshbuf *buf, EC_KEY *v);
 int	sshbuf_put_ec(struct sshbuf *buf, EVP_PKEY *pkey);
 #endif /* WITH_OPENSSL */
 

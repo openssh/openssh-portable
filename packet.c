@@ -2605,7 +2605,7 @@ sshpkt_get_cstring(struct ssh *ssh, char **valp, size_t *lenp)
 int
 sshpkt_get_ec(struct ssh *ssh, u_char **pubkey, size_t *pubkey_len)
 {
-	return sshbuf_get_ec(ssh->state->incoming_packet, pubkey, pubkey_len);
+	return sshbuf_get_string(ssh->state->incoming_packet, pubkey, pubkey_len);
 }
 
 int

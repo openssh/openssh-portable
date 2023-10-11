@@ -85,6 +85,10 @@ kex_dh_compute_key(struct kex *kex, BIGNUM *dh_pub, struct sshbuf *out)
 	u_char *kbuf = NULL;
 	size_t klen = 0;
 	int r = 0;
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+	DH *dh_peer = NULL;
+	BIGNUM *copy_p = NULL, *copy_q = NULL, *copy_g = NULL, *copy_pub = NULL;
+#endif
 
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "dh_pub= ");
@@ -100,6 +104,7 @@ kex_dh_compute_key(struct kex *kex, BIGNUM *dh_pub, struct sshbuf *out)
 		goto out;
 	}
 
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	DH_get0_key(kex->dh, &pub, &priv);
 	DH_get0_pqg(kex->dh, &p, &q, &g);
 	/* import key */
@@ -109,7 +114,7 @@ kex_dh_compute_key(struct kex *kex, BIGNUM *dh_pub, struct sshbuf *out)
 		ERR_print_errors_fp(stderr);
 		goto out;
 	}
-	/* import peer key 
+	/* import peer key
 	 * the parameters should be the same as with pkey
 	 */
 	r = kex_create_evp_dh(&dh_pkey, p, q, g, dh_pub, NULL);
@@ -118,9 +123,62 @@ kex_dh_compute_key(struct kex *kex, BIGNUM *dh_pub, struct sshbuf *out)
 		ERR_print_errors_fp(stderr);
 		goto out;
 	}
+#else
+	DH_get0_pqg(kex->dh, &p, &q, &g);
+	if ((pkey = EVP_PKEY_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+
+	if (EVP_PKEY_set1_DH(pkey, kex->dh) != 1) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+
+	if ((dh_peer = DH_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+
+	copy_p = BN_dup(p);
+	copy_q = BN_dup(q);
+	copy_g = BN_dup(g);
+	if (DH_set0_pqg(dh_peer, copy_p, copy_q, copy_g) != 1) {
+		BN_free(copy_p);
+		BN_free(copy_q);
+		BN_free(copy_g);
+		DH_free(dh_peer);
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	copy_p = copy_q = copy_g = NULL;
+
+	copy_pub = BN_dup(dh_pub);
+	if (DH_set0_key(dh_peer, copy_pub, NULL) != 1) {
+		BN_free(copy_pub);
+		DH_free(dh_peer);
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	copy_pub = NULL;
+
+	if ((dh_pkey = EVP_PKEY_new()) == NULL) {
+		DH_free(dh_peer);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+
+	if (EVP_PKEY_set1_DH(dh_pkey, dh_peer) != 1) {
+		DH_free(dh_peer);
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	DH_free(dh_peer);
+#endif
 
 	if ((ctx = EVP_PKEY_CTX_new(pkey, NULL)) == NULL) {
 		error_f("Could not init EVP_PKEY_CTX for dh");
+		ERR_print_errors_fp(stderr);
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
@@ -244,6 +302,7 @@ kex_dh_dec(struct kex *kex, const struct sshbuf *dh_blob,
 	sshbuf_free(buf);
 	return r;
 }
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 /* 
  * Creates an EVP_PKEY from the given parameters and keys.
  * The private key can be omitted.
@@ -252,7 +311,6 @@ int
 kex_create_evp_dh(EVP_PKEY **pkey, const BIGNUM *p, const BIGNUM *q,
     const BIGNUM *g, const BIGNUM *pub, const BIGNUM *priv)
 {
-#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	OSSL_PARAM_BLD *param_bld = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
 	int r = 0;
@@ -286,7 +344,6 @@ out:
 	OSSL_PARAM_BLD_free(param_bld);
 	EVP_PKEY_CTX_free(ctx);
 	return r;
-#else
-#endif
 }
+#endif
 #endif /* WITH_OPENSSL */

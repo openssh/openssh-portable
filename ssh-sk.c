@@ -207,6 +207,8 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 	struct sshkey *key = NULL;
 	struct sshbuf *b = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
+	EC_KEY *ecdsa = NULL;
+	EC_POINT *q = NULL;
 	int r;
 
 	*keyp = NULL;
@@ -216,12 +218,55 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 		goto out;
 	}
 	key->ecdsa_nid = NID_X9_62_prime256v1;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	if ((r = ssh_create_evp_ec(resp->public_key, resp->public_key_len,
 	    NULL, key->ecdsa_nid, &key->pkey)) != 0) {
 		error_f("key creation failed");
 		goto out;
 	}
-	if ((ctx = EVP_PKEY_CTX_new_from_pkey(NULL, key->pkey, NULL))
+#else
+	if ((ecdsa = EC_KEY_new_by_curve_name(key->ecdsa_nid)) == NULL ||
+	    (q = EC_POINT_new(EC_KEY_get0_group(ecdsa))) == NULL ||
+	    (b = sshbuf_new()) == NULL) {
+		error_f("allocation failed");
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((r = sshbuf_put_string(b,
+	    resp->public_key, resp->public_key_len)) != 0) {
+		error_fr(r, "sshbuf_put_string");
+		goto out;
+	}
+	if ((r = sshbuf_get_ec(b, q, EC_KEY_get0_group(ecdsa))) != 0) {
+		error_fr(r, "parse");
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+#if 0	/* FIXME beldmit */
+	if (sshkey_ec_validate_public(EC_KEY_get0_group(ecdsa), q) != 0) {
+		error("Authenticator returned invalid ECDSA key");
+		r = SSH_ERR_KEY_INVALID_EC_VALUE;
+		goto out;
+	}
+#endif
+	if (EC_KEY_set_public_key(ecdsa, q) != 1) {
+		/* XXX assume it is a allocation error */
+		error_f("allocation failed");
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((key->pkey = EVP_PKEY_new()) == NULL) {
+		error_f("allocation failed");
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (EVP_PKEY_set1_EC_KEY(key->pkey, ecdsa) != 1) {
+		error_f("Assigning EC_KEY failed");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+#endif
+	if ((ctx = EVP_PKEY_CTX_new(key->pkey, NULL))
 	    == NULL ||
 	    EVP_PKEY_public_check(ctx) != 1) {
 		r = SSH_ERR_KEY_INVALID_EC_VALUE;
@@ -234,6 +279,8 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
  out:
 	sshkey_free(key);
 	sshbuf_free(b);
+	EC_KEY_free(ecdsa);
+	EC_POINT_free(q);
 	EVP_PKEY_CTX_free(ctx);
 	return r;
 }

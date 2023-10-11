@@ -33,8 +33,10 @@
 #include <openssl/bn.h>
 #include <openssl/ecdsa.h>
 #include <openssl/evp.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 #include <openssl/core_names.h>
 #include <openssl/param_build.h>
+#endif
 
 #include <string.h>
 
@@ -73,9 +75,13 @@ ssh_ecdsa_cleanup(struct sshkey *k)
 static int
 ssh_ecdsa_equal(const struct sshkey *a, const struct sshkey *b)
 {
-	/* FIXME OpenSSL 1.1.1 */
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	if (EVP_PKEY_eq(a->pkey, b->pkey) == 1)
 		return 1;
+#else
+	if (EVP_PKEY_cmp(a->pkey, b->pkey) == 1)
+		return 1;
+#endif
 
 	return 0;
 }
@@ -101,13 +107,13 @@ ssh_ecdsa_serialize_private(const struct sshkey *key, struct sshbuf *b,
     enum sshkey_serialize_rep opts)
 {
 	int r;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	BIGNUM *priv = NULL;
 
 	if (!sshkey_is_cert(key)) {
 		if ((r = ssh_ecdsa_serialize_public(key, b, opts)) != 0)
 			return r;
 	}
-	/* FIXME OpenSSL 1.1.1 */
 	if (EVP_PKEY_get_bn_param(key->pkey, OSSL_PKEY_PARAM_PRIV_KEY, &priv) != 1 ||
 	    (r = sshbuf_put_bignum2(b, priv) != 0)) {
 		BN_clear_free(priv);
@@ -115,14 +121,24 @@ ssh_ecdsa_serialize_private(const struct sshkey *key, struct sshbuf *b,
 	}
 
 	BN_clear_free(priv);
+#else
+	if (!sshkey_is_cert(key)) {
+		if ((r = ssh_ecdsa_serialize_public(key, b, opts)) != 0)
+			return r;
+	}
+	if ((r = sshbuf_put_bignum2(b,
+	    EC_KEY_get0_private_key(EVP_PKEY_get0_EC_KEY(key->pkey)))) != 0)
+		return r;
+#endif
 	return 0;
 }
 
 static int
 ssh_ecdsa_generate(struct sshkey *k, int bits)
 {
-	EVP_PKEY_CTX *ctx = NULL;
 	EVP_PKEY *res = NULL;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	EVP_PKEY_CTX *ctx = NULL;
 
 	if ((k->ecdsa_nid = sshkey_ecdsa_bits_to_nid(bits)) == -1)
 		return SSH_ERR_KEY_LENGTH;
@@ -138,6 +154,30 @@ ssh_ecdsa_generate(struct sshkey *k, int bits)
 	}
 
 	k->pkey = res;
+#else
+	EC_KEY *private;
+
+	if ((k->ecdsa_nid = sshkey_ecdsa_bits_to_nid(bits)) == -1)
+		return SSH_ERR_KEY_LENGTH;
+	if ((private = EC_KEY_new_by_curve_name(k->ecdsa_nid)) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if (EC_KEY_generate_key(private) != 1) {
+		EC_KEY_free(private);
+		return SSH_ERR_LIBCRYPTO_ERROR;
+	}
+	EC_KEY_set_asn1_flag(private, OPENSSL_EC_NAMED_CURVE);
+
+	if ((res = EVP_PKEY_new()) == NULL) {
+		EC_KEY_free(private);
+		return SSH_ERR_ALLOC_FAIL;
+	}
+	if (EVP_PKEY_set1_EC_KEY(res, private) != 1) {
+		EC_KEY_free(private);
+		EVP_PKEY_free(res);
+		return SSH_ERR_LIBCRYPTO_ERROR;
+	}
+	k->pkey = res;
+#endif
  	return 0;
 }
 
@@ -172,7 +212,6 @@ ssh_ecdsa_copy_public(const struct sshkey *from, struct sshkey *to)
 
 	EC_KEY_free(ec_to);
 	return 0;
-
 }
 
 static int
@@ -193,10 +232,42 @@ ssh_ecdsa_deserialize_public(const char *ktype, struct sshbuf *b,
 		r = SSH_ERR_EC_CURVE_MISMATCH;
 		goto out;
 	}
-	if ((r = sshbuf_get_ec(b, &pub, &publen)) != 0) /*XXX*/
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	if ((r = sshbuf_get_string(b, &pub, &publen)) != 0) /*XXX*/
 		goto out;
 	if ((r = ssh_create_evp_ec(pub, publen, NULL, key->ecdsa_nid, &pkey) != 0))
 		goto out;
+#else
+	{
+		EC_KEY *tmp = NULL;
+
+		if ((tmp = EC_KEY_new_by_curve_name(key->ecdsa_nid)) == NULL) {
+			r = SSH_ERR_LIBCRYPTO_ERROR;
+			goto out;
+		}
+		if ((r = sshbuf_get_eckey(b, tmp)) != 0)
+			goto out;
+#if 0	/* FIXME beldmit */
+		if (sshkey_ec_validate_public(EC_KEY_get0_group(tmp),
+					EC_KEY_get0_public_key(tmp)) != 0) {
+			r = SSH_ERR_KEY_INVALID_EC_VALUE;
+			goto out;
+		}
+#endif
+
+		if ((pkey = EVP_PKEY_new()) == NULL) {
+			EC_KEY_free(tmp);
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		if (EVP_PKEY_set1_EC_KEY(pkey, tmp) != 1) {
+			EC_KEY_free(tmp);
+			r = SSH_ERR_LIBCRYPTO_ERROR;
+			goto out;
+		}
+		EC_KEY_free(tmp);
+	}
+#endif
 	EVP_PKEY_free(key->pkey);
 	key->pkey = pkey;
 	pkey = NULL;
@@ -414,6 +485,7 @@ ssh_ecdsa_verify(const struct sshkey *key,
 	return ret;
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 int
 ssh_create_evp_ec(u_char *pubkey, size_t pubkey_len, BIGNUM *privkey,
 		  int ecdsa_nid, EVP_PKEY **pkey)
@@ -461,6 +533,7 @@ out:
   	EVP_PKEY_CTX_free(ctx);
   	return ret;
 }
+#endif
 
 /* NB. not static; used by ECDSA-SK */
 const struct sshkey_impl_funcs sshkey_ecdsa_funcs = {

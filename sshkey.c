@@ -34,6 +34,7 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 #include <openssl/core_names.h>
 #include <openssl/param_build.h>
 #include <openssl/encoder.h>
@@ -494,7 +495,7 @@ sshkey_calculate_signature(EVP_PKEY *pkey, int hash_alg, u_char **sigp,
 		return SSH_ERR_INVALID_ARGUMENT;
 	}
 
-	slen = EVP_PKEY_get_size(pkey);
+	slen = EVP_PKEY_size(pkey);
 	if (slen <= 0 || slen > SSHBUF_MAX_BIGNUM)
 		return SSH_ERR_INVALID_ARGUMENT;
 
@@ -1416,7 +1417,7 @@ sshkey_check_rsa_length(const struct sshkey *k, int min_size)
 	if (k == NULL || k->pkey == NULL ||
 	    (k->type != KEY_RSA && k->type != KEY_RSA_CERT))
 		return 0;
-	nbits = EVP_PKEY_get_bits(k->pkey);
+	nbits = EVP_PKEY_bits(k->pkey);
 	if (nbits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
 	    (min_size > 0 && nbits < min_size))
 		return SSH_ERR_KEY_LENGTH;
@@ -1426,10 +1427,54 @@ sshkey_check_rsa_length(const struct sshkey *k, int min_size)
 
 #ifdef WITH_OPENSSL
 # ifdef OPENSSL_HAS_ECC
+static int
+sshkey_ec_key_to_nid(EC_KEY *k)
+{
+        EC_GROUP *eg;
+        int nids[] = {
+                NID_X9_62_prime256v1,
+                NID_secp384r1,
+#  ifdef OPENSSL_HAS_NISTP521
+                NID_secp521r1,
+#  endif /* OPENSSL_HAS_NISTP521 */
+                -1
+        };
+        int nid;
+        u_int i;
+        const EC_GROUP *g = EC_KEY_get0_group(k);
+
+        /*
+         * The group may be stored in a ASN.1 encoded private key in one of two
+         * ways: as a "named group", which is reconstituted by ASN.1 object ID
+         * or explicit group parameters encoded into the key blob. Only the
+         * "named group" case sets the group NID for us, but we can figure
+         * it out for the other case by comparing against all the groups that
+         * are supported.
+         */
+        if ((nid = EC_GROUP_get_curve_name(g)) > 0)
+                return nid;
+        for (i = 0; nids[i] != -1; i++) {
+                if ((eg = EC_GROUP_new_by_curve_name(nids[i])) == NULL)
+                        return -1;
+                if (EC_GROUP_cmp(g, eg, NULL) == 0)
+                        break;
+                EC_GROUP_free(eg);
+        }
+        if (nids[i] != -1) {
+                /* Use the group with the NID attached */
+                EC_GROUP_set_asn1_flag(eg, OPENSSL_EC_NAMED_CURVE);
+                if (EC_KEY_set_group(k, eg) != 1) {
+                        EC_GROUP_free(eg);
+                        return -1;
+                }
+        }
+        return nids[i];
+}
+
 int
 sshkey_ecdsa_key_to_nid(EVP_PKEY *pkey)
 {
-	/* FIXME OpenSSL 1.1.1*/
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	char group_name[64] = {0};
 	int nid;
 	if (EVP_PKEY_get_utf8_string_param(pkey, OSSL_PKEY_PARAM_GROUP_NAME,
@@ -1441,6 +1486,16 @@ sshkey_ecdsa_key_to_nid(EVP_PKEY *pkey)
 	    (nid = OBJ_ln2nid(group_name)) != NID_undef)
 			return nid;
 	return -1;
+#else
+	int nid;
+	EC_KEY *ec = EVP_PKEY_get1_EC_KEY(pkey);
+
+	if (ec == NULL) return -1;
+
+	nid = sshkey_ec_key_to_nid(ec);
+	EC_KEY_free(ec);
+	return nid;
+#endif
 }
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
@@ -3131,6 +3186,7 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 			success = EVP_PKEY_set1_DSA(pkey, key->dsa);
 		}
 		break;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	case KEY_ECDSA:
 	case KEY_RSA:
 		if (format == SSHKEY_PRIVATE_PEM) {
@@ -3163,10 +3219,40 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 			OSSL_ENCODER_CTX_free(ctx);
 			success = 1;
 		} else {
-			pkey = EVP_PKEY_dup(key->pkey);
-			success = pkey == NULL ? 0 : 1;
+			EVP_PKEY_free(pkey);
+			pkey = key->pkey;
+			EVP_PKEY_up_ref(key->pkey);
+			success = 1;
 		}
 		break;
+#else
+#ifdef OPENSSL_HAS_ECC
+	case KEY_ECDSA:
+		if (format == SSHKEY_PRIVATE_PEM) {
+			success = PEM_write_bio_ECPrivateKey(bio, 
+			    EVP_PKEY_get0_EC_KEY(key->pkey),
+			    cipher, passphrase, len, NULL, NULL);
+		} else {
+			EVP_PKEY_free(pkey);
+			pkey = key->pkey;
+			EVP_PKEY_up_ref(key->pkey);
+			success = 1;
+		}
+		break;
+#endif
+	case KEY_RSA:
+		if (format == SSHKEY_PRIVATE_PEM) {
+			success = PEM_write_bio_RSAPrivateKey(bio,
+			    EVP_PKEY_get0_RSA(key->pkey),
+			    cipher, passphrase, len, NULL, NULL);
+		} else {
+			EVP_PKEY_free(pkey);
+			pkey = key->pkey;
+			EVP_PKEY_up_ref(key->pkey);
+			success = 1;
+		}
+		break;
+#endif
 	default:
 		success = 0;
 		break;
@@ -3176,7 +3262,13 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 		goto out;
 	}
 	if (format == SSHKEY_PRIVATE_PKCS8) {
-		/* for now only rsa keys */
+		if ((success = PEM_write_bio_PrivateKey(bio, pkey, cipher,
+		    passphrase, len, NULL, NULL)) == 0) {
+			r = SSH_ERR_LIBCRYPTO_ERROR;
+			goto out;
+		}
+#if 0
+		/* beldmit: Don't understand why Norbert implemented it, PEM_write_bio_PrivateKey is not deprecated */
 		if (key->type == KEY_RSA) {
 			OSSL_ENCODER_CTX *ctx;
 			success = 0;
@@ -3210,6 +3302,7 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 				goto out;
 			}
 		}
+#endif
 	}
 	if ((blen = BIO_get_mem_data(bio, &bptr)) <= 0) {
 		r = SSH_ERR_INTERNAL_ERROR;
@@ -3427,10 +3520,12 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 		prv->type = KEY_ECDSA;
 		prv->ecdsa_nid = sshkey_ecdsa_key_to_nid(prv->pkey);
 		if (prv->ecdsa_nid == -1 ||
-		    (ctx = EVP_PKEY_CTX_new_from_pkey(NULL, prv->pkey, NULL))
-		    == NULL ||
-		    EVP_PKEY_public_check(ctx) != 1 ||
-		    EVP_PKEY_private_check(ctx) != 1) {
+		    (ctx = EVP_PKEY_CTX_new(prv->pkey, NULL)) == NULL
+		    || EVP_PKEY_public_check(ctx) != 1
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+		    || EVP_PKEY_private_check(ctx) != 1
+#endif
+		    ) {
 			r = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
@@ -3646,6 +3741,7 @@ sshkey_set_filename(struct sshkey *k, const char *filename)
 #endif /* WITH_XMSS */
 
 #ifdef WITH_OPENSSL
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 EVP_PKEY *
 sshkey_create_evp(OSSL_PARAM_BLD *param_bld, EVP_PKEY_CTX *ctx)
 {
@@ -3667,4 +3763,5 @@ sshkey_create_evp(OSSL_PARAM_BLD *param_bld, EVP_PKEY_CTX *ctx)
   	}
   	return ret;
 }
+#endif
 #endif /* WITH_OPENSSL */
