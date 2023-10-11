@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.152 2023/08/28 03:31:16 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.153 2023/10/11 22:42:26 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -181,6 +181,9 @@ typedef struct {
 	int	required_rsa_size;	/* minimum size of RSA keys */
 	int	enable_escape_commandline;	/* ~C commandline */
 	int	obscure_keystroke_timing_interval;
+
+	char	**channel_timeouts;	/* inactivity timeout by channel type */
+	u_int	num_channel_timeouts;
 
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;

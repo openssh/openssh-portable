@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.594 2023/09/03 23:59:32 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.595 2023/10/11 22:42:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1572,6 +1572,20 @@ main(int ac, char **av)
 		timeout_ms = INT_MAX;
 	else
 		timeout_ms = options.connection_timeout * 1000;
+
+	/* Apply channels timeouts, if set */
+	channel_clear_timeouts(ssh);
+	for (j = 0; j < options.num_channel_timeouts; j++) {
+		debug3("applying channel timeout %s",
+		    options.channel_timeouts[j]);
+		if (parse_pattern_interval(options.channel_timeouts[j],
+		    &cp, &i) != 0) {
+			fatal_f("internal error: bad timeout %s",
+			    options.channel_timeouts[j]);
+		}
+		channel_add_timeout(ssh, cp, i);
+		free(cp);
+	}
 
 	/* Open a connection to the remote host. */
 	if (ssh_connect(ssh, host, options.host_arg, addrs, &hostaddr,

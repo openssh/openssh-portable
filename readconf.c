@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.381 2023/08/28 03:31:16 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.382 2023/10/11 22:42:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -178,7 +178,7 @@ typedef enum {
 	oFingerprintHash, oUpdateHostkeys, oHostbasedAcceptedAlgorithms,
 	oPubkeyAcceptedAlgorithms, oCASignatureAlgorithms, oProxyJump,
 	oSecurityKeyProvider, oKnownHostsCommand, oRequiredRSASize,
-	oEnableEscapeCommandline, oObscureKeystrokeTiming,
+	oEnableEscapeCommandline, oObscureKeystrokeTiming, oChannelTimeout,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -328,6 +328,7 @@ static struct {
 	{ "requiredrsasize", oRequiredRSASize },
 	{ "enableescapecommandline", oEnableEscapeCommandline },
 	{ "obscurekeystroketiming", oObscureKeystrokeTiming },
+	{ "channeltimeout", oChannelTimeout },
 
 	{ NULL, oBadOption }
 };
@@ -2323,6 +2324,31 @@ parse_pubkey_algos:
 			*intptr = value;
 		break;
 
+	case oChannelTimeout:
+		uvalue = options->num_channel_timeouts;
+		i = 0;
+		while ((arg = argv_next(&ac, &av)) != NULL) {
+			/* Allow "none" only in first position */
+			if (strcasecmp(arg, "none") == 0) {
+				if (i > 0 || ac > 0) {
+					error("%s line %d: keyword %s \"none\" "
+					    "argument must appear alone.",
+					    filename, linenum, keyword);
+					goto out;
+				}
+			} else if (parse_pattern_interval(arg,
+			    NULL, NULL) != 0) {
+				fatal("%s line %d: invalid channel timeout %s",
+				    filename, linenum, arg);
+			}
+			if (!*activep || uvalue != 0)
+				continue;
+			opt_array_append(filename, linenum, keyword,
+			    &options->channel_timeouts,
+			    &options->num_channel_timeouts, arg);
+		}
+		break;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -2575,6 +2601,8 @@ initialize_options(Options * options)
 	options->enable_escape_commandline = -1;
 	options->obscure_keystroke_timing_interval = -1;
 	options->tag = NULL;
+	options->channel_timeouts = NULL;
+	options->num_channel_timeouts = 0;
 }
 
 /*
@@ -2815,6 +2843,16 @@ fill_default_options(Options * options)
 			v = NULL; \
 		} \
 	} while(0)
+#define CLEAR_ON_NONE_ARRAY(v, nv, none) \
+	do { \
+		if (options->nv == 1 && \
+		    strcasecmp(options->v[0], none) == 0) { \
+			free(options->v[0]); \
+			free(options->v); \
+			options->v = NULL; \
+			options->nv = 0; \
+		} \
+	} while (0)
 	CLEAR_ON_NONE(options->local_command);
 	CLEAR_ON_NONE(options->remote_command);
 	CLEAR_ON_NONE(options->proxy_command);
@@ -2823,6 +2861,9 @@ fill_default_options(Options * options)
 	CLEAR_ON_NONE(options->pkcs11_provider);
 	CLEAR_ON_NONE(options->sk_provider);
 	CLEAR_ON_NONE(options->known_hosts_command);
+	CLEAR_ON_NONE_ARRAY(channel_timeouts, num_channel_timeouts, "none");
+#undef CLEAR_ON_NONE
+#undef CLEAR_ON_NONE_ARRAY
 	if (options->jump_host != NULL &&
 	    strcmp(options->jump_host, "none") == 0 &&
 	    options->jump_port == 0 && options->jump_user == NULL) {
@@ -3527,6 +3568,8 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_strarray(oSetEnv, o->num_setenv, o->setenv);
 	dump_cfg_strarray_oneline(oLogVerbose,
 	    o->num_log_verbose, o->log_verbose);
+	dump_cfg_strarray_oneline(oChannelTimeout,
+	    o->num_channel_timeouts, o->channel_timeouts);
 
 	/* Special cases */
 
