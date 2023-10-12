@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.399 2023/10/11 22:42:26 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.400 2023/10/12 02:12:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -681,7 +681,7 @@ obfuscate_keystroke_timing(struct ssh *ssh, struct timespec *timeout,
 static void
 client_wait_until_can_do_something(struct ssh *ssh, struct pollfd **pfdp,
     u_int *npfd_allocp, u_int *npfd_activep, int channel_did_enqueue,
-    int *conn_in_readyp, int *conn_out_readyp)
+    sigset_t *sigsetp, int *conn_in_readyp, int *conn_out_readyp)
 {
 	struct timespec timeout;
 	int ret, oready;
@@ -728,7 +728,7 @@ client_wait_until_can_do_something(struct ssh *ssh, struct pollfd **pfdp,
 		    ssh_packet_get_rekey_timeout(ssh));
 	}
 
-	ret = ppoll(*pfdp, *npfd_activep, ptimeout_get_tsp(&timeout), NULL);
+	ret = ppoll(*pfdp, *npfd_activep, ptimeout_get_tsp(&timeout), sigsetp);
 
 	if (ret == -1) {
 		/*
@@ -1448,6 +1448,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	int channel_did_enqueue = 0, r, len;
 	u_int64_t ibytes, obytes;
 	int conn_in_ready, conn_out_ready;
+	sigset_t bsigset, osigset;
 
 	debug("Entering interactive session.");
 	session_ident = ssh2_chan_id;
@@ -1533,6 +1534,13 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 
 	schedule_server_alive_check();
 
+	if (sigemptyset(&bsigset) == -1 ||
+	    sigaddset(&bsigset, SIGHUP) == -1 ||
+	    sigaddset(&bsigset, SIGINT) == -1 ||
+	    sigaddset(&bsigset, SIGQUIT) == -1 ||
+	    sigaddset(&bsigset, SIGTERM) == -1)
+		error_f("bsigset setup: %s", strerror(errno));
+
 	/* Main loop of the client for the interactive session mode. */
 	while (!quit_pending) {
 		channel_did_enqueue = 0;
@@ -1564,17 +1572,20 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			 * message about it to the server if so.
 			 */
 			client_check_window_change(ssh);
-
-			if (quit_pending)
-				break;
 		}
 		/*
 		 * Wait until we have something to do (something becomes
 		 * available on one of the descriptors).
 		 */
+		if (sigprocmask(SIG_BLOCK, &bsigset, &osigset) == -1)
+			error_f("bsigset sigprocmask: %s", strerror(errno));
+		if (quit_pending)
+			break;
 		client_wait_until_can_do_something(ssh, &pfd, &npfd_alloc,
-		    &npfd_active, channel_did_enqueue,
+		    &npfd_active, channel_did_enqueue, &osigset,
 		    &conn_in_ready, &conn_out_ready);
+		if (sigprocmask(SIG_UNBLOCK, &bsigset, &osigset) == -1)
+			error_f("osigset sigprocmask: %s", strerror(errno));
 
 		if (quit_pending)
 			break;
