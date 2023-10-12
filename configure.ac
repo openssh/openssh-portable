@@ -3156,12 +3156,12 @@ if test "x$openssl" = "xyes" ; then
 		    buf, sizeof(buf)) == NULL);
 		]])],
 		[
-			AC_MSG_RESULT([no])
-		],
-		[
 			AC_MSG_RESULT([yes])
 			AC_DEFINE([OPENSSL_HAS_ED25519], [1],
 			    [libcrypto has ed25519 support])
+		],
+		[
+			AC_MSG_RESULT([no])
 		]
 	)
 fi
