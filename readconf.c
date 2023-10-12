@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.382 2023/10/11 22:42:26 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.383 2023/10/12 02:18:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -352,7 +352,7 @@ kex_default_pk_alg(void)
 
 char *
 ssh_connection_hash(const char *thishost, const char *host, const char *portstr,
-    const char *user)
+    const char *user, const char *jumphost)
 {
 	struct ssh_digest_ctx *md;
 	u_char conn_hash[SSH_DIGEST_MAX_LENGTH];
@@ -362,6 +362,7 @@ ssh_connection_hash(const char *thishost, const char *host, const char *portstr,
 	    ssh_digest_update(md, host, strlen(host)) < 0 ||
 	    ssh_digest_update(md, portstr, strlen(portstr)) < 0 ||
 	    ssh_digest_update(md, user, strlen(user)) < 0 ||
+	    ssh_digest_update(md, jumphost, strlen(jumphost)) < 0 ||
 	    ssh_digest_final(md, conn_hash, sizeof(conn_hash)) < 0)
 		fatal_f("mux digest failed");
 	ssh_digest_free(md);
@@ -764,17 +765,19 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 		} else if (strcasecmp(attrib, "exec") == 0) {
-			char *conn_hash_hex, *keyalias;
+			char *conn_hash_hex, *keyalias, *jmphost;
 
 			if (gethostname(thishost, sizeof(thishost)) == -1)
 				fatal("gethostname: %s", strerror(errno));
+			jmphost = option_clear_or_none(options->jump_host) ?
+			    "" : options->jump_host;
 			strlcpy(shorthost, thishost, sizeof(shorthost));
 			shorthost[strcspn(thishost, ".")] = '\0';
 			snprintf(portstr, sizeof(portstr), "%d", port);
 			snprintf(uidstr, sizeof(uidstr), "%llu",
 			    (unsigned long long)pw->pw_uid);
 			conn_hash_hex = ssh_connection_hash(thishost, host,
-			    portstr, ruser);
+			    portstr, ruser, jmphost);
 			keyalias = options->host_key_alias ?
 			    options->host_key_alias : host;
 
@@ -790,6 +793,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			    "r", ruser,
 			    "u", pw->pw_name,
 			    "i", uidstr,
+			    "j", jmphost,
 			    (char *)NULL);
 			free(conn_hash_hex);
 			if (result != 1) {
