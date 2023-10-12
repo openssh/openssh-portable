@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.597 2023/10/12 02:18:18 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.598 2023/10/12 02:48:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1389,8 +1389,6 @@ main(int ac, char **av)
 	    (unsigned long long)pw->pw_uid);
 	cinfo->keyalias = xstrdup(options.host_key_alias ?
 	    options.host_key_alias : options.host_arg);
-	cinfo->conn_hash_hex = ssh_connection_hash(cinfo->thishost, host,
-	    cinfo->portstr, options.user, options.jump_host);
 	cinfo->host_arg = xstrdup(options.host_arg);
 	cinfo->remhost = xstrdup(host);
 	cinfo->remuser = xstrdup(options.user);
@@ -1398,6 +1396,8 @@ main(int ac, char **av)
 	cinfo->locuser = xstrdup(pw->pw_name);
 	cinfo->jmphost = xstrdup(options.jump_host == NULL ?
 	    "" : options.jump_host);
+	cinfo->conn_hash_hex = ssh_connection_hash(cinfo->thishost,
+	    cinfo->remhost, cinfo->portstr, cinfo->remuser, cinfo->jmphost);
 
 	/*
 	 * Expand tokens in arguments. NB. LocalCommand is expanded later,
