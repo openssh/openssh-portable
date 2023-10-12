@@ -176,7 +176,7 @@ if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
     (cd ${HOME} &&
      git clone https://github.com/GrapheneOS/hardened_malloc.git &&
      cd ${HOME}/hardened_malloc &&
-     make -j2 && sudo cp out/libhardened_malloc.so /usr/lib/)
+     make && sudo cp out/libhardened_malloc.so /usr/lib/)
 fi
 
 if [ ! -z "${INSTALL_OPENSSL}" ]; then
@@ -197,14 +197,14 @@ if [ ! -z "${INSTALL_LIBRESSL}" ]; then
          git checkout ${INSTALL_LIBRESSL} &&
          sh update.sh && sh autogen.sh &&
          ./configure --prefix=/opt/libressl &&
-         make -j2 && sudo make install)
+         make && sudo make install)
     else
         LIBRESSL_URLBASE=https://cdn.openbsd.org/pub/OpenBSD/LibreSSL
         (cd ${HOME} &&
          wget ${LIBRESSL_URLBASE}/libressl-${INSTALL_LIBRESSL}.tar.gz &&
          tar xfz libressl-${INSTALL_LIBRESSL}.tar.gz &&
          cd libressl-${INSTALL_LIBRESSL} &&
-         ./configure --prefix=/opt/libressl && make -j2 && sudo make install)
+         ./configure --prefix=/opt/libressl && make && sudo make install)
     fi
 fi
 

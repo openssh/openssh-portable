@@ -108,7 +108,7 @@ jobs:
     - name: make clean
       run: make clean
     - name: make
-      run: make -j2
+      run: make
     - name: make tests
       run: sh ./.github/run_test.sh ${{ matrix.config }}
       env:
