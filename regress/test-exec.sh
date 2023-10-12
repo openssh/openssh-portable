@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.98 2023/03/02 11:10:27 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.99 2023/10/12 03:48:53 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -498,6 +498,10 @@ save_debug_log ()
 	testname=`echo $tid | tr ' ' _`
 	tarname="$OBJ/failed-$testname-logs.tar"
 
+	if [ ! -z "$SUDO" ] ; then
+		$SUDO chown -R $USER $TEST_SSH_LOGDIR $TEST_REGRESS_LOGFILE \
+		    $TEST_SSH_LOGFILE $TEST_SSHD_LOGFILE
+	fi
 	echo $@ >>$TEST_REGRESS_LOGFILE
 	echo $@ >>$TEST_SSH_LOGFILE
 	echo $@ >>$TEST_SSHD_LOGFILE
