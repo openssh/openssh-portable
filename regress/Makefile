@@ -10,6 +10,8 @@ file-tests: $(REGRESS_TARGETS)
 # Interop tests are not run by default
 interop interop-tests: t-exec-interop
 
+extra extra-tests: t-extra
+
 prep:
 	test "x${USE_VALGRIND}" = "x" || mkdir -p $(OBJ)/valgrind-out
 

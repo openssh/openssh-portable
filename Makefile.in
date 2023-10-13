@@ -715,7 +715,7 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/sshsig/test_sshsig$(EXEEXT) \
 	regress/unittests/utf8/test_utf8$(EXEEXT)
 
-tests:	file-tests t-exec interop-tests unit
+tests:	file-tests t-exec interop-tests extra-tests unit
 	echo all tests passed
 
 unit: regress-unit-binaries
@@ -726,7 +726,7 @@ unit: regress-unit-binaries
 		OBJ="$(BUILDDIR)/regress" \
 		$@ && echo $@ tests passed
 
-interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
+interop-tests t-exec file-tests extra-tests: regress-prep regress-binaries $(TARGETS)
 	cd $(srcdir)/regress || exit $$?; \
 	EGREP='@EGREP@' \
 	OPENSSL_BIN='@OPENSSL_BIN@' \
