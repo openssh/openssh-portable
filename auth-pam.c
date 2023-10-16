@@ -132,11 +132,16 @@ typedef pid_t sp_pthread_t;
 #define pthread_join	fake_pthread_join
 #endif
 
+typedef int SshPamDone;
+#define SshPamError -1
+#define SshPamNone 0
+#define SshPamAuthenticated 1
+
 struct pam_ctxt {
 	sp_pthread_t	 pam_thread;
 	int		 pam_psock;
 	int		 pam_csock;
-	int		 pam_done;
+	SshPamDone	 pam_done;
 };
 
 static void sshpam_free_ctx(void *);
@@ -904,7 +909,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				**prompts = NULL;
 				*num = 0;
 				**echo_on = 0;
-				ctxt->pam_done = -1;
+				ctxt->pam_done = SshPamError;
 				free(msg);
 				sshbuf_free(buffer);
 				return 0;
@@ -931,7 +936,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				import_environments(buffer);
 				*num = 0;
 				**echo_on = 0;
-				ctxt->pam_done = 1;
+				ctxt->pam_done = SshPamAuthenticated;
 				free(msg);
 				sshbuf_free(buffer);
 				return (0);
@@ -944,7 +949,7 @@ sshpam_query(void *ctx, char **name, char **info,
 			*num = 0;
 			**echo_on = 0;
 			free(msg);
-			ctxt->pam_done = -1;
+			ctxt->pam_done = SshPamError;
 			sshbuf_free(buffer);
 			return (-1);
 		}
@@ -988,10 +993,10 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 
 	debug2("PAM: %s entering, %u responses", __func__, num);
 	switch (ctxt->pam_done) {
-	case 1:
+	case SshPamAuthenticated:
 		sshpam_authenticated = 1;
 		return KbdintResultSuccess;
-	case 0:
+	case SshPamNone:
 		break;
 	default:
 		return KbdintResultFailure;
