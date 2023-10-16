@@ -272,11 +272,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -d $RPM_BUILD_ROOT%{_libexecdir}/openssh
-%if %{build6x}
-install -m644 contrib/redhat/sshd.pam.old $RPM_BUILD_ROOT/etc/pam.d/sshd
-%else
-install -m644 contrib/redhat/sshd.pam     $RPM_BUILD_ROOT/etc/pam.d/sshd
-%endif
+install -m644 contrib/redhat/sshd.pam  $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
 %if ! %{no_x11_askpass}
@@ -423,6 +419,9 @@ fi
 %endif
 
 %changelog
+* Mon Oct 16 2023 Fabio Pedretti <pedretti.fabio@gmail.com>
+- Remove reference of dropped sshd.pam.old file
+
 * Thu Oct 28 2021 Damien Miller <djm@mindrot.org>
 - Remove remaining traces of --with-md5-passwords
 
