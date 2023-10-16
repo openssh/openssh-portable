@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.139 2023/10/11 22:41:05 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.140 2023/10/16 08:40:00 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3422,7 +3422,6 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 	struct sshkey *prv = NULL;
 	BIO *bio = NULL;
 	int r;
-	size_t len;
 
 	if (keyp != NULL)
 		*keyp = NULL;
@@ -3504,6 +3503,8 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 #ifdef OPENSSL_HAS_ED25519
 	} else if (EVP_PKEY_base_id(pk) == EVP_PKEY_ED25519 &&
 	    (type == KEY_UNSPEC || type == KEY_ED25519)) {
+		size_t len;
+
 		if ((prv = sshkey_new(KEY_UNSPEC)) == NULL ||
 		    (prv->ed25519_sk = calloc(1, ED25519_SK_SZ)) == NULL ||
 		    (prv->ed25519_pk = calloc(1, ED25519_PK_SZ)) == NULL) {
