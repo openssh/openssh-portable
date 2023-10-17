@@ -170,7 +170,7 @@ kbdint_next_device(Authctxt *authctxt, KbdintAuthctxt *kbdintctxt)
 			    "keyboard-interactive", devices[i]->name))
 				continue;
 			if (strncmp(kbdintctxt->devices, devices[i]->name,
-			    len) == 0) {
+			    len) == 0 && strlen(devices[i]->name) == len) {
 				kbdintctxt->device = devices[i];
 				kbdintctxt->devices_done |= 1 << i;
 			}
