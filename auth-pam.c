@@ -136,6 +136,7 @@ typedef int SshPamDone;
 #define SshPamError -1
 #define SshPamNone 0
 #define SshPamAuthenticated 1
+#define SshPamAgain 2
 
 struct pam_ctxt {
 	sp_pthread_t	 pam_thread;
@@ -868,6 +869,8 @@ sshpam_query(void *ctx, char **name, char **info,
 	**prompts = NULL;
 	plen = 0;
 	*echo_on = xmalloc(sizeof(u_int));
+	ctxt->pam_done = SshPamNone;
+
 	while (ssh_msg_recv(ctxt->pam_psock, buffer) == 0) {
 		if (++nmesg > PAM_MAX_NUM_MSG)
 			fatal_f("too many query messages");
@@ -888,15 +891,13 @@ sshpam_query(void *ctx, char **name, char **info,
 			return (0);
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
-			/* accumulate messages */
-			len = plen + mlen + 2;
-			**prompts = xreallocarray(**prompts, 1, len);
-			strlcpy(**prompts + plen, msg, len - plen);
-			plen += mlen;
-			strlcat(**prompts + plen, "\n", len - plen);
-			plen++;
-			free(msg);
-			break;
+			*num = 0;
+			free(*info);
+			*info = msg; /* Steal the message */
+			msg = NULL;
+			ctxt->pam_done = SshPamAgain;
+			sshbuf_free(buffer);
+			return (0);
 		case PAM_ACCT_EXPIRED:
 		case PAM_MAXTRIES:
 			if (type == PAM_ACCT_EXPIRED)
@@ -1000,6 +1001,8 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 		return (0);
 	case SshPamNone:
 		break;
+	case SshPamAgain:
+		return 1;	/* KbdintResultAgain */
 	default:
 		return (-1);
 	}
