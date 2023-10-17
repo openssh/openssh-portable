@@ -417,6 +417,9 @@ sshpam_thread_conv(int n, sshpam_const struct pam_message **msg,
 			break;
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
+			debug3("PAM: Got message of type %d: %s",
+			       PAM_MSG_MEMBER(msg, i, msg_style),
+			       PAM_MSG_MEMBER(msg, i, msg));
 			if ((r = sshbuf_put_cstring(buffer,
 			    PAM_MSG_MEMBER(msg, i, msg))) != 0)
 				fatal("%s: buffer error: %s",
