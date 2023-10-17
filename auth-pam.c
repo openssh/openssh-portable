@@ -990,15 +990,15 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 	switch (ctxt->pam_done) {
 	case 1:
 		sshpam_authenticated = 1;
-		return (0);
+		return KbdintResultSuccess;
 	case 0:
 		break;
 	default:
-		return (-1);
+		return KbdintResultFailure;
 	}
 	if (num != 1) {
 		error("PAM: expected one response, got %u", num);
-		return (-1);
+		return KbdintResultFailure;
 	}
 	if ((buffer = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
@@ -1015,10 +1015,10 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 	}
 	if (ssh_msg_send(ctxt->pam_psock, PAM_AUTHTOK, buffer) == -1) {
 		sshbuf_free(buffer);
-		return (-1);
+		return KbdintResultFailure;
 	}
 	sshbuf_free(buffer);
-	return (1);
+	return KbdintResultAgain;
 }
 
 static void

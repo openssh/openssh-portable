@@ -51,6 +51,7 @@ struct sshauthopt;
 typedef struct Authctxt Authctxt;
 typedef struct Authmethod Authmethod;
 typedef struct KbdintDevice KbdintDevice;
+typedef int KbdintResult;
 
 struct Authctxt {
 	sig_atomic_t	 success;
@@ -110,6 +111,10 @@ struct Authmethod {
 	int	(*userauth)(struct ssh *, const char *);
 	int	*enabled;
 };
+
+#define KbdintResultFailure -1
+#define KbdintResultSuccess 0
+#define KbdintResultAgain 1
 
 /*
  * Keyboard interactive device:
