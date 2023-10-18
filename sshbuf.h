@@ -220,6 +220,7 @@ int	sshbuf_put_bignum2(struct sshbuf *buf, const BIGNUM *v);
 int	sshbuf_get_ec(struct sshbuf *buf, EC_POINT *v, const EC_GROUP *g);
 int	sshbuf_get_eckey(struct sshbuf *buf, EC_KEY *v);
 int	sshbuf_put_ec(struct sshbuf *buf, EVP_PKEY *pkey);
+int	sshbuf_put_ecbuf(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g);
 #endif /* WITH_OPENSSL */
 
 /* Dump the contents of the buffer in a human-readable format */

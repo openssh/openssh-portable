@@ -13,7 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_INIT([OpenSSH],[Portable],[openssh-unix-dev@mindrot.org])
+AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([ssh.c])
 
