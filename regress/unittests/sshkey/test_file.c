@@ -274,8 +274,10 @@ sshkey_file_tests(void)
 #ifndef OPENSSL_IS_BORINGSSL /* lacks EC_POINT_point2bn() */
 	a = load_bignum("ecdsa_1.param.priv");
 	b = load_bignum("ecdsa_1.param.pub");
-	ec = EVP_PKEY_get0_EC_KEY(k1->pkey);
-#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+	ec = EVP_PKEY_get1_EC_KEY(k1->pkey);
+	ASSERT_PTR_NE(ec, NULL);
+/* OpenSSL 3.0.7 and below export EC pub key in compressed form */
+#if (OPENSSL_VERSION_NUMBER < 0x30000080L)
 	c = EC_POINT_point2bn(EC_KEY_get0_group(ec),
 	EC_KEY_get0_public_key(ec), POINT_CONVERSION_UNCOMPRESSED,
 	    NULL, NULL);
@@ -289,7 +291,7 @@ sshkey_file_tests(void)
 	c = BN_new();
 #endif
 	ASSERT_PTR_NE(c, NULL);
-#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+#if (OPENSSL_VERSION_NUMBER < 0x30000080L)
 	ASSERT_BIGNUM_EQ(EC_KEY_get0_private_key(ec), a);
 #else
 	ASSERT_PTR_NE(BN_bin2bn(pubkey, pubkey_len, c), NULL);
