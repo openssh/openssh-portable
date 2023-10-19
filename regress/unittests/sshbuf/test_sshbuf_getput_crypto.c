@@ -240,7 +240,7 @@ sshbuf_getput_crypto_tests(void)
 	TEST_DONE();
 
 #if defined(OPENSSL_HAS_ECC) && defined(OPENSSL_HAS_NISTP256)
-	TEST_START("sshbuf_put_ec");
+	TEST_START("sshbuf_put_ecpkey");
 #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	param_bld = OSSL_PARAM_BLD_new();
 	ASSERT_PTR_NE(param_bld, NULL);
@@ -292,9 +292,9 @@ sshbuf_getput_crypto_tests(void)
 	p1 = sshbuf_new();
 	ASSERT_PTR_NE(p1, NULL);
 #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
-	ASSERT_INT_EQ(sshbuf_put_ec(p1, eck), 0);
+	ASSERT_INT_EQ(sshbuf_put_ecpkey(p1, eck), 0);
 #else
-	ASSERT_INT_EQ(sshbuf_put_ecbuf(p1, EC_KEY_get0_public_key(eck), 
+	ASSERT_INT_EQ(sshbuf_put_ec(p1, EC_KEY_get0_public_key(eck),
 				EC_KEY_get0_group(eck)), 0);
 #endif
 	ASSERT_INT_EQ(sshbuf_get_string_direct(p1, &d, &s), 0);

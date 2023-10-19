@@ -2539,7 +2539,7 @@ sshpkt_getb_froms(struct ssh *ssh, struct sshbuf **valp)
 int
 sshpkt_put_ec(struct ssh *ssh, EVP_PKEY *pkey)
 {
-	return sshbuf_put_ec(ssh->state->outgoing_packet, pkey);
+	return sshbuf_put_ecpkey(ssh->state->outgoing_packet, pkey);
 }
 #endif /* OPENSSL_HAS_ECC */
 

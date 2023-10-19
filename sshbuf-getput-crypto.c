@@ -153,7 +153,7 @@ sshbuf_put_bignum2(struct sshbuf *buf, const BIGNUM *v)
 
 #ifdef OPENSSL_HAS_ECC
 int
-sshbuf_put_ecbuf(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
+sshbuf_put_ec(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
 {
 	u_char d[SSHBUF_MAX_ECPOINT];
 	size_t len;
@@ -173,14 +173,14 @@ sshbuf_put_ecbuf(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
 }
 
 int
-sshbuf_put_ec(struct sshbuf *buf, EVP_PKEY *pkey)
+sshbuf_put_ecpkey(struct sshbuf *buf, EVP_PKEY *pkey)
 {
 	const EC_KEY *ec = EVP_PKEY_get0_EC_KEY(pkey);
 
 	if (ec == NULL)
 		return SSH_ERR_LIBCRYPTO_ERROR;
 
-	return sshbuf_put_ecbuf(buf, EC_KEY_get0_public_key(ec),
+	return sshbuf_put_ec(buf, EC_KEY_get0_public_key(ec),
 	    EC_KEY_get0_group(ec));
 /* FIXME beldmit */
 #if 0

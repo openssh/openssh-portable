@@ -70,7 +70,7 @@ kex_ecdh_keypair(struct kex *kex)
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = sshbuf_put_ecbuf(buf, public_key, group)) != 0 ||
+	if ((r = sshbuf_put_ec(buf, public_key, group)) != 0 ||
 	    (r = sshbuf_get_u32(buf, NULL)) != 0)
 		goto out;
 #ifdef DEBUG_KEXECDH
@@ -120,7 +120,7 @@ kex_ecdh_enc(struct kex *kex, const struct sshbuf *client_blob,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = sshbuf_put_ecbuf(server_blob, pub_key, group)) != 0 ||
+	if ((r = sshbuf_put_ec(server_blob, pub_key, group)) != 0 ||
 	    (r = sshbuf_get_u32(server_blob, NULL)) != 0)
 		goto out;
 	if ((r = kex_ecdh_dec_key_group(kex, client_blob, server_key, group,

@@ -96,7 +96,7 @@ ssh_ecdsa_serialize_public(const struct sshkey *key, struct sshbuf *b,
 		return SSH_ERR_INVALID_ARGUMENT;
 	if ((r = sshbuf_put_cstring(b,
 	    sshkey_curve_nid_to_name(key->ecdsa_nid))) != 0 ||
-	    (r = sshbuf_put_ec(b, key->pkey)) != 0)
+	    (r = sshbuf_put_ecpkey(b, key->pkey)) != 0)
 		return r;
 
 	return 0;
