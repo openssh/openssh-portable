@@ -23,7 +23,9 @@
 #include <stdio.h>
 #ifdef WITH_OPENSSL
 # include <openssl/bn.h>
-# include <openssl/ec.h>
+# ifdef OPENSSL_HAS_ECC
+#  include <openssl/ec.h>
+# endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 
 #define SSHBUF_SIZE_MAX		0x8000000	/* Hard maximum size */
