@@ -2974,6 +2974,12 @@ if test "x$openssl" = "xyes" ; then
 		EVP_CIPHER_CTX_set_iv \
 	])
 
+	# Misc versions of LibreSSL/BoringSSL API differences
+	AC_CHECK_FUNCS([ \
+		EVP_PKEY_public_check \
+		EVP_PKEY_private_check \
+	])
+
 	if test "x$openssl_engine" = "xyes" ; then
 		AC_MSG_CHECKING([for OpenSSL ENGINE support])
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[

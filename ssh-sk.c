@@ -266,12 +266,14 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 		goto out;
 	}
 #endif
+#ifdef HAVE_EVP_PKEY_PUBLIC_CHECK
 	if ((ctx = EVP_PKEY_CTX_new(key->pkey, NULL))
 	    == NULL ||
 	    EVP_PKEY_public_check(ctx) != 1) {
 		r = SSH_ERR_KEY_INVALID_EC_VALUE;
 		goto out;
 	}
+#endif
 	/* success */
 	*keyp = key;
 	key = NULL; /* transferred */

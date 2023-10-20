@@ -3681,8 +3681,10 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 		prv->ecdsa_nid = sshkey_ecdsa_key_to_nid(prv->pkey);
 		if (prv->ecdsa_nid == -1 ||
 		    (ctx = EVP_PKEY_CTX_new(prv->pkey, NULL)) == NULL
+#ifdef HAVE_EVP_PKEY_PUBLIC_CHECK
 		    || EVP_PKEY_public_check(ctx) != 1
-#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+#endif
+#ifdef HAVE_EVP_PKEY_PRIVATE_CHECK
 		    || EVP_PKEY_private_check(ctx) != 1
 #endif
 		    ) {
