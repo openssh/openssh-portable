@@ -116,7 +116,7 @@ for TARGET in $TARGETS; do
           1.*)	INSTALL_OPENSSL="OpenSSL_$(echo ${INSTALL_OPENSSL} | tr . _)" ;;
           3.*)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
         esac
-        PACKAGES="${PACKAGES} putty-tools"
+        PACKAGES="${PACKAGES} putty-tools dropbear-bin"
        ;;
     libressl-*)
         INSTALL_LIBRESSL=$(echo ${TARGET} | cut -f2 -d-)
@@ -124,7 +124,7 @@ for TARGET in $TARGETS; do
           master) ;;
           *) INSTALL_LIBRESSL="$(echo ${TARGET} | cut -f2 -d-)" ;;
         esac
-        PACKAGES="${PACKAGES} putty-tools"
+        PACKAGES="${PACKAGES} putty-tools dropbear-bin"
        ;;
     boringssl)
         INSTALL_BORINGSSL=1
