@@ -5577,6 +5577,9 @@ AC_SUBST([UNSUPPORTED_ALGORITHMS], [$unsupported_algorithms])
 AC_SUBST([DEPEND], [$(cat $srcdir/.depend)])
 
 # Binaries for interop tests.
+AC_PATH_PROG([PLINK], [plink])
+AC_PATH_PROG([PUTTYGEN], [puttygen])
+AC_PATH_PROG([CONCH], [conch])
 AC_PATH_PROG([DROPBEAR], [dropbear])
 AC_PATH_PROG([DBCLIENT], [dbclient])
 AC_PATH_PROG([DROPBEARKEY], [dropbearkey])

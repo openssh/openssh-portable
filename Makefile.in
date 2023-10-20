@@ -751,9 +751,9 @@ interop-tests t-exec file-tests extra-tests: regress-prep regress-binaries $(TAR
 		TEST_SSH_SK_HELPER="$(BUILDDIR)/ssh-sk-helper" \
 		TEST_SSH_SFTPSERVER="$(BUILDDIR)/sftp-server" \
 		TEST_SSH_MODULI_FILE="$(abs_top_srcdir)/moduli" \
-		TEST_SSH_PLINK="plink" \
-		TEST_SSH_PUTTYGEN="puttygen" \
-		TEST_SSH_CONCH="conch" \
+		TEST_SSH_PLINK="@PLINK@" \
+		TEST_SSH_PUTTYGEN="@PUTTYGEN@" \
+		TEST_SSH_CONCH="@CONCH@" \
 		TEST_SSH_DROPBEAR="@DROPBEAR@" \
 		TEST_SSH_DROPBEARKEY="@DROPBEARKEY@" \
 		TEST_SSH_DROPBEARCONVERT="@DROPBEARCONVERT@" \
