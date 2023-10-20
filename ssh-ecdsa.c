@@ -221,7 +221,9 @@ ssh_ecdsa_deserialize_public(const char *ktype, struct sshbuf *b,
 	int r;
 	char *curve = NULL;
 	unsigned char *pub = NULL;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	size_t publen = 0;
+#endif
 	EVP_PKEY *pkey = NULL;
 
 	if ((key->ecdsa_nid = sshkey_ecdsa_nid_from_name(ktype)) == -1)
@@ -233,7 +235,7 @@ ssh_ecdsa_deserialize_public(const char *ktype, struct sshbuf *b,
 		goto out;
 	}
 #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
-	if ((r = sshbuf_get_string(b, &pub, &publen)) != 0) /*XXX*/
+	if ((r = sshbuf_get_string(b, &pub, &publen)) != 0)
 		goto out;
 	if ((r = ssh_create_evp_ec(pub, publen, NULL, key->ecdsa_nid, &pkey) != 0))
 		goto out;
