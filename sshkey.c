@@ -3348,15 +3348,16 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 			success = EVP_PKEY_set1_DSA(pkey, key->dsa);
 		}
 		break;
-#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+/* #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	case KEY_ECDSA:
 	case KEY_RSA:
 		if (format == SSHKEY_PRIVATE_PEM) {
 			OSSL_ENCODER_CTX *ctx;
 			ctx = OSSL_ENCODER_CTX_new_for_pkey(key->pkey,
-							    EVP_PKEY_KEYPAIR,
+                                             OSSL_KEYMGMT_SELECT_KEYPAIR
+                                             | OSSL_KEYMGMT_SELECT_DOMAIN_PARAMETERS,
 							    "PEM",
-							    "type-specific",
+							    "PrivateKeyInfo",
 							    NULL);
 			if (!ctx) {
 				r = SSH_ERR_LIBCRYPTO_ERROR;
@@ -3387,7 +3388,7 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 			success = 1;
 		}
 		break;
-#else
+#else FIXME beldmit */
 #ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		if (format == SSHKEY_PRIVATE_PEM) {
@@ -3414,7 +3415,7 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 			success = 1;
 		}
 		break;
-#endif
+/* #endif FIXME beldmit */
 	default:
 		success = 0;
 		break;
