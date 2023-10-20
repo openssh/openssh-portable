@@ -96,13 +96,13 @@ SCP=scp
 SSH_REGRESS_TMP=
 
 # Interop testing
-PLINK=plink
-PUTTYGEN=puttygen
-CONCH=conch
-DROPBEAR=dropbear
-DBCLIENT=dbclient
-DROPBEARKEY=dropbearkey
-DROPBEARCONVERT=dropbearconvert
+PLINK=/usr/local/bin/plink
+PUTTYGEN=/usr/local/bin/puttygen
+CONCH=/usr/local/bin/conch
+DROPBEAR=/usr/local/bin/dropbear
+DBCLIENT=/usr/local/bin/dbclient
+DROPBEARKEY=/usr/local/bin/dropbearkey
+DROPBEARCONVERT=/usr/local/bin/dropbearconvert
 
 # Tools used by multiple tests
 NC=$OBJ/netcat
@@ -137,25 +137,13 @@ if [ "x$TEST_SSH_SCP" != "x" ]; then
 	SCP="${TEST_SSH_SCP}"
 fi
 if [ "x$TEST_SSH_PLINK" != "x" ]; then
-	# Find real binary, if it exists
-	case "${TEST_SSH_PLINK}" in
-	/*) PLINK="${TEST_SSH_PLINK}" ;;
-	*) PLINK=`which ${TEST_SSH_PLINK} 2>/dev/null` ;;
-	esac
+	PLINK="${TEST_SSH_PLINK}"
 fi
 if [ "x$TEST_SSH_PUTTYGEN" != "x" ]; then
-	# Find real binary, if it exists
-	case "${TEST_SSH_PUTTYGEN}" in
-	/*) PUTTYGEN="${TEST_SSH_PUTTYGEN}" ;;
-	*) PUTTYGEN=`which ${TEST_SSH_PUTTYGEN} 2>/dev/null` ;;
-	esac
+	PUTTYGEN="${TEST_SSH_PUTTYGEN}"
 fi
 if [ "x$TEST_SSH_CONCH" != "x" ]; then
-	# Find real binary, if it exists
-	case "${TEST_SSH_CONCH}" in
-	/*) CONCH="${TEST_SSH_CONCH}" ;;
-	*) CONCH=`which ${TEST_SSH_CONCH} 2>/dev/null` ;;
-	esac
+	CONCH="${TEST_SSH_CONCH}"
 fi
 if [ "x$TEST_SSH_DROPBEAR" != "x" ]; then
 	DROPBEAR="${TEST_SSH_DROPBEAR}"
