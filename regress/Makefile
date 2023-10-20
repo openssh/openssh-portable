@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.126 2023/09/06 23:36:09 djm Exp $
+#	$OpenBSD: Makefile,v 1.128 2023/10/20 06:56:45 dtucker Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -18,6 +18,7 @@ prep:
 clean:
 	for F in $(CLEANFILES); do rm -f $(OBJ)$$F; done
 	rm -rf $(OBJ).putty
+	rm -rf $(OBJ).dropbear
 
 distclean:	clean
 
@@ -109,6 +110,7 @@ LTESTS= 	connect \
 		match-subsystem
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
+INTEROP_TESTS+=	dropbear-ciphers dropbear-kex
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
 
 EXTRA_TESTS=	agent-pkcs11
