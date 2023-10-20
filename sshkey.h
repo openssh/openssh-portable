@@ -38,12 +38,18 @@
 # ifdef OPENSSL_HAS_ECC
 #  include <openssl/ecdsa.h>
 # else /* OPENSSL_HAS_ECC */
+#  define EC_KEY	void
+#  define EC_GROUP	void
+#  define EC_POINT	void
 # endif /* OPENSSL_HAS_ECC */
 #define SSH_OPENSSL_VERSION OpenSSL_version(OPENSSL_VERSION)
 #else /* WITH_OPENSSL */
 # define BIGNUM		void
 # define EVP_PKEY	void
 # define DSA		void
+# define EC_KEY	void
+# define EC_GROUP	void
+# define EC_POINT	void
 #define SSH_OPENSSL_VERSION "without OpenSSL"
 #endif /* WITH_OPENSSL */
 
@@ -256,6 +262,8 @@ u_int		 sshkey_curve_nid_to_bits(int);
 int		 sshkey_ecdsa_bits_to_nid(int);
 int		 sshkey_ecdsa_key_to_nid(EVP_PKEY *);
 int		 sshkey_ec_nid_to_hash_alg(int nid);
+int		 sshkey_ec_validate_public(const EC_GROUP *, const EC_POINT *);
+int		 sshkey_ec_validate_private(const EC_KEY *);
 const char	*sshkey_ssh_name(const struct sshkey *);
 const char	*sshkey_ssh_name_plain(const struct sshkey *);
 int		 sshkey_names_valid2(const char *, int, int);
@@ -350,6 +358,13 @@ int pkcs11_get_ecdsa_idx(void);
 #if !defined(WITH_OPENSSL)
 # undef EVP_PKEY
 # undef DSA
+# undef EC_KEY
+# undef EC_GROUP
+# undef EC_POINT
+#elif !defined(OPENSSL_HAS_ECC)
+# undef EC_KEY
+# undef EC_GROUP
+# undef EC_POINT
 #endif
 
 #endif /* SSHKEY_H */

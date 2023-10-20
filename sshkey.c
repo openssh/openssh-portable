@@ -1427,6 +1427,7 @@ sshkey_check_rsa_length(const struct sshkey *k, int min_size)
 
 #ifdef WITH_OPENSSL
 # ifdef OPENSSL_HAS_ECC
+# if OPENSSL_VERSION_NUMBER < 0x30000000L
 static int
 sshkey_ec_key_to_nid(EC_KEY *k)
 {
@@ -1470,6 +1471,7 @@ sshkey_ec_key_to_nid(EC_KEY *k)
         }
         return nids[i];
 }
+#endif
 
 int
 sshkey_ecdsa_key_to_nid(EVP_PKEY *pkey)

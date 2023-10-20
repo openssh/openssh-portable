@@ -236,7 +236,6 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
     struct sshkey_sig_details **detailsp)
 {
 	ECDSA_SIG *esig = NULL;
-	EVP_MD_CTX *md_ctx = NULL;
 	BIGNUM *sig_r = NULL, *sig_s = NULL;
 	u_char sig_flags;
 	u_char msghash[32], apphash[32];
@@ -376,8 +375,7 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
-	if ((sigb = malloc(len)) == NULL ||
-	    (md_ctx = EVP_MD_CTX_new()) == NULL) {
+	if ((sigb = malloc(len)) == NULL) {
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
@@ -386,22 +384,13 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
-	if (EVP_DigestVerifyInit(md_ctx, NULL, EVP_sha256(), NULL,
-	    key->pkey) != 1) {
-		ret = SSH_ERR_LIBCRYPTO_ERROR;
+	ret = sshkey_verify_signature(key->pkey, SSH_DIGEST_SHA256,
+		sshbuf_ptr(original_signed), sshbuf_len(original_signed),
+		sigb, len);
+
+	if (ret != 0)
 		goto out;
-	}
-	switch(EVP_DigestVerify(md_ctx, sigb, len, sshbuf_ptr(original_signed), sshbuf_len(original_signed))) {
-	case 1:
-		ret = 0;
-		break;
-	case 0:
-		ret = SSH_ERR_SIGNATURE_INVALID;
-		goto out;
-	default:
-		ret = SSH_ERR_LIBCRYPTO_ERROR;
-		goto out;
-	}
+
 	/* success */
 	if (detailsp != NULL) {
 		*detailsp = details;
@@ -424,7 +413,6 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	BN_clear_free(sig_s);
 	free(ktype);
 	free(sigb);
-	EVP_MD_CTX_free(md_ctx);
 	return ret;
 }
 

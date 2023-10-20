@@ -804,6 +804,7 @@ do_convert_from_pkcs8(struct sshkey **k, int *private)
 		(*k)->type = KEY_DSA;
 		(*k)->dsa = EVP_PKEY_get1_DSA(pubkey);
 		break;
+#ifdef OPENSSL_HAS_ECC
 	case EVP_PKEY_EC:
 		if ((*k = sshkey_new(KEY_UNSPEC)) == NULL)
 			fatal("sshkey_new failed");
@@ -812,6 +813,7 @@ do_convert_from_pkcs8(struct sshkey **k, int *private)
 		pubkey = NULL;
 		(*k)->ecdsa_nid = sshkey_ecdsa_key_to_nid((*k)->pkey);
 		break;
+#endif
 	default:
 		fatal_f("unsupported pubkey type %d",
 		    EVP_PKEY_base_id(pubkey));
