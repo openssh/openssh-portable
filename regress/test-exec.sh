@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.100 2023/10/20 06:56:45 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.101 2023/10/20 07:37:07 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -156,6 +156,18 @@ if [ "x$TEST_SSH_CONCH" != "x" ]; then
 	/*) CONCH="${TEST_SSH_CONCH}" ;;
 	*) CONCH=`which ${TEST_SSH_CONCH} 2>/dev/null` ;;
 	esac
+fi
+if [ "x$TEST_SSH_DROPBEAR" != "x" ]; then
+	DROPBEAR="${TEST_SSH_DROPBEAR}"
+fi
+if [ "x$TEST_SSH_DBCLIENT" != "x" ]; then
+	DBCLIENT="${TEST_SSH_DBCLIENT}"
+fi
+if [ "x$TEST_SSH_DROPBEARKEY" != "x" ]; then
+	DROPBEARKEY="${TEST_SSH_DROPBEARKEY}"
+fi
+if [ "x$TEST_SSH_DROPBEARCONVERT" != "x" ]; then
+	DROPBEARCONVERT="${TEST_SSH_DROPBEARCONVERT}"
 fi
 if [ "x$TEST_SSH_PKCS11_HELPER" != "x" ]; then
 	SSH_PKCS11_HELPER="${TEST_SSH_PKCS11_HELPER}"

@@ -5576,6 +5576,12 @@ AC_SUBST([TEST_MALLOC_OPTIONS], [$TEST_MALLOC_OPTIONS])
 AC_SUBST([UNSUPPORTED_ALGORITHMS], [$unsupported_algorithms])
 AC_SUBST([DEPEND], [$(cat $srcdir/.depend)])
 
+# Binaries for interop tests.
+AC_PATH_PROG([DROPBEAR], [dropbear])
+AC_PATH_PROG([DBCLIENT], [dbclient])
+AC_PATH_PROG([DROPBEARKEY], [dropbearkey])
+AC_PATH_PROG([DROPBEARCONVERT], [dropbearconvert])
+
 CFLAGS="${CFLAGS} ${CFLAGS_AFTER}"
 LDFLAGS="${LDFLAGS} ${LDFLAGS_AFTER}"
 
