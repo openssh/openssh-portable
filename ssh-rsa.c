@@ -45,8 +45,11 @@ static int openssh_RSA_verify(int, const u_char *, size_t, u_char *, size_t, EVP
 static u_int
 ssh_rsa_size(const struct sshkey *k)
 {
+	if (sshkey_type_plain(k->type) != KEY_RSA)
+		return 0;
 	if (k->pkey == NULL)
 		return 0;
+
 	return EVP_PKEY_bits(k->pkey);
 }
 
