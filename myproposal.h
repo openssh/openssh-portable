@@ -62,25 +62,25 @@
 	"bike-l3-sha512," \
 	"ecdh-nistp384-bike-l3r3-sha512@openquantumsafe.org," \
 	"classic-mceliece-348864-sha256," \
-	"ecdh-nistp256-classic-mceliece-348864r3-sha256@openquantumsafe.org," \
+	"ecdh-nistp256-classic-mceliece-348864r4-sha256@openquantumsafe.org," \
 	"classic-mceliece-348864f-sha256," \
-	"ecdh-nistp256-classic-mceliece-348864fr3-sha256@openquantumsafe.org," \
+	"ecdh-nistp256-classic-mceliece-348864fr4-sha256@openquantumsafe.org," \
 	"classic-mceliece-460896-sha512," \
-	"ecdh-nistp384-classic-mceliece-460896r3-sha512@openquantumsafe.org," \
+	"ecdh-nistp384-classic-mceliece-460896r4-sha512@openquantumsafe.org," \
 	"classic-mceliece-460896f-sha512," \
-	"ecdh-nistp384-classic-mceliece-460896fr3-sha512@openquantumsafe.org," \
+	"ecdh-nistp384-classic-mceliece-460896fr4-sha512@openquantumsafe.org," \
 	"classic-mceliece-6688128-sha512," \
-	"ecdh-nistp521-classic-mceliece-6688128r3-sha512@openquantumsafe.org," \
+	"ecdh-nistp521-classic-mceliece-6688128r4-sha512@openquantumsafe.org," \
 	"classic-mceliece-6688128f-sha512," \
-	"ecdh-nistp521-classic-mceliece-6688128fr3-sha512@openquantumsafe.org," \
+	"ecdh-nistp521-classic-mceliece-6688128fr4-sha512@openquantumsafe.org," \
 	"classic-mceliece-6960119-sha512," \
-	"ecdh-nistp521-classic-mceliece-6960119r3-sha512@openquantumsafe.org," \
+	"ecdh-nistp521-classic-mceliece-6960119r4-sha512@openquantumsafe.org," \
 	"classic-mceliece-6960119f-sha512," \
-	"ecdh-nistp521-classic-mceliece-6960119fr3-sha512@openquantumsafe.org," \
+	"ecdh-nistp521-classic-mceliece-6960119fr4-sha512@openquantumsafe.org," \
 	"classic-mceliece-8192128-sha512," \
-	"ecdh-nistp521-classic-mceliece-8192128r3-sha512@openquantumsafe.org," \
+	"ecdh-nistp521-classic-mceliece-8192128r4-sha512@openquantumsafe.org," \
 	"classic-mceliece-8192128f-sha512," \
-	"ecdh-nistp521-classic-mceliece-8192128fr3-sha512@openquantumsafe.org," \
+	"ecdh-nistp521-classic-mceliece-8192128fr4-sha512@openquantumsafe.org," \
 	"hqc-128-sha256," \
 	"ecdh-nistp256-hqc-128r3-sha256@openquantumsafe.org," \
 	"hqc-192-sha384," \
