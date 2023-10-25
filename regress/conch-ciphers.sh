@@ -1,11 +1,14 @@
-#	$OpenBSD: conch-ciphers.sh,v 1.5 2023/10/23 11:30:49 anton Exp $
+#	$OpenBSD: conch-ciphers.sh,v 1.6 2023/10/25 08:01:59 anton Exp $
 #	Placed in the Public Domain.
 
 tid="conch ciphers"
 
 if test "x$REGRESS_INTEROP_CONCH" != "xyes" ; then
-	echo "conch interop tests not enabled"
-	exit 0
+	fatal "conch interop tests not enabled"
+fi
+
+if ! [ -t 0 ]; then
+	skip "conch interop tests requires a controlling terminal"
 fi
 
 start_sshd
