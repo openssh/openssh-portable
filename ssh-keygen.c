@@ -375,46 +375,13 @@ do_convert_to_ssh2(struct passwd *pw, struct sshkey *k)
 static void
 do_convert_to_pkcs8(struct sshkey *k)
 {
-	switch (sshkey_type_plain(k->type)) {
-#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
-	case KEY_RSA:
-	case KEY_ECDSA:
-		OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(k->pkey,
-			                                              EVP_PKEY_PUBLIC_KEY,
-			                                              "PEM",
-                                                          	      "type-specific",
-                                                          	      NULL);
-		if (!ctx)
-			fatal("OSSL_ENCODER_CTX_new_for_pkey failed");
-		if (OSSL_ENCODER_to_fp(ctx, stdout) != 1) {
-			OSSL_ENCODER_CTX_free(ctx);
-			fatal("OSSL_ENCODER_to_fp failed");
-		}
-		OSSL_ENCODER_CTX_free(ctx);
-		break;
-#else
-	case KEY_RSA:
-		{
-			RSA *rsa = EVP_PKEY_get0_RSA(k->pkey);
-			if (!PEM_write_RSA_PUBKEY(stdout, rsa))
-				fatal("PEM_write_RSA_PUBKEY failed");
-		}
-		break;
-#ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA:
-		{
-			EC_KEY *ec = EVP_PKEY_get0_EC_KEY(k->pkey);
-			if (!PEM_write_EC_PUBKEY(stdout, ec))
-				fatal("PEM_write_EC_PUBKEY failed");
-		}
-		break;
-#endif
-#endif
-	case KEY_DSA:
+	if (k->pkey != NULL) {
+		if (!PEM_write_PUBKEY(stdout, k->pkey))
+			fatal("PEM_write_PUBKEY failed");
+	} else if (sshkey_type_plain(k->type) == KEY_DSA) {
 		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
 			fatal("PEM_write_DSA_PUBKEY failed");
-		break;
-	default:
+	} else {
 		fatal_f("unsupported key type %s", sshkey_type(k));
 	}
 	exit(0);
