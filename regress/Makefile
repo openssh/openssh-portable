@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.128 2023/10/20 06:56:45 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.129 2023/10/26 18:52:45 anton Exp $
 
 tests:		prep file-tests t-exec unit
 
