@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.380 2023/07/17 06:16:33 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.381 2023/08/28 03:31:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -170,7 +170,7 @@ typedef enum {
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
-	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
+	oTcpRcvBufPoll, oHPNDisabled,
 	oNoneEnabled, oNoneMacEnabled, oNoneSwitch, oHPNBufferLimit,
 	oMetrics, oMetricsPath, oMetricsInterval, oFallback, oFallbackPort,
 	oVisualHostKey,
@@ -182,7 +182,7 @@ typedef enum {
 	oFingerprintHash, oUpdateHostkeys, oHostbasedAcceptedAlgorithms,
 	oPubkeyAcceptedAlgorithms, oCASignatureAlgorithms, oProxyJump,
 	oSecurityKeyProvider, oKnownHostsCommand, oRequiredRSASize,
-	oEnableEscapeCommandline,
+	oEnableEscapeCommandline, oObscureKeystrokeTiming,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -339,11 +339,10 @@ static struct {
 	{ "securitykeyprovider", oSecurityKeyProvider },
 	{ "knownhostscommand", oKnownHostsCommand },
 	{ "tcprcvbufpoll", oTcpRcvBufPoll },
-	{ "tcprcvbuf", oTcpRcvBuf },
 	{ "hpndisabled", oHPNDisabled },
-	{ "hpnbuffersize", oHPNBufferSize },
 	{ "requiredrsasize", oRequiredRSASize },
 	{ "enableescapecommandline", oEnableEscapeCommandline },
+	{ "obscurekeystroketiming", oObscureKeystrokeTiming },
 
 	{ NULL, oBadOption }
 };
@@ -1237,10 +1236,6 @@ parse_time:
 		intptr = &options->hpn_disabled;
 		goto parse_flag;
 
-	case oHPNBufferSize:
-		intptr = &options->hpn_buffer_size;
-		goto parse_int;
-
 	case oTcpRcvBufPoll:
 		intptr = &options->tcp_rcv_buf_poll;
 		goto parse_flag;
@@ -1551,10 +1546,6 @@ parse_int:
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
-
-	case oTcpRcvBuf:
-		intptr = &options->tcp_rcv_buf;
-		goto parse_int;
 
 	case oCiphers:
 		arg = argv_next(&ac, &av);
@@ -2362,6 +2353,48 @@ parse_pubkey_algos:
 		intptr = &options->required_rsa_size;
 		goto parse_int;
 
+	case oObscureKeystrokeTiming:
+		value = -1;
+		while ((arg = argv_next(&ac, &av)) != NULL) {
+			if (value != -1) {
+				error("%s line %d: invalid arguments",
+				    filename, linenum);
+				goto out;
+			}
+			if (strcmp(arg, "yes") == 0 ||
+			    strcmp(arg, "true") == 0)
+				value = SSH_KEYSTROKE_DEFAULT_INTERVAL_MS;
+			else if (strcmp(arg, "no") == 0 ||
+			    strcmp(arg, "false") == 0)
+				value = 0;
+			else if (strncmp(arg, "interval:", 9) == 0) {
+				if ((errstr = atoi_err(arg + 9,
+				    &value)) != NULL) {
+					error("%s line %d: integer value %s.",
+					    filename, linenum, errstr);
+					goto out;
+				}
+				if (value <= 0 || value > 1000) {
+					error("%s line %d: value out of range.",
+					    filename, linenum);
+					goto out;
+				}
+			} else {
+				error("%s line %d: unsupported argument \"%s\"",
+				    filename, linenum, arg);
+				goto out;
+			}
+		}
+		if (value == -1) {
+			error("%s line %d: missing argument",
+			    filename, linenum);
+			goto out;
+		}
+		intptr = &options->obscure_keystroke_timing_interval;
+		if (*activep && *intptr == -1)
+			*intptr = value;
+		break;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -2601,12 +2634,10 @@ initialize_options(Options * options)
 	options->metrics_path = NULL;
 	options->metrics_interval = -1;
 	options->hpn_disabled = -1;
-	options->hpn_buffer_size = -1;
 	options->hpn_buffer_limit = -1;
 	options->fallback = -1;
 	options->fallback_port = -1;
 	options->tcp_rcv_buf_poll = -1;
-	options->tcp_rcv_buf = -1;
 	options->session_type = -1;
 	options->stdin_null = -1;
 	options->fork_after_authentication = -1;
@@ -2625,6 +2656,7 @@ initialize_options(Options * options)
 	options->known_hosts_command = NULL;
 	options->required_rsa_size = -1;
 	options->enable_escape_commandline = -1;
+	options->obscure_keystroke_timing_interval = -1;
 	options->tag = NULL;
 }
 
@@ -2777,24 +2809,8 @@ fill_default_options(Options * options)
 		options->server_alive_count_max = 3;
 	if (options->hpn_disabled == -1)
 		options->hpn_disabled = 0;
-	if (options->hpn_buffer_size > -1) {
-		/* if a user tries to set the size to 0 set it to 1KB */
-		if (options->hpn_buffer_size == 0)
-			options->hpn_buffer_size = 1;
-		/* limit the buffer to SSHBUF_SIZE_MAX (currently 256MB) */
-		if (options->hpn_buffer_size > (SSHBUF_SIZE_MAX / 1024)) {
-			options->hpn_buffer_size = SSHBUF_SIZE_MAX;
-			debug("User requested buffer larger than 256MB. Request reverted to 256MB");
-		} else
-			options->hpn_buffer_size *= 1024;
-		debug("hpn_buffer_size set to %d", options->hpn_buffer_size);
-	}
 	if (options->hpn_buffer_limit == -1)
 		options->hpn_buffer_limit = 0;
-	if (options->tcp_rcv_buf == 0)
-		options->tcp_rcv_buf = 1;
-	if (options->tcp_rcv_buf > -1)
-		options->tcp_rcv_buf *=1024;
 	if (options->tcp_rcv_buf_poll == -1)
 		options->tcp_rcv_buf_poll = 1;
 	if (options->none_switch == -1)
@@ -2871,6 +2887,10 @@ fill_default_options(Options * options)
 		options->required_rsa_size = SSH_RSA_MINIMUM_MODULUS_SIZE;
 	if (options->enable_escape_commandline == -1)
 		options->enable_escape_commandline = 0;
+	if (options->obscure_keystroke_timing_interval == -1) {
+		options->obscure_keystroke_timing_interval =
+		    SSH_KEYSTROKE_DEFAULT_INTERVAL_MS;
+	}
 
 	/* Expand KEX name lists */
 	all_cipher = cipher_alg_list(',', 0);
@@ -3413,6 +3433,16 @@ lookup_opcode_name(OpCodes code)
 static void
 dump_cfg_int(OpCodes code, int val)
 {
+	if (code == oObscureKeystrokeTiming) {
+		if (val == 0) {
+			printf("%s no\n", lookup_opcode_name(code));
+			return;
+		} else if (val == SSH_KEYSTROKE_DEFAULT_INTERVAL_MS) {
+			printf("%s yes\n", lookup_opcode_name(code));
+			return;
+		}
+		/* FALLTHROUGH */
+	}
 	printf("%s %d\n", lookup_opcode_name(code), val);
 }
 
@@ -3563,6 +3593,8 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_int(oServerAliveCountMax, o->server_alive_count_max);
 	dump_cfg_int(oServerAliveInterval, o->server_alive_interval);
 	dump_cfg_int(oRequiredRSASize, o->required_rsa_size);
+	dump_cfg_int(oObscureKeystrokeTiming,
+	    o->obscure_keystroke_timing_interval);
 
 	/* String options */
 	dump_cfg_string(oBindAddress, o->bind_address);

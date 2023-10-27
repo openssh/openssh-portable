@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.151 2023/07/17 04:08:31 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.152 2023/08/28 03:31:16 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -50,10 +50,8 @@ typedef struct {
 	int     strict_host_key_checking;	/* Strict host key checking. */
 	int     compression;	/* Compress packets in both directions. */
 	int     tcp_keep_alive;	/* Set SO_KEEPALIVE. */
-	int     tcp_rcv_buf;      /* user switch to set tcp recv buffer */
 	int     tcp_rcv_buf_poll; /* Option to poll recv buf every window transfer */
 	int     hpn_disabled;     /* Switch to disable HPN buffer management */
-	int     hpn_buffer_size;  /* User definable size for HPN buffer window */
 	int     hpn_buffer_limit; /* limit local_window_max to 1/2 receive buffer */
 	int	ip_qos_interactive;	/* IP ToS/DSCP/class for interactive */
 	int	ip_qos_bulk;		/* IP ToS/DSCP/class for bulk traffic */
@@ -194,6 +192,7 @@ typedef struct {
 
 	int	required_rsa_size;	/* minimum size of RSA keys */
 	int	enable_escape_commandline;	/* ~C commandline */
+	int	obscure_keystroke_timing_interval;
 
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;
@@ -235,6 +234,11 @@ typedef struct {
 #define SSH_STRICT_HOSTKEY_NEW	1
 #define SSH_STRICT_HOSTKEY_YES	2
 #define SSH_STRICT_HOSTKEY_ASK	3
+
+/* ObscureKeystrokes parameters */
+#define SSH_KEYSTROKE_DEFAULT_INTERVAL_MS	20
+#define SSH_KEYSTROKE_CHAFF_MIN_MS		1024
+#define SSH_KEYSTROKE_CHAFF_RNG_MS		2048
 
 const char *kex_default_pk_alg(void);
 char	*ssh_connection_hash(const char *thishost, const char *host,

@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.236 2023/03/08 04:43:12 guenther Exp $ */
+/* $OpenBSD: serverloop.c,v 1.237 2023/08/21 04:59:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -255,7 +255,7 @@ wait_until_can_do_something(struct ssh *ssh,
 	/* ClientAliveInterval probing */
 	if (client_alive_scheduled) {
 		if (ret == 0 &&
-		    now > last_client_time + options.client_alive_interval) {
+		    now >= last_client_time + options.client_alive_interval) {
 			/* ppoll timed out and we're due to probe */
 			client_alive_check(ssh);
 			last_client_time = now;
@@ -566,8 +566,8 @@ server_request_tun(struct ssh *ssh)
 	debug("Tunnel forwarding using interface %s", ifname);
 
 	c = channel_new(ssh, "tun", SSH_CHANNEL_OPEN, sock, sock, -1,
-			options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
-			CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
+			CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
+			0, "tun", 1);
 	c->datagram = 1;
 #if defined(SSH_TUN_FILTER)
 	if (mode == SSH_TUNMODE_POINTOPOINT)

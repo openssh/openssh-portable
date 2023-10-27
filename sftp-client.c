@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.171 2023/04/30 22:54:22 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.174 2023/09/08 06:10:02 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -343,16 +343,17 @@ get_handle(struct sftp_conn *conn, u_int expected_id, size_t *len,
 	return handle;
 }
 
-/* XXX returning &static is error-prone. Refactor to fill *Attrib argument */
-static Attrib *
-get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet)
+static int
+get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet, Attrib *a)
 {
 	struct sshbuf *msg;
 	u_int id;
 	u_char type;
 	int r;
-	static Attrib a;
+	Attrib attr;
 
+	if (a != NULL)
+		memset(a, '\0', sizeof(*a));
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	get_msg(conn, msg);
@@ -373,21 +374,24 @@ get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet)
 		else
 			error("stat remote: %s", fx2txt(status));
 		sshbuf_free(msg);
-		return(NULL);
+		return -1;
 	} else if (type != SSH2_FXP_ATTRS) {
 		fatal("Expected SSH2_FXP_ATTRS(%u) packet, got %u",
 		    SSH2_FXP_ATTRS, type);
 	}
-	if ((r = decode_attrib(msg, &a)) != 0) {
+	if ((r = decode_attrib(msg, &attr)) != 0) {
 		error_fr(r, "decode_attrib");
 		sshbuf_free(msg);
-		return NULL;
+		return -1;
 	}
+	/* success */
+	if (a != NULL)
+		*a = attr;
 	debug3("Received stat reply T:%u I:%u F:0x%04x M:%05o",
-	    type, id, a.flags, a.perm);
+	    type, id, attr.flags, attr.perm);
 	sshbuf_free(msg);
 
-	return &a;
+	return 0;
 }
 
 static int
@@ -450,7 +454,7 @@ get_decode_statvfs(struct sftp_conn *conn, struct sftp_statvfs *st,
 }
 
 struct sftp_conn *
-do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
+sftp_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
     u_int64_t limit_kbps)
 {
 	u_char type;
@@ -561,7 +565,7 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 	/* Query the server for its limits */
 	if (ret->exts & SFTP_EXT_LIMITS) {
 		struct sftp_limits limits;
-		if (do_limits(ret, &limits) != 0)
+		if (sftp_get_limits(ret, &limits) != 0)
 			fatal_f("limits failed");
 
 		/* If the caller did not specify, find a good value */
@@ -615,7 +619,7 @@ sftp_proto_version(struct sftp_conn *conn)
 }
 
 int
-do_limits(struct sftp_conn *conn, struct sftp_limits *limits)
+sftp_get_limits(struct sftp_conn *conn, struct sftp_limits *limits)
 {
 	u_int id, msg_id;
 	u_char type;
@@ -669,7 +673,7 @@ do_limits(struct sftp_conn *conn, struct sftp_limits *limits)
 }
 
 int
-do_close(struct sftp_conn *conn, const u_char *handle, u_int handle_len)
+sftp_close(struct sftp_conn *conn, const u_char *handle, u_int handle_len)
 {
 	u_int id, status;
 	struct sshbuf *msg;
@@ -697,7 +701,7 @@ do_close(struct sftp_conn *conn, const u_char *handle, u_int handle_len)
 
 
 static int
-do_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
+sftp_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
     SFTP_DIRENT ***dir)
 {
 	struct sshbuf *msg;
@@ -822,16 +826,16 @@ do_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
 
  out:
 	sshbuf_free(msg);
-	do_close(conn, handle, handle_len);
+	sftp_close(conn, handle, handle_len);
 	free(handle);
 
 	if (status != 0 && dir != NULL) {
 		/* Don't return results on error */
-		free_sftp_dirents(*dir);
+		sftp_free_dirents(*dir);
 		*dir = NULL;
 	} else if (interrupted && dir != NULL && *dir != NULL) {
 		/* Don't return partial matches on interrupt */
-		free_sftp_dirents(*dir);
+		sftp_free_dirents(*dir);
 		*dir = xcalloc(1, sizeof(**dir));
 		**dir = NULL;
 	}
@@ -840,12 +844,12 @@ do_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
 }
 
 int
-do_readdir(struct sftp_conn *conn, const char *path, SFTP_DIRENT ***dir)
+sftp_readdir(struct sftp_conn *conn, const char *path, SFTP_DIRENT ***dir)
 {
-	return(do_lsreaddir(conn, path, 0, dir));
+	return sftp_lsreaddir(conn, path, 0, dir);
 }
 
-void free_sftp_dirents(SFTP_DIRENT **s)
+void sftp_free_dirents(SFTP_DIRENT **s)
 {
 	int i;
 
@@ -860,7 +864,7 @@ void free_sftp_dirents(SFTP_DIRENT **s)
 }
 
 int
-do_rm(struct sftp_conn *conn, const char *path)
+sftp_rm(struct sftp_conn *conn, const char *path)
 {
 	u_int status, id;
 
@@ -875,7 +879,7 @@ do_rm(struct sftp_conn *conn, const char *path)
 }
 
 int
-do_mkdir(struct sftp_conn *conn, const char *path, Attrib *a, int print_flag)
+sftp_mkdir(struct sftp_conn *conn, const char *path, Attrib *a, int print_flag)
 {
 	u_int status, id;
 
@@ -893,7 +897,7 @@ do_mkdir(struct sftp_conn *conn, const char *path, Attrib *a, int print_flag)
 }
 
 int
-do_rmdir(struct sftp_conn *conn, const char *path)
+sftp_rmdir(struct sftp_conn *conn, const char *path)
 {
 	u_int status, id;
 
@@ -910,8 +914,8 @@ do_rmdir(struct sftp_conn *conn, const char *path)
 	return status == SSH2_FX_OK ? 0 : -1;
 }
 
-Attrib *
-do_stat(struct sftp_conn *conn, const char *path, int quiet)
+int
+sftp_stat(struct sftp_conn *conn, const char *path, int quiet, Attrib *a)
 {
 	u_int id;
 
@@ -923,33 +927,31 @@ do_stat(struct sftp_conn *conn, const char *path, int quiet)
 	    conn->version == 0 ? SSH2_FXP_STAT_VERSION_0 : SSH2_FXP_STAT,
 	    path, strlen(path));
 
-	return(get_decode_stat(conn, id, quiet));
+	return get_decode_stat(conn, id, quiet, a);
 }
 
-Attrib *
-do_lstat(struct sftp_conn *conn, const char *path, int quiet)
+int
+sftp_lstat(struct sftp_conn *conn, const char *path, int quiet, Attrib *a)
 {
 	u_int id;
 
 	if (conn->version == 0) {
-		if (quiet)
-			debug("Server version does not support lstat operation");
-		else
-			logit("Server version does not support lstat operation");
-		return(do_stat(conn, path, quiet));
+		do_log2(quiet ? SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO,
+		    "Server version does not support lstat operation");
+		return sftp_stat(conn, path, quiet, a);
 	}
 
 	id = conn->msg_id++;
 	send_string_request(conn, id, SSH2_FXP_LSTAT, path,
 	    strlen(path));
 
-	return(get_decode_stat(conn, id, quiet));
+	return get_decode_stat(conn, id, quiet, a);
 }
 
 #ifdef notyet
-Attrib *
-do_fstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
-    int quiet)
+int
+sftp_fstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
+    int quiet, Attrib *a)
 {
 	u_int id;
 
@@ -959,12 +961,12 @@ do_fstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
 	send_string_request(conn, id, SSH2_FXP_FSTAT, handle,
 	    handle_len);
 
-	return(get_decode_stat(conn, id, quiet));
+	return get_decode_stat(conn, id, quiet, a);
 }
 #endif
 
 int
-do_setstat(struct sftp_conn *conn, const char *path, Attrib *a)
+sftp_setstat(struct sftp_conn *conn, const char *path, Attrib *a)
 {
 	u_int status, id;
 
@@ -982,7 +984,7 @@ do_setstat(struct sftp_conn *conn, const char *path, Attrib *a)
 }
 
 int
-do_fsetstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
+sftp_fsetstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
     Attrib *a)
 {
 	u_int status, id;
@@ -1002,7 +1004,7 @@ do_fsetstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
 
 /* Implements both the realpath and expand-path operations */
 static char *
-do_realpath_expand(struct sftp_conn *conn, const char *path, int expand)
+sftp_realpath_expand(struct sftp_conn *conn, const char *path, int expand)
 {
 	struct sshbuf *msg;
 	u_int expected_id, count, id;
@@ -1077,31 +1079,31 @@ do_realpath_expand(struct sftp_conn *conn, const char *path, int expand)
 }
 
 char *
-do_realpath(struct sftp_conn *conn, const char *path)
+sftp_realpath(struct sftp_conn *conn, const char *path)
 {
-	return do_realpath_expand(conn, path, 0);
+	return sftp_realpath_expand(conn, path, 0);
 }
 
 int
-can_expand_path(struct sftp_conn *conn)
+sftp_can_expand_path(struct sftp_conn *conn)
 {
 	return (conn->exts & SFTP_EXT_PATH_EXPAND) != 0;
 }
 
 char *
-do_expand_path(struct sftp_conn *conn, const char *path)
+sftp_expand_path(struct sftp_conn *conn, const char *path)
 {
-	if (!can_expand_path(conn)) {
+	if (!sftp_can_expand_path(conn)) {
 		debug3_f("no server support, fallback to realpath");
-		return do_realpath_expand(conn, path, 0);
+		return sftp_realpath_expand(conn, path, 0);
 	}
-	return do_realpath_expand(conn, path, 1);
+	return sftp_realpath_expand(conn, path, 1);
 }
 
 int
-do_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
+sftp_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 {
-	Attrib junk, *a;
+	Attrib junk, attr;
 	struct sshbuf *msg;
 	u_char *old_handle, *new_handle;
 	u_int mode, status, id;
@@ -1115,14 +1117,14 @@ do_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 	}
 
 	/* Make sure the file exists, and we can copy its perms */
-	if ((a = do_stat(conn, oldpath, 0)) == NULL)
+	if (sftp_stat(conn, oldpath, 0, &attr) != 0)
 		return -1;
 
 	/* Do not preserve set[ug]id here, as we do not preserve ownership */
-	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
-		mode = a->perm & 0777;
+	if (attr.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
+		mode = attr.perm & 0777;
 
-		if (!S_ISREG(a->perm)) {
+		if (!S_ISREG(attr.perm)) {
 			error("Cannot copy non-regular file: %s", oldpath);
 			return -1;
 		}
@@ -1132,9 +1134,9 @@ do_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 	}
 
 	/* Set up the new perms for the new file */
-	attrib_clear(a);
-	a->perm = mode;
-	a->flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
+	attrib_clear(&attr);
+	attr.perm = mode;
+	attr.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 
 	if ((msg = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
@@ -1168,7 +1170,7 @@ do_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 	    (r = sshbuf_put_cstring(msg, newpath)) != 0 ||
 	    (r = sshbuf_put_u32(msg, SSH2_FXF_WRITE|SSH2_FXF_CREAT|
 	    SSH2_FXF_TRUNC)) != 0 ||
-	    (r = encode_attrib(msg, a)) != 0)
+	    (r = encode_attrib(msg, &attr)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	send_msg(conn, msg);
 	debug3("Sent message SSH2_FXP_OPEN I:%u P:%s", id, newpath);
@@ -1205,8 +1207,8 @@ do_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 
 	/* Clean up everything */
 	sshbuf_free(msg);
-	do_close(conn, old_handle, old_handle_len);
-	do_close(conn, new_handle, new_handle_len);
+	sftp_close(conn, old_handle, old_handle_len);
+	sftp_close(conn, new_handle, new_handle_len);
 	free(old_handle);
 	free(new_handle);
 
@@ -1214,7 +1216,7 @@ do_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 }
 
 int
-do_rename(struct sftp_conn *conn, const char *oldpath, const char *newpath,
+sftp_rename(struct sftp_conn *conn, const char *oldpath, const char *newpath,
     int force_legacy)
 {
 	struct sshbuf *msg;
@@ -1259,7 +1261,7 @@ do_rename(struct sftp_conn *conn, const char *oldpath, const char *newpath,
 }
 
 int
-do_hardlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
+sftp_hardlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 {
 	struct sshbuf *msg;
 	u_int status, id;
@@ -1297,7 +1299,7 @@ do_hardlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 }
 
 int
-do_symlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
+sftp_symlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 {
 	struct sshbuf *msg;
 	u_int status, id;
@@ -1333,7 +1335,7 @@ do_symlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 }
 
 int
-do_fsync(struct sftp_conn *conn, u_char *handle, u_int handle_len)
+sftp_fsync(struct sftp_conn *conn, u_char *handle, u_int handle_len)
 {
 	struct sshbuf *msg;
 	u_int status, id;
@@ -1366,7 +1368,7 @@ do_fsync(struct sftp_conn *conn, u_char *handle, u_int handle_len)
 
 #ifdef notyet
 char *
-do_readlink(struct sftp_conn *conn, const char *path)
+sftp_readlink(struct sftp_conn *conn, const char *path)
 {
 	struct sshbuf *msg;
 	u_int expected_id, count, id;
@@ -1424,7 +1426,7 @@ do_readlink(struct sftp_conn *conn, const char *path)
 #endif
 
 int
-do_statvfs(struct sftp_conn *conn, const char *path, struct sftp_statvfs *st,
+sftp_statvfs(struct sftp_conn *conn, const char *path, struct sftp_statvfs *st,
     int quiet)
 {
 	struct sshbuf *msg;
@@ -1455,7 +1457,7 @@ do_statvfs(struct sftp_conn *conn, const char *path, struct sftp_statvfs *st,
 
 #ifdef notyet
 int
-do_fstatvfs(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
+sftp_fstatvfs(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
     struct sftp_statvfs *st, int quiet)
 {
 	struct sshbuf *msg;
@@ -1485,7 +1487,7 @@ do_fstatvfs(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
 #endif
 
 int
-do_lsetstat(struct sftp_conn *conn, const char *path, Attrib *a)
+sftp_lsetstat(struct sftp_conn *conn, const char *path, Attrib *a)
 {
 	struct sshbuf *msg;
 	u_int status, id;
@@ -1593,7 +1595,7 @@ progress_meter_path(const char *path)
 }
 
 int
-do_download(struct sftp_conn *conn, const char *remote_path,
+sftp_download(struct sftp_conn *conn, const char *remote_path,
     const char *local_path, Attrib *a, int preserve_flag, int resume_flag,
     int fsync_flag, int inplace_flag)
 {
@@ -1609,14 +1611,18 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 	struct requests requests;
 	struct request *req;
 	u_char type;
+	Attrib attr;
 
 	debug2_f("download remote \"%s\" to local \"%s\"",
 	    remote_path, local_path);
 
 	TAILQ_INIT(&requests);
 
-	if (a == NULL && (a = do_stat(conn, remote_path, 0)) == NULL)
-		return -1;
+	if (a == NULL) {
+		if (sftp_stat(conn, remote_path, 0, &attr) != 0)
+			return -1;
+		a = &attr;
+	}
 
 	/* Do not preserve set[ug]id here, as we do not preserve ownership */
 	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)
@@ -1662,7 +1668,7 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 			error("Unable to resume download of \"%s\": "
 			    "local file is larger than remote", local_path);
  fail:
-			do_close(conn, handle, handle_len);
+			sftp_close(conn, handle, handle_len);
 			free(handle);
 			if (local_fd != -1)
 				close(local_fd);
@@ -1837,14 +1843,14 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 	if (read_error) {
 		error("read remote \"%s\" : %s", remote_path, fx2txt(status));
 		status = -1;
-		do_close(conn, handle, handle_len);
+		sftp_close(conn, handle, handle_len);
 	} else if (write_error) {
 		error("write local \"%s\": %s", local_path,
 		    strerror(write_errno));
 		status = SSH2_FX_FAILURE;
-		do_close(conn, handle, handle_len);
+		sftp_close(conn, handle, handle_len);
 	} else {
-		if (do_close(conn, handle, handle_len) != 0 || interrupted)
+		if (sftp_close(conn, handle, handle_len) != 0 || interrupted)
 			status = SSH2_FX_FAILURE;
 		else
 			status = SSH2_FX_OK;
@@ -1891,6 +1897,7 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	SFTP_DIRENT **dir_entries;
 	char *filename, *new_src = NULL, *new_dst = NULL;
 	mode_t mode = 0777, tmpmode = mode;
+	Attrib *a, ldirattrib, lsym;
 
 	if (depth >= MAX_DIR_DEPTH) {
 		error("Maximum directory depth exceeded: %d levels", depth);
@@ -1899,10 +1906,12 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 
 	debug2_f("download dir remote \"%s\" to local \"%s\"", src, dst);
 
-	if (dirattrib == NULL &&
-	    (dirattrib = do_stat(conn, src, 1)) == NULL) {
-		error("stat remote \"%s\" directory failed", src);
-		return -1;
+	if (dirattrib == NULL) {
+		if (sftp_stat(conn, src, 1, &ldirattrib) != 0) {
+			error("stat remote \"%s\" directory failed", src);
+			return -1;
+		}
+		dirattrib = &ldirattrib;
 	}
 	if (!S_ISDIR(dirattrib->perm)) {
 		error("\"%s\" is not a directory", src);
@@ -1924,7 +1933,7 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		return -1;
 	}
 
-	if (do_readdir(conn, src, &dir_entries) == -1) {
+	if (sftp_readdir(conn, src, &dir_entries) == -1) {
 		error("remote readdir \"%s\" failed", src);
 		return -1;
 	}
@@ -1934,28 +1943,36 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		free(new_src);
 
 		filename = dir_entries[i]->filename;
-		new_dst = path_append(dst, filename);
-		new_src = path_append(src, filename);
+		new_dst = sftp_path_append(dst, filename);
+		new_src = sftp_path_append(src, filename);
 
-		if (S_ISDIR(dir_entries[i]->a.perm)) {
+		a = &dir_entries[i]->a;
+		if (S_ISLNK(a->perm)) {
+			if (!follow_link_flag) {
+				logit("download \"%s\": not a regular file",
+				    new_src);
+				continue;
+			}
+			/* Replace the stat contents with the symlink target */
+			if (sftp_stat(conn, new_src, 1, &lsym) != 0) {
+				logit("remote stat \"%s\" failed", new_src);
+				ret = -1;
+				continue;
+			}
+			a = &lsym;
+		}
+
+		if (S_ISDIR(a->perm)) {
 			if (strcmp(filename, ".") == 0 ||
 			    strcmp(filename, "..") == 0)
 				continue;
 			if (download_dir_internal(conn, new_src, new_dst,
-			    depth + 1, &(dir_entries[i]->a), preserve_flag,
+			    depth + 1, a, preserve_flag,
 			    print_flag, resume_flag,
 			    fsync_flag, follow_link_flag, inplace_flag) == -1)
 				ret = -1;
-		} else if (S_ISREG(dir_entries[i]->a.perm) ||
-		    (follow_link_flag && S_ISLNK(dir_entries[i]->a.perm))) {
-			/*
-			 * If this is a symlink then don't send the link's
-			 * Attrib. do_download() will do a FXP_STAT operation
-			 * and get the link target's attributes.
-			 */
-			if (do_download(conn, new_src, new_dst,
-			    S_ISLNK(dir_entries[i]->a.perm) ? NULL :
-			    &(dir_entries[i]->a),
+		} else if (S_ISREG(a->perm)) {
+			if (sftp_download(conn, new_src, new_dst, a,
 			    preserve_flag, resume_flag, fsync_flag,
 			    inplace_flag) == -1) {
 				error("Download of file %s to %s failed",
@@ -1987,20 +2004,20 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		error("local chmod directory \"%s\": %s", dst,
 		    strerror(errno));
 
-	free_sftp_dirents(dir_entries);
+	sftp_free_dirents(dir_entries);
 
 	return ret;
 }
 
 int
-download_dir(struct sftp_conn *conn, const char *src, const char *dst,
+sftp_download_dir(struct sftp_conn *conn, const char *src, const char *dst,
     Attrib *dirattrib, int preserve_flag, int print_flag, int resume_flag,
     int fsync_flag, int follow_link_flag, int inplace_flag)
 {
 	char *src_canon;
 	int ret;
 
-	if ((src_canon = do_realpath(conn, src)) == NULL) {
+	if ((src_canon = sftp_realpath(conn, src)) == NULL) {
 		error("download \"%s\": path canonicalization failed", src);
 		return -1;
 	}
@@ -2013,7 +2030,7 @@ download_dir(struct sftp_conn *conn, const char *src, const char *dst,
 }
 
 int
-do_upload(struct sftp_conn *conn, const char *local_path,
+sftp_upload(struct sftp_conn *conn, const char *local_path,
     const char *remote_path, int preserve_flag, int resume,
     int fsync_flag, int inplace_flag)
 {
@@ -2023,7 +2040,7 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 	u_char type, *handle, *data;
 	struct sshbuf *msg;
 	struct stat sb;
-	Attrib a, t, *c = NULL;
+	Attrib a, t, c;
 	u_int32_t startid, ackid;
 	u_int64_t highwater = 0, maxack = 0;
 	struct request *ack = NULL;
@@ -2059,19 +2076,19 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 
 	if (resume) {
 		/* Get remote file size if it exists */
-		if ((c = do_stat(conn, remote_path, 0)) == NULL) {
+		if (sftp_stat(conn, remote_path, 0, &c) != 0) {
 			close(local_fd);
 			return -1;
 		}
 
-		if ((off_t)c->size >= sb.st_size) {
+		if ((off_t)c.size >= sb.st_size) {
 			error("resume \"%s\": destination file "
 			    "same size or larger", local_path);
 			close(local_fd);
 			return -1;
 		}
 
-		if (lseek(local_fd, (off_t)c->size, SEEK_SET) == -1) {
+		if (lseek(local_fd, (off_t)c.size, SEEK_SET) == -1) {
 			close(local_fd);
 			return -1;
 		}
@@ -2095,7 +2112,7 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 	data = xmalloc(conn->upload_buflen);
 
 	/* Read from local and write to remote */
-	offset = progress_counter = (resume ? c->size : 0);
+	offset = progress_counter = (resume ? c.size : 0);
 	if (showprogress) {
 		start_progress_meter(progress_meter_path(local_path),
 		    sb.st_size, &progress_counter);
@@ -2207,7 +2224,7 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 		attrib_clear(&t);
 		t.flags = SSH2_FILEXFER_ATTR_SIZE;
 		t.size = highwater;
-		do_fsetstat(conn, handle, handle_len, &t);
+		sftp_fsetstat(conn, handle, handle_len, &t);
 	}
 
 	if (close(local_fd) == -1) {
@@ -2217,12 +2234,12 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 
 	/* Override umask and utimes if asked */
 	if (preserve_flag)
-		do_fsetstat(conn, handle, handle_len, &a);
+		sftp_fsetstat(conn, handle, handle_len, &a);
 
 	if (fsync_flag)
-		(void)do_fsync(conn, handle, handle_len);
+		(void)sftp_fsync(conn, handle, handle_len);
 
-	if (do_close(conn, handle, handle_len) != 0)
+	if (sftp_close(conn, handle, handle_len) != 0)
 		status = SSH2_FX_FAILURE;
 
 	free(handle);
@@ -2240,7 +2257,7 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	struct dirent *dp;
 	char *filename, *new_src = NULL, *new_dst = NULL;
 	struct stat sb;
-	Attrib a, *dirattrib;
+	Attrib a, dirattrib;
 	u_int32_t saved_perm;
 
 	debug2_f("upload local dir \"%s\" to remote \"%s\"", src, dst);
@@ -2276,10 +2293,10 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	 */
 	saved_perm = a.perm;
 	a.perm |= (S_IWUSR|S_IXUSR);
-	if (do_mkdir(conn, dst, &a, 0) != 0) {
-		if ((dirattrib = do_stat(conn, dst, 0)) == NULL)
+	if (sftp_mkdir(conn, dst, &a, 0) != 0) {
+		if (sftp_stat(conn, dst, 0, &dirattrib) != 0)
 			return -1;
-		if (!S_ISDIR(dirattrib->perm)) {
+		if (!S_ISDIR(dirattrib.perm)) {
 			error("\"%s\" exists but is not a directory", dst);
 			return -1;
 		}
@@ -2297,25 +2314,37 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		free(new_dst);
 		free(new_src);
 		filename = dp->d_name;
-		new_dst = path_append(dst, filename);
-		new_src = path_append(src, filename);
+		new_dst = sftp_path_append(dst, filename);
+		new_src = sftp_path_append(src, filename);
 
+		if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0)
+			continue;
 		if (lstat(new_src, &sb) == -1) {
 			logit("local lstat \"%s\": %s", filename,
 			    strerror(errno));
 			ret = -1;
-		} else if (S_ISDIR(sb.st_mode)) {
-			if (strcmp(filename, ".") == 0 ||
-			    strcmp(filename, "..") == 0)
+			continue;
+		}
+		if (S_ISLNK(sb.st_mode)) {
+			if (!follow_link_flag) {
+				logit("%s: not a regular file", filename);
 				continue;
-
+			}
+			/* Replace the stat contents with the symlink target */
+			if (stat(new_src, &sb) == -1) {
+				logit("local stat \"%s\": %s", filename,
+				    strerror(errno));
+				ret = -1;
+				continue;
+			}
+		}
+		if (S_ISDIR(sb.st_mode)) {
 			if (upload_dir_internal(conn, new_src, new_dst,
 			    depth + 1, preserve_flag, print_flag, resume,
 			    fsync_flag, follow_link_flag, inplace_flag) == -1)
 				ret = -1;
-		} else if (S_ISREG(sb.st_mode) ||
-		    (follow_link_flag && S_ISLNK(sb.st_mode))) {
-			if (do_upload(conn, new_src, new_dst,
+		} else if (S_ISREG(sb.st_mode)) {
+			if (sftp_upload(conn, new_src, new_dst,
 			    preserve_flag, resume, fsync_flag,
 			    inplace_flag) == -1) {
 				error("upload \"%s\" to \"%s\" failed",
@@ -2328,21 +2357,21 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	free(new_dst);
 	free(new_src);
 
-	do_setstat(conn, dst, &a);
+	sftp_setstat(conn, dst, &a);
 
 	(void) closedir(dirp);
 	return ret;
 }
 
 int
-upload_dir(struct sftp_conn *conn, const char *src, const char *dst,
+sftp_upload_dir(struct sftp_conn *conn, const char *src, const char *dst,
     int preserve_flag, int print_flag, int resume, int fsync_flag,
     int follow_link_flag, int inplace_flag)
 {
 	char *dst_canon;
 	int ret;
 
-	if ((dst_canon = do_realpath(conn, dst)) == NULL) {
+	if ((dst_canon = sftp_realpath(conn, dst)) == NULL) {
 		error("upload \"%s\": path canonicalization failed", dst);
 		return -1;
 	}
@@ -2401,13 +2430,13 @@ handle_dest_replies(struct sftp_conn *to, const char *to_path, int synchronous,
 				*write_errorp = status;
 		}
 		/*
-		 * XXX this doesn't do full reply matching like do_upload and
+		 * XXX this doesn't do full reply matching like sftp_upload and
 		 * so cannot gracefully truncate terminated uploads at a
 		 * high-water mark. ATM the only caller of this function (scp)
 		 * doesn't support transfer resumption, so this doesn't matter
 		 * a whole lot.
 		 *
-		 * To be safe, do_crossload truncates the destination file to
+		 * To be safe, sftp_crossload truncates the destination file to
 		 * zero length on upload failure, since we can't trust the
 		 * server not to have reordered replies that could have
 		 * inserted holes where none existed in the source file.
@@ -2422,7 +2451,7 @@ handle_dest_replies(struct sftp_conn *to, const char *to_path, int synchronous,
 }
 
 int
-do_crossload(struct sftp_conn *from, struct sftp_conn *to,
+sftp_crossload(struct sftp_conn *from, struct sftp_conn *to,
     const char *from_path, const char *to_path,
     Attrib *a, int preserve_flag)
 {
@@ -2437,13 +2466,17 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
 	struct requests requests;
 	struct request *req;
 	u_char type;
+	Attrib attr;
 
 	debug2_f("crossload src \"%s\" to dst \"%s\"", from_path, to_path);
 
 	TAILQ_INIT(&requests);
 
-	if (a == NULL && (a = do_stat(from, from_path, 0)) == NULL)
-		return -1;
+	if (a == NULL) {
+		if (sftp_stat(from, from_path, 0, &attr) != 0)
+			return -1;
+		a = &attr;
+	}
 
 	if ((a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) &&
 	    (!S_ISREG(a->perm))) {
@@ -2473,7 +2506,7 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
 	if (send_open(to, to_path, "dest",
 	    SSH2_FXF_WRITE|SSH2_FXF_CREAT|SSH2_FXF_TRUNC, a,
 	    &to_handle, &to_handle_len) != 0) {
-		do_close(from, from_handle, from_handle_len);
+		sftp_close(from, from_handle, from_handle_len);
 		return -1;
 	}
 
@@ -2623,7 +2656,7 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
 	/* Truncate at 0 length on interrupt or error to avoid holes at dest */
 	if (read_error || write_error || interrupted) {
 		debug("truncating \"%s\" at 0", to_path);
-		do_close(to, to_handle, to_handle_len);
+		sftp_close(to, to_handle, to_handle_len);
 		free(to_handle);
 		if (send_open(to, to_path, "dest",
 		    SSH2_FXF_WRITE|SSH2_FXF_CREAT|SSH2_FXF_TRUNC, a,
@@ -2635,17 +2668,17 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
 	if (read_error) {
 		error("read origin \"%s\": %s", from_path, fx2txt(status));
 		status = -1;
-		do_close(from, from_handle, from_handle_len);
+		sftp_close(from, from_handle, from_handle_len);
 		if (to_handle != NULL)
-			do_close(to, to_handle, to_handle_len);
+			sftp_close(to, to_handle, to_handle_len);
 	} else if (write_error) {
 		error("write dest \"%s\": %s", to_path, fx2txt(write_error));
 		status = SSH2_FX_FAILURE;
-		do_close(from, from_handle, from_handle_len);
+		sftp_close(from, from_handle, from_handle_len);
 		if (to_handle != NULL)
-			do_close(to, to_handle, to_handle_len);
+			sftp_close(to, to_handle, to_handle_len);
 	} else {
-		if (do_close(from, from_handle, from_handle_len) != 0 ||
+		if (sftp_close(from, from_handle, from_handle_len) != 0 ||
 		    interrupted)
 			status = -1;
 		else
@@ -2653,8 +2686,8 @@ do_crossload(struct sftp_conn *from, struct sftp_conn *to,
 		if (to_handle != NULL) {
 			/* Need to resend utimes after write */
 			if (preserve_flag)
-				do_fsetstat(to, to_handle, to_handle_len, a);
-			do_close(to, to_handle, to_handle_len);
+				sftp_fsetstat(to, to_handle, to_handle_len, a);
+			sftp_close(to, to_handle, to_handle_len);
 		}
 	}
 	sshbuf_free(msg);
@@ -2674,7 +2707,7 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	SFTP_DIRENT **dir_entries;
 	char *filename, *new_from_path = NULL, *new_to_path = NULL;
 	mode_t mode = 0777;
-	Attrib curdir;
+	Attrib *a, curdir, ldirattrib, newdir, lsym;
 
 	debug2_f("crossload dir src \"%s\" to dst \"%s\"", from_path, to_path);
 
@@ -2683,10 +2716,12 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 		return -1;
 	}
 
-	if (dirattrib == NULL &&
-	    (dirattrib = do_stat(from, from_path, 1)) == NULL) {
-		error("stat remote \"%s\" failed", from_path);
-		return -1;
+	if (dirattrib == NULL) {
+		if (sftp_stat(from, from_path, 1, &ldirattrib) != 0) {
+			error("stat remote \"%s\" failed", from_path);
+			return -1;
+		}
+		dirattrib = &ldirattrib;
 	}
 	if (!S_ISDIR(dirattrib->perm)) {
 		error("\"%s\" is not a directory", from_path);
@@ -2714,17 +2749,17 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	 * the path already existed and is a directory.  Ensure we can
 	 * write to the directory we create for the duration of the transfer.
 	 */
-	if (do_mkdir(to, to_path, &curdir, 0) != 0) {
-		if ((dirattrib = do_stat(to, to_path, 0)) == NULL)
+	if (sftp_mkdir(to, to_path, &curdir, 0) != 0) {
+		if (sftp_stat(to, to_path, 0, &newdir) != 0)
 			return -1;
-		if (!S_ISDIR(dirattrib->perm)) {
+		if (!S_ISDIR(newdir.perm)) {
 			error("\"%s\" exists but is not a directory", to_path);
 			return -1;
 		}
 	}
 	curdir.perm = mode;
 
-	if (do_readdir(from, from_path, &dir_entries) == -1) {
+	if (sftp_readdir(from, from_path, &dir_entries) == -1) {
 		error("origin readdir \"%s\" failed", from_path);
 		return -1;
 	}
@@ -2734,28 +2769,36 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 		free(new_to_path);
 
 		filename = dir_entries[i]->filename;
-		new_from_path = path_append(from_path, filename);
-		new_to_path = path_append(to_path, filename);
+		new_from_path = sftp_path_append(from_path, filename);
+		new_to_path = sftp_path_append(to_path, filename);
 
-		if (S_ISDIR(dir_entries[i]->a.perm)) {
+		a = &dir_entries[i]->a;
+		if (S_ISLNK(a->perm)) {
+			if (!follow_link_flag) {
+				logit("%s: not a regular file", filename);
+				continue;
+			}
+			/* Replace the stat contents with the symlink target */
+			if (sftp_stat(from, new_from_path, 1, &lsym) != 0) {
+				logit("remote stat \"%s\" failed",
+				    new_from_path);
+				ret = -1;
+				continue;
+			}
+			a = &lsym;
+		}
+		if (S_ISDIR(a->perm)) {
 			if (strcmp(filename, ".") == 0 ||
 			    strcmp(filename, "..") == 0)
 				continue;
 			if (crossload_dir_internal(from, to,
 			    new_from_path, new_to_path,
-			    depth + 1, &(dir_entries[i]->a), preserve_flag,
+			    depth + 1, a, preserve_flag,
 			    print_flag, follow_link_flag) == -1)
 				ret = -1;
-		} else if (S_ISREG(dir_entries[i]->a.perm) ||
-		    (follow_link_flag && S_ISLNK(dir_entries[i]->a.perm))) {
-			/*
-			 * If this is a symlink then don't send the link's
-			 * Attrib. do_download() will do a FXP_STAT operation
-			 * and get the link target's attributes.
-			 */
-			if (do_crossload(from, to, new_from_path, new_to_path,
-			    S_ISLNK(dir_entries[i]->a.perm) ? NULL :
-			    &(dir_entries[i]->a), preserve_flag) == -1) {
+		} else if (S_ISREG(a->perm)) {
+			if (sftp_crossload(from, to, new_from_path,
+			    new_to_path, a, preserve_flag) == -1) {
 				error("crossload \"%s\" to \"%s\" failed",
 				    new_from_path, new_to_path);
 				ret = -1;
@@ -2768,22 +2811,22 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	free(new_to_path);
 	free(new_from_path);
 
-	do_setstat(to, to_path, &curdir);
+	sftp_setstat(to, to_path, &curdir);
 
-	free_sftp_dirents(dir_entries);
+	sftp_free_dirents(dir_entries);
 
 	return ret;
 }
 
 int
-crossload_dir(struct sftp_conn *from, struct sftp_conn *to,
+sftp_crossload_dir(struct sftp_conn *from, struct sftp_conn *to,
     const char *from_path, const char *to_path,
     Attrib *dirattrib, int preserve_flag, int print_flag, int follow_link_flag)
 {
 	char *from_path_canon;
 	int ret;
 
-	if ((from_path_canon = do_realpath(from, from_path)) == NULL) {
+	if ((from_path_canon = sftp_realpath(from, from_path)) == NULL) {
 		error("crossload \"%s\": path canonicalization failed",
 		    from_path);
 		return -1;
@@ -2796,13 +2839,13 @@ crossload_dir(struct sftp_conn *from, struct sftp_conn *to,
 }
 
 int
-can_get_users_groups_by_id(struct sftp_conn *conn)
+sftp_can_get_users_groups_by_id(struct sftp_conn *conn)
 {
 	return (conn->exts & SFTP_EXT_GETUSERSGROUPS_BY_ID) != 0;
 }
 
 int
-do_get_users_groups_by_id(struct sftp_conn *conn,
+sftp_get_users_groups_by_id(struct sftp_conn *conn,
     const u_int *uids, u_int nuids,
     const u_int *gids, u_int ngids,
     char ***usernamesp, char ***groupnamesp)
@@ -2814,7 +2857,7 @@ do_get_users_groups_by_id(struct sftp_conn *conn,
 	int r;
 
 	*usernamesp = *groupnamesp = NULL;
-	if (!can_get_users_groups_by_id(conn))
+	if (!sftp_can_get_users_groups_by_id(conn))
 		return SSH_ERR_FEATURE_UNSUPPORTED;
 
 	if ((msg = sshbuf_new()) == NULL ||
@@ -2910,7 +2953,7 @@ do_get_users_groups_by_id(struct sftp_conn *conn,
 }
 
 char *
-path_append(const char *p1, const char *p2)
+sftp_path_append(const char *p1, const char *p2)
 {
 	char *ret;
 	size_t len = strlen(p1) + strlen(p2) + 2;
@@ -2929,13 +2972,13 @@ path_append(const char *p1, const char *p2)
  * freed and a replacement allocated.  Caller must free returned string.
  */
 char *
-make_absolute(char *p, const char *pwd)
+sftp_make_absolute(char *p, const char *pwd)
 {
 	char *abs_str;
 
 	/* Derelativise */
 	if (p && !path_absolute(p)) {
-		abs_str = path_append(pwd, p);
+		abs_str = sftp_path_append(pwd, p);
 		free(p);
 		return(abs_str);
 	} else
@@ -2943,34 +2986,22 @@ make_absolute(char *p, const char *pwd)
 }
 
 int
-remote_is_dir(struct sftp_conn *conn, const char *path)
+sftp_remote_is_dir(struct sftp_conn *conn, const char *path)
 {
-	Attrib *a;
+	Attrib a;
 
 	/* XXX: report errors? */
-	if ((a = do_stat(conn, path, 1)) == NULL)
+	if (sftp_stat(conn, path, 1, &a) != 0)
 		return(0);
-	if (!(a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS))
+	if (!(a.flags & SSH2_FILEXFER_ATTR_PERMISSIONS))
 		return(0);
-	return(S_ISDIR(a->perm));
+	return S_ISDIR(a.perm);
 }
 
-
-int
-local_is_dir(const char *path)
-{
-	struct stat sb;
-
-	/* XXX: report errors? */
-	if (stat(path, &sb) == -1)
-		return(0);
-
-	return(S_ISDIR(sb.st_mode));
-}
 
 /* Check whether path returned from glob(..., GLOB_MARK, ...) is a directory */
 int
-globpath_is_dir(const char *pathname)
+sftp_globpath_is_dir(const char *pathname)
 {
 	size_t l = strlen(pathname);
 

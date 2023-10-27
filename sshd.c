@@ -1068,7 +1068,6 @@ listen_on_addrs(struct listenaddr *la)
 		getsockopt(listen_sock, SOL_SOCKET, SO_RCVBUF,
 				   &socksize, &socksizelen);
 		debug("Server TCP RWIN socket size: %d", socksize);
-		debug("HPN Buffer Size: %d", options.hpn_buffer_size);
 
 		/* Bind the socket to the desired port. */
 		if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) == -1) {
@@ -1703,8 +1702,8 @@ main(int ac, char **av)
 			free(line);
 			break;
 		case 'V':
-			fprintf(stderr, "%s%s, %s\n",
-			    SSH_VERSION, SSH_HPN, SSH_OPENSSL_VERSION);
+			fprintf(stderr, "%s, %s\n",
+			    SSH_RELEASE, SSH_OPENSSL_VERSION);
 			exit(0);
 		default:
 			usage();
@@ -2232,7 +2231,7 @@ main(int ac, char **av)
 	free(laddr);
 
 	/* set the HPN options for the child */
-	channel_set_hpn(options.hpn_disabled, options.hpn_buffer_size);
+	channel_set_hpn_disabled(options.hpn_disabled);
 
 	/*
 	 * We don't want to listen forever unless the other side
