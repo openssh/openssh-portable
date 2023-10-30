@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.102 2023/10/29 06:22:07 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.103 2023/10/30 23:00:25 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -321,6 +321,8 @@ cat >$SSHDLOGWRAP <<EOD
 timestamp="\`$OBJ/timestamp\`"
 logfile="${TEST_SSH_LOGDIR}/\${timestamp}.sshd.\$\$.log"
 rm -f $TEST_SSHD_LOGFILE
+touch \$logfile
+chown $USER \$logfile
 ln -f -s \${logfile} $TEST_SSHD_LOGFILE
 echo "Executing: ${SSHD} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
 echo "Executing: ${SSHD} \$@" >>\${logfile}
@@ -851,6 +853,95 @@ start_sshd ()
 	done
 
 	test -f $PIDFILE || fatal "no sshd running on port $PORT"
+}
+
+# Find a PKCS#11 library.
+p11_find_lib() {
+	TEST_SSH_PKCS11=""
+	for _lib in "$@" ; do
+		if test -f "$_lib" ; then
+			TEST_SSH_PKCS11="$_lib"
+			return
+		fi
+	done
+}
+
+# Perform PKCS#11 setup: prepares a softhsm2 token configuration, generated
+# keys and loads them into the virtual token.
+PKCS11_OK=
+export PKCS11_OK
+p11_setup() {
+	p11_find_lib \
+		/usr/local/lib/softhsm/libsofthsm2.so \
+		/usr/lib64/pkcs11/libsofthsm2.so \
+		/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so
+	test -z "$TEST_SSH_PKCS11" && return 1
+	verbose "using token library $TEST_SSH_PKCS11"
+	TEST_SSH_PIN=1234
+	TEST_SSH_SOPIN=12345678
+	if [ "x$TEST_SSH_SSHPKCS11HELPER" != "x" ]; then
+		SSH_PKCS11_HELPER="${TEST_SSH_SSHPKCS11HELPER}"
+		export SSH_PKCS11_HELPER
+	fi
+
+	# setup environment for softhsm2 token
+	SSH_SOFTHSM_DIR=$OBJ/SOFTHSM
+	export SSH_SOFTHSM_DIR
+	rm -rf $SSH_SOFTHSM_DIR
+	TOKEN=$SSH_SOFTHSM_DIR/tokendir
+	mkdir -p $TOKEN
+	SOFTHSM2_CONF=$SSH_SOFTHSM_DIR/softhsm2.conf
+	export SOFTHSM2_CONF
+	cat > $SOFTHSM2_CONF << EOF
+# SoftHSM v2 configuration file
+directories.tokendir = ${TOKEN}
+objectstore.backend = file
+# ERROR, WARNING, INFO, DEBUG
+log.level = DEBUG
+# If CKF_REMOVABLE_DEVICE flag should be set
+slots.removable = false
+EOF
+	out=$(softhsm2-util --init-token --free --label token-slot-0 --pin "$TEST_SSH_PIN" --so-pin "$TEST_SSH_SOPIN")
+	slot=$(echo -- $out | sed 's/.* //')
+	trace "generating keys"
+	# RSA key
+	RSA=${SSH_SOFTHSM_DIR}/RSA
+	RSAP8=${SSH_SOFTHSM_DIR}/RSAP8
+	$OPENSSL_BIN genpkey -algorithm rsa > $RSA 2>/dev/null || \
+	    fatal "genpkey RSA fail"
+	$OPENSSL_BIN pkcs8 -nocrypt -in $RSA > $RSAP8 || fatal "pkcs8 RSA fail"
+	softhsm2-util --slot "$slot" --label 01 --id 01 --pin "$TEST_SSH_PIN" \
+	    --import $RSAP8 >/dev/null || fatal "softhsm import RSA fail"
+	chmod 600 $RSA
+	ssh-keygen -y -f $RSA > ${RSA}.pub
+	# ECDSA key
+	ECPARAM=${SSH_SOFTHSM_DIR}/ECPARAM
+	EC=${SSH_SOFTHSM_DIR}/EC
+	ECP8=${SSH_SOFTHSM_DIR}/ECP8
+	$OPENSSL_BIN genpkey -genparam -algorithm ec \
+	    -pkeyopt ec_paramgen_curve:prime256v1 > $ECPARAM || \
+	    fatal "param EC fail"
+	$OPENSSL_BIN genpkey -paramfile $ECPARAM > $EC || \
+	    fatal "genpkey EC fail"
+	$OPENSSL_BIN pkcs8 -nocrypt -in $EC > $ECP8 || fatal "pkcs8 EC fail"
+	softhsm2-util --slot "$slot" --label 02 --id 02 --pin "$TEST_SSH_PIN" \
+	    --import $ECP8 >/dev/null || fatal "softhsm import EC fail"
+	chmod 600 $EC
+	ssh-keygen -y -f $EC > ${EC}.pub
+	# Prepare askpass script to load PIN.
+	PIN_SH=$SSH_SOFTHSM_DIR/pin.sh
+	cat > $PIN_SH << EOF
+#!/bin/sh
+echo "${TEST_SSH_PIN}"
+EOF
+	chmod 0700 "$PIN_SH"
+	PKCS11_OK=yes
+	return 0
+}
+
+# Peforms ssh-add with the right token PIN.
+p11_ssh_add() {
+	env SSH_ASKPASS="$PIN_SH" SSH_ASKPASS_REQUIRE=force ${SSHADD} "$@"
 }
 
 # source test body
