@@ -18,8 +18,7 @@ case "$host" in
 	;;
 *-darwin*)
 	PACKAGER=brew
-	brew install automake
-	exit 0
+	PACKAGES="automake"
 	;;
 *)
 	PACKAGER=apt
@@ -29,8 +28,6 @@ TARGETS=$@
 
 INSTALL_FIDO_PPA="no"
 export DEBIAN_FRONTEND=noninteractive
-
-#echo "Setting up for '$TARGETS'"
 
 set -ex
 
@@ -57,6 +54,7 @@ for flag in $CONFIGFLAGS; do
     esac
 done
 
+echo "Setting up for '$TARGETS'"
 for TARGET in $TARGETS; do
     case $TARGET in
     default|without-openssl|without-zlib|c89)
@@ -87,7 +85,9 @@ for TARGET in $TARGETS; do
 	esac
         ;;
     *pam)
-        PACKAGES="$PACKAGES libpam0g-dev"
+	case "$PACKAGER" in
+	apt)	PACKAGES="$PACKAGES libpam0g-dev" ;;
+	esac
         ;;
     sk)
         INSTALL_FIDO_PPA="yes"
@@ -154,6 +154,13 @@ while [ ! -z "$PACKAGES" ] && [ "$tries" -gt "0" ]; do
 	sudo apt update -qq
 	if sudo apt install -qy $PACKAGES; then
 		PACKAGES=""
+	fi
+	;;
+    brew)
+	if [ ! -z "PACKAGES" ]; then
+		if brew install $PACKAGES; then
+			PACKAGES=""
+		fi
 	fi
 	;;
     setup)
