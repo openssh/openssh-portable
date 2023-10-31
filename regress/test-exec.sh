@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.104 2023/10/31 02:58:45 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.105 2023/10/31 04:15:40 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -322,7 +322,7 @@ timestamp="\`$OBJ/timestamp\`"
 logfile="${TEST_SSH_LOGDIR}/\${timestamp}.sshd.\$\$.log"
 rm -f $TEST_SSHD_LOGFILE
 touch \$logfile
-test -z "$SUDO" || "$SUDO" chown $USER \$logfile
+test -z "$SUDO" || chown $USER \$logfile
 ln -f -s \${logfile} $TEST_SSHD_LOGFILE
 echo "Executing: ${SSHD} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
 echo "Executing: ${SSHD} \$@" >>\${logfile}
