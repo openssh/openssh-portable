@@ -1,4 +1,4 @@
-#	$OpenBSD: forcecommand.sh,v 1.6 2023/11/01 00:29:46 djm Exp $
+#	$OpenBSD: forcecommand.sh,v 1.7 2023/11/01 02:08:38 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="forced command"
@@ -19,7 +19,7 @@ trace "test config with sftp"
 authorized_keys
 rm -f $OBJ/ssh_proxy.tmp
 echo "@get $OBJ/ssh_proxy $OBJ/ssh_proxy.tmp" | \
-	${SFTP} -b - -qF $OBJ/ssh_proxy somehost 2>/dev/null || \
+	${SFTP} -S ${SSH} -b - -qF $OBJ/ssh_proxy somehost 2>/dev/null || \
 	fail "sftp failed"
 test -f "$OBJ/ssh_proxy.tmp" || fail "sftp did not download file"
 rm -f $OBJ/ssh_proxy.tmp
@@ -41,7 +41,7 @@ echo "ForceCommand false" >> $OBJ/sshd_proxy
 
 trace "force command overriding subsystem"
 echo "@get $OBJ/ssh_proxy $OBJ/ssh_proxy.tmp" | \
-	${SFTP} -F $OBJ/ssh_proxy -oLoglevel=quiet somehost && \
+	${SFTP} -S ${SSH} -F $OBJ/ssh_proxy -oLoglevel=quiet somehost && \
 	fail "sftp succeeded"
 
 echo "Match User $USER" >> $OBJ/sshd_proxy
@@ -52,7 +52,7 @@ ${SSH} -F $OBJ/ssh_proxy somehost false || fail "forced command match"
 
 trace "force command in match overriding subsystem"
 echo "@get $OBJ/ssh_proxy $OBJ/ssh_proxy.tmp" | \
-	${SFTP} -F $OBJ/ssh_proxy -oLoglevel=quiet somehost && \
+	${SFTP} -S ${SSH} -F $OBJ/ssh_proxy -oLoglevel=quiet somehost && \
 	fail "sftp succeeded"
 
 trace "force command to sftpserver"
@@ -61,7 +61,7 @@ echo "Subsystem sftp /bin/false" >> $OBJ/sshd_proxy
 echo "ForceCommand ${SFTPSERVER}" >> $OBJ/sshd_proxy
 rm -f $OBJ/ssh_proxy.tmp
 echo "@get $OBJ/ssh_proxy $OBJ/ssh_proxy.tmp" | \
-	${SFTP} -b - -qF $OBJ/ssh_proxy somehost 2>/dev/null || \
+	${SFTP} -S ${SSH} -b - -qF $OBJ/ssh_proxy somehost 2>/dev/null || \
 	fail "sftp failed"
 test -f "$OBJ/ssh_proxy.tmp" || fail "sftp did not download file"
 rm -f $OBJ/ssh_proxy.tmp
