@@ -782,6 +782,8 @@ colon(char *cp)
 			flag = 1;
 		if (*cp == ']' && *(cp+1) == ':' && flag)
 			return (cp+1);
+		if (*cp == ']' && *(cp+1) == '\0' && flag)
+			return (cp+1);
 		if (*cp == ':' && !flag)
 			return (cp);
 		if (*cp == '/')
@@ -820,7 +822,8 @@ parse_user_host_path(const char *s, char **userp, char **hostp, char **pathp)
 		goto out;
 
 	/* Extract optional path */
-	*tmp++ = '\0';
+	if (*tmp != '\0')
+		*tmp++ = '\0';
 	if (*tmp == '\0')
 		tmp = ".";
 	path = xstrdup(tmp);
