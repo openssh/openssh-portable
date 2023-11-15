@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.433 2023/09/04 00:01:46 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.434 2023/11/15 22:51:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -894,6 +894,23 @@ channel_still_open(struct ssh *ssh)
 			fatal_f("bad channel type %d", c->type);
 			/* NOTREACHED */
 		}
+	}
+	return 0;
+}
+
+/* Returns true if a channel with a TTY is open. */
+int
+channel_tty_open(struct ssh *ssh)
+{
+	u_int i;
+	Channel *c;
+
+	for (i = 0; i < ssh->chanctxt->channels_alloc; i++) {
+		c = ssh->chanctxt->channels[i];
+		if (c == NULL || c->type != SSH_CHANNEL_OPEN)
+			continue;
+		if (c->client_tty)
+			return 1;
 	}
 	return 0;
 }
