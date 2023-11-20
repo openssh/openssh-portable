@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.364 2023/11/15 23:03:38 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.365 2023/11/20 02:50:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -485,7 +485,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 			    ai->ai_family != options.address_family) {
 				debug2_f("skipping address [%s]:%s: "
 				    "wrong address family", ntop, strport);
-				errno = 0;
+				errno = EAFNOSUPPORT;
 				continue;
 			}
 
