@@ -15,7 +15,7 @@ AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
 #include <stdlib.h>
 #include <stdio.h>
 /* Trivial function to help test for -fzero-call-used-regs */
-void f(int n) {}
+int f(int n) {return rand() % n;}
 int main(int argc, char **argv) {
 	(void)argv;
 	/* Some math to catch -ftrapv problems in the toolchain */
@@ -65,6 +65,8 @@ AC_DEFUN([OSSH_CHECK_CFLAG_LINK], [{
 	AC_LINK_IFELSE([AC_LANG_SOURCE([[
 #include <stdlib.h>
 #include <stdio.h>
+/* Trivial function to help test for -fzero-call-used-regs */
+int f(int n) {return rand() % n;}
 int main(int argc, char **argv) {
 	(void)argv;
 	/* Some math to catch -ftrapv problems in the toolchain */
@@ -73,6 +75,7 @@ int main(int argc, char **argv) {
 	double m = l / 0.5;
 	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
 	long long int p = n * o;
+	f(0);
 	printf("%d %d %d %f %f %lld %lld %lld\n", i, j, k, l, m, n, o, p);
 	exit(0);
 }
@@ -104,6 +107,8 @@ AC_DEFUN([OSSH_CHECK_LDFLAG_LINK], [{
 	AC_LINK_IFELSE([AC_LANG_SOURCE([[
 #include <stdlib.h>
 #include <stdio.h>
+/* Trivial function to help test for -fzero-call-used-regs */
+int f(int n) {return rand() % n;}
 int main(int argc, char **argv) {
 	(void)argv;
 	/* Some math to catch -ftrapv problems in the toolchain */
@@ -112,6 +117,7 @@ int main(int argc, char **argv) {
 	double m = l / 0.5;
 	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
 	long long p = n * o;
+	f(0);
 	printf("%d %d %d %f %f %lld %lld %lld\n", i, j, k, l, m, n, o, p);
 	exit(0);
 }
