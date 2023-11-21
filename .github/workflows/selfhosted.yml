@@ -31,6 +31,7 @@ jobs:
           - fbsd10
           - fbsd12
           - fbsd13
+          - fbsd14
           - minix3
           - nbsd3
           - nbsd4
@@ -68,6 +69,7 @@ jobs:
           - { target: fbsd10, config: pam, host: libvirt }
           - { target: fbsd12, config: pam, host: libvirt }
           - { target: fbsd13, config: pam, host: libvirt }
+          - { target: fbsd14, config: pam, host: libvirt }
           - { target: nbsd8,  config: pam, host: libvirt }
           - { target: nbsd9,  config: pam, host: libvirt }
           # VMs with persistent disks that have their own runner.
