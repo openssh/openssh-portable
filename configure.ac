@@ -189,10 +189,11 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	AC_MSG_CHECKING([clang version])
 	ver="`$CC -v 2>&1`"
 	if echo "$ver" | grep "Apple" >/dev/null; then
-		CLANG_VER="apple-`echo "$ver" | \
-		    awk '/Apple LLVM/ {print $4"-"$5}'`"
+		CLANG_VER=apple-`echo "$ver" | grep 'clang version' | \
+		    $SED 's/.*clang version //g' | $AWK '{print $1}'`
 	else
-		CLANG_VER=`echo "$ver" | $AWK '/clang version /{print $3}'`
+		CLANG_VER=`echo "$ver" | grep 'clang version' | \
+		    $SED 's/.*clang version //g' | $AWK '{print $1}'`
 	fi
 	AC_MSG_RESULT([$CLANG_VER])
 
