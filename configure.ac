@@ -231,9 +231,12 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	# clang 15 seems to have a bug in -fzero-call-used-regs=all.  See
 	# https://bugzilla.mindrot.org/show_bug.cgi?id=3475 and
 	# https://github.com/llvm/llvm-project/issues/59242
+	# clang 17 has a different bug that causes an ICE when using this
+	# flag at all (https://bugzilla.mindrot.org/show_bug.cgi?id=3629)
 	case "$CLANG_VER" in
-	15.*|apple*) OSSH_CHECK_CFLAG_COMPILE([-fzero-call-used-regs=used]) ;;
-	*)    OSSH_CHECK_CFLAG_COMPILE([-fzero-call-used-regs=all]) ;;
+	apple-15*) OSSH_CHECK_CFLAG_COMPILE([-fzero-call-used-regs=used]) ;;
+	17*)	;;
+	*)	OSSH_CHECK_CFLAG_COMPILE([-fzero-call-used-regs=used]) ;;
 	esac
 	OSSH_CHECK_CFLAG_COMPILE([-ftrivial-auto-var-init=zero])
     fi
