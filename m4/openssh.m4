@@ -53,8 +53,15 @@ then
 		AC_MSG_RESULT([no])
 		CFLAGS="$saved_CFLAGS"
 else
-		AC_MSG_RESULT([yes])
-		 CFLAGS="$saved_CFLAGS $_define_flag"
+		dnl If we are compiling natively, try running the program.
+		AC_RUN_IFELSE([OSSH_COMPILER_FLAG_TEST_PROGRAM],
+			[ AC_MSG_RESULT([yes])
+			  CFLAGS="$saved_CFLAGS $_define_flag" ],
+			[ AC_MSG_RESULT([no, fails at run time])
+			  CFLAGS="$saved_CFLAGS" ],
+			[ AC_MSG_RESULT([yes])
+			  CFLAGS="$saved_CFLAGS $_define_flag" ],
+		)
 fi],
 		[ AC_MSG_RESULT([no])
 		  CFLAGS="$saved_CFLAGS" ]
@@ -78,8 +85,15 @@ then
 		AC_MSG_RESULT([no])
 		CFLAGS="$saved_CFLAGS"
 else
-		AC_MSG_RESULT([yes])
-		 CFLAGS="$saved_CFLAGS $_define_flag"
+		dnl If we are compiling natively, try running the program.
+		AC_RUN_IFELSE([OSSH_COMPILER_FLAG_TEST_PROGRAM],
+			[ AC_MSG_RESULT([yes])
+			  CFLAGS="$saved_CFLAGS $_define_flag" ],
+			[ AC_MSG_RESULT([no, fails at run time])
+			  CFLAGS="$saved_CFLAGS" ],
+			[ AC_MSG_RESULT([yes])
+			  CFLAGS="$saved_CFLAGS $_define_flag" ],
+		)
 fi],
 		[ AC_MSG_RESULT([no])
 		  CFLAGS="$saved_CFLAGS" ]
@@ -103,8 +117,15 @@ then
 		  AC_MSG_RESULT([no])
 		  LDFLAGS="$saved_LDFLAGS"
 else
-		  AC_MSG_RESULT([yes])
-		  LDFLAGS="$saved_LDFLAGS $_define_flag"
+		  dnl If we are compiling natively, try running the program.
+		  AC_RUN_IFELSE([OSSH_COMPILER_FLAG_TEST_PROGRAM],
+			[ AC_MSG_RESULT([yes])
+			  LDFLAGS="$saved_LDFLAGS $_define_flag" ],
+			[ AC_MSG_RESULT([no, fails at run time])
+			  LDFLAGS="$saved_LDFLAGS" ],
+			[ AC_MSG_RESULT([yes])
+			  LDFLAGS="$saved_LDFLAGS $_define_flag" ]
+		  )
 fi		],
 		[ AC_MSG_RESULT([no])
 		  LDFLAGS="$saved_LDFLAGS" ]
