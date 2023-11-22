@@ -1,30 +1,26 @@
 dnl OpenSSH-specific autoconf macros
 dnl
 
-dnl OSSH_CHECK_CFLAG_COMPILE(check_flag[, define_flag])
-dnl Check that $CC accepts a flag 'check_flag'. If it is supported append
-dnl 'define_flag' to $CFLAGS. If 'define_flag' is not specified, then append
-dnl 'check_flag'.
-AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
-	AC_MSG_CHECKING([if $CC supports compile flag $1])
-	saved_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $WERROR $1"
-	_define_flag="$2"
-	test "x$_define_flag" = "x" && _define_flag="$1"
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+dnl The test program that is used to try to trigger various compiler
+dnl behaviours.
+AC_DEFUN([OSSH_COMPILER_FLAG_TEST_PROGRAM],
+	[AC_LANG_SOURCE([[
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 /* Trivial function to help test for -fzero-call-used-regs */
 int f(int n) {return rand() % n;}
 int main(int argc, char **argv) {
 	(void)argv;
+	char b[256];
 	/* Some math to catch -ftrapv problems in the toolchain */
 	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
 	float l = i * 2.1;
 	double m = l / 0.5;
 	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
 	f(0);
-	printf("%d %d %d %f %f %lld %lld\n", i, j, k, l, m, n, o);
+	snprintf(b, sizeof b, "%d %d %d %f %f %lld %lld\n", i,j,k,l,m,n,o);
+	write(1, b, 0);
 	/*
 	 * Test fallthrough behaviour.  clang 10's -Wimplicit-fallthrough does
 	 * not understand comments and we don't use the "fallthrough" attribute
@@ -37,7 +33,20 @@ int main(int argc, char **argv) {
 	}
 	exit(0);
 }
-	]])],
+	]])]
+)
+
+dnl OSSH_CHECK_CFLAG_COMPILE(check_flag[, define_flag])
+dnl Check that $CC accepts a flag 'check_flag'. If it is supported append
+dnl 'define_flag' to $CFLAGS. If 'define_flag' is not specified, then append
+dnl 'check_flag'.
+AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
+	AC_MSG_CHECKING([if $CC supports compile flag $1])
+	saved_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $WERROR $1"
+	_define_flag="$2"
+	test "x$_define_flag" = "x" && _define_flag="$1"
+	AC_COMPILE_IFELSE([OSSH_COMPILER_FLAG_TEST_PROGRAM],
 		[
 if $ac_cv_path_EGREP -i "unrecognized option|warning.*ignored" conftest.err >/dev/null
 then
@@ -62,24 +71,7 @@ AC_DEFUN([OSSH_CHECK_CFLAG_LINK], [{
 	CFLAGS="$CFLAGS $WERROR $1"
 	_define_flag="$2"
 	test "x$_define_flag" = "x" && _define_flag="$1"
-	AC_LINK_IFELSE([AC_LANG_SOURCE([[
-#include <stdlib.h>
-#include <stdio.h>
-/* Trivial function to help test for -fzero-call-used-regs */
-int f(int n) {return rand() % n;}
-int main(int argc, char **argv) {
-	(void)argv;
-	/* Some math to catch -ftrapv problems in the toolchain */
-	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
-	float l = i * 2.1;
-	double m = l / 0.5;
-	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
-	long long int p = n * o;
-	f(0);
-	printf("%d %d %d %f %f %lld %lld %lld\n", i, j, k, l, m, n, o, p);
-	exit(0);
-}
-	]])],
+	AC_LINK_IFELSE([OSSH_COMPILER_FLAG_TEST_PROGRAM],
 		[
 if $ac_cv_path_EGREP -i "unrecognized option|warning.*ignored" conftest.err >/dev/null
 then
@@ -104,24 +96,7 @@ AC_DEFUN([OSSH_CHECK_LDFLAG_LINK], [{
 	LDFLAGS="$LDFLAGS $WERROR $1"
 	_define_flag="$2"
 	test "x$_define_flag" = "x" && _define_flag="$1"
-	AC_LINK_IFELSE([AC_LANG_SOURCE([[
-#include <stdlib.h>
-#include <stdio.h>
-/* Trivial function to help test for -fzero-call-used-regs */
-int f(int n) {return rand() % n;}
-int main(int argc, char **argv) {
-	(void)argv;
-	/* Some math to catch -ftrapv problems in the toolchain */
-	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
-	float l = i * 2.1;
-	double m = l / 0.5;
-	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
-	long long p = n * o;
-	f(0);
-	printf("%d %d %d %f %f %lld %lld %lld\n", i, j, k, l, m, n, o, p);
-	exit(0);
-}
-		]])],
+	AC_LINK_IFELSE([OSSH_COMPILER_FLAG_TEST_PROGRAM],
 		[
 if $ac_cv_path_EGREP -i "unrecognized option|warning.*ignored" conftest.err >/dev/null
 then
