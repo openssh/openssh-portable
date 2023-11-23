@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
 	f(0);
 	snprintf(b, sizeof b, "%d %d %d %f %f %lld %lld\n", i,j,k,l,m,n,o);
-	write(1, b, 0);
+	if (write(1, b, 0) == -1) exit(0);
 	/*
 	 * Test fallthrough behaviour.  clang 10's -Wimplicit-fallthrough does
 	 * not understand comments and we don't use the "fallthrough" attribute
