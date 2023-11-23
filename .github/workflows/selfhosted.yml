@@ -45,6 +45,7 @@ jobs:
           - obsdsnap
           - obsdsnap-i386
           - openindiana
+          - ubuntu-2204
         config:
           - default
         host:
