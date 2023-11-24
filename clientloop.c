@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.401 2023/11/15 22:51:49 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.402 2023/11/24 00:31:30 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -211,6 +211,7 @@ quit_message(const char *fmt, ...)
 
 	if ((r = sshbuf_putf(stderr_buffer, "%s\r\n", msg)) != 0)
 		fatal_fr(r, "sshbuf_putf");
+	free(msg);
 	quit_pending = 1;
 }
 
