@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
 	float l = i * 2.1;
 	double m = l / 0.5;
 	long long int n = argc * 12345LL, o = 12345LL * (long long int)argc;
-	f(0);
+	f(1);
 	snprintf(b, sizeof b, "%d %d %d %f %f %lld %lld\n", i,j,k,l,m,n,o);
 	if (write(1, b, 0) == -1) exit(0);
 	/*
