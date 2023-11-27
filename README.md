@@ -147,7 +147,7 @@ env OPENSSL_SYS_DIR=<PATH_TO_OPENSSL> ./oqs-scripts/build_openssh.sh
 
 As not all tests in the stock regression suite pass, run `oqs-test/run_tests.sh` instead of simply executing `make tests` to ensure the build was successful.
 
-To execute a connection test with a randomly chosen key-exchange and signature algorithm, run `python3 oqs-test/try_connection.py`. If it is desired that each such combination be tested (exactly once), run `python3 oqs-test/try_connection.py all`. Be aware that the latter can take a long time due to the number of algorithm combinations available.
+To run the following tests, the `/regress` folder must have been populated using either `oqs-test/run_tests.sh` or `make tests`. To execute a connection test with a randomly chosen key-exchange and signature algorithm, run `python3 oqs-test/try_connection.py`. If it is desired that each such combination be tested (exactly once), run `python3 oqs-test/try_connection.py doall`. Be aware that the latter can take a long time due to the number of algorithm combinations available.
 
 ### Running OQS-OpenSSH
 
