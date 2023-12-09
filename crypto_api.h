@@ -53,4 +53,23 @@ int	crypto_kem_sntrup761_dec(unsigned char *k,
     const unsigned char *cstr, const unsigned char *sk);
 int	crypto_kem_sntrup761_keypair(unsigned char *pk, unsigned char *sk);
 
+#define crypto_kem_mceliece6688128_PUBLICKEYBYTES 1044992
+#define crypto_kem_mceliece6688128_SECRETKEYBYTES 13932
+#define crypto_kem_mceliece6688128_CIPHERTEXTBYTES 208
+#define crypto_kem_mceliece6688128_BYTES 32
+
+int	crypto_kem_mceliece6688128f_enc(unsigned char *c,
+    unsigned char *key, const unsigned char *pk);
+int	crypto_kem_mceliece6688128f_dec(unsigned char *key,
+    const unsigned char *c, const unsigned char *sk);
+void	crypto_kem_mceliece6688128f_keypair(unsigned char *pk,
+    unsigned char *sk);
+
+#if USE_MCELIECE6688128X25519 && USE_LIBMCELIECE
+# include "mceliece.h"
+# define crypto_kem_mceliece6688128f_enc mceliece6688128f_enc
+# define crypto_kem_mceliece6688128f_dec mceliece6688128f_dec
+# define crypto_kem_mceliece6688128f_keypair mceliece6688128f_keypair
+#endif
+
 #endif /* crypto_api_h */
