@@ -449,14 +449,15 @@ update_card(int agent_fd, int add, const char *id, int qflag,
 {
 	char *pin = NULL;
 	int r, ret = -1;
+	int tee_identity = getenv("CKTEEC_LOGIN_TYPE") != NULL;
 
-	if (add) {
+	if (!tee_identity && add) {
 		if ((pin = read_passphrase("Enter passphrase for PKCS#11: ",
 		    RP_ALLOW_STDIN)) == NULL)
 			return -1;
 	}
 
-	if ((r = ssh_update_card(agent_fd, add, id, pin == NULL ? "" : pin,
+	if ((r = ssh_update_card(agent_fd, add, id, tee_identity ? "\n" : pin == NULL ? "" : pin,
 	    lifetime, confirm, dest_constraints, ndest_constraints)) == 0) {
 		ret = 0;
 		if (!qflag) {
