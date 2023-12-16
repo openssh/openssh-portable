@@ -64,6 +64,22 @@ const struct ssh_digest digests[] = {
 	{ -1,			NULL,		0,	NULL },
 };
 
+const EVP_MD *
+ssh_digest_to_md(int digest_type)
+{
+	switch (digest_type) {
+	case SSH_DIGEST_SHA1:
+		return EVP_sha1();
+	case SSH_DIGEST_SHA256:
+		return EVP_sha256();
+	case SSH_DIGEST_SHA384:
+		return EVP_sha384();
+	case SSH_DIGEST_SHA512:
+		return EVP_sha512();
+	}
+	return NULL;
+}
+
 static const struct ssh_digest *
 ssh_digest_by_alg(int alg)
 {

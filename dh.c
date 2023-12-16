@@ -36,6 +36,11 @@
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
+#include <openssl/evp.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+#include <openssl/core_names.h>
+#include <openssl/param_build.h>
+#endif
 
 #include "dh.h"
 #include "pathnames.h"
@@ -283,6 +288,103 @@ dh_pub_is_valid(const DH *dh, const BIGNUM *dh_pub)
 int
 dh_gen_key(DH *dh, int need)
 {
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	const BIGNUM *dh_p, *dh_g;
+	BIGNUM *pub_key = NULL, *priv_key = NULL;
+	EVP_PKEY *pkey = NULL;
+  	EVP_PKEY_CTX *ctx = NULL;
+  	OSSL_PARAM_BLD *param_bld = NULL;
+  	OSSL_PARAM *params = NULL;
+	int pbits, r = 0;
+
+	DH_get0_pqg(dh, &dh_p, NULL, &dh_g);
+
+	if (need < 0 || dh_p == NULL ||
+	    (pbits = BN_num_bits(dh_p)) <= 0 ||
+	    need > INT_MAX / 2 || 2 * need > pbits)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (need < 256)
+		need = 256;
+
+	if ((param_bld = OSSL_PARAM_BLD_new()) == NULL ||
+	    (ctx = EVP_PKEY_CTX_new_from_name(NULL, "DH", NULL)) == NULL) {
+		OSSL_PARAM_BLD_free(param_bld);
+		return SSH_ERR_ALLOC_FAIL;
+	}
+
+	if (OSSL_PARAM_BLD_push_BN(param_bld,
+	        OSSL_PKEY_PARAM_FFC_P, dh_p) != 1 ||
+	    OSSL_PARAM_BLD_push_BN(param_bld,
+	        OSSL_PKEY_PARAM_FFC_G, dh_g) != 1) {
+		error_f("Could not set p,q,g parameters");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	/*
+	 * Pollard Rho, Big step/Little Step attacks are O(sqrt(n)),
+	 * so double requested need here.
+	 */
+	if (OSSL_PARAM_BLD_push_int(param_bld,
+	        OSSL_PKEY_PARAM_DH_PRIV_LEN,
+		MINIMUM(need * 2, pbits - 1)) != 1 ||
+	    (params = OSSL_PARAM_BLD_to_param(param_bld)) == NULL) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	if (EVP_PKEY_fromdata_init(ctx) != 1) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	if (EVP_PKEY_fromdata(ctx, &pkey,
+	        EVP_PKEY_KEY_PARAMETERS, params) != 1) {
+		error_f("Failed key generation");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+
+	/* reuse context for key generation */
+	EVP_PKEY_CTX_free(ctx);
+	ctx = NULL;
+
+	if ((ctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL)) == NULL ||
+	    EVP_PKEY_keygen_init(ctx) != 1) {
+		error_f("Could not create or init context");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	if (EVP_PKEY_generate(ctx, &pkey) != 1) {
+		error_f("Could not generate keys");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	if (EVP_PKEY_public_check(ctx) != 1) {
+		error_f("The public key is incorrect");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+
+	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PUB_KEY,
+	    &pub_key) != 1 ||
+	    EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY,
+	    &priv_key) != 1 ||
+	    DH_set0_key(dh, pub_key, priv_key) != 1) {
+		error_f("Could not set pub/priv keys to DH struct");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+
+	/* transferred */
+	pub_key = NULL;
+	priv_key = NULL;
+out:
+	OSSL_PARAM_free(params);
+	OSSL_PARAM_BLD_free(param_bld);
+	EVP_PKEY_CTX_free(ctx);
+	EVP_PKEY_free(pkey);
+	BN_clear_free(pub_key);
+	BN_clear_free(priv_key);
+	return r;
+#else
 	int pbits;
 	const BIGNUM *dh_p, *pub_key;
 
@@ -307,6 +409,7 @@ dh_gen_key(DH *dh, int need)
 	if (!dh_pub_is_valid(dh, pub_key))
 		return SSH_ERR_INVALID_FORMAT;
 	return 0;
+#endif
 }
 
 DH *

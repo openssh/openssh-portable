@@ -20,7 +20,10 @@
 
 #ifdef WITH_OPENSSL
 #include <openssl/bn.h>
+#include <openssl/evp.h>
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
 #include <openssl/rsa.h>
+#endif
 #include <openssl/dsa.h>
 #include <openssl/objects.h>
 #ifdef OPENSSL_HAS_NISTP256
@@ -83,48 +86,100 @@ load_bignum(const char *name)
 	return ret;
 }
 
-const BIGNUM *
+BIGNUM *
 rsa_n(struct sshkey *k)
 {
-	const BIGNUM *n = NULL;
+	BIGNUM *n = NULL;
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+	RSA *rsa = NULL;
+	BIGNUM *res = NULL;
+#endif
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_key(k->rsa, &n, NULL, NULL);
+	ASSERT_PTR_NE(k->pkey, NULL);
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_N, &n);
 	return n;
+#else
+	rsa = EVP_PKEY_get1_RSA(k->pkey);
+	ASSERT_PTR_NE(rsa, NULL);
+	RSA_get0_key(rsa, &n, NULL, NULL);
+	RSA_free(rsa);
+	res = BN_dup(n);
+	return res;
+#endif
 }
 
-const BIGNUM *
+BIGNUM *
 rsa_e(struct sshkey *k)
 {
-	const BIGNUM *e = NULL;
+	BIGNUM *e = NULL;
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+	RSA *rsa = NULL;
+	BIGNUM *res = NULL;
+#endif
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_key(k->rsa, NULL, &e, NULL);
+	ASSERT_PTR_NE(k->pkey, NULL);
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_E, &e);
 	return e;
+#else
+	rsa = EVP_PKEY_get1_RSA(k->pkey);
+	ASSERT_PTR_NE(rsa, NULL);
+	RSA_get0_key(rsa, NULL, &e, NULL);
+	RSA_free(rsa);
+	res = BN_dup(e);
+	return res;
+#endif
 }
 
-const BIGNUM *
+BIGNUM *
 rsa_p(struct sshkey *k)
 {
-	const BIGNUM *p = NULL;
+	BIGNUM *p = NULL;
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+	RSA *rsa = NULL;
+	BIGNUM *res = NULL;
+#endif
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_factors(k->rsa, &p, NULL);
+	ASSERT_PTR_NE(k->pkey, NULL);
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_FACTOR1, &p);
 	return p;
+#else
+	rsa = EVP_PKEY_get1_RSA(k->pkey);
+	ASSERT_PTR_NE(rsa, NULL);
+	RSA_get0_factors(rsa, &p, NULL);
+	RSA_free(rsa);
+	res = BN_dup(p);
+	return res;
+#endif
 }
 
-const BIGNUM *
+BIGNUM *
 rsa_q(struct sshkey *k)
 {
-	const BIGNUM *q = NULL;
+	BIGNUM *q = NULL;
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+	RSA *rsa = NULL;
+	BIGNUM *res = NULL;
+#endif
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_factors(k->rsa, NULL, &q);
+	ASSERT_PTR_NE(k->pkey, NULL);
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	EVP_PKEY_get_bn_param(k->pkey, OSSL_PKEY_PARAM_RSA_FACTOR2, &q);
 	return q;
+#else
+	rsa = EVP_PKEY_get1_RSA(k->pkey);
+	ASSERT_PTR_NE(rsa, NULL);
+	RSA_get0_factors(rsa, NULL, &q);
+	RSA_free(rsa);
+	res = BN_dup(q);
+	return res;
+#endif
 }
 
 const BIGNUM *

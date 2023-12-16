@@ -46,9 +46,11 @@
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
-#include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/evp.h>
+#ifdef OPENSSL_HAS_ECC
+#include <openssl/ec.h>
+#endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 
 #include <fido.h>

@@ -25,9 +25,11 @@
 
 #ifdef WITH_OPENSSL
 #include <openssl/bn.h>
-#ifdef OPENSSL_HAS_ECC
-# include <openssl/ec.h>
-#endif /* OPENSSL_HAS_ECC */
+#include <openssl/ec.h>
+#include <openssl/evp.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+#include <openssl/core_names.h>
+#endif
 
 #include "ssherr.h"
 #include "sshbuf.h"
@@ -123,7 +125,7 @@ sshbuf_get_eckey(struct sshbuf *buf, EC_KEY *v)
 		SSHBUF_ABORT();
 		return SSH_ERR_INTERNAL_ERROR;
 	}
-	return 0;	
+	return 0;
 }
 #endif /* OPENSSL_HAS_ECC */
 
@@ -151,7 +153,7 @@ sshbuf_put_bignum2(struct sshbuf *buf, const BIGNUM *v)
 
 #ifdef OPENSSL_HAS_ECC
 int
-sshbuf_put_ec(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
+sshbuf_put_ecbuf(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
 {
 	u_char d[SSHBUF_MAX_ECPOINT];
 	size_t len;
@@ -171,10 +173,30 @@ sshbuf_put_ec(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
 }
 
 int
-sshbuf_put_eckey(struct sshbuf *buf, const EC_KEY *v)
+sshbuf_put_ec(struct sshbuf *buf, EVP_PKEY *pkey)
 {
-	return sshbuf_put_ec(buf, EC_KEY_get0_public_key(v),
-	    EC_KEY_get0_group(v));
+	const EC_KEY *ec = EVP_PKEY_get0_EC_KEY(pkey);
+
+	if (ec == NULL)
+		return SSH_ERR_LIBCRYPTO_ERROR;
+
+	return sshbuf_put_ecbuf(buf, EC_KEY_get0_public_key(ec),
+	    EC_KEY_get0_group(ec));
+/* FIXME beldmit */
+#if 0
+	u_char d[SSHBUF_MAX_ECPOINT];
+	size_t len;
+	int ret;
+
+	/* this works since openssl version of 3.0.8 */
+	if (EVP_PKEY_get_octet_string_param(pkey, OSSL_PKEY_PARAM_PUB_KEY,
+	    				    d, SSHBUF_MAX_ECPOINT, &len) != 1)
+		return len > SSHBUF_MAX_ECPOINT ? SSH_ERR_INVALID_ARGUMENT :
+						  SSH_ERR_LIBCRYPTO_ERROR;
+	ret = sshbuf_put_string(buf, d, len);
+	explicit_bzero(d, len);
+	return ret;
+#endif
 }
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
