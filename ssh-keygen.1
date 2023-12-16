@@ -61,6 +61,7 @@
 .Op Fl m Ar format
 .Op Fl N Ar new_passphrase
 .Op Fl P Ar old_passphrase
+.Op Fl G
 .Op Fl Z Ar cipher
 .Nm ssh-keygen
 .Fl i
@@ -468,6 +469,8 @@ when generating or updating a supported private key type will cause the
 key to be stored in the legacy PEM private key format.
 .It Fl N Ar new_passphrase
 Provides the new passphrase.
+.It Fl G
+Use a new empty passphrase.
 .It Fl n Ar principals
 Specify one or more principals (user or host names) to be included in
 a certificate when signing a key.
