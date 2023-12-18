@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.303 2023/12/18 14:48:08 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.304 2023/12/18 15:58:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1525,7 +1525,7 @@ no_identities(SocketEntry *e)
 /* Add an identity to idlist; takes ownership of 'key' and 'comment' */
 static void
 add_p11_identity(struct sshkey *key, char *comment, const char *provider,
-    time_t death, int confirm, struct dest_constraint *dest_constraints,
+    time_t death, u_int confirm, struct dest_constraint *dest_constraints,
     size_t ndest_constraints)
 {
 	Identity *id;
