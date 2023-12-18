@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.301 2023/12/18 14:46:12 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.302 2023/12/18 14:46:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -105,6 +105,8 @@
 #define AGENT_MAX_SID_LEN		128
 /* Maximum number of destination constraints to accept on a key */
 #define AGENT_MAX_DEST_CONSTRAINTS	1024
+/* Maximum number of associated certificate constraints to accept on a key */
+#define AGENT_MAX_EXT_CERTS		1024
 
 /* XXX store hostkey_sid in a refcounted tree */
 
@@ -1158,11 +1160,14 @@ parse_dest_constraint(struct sshbuf *m, struct dest_constraint *dc)
 
 static int
 parse_key_constraint_extension(struct sshbuf *m, char **sk_providerp,
-    struct dest_constraint **dcsp, size_t *ndcsp)
+    struct dest_constraint **dcsp, size_t *ndcsp, int *cert_onlyp,
+    struct sshkey ***certs, size_t *ncerts)
 {
 	char *ext_name = NULL;
 	int r;
 	struct sshbuf *b = NULL;
+	u_char v;
+	struct sshkey *k;
 
 	if ((r = sshbuf_get_cstring(m, &ext_name, NULL)) != 0) {
 		error_fr(r, "parse constraint extension");
@@ -1205,6 +1210,36 @@ parse_key_constraint_extension(struct sshbuf *m, char **sk_providerp,
 			    *dcsp + (*ndcsp)++)) != 0)
 				goto out; /* error already logged */
 		}
+	} else if (strcmp(ext_name,
+	    "associated-certs-v00@openssh.com") == 0) {
+		if (certs == NULL || ncerts == NULL || cert_onlyp == NULL) {
+			error_f("%s not valid here", ext_name);
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+		if (*certs != NULL) {
+			error_f("%s already set", ext_name);
+			goto out;
+		}
+		if ((r = sshbuf_get_u8(m, &v)) != 0 ||
+		    (r = sshbuf_froms(m, &b)) != 0) {
+			error_fr(r, "parse %s", ext_name);
+			goto out;
+		}
+		*cert_onlyp = v != 0;
+		while (sshbuf_len(b) != 0) {
+			if (*ncerts >= AGENT_MAX_EXT_CERTS) {
+				error_f("too many %s constraints", ext_name);
+				goto out;
+			}
+			*certs = xrecallocarray(*certs, *ncerts, *ncerts + 1,
+			    sizeof(**certs));
+			if ((r = sshkey_froms(b, &k)) != 0) {
+				error_fr(r, "parse key");
+				goto out;
+			}
+			(*certs)[(*ncerts)++] = k;
+		}
 	} else {
 		error_f("unsupported constraint \"%s\"", ext_name);
 		r = SSH_ERR_FEATURE_UNSUPPORTED;
@@ -1221,7 +1256,8 @@ parse_key_constraint_extension(struct sshbuf *m, char **sk_providerp,
 static int
 parse_key_constraints(struct sshbuf *m, struct sshkey *k, time_t *deathp,
     u_int *secondsp, int *confirmp, char **sk_providerp,
-    struct dest_constraint **dcsp, size_t *ndcsp)
+    struct dest_constraint **dcsp, size_t *ndcsp,
+    int *cert_onlyp, size_t *ncerts, struct sshkey ***certs)
 {
 	u_char ctype;
 	int r;
@@ -1276,7 +1312,8 @@ parse_key_constraints(struct sshbuf *m, struct sshkey *k, time_t *deathp,
 			break;
 		case SSH_AGENT_CONSTRAIN_EXTENSION:
 			if ((r = parse_key_constraint_extension(m,
-			    sk_providerp, dcsp, ndcsp)) != 0)
+			    sk_providerp, dcsp, ndcsp,
+			    cert_onlyp, certs, ncerts)) != 0)
 				goto out; /* error already logged */
 			break;
 		default:
@@ -1313,7 +1350,8 @@ process_add_identity(SocketEntry *e)
 		goto out;
 	}
 	if (parse_key_constraints(e->request, k, &death, &seconds, &confirm,
-	    &sk_provider, &dest_constraints, &ndest_constraints) != 0) {
+	    &sk_provider, &dest_constraints, &ndest_constraints,
+	    NULL, NULL, NULL) != 0) {
 		error_f("failed to parse constraints");
 		sshbuf_reset(e->request);
 		goto out;
@@ -1473,6 +1511,32 @@ no_identities(SocketEntry *e)
 	sshbuf_free(msg);
 }
 
+/* Add an identity to idlist; takes ownership of 'key' and 'comment' */
+static void
+add_p11_identity(struct sshkey *key, char *comment, const char *provider,
+    time_t death, int confirm, struct dest_constraint *dest_constraints,
+    size_t ndest_constraints)
+{
+	Identity *id;
+
+	if (lookup_identity(key) != NULL) {
+		sshkey_free(key);
+		free(comment);
+		return;
+	}
+	id = xcalloc(1, sizeof(Identity));
+	id->key = key;
+	id->comment = comment;
+	id->provider = xstrdup(provider);
+	id->death = death;
+	id->confirm = confirm;
+	id->dest_constraints = dup_dest_constraints(dest_constraints,
+	    ndest_constraints);
+	id->ndest_constraints = ndest_constraints;
+	TAILQ_INSERT_TAIL(&idtab->idlist, id, next);
+	idtab->nentries++;
+}
+
 #ifdef ENABLE_PKCS11
 static void
 process_add_smartcard_key(SocketEntry *e)
@@ -1483,9 +1547,10 @@ process_add_smartcard_key(SocketEntry *e)
 	u_int seconds = 0;
 	time_t death = 0;
 	struct sshkey **keys = NULL, *k;
-	Identity *id;
 	struct dest_constraint *dest_constraints = NULL;
-	size_t ndest_constraints = 0;
+	size_t j, ndest_constraints = 0, ncerts = 0;
+	struct sshkey **certs = NULL;
+	int cert_only = 0;
 
 	debug2_f("entering");
 	if ((r = sshbuf_get_cstring(e->request, &provider, NULL)) != 0 ||
@@ -1494,7 +1559,8 @@ process_add_smartcard_key(SocketEntry *e)
 		goto send;
 	}
 	if (parse_key_constraints(e->request, NULL, &death, &seconds, &confirm,
-	    NULL, &dest_constraints, &ndest_constraints) != 0) {
+	    NULL, &dest_constraints, &ndest_constraints, &cert_only,
+	    &ncerts, &certs) != 0) {
 		error_f("failed to parse constraints");
 		goto send;
 	}
@@ -1520,25 +1586,28 @@ process_add_smartcard_key(SocketEntry *e)
 
 	count = pkcs11_add_provider(canonical_provider, pin, &keys, &comments);
 	for (i = 0; i < count; i++) {
-		k = keys[i];
-		if (lookup_identity(k) == NULL) {
-			id = xcalloc(1, sizeof(Identity));
-			id->key = k;
-			keys[i] = NULL; /* transferred */
-			id->provider = xstrdup(canonical_provider);
-			if (*comments[i] != '\0') {
-				id->comment = comments[i];
-				comments[i] = NULL; /* transferred */
-			} else {
-				id->comment = xstrdup(canonical_provider);
-			}
-			id->death = death;
-			id->confirm = confirm;
-			id->dest_constraints = dup_dest_constraints(
+		if (comments[i] == NULL || comments[i][0] == '\0') {
+			free(comments[i]);
+			comments[i] = xstrdup(canonical_provider);
+		}
+		for (j = 0; j < ncerts; j++) {
+			if (!sshkey_is_cert(certs[j]))
+				continue;
+			if (!sshkey_equal_public(keys[i], certs[j]))
+				continue;
+			if (pkcs11_make_cert(keys[i], certs[j], &k) != 0)
+				continue;
+			add_p11_identity(k, xstrdup(comments[i]),
+			    canonical_provider, death, confirm,
 			    dest_constraints, ndest_constraints);
-			id->ndest_constraints = ndest_constraints;
-			TAILQ_INSERT_TAIL(&idtab->idlist, id, next);
-			idtab->nentries++;
+			success = 1;
+		}
+		if (!cert_only && lookup_identity(keys[i]) == NULL) {
+			add_p11_identity(keys[i], comments[i],
+			    canonical_provider, death, confirm,
+			    dest_constraints, ndest_constraints);
+			keys[i] = NULL;		/* transferred */
+			comments[i] = NULL;	/* transferred */
 			success = 1;
 		}
 		/* XXX update constraints for existing keys */
@@ -1551,6 +1620,9 @@ send:
 	free(keys);
 	free(comments);
 	free_dest_constraints(dest_constraints, ndest_constraints);
+	for (j = 0; j < ncerts; j++)
+		sshkey_free(certs[j]);
+	free(certs);
 	send_status(e, success);
 }
 
