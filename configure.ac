@@ -234,9 +234,9 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	# clang 17 has a different bug that causes an ICE when using this
 	# flag at all (https://bugzilla.mindrot.org/show_bug.cgi?id=3629)
 	case "$CLANG_VER" in
-	apple-15*) OSSH_CHECK_CFLAG_COMPILE([-fzero-call-used-regs=used]) ;;
+	apple-15*) OSSH_CHECK_CFLAG_LINK([-fzero-call-used-regs=used]) ;;
 	17*)	;;
-	*)	OSSH_CHECK_CFLAG_COMPILE([-fzero-call-used-regs=used]) ;;
+	*)	OSSH_CHECK_CFLAG_LINK([-fzero-call-used-regs=used]) ;;
 	esac
 	OSSH_CHECK_CFLAG_COMPILE([-ftrivial-auto-var-init=zero])
     fi

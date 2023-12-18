@@ -6,13 +6,23 @@ dnl behaviours.
 AC_DEFUN([OSSH_COMPILER_FLAG_TEST_PROGRAM],
 	[AC_LANG_SOURCE([[
 #include <stdlib.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 /* Trivial function to help test for -fzero-call-used-regs */
 int f(int n) {return rand() % n;}
+char *f2(char *s, ...) {
+	char ret[64];
+	va_list args;
+	va_start(args, s);
+	vsnprintf(ret, sizeof(ret), s, args);
+	va_end(args);
+	return strdup(ret);
+}
 int main(int argc, char **argv) {
 	(void)argv;
-	char b[256];
+	char b[256], *cp;
 	/* Some math to catch -ftrapv problems in the toolchain */
 	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
 	float l = i * 2.1;
@@ -21,6 +31,8 @@ int main(int argc, char **argv) {
 	f(1);
 	snprintf(b, sizeof b, "%d %d %d %f %f %lld %lld\n", i,j,k,l,m,n,o);
 	if (write(1, b, 0) == -1) exit(0);
+	cp = f2("%d %d %d %f %f %lld %lld\n", i,j,k,l,m,n,o);
+	free(cp);
 	/*
 	 * Test fallthrough behaviour.  clang 10's -Wimplicit-fallthrough does
 	 * not understand comments and we don't use the "fallthrough" attribute
