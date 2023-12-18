@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.302 2023/12/18 14:46:56 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.303 2023/12/18 14:48:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -130,6 +130,7 @@ typedef struct socket_entry {
 	struct sshbuf *request;
 	size_t nsession_ids;
 	struct hostkey_sid *session_ids;
+	int session_bind_attempted;
 } SocketEntry;
 
 u_int sockets_alloc = 0;
@@ -477,6 +478,10 @@ identity_permitted(Identity *id, SocketEntry *e, char *user,
 	    e->nsession_ids, id->ndest_constraints);
 	if (id->ndest_constraints == 0)
 		return 0; /* unconstrained */
+	if (e->session_bind_attempted && e->nsession_ids == 0) {
+		error_f("previous session bind failed on socket");
+		return -1;
+	}
 	if (e->nsession_ids == 0)
 		return 0; /* local use */
 	/*
@@ -554,6 +559,12 @@ identity_permitted(Identity *id, SocketEntry *e, char *user,
 
 	/* success */
 	return 0;
+}
+
+static int
+socket_is_remote(SocketEntry *e)
+{
+	return e->session_bind_attempted || (e->nsession_ids != 0);
 }
 
 /* return matching private key for given public key */
@@ -1367,7 +1378,7 @@ process_add_identity(SocketEntry *e)
 		if (strcasecmp(sk_provider, "internal") == 0) {
 			debug_f("internal provider");
 		} else {
-			if (e->nsession_ids != 0 && !remote_add_provider) {
+			if (socket_is_remote(e) && !remote_add_provider) {
 				verbose("failed add of SK provider \"%.100s\": "
 				    "remote addition of providers is disabled",
 				    sk_provider);
@@ -1565,7 +1576,7 @@ process_add_smartcard_key(SocketEntry *e)
 		goto send;
 	}
 	dump_dest_constraints(__func__, dest_constraints, ndest_constraints);
-	if (e->nsession_ids != 0 && !remote_add_provider) {
+	if (socket_is_remote(e) && !remote_add_provider) {
 		verbose("failed PKCS#11 add of \"%.100s\": remote addition of "
 		    "providers is disabled", provider);
 		goto send;
@@ -1680,6 +1691,7 @@ process_ext_session_bind(SocketEntry *e)
 	u_char fwd = 0;
 
 	debug2_f("entering");
+	e->session_bind_attempted = 1;
 	if ((r = sshkey_froms(e->request, &key)) != 0 ||
 	    (r = sshbuf_froms(e->request, &sid)) != 0 ||
 	    (r = sshbuf_froms(e->request, &sig)) != 0 ||
