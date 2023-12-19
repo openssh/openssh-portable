@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.169 2023/12/18 14:46:56 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.170 2023/12/19 06:57:34 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -790,13 +790,13 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-"usage: ssh-add [-cDdKkLlqvXx] [-E fingerprint_hash] [-H hostkey_file]\n"
+"usage: ssh-add [-CcDdKkLlqvXx] [-E fingerprint_hash] [-H hostkey_file]\n"
 "               [-h destination_constraint] [-S provider] [-t life]\n"
 #ifdef WITH_XMSS
 "               [-M maxsign] [-m minleft]\n"
 #endif
 "               [file ...]\n"
-"       ssh-add -s pkcs11\n"
+"       ssh-add -s pkcs11 [-Cv] [certificate ...]\n"
 "       ssh-add -e pkcs11\n"
 "       ssh-add -T pubkey ...\n"
 	);
