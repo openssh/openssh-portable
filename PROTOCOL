@@ -137,7 +137,7 @@ than as a named global or channel request to allow pings with very
 short packet lengths, which would not be possible with other
 approaches.
 
-1.9 transport: strict key exchange extension
+1.10 transport: strict key exchange extension
 
 OpenSSH supports a number of transport-layer hardening measures under
 a "strict KEX" feature. This feature is signalled similarly to the
@@ -163,7 +163,7 @@ b) After sending or receiving a SSH2_MSG_NEWKEYS message, reset the
    duration of the connection (i.e. not just the first
    SSH2_MSG_NEWKEYS).
 
-1.10 transport: SSH2_MSG_EXT_INFO during user authentication
+1.11 transport: SSH2_MSG_EXT_INFO during user authentication
 
 This protocol extension allows the SSH2_MSG_EXT_INFO to be sent
 during user authentication. RFC8308 does allow a second
@@ -790,4 +790,4 @@ master instance and later clients.
 OpenSSH extends the usual agent protocol. These changes are documented
 in the PROTOCOL.agent file.
 
-$OpenBSD: PROTOCOL,v 1.51 2023/12/18 14:45:49 djm Exp $
+$OpenBSD: PROTOCOL,v 1.52 2023/12/19 06:41:14 djm Exp $
