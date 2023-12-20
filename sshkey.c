@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.140 2023/10/16 08:40:00 dtucker Exp $ */
+/* $OpenBSD: sshkey.c,v 1.141 2023/12/20 00:06:25 jsg Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1927,7 +1927,7 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 		goto out;
 	}
 	if (sshkey_type_is_cert(type)) {
-		/* Skip nonce that preceeds all certificates */
+		/* Skip nonce that precedes all certificates */
 		if (sshbuf_get_string_direct(b, NULL, NULL) != 0) {
 			ret = SSH_ERR_INVALID_FORMAT;
 			goto out;
