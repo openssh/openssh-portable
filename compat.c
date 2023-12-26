@@ -42,7 +42,7 @@ void
 compat_banner(struct ssh *ssh, const char *version)
 {
 	int i;
-	static struct {
+	static const struct {
 		char	*pat;
 		int	bugs;
 	} check[] = {

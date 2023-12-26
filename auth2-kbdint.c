@@ -64,7 +64,7 @@ userauth_kbdint(struct ssh *ssh, const char *method)
 	return authenticated;
 }
 
-Authmethod method_kbdint = {
+const Authmethod method_kbdint = {
 	"keyboard-interactive",
 	NULL,
 	userauth_kbdint,

@@ -70,7 +70,7 @@ userauth_none(struct ssh *ssh, const char *method)
 	return (0);
 }
 
-Authmethod method_none = {
+const Authmethod method_none = {
 	"none",
 	NULL,
 	userauth_none,

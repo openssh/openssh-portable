@@ -184,7 +184,7 @@ typedef enum {
 
 /* Textual representations of the tokens. */
 
-static struct {
+static const struct {
 	const char *name;
 	OpCodes opcode;
 } keywords[] = {

@@ -1116,7 +1116,7 @@ struct escape_help_text {
 	const char *text;
 	unsigned int flags;
 };
-static struct escape_help_text esc_txt[] = {
+static const struct escape_help_text esc_txt[] = {
     {".",  "terminate session", SUPPRESS_MUXMASTER},
     {".",  "terminate connection (and any multiplexed sessions)",
 	SUPPRESS_MUXCLIENT},

@@ -65,16 +65,16 @@ extern struct sshbuf *loginmsg;
 
 /* methods */
 
-extern Authmethod method_none;
-extern Authmethod method_pubkey;
-extern Authmethod method_passwd;
-extern Authmethod method_kbdint;
-extern Authmethod method_hostbased;
+extern const Authmethod method_none;
+extern const Authmethod method_pubkey;
+extern const Authmethod method_passwd;
+extern const Authmethod method_kbdint;
+extern const Authmethod method_hostbased;
 #ifdef GSSAPI
-extern Authmethod method_gssapi;
+extern const Authmethod method_gssapi;
 #endif
 
-Authmethod *authmethods[] = {
+static const Authmethod *const authmethods[] = {
 	&method_none,
 	&method_pubkey,
 #ifdef GSSAPI
@@ -92,8 +92,8 @@ static int input_service_request(int, u_int32_t, struct ssh *);
 static int input_userauth_request(int, u_int32_t, struct ssh *);
 
 /* helper */
-static Authmethod *authmethod_byname(const char *);
-static Authmethod *authmethod_lookup(Authctxt *, const char *);
+static const Authmethod *authmethod_byname(const char *);
+static const Authmethod *authmethod_lookup(Authctxt *, const char *);
 static char *authmethods_get(Authctxt *authctxt);
 
 #define MATCH_NONE	0	/* method or submethod mismatch */
@@ -269,7 +269,7 @@ static int
 input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 {
 	Authctxt *authctxt = ssh->authctxt;
-	Authmethod *m = NULL;
+	const Authmethod *m = NULL;
 	char *user = NULL, *service = NULL, *method = NULL, *style = NULL;
 	int r, authenticated = 0;
 	double tstart = monotime_double();
@@ -364,7 +364,7 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *packet_method,
     const char *submethod)
 {
 	Authctxt *authctxt = ssh->authctxt;
-	Authmethod *m = NULL;
+	const Authmethod *m = NULL;
 	const char *method = packet_method;
 	char *methods;
 	int r, partial = 0;
@@ -518,7 +518,7 @@ authmethods_get(Authctxt *authctxt)
 	return list;
 }
 
-static Authmethod *
+static const Authmethod *
 authmethod_byname(const char *name)
 {
 	int i;
@@ -535,10 +535,10 @@ authmethod_byname(const char *name)
 	return NULL;
 }
 
-static Authmethod *
+static const Authmethod *
 authmethod_lookup(Authctxt *authctxt, const char *name)
 {
-	Authmethod *method;
+	const Authmethod *method;
 
 	if ((method = authmethod_byname(name)) == NULL)
 		return NULL;

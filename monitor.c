@@ -615,7 +615,7 @@ mm_answer_sign(struct ssh *ssh, int sock, struct sshbuf *m)
 	size_t datlen, siglen, alglen;
 	int r, is_proof = 0;
 	u_int keyid, compat;
-	const char proof_req[] = "hostkeys-prove-00@openssh.com";
+	static const char proof_req[] = "hostkeys-prove-00@openssh.com";
 
 	debug3_f("entering");
 

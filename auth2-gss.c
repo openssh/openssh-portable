@@ -333,7 +333,7 @@ input_gssapi_mic(int type, u_int32_t plen, struct ssh *ssh)
 	return 0;
 }
 
-Authmethod method_gssapi = {
+const Authmethod method_gssapi = {
 	"gssapi-with-mic",
 	NULL,
 	userauth_gssapi,
