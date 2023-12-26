@@ -429,7 +429,7 @@ cleanup_exit(int i)
 int
 main(int argc, char **argv)
 {
-	fprintf(stderr, "PKCS#11 code is not enabled\n");
+	fputs("PKCS#11 code is not enabled\n", stderr);
 	return 1;
 }
 #endif /* WITH_OPENSSL */

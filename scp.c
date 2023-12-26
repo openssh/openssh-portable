@@ -238,10 +238,10 @@ do_local_cmd(arglist *a)
 		fatal("do_local_cmd: no arguments");
 
 	if (verbose_mode) {
-		fprintf(stderr, "Executing:");
+		fputs("Executing:", stderr);
 		for (i = 0; i < a->num; i++)
 			fmprintf(stderr, " %s", a->list[i]);
-		fprintf(stderr, "\n");
+		fputc('\n', stderr);
 	}
 	if ((pid = fork()) == -1)
 		fatal("do_local_cmd: fork: %s", strerror(errno));
@@ -2113,10 +2113,10 @@ response(void)
 void
 usage(void)
 {
-	(void) fprintf(stderr,
+	(void) fputs(
 	    "usage: scp [-346ABCOpqRrsTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
 	    "           [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
-	    "           [-P port] [-S program] [-X sftp_option] source ... target\n");
+	    "           [-P port] [-S program] [-X sftp_option] source ... target\n", stderr);
 	exit(1);
 }
 
@@ -2128,12 +2128,11 @@ run_err(const char *fmt,...)
 
 	++errs;
 	if (fp != NULL || (remout != -1 && (fp = fdopen(remout, "w")))) {
-		(void) fprintf(fp, "%c", 0x01);
-		(void) fprintf(fp, "scp: ");
+		(void) fprintf(fp, "%cscp: ", 0x01);
 		va_start(ap, fmt);
 		(void) vfprintf(fp, fmt, ap);
 		va_end(ap);
-		(void) fprintf(fp, "\n");
+		(void) fputc('\n', fp);
 		(void) fflush(fp);
 	}
 
@@ -2141,7 +2140,7 @@ run_err(const char *fmt,...)
 		va_start(ap, fmt);
 		vfmprintf(stderr, fmt, ap);
 		va_end(ap);
-		fprintf(stderr, "\n");
+		fputc('\n', stderr);
 	}
 }
 

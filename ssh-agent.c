@@ -2183,12 +2183,12 @@ check_parent_exists(void)
 static void
 usage(void)
 {
-	fprintf(stderr,
+	fputs(
 	    "usage: ssh-agent [-c | -s] [-Dd] [-a bind_address] [-E fingerprint_hash]\n"
 	    "                 [-O option] [-P allowed_providers] [-t life]\n"
 	    "       ssh-agent [-a bind_address] [-E fingerprint_hash] [-O option]\n"
 	    "                 [-P allowed_providers] [-t life] command [arg ...]\n"
-	    "       ssh-agent [-c | -s] -k\n");
+	    "       ssh-agent [-c | -s] -k\n", stderr);
 	exit(1);
 }
 
@@ -2277,7 +2277,7 @@ main(int ac, char **av)
 			break;
 		case 't':
 			if ((lifetime = convtime(optarg)) == -1) {
-				fprintf(stderr, "Invalid lifetime\n");
+				fputs("Invalid lifetime\n", stderr);
 				usage();
 			}
 			break;

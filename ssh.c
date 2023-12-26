@@ -179,7 +179,7 @@ extern u_int muxclient_command;
 static void
 usage(void)
 {
-	fprintf(stderr,
+	fputs(
 "usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]\n"
 "           [-c cipher_spec] [-D [bind_address:]port] [-E log_file]\n"
 "           [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]\n"
@@ -188,7 +188,7 @@ usage(void)
 "           [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]\n"
 "           destination [command [argument ...]]\n"
 "       ssh [-Q query_option]\n"
-	);
+	, stderr);
 	exit(255);
 }
 
@@ -894,7 +894,7 @@ main(int ac, char **av)
 			free(options.pkcs11_provider);
 			options.pkcs11_provider = xstrdup(optarg);
 #else
-			fprintf(stderr, "no support for PKCS#11.\n");
+			fputs("no support for PKCS#11.\n", stderr);
 #endif
 			break;
 		case 'J':
@@ -1171,8 +1171,8 @@ main(int ac, char **av)
 	if (!ac) {
 		/* No command specified - execute shell on a tty. */
 		if (options.session_type == SESSION_TYPE_SUBSYSTEM) {
-			fprintf(stderr,
-			    "You must specify a subsystem to invoke.\n");
+			fputs("You must specify a subsystem to invoke.\n",
+				stderr);
 			usage();
 		}
 	} else {

@@ -233,9 +233,9 @@ delete_all(int agent_fd, int qflag)
 	ssh_remove_all_identities(agent_fd, 1);
 
 	if (ret != 0)
-		fprintf(stderr, "Failed to remove all identities.\n");
+		fputs("Failed to remove all identities.\n", stderr);
 	else if (!qflag)
-		fprintf(stderr, "All identities removed.\n");
+		fputs("All identities removed.\n", stderr);
 
 	return ret;
 }
@@ -346,7 +346,7 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 				    "Only %d signatures left.\n", left);
 				break;
 			}
-			fprintf(stderr, "Skipping update: ");
+			fputs("Skipping update: ", stderr);
 			if (left == minleft) {
 				fprintf(stderr,
 				    "required signatures left (%d).\n", left);
@@ -385,8 +385,8 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 				    "Lifetime set to %d seconds\n", lifetime);
 			}
 			if (confirm != 0) {
-				fprintf(stderr, "The user must confirm "
-				    "each use of the key\n");
+				fputs("The user must confirm each use of the key\n",
+					stderr);
 			}
 		}
 	} else {
@@ -443,8 +443,8 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 			    lifetime);
 		}
 		if (confirm != 0) {
-			fprintf(stderr, "The user must confirm each use "
-			    "of the key\n");
+			fputs("The user must confirm each use of the key\n",
+				stderr);
 		}
 	}
 
@@ -557,12 +557,11 @@ list_identities(int agent_fd, int do_fp)
 				    ssh_err(r));
 				continue;
 			}
-			fprintf(stdout, " %s", idlist->comments[i]);
+			printf(" %s", idlist->comments[i]);
 			left = sshkey_signatures_left(idlist->keys[i]);
 			if (left > 0)
-				fprintf(stdout,
-				    " [signatures left %d]", left);
-			fprintf(stdout, "\n");
+				printf(" [signatures left %d]", left);
+			fputc('\n', stdout);
 		}
 	}
 	ssh_free_identitylist(idlist);
@@ -581,7 +580,7 @@ lock_agent(int agent_fd, int lock)
 		strlcpy(prompt, "Again: ", sizeof prompt);
 		p2 = read_passphrase(prompt, RP_ALLOW_STDIN);
 		if (strcmp(p1, p2) != 0) {
-			fprintf(stderr, "Passwords do not match.\n");
+			fputs("Passwords do not match.\n", stderr);
 			passok = 0;
 		}
 		freezero(p2, strlen(p2));
@@ -639,8 +638,8 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag,
 				    "Lifetime set to %d seconds\n", lifetime);
 			}
 			if (confirm != 0) {
-				fprintf(stderr, "The user must confirm "
-				    "each use of the key\n");
+				fputs("The user must confirm each use of the key\n",
+					stderr);
 			}
 		}
 		free(fp);
@@ -789,7 +788,7 @@ parse_dest_constraint(const char *s, struct dest_constraint ***dcp,
 static void
 usage(void)
 {
-	fprintf(stderr,
+	fputs(
 "usage: ssh-add [-cDdKkLlqvXx] [-E fingerprint_hash] [-H hostkey_file]\n"
 "               [-h destination_constraint] [-S provider] [-t life]\n"
 #ifdef WITH_XMSS
@@ -799,7 +798,7 @@ usage(void)
 "       ssh-add -s pkcs11\n"
 "       ssh-add -e pkcs11\n"
 "       ssh-add -T pubkey ...\n"
-	);
+	, stderr);
 }
 
 int
@@ -834,8 +833,8 @@ main(int argc, char **argv)
 	case 0:
 		break;
 	case SSH_ERR_AGENT_NOT_PRESENT:
-		fprintf(stderr, "Could not open a connection to your "
-		    "authentication agent.\n");
+		fputs("Could not open a connection to your "
+		    "authentication agent.\n", stderr);
 		exit(2);
 	default:
 		fprintf(stderr, "Error connecting to agent: %s\n", ssh_err(r));
@@ -920,9 +919,8 @@ main(int argc, char **argv)
 			pkcs11provider = optarg;
 			break;
 		case 't':
-			if ((lifetime = convtime(optarg)) == -1 ||
-			    lifetime < 0 || (u_long)lifetime > UINT32_MAX) {
-				fprintf(stderr, "Invalid lifetime\n");
+			if ((lifetime = convtime(optarg)) < 0 || (u_long)lifetime > UINT32_MAX) {
+				fputs("Invalid lifetime\n", stderr);
 				ret = 1;
 				goto done;
 			}

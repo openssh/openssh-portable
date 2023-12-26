@@ -1096,7 +1096,7 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	if (ssh_packet_log_type(type))
 		debug3("send packet: type %u", type);
 #ifdef PACKET_DEBUG
-	fprintf(stderr, "plain:     ");
+	fputs("plain:     ", stderr);
 	sshbuf_dump(state->outgoing_packet, stderr);
 #endif
 
@@ -1203,7 +1203,7 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 			goto out;
 	}
 #ifdef PACKET_DEBUG
-	fprintf(stderr, "encrypted: ");
+	fputs("encrypted: ", stderr);
 	sshbuf_dump(state->output, stderr);
 #endif
 	/* increment sequence number for outgoing packets */
@@ -1530,9 +1530,9 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		if (state->packlen < 1 + 4 ||
 		    state->packlen > PACKET_MAX_SIZE) {
 #ifdef PACKET_DEBUG
-			fprintf(stderr, "input: \n");
+			fputs("input: \n", stderr);
 			sshbuf_dump(state->input, stderr);
-			fprintf(stderr, "incoming_packet: \n");
+			fputs("incoming_packet: \n", stderr);
 			sshbuf_dump(state->incoming_packet, stderr);
 #endif
 			logit("Bad packet length %u.", state->packlen);
@@ -1573,7 +1573,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	if (sshbuf_len(state->input) < aadlen + need + authlen + maclen)
 		return 0; /* packet is incomplete */
 #ifdef PACKET_DEBUG
-	fprintf(stderr, "read_poll enc/full: ");
+	fputs("read_poll enc/full: ", stderr);
 	sshbuf_dump(state->input, stderr);
 #endif
 	/* EtM: check mac over encrypted input */

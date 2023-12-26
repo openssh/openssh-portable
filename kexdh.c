@@ -78,12 +78,12 @@ kex_dh_compute_key(struct kex *kex, BIGNUM *dh_pub, struct sshbuf *out)
 	int kout, r;
 
 #ifdef DEBUG_KEXDH
-	fprintf(stderr, "dh_pub= ");
+	fputs("dh_pub= ", stderr);
 	BN_print_fp(stderr, dh_pub);
-	fprintf(stderr, "\n");
+	fputc('\n', stderr);
 	debug("bits %d", BN_num_bits(dh_pub));
 	DHparams_print_fp(stderr, kex->dh);
-	fprintf(stderr, "\n");
+	fputc('\n', stderr);
 #endif
 
 	if (!dh_pub_is_valid(kex->dh, dh_pub)) {
@@ -128,9 +128,9 @@ kex_dh_keypair(struct kex *kex)
 		goto out;
 #ifdef DEBUG_KEXDH
 	DHparams_print_fp(stderr, kex->dh);
-	fprintf(stderr, "pub= ");
+	fputs("pub= ", stderr);
 	BN_print_fp(stderr, pub_key);
-	fprintf(stderr, "\n");
+	fputc('\n', stderr);
 #endif
 	kex->client_pub = buf;
 	buf = NULL;

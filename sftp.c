@@ -2324,7 +2324,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 			}
 			history(hl, &hev, H_ENTER, line);
 			if (strlcpy(cmd, line, sizeof(cmd)) >= sizeof(cmd)) {
-				fprintf(stderr, "Error: input line too long\n");
+				fputs("Error: input line too long\n", stderr);
 				continue;
 			}
 #endif /* USE_LIBEDIT */
@@ -2633,7 +2633,7 @@ main(int argc, char **argv)
 		file2 = *(argv + 1);
 
 		if (!*host) {
-			fprintf(stderr, "Missing hostname\n");
+			fputs("Missing hostname\n", stderr);
 			usage();
 		}
 

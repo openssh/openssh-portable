@@ -2718,7 +2718,7 @@ sshkey_dump_ec_point(const EC_GROUP *group, const EC_POINT *point)
 	BN_print_fp(stderr, x);
 	fputs("\ny=", stderr);
 	BN_print_fp(stderr, y);
-	fputs("\n", stderr);
+	fputc('\n', stderr);
  out:
 	BN_clear_free(x);
 	BN_clear_free(y);
@@ -2736,7 +2736,7 @@ sshkey_dump_ec_key(const EC_KEY *key)
 		fputs("(NULL)", stderr);
 	else
 		BN_print_fp(stderr, EC_KEY_get0_private_key(key));
-	fputs("\n", stderr);
+	fputc('\n', stderr);
 }
 #endif /* WITH_OPENSSL && OPENSSL_HAS_ECC */
 

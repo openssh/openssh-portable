@@ -1920,7 +1920,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		switch (ch) {
 		case 'Q':
 			if (strcasecmp(optarg, "requests") != 0) {
-				fprintf(stderr, "Invalid query type\n");
+				fputs("Invalid query type\n", stderr);
 				exit(1);
 			}
 			for (i = 0; handlers[i].handler != NULL; i++)

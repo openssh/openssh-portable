@@ -335,9 +335,9 @@ keyprint_one(const char *host, struct sshkey *key)
 		fatal("host_hash failed");
 	known_host = hash_hosts ? hashed : hostport;
 	if (!get_cert)
-		r = fprintf(stdout, "%s ", known_host);
+		r = printf("%s ", known_host);
 	if (r >= 0 && sshkey_write(key, stdout) == 0)
-		(void)fputs("\n", stdout);
+		(void)fputc('\n', stdout);
 	free(hashed);
 	free(hostport);
 }
@@ -708,9 +708,9 @@ sshfatal(const char *file, const char *func, int line, int showfunc,
 static void
 usage(void)
 {
-	fprintf(stderr,
+	fputs(
 	    "usage: ssh-keyscan [-46cDHv] [-f file] [-O option] [-p port] [-T timeout]\n"
-	    "                   [-t type] [host | addrlist namelist]\n");
+	    "                   [-t type] [host | addrlist namelist]\n", stderr);
 	exit(1);
 }
 

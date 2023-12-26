@@ -894,12 +894,11 @@ drop_connection(int sock, int startups, int notify_pipe)
 static void
 usage(void)
 {
-	fprintf(stderr, "%s, %s\n", SSH_RELEASE, SSH_OPENSSL_VERSION);
-	fprintf(stderr,
+	fprintf(stderr, "%s, %s\n"
 "usage: sshd [-46DdeGiqTtV] [-C connection_spec] [-c host_cert_file]\n"
 "            [-E log_file] [-f config_file] [-g login_grace_time]\n"
 "            [-h host_key_file] [-o option] [-p port] [-u len]\n"
-	);
+	, SSH_RELEASE, SSH_OPENSSL_VERSION);
 	exit(1);
 }
 
@@ -1647,18 +1646,18 @@ main(int ac, char **av)
 		case 'p':
 			options.ports_from_cmdline = 1;
 			if (options.num_ports >= MAX_PORTS) {
-				fprintf(stderr, "too many ports.\n");
+				fputs("too many ports.\n", stderr);
 				exit(1);
 			}
 			options.ports[options.num_ports++] = a2port(optarg);
 			if (options.ports[options.num_ports-1] <= 0) {
-				fprintf(stderr, "Bad port number.\n");
+				fputs("Bad port number.\n", stderr);
 				exit(1);
 			}
 			break;
 		case 'g':
 			if ((options.login_grace_time = convtime(optarg)) == -1) {
-				fprintf(stderr, "Invalid login grace time.\n");
+				fputs("Invalid login grace time.\n", stderr);
 				exit(1);
 			}
 			break;
@@ -1684,7 +1683,7 @@ main(int ac, char **av)
 		case 'u':
 			utmp_len = (u_int)strtonum(optarg, 0, HOST_NAME_MAX+1+1, NULL);
 			if (utmp_len > HOST_NAME_MAX+1) {
-				fprintf(stderr, "Invalid utmp length.\n");
+				fputs("Invalid utmp length.\n", stderr);
 				exit(1);
 			}
 			break;
