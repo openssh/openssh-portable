@@ -56,7 +56,7 @@ has been removed in recent releases of Darwin and MacOS X.
 Nevertheless, tunnel support is known to work with Darwin 8 and
 MacOS X 10.4 in Point-to-Point (Layer 3) and Ethernet (Layer 2) mode
 using a third party driver. More information is available at:
-	http://www-user.rhrk.uni-kl.de/~nissler/tuntap/
+	https://tuntaposx.sourceforge.net
 
 
 Linux
