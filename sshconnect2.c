@@ -260,6 +260,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port,
 	    hkalgs ? hkalgs : options.hostkeyalgorithms);
 
 	free(hkalgs);
+	free(s);
 
 	/* start key exchange */
 	if ((r = kex_setup(ssh, myproposal)) != 0)
