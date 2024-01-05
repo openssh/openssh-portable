@@ -973,17 +973,17 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	if (ssh->compat & SSH_BUG_NOREKEY)
 		return 0;
 
+	/* Time-based rekeying */
+	if (state->rekey_interval != 0 &&
+	    (int64_t)state->rekey_time + state->rekey_interval <= monotime())
+		return 1;
+
 	/*
 	 * Permit one packet in or out per rekey - this allows us to
 	 * make progress when rekey limits are very small.
 	 */
 	if (state->p_send.packets == 0 && state->p_read.packets == 0)
 		return 0;
-
-	/* Time-based rekeying */
-	if (state->rekey_interval != 0 &&
-	    (int64_t)state->rekey_time + state->rekey_interval <= monotime())
-		return 1;
 
 	/*
 	 * Always rekey when MAX_PACKETS sent in either direction
