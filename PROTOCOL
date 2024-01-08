@@ -736,6 +736,7 @@ identifiers:
 The server will reply with a SSH_FXP_EXTENDED_REPLY:
 
 	byte		SSH_FXP_EXTENDED_REPLY
+	uint32		id
 	string		usernames
 	string		groupnames
 
@@ -791,4 +792,4 @@ master instance and later clients.
 OpenSSH extends the usual agent protocol. These changes are documented
 in the PROTOCOL.agent file.
 
-$OpenBSD: PROTOCOL,v 1.54 2024/01/08 04:10:03 djm Exp $
+$OpenBSD: PROTOCOL,v 1.55 2024/01/08 05:05:15 djm Exp $
