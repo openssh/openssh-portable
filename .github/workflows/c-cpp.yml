@@ -2,8 +2,10 @@ name: C/C++ CI
 
 on:
   push:
+    branches: [ master, pre-stage, '*RC*', dev_major, dev_minor ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
   pull_request:
+    branches: [ master ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
 
 jobs:
@@ -19,20 +21,16 @@ jobs:
           - macos-11
           - macos-12
           - macos-13
-          - windows-2019
-          - windows-2022
         config: [default]
         # Then we include any extra configs we want to test for specific VMs.
-        # Valgrind slows things down quite a bit, so start them first.
         include:
-          - { target: windows-2019, config: cygwin-release }
-          - { target: windows-2022, config: cygwin-release }
           - { target: ubuntu-20.04, config: valgrind-1 }
           - { target: ubuntu-20.04, config: valgrind-2 }
           - { target: ubuntu-20.04, config: valgrind-3 }
           - { target: ubuntu-20.04, config: valgrind-4 }
-          - { target: ubuntu-20.04, config: valgrind-5 }
-          - { target: ubuntu-20.04, config: valgrind-unit }
+#          - { target: ubuntu-20.04, config: valgrind-5 }
+          - { target: ubuntu-20.04, config: valgrind-6 }
+          - { target: ubuntu-20.04, config: valgrind-7 }
           - { target: ubuntu-20.04, config: c89 }
           - { target: ubuntu-20.04, config: clang-6.0 }
           - { target: ubuntu-20.04, config: clang-8 }
@@ -40,10 +38,6 @@ jobs:
           - { target: ubuntu-20.04, config: clang-10 }
           - { target: ubuntu-20.04, config: clang-11 }
           - { target: ubuntu-20.04, config: clang-12-Werror }
-          - { target: ubuntu-20.04, config: clang-sanitize-address }
-          - { target: ubuntu-20.04, config: clang-sanitize-undefined }
-          - { target: ubuntu-20.04, config: gcc-sanitize-address }
-          - { target: ubuntu-20.04, config: gcc-sanitize-undefined }
           - { target: ubuntu-20.04, config: gcc-7 }
           - { target: ubuntu-20.04, config: gcc-8 }
           - { target: ubuntu-20.04, config: gcc-10 }
@@ -53,14 +47,9 @@ jobs:
           - { target: ubuntu-20.04, config: kitchensink }
           - { target: ubuntu-22.04, config: hardenedmalloc }
           - { target: ubuntu-20.04, config: tcmalloc }
-          - { target: ubuntu-20.04, config: musl }
-          - { target: ubuntu-latest, config: boringssl }
+#	  musl doesn't work because it doesn't know about linux/tcp.h
+#         - { target: ubuntu-20.04, config: musl }
           - { target: ubuntu-latest, config: libressl-master }
-          - { target: ubuntu-latest, config: libressl-3.2.6 }
-          - { target: ubuntu-latest, config: libressl-3.3.6 }
-          - { target: ubuntu-latest, config: libressl-3.4.3 }
-          - { target: ubuntu-latest, config: libressl-3.5.3 }
-          - { target: ubuntu-latest, config: libressl-3.6.1 }
           - { target: ubuntu-latest, config: libressl-3.7.2 }
           - { target: ubuntu-latest, config: libressl-3.8.2 }
           - { target: ubuntu-latest, config: openssl-master }
@@ -85,17 +74,17 @@ jobs:
           - { target: ubuntu-22.04, config: selinux }
           - { target: ubuntu-22.04, config: kitchensink }
           - { target: ubuntu-22.04, config: without-openssl }
-          - { target: macos-11, config: pam }
-          - { target: macos-12, config: pam }
-          - { target: macos-13, config: pam }
+          - { target: ubuntu-22.04, config: clang-sanitize-address }
+          - { target: ubuntu-22.04, config: clang-sanitize-undefined }
+          - { target: ubuntu-22.04, config: gcc-sanitize-address }
+          - { target: ubuntu-22.04, config: gcc-sanitize-undefined }
+# we know pam doesn't work because we can't install a new pam file
+# for hpnssh via the CI test methods
+#          - { target: macos-11, config: pam }
+#          - { target: macos-12, config: pam }
+#          - { target: macos-13, config: pam }
     runs-on: ${{ matrix.target }}
     steps:
-    - name: set cygwin git params
-      if: ${{ startsWith(matrix.target, 'windows') }}
-      run: git config --global core.autocrlf input
-    - name: install cygwin
-      if: ${{ startsWith(matrix.target, 'windows') }}
-      uses: cygwin/cygwin-install-action@master
     - uses: actions/checkout@main
     - name: setup CI system
       run: sh ./.github/setup_ci.sh ${{ matrix.config }}

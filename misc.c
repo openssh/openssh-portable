@@ -77,6 +77,29 @@
 #include "ssherr.h"
 #include "platform.h"
 
+void
+read_mem_stats(statm_t *result, int post_auth)
+{
+	if (!post_auth)
+		return;
+
+	const char* statm_path = "/proc/self/statm";
+
+	FILE *f = fopen(statm_path,"r");
+	if(!f){
+		perror(statm_path);
+		abort();
+	}
+	if(7 != fscanf(f,"%lu %lu %lu %lu %lu %lu %lu",
+		       &result->size, &result->resident, &result->share, &result->text, &result->lib,
+		       &result->data, &result->dt))
+	{
+		perror(statm_path);
+		abort();
+	}
+	fclose(f);
+}
+
 /* remove newline at end of string */
 char *
 chop(char *s)
@@ -1593,20 +1616,6 @@ get_u32(const void *vp)
 	return (v);
 }
 
-u_int32_t
-get_u32_le(const void *vp)
-{
-	const u_char *p = (const u_char *)vp;
-	u_int32_t v;
-
-	v  = (u_int32_t)p[0];
-	v |= (u_int32_t)p[1] << 8;
-	v |= (u_int32_t)p[2] << 16;
-	v |= (u_int32_t)p[3] << 24;
-
-	return (v);
-}
-
 u_int16_t
 get_u16(const void *vp)
 {
@@ -1643,17 +1652,6 @@ put_u32(void *vp, u_int32_t v)
 	p[1] = (u_char)(v >> 16) & 0xff;
 	p[2] = (u_char)(v >> 8) & 0xff;
 	p[3] = (u_char)v & 0xff;
-}
-
-void
-put_u32_le(void *vp, u_int32_t v)
-{
-	u_char *p = (u_char *)vp;
-
-	p[0] = (u_char)v & 0xff;
-	p[1] = (u_char)(v >> 8) & 0xff;
-	p[2] = (u_char)(v >> 16) & 0xff;
-	p[3] = (u_char)(v >> 24) & 0xff;
 }
 
 void

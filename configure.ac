@@ -2849,8 +2849,8 @@ if test "x$openssl" = "xyes" ; then
 			200*)   # LibreSSL
 				lver=`echo "$sslver" | sed 's/.*libressl-//'`
 				case "$lver" in
-				2*|300*) # 2.x, 3.0.0
-					AC_MSG_ERROR([LibreSSL >= 3.1.0 required (have "$ssl_showver")])
+				2*|300*|301*|302*|303*|304*|306*) # 2.x, 3.0.0
+					AC_MSG_ERROR([LibreSSL >= 3.7.0 required (have "$ssl_showver")])
 					;;
 				*) ;;	# Assume all other versions are good.
 				esac
@@ -2858,10 +2858,12 @@ if test "x$openssl" = "xyes" ; then
 			300*)
 				# OpenSSL 3; we use the 1.1x API
 				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
+				AC_DEFINE([WITH_OPENSSL3], [1], [With OpenSSL3])
 				;;
 			301*|302*|303*)
 				# OpenSSL development branch; request 1.1x API
 				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
+				AC_DEFINE([WITH_OPENSSL3], [1], [With OpenSSL3])
 				;;
 		        *)
 				AC_MSG_ERROR([Unknown/unsupported OpenSSL version ("$ssl_showver")])
@@ -2978,6 +2980,30 @@ if test "x$openssl" = "xyes" ; then
 		EVP_CIPHER_CTX_set_iv \
 	])
 
+	# OpenSSL 3.0 API
+	# Does OpenSSL support the EVP_MAC functions for Poly1305?
+	AC_MSG_CHECKING([whether OpenSSL supports Poly1305 MAC EVP])
+	AC_RUN_IFELSE(
+		[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <openssl/evp.h>
+		]], [[
+		EVP_MAC *mac = EVP_MAC_fetch(NULL, "poly1305", NULL);
+		if (mac == NULL)
+		   exit(1);
+		]])],
+		[
+			AC_MSG_RESULT([yes])
+			AC_DEFINE([OPENSSL_HAVE_POLY_EVP], [1],
+			    [Libcrypto supports Poly1305 MAC EVP])
+		],
+		[
+			AC_MSG_RESULT([no])
+		]
+	)
+
+
 	if test "x$openssl_engine" = "xyes" ; then
 		AC_MSG_CHECKING([for OpenSSL ENGINE support])
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -2992,6 +3018,8 @@ if test "x$openssl" = "xyes" ; then
 			], [ AC_MSG_ERROR([OpenSSL ENGINE support not found])
 		])
 	fi
+
+
 
 	# Check for OpenSSL without EVP_aes_{192,256}_cbc
 	AC_MSG_CHECKING([whether OpenSSL has crippled AES support])
@@ -3487,7 +3515,7 @@ case "$host" in
 	SSH_PRIVSEP_USER=CYGWIN_SSH_PRIVSEP_USER
 	;;
 *)
-	SSH_PRIVSEP_USER=sshd
+	SSH_PRIVSEP_USER=hpnsshd
 	;;
 esac
 AC_ARG_WITH([privsep-user],
@@ -5024,11 +5052,11 @@ AC_ARG_WITH([mantype],
 	]
 )
 if test -z "$MANTYPE"; then
-	if ${MANDOC} ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	if ${MANDOC} ${srcdir}/hpnssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
-	elif ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	elif ${NROFF} -mdoc ${srcdir}/hpnssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
-	elif ${NROFF} -man ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	elif ${NROFF} -man ${srcdir}/hpnssh.1 >/dev/null 2>&1; then
 		MANTYPE=man
 	else
 		MANTYPE=cat
@@ -5266,7 +5294,7 @@ AC_ARG_WITH([bsd-auth],
 	]
 )
 
-# Where to place sshd.pid
+# Where to place hpnsshd.pid
 piddir=/var/run
 # make sure the directory exists
 if test ! -d $piddir ; then
@@ -5277,7 +5305,7 @@ if test ! -d $piddir ; then
 fi
 
 AC_ARG_WITH([pid-dir],
-	[  --with-pid-dir=PATH     Specify location of sshd.pid file],
+	[  --with-pid-dir=PATH     Specify location of hpnsshd.pid file],
 	[
 		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
 		    test "x${withval}" != "xyes"; then

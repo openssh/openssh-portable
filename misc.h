@@ -157,12 +157,6 @@ void		put_u32(void *, u_int32_t)
 void		put_u16(void *, u_int16_t)
     __attribute__((__bounded__( __minbytes__, 1, 2)));
 
-/* Little-endian store/load, used by umac.c */
-u_int32_t	get_u32_le(const void *)
-    __attribute__((__bounded__(__minbytes__, 1, 4)));
-void		put_u32_le(void *, u_int32_t)
-    __attribute__((__bounded__(__minbytes__, 1, 4)));
-
 struct bwlimit {
 	size_t buflen;
 	u_int64_t rate;		/* desired rate in kbit/s */
@@ -246,5 +240,17 @@ sshsig_t ssh_signal(int, sshsig_t);
 
 /* On OpenBSD time_t is int64_t which is long long. */
 /* #define SSH_TIME_T_MAX LLONG_MAX */
+
+typedef struct statm_t {
+  unsigned long size;
+  unsigned long resident;
+  unsigned long share;
+  unsigned long text;
+  unsigned long lib;
+  unsigned long data;
+  unsigned long dt;
+} statm_t;
+
+void read_mem_stats(struct statm_t *, int);
 
 #endif /* _MISC_H */

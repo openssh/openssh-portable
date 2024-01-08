@@ -302,7 +302,8 @@ sshbuf_read(int fd, struct sshbuf *buf, size_t maxlen, size_t *rlen)
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 	/* success */
-	if (rlen != NULL)
+	if (rlen != NULL) {
 		*rlen = (size_t)rr;
+	}
 	return 0;
 }

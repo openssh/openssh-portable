@@ -70,6 +70,7 @@
 #include "uidswap.h"
 #include "myproposal.h"
 #include "digest.h"
+#include "sshbuf.h"
 
 /* Format of the configuration file:
 
@@ -169,6 +170,9 @@ typedef enum {
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
+	oTcpRcvBufPoll, oHPNDisabled,
+	oNoneEnabled, oNoneMacEnabled, oNoneSwitch, oHPNBufferLimit,
+	oMetrics, oMetricsPath, oMetricsInterval, oFallback, oFallbackPort,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType, oStdinNull,
 	oForkAfterAuthentication, oIgnoreUnknown, oProxyUseFdpass,
@@ -303,6 +307,15 @@ static struct {
 	{ "kexalgorithms", oKexAlgorithms },
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
+	{ "noneenabled", oNoneEnabled },
+	{ "nonemacenabled", oNoneMacEnabled },
+	{ "noneswitch", oNoneSwitch },
+	{ "hpnbufferlimit", oHPNBufferLimit },
+	{ "metrics", oMetrics },
+	{ "metricspath", oMetricsPath },
+	{ "metricsinterval", oMetricsInterval },
+	{ "fallback", oFallback },
+	{ "fallbackport", oFallbackPort },
 	{ "sessiontype", oSessionType },
 	{ "stdinnull", oStdinNull },
 	{ "forkafterauthentication", oForkAfterAuthentication },
@@ -325,6 +338,8 @@ static struct {
 	{ "proxyjump", oProxyJump },
 	{ "securitykeyprovider", oSecurityKeyProvider },
 	{ "knownhostscommand", oKnownHostsCommand },
+	{ "tcprcvbufpoll", oTcpRcvBufPoll },
+	{ "hpndisabled", oHPNDisabled },
 	{ "requiredrsasize", oRequiredRSASize },
 	{ "enableescapecommandline", oEnableEscapeCommandline },
 	{ "obscurekeystroketiming", oObscureKeystrokeTiming },
@@ -522,7 +537,7 @@ default_ssh_port(void)
 
 	if (port == 0) {
 		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
-		port = sp ? ntohs(sp->s_port) : SSH_DEFAULT_PORT;
+		port = sp ? ntohs(sp->s_port) : HPNSSH_DEFAULT_PORT;
 	}
 	return port;
 }
@@ -1221,6 +1236,63 @@ parse_time:
 	case oCheckHostIP:
 		intptr = &options->check_host_ip;
 		goto parse_flag;
+
+	case oHPNDisabled:
+		intptr = &options->hpn_disabled;
+		goto parse_flag;
+
+	case oTcpRcvBufPoll:
+		intptr = &options->tcp_rcv_buf_poll;
+		goto parse_flag;
+
+	case oNoneEnabled:
+		intptr = &options->none_enabled;
+		goto parse_flag;
+
+	case oNoneMacEnabled:
+		intptr = &options->nonemac_enabled;
+		goto parse_flag;
+
+	case oHPNBufferLimit:
+		intptr = &options->hpn_buffer_limit;
+		goto parse_flag;
+
+	case oMetrics:
+		intptr = &options->metrics;
+		goto parse_flag;
+
+	case oMetricsInterval:
+		intptr = &options->metrics_interval;
+		goto parse_int;
+
+	case oMetricsPath:
+		charptr = &options->metrics_path;
+		options->metrics = 1;
+		goto parse_string;
+
+	case oFallback:
+		intptr = &options->fallback;
+		goto parse_flag;
+
+	case oFallbackPort:
+		intptr = &options->fallback_port;
+		goto parse_int;
+
+	/*
+	 * We check to see if the command comes from the command
+	 * line or not. If it does then enable it otherwise fail.
+	 *  NONE should never be a default configuration.
+	 */
+	case oNoneSwitch:
+		if (strcmp(filename, "command-line") == 0) {
+			intptr = &options->none_switch;
+			goto parse_flag;
+		} else {
+			error("NoneSwitch is found in %.200s.\nYou may only use this configuration option from the command line", filename);
+			error("Continuing...");
+			debug("NoneSwitch directive found in %.200s.", filename);
+			return 0;
+		}
 
 	case oVerifyHostKeyDNS:
 		intptr = &options->verify_host_key_dns;
@@ -2585,6 +2657,17 @@ initialize_options(Options * options)
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
 	options->request_tty = -1;
+	options->none_switch = -1;
+	options->none_enabled = -1;
+	options->nonemac_enabled = -1;
+	options->metrics = -1;
+	options->metrics_path = NULL;
+	options->metrics_interval = -1;
+	options->hpn_disabled = -1;
+	options->hpn_buffer_limit = -1;
+	options->fallback = -1;
+	options->fallback_port = -1;
+	options->tcp_rcv_buf_poll = -1;
 	options->session_type = -1;
 	options->stdin_null = -1;
 	options->fork_after_authentication = -1;
@@ -2756,8 +2839,37 @@ fill_default_options(Options * options)
 		options->server_alive_interval = 0;
 	if (options->server_alive_count_max == -1)
 		options->server_alive_count_max = 3;
+	if (options->hpn_disabled == -1)
+		options->hpn_disabled = 0;
+	if (options->hpn_buffer_limit == -1)
+		options->hpn_buffer_limit = 0;
+	if (options->tcp_rcv_buf_poll == -1)
+		options->tcp_rcv_buf_poll = 1;
+	if (options->none_switch == -1)
+		options->none_switch = 0;
+	if (options->none_enabled == -1)
+		options->none_enabled = 0;
+	if (options->none_enabled == 0 && options->none_switch > 0) {
+		fprintf(stderr, "NoneEnabled must be enabled to use the None Switch option. None cipher disabled.\n");
+		options->none_enabled = 0;
+	}
+	if (options->nonemac_enabled == -1)
+		options->nonemac_enabled = 0;
+	if (options->nonemac_enabled > 0 && (options->none_enabled == 0 ||
+					     options->none_switch == 0)) {
+		fprintf(stderr, "None MAC can only be used with the None cipher. None MAC disabled.\n");
+		options->nonemac_enabled = 0;
+	}
+	if (options->metrics == -1)
+		options->metrics = 0;
+	if (options->metrics_interval == -1)
+		options->metrics_interval = 5;
 	if (options->control_master == -1)
 		options->control_master = 0;
+	if (options->fallback == -1)
+		options->fallback = 1;
+	if (options->fallback_port == -1)
+		options->fallback_port = SSH_DEFAULT_PORT;
 	if (options->control_persist == -1) {
 		options->control_persist = 0;
 		options->control_persist_timeout = 0;

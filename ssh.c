@@ -108,6 +108,7 @@
 #include "ssherr.h"
 #include "myproposal.h"
 #include "utf8.h"
+#include "cipher-switch.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
@@ -180,14 +181,14 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-"usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]\n"
-"           [-c cipher_spec] [-D [bind_address:]port] [-E log_file]\n"
-"           [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]\n"
-"           [-J destination] [-L address] [-l login_name] [-m mac_spec]\n"
-"           [-O ctl_cmd] [-o option] [-P tag] [-p port] [-R address]\n"
-"           [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]\n"
-"           destination [command [argument ...]]\n"
-"       ssh [-Q query_option]\n"
+"usage: hpnssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]\n"
+"              [-c cipher_spec] [-D [bind_address:]port] [-E log_file]\n"
+"              [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]\n"
+"              [-J destination] [-L address] [-l login_name] [-m mac_spec]\n"
+"              [-O ctl_cmd] [-o option] [-P tag] [-p port] [-R address]\n"
+"              [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]\n"
+"              destination [command [argument ...]]\n"
+"       hpnssh [-Q query_option]\n"
 	);
 	exit(255);
 }
@@ -1070,6 +1071,10 @@ main(int ac, char **av)
 			break;
 		case 'T':
 			options.request_tty = REQUEST_TTY_NO;
+			/* ensure that the user doesn't try to backdoor a */
+			/* null cipher switch on an interactive session */
+			/* so explicitly disable it no matter what */
+			options.none_switch=0;
 			break;
 		case 'o':
 			line = xstrdup(optarg);
@@ -1631,10 +1636,36 @@ main(int ac, char **av)
 	}
 
 	/* Open a connection to the remote host. */
+	/* we try initially on the default hpnssh port returned by
+	 * default_ssh_port() which now returns HPNSSH_DEFAULT_PORT
+	 * if that fails we reset the port to SSH_DEFAULT_PORT
+	 * -cjr 8/17/2022
+	 */
+tryagain:
 	if (ssh_connect(ssh, host, options.host_arg, addrs, &hostaddr,
 	    options.port, options.connection_attempts,
-	    &timeout_ms, options.tcp_keep_alive) != 0)
+	    &timeout_ms, options.tcp_keep_alive) != 0) {
+		/* could not connect. If the port requested is the same as
+		 * hpnssh default port then fallback. Otherwise, exit */
+		if ((options.port == default_ssh_port()) && options.fallback) {
+			int port = options.fallback_port;
+			options.port = port;
+			fprintf(stderr, "HPNSSH server not available on default port %d\n",
+				default_ssh_port());
+			if (port == 22)
+				fprintf(stderr, "Falling back to OpenSSH default port %d\n",
+					port);
+			else
+				fprintf(stderr, "Falling back to user defined port %d\n",
+					port);
+			addrs = resolve_host(host, port, 1,
+					     cname, sizeof(cname));
+			goto tryagain;
+		} else {
+			exit(255);
+		}
 		exit(255);
+	}
 
 	if (addrs != NULL)
 		freeaddrinfo(addrs);
@@ -1840,7 +1871,7 @@ control_persist_detach(void)
 
 /* Do fork() after authentication. Used by "ssh -f" */
 static void
-fork_postauth(void)
+fork_postauth(struct ssh *ssh)
 {
 	if (need_controlpersist_detach)
 		control_persist_detach();
@@ -1850,17 +1881,21 @@ fork_postauth(void)
 		fatal("daemon() failed: %.200s", strerror(errno));
 	if (stdfd_devnull(1, 1, !(log_is_on_stderr() && debug_flag)) == -1)
 		error_f("stdfd_devnull failed");
+
+	/* we do the cipher switch here in the event that the client
+	   is forking or has a delayed fork */
+	cipher_switch(ssh);
 }
 
 static void
-forwarding_success(void)
+forwarding_success(struct ssh *ssh)
 {
 	if (forward_confirms_pending == -1)
 		return;
 	if (--forward_confirms_pending == 0) {
 		debug_f("all expected forwarding replies received");
 		if (options.fork_after_authentication)
-			fork_postauth();
+			fork_postauth(ssh);
 	} else {
 		debug2_f("%d expected forwarding replies remaining",
 		    forward_confirms_pending);
@@ -1927,7 +1962,7 @@ ssh_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 				    "for listen port %d", rfwd->listen_port);
 		}
 	}
-	forwarding_success();
+	forwarding_success(ssh);
 }
 
 static void
@@ -1954,7 +1989,7 @@ ssh_tun_confirm(struct ssh *ssh, int id, int success, void *arg)
 	}
 
 	debug_f("tunnel forward established, id=%d", id);
-	forwarding_success();
+	forwarding_success(ssh);
 }
 
 static void
@@ -2155,6 +2190,15 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 	    NULL, fileno(stdin), command, environ);
 }
 
+/* this used to do a lot more but now it just checks to see
+ * if we are disabling hpn */
+static void
+hpn_options_init(struct ssh *ssh)
+{
+	channel_set_hpn_disabled(options.hpn_disabled);
+	debug_f("HPN disabled: %d", options.hpn_disabled);
+}
+
 /* open new channel for a session */
 static int
 ssh_session2_open(struct ssh *ssh)
@@ -2176,6 +2220,7 @@ ssh_session2_open(struct ssh *ssh)
 	window = CHAN_SES_WINDOW_DEFAULT;
 	packetmax = CHAN_SES_PACKET_DEFAULT;
 	if (tty_flag) {
+		window = CHAN_SES_WINDOW_DEFAULT;
 		window >>= 1;
 		packetmax >>= 1;
 	}
@@ -2183,6 +2228,16 @@ ssh_session2_open(struct ssh *ssh)
 	    "session", SSH_CHANNEL_OPENING, in, out, err,
 	    window, packetmax, CHAN_EXTENDED_WRITE,
 	    "client-session", CHANNEL_NONBLOCK_STDIO);
+
+	/* TODO: Is this the right place for these options? */
+	if (options.tcp_rcv_buf_poll > 0 && !options.hpn_disabled) {
+		c->dynamic_window = 1;
+		debug("Enabled Dynamic Window Scaling");
+	}
+
+	if (options.hpn_buffer_limit)
+		c->hpn_buffer_limit = 1;
+
 
 	debug3_f("channel_new: %d", c->self);
 
@@ -2199,6 +2254,13 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 {
 	int r, interactive, id = -1;
 	char *cp, *tun_fwd_ifname = NULL;
+
+	/*
+	 * We need to initialize this early because the forwarding logic below
+	 * might open channels that use the hpn buffer sizes.  We can't send a
+	 * window of -1 (the default) to the server as it breaks things.
+	 */
+	hpn_options_init(ssh);
 
 	/* XXX should be pre-session */
 	if (!options.control_persist)
@@ -2298,9 +2360,14 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 			debug("deferring postauth fork until remote forward "
 			    "confirmation received");
 		} else
-			fork_postauth();
+			fork_postauth(ssh);
+	} else {
+		/* check to see if we are switching ciphers to
+		 * one of our parallel versions. If the client is
+		 * forking then we handle it in fork_postauth()
+		 */
+		cipher_switch(ssh);
 	}
-
 	return client_loop(ssh, tty_flag, tty_flag ?
 	    options.escape_char : SSH_ESCAPECHAR_NONE, id);
 }

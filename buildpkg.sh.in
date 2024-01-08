@@ -147,7 +147,7 @@ done
 ## Set privsep defaults if not defined
 if [ -z "$SSH_PRIVSEP_USER" ]
 then
-	SSH_PRIVSEP_USER=sshd
+	SSH_PRIVSEP_USER=hpnsshd
 fi
 
 ## Extract common info requires for the 'info' part of the package.
@@ -538,7 +538,7 @@ then
 PRE_INS_STOP=no
 POST_INS_START=no
 # determine if should restart the daemon
-if [ -s ${piddir}/sshd.pid  ] && \\
+if [ -s ${piddir}/hpnsshd.pid  ] && \\
     /usr/bin/svcs -H $OPENSSH_FMRI 2>&1 | egrep "^online" > /dev/null 2>&1
 then
 	ans=\`ckyorn -d n \\
@@ -580,7 +580,7 @@ case \$ans in
 esac
 
 # determine if should restart the daemon
-if [ -s ${piddir}/sshd.pid  -a  -f ${TEST_DIR}/etc/init.d/${SYSVINIT_NAME} ]
+if [ -s ${piddir}/hpnsshd.pid  -a  -f ${TEST_DIR}/etc/init.d/${SYSVINIT_NAME} ]
 then
 	ans=\`ckyorn -d n \\
 -p "Should the running sshd daemon be restarted? ${DEF_MSG}"\` || exit \$?

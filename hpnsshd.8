@@ -35,13 +35,13 @@
 .\"
 .\" $OpenBSD: sshd.8,v 1.325 2023/09/19 20:37:07 deraadt Exp $
 .Dd $Mdocdate: September 19 2023 $
-.Dt SSHD 8
+.Dt HPNSSHD 8
 .Os
 .Sh NAME
-.Nm sshd
-.Nd OpenSSH daemon
+.Nm hpnsshd
+.Nd HPN/OpenSSH daemon
 .Sh SYNOPSIS
-.Nm sshd
+.Nm hpnsshd
 .Bk -words
 .Op Fl 46DdeGiqTtV
 .Op Fl C Ar connection_spec
@@ -56,8 +56,8 @@
 .Ek
 .Sh DESCRIPTION
 .Nm
-(OpenSSH Daemon) is the daemon program for
-.Xr ssh 1 .
+(HPN/OpenSSH Daemon) is the daemon program for
+.Xr hpnssh 1 .
 It provides secure encrypted communications between two untrusted hosts
 over an insecure network.
 .Pp
@@ -74,14 +74,14 @@ and data exchange.
 .Nm
 can be configured using command-line options or a configuration file
 (by default
-.Xr sshd_config 5 ) ;
+.Xr hpnsshd_config 5 ) ;
 command-line options override values specified in the
 configuration file.
 .Nm
 rereads its configuration file when it receives a hangup signal,
 .Dv SIGHUP ,
 by executing itself with the name and options it was started with, e.g.\&
-.Pa /usr/sbin/sshd .
+.Pa /usr/sbin/hpnsshd .
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
@@ -129,7 +129,7 @@ When this option is specified,
 .Nm
 will not detach and does not become a daemon.
 This allows easy monitoring of
-.Nm sshd .
+.Nm hpnsshd .
 .It Fl d
 Debug mode.
 The server sends verbose debug output to standard error,
@@ -151,7 +151,7 @@ Write debug logs to standard error instead of the system log.
 .It Fl f Ar config_file
 Specifies the name of the configuration file.
 The default is
-.Pa /etc/ssh/sshd_config .
+.Pa /etc/hpnssh/sshd_config .
 .Nm
 refuses to start if there is no configuration file.
 .It Fl G
@@ -192,7 +192,7 @@ Can be used to give options in the format used in the configuration file.
 This is useful for specifying options for which there is no separate
 command-line flag.
 For full details of the options, and their values, see
-.Xr sshd_config 5 .
+.Xr hpnsshd_config 5 .
 .It Fl p Ar port
 Specifies the port on which the server listens for connections
 (default 22).
@@ -365,14 +365,14 @@ if it exists, and users are allowed to change their environment.
 See the
 .Cm PermitUserEnvironment
 option in
-.Xr sshd_config 5 .
+.Xr hpnsshd_config 5 .
 .It
 Changes to user's home directory.
 .It
 If
 .Pa ~/.ssh/rc
 exists and the
-.Xr sshd_config 5
+.Xr hpnsshd_config 5
 .Cm PermitUserRC
 option is set, runs it; else if
 .Pa /etc/ssh/sshrc
@@ -530,7 +530,7 @@ The command originally supplied by the client is available in the
 environment variable.
 Note that this option applies to shell, command or subsystem execution.
 Also note that this command may be superseded by a
-.Xr sshd_config 5
+.Xr hpnsshd_config 5
 .Cm ForceCommand
 directive.
 .Pp
@@ -591,7 +591,7 @@ Forbids X11 forwarding when this key is used for authentication.
 Any X11 forward requests by the client will return an error.
 .It Cm permitlisten="[host:]port"
 Limit remote port forwarding with the
-.Xr ssh 1
+.Xr hpnssh 1
 .Fl R
 option such that it may only listen on the specified host (optional) and port.
 IPv6 addresses can be specified by enclosing the address in square brackets.
@@ -599,7 +599,7 @@ Multiple
 .Cm permitlisten
 options may be applied separated by commas.
 Hostnames may include wildcards as described in the PATTERNS section in
-.Xr ssh_config 5 .
+.Xr hpnssh_config 5 .
 A port specification of
 .Cm *
 matches any port.
@@ -607,7 +607,7 @@ Note that the setting of
 .Cm GatewayPorts
 may further restrict listen addresses.
 Note that
-.Xr ssh 1
+.Xr hpnssh 1
 will send a hostname of
 .Dq localhost
 if a listen host was not specified when the forwarding was requested, and
@@ -617,7 +617,7 @@ and
 .Dq ::1 .
 .It Cm permitopen="host:port"
 Limit local port forwarding with the
-.Xr ssh 1
+.Xr hpnssh 1
 .Fl L
 option such that it may only connect to the specified host and port.
 IPv6 addresses can be specified by enclosing the address in square brackets.
@@ -711,7 +711,7 @@ cert-authority,no-touch-required,principals="user_a" ssh-rsa ...
 .Ed
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
 The
-.Pa /etc/ssh/ssh_known_hosts
+.Pa /etc/hpnssh/ssh_known_hosts
 and
 .Pa ~/.ssh/known_hosts
 files contain host public keys for all known hosts.
@@ -740,18 +740,18 @@ and
 act as
 wildcards); each pattern in turn is matched against the host name.
 When
-.Nm sshd
+.Nm hpnsshd
 is authenticating a client, such as when using
 .Cm HostbasedAuthentication ,
 this will be the canonical client host name.
 When
-.Xr ssh 1
+.Xr hpnssh 1
 is authenticating a server, this will be the host name
 given by the user, the value of the
-.Xr ssh 1
+.Xr hpnssh 1
 .Cm HostkeyAlias
 if it was specified, or the canonical server hostname if the
-.Xr ssh 1
+.Xr hpnssh 1
 .Cm CanonicalizeHostname
 option was used.
 .Pp
@@ -778,7 +778,7 @@ negation or wildcard operators may be applied.
 .Pp
 The keytype and base64-encoded key are taken directly from the host key; they
 can be obtained, for example, from
-.Pa /etc/ssh/ssh_host_rsa_key.pub .
+.Pa /etc/hpnssh/ssh_host_rsa_key.pub .
 The optional comment field continues to the end of the line, and is not used.
 .Pp
 Lines starting with
@@ -801,7 +801,7 @@ Revoked keys are specified by including the
 marker at the beginning of the key line, and are never accepted for
 authentication or as certification authorities, but instead will
 produce a warning from
-.Xr ssh 1
+.Xr hpnssh 1
 when they are encountered.
 .Pp
 It is permissible (but not
@@ -816,11 +816,11 @@ accepted if valid information can be found from either file.
 Note that the lines in these files are typically hundreds of characters
 long, and you definitely don't want to type in the host keys by hand.
 Rather, generate them by a script,
-.Xr ssh-keyscan 1
+.Xr hpnssh-keyscan 1
 or by taking, for example,
-.Pa /etc/ssh/ssh_host_rsa_key.pub
+.Pa /etc/hpnssh/ssh_host_rsa_key.pub
 and adding the host names at the front.
-.Xr ssh-keygen 1
+.Xr hpnssh-keygen 1
 also offers some basic automated editing for
 .Pa ~/.ssh/known_hosts
 including removing hosts matching a host name and converting all host
@@ -854,7 +854,7 @@ It does not suppress printing of the banner specified by
 .Pp
 .It Pa ~/.rhosts
 This file is used for host-based authentication (see
-.Xr ssh 1
+.Xr hpnssh 1
 for more information).
 On some machines this file may need to be
 world-readable if the user's home directory is on an NFS partition,
@@ -926,7 +926,7 @@ readable by anyone else.
 .Pp
 .It Pa /etc/hosts.equiv
 This file is for host-based authentication (see
-.Xr ssh 1 ) .
+.Xr hpnssh 1 ) .
 It should only be writable by root.
 .Pp
 .It Pa /etc/moduli
@@ -956,9 +956,9 @@ This file is used in exactly the same way as
 but allows host-based authentication without permitting login with
 rlogin/rsh.
 .Pp
-.It Pa /etc/ssh/ssh_host_ecdsa_key
-.It Pa /etc/ssh/ssh_host_ed25519_key
-.It Pa /etc/ssh/ssh_host_rsa_key
+.It Pa /etc/hpnssh/ssh_host_ecdsa_key
+.It Pa /etc/hpnssh/ssh_host_ed25519_key
+.It Pa /etc/hpnssh/ssh_host_rsa_key
 These files contain the private parts of the host keys.
 These files should only be owned by root, readable only by root, and not
 accessible to others.
@@ -966,9 +966,9 @@ Note that
 .Nm
 does not start if these files are group/world-accessible.
 .Pp
-.It Pa /etc/ssh/ssh_host_ecdsa_key.pub
-.It Pa /etc/ssh/ssh_host_ed25519_key.pub
-.It Pa /etc/ssh/ssh_host_rsa_key.pub
+.It Pa /etc/hpnssh/ssh_host_ecdsa_key.pub
+.It Pa /etc/hpnssh/ssh_host_ed25519_key.pub
+.It Pa /etc/hpnssh/ssh_host_rsa_key.pub
 These files contain the public parts of the host keys.
 These files should be world-readable but writable only by
 root.
@@ -977,9 +977,9 @@ These files are not
 really used for anything; they are provided for the convenience of
 the user so their contents can be copied to known hosts files.
 These files are created using
-.Xr ssh-keygen 1 .
+.Xr hpnssh-keygen 1 .
 .Pp
-.It Pa /etc/ssh/ssh_known_hosts
+.It Pa /etc/hpnssh/ssh_known_hosts
 Systemwide list of known host keys.
 This file should be prepared by the
 system administrator to contain the public host keys of all machines in the
@@ -988,13 +988,13 @@ The format of this file is described above.
 This file should be writable only by root/the owner and
 should be world-readable.
 .Pp
-.It Pa /etc/ssh/sshd_config
+.It Pa /etc/hpnssh/sshd_config
 Contains configuration data for
-.Nm sshd .
+.Nm hpnsshd .
 The file format and configuration options are described in
-.Xr sshd_config 5 .
+.Xr hpnsshd_config 5 .
 .Pp
-.It Pa /etc/ssh/sshrc
+.It Pa /etc/hpnssh/sshrc
 Similar to
 .Pa ~/.ssh/rc ,
 it can be used to specify
@@ -1009,7 +1009,7 @@ during privilege separation in the pre-authentication phase.
 The directory should not contain any files and must be owned by root
 and not group or world-writable.
 .Pp
-.It Pa /var/run/sshd.pid
+.It Pa /var/run/hpnsshd.pid
 Contains the process ID of the
 .Nm
 listening for connections (if there are several daemons running
@@ -1018,19 +1018,19 @@ started last).
 The content of this file is not sensitive; it can be world-readable.
 .El
 .Sh SEE ALSO
-.Xr scp 1 ,
-.Xr sftp 1 ,
-.Xr ssh 1 ,
-.Xr ssh-add 1 ,
-.Xr ssh-agent 1 ,
-.Xr ssh-keygen 1 ,
-.Xr ssh-keyscan 1 ,
+.Xr hpnscp 1 ,
+.Xr hpnsftp 1 ,
+.Xr hpnssh 1 ,
+.Xr hpnssh-add 1 ,
+.Xr hpnssh-agent 1 ,
+.Xr hpnssh-keygen 1 ,
+.Xr hpnssh-keyscan 1 ,
 .Xr chroot 2 ,
 .Xr login.conf 5 ,
 .Xr moduli 5 ,
-.Xr sshd_config 5 ,
+.Xr hpnsshd_config 5 ,
 .Xr inetd 8 ,
-.Xr sftp-server 8
+.Xr hpnsftp-server 8
 .Sh AUTHORS
 OpenSSH is a derivative of the original and free
 ssh 1.2.12 release by Tatu Ylonen.
@@ -1042,3 +1042,7 @@ Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
 Niels Provos and Markus Friedl contributed support
 for privilege separation.
+Chris Rapier, Michael Stevens, Ben Bennet, and Mike Tasota developed
+the HPN extensions at the Pittsburgh Supercomuting Center with grants
+from Cisco, the National Library of Medicine, and the National Science
+Foundation. 

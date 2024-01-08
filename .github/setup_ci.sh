@@ -27,6 +27,7 @@ esac
 TARGETS=$@
 
 INSTALL_FIDO_PPA="no"
+#COPY_PAM_MODULE="no"
 export DEBIAN_FRONTEND=noninteractive
 
 set -e
@@ -158,6 +159,14 @@ if [ "yes" = "$INSTALL_FIDO_PPA" ]; then
     sudo apt install -qy software-properties-common
     sudo apt-add-repository -y ppa:yubico/stable
 fi
+
+#need to copy the pam modules for sshd to hpnsshd on
+#macos with pam.
+#if [ "yes" = "$COPY_PAM_MODULE" ]; then
+#    if [ `uname` = "Darwin" }; then
+#	sudo cp /etc/pam.d/sshd /etc/pam.d/hpnsshd
+#    fi
+#fi
 
 tries=3
 while [ ! -z "$PACKAGES" ] && [ "$tries" -gt "0" ]; do

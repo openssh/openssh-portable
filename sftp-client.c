@@ -72,7 +72,8 @@ extern int showprogress;
 #define DEFAULT_COPY_BUFLEN	32768
 
 /* Default number of concurrent xfer requests (fix sftp.1 scp.1 if changed) */
-#define DEFAULT_NUM_REQUESTS	64
+/* 1024 xfer requests gives us 32MB of receive buffer space */
+#define DEFAULT_NUM_REQUESTS	1024
 
 /* Minimum amount of data to read at a time */
 #define MIN_READ_SIZE	512

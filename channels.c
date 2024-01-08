@@ -229,6 +229,9 @@ static int rdynamic_connect_finish(struct ssh *, Channel *);
 /* Setup helper */
 static void channel_handler_init(struct ssh_channels *sc);
 
+/* default values to enable hpn and the initial buffer size */
+static int hpn_disabled = 0;
+
 /* -- channel core */
 
 void
@@ -484,6 +487,9 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	    (c->output = sshbuf_new()) == NULL ||
 	    (c->extended = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
+	sshbuf_relabel(c->input, "channel input");
+	sshbuf_relabel(c->output, "channel output");
+	sshbuf_relabel(c->extended, "channel extended");
 	if ((r = sshbuf_set_max_size(c->input, CHAN_INPUT_MAX)) != 0)
 		fatal_fr(r, "sshbuf_set_max_size");
 	c->ostate = CHAN_OUTPUT_OPEN;
@@ -495,6 +501,7 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	c->local_window = window;
 	c->local_window_max = window;
 	c->local_maxpacket = maxpack;
+	c->dynamic_window = 0;
 	c->remote_name = xstrdup(remote_name);
 	c->ctl_chan = -1;
 	c->delayed = 1;		/* prevent call to channel_post handler */
@@ -1218,6 +1225,26 @@ channel_pre_connecting(struct ssh *ssh, Channel *c)
 {
 	debug3("channel %d: waiting for connection", c->self);
 	c->io_want = SSH_CHAN_IO_SOCK_W;
+}
+
+static int
+channel_tcpwinsz(struct ssh *ssh)
+{
+	u_int32_t tcpwinsz = 0;
+	socklen_t optsz = sizeof(tcpwinsz);
+	int ret = -1;
+
+	/* if we aren't on a socket return 128KB */
+	if (!ssh_packet_connection_is_on_socket(ssh))
+		return 128 * 1024;
+
+	ret = getsockopt(ssh_packet_get_connection_in(ssh),
+			 SOL_SOCKET, SO_RCVBUF, &tcpwinsz, &optsz);
+	/* return no more than SSHBUF_SIZE_MAX (currently 256MB) */
+	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
+		tcpwinsz = SSHBUF_SIZE_MAX;
+
+	return tcpwinsz;
 }
 
 static void
@@ -2236,7 +2263,6 @@ channel_handle_wfd(struct ssh *ssh, Channel *c)
 		fatal_fr(r, "channel %i: consume", c->self);
  out:
 	c->local_consumed += olen - sshbuf_len(c->output);
-
 	return 1;
 }
 
@@ -2321,24 +2347,50 @@ channel_check_window(struct ssh *ssh, Channel *c)
 {
 	int r;
 
+	/* going back to a set denominator of 2. Prior versions had a
+	 * dynamic denominator based on the size of the buffer. This may
+	 * have been helpful in some situations but it isn't helping in
+	 * the general case -cjr 6/30/23 */
 	if (c->type == SSH_CHANNEL_OPEN &&
 	    !(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
-	    ((c->local_window_max - c->local_window >
-	    c->local_maxpacket*3) ||
+	    ((c->local_window_max - c->local_window > c->local_maxpacket*3) ||
 	    c->local_window < c->local_window_max/2) &&
 	    c->local_consumed > 0) {
+		u_int addition = 0;
+		u_int32_t tcpwinsz = channel_tcpwinsz(ssh);
+		/* adjust max window size if we are in a dynamic environment
+		 * and the tcp receive buffer is larger than the ssh window */
+		if (c->dynamic_window && (tcpwinsz > c->local_window_max)) {
+			if (c->hpn_buffer_limit) {
+				/* limit window growth to prevent buffer issues
+				 * still not sure what is causing the buffer issues
+				 * but it may be an issue with c->local_consumed not being
+				 * handled properly in the cases of bottenecked IO to the
+				 * wfd endpoint. This does have an impact on throughput
+				 * as we're essentially maxing out local_window_max to
+				 * half of the window size */
+				addition = (tcpwinsz/2 - c->local_window_max);
+			}
+			else {
+				/* aggressively grow the window */
+				addition = tcpwinsz - c->local_window_max;
+			}
+			c->local_window_max += addition;
+			sshbuf_set_window_max(c->output, c->local_window_max);
+			sshbuf_set_window_max(c->input, c->local_window_max);
+			debug("Channel %d: Window growth to %d by %d bytes",c->self,
+			      c->local_window_max, addition);
+		}
 		if (!c->have_remote_id)
 			fatal_f("channel %d: no remote id", c->self);
 		if ((r = sshpkt_start(ssh,
 		    SSH2_MSG_CHANNEL_WINDOW_ADJUST)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
-		    (r = sshpkt_put_u32(ssh, c->local_consumed)) != 0 ||
+		    (r = sshpkt_put_u32(ssh, c->local_consumed + addition)) != 0 ||
 		    (r = sshpkt_send(ssh)) != 0) {
 			fatal_fr(r, "channel %i", c->self);
 		}
-		debug2("channel %d: window %d sent adjust %d", c->self,
-		    c->local_window, c->local_consumed);
-		c->local_window += c->local_consumed;
+		c->local_window += c->local_consumed + addition;
 		c->local_consumed = 0;
 	}
 	return 1;
@@ -2926,9 +2978,7 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 			 * in use.
 			 */
 			if (CHANNEL_EFD_INPUT_ACTIVE(c))
-				debug2("channel %d: "
-				    "ibuf_empty delayed efd %d/(%zu)",
-				    c->self, c->efd, sshbuf_len(c->extended));
+				{}
 			else
 				chan_ibuf_empty(ssh, c);
 		}
@@ -3041,7 +3091,7 @@ channel_output_poll(struct ssh *ssh)
 		if ((c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD))) {
 			/* XXX is this true? */
 			debug3("channel %d: will not send data after close",
-			    c->self);
+			       c->self);
 			continue;
 		}
 
@@ -3638,7 +3688,7 @@ channel_input_window_adjust(int type, u_int32_t seq, struct ssh *ssh)
 		error_fr(r, "parse adjust");
 		ssh_packet_disconnect(ssh, "Invalid window adjust message");
 	}
-	debug2("channel %d: rcvd adjust %u", c->self, adjust);
+	debug3_f("channel %d: rcvd adjust %u", c->self, adjust);
 	if ((new_rwin = c->remote_window + adjust) < c->remote_window) {
 		fatal("channel %d: adjust %u overflows remote window %u",
 		    c->self, adjust, c->remote_window);
@@ -3751,6 +3801,13 @@ channel_fwd_bind_addr(struct ssh *ssh, const char *listen_addr, int *wildcardp,
 	if (wildcardp != NULL)
 		*wildcardp = wildcard;
 	return addr;
+}
+
+void
+channel_set_hpn_disabled(int external_hpn_disabled)
+{
+	hpn_disabled = external_hpn_disabled;
+	debug("HPN Disabled: %d", hpn_disabled);
 }
 
 static int
@@ -3893,8 +3950,7 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 
 		/* Allocate a channel number for the socket. */
 		c = channel_new(ssh, "port-listener", type, sock, sock, -1,
-		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
-		    0, "port listener", 1);
+		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "port listener", 1);
 		c->path = xstrdup(host);
 		c->host_port = fwd->connect_port;
 		c->listening_addr = addr == NULL ? NULL : xstrdup(addr);
@@ -5010,7 +5066,7 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 				if ((errno != EINVAL) && (errno != EAFNOSUPPORT)
 #ifdef EPFNOSUPPORT
 				    && (errno != EPFNOSUPPORT)
-#endif 
+#endif
 				    ) {
 					error("socket: %.100s", strerror(errno));
 					freeaddrinfo(aitop);
@@ -5062,8 +5118,8 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 		sock = socks[n];
 		nc = channel_new(ssh, "x11-listener",
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
-		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
-		    0, "X11 inet listener", 1);
+				 CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
+				 0, "X11 inet listener", 1);
 		nc->single_connection = single_connection;
 		(*chanids)[n] = nc->self;
 	}

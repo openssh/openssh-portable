@@ -1,13 +1,14 @@
 name: CIFuzz
 on:
   push:
+    branches: [master, pre-stage]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
   pull_request:
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
 
 jobs:
   Fuzzing:
-    if: github.repository != 'openssh/openssh-portable-selfhosted'
+    if: github.repository != 'rapier1/openssh-portable-selfhosted'
     runs-on: ubuntu-latest
     steps:
     - name: Build Fuzzers

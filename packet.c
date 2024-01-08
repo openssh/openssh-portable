@@ -63,6 +63,9 @@
 #endif
 #include <signal.h>
 #include <time.h>
+#ifdef HAVE_UTIL_H
+# include <util.h>
+#endif
 
 /*
  * Explicitly include OpenSSL before zlib as some versions of OpenSSL have
@@ -103,7 +106,20 @@
 #define DBG(x)
 #endif
 
-#define PACKET_MAX_SIZE (256 * 1024)
+/* OpenSSH usings 256KB packet size max but that consumes a
+ * lot of memory with the buffers we are using. However, we need
+ * a large packet size if the banner that's being sent is large.
+ * So we need a 256KB packet pre authentication and a smaller one
+ * in this case SSH_IOBUFSZ + 1KB, afterwards. So we change
+ * PACKET_MAX_SIZE from a #define to a global. Then, in the function
+ * ssh_packet_set_authentcated we reduce the size to something
+ * more memory efficient. -cjr 04/07/23
+ */
+u_int packet_max_size = 256 * 1024;
+
+/* global to support forced rekeying */
+int rekey_requested = 0;
+
 
 struct packet_state {
 	u_int32_t seqnr;
@@ -240,12 +256,19 @@ ssh_alloc_session_state(void)
 	    (state->outgoing_packet = sshbuf_new()) == NULL ||
 	    (state->incoming_packet = sshbuf_new()) == NULL)
 		goto fail;
+	/* these buffers are important in terms of tracking buffer usage
+	 * so we explicitly label them with descriptive names */
+	sshbuf_relabel(state->input, "input");
+	sshbuf_relabel(state->incoming_packet, "inpacket");
+	sshbuf_relabel(state->output, "output");
+	sshbuf_relabel(state->outgoing_packet, "outpacket");
+
 	TAILQ_INIT(&state->outgoing);
 	TAILQ_INIT(&ssh->private_keys);
 	TAILQ_INIT(&ssh->public_keys);
 	state->connection_in = -1;
 	state->connection_out = -1;
-	state->max_packet_size = 32768;
+	state->max_packet_size = CHAN_SES_PACKET_DEFAULT;
 	state->packet_timeout_ms = -1;
 	state->p_send.packets = state->p_read.packets = 0;
 	state->initialized = 1;
@@ -293,7 +316,7 @@ struct ssh *
 ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 {
 	struct session_state *state;
-	const struct sshcipher *none = cipher_by_name("none");
+	struct sshcipher *none = cipher_by_name("none");
 	int r;
 
 	if (none == NULL) {
@@ -309,10 +332,10 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	state = ssh->state;
 	state->connection_in = fd_in;
 	state->connection_out = fd_out;
-	if ((r = cipher_init(&state->send_context, none,
-	    (const u_char *)"", 0, NULL, 0, CIPHER_ENCRYPT)) != 0 ||
-	    (r = cipher_init(&state->receive_context, none,
-	    (const u_char *)"", 0, NULL, 0, CIPHER_DECRYPT)) != 0) {
+	if ((r = cipher_init(&state->send_context, none, (const u_char *)"", 0,
+	    NULL, 0, 0, CIPHER_ENCRYPT, state->after_authentication)) != 0 ||
+	    (r = cipher_init(&state->receive_context, none, (const u_char *)"",
+	    0, NULL, 0, 0, CIPHER_DECRYPT, state->after_authentication)) != 0) {
 		error_fr(r, "cipher_init failed");
 		free(ssh); /* XXX need ssh_free_session_state? */
 		return NULL;
@@ -383,7 +406,7 @@ ssh_packet_stop_discard(struct ssh *ssh)
 
 	if (state->packet_discard_mac) {
 		char buf[1024];
-		size_t dlen = PACKET_MAX_SIZE;
+		size_t dlen = packet_max_size;
 
 		if (dlen > state->packet_discard_mac_already)
 			dlen -= state->packet_discard_mac_already;
@@ -870,6 +893,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	const char *wmsg;
 	int r, crypt_type;
 	const char *dir = mode == MODE_OUT ? "out" : "in";
+	char blocks_s[FMT_SCALED_STRSIZE], bytes_s[FMT_SCALED_STRSIZE];
 
 	debug2_f("mode %d", mode);
 
@@ -907,12 +931,31 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		if ((r = mac_init(mac)) != 0)
 			return r;
 	}
-	mac->enabled = 1;
+
+	/* if we are using NONE MAC then we don't need to enable the
+	 * mac routines. This disables them and we can claw back some cycles
+	 * from the CPU -cjr 3/21/2023 */
+	if (ssh->none_mac != 1)
+		mac->enabled = 1;
+
 	DBG(debug_f("cipher_init: %s", dir));
 	cipher_free(*ccp);
 	*ccp = NULL;
-	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len,
-	    enc->iv, enc->iv_len, crypt_type)) != 0)
+#ifdef WITH_OPENSSL
+	if (strcmp(enc->name, "chacha20-poly1305-mt@hpnssh.org") == 0) {
+		if (state->after_authentication)
+			enc->cipher = cipher_by_name(
+			    "chacha20-poly1305-mt@hpnssh.org");
+		else
+			enc->cipher = cipher_by_name(
+			    "chacha20-poly1305@openssh.com");
+		if (enc->cipher == NULL)
+			return r;
+	}
+#endif
+	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len, enc->iv,
+	    enc->iv_len, crypt_type ? state->p_send.seqnr : state->p_read.seqnr,
+	    crypt_type, state->after_authentication)) != 0)
 		return r;
 	if (!state->cipher_warning_done &&
 	    (wmsg = cipher_warning_message(*ccp)) != NULL) {
@@ -937,21 +980,43 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		}
 		comp->enabled = 1;
 	}
-	/*
-	 * The 2^(blocksize*2) limit is too expensive for 3DES,
-	 * so enforce a 1GB limit for small blocksizes.
-	 * See RFC4344 section 3.2.
-	 */
-	if (enc->block_size >= 16)
-		*max_blocks = (u_int64_t)1 << (enc->block_size*2);
-	else
-		*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
-	if (state->rekey_limit)
-		*max_blocks = MINIMUM(*max_blocks,
-		    state->rekey_limit / enc->block_size);
-	debug("rekey %s after %llu blocks", dir,
-	    (unsigned long long)*max_blocks);
+
+	/* get the maximum number of blocks the cipher can
+	 * handle safely */
+	*max_blocks = cipher_rekey_blocks(enc->cipher);
+
+	/* if we have a custom oRekeyLimit use that. */
+        if (state->rekey_limit)
+                *max_blocks = MINIMUM(*max_blocks,
+                    state->rekey_limit / enc->block_size);
+
+	/* these lines support the debug */
+	strlcpy(blocks_s, "?", sizeof(blocks_s));
+	strlcpy(bytes_s, "?", sizeof(bytes_s));
+	if (*max_blocks * enc->block_size < LLONG_MAX) {
+		fmt_scaled((long long)*max_blocks, blocks_s);
+		fmt_scaled((long long)*max_blocks * enc->block_size, bytes_s);
+	}
+	debug("rekey %s after %s blocks / %sB data", dir, blocks_s, bytes_s);
+
 	return 0;
+}
+
+/* this supports the forced rekeying required for the NONE cipher */
+void
+packet_request_rekeying(void)
+{
+	rekey_requested = 1;
+}
+
+/* used to determine if pre or post auth when rekeying for aes-ctr
+ * and none cipher switch */
+int
+packet_authentication_state(const struct ssh *ssh)
+{
+	struct session_state *state = ssh->state;
+
+	return state->after_authentication;
 }
 
 #define MAX_PACKETS	(1U<<31)
@@ -979,6 +1044,14 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	 */
 	if (state->p_send.packets == 0 && state->p_read.packets == 0)
 		return 0;
+
+        /* used to force rekeying when called for by the none
+         * cipher switch and aes-mt-ctr methods -cjr */
+        if (rekey_requested == 1) {
+		debug_f("Got the rekey request");
+		rekey_requested = 0;
+                return 1;
+        }
 
 	/* Time-based rekeying */
 	if (state->rekey_interval != 0 &&
@@ -1186,8 +1259,8 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	    sshbuf_len(state->outgoing_packet) + authlen, &cp)) != 0)
 		goto out;
 	if ((r = cipher_crypt(state->send_context, state->p_send.seqnr, cp,
-	    sshbuf_ptr(state->outgoing_packet),
-	    len - aadlen, aadlen, authlen)) != 0)
+	    sshbuf_ptr(state->outgoing_packet), len - aadlen, aadlen, authlen))
+	    != 0)
 		goto out;
 	/* append unencrypted MAC */
 	if (mac && mac->enabled) {
@@ -1269,7 +1342,7 @@ ssh_packet_send2(struct ssh *ssh)
 	if ((need_rekey || state->rekeying) && !ssh_packet_type_is_kex(type)) {
 		if (need_rekey)
 			debug3_f("rekex triggered");
-		debug("enqueue packet: %u", type);
+		debug_f("enqueue packet: %u", type);
 		p = calloc(1, sizeof(*p));
 		if (p == NULL)
 			return SSH_ERR_ALLOC_FAIL;
@@ -1313,7 +1386,7 @@ ssh_packet_send2(struct ssh *ssh)
 				debug3_f("queued packet triggered rekex");
 				return kex_start_rekex(ssh);
 			}
-			debug("dequeue packet: %u", type);
+			debug_f("dequeue packet: %u", type);
 			sshbuf_free(state->outgoing_packet);
 			state->outgoing_packet = p->payload;
 			TAILQ_REMOVE(&state->outgoing, p, next);
@@ -1338,7 +1411,7 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	struct session_state *state = ssh->state;
 	int len, r, ms_remain = 0;
 	struct pollfd pfd;
-	char buf[8192];
+	char buf[SSH_IOBUFSZ];
 	struct timeval start;
 	struct timespec timespec, *timespecp = NULL;
 
@@ -1442,7 +1515,7 @@ ssh_packet_read_poll2_mux(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			return 0; /* packet is incomplete */
 		state->packlen = PEEK_U32(cp);
 		if (state->packlen < 4 + 1 ||
-		    state->packlen > PACKET_MAX_SIZE)
+		    state->packlen > packet_max_size)
 			return SSH_ERR_MESSAGE_INCOMPLETE;
 	}
 	need = state->packlen + 4;
@@ -1496,12 +1569,12 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	aadlen = (mac && mac->enabled && mac->etm) || authlen ? 4 : 0;
 
 	if (aadlen && state->packlen == 0) {
-		if (cipher_get_length(state->receive_context,
-		    &state->packlen, state->p_read.seqnr,
-		    sshbuf_ptr(state->input), sshbuf_len(state->input)) != 0)
+		if (cipher_get_length(state->receive_context, &state->packlen,
+		    state->p_read.seqnr, sshbuf_ptr(state->input),
+		    sshbuf_len(state->input)) != 0)
 			return 0;
 		if (state->packlen < 1 + 4 ||
-		    state->packlen > PACKET_MAX_SIZE) {
+		    state->packlen > packet_max_size) {
 #ifdef PACKET_DEBUG
 			sshbuf_dump(state->input, stderr);
 #endif
@@ -1528,7 +1601,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			goto out;
 		state->packlen = PEEK_U32(sshbuf_ptr(state->incoming_packet));
 		if (state->packlen < 1 + 4 ||
-		    state->packlen > PACKET_MAX_SIZE) {
+		    state->packlen > packet_max_size) {
 #ifdef PACKET_DEBUG
 			fprintf(stderr, "input: \n");
 			sshbuf_dump(state->input, stderr);
@@ -1537,7 +1610,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 #endif
 			logit("Bad packet length %u.", state->packlen);
 			return ssh_packet_start_discard(ssh, enc, mac, 0,
-			    PACKET_MAX_SIZE);
+			    packet_max_size);
 		}
 		if ((r = sshbuf_consume(state->input, block_size)) != 0)
 			goto out;
@@ -1560,7 +1633,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		logit("padding error: need %d block %d mod %d",
 		    need, block_size, need % block_size);
 		return ssh_packet_start_discard(ssh, enc, mac, 0,
-		    PACKET_MAX_SIZE - block_size);
+		    packet_max_size - block_size);
 	}
 	/*
 	 * check if the entire packet has been received and
@@ -1604,11 +1677,11 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			if (r != SSH_ERR_MAC_INVALID)
 				goto out;
 			logit("Corrupted MAC on input.");
-			if (need + block_size > PACKET_MAX_SIZE)
+			if (need + block_size > packet_max_size)
 				return SSH_ERR_INTERNAL_ERROR;
 			return ssh_packet_start_discard(ssh, enc, mac,
 			    sshbuf_len(state->incoming_packet),
-			    PACKET_MAX_SIZE - need - block_size);
+			    packet_max_size - need - block_size);
 		}
 		/* Remove MAC from input buffer */
 		DBG(debug("MAC #%d ok", state->p_read.seqnr));
@@ -1823,7 +1896,7 @@ ssh_packet_process_read(struct ssh *ssh, int fd)
 	int r;
 	size_t rlen;
 
-	if ((r = sshbuf_read(fd, state->input, PACKET_MAX_SIZE, &rlen)) != 0)
+	if ((r = sshbuf_read(fd, state->input, packet_max_size, &rlen)) != 0)
 		return r;
 
 	if (state->packet_discard) {
@@ -1902,17 +1975,21 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
 		ssh_packet_clear_keys(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Connection closed by %s", remote_id);
 	case SSH_ERR_CONN_TIMEOUT:
 		ssh_packet_clear_keys(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Connection %s %s timed out",
 		    ssh->state->server_side ? "from" : "to", remote_id);
 	case SSH_ERR_DISCONNECTED:
 		ssh_packet_clear_keys(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Disconnected from %s", remote_id);
 	case SSH_ERR_SYSTEM_ERROR:
 		if (errno == ECONNRESET) {
 			ssh_packet_clear_keys(ssh);
+			sshpkt_final_log_entry(ssh);
 			logdie("Connection reset by %s", remote_id);
 		}
 		/* FALLTHROUGH */
@@ -1952,6 +2029,24 @@ sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
 	/* NOTREACHED */
 	va_end(ap);
 	logdie_f("should have exited");
+}
+
+/* this prints out the final log entry */
+void
+sshpkt_final_log_entry (struct ssh *ssh) {
+	double total_time;
+
+	if (ssh->start_time < 1)
+		/* this will produce a NaN in the output. -cjr */
+		total_time = 0;
+	else
+		total_time = monotime_double() - ssh->start_time;
+
+	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
+	      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+	      ssh->stdin_bytes, ssh->fdout_bytes, total_time,
+	      ssh->stdin_bytes / total_time,
+	      ssh->fdout_bytes / total_time);
 }
 
 /*
@@ -2208,10 +2303,19 @@ ssh_packet_set_server(struct ssh *ssh)
 	ssh->kex->server = 1; /* XXX unify? */
 }
 
+/* Set the state of the connection to post auth
+ * While we are here also decrease the size of
+ * packet_max_size to something more reasonable.
+ * In this case thats 33k. Which is the size of
+ * the largest packet we expect to see and some space
+ * for overhead. This reduces memory usage in high
+ * BDP environments without impacting performance
+ * -cjr 4/11/23 */
 void
 ssh_packet_set_authenticated(struct ssh *ssh)
 {
 	ssh->state->after_authentication = 1;
+	packet_max_size = SSH_IOBUFSZ + 1024;
 }
 
 void *
@@ -2762,4 +2866,18 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 {
 	ssh->state->extra_pad = pad;
 	return 0;
+}
+
+/* used for cipher switching
+ * only called in cipher-swtich.c */
+void *
+ssh_packet_get_send_context(struct ssh *ssh)
+{
+        return ssh->state->send_context;
+}
+
+void *
+ssh_packet_get_receive_context(struct ssh *ssh)
+{
+        return ssh->state->receive_context;
 }

@@ -50,6 +50,9 @@ typedef struct {
 	int     strict_host_key_checking;	/* Strict host key checking. */
 	int     compression;	/* Compress packets in both directions. */
 	int     tcp_keep_alive;	/* Set SO_KEEPALIVE. */
+	int     tcp_rcv_buf_poll; /* Option to poll recv buf every window transfer */
+	int     hpn_disabled;     /* Switch to disable HPN buffer management */
+	int     hpn_buffer_limit; /* limit local_window_max to 1/2 receive buffer */
 	int	ip_qos_interactive;	/* IP ToS/DSCP/class for interactive */
 	int	ip_qos_bulk;		/* IP ToS/DSCP/class for bulk traffic */
 	SyslogFacility log_facility;	/* Facility for system logging. */
@@ -120,7 +123,16 @@ typedef struct {
 
 	int	enable_ssh_keysign;
 	int64_t rekey_limit;
+	int     none_switch;    /* Use none cipher */
+	int     none_enabled;   /* Allow none to be used */
+	int     nonemac_enabled;   /* Allow none to be used */
+        int     metrics; /* enable metrics */
+        int     metrics_interval; /* time in seconds between polls */
+        char   *metrics_path; /* path for the metrics files */
+	int     fallback; /* en|disable fallback port (def: true) */
+	int     fallback_port; /* port to fallback to (def: 22) */
 	int	rekey_interval;
+
 	int	no_host_authentication_for_localhost;
 	int	identities_only;
 	int	server_alive_interval;

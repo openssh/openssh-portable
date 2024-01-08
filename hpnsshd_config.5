@@ -35,15 +35,15 @@
 .\"
 .\" $OpenBSD: sshd_config.5,v 1.350 2023/07/28 05:42:36 jmc Exp $
 .Dd $Mdocdate: July 28 2023 $
-.Dt SSHD_CONFIG 5
+.Dt HPNSSHD_CONFIG 5
 .Os
 .Sh NAME
-.Nm sshd_config
-.Nd OpenSSH daemon configuration file
+.Nm hpnsshd_config
+.Nd HPN/OpenSSH daemon configuration file
 .Sh DESCRIPTION
-.Xr sshd 8
+.Xr hpnsshd 8
 reads configuration data from
-.Pa /etc/ssh/sshd_config
+.Pa /etc/hpnssh/sshd_config
 (or the file specified with
 .Fl f
 on the command line).
@@ -55,6 +55,16 @@ and empty lines are interpreted as comments.
 Arguments may optionally be enclosed in double quotes
 .Pq \&"
 in order to represent arguments containing spaces.
+.Pp
+.Xr hpnsshd 8
+is fully compatible with OpenSSH's sshd and uses the same configuration format, directives, and options.
+.Xr hpnsshd 8
+can use the same configuration file as
+.Xr sshd 8
+though the inverse is not necessarily true. This is because
+.Xr hpnssh 8
+has some additional options which are discussed below. As such administrators should maintain
+seperate configuration files for each.
 .Pp
 The possible
 keywords and their meanings are as follows (note that
@@ -69,7 +79,7 @@ See
 and
 .Cm SetEnv
 in
-.Xr ssh_config 5
+.Xr hpnssh_config 5
 for how to configure the client.
 The
 .Ev TERM
@@ -665,6 +675,10 @@ Disables all forwarding features, including X11,
 TCP and StreamLocal.
 This option overrides all other forwarding-related options and may
 simplify restricted configurations.
+.It Cm DisableMTAES
+Switch the encryption cipher being used from the multithreaded MT-AES-CTR cipher
+back to the stock single-threaded AES-CTR cipher. Default is 
+.Cm no. HPNSSH only. 
 .It Cm ExposeAuthInfo
 Writes a temporary file containing a list of authentication methods and
 public credentials (e.g. keys) used to authenticate the user.
@@ -815,10 +829,10 @@ is not to load any certificates.
 Specifies a file containing a private host key
 used by SSH.
 The defaults are
-.Pa /etc/ssh/ssh_host_ecdsa_key ,
-.Pa /etc/ssh/ssh_host_ed25519_key
+.Pa /etc/hpnssh/ssh_host_ecdsa_key ,
+.Pa /etc/hpnssh/ssh_host_ed25519_key
 and
-.Pa /etc/ssh/ssh_host_rsa_key .
+.Pa /etc/hpnssh/ssh_host_rsa_key .
 .Pp
 Note that
 .Xr sshd 8
@@ -863,6 +877,21 @@ rsa-sha2-512,rsa-sha2-256
 .Pp
 The list of available signature algorithms may also be obtained using
 .Qq ssh -Q HostKeyAlgorithms .
+.It Cm HPNDisabled
+In some situations, such as transfers on a local area network, the impact
+of the HPN code produces a net decrease in performance. In these cases it is
+helpful to disable the HPN functionality. By default HPNDisabled is set to 
+.CM no.
+.It Cm HPNBufferLimit
+This option will force the hpnssh receive buffer to grow more slowly and limits
+the growth to one half of the TCP receive buffer. This option can prove useful
+in situation where a high speed path with larger RTTs are writing to a slower
+device or file system. Enabling this option will reduce performance but may provide
+a more stable connection. The option only impacts the receiving side of the connection. 
+For example, a client receiving data from a server but not a client sending data. If 
+enabled on a server this will impact all incoming connections. 
+By default this option is set to 
+.Cm no. HPNSSH only.
 .It Cm IgnoreRhosts
 Specifies whether to ignore per-user
 .Pa .rhosts
@@ -898,7 +927,7 @@ should ignore the user's
 during
 .Cm HostbasedAuthentication
 and use only the system-wide known hosts file
-.Pa /etc/ssh/ssh_known_hosts .
+.Pa /etc/hpnssh/ssh_known_hosts .
 The default is
 .Dq no .
 .It Cm Include
@@ -907,7 +936,7 @@ Multiple pathnames may be specified and each pathname may contain
 .Xr glob 7
 wildcards that will be expanded and processed in lexical order.
 Files without absolute paths are assumed to be in
-.Pa /etc/ssh .
+.Pa /etc/hpnssh .
 An
 .Cm Include
 directive may appear inside a
@@ -1359,6 +1388,19 @@ and
 key exchange methods.
 The default is
 .Pa /etc/moduli .
+.It Cm NoneEnabled
+Enable or disable the use of the None cipher. Care must always be used
+when enabling this as it will allow users to send data in the clear. However,
+it is important to note that authentication information remains encrypted
+even if this option is enabled. Default is 
+.Cm no
+.It Cm NoneMacEnabled
+Enable or disable the use of the None MAC. When this is enabled ssh
+will *not* provide data integrity of any data being transmitted between hosts. Use
+with caution as it, unlike just using NoneEnabled, doesn't provide data integrity and
+protection against man-in-the-middle attacks. As with NoneEnabled all authentication
+remains encrypted and integrity is ensured. Default is 
+.Cm no.
 .It Cm PasswordAuthentication
 Specifies whether password authentication is allowed.
 The default is
@@ -1554,7 +1596,7 @@ SSH daemon, or
 .Cm none
 to not write one.
 The default is
-.Pa /var/run/sshd.pid .
+.Pa /var/run/hpnsshd.pid .
 .It Cm Port
 Specifies the port number that
 .Xr sshd 8
@@ -1812,6 +1854,13 @@ This avoids infinitely hanging sessions.
 .Pp
 To disable TCP keepalive messages, the value should be set to
 .Cm no .
+.IT Cm TcpRcvBufPoll
+Enable of disable the polling of the tcp receive buffer throughout the life
+of the connection. Make sure that this option is enabled for systems making 
+use of autotuning kernels (linux 2.4.24+, 2.6, MS Vista) in order to
+maximize throughput on high performance networks. 
+Default is 
+.Cm yes.
 .It Cm TrustedUserCAKeys
 Specifies a file containing public keys of certificate authorities that are
 trusted to sign user certificates for authentication, or
@@ -2070,7 +2119,7 @@ accepts the tokens %%, %h, %U, and %u.
 accepts the token %D.
 .Sh FILES
 .Bl -tag -width Ds
-.It Pa /etc/ssh/sshd_config
+.It Pa /etc/hpnssh/sshd_config
 Contains configuration data for
 .Xr sshd 8 .
 This file should be writable by root only, but it is recommended
@@ -2096,3 +2145,11 @@ contributed the support for SSH protocol versions 1.5 and 2.0.
 and
 .An Markus Friedl
 contributed support for privilege separation.
+.An Chris Rapier, 
+.An Michael Stevens, 
+.An Ben Bennet, 
+and 
+.An Mike Tasota 
+developed the HPN extensions at the Pittsburgh Supercomuting Center 
+with grants from Cisco, the National Library of Medicine, and 
+the National Science Foundation. 

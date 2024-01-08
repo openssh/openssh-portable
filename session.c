@@ -94,6 +94,7 @@
 #include "monitor_wrap.h"
 #include "sftp.h"
 #include "atomicio.h"
+#include "cipher-switch.h"
 
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
@@ -221,6 +222,7 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 		goto authsock_err;
 
 	/* Allocate a channel for the authentication agent socket. */
+	/* this shouldn't matter if its hpn or not - cjr */
 	nc = channel_new(ssh, "auth-listener",
 	    SSH_CHANNEL_AUTH_SOCKET, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
@@ -544,6 +546,8 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 	session_set_fds(ssh, s, inout[1], inout[1], err[1],
 	    s->is_subsystem, 0);
 #endif
+	/* switch to the parallel ciphers if necessary */
+	cipher_switch(ssh);
 	return 0;
 }
 
@@ -646,6 +650,8 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 	ssh_packet_set_interactive(ssh, 1,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 	session_set_fds(ssh, s, ptyfd, fdout, -1, 1, 1);
+	/* switch to the parallel cipher if appropriate */
+	cipher_switch(ssh);
 	return 0;
 }
 
@@ -1327,7 +1333,7 @@ safely_chroot(const char *path, uid_t uid)
 			memcpy(component, path, cp - path);
 			component[cp - path] = '\0';
 		}
-	
+
 		debug3_f("checking '%s'", component);
 
 		if (stat(component, &st) != 0)
@@ -1407,7 +1413,7 @@ do_setusercontext(struct passwd *pw)
 			perror("unable to set user context (setuser)");
 			exit(1);
 		}
-		/* 
+		/*
 		 * FreeBSD's setusercontext() will not apply the user's
 		 * own umask setting unless running with the user's UID.
 		 */
@@ -2257,10 +2263,10 @@ session_set_fds(struct ssh *ssh, Session *s,
 	 */
 	if (s->chanid == -1)
 		fatal("no channel for session %d", s->self);
-	channel_set_fds(ssh, s->chanid,
-	    fdout, fdin, fderr,
-	    ignore_fderr ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
-	    1, is_tty, CHAN_SES_WINDOW_DEFAULT);
+        channel_set_fds(ssh, s->chanid,
+			fdout, fdin, fderr,
+			ignore_fderr ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
+			1, is_tty, CHAN_SES_WINDOW_DEFAULT);
 }
 
 /*
@@ -2729,4 +2735,3 @@ session_get_remote_name_or_ip(struct ssh *ssh, u_int utmp_size, int use_dns)
 		remote = ssh_remote_ipaddr(ssh);
 	return remote;
 }
-

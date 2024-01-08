@@ -182,7 +182,7 @@ case "$config" in
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
 	;;
-    valgrind-[1-5]|valgrind-unit)
+    valgrind-[1-7]|valgrind-unit)
 	# rlimit sandbox and FORTIFY_SOURCE confuse Valgrind.
 	CONFIGFLAGS="--without-sandbox --without-hardening"
 	CONFIGFLAGS="$CONFIGFLAGS --with-cppflags=-D_FORTIFY_SOURCE=0"
@@ -193,9 +193,11 @@ case "$config" in
 	# won't reliably pass, and the unit tests run longer than allowed
 	# by github so split into separate tests.
 	tests2="integrity try-ciphers"
-	tests3="krl forward-control sshsig agent-restrict kextype sftp"
-	tests4="cert-userkey cert-hostkey kextype sftp-perm keygen-comment percent"
+	tests3="krl forward-control sshsig"
+	tests4="cert-userkey cert-hostkey"
 	tests5="rekey"
+	tests6="agent-restrict kextype sftp"
+	tests7="kextype sftp-perm keygen-comment percent"
 	case "$config" in
 	    valgrind-1)
 		# All tests except agent-timeout (which is flaky under valgrind),
@@ -203,7 +205,7 @@ case "$config" in
 		# and hostbased (since valgrind won't let ssh exec keysign).
 		# Slow ones are run separately to increase parallelism.
 		SKIP_LTESTS="agent-timeout connection-timeout hostbased"
-		SKIP_LTESTS="$SKIP_LTESTS ${tests2} ${tests3} ${tests4} ${tests5}"
+		SKIP_LTESTS="$SKIP_LTESTS ${tests2} ${tests3} ${tests4} ${tests5} ${tests6} ${tests7}"
 		;;
 	    valgrind-2)
 		LTESTS="${tests2}"
@@ -216,6 +218,12 @@ case "$config" in
 		;;
 	    valgrind-5)
 		LTESTS="${tests5}"
+		;;
+	    valgrind-6)
+		LTESTS="${tests6}"
+		;;
+	    valgrind-7)
+		LTESTS="${tests7}"
 		;;
 	    valgrind-unit)
 		TEST_TARGET="unit USE_VALGRIND=1"
