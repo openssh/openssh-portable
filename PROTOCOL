@@ -152,12 +152,13 @@ When an endpoint that supports this extension observes this algorithm
 name in a peer's KEXINIT packet, it MUST make the following changes to
 the protocol:
 
-a) During initial KEX, terminate the connection if any unexpected or
-   out-of-sequence packet is received. This includes terminating the
-   connection if the first packet received is not SSH2_MSG_KEXINIT.
-   Unexpected packets for the purpose of strict KEX include messages
-   that are otherwise valid at any time during the connection such as
-   SSH2_MSG_DEBUG and SSH2_MSG_IGNORE.
+a) During initial KEX, terminate the connection if out-of-sequence
+   packet or any message that is not strictly required by KEX is
+   received. This includes terminating the connection if the first
+   packet received is not SSH2_MSG_KEXINIT. Unexpected packets for
+   the purpose of strict KEX include messages that are otherwise
+   valid at any time during the connection such as SSH2_MSG_DEBUG,
+   SSH2_MSG_IGNORE or SSH2_MSG_UNIMPLEMENTED.
 b) After sending or receiving a SSH2_MSG_NEWKEYS message, reset the
    packet sequence number to zero. This behaviour persists for the
    duration of the connection (i.e. not just the first
@@ -790,4 +791,4 @@ master instance and later clients.
 OpenSSH extends the usual agent protocol. These changes are documented
 in the PROTOCOL.agent file.
 
-$OpenBSD: PROTOCOL,v 1.53 2023/12/20 00:06:25 jsg Exp $
+$OpenBSD: PROTOCOL,v 1.54 2024/01/08 04:10:03 djm Exp $
