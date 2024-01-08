@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.170 2023/12/19 06:57:34 jmc Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.171 2024/01/08 00:30:39 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -817,7 +817,7 @@ main(int argc, char **argv)
 	LogLevel log_level = SYSLOG_LEVEL_INFO;
 	struct sshkey *k, **certs = NULL;
 	struct dest_constraint **dest_constraints = NULL;
-	size_t ndest_constraints = 0i, ncerts = 0;
+	size_t ndest_constraints = 0, ncerts = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
