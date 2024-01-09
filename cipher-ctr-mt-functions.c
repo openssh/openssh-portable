@@ -215,7 +215,6 @@ thread_loop(void *job)
 	struct aes_mt_ctx_st *aes_mt_ctx = job;
 	struct kq *q;
 	struct aes_mt_ctx_ptrs *ptr;
-	int qidx;
 	pthread_t first_tid;
 	int outlen;
 	u_char mynull[KQLEN * AES_BLOCK_SIZE];
@@ -284,7 +283,7 @@ thread_loop(void *job)
 	 * when empty.  The first thread to wake will mark it as filling,
 	 * others will move on to fill, skip, or wait on the next queue.
 	 */
-	for (qidx = 1;; qidx = (qidx + 1) % numkq) {
+	for (int qidx = 1;; qidx = (qidx + 1) % numkq) {
 		/* Check if I was cancelled, also checked in cond_wait */
 		pthread_testcancel();
 
