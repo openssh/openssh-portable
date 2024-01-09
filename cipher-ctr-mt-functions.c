@@ -280,10 +280,16 @@ thread_loop(void *job)
 	 * a draining queue to become empty.
 	 *
 	 * Multiple threads may be waiting on a draining queue and awoken
-	 * when empty.  The first thread to wake will mark it as filling,
+	 * when empty. qThe first thread to wake will mark it as filling,
 	 * others will move on to fill, skip, or wait on the next queue.
+	 * We init qidx here because if we do it at the top of the function
+	 * we get a warning about it possibly being clobbered. The exact reason
+	 * doesn't make a lot of sense but it has to happen after the
+	 * first pthread_rwlock_rdlock(). Might have something to do with
+	 * incorrect compiler optimizations.
 	 */
-	for (int qidx = 1;; qidx = (qidx + 1) % numkq) {
+	int qidx;
+	for (qidx = 1;; qidx = (qidx + 1) % numkq) {
 		/* Check if I was cancelled, also checked in cond_wait */
 		pthread_testcancel();
 
