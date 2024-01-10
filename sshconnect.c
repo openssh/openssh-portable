@@ -85,8 +85,7 @@ static void warn_changed_key(struct sshkey *);
 
 /* Expand a proxy command */
 static char *
-expand_proxy_command(const char *proxy_command, const char *user,
-    const char *host, const char *host_arg, int port)
+expand_proxy_command(const char *proxy_command, const char *host, const char *host_arg, int port)
 {
 	char *tmp, *ret, strport[NI_MAXSERV];
 	const char *keyalias = options.host_key_alias ?
@@ -125,8 +124,7 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host,
 		fatal("Could not create socketpair to communicate with "
 		    "proxy dialer: %.100s", strerror(errno));
 
-	command_string = expand_proxy_command(proxy_command, options.user,
-	    host, host_arg, port);
+	command_string = expand_proxy_command(proxy_command, host, host_arg, port);
 	debug("Executing proxy dialer command: %.500s", command_string);
 
 	/* Fork and execute the proxy command. */
@@ -208,8 +206,7 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, const char *host_arg,
 		fatal("Could not create pipes to communicate with the proxy: %.100s",
 		    strerror(errno));
 
-	command_string = expand_proxy_command(proxy_command, options.user,
-	    host, host_arg, port);
+	command_string = expand_proxy_command(proxy_command, host, host_arg, port);
 	debug("Executing proxy command: %.500s", command_string);
 
 	/* Fork and execute the proxy command. */
@@ -289,7 +286,7 @@ ssh_kill_proxy_command(void)
  * Returns 0 and fills in *resultp and *rlenp on success. Returns -1 on failure.
  */
 static int
-check_ifaddrs(const char *ifname, int af, const struct ifaddrs *ifaddrs,
+check_ifaddrs(int af, const struct ifaddrs *ifaddrs,
     struct sockaddr_storage *resultp, socklen_t *rlenp)
 {
 	struct sockaddr_in6 *sa6;
@@ -399,7 +396,7 @@ ssh_create_socket(struct addrinfo *ai)
 			goto fail;
 		}
 		bindaddrlen = sizeof(bindaddr);
-		if (check_ifaddrs(options.bind_interface, ai->ai_family,
+		if (check_ifaddrs(ai->ai_family,
 		    ifaddrs, &bindaddr, &bindaddrlen) != 0) {
 			logit("getifaddrs: %s: no suitable addresses",
 			    options.bind_interface);
@@ -445,7 +442,7 @@ fail:
  */
 static int
 ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
-    struct sockaddr_storage *hostaddr, u_short port, int connection_attempts,
+    struct sockaddr_storage *hostaddr, int connection_attempts,
     int *timeout_ms, int want_keepalive)
 {
 	int on = 1, saved_timeout_ms = *timeout_ms;
@@ -549,8 +546,7 @@ ssh_connect(struct ssh *ssh, const char *host, const char *host_arg,
 	int in, out;
 
 	if (options.proxy_command == NULL) {
-		return ssh_connect_direct(ssh, host, addrs, hostaddr, port,
-		    connection_attempts, timeout_ms, want_keepalive);
+		return ssh_connect_direct(ssh, host, addrs, hostaddr, connection_attempts, timeout_ms, want_keepalive);
 	} else if (strcmp(options.proxy_command, "-") == 0) {
 		if ((in = dup(STDIN_FILENO)) == -1 ||
 		    (out = dup(STDOUT_FILENO)) == -1) {

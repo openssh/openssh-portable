@@ -831,7 +831,7 @@ do_print_public(struct passwd *pw)
 }
 
 static void
-do_download(struct passwd *pw)
+do_download(void)
 {
 #ifdef ENABLE_PKCS11
 	struct sshkey **keys = NULL;
@@ -1477,7 +1477,7 @@ do_change_passphrase(struct passwd *pw)
  * Print the SSHFP RR.
  */
 static int
-do_print_resource_record(struct passwd *pw, char *fname, char *hname,
+do_print_resource_record(char *fname, char *hname,
     int print_generic, char * const *opts, size_t nopts)
 {
 	struct sshkey *public;
@@ -2472,7 +2472,7 @@ do_gen_krl(struct passwd *pw, int updating, const char *ca_key_path,
 }
 
 static void
-do_check_krl(struct passwd *pw, int print_krl, int argc, char **argv)
+do_check_krl(int print_krl, int argc, char **argv)
 {
 	int i, r, ret = 0;
 	char *comment;
@@ -3691,7 +3691,7 @@ main(int argc, char **argv)
 		return (0);
 	}
 	if (check_krl) {
-		do_check_krl(pw, print_fingerprint, argc, argv);
+		do_check_krl(print_fingerprint, argc, argv);
 		return (0);
 	}
 	if (ca_key_path != NULL) {
@@ -3709,7 +3709,7 @@ main(int argc, char **argv)
 		    delete_host, hash_hosts);
 	}
 	if (pkcs11provider != NULL)
-		do_download(pw);
+		do_download();
 	if (download_sk) {
 		for (i = 0; i < nopts; i++) {
 			if (strncasecmp(opts[i], "device=", 7) == 0) {
@@ -3742,27 +3742,22 @@ main(int argc, char **argv)
 		unsigned int n = 0;
 
 		if (have_identity) {
-			n = do_print_resource_record(pw, identity_file,
+			n = do_print_resource_record(identity_file,
 			    rr_hostname, print_generic, opts, nopts);
 			if (n == 0)
 				fatal("%s: %s", identity_file, strerror(errno));
 			exit(0);
 		} else {
 
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_RSA_KEY_FILE, rr_hostname,
+			n += do_print_resource_record(_PATH_HOST_RSA_KEY_FILE, rr_hostname,
 			    print_generic, opts, nopts);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_DSA_KEY_FILE, rr_hostname,
+			n += do_print_resource_record(_PATH_HOST_DSA_KEY_FILE, rr_hostname,
 			    print_generic, opts, nopts);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_ECDSA_KEY_FILE, rr_hostname,
+			n += do_print_resource_record(_PATH_HOST_ECDSA_KEY_FILE, rr_hostname,
 			    print_generic, opts, nopts);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_ED25519_KEY_FILE, rr_hostname,
+			n += do_print_resource_record(_PATH_HOST_ED25519_KEY_FILE, rr_hostname,
 			    print_generic, opts, nopts);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_XMSS_KEY_FILE, rr_hostname,
+			n += do_print_resource_record(_PATH_HOST_XMSS_KEY_FILE, rr_hostname,
 			    print_generic, opts, nopts);
 			if (n == 0)
 				fatal("no keys found.");

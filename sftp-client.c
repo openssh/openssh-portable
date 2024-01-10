@@ -2383,7 +2383,7 @@ sftp_upload_dir(struct sftp_conn *conn, const char *src, const char *dst,
 }
 
 static void
-handle_dest_replies(struct sftp_conn *to, const char *to_path, int synchronous,
+handle_dest_replies(struct sftp_conn *to, int synchronous,
     u_int *nreqsp, u_int *write_errorp)
 {
 	struct sshbuf *msg;
@@ -2550,7 +2550,7 @@ sftp_crossload(struct sftp_conn *from, struct sftp_conn *to,
 		}
 
 		/* Try to eat replies from the upload side (nonblocking) */
-		handle_dest_replies(to, to_path, 0,
+		handle_dest_replies(to, 0,
 		    &num_upload_req, &write_error);
 
 		sshbuf_reset(msg);
@@ -2647,7 +2647,7 @@ sftp_crossload(struct sftp_conn *from, struct sftp_conn *to,
 
 	/* Drain replies from the server (blocking) */
 	debug3_f("waiting for %u replies from destination", num_upload_req);
-	handle_dest_replies(to, to_path, 1, &num_upload_req, &write_error);
+	handle_dest_replies(to, 1, &num_upload_req, &write_error);
 
 	/* Sanity check */
 	if (TAILQ_FIRST(&requests) != NULL)

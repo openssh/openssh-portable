@@ -291,7 +291,7 @@ prepare_auth_info_file(struct passwd *pw, struct sshbuf *info)
 }
 
 static void
-set_fwdpermit_from_authopts(struct ssh *ssh, const struct sshauthopt *opts)
+set_fwdpermit_from_authopts(struct ssh *ssh)
 {
 	char *tmp, *cp, *host;
 	int port;
@@ -338,7 +338,7 @@ do_authenticated(struct ssh *ssh, Authctxt *authctxt)
 
 	/* setup the channel layer */
 	/* XXX - streamlocal? */
-	set_fwdpermit_from_authopts(ssh, auth_opts);
+	set_fwdpermit_from_authopts(ssh);
 
 	if (!auth_opts->permit_port_forwarding_flag ||
 	    options.disable_forwarding) {
@@ -1198,7 +1198,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
  * first in this order).
  */
 static void
-do_rc_files(struct ssh *ssh, Session *s, const char *shell)
+do_rc_files(Session *s, const char *shell)
 {
 	FILE *f = NULL;
 	char *cmd = NULL, *user_rc = NULL;
@@ -1304,7 +1304,7 @@ do_nologin(struct passwd *pw)
  * must be root-owned directories with strict permissions.
  */
 static void
-safely_chroot(const char *path, uid_t uid)
+safely_chroot(const char *path)
 {
 	const char *cp;
 	char component[PATH_MAX];
@@ -1393,7 +1393,7 @@ do_setusercontext(struct passwd *pw)
 			    (unsigned long long)pw->pw_uid);
 			chroot_path = percent_expand(tmp, "h", pw->pw_dir,
 			    "u", pw->pw_name, "U", uidstr, (char *)NULL);
-			safely_chroot(chroot_path, pw->pw_uid);
+			safely_chroot(chroot_path);
 			free(tmp);
 			free(chroot_path);
 			/* Make sure we don't attempt to chroot again */
@@ -1637,7 +1637,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 
 	closefrom(STDERR_FILENO + 1);
 
-	do_rc_files(ssh, s, shell);
+	do_rc_files(s, shell);
 
 	/* restore SIGPIPE for child */
 	ssh_signal(SIGPIPE, SIG_DFL);

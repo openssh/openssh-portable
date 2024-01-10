@@ -1426,7 +1426,7 @@ ssh_packet_read(struct ssh *ssh)
 }
 
 static int
-ssh_packet_read_poll2_mux(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
+ssh_packet_read_poll2_mux(struct ssh *ssh, u_char *typep)
 {
 	struct session_state *state = ssh->state;
 	const u_char *cp;
@@ -1476,7 +1476,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	int r;
 
 	if (state->mux)
-		return ssh_packet_read_poll2_mux(ssh, typep, seqnr_p);
+		return ssh_packet_read_poll2_mux(ssh, typep);
 
 	*typep = SSH_MSG_NONE;
 

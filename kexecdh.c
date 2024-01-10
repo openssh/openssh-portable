@@ -43,7 +43,7 @@
 #include "ssherr.h"
 
 static int
-kex_ecdh_dec_key_group(struct kex *, const struct sshbuf *, EC_KEY *key,
+kex_ecdh_dec_key_group(const struct sshbuf *, EC_KEY *key,
     const EC_GROUP *, struct sshbuf **);
 
 int
@@ -123,7 +123,7 @@ kex_ecdh_enc(struct kex *kex, const struct sshbuf *client_blob,
 	if ((r = sshbuf_put_ec(server_blob, pub_key, group)) != 0 ||
 	    (r = sshbuf_get_u32(server_blob, NULL)) != 0)
 		goto out;
-	if ((r = kex_ecdh_dec_key_group(kex, client_blob, server_key, group,
+	if ((r = kex_ecdh_dec_key_group(client_blob, server_key, group,
 	    shared_secretp)) != 0)
 		goto out;
 	*server_blobp = server_blob;
@@ -135,7 +135,7 @@ kex_ecdh_enc(struct kex *kex, const struct sshbuf *client_blob,
 }
 
 static int
-kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
+kex_ecdh_dec_key_group(const struct sshbuf *ec_blob,
     EC_KEY *key, const EC_GROUP *group, struct sshbuf **shared_secretp)
 {
 	struct sshbuf *buf = NULL;
@@ -202,7 +202,7 @@ kex_ecdh_dec(struct kex *kex, const struct sshbuf *server_blob,
 {
 	int r;
 
-	r = kex_ecdh_dec_key_group(kex, server_blob, kex->ec_client_key,
+	r = kex_ecdh_dec_key_group(server_blob, kex->ec_client_key,
 	    kex->ec_group, shared_secretp);
 	EC_KEY_free(kex->ec_client_key);
 	kex->ec_client_key = NULL;

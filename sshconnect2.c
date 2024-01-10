@@ -2009,7 +2009,7 @@ input_userauth_info_req(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 static int
-ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
+ssh_keysign(struct ssh *ssh, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen)
 {
 	struct sshbuf *b;
@@ -2225,7 +2225,7 @@ userauth_hostbased(struct ssh *ssh)
 #ifdef DEBUG_PK
 	sshbuf_dump(b, stderr);
 #endif
-	if ((r = ssh_keysign(ssh, private, &sig, &siglen,
+	if ((r = ssh_keysign(ssh, &sig, &siglen,
 	    sshbuf_ptr(b), sshbuf_len(b))) != 0) {
 		error("sign using hostkey %s %s failed",
 		    sshkey_ssh_name(private), fp);

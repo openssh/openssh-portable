@@ -1148,7 +1148,7 @@ static void ZDecrypt(Inputs r,const unsigned char *c,const unsigned char *sk)
 #define Confirm_bytes 32
 
 /* h = HashConfirm(r,pk,cache); cache is Hash4(pk) */
-static void HashConfirm(unsigned char *h,const unsigned char *r,const unsigned char *pk,const unsigned char *cache)
+static void HashConfirm(unsigned char *h,const unsigned char *r,const unsigned char *cache)
 {
 #ifndef LPR
   unsigned char x[Hash_bytes*2];
@@ -1205,7 +1205,7 @@ static void Hide(unsigned char *c,unsigned char *r_enc,const Inputs r,const unsi
 {
   Inputs_encode(r_enc,r);
   ZEncrypt(c,r,pk); c += Ciphertexts_bytes;
-  HashConfirm(c,r_enc,pk,cache);
+  HashConfirm(c,r_enc,cache);
 }
 
 /* c,k = Encap(pk) */

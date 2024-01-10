@@ -1063,7 +1063,7 @@ choose_enc(struct sshenc *enc, char *client, char *server)
 }
 
 static int
-choose_mac(struct ssh *ssh, struct sshmac *mac, char *client, char *server)
+choose_mac(struct sshmac *mac, char *client, char *server)
 {
 	char *name = match_list(client, server, NULL);
 
@@ -1263,7 +1263,7 @@ kex_choose_conf(struct ssh *ssh, uint32_t seq)
 		authlen = cipher_authlen(newkeys->enc.cipher);
 		/* ignore mac for authenticated encryption */
 		if (authlen == 0 &&
-		    (r = choose_mac(ssh, &newkeys->mac, cprop[nmac],
+		    (r = choose_mac(&newkeys->mac, cprop[nmac],
 		    sprop[nmac])) != 0) {
 			kex->failed_choice = peer[nmac];
 			peer[nmac] = NULL;
