@@ -33,7 +33,6 @@
 
 #ifdef WITH_OPENSSL
 #include <openssl/bn.h>
-#include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/evp.h>
 #endif
@@ -239,9 +238,10 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	ECDSA_SIG *esig = NULL;
 	BIGNUM *sig_r = NULL, *sig_s = NULL;
 	u_char sig_flags;
-	u_char msghash[32], apphash[32], sighash[32];
+	u_char msghash[32], apphash[32];
 	u_int sig_counter;
-	int is_webauthn = 0, ret = SSH_ERR_INTERNAL_ERROR;
+	u_char *sigb = NULL, *psig = NULL;
+	int is_webauthn = 0, ret = SSH_ERR_INTERNAL_ERROR, len;
 	struct sshbuf *b = NULL, *sigbuf = NULL, *original_signed = NULL;
 	struct sshbuf *webauthn_wrapper = NULL, *webauthn_exts = NULL;
 	char *ktype = NULL, *webauthn_origin = NULL;
@@ -252,7 +252,7 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 
 	if (detailsp != NULL)
 		*detailsp = NULL;
-	if (key == NULL || key->ecdsa == NULL ||
+	if (key == NULL || key->pkey == NULL ||
 	    sshkey_type_plain(key->type) != KEY_ECDSA_SK ||
 	    sig == NULL || siglen == 0)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -363,31 +363,34 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	    (ret = sshbuf_putb(original_signed, webauthn_exts)) != 0 ||
 	    (ret = sshbuf_put(original_signed, msghash, sizeof(msghash))) != 0)
 		goto out;
-	/* Signature is over H(original_signed) */
-	if ((ret = ssh_digest_buffer(SSH_DIGEST_SHA256, original_signed,
-	    sighash, sizeof(sighash))) != 0)
-		goto out;
 	details->sk_counter = sig_counter;
 	details->sk_flags = sig_flags;
 #ifdef DEBUG_SK
 	fprintf(stderr, "%s: signed buf:\n", __func__);
 	sshbuf_dump(original_signed, stderr);
-	fprintf(stderr, "%s: signed hash:\n", __func__);
-	sshbuf_dump_data(sighash, sizeof(sighash), stderr);
 #endif
 
 	/* Verify it */
-	switch (ECDSA_do_verify(sighash, sizeof(sighash), esig, key->ecdsa)) {
-	case 1:
-		ret = 0;
-		break;
-	case 0:
-		ret = SSH_ERR_SIGNATURE_INVALID;
-		goto out;
-	default:
+	if ((len = i2d_ECDSA_SIG(esig, NULL)) == 0) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
+	if ((sigb = malloc(len)) == NULL) {
+		ret = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	psig = sigb;
+	if ((len = i2d_ECDSA_SIG(esig, &psig)) == 0) {
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	ret = sshkey_verify_signature(key->pkey, SSH_DIGEST_SHA256,
+		sshbuf_ptr(original_signed), sshbuf_len(original_signed),
+		sigb, len);
+
+	if (ret != 0)
+		goto out;
+
 	/* success */
 	if (detailsp != NULL) {
 		*detailsp = details;
@@ -397,7 +400,6 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	explicit_bzero(&sig_flags, sizeof(sig_flags));
 	explicit_bzero(&sig_counter, sizeof(sig_counter));
 	explicit_bzero(msghash, sizeof(msghash));
-	explicit_bzero(sighash, sizeof(msghash));
 	explicit_bzero(apphash, sizeof(apphash));
 	sshkey_sig_details_free(details);
 	sshbuf_free(webauthn_wrapper);
@@ -410,6 +412,7 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	BN_clear_free(sig_r);
 	BN_clear_free(sig_s);
 	free(ktype);
+	free(sigb);
 	return ret;
 }
 
