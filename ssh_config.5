@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.392 2024/01/09 22:19:00 djm Exp $
-.Dd $Mdocdate: January 9 2024 $
+.\" $OpenBSD: ssh_config.5,v 1.393 2024/01/10 06:33:13 jmc Exp $
+.Dd $Mdocdate: January 10 2024 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -481,7 +481,7 @@ Specifying a zero value disables the inactivity timeout.
 .Pp
 The special timeout
 .Dq global
-Applies to all active channels, taken together.
+applies to all active channels, taken together.
 Traffic on any active channel will reset the timeout, but when the timeout
 expires then all open channels will be closed.
 Note that this global timeout is not matched by wildcards and must be
