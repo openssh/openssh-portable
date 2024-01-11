@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.154 2023/10/12 02:18:18 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.155 2024/01/11 01:45:36 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -87,7 +87,7 @@ typedef struct {
 	char   *sk_provider; /* Security key provider */
 	int	verify_host_key_dns;	/* Verify host key using DNS */
 
-	int     num_identity_files;	/* Number of files for RSA/DSA identities. */
+	int     num_identity_files;	/* Number of files for identities. */
 	char   *identity_files[SSH_MAX_IDENTITY_FILES];
 	int    identity_file_userprovided[SSH_MAX_IDENTITY_FILES];
 	struct sshkey *identity_keys[SSH_MAX_IDENTITY_FILES];

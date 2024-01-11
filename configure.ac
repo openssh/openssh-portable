@@ -2067,6 +2067,18 @@ AC_ARG_WITH([security-key-builtin],
 	[ enable_sk_internal=$withval ]
 )
 
+disable_ecdsa=
+AC_ARG_ENABLE([dsa-keys],
+	[  --disable-dsa-keys      disable DSA key support [no]],
+	[
+		if test "x$enableval" = "xno" ; then
+			disable_ecdsa=1
+		fi
+	]
+)
+test -z "$disable_ecdsa" &&
+    AC_DEFINE([WITH_DSA], [1], [Define if to enable DSA keys.])
+
 AC_SEARCH_LIBS([dlopen], [dl])
 AC_CHECK_FUNCS([dlopen])
 AC_CHECK_DECL([RTLD_NOW], [], [], [#include <dlfcn.h>])

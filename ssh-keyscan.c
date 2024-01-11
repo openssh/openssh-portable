@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.154 2023/12/20 00:06:25 jsg Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.155 2024/01/11 01:45:36 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -791,9 +791,11 @@ main(int argc, char **argv)
 				int type = sshkey_type_from_name(tname);
 
 				switch (type) {
+#ifdef WITH_DSA
 				case KEY_DSA:
 					get_keytypes |= KT_DSA;
 					break;
+#endif
 				case KEY_ECDSA:
 					get_keytypes |= KT_ECDSA;
 					break;

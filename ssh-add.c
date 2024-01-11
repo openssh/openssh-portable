@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.171 2024/01/08 00:30:39 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.172 2024/01/11 01:45:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -85,7 +85,9 @@ static char *default_files[] = {
 	_PATH_SSH_CLIENT_ID_ED25519,
 	_PATH_SSH_CLIENT_ID_ED25519_SK,
 	_PATH_SSH_CLIENT_ID_XMSS,
+#ifdef WITH_DSA
 	_PATH_SSH_CLIENT_ID_DSA,
+#endif
 	NULL
 };
 
