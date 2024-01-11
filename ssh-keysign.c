@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.72 2024/01/11 01:45:36 djm Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.73 2024/01/11 01:51:16 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -194,6 +194,9 @@ main(int argc, char **argv)
 	/* Leave /dev/null fd iff it is attached to stderr */
 	if (fd > 2)
 		close(fd);
+
+	for (i = 0; i < NUM_KEYTYPES; i++)
+		key_fd[i] = -1;
 
 	i = 0;
 	/* XXX This really needs to read sshd_config for the paths */
