@@ -280,7 +280,7 @@ thread_loop(void *job)
 	 * a draining queue to become empty.
 	 *
 	 * Multiple threads may be waiting on a draining queue and awoken
-	 * when empty. qThe first thread to wake will mark it as filling,
+	 * when empty. The first thread to wake will mark it as filling,
 	 * others will move on to fill, skip, or wait on the next queue.
 	 * We init qidx here because if we do it at the top of the function
 	 * we get a warning about it possibly being clobbered. The exact reason
