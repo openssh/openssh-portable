@@ -74,40 +74,44 @@ if [ $r -ne 23 ]; then
 	fail "ssh failed"
 fi
 
-verbose "multiplexed command timeout"
-(cat $OBJ/sshd_proxy.orig ; echo "ChannelTimeout session:command=1") \
-	> $OBJ/sshd_proxy
-open_mux
-mux_client "sleep 5 ; exit 23"
-r=$?
-if [ $r -ne 255 ]; then
-	fail "ssh returned unexpected error code $r"
-fi
-close_mux
+if config_defined DISABLE_FD_PASSING ; then
+	verbose "skipping multiplexing tests"
+else
+	verbose "multiplexed command timeout"
+	(cat $OBJ/sshd_proxy.orig ; echo "ChannelTimeout session:command=1") \
+		> $OBJ/sshd_proxy
+	open_mux
+	mux_client "sleep 5 ; exit 23"
+	r=$?
+	if [ $r -ne 255 ]; then
+		fail "ssh returned unexpected error code $r"
+	fi
+	close_mux
 
-verbose "irrelevant multiplexed command timeout"
-(cat $OBJ/sshd_proxy.orig ; echo "ChannelTimeout session:shell=1") \
-	> $OBJ/sshd_proxy
-open_mux
-mux_client "sleep 5 ; exit 23"
-r=$?
-if [ $r -ne 23 ]; then
-	fail "ssh returned unexpected error code $r"
-fi
-close_mux
+	verbose "irrelevant multiplexed command timeout"
+	(cat $OBJ/sshd_proxy.orig ; echo "ChannelTimeout session:shell=1") \
+		> $OBJ/sshd_proxy
+	open_mux
+	mux_client "sleep 5 ; exit 23"
+	r=$?
+	if [ $r -ne 23 ]; then
+		fail "ssh returned unexpected error code $r"
+	fi
+	close_mux
 
-verbose "global command timeout"
-(cat $OBJ/sshd_proxy.orig ; echo "ChannelTimeout global=10") \
-	> $OBJ/sshd_proxy
-open_mux
-mux_client "sleep 1 ; echo ok ; sleep 1; echo ok; sleep 60; touch $OBJ/finished.1" >/dev/null &
-mux_client "sleep 60 ; touch $OBJ/finished.2" >/dev/null &
-mux_client "sleep 2 ; touch $OBJ/finished.3" >/dev/null &
-wait
-test -f $OBJ/finished.1 && fail "first mux process completed"
-test -f $OBJ/finished.2 && fail "second mux process completed"
-test -f $OBJ/finished.3 || fail "third mux process did not complete"
-close_mux
+	verbose "global command timeout"
+	(cat $OBJ/sshd_proxy.orig ; echo "ChannelTimeout global=10") \
+		> $OBJ/sshd_proxy
+	open_mux
+	mux_client "sleep 1 ; echo ok ; sleep 1; echo ok; sleep 60; touch $OBJ/finished.1" >/dev/null &
+	mux_client "sleep 60 ; touch $OBJ/finished.2" >/dev/null &
+	mux_client "sleep 2 ; touch $OBJ/finished.3" >/dev/null &
+	wait
+	test -f $OBJ/finished.1 && fail "first mux process completed"
+	test -f $OBJ/finished.2 && fail "second mux process completed"
+	test -f $OBJ/finished.3 || fail "third mux process did not complete"
+	close_mux
+fi
 
 # Set up a "slow sftp server" that sleeps before executing the real one.
 cat > $OBJ/slow-sftp-server.sh << _EOF
