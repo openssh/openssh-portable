@@ -517,7 +517,7 @@ send_chaff(struct ssh *ssh)
 {
 	int r;
 
-	if ((ssh->kex->flags & KEX_HAS_PING) == 0)
+	if (ssh->kex == NULL || (ssh->kex->flags & KEX_HAS_PING) == 0)
 		return 0;
 	/* XXX probabilistically send chaff? */
 	/*
