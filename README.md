@@ -7,6 +7,8 @@ OQS-OpenSSH
 
 OQS-OpenSSH is a fork of OpenSSH that adds quantum-safe key exchange and signature algorithms using [liboqs](https://github.com/open-quantum-safe/liboqs) for prototyping and evaluation purposes. This fork is not endorsed by the OpenSSH project.
 
+THIS PROJECT IS PRESENTLY INACTIVE. CONTRIBUTORS WANTED.
+
 - [Overview](#overview)
 - [Status](#status)
   * [Limitations and Security](#limitations-and-security)
