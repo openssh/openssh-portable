@@ -1747,7 +1747,14 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	    remote_major, remote_minor, remote_version);
 	compat_banner(ssh, remote_version);
+	if (ssh->compat & SSH_HPNSSH)
+		debug("HPN to HPN Connection.");
+	else
+		debug("Non-HPN to HPN Connection.");
 
+	if(ssh->compat & SSH_RESTRICT_WINDOW)
+		debug ("---------------------- RESTRICT");
+	
 	mismatch = 0;
 	switch (remote_major) {
 	case 2:

@@ -124,9 +124,11 @@ compat_banner(struct ssh *ssh, const char *version)
 		{ NULL,			0 }
 	};
 
+	debug ("------------------------ VERSION IS %s", version);
 	/* process table, return first match */
 	ssh->compat = 0;
 	for (i = 0; check[i].pat; i++) {
+		debug_f("PATTERN IS %d for %s\n", i, check[i].pat);
 		if (match_pattern_list(version, check[i].pat, 0) == 1) {
 			debug_f("match: %s pat %s compat 0x%08x",
 			    version, check[i].pat, check[i].bugs);
@@ -134,26 +136,32 @@ compat_banner(struct ssh *ssh, const char *version)
 			/* Check to see if the remote side is OpenSSH and not HPN */
 			/* TODO: See if we can work this into the new method for bug checks */
 			if (strstr(version, "OpenSSH") != NULL) {
-				if (strstr(version, "hpn") == NULL) {
-					ssh->compat |= SSH_BUG_LARGEWINDOW;
-					debug("Remote is NOT HPN enabled");
-				} else {
-					/* this checks to see if the remote
-					 * version string indicates that we
-					 * have access to hpn prefixed binaries
-					 * You'll need to change this to include
-					 * new major version numbers. Which is
-					 * why we should figure out how to make
-					 * the match pattern list work
-					 */
-					if ((strstr(version, "hpn16") != NULL) ||
-					    (strstr(version, "hpn17") != NULL))
-						ssh->compat |= SSH_HPNSSH;
-					debug("Remote is HPN Enabled");
+				if (strstr(version, "hpn")) {
+					ssh->compat |= SSH_HPNSSH;
+					debug("Remote is HPN enabled");
+				}
+				/* this checks to see if the remote
+				 * version string indicates that we
+				 * have access to hpn prefixed binaries
+				 * You'll need to change this to include
+				 * new major version numbers. Which is
+				 * why we should figure out how to make
+				 * the match pattern list work
+				 */
+				if ((strstr(version, "hpn16") != NULL) ||
+				    (strstr(version, "hpn17") != NULL) ||
+				    (strstr(version, "hpn18") != NULL)) {
+					ssh->compat |= SSH_HPNSSH_PREFIX;
+					debug("Remote uses HPNSSH prefixes.");
+					break;
+				}
+				if ((strstr(version, "OpenSSH_8.9") != NULL) ||
+				    (strstr(version, "OpenSSH_9") != NULL)) {
+					ssh->compat |= SSH_RESTRICT_WINDOW;
+					debug("Restricting adverstised window size.");
 				}
 			}
 			debug("ssh->compat is %u", ssh->compat);
-			return;
 		}
 	}
 	debug_f("no match: %s", version);

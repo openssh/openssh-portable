@@ -46,18 +46,18 @@
 /* #define unused		0x00010000 */
 /* #define unused		0x00020000 */
 /* #define unused		0x00040000 */
-/* #define unused		0x00100000 */
+#define SSH_HPNSSH		0x00100000 /* basically a notice that this is HPN aware */
 #define SSH_BUG_EXTEOF		0x00200000
 #define SSH_BUG_PROBE		0x00400000
-/* #define unused		0x00800000 */
+#define SSH_RESTRICT_WINDOW	0x00800000 /* restrict adverstised window to OpenSSH clients */
 #define SSH_OLD_FORWARD_ADDR	0x01000000
-#define SSH_HPNSSH		0x02000000 /* indicates that we have hpn prefixes binaries */
+#define SSH_HPNSSH_PREFIX	0x02000000 /* indicates that we have hpn prefixes binaries */
 #define SSH_NEW_OPENSSH		0x04000000
 #define SSH_BUG_DYNAMIC_RPORT	0x08000000
 #define SSH_BUG_CURVE25519PAD	0x10000000
 #define SSH_BUG_HOSTKEYS	0x20000000
 #define SSH_BUG_DHGEX_LARGE	0x40000000
-#define SSH_BUG_LARGEWINDOW	0x80000000 /* basically a notice that this is HPN aware */
+/* #define unused	        0x80000000 */
 
 struct ssh;
 

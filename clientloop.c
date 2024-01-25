@@ -2990,7 +2990,7 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		 * binaries installed. In that case we need to rewrite any
 		 * scp commands to look for hpnscp instead.
 		 */
-		if (ssh->compat & SSH_HPNSSH) {
+		if (ssh->compat & SSH_HPNSSH_PREFIX) {
 			char *new_cmd;
 			new_cmd = malloc(len+4);
 			/* read the existing command into a temp buffer */

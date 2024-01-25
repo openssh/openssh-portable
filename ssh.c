@@ -1881,7 +1881,6 @@ fork_postauth(struct ssh *ssh)
 		fatal("daemon() failed: %.200s", strerror(errno));
 	if (stdfd_devnull(1, 1, !(log_is_on_stderr() && debug_flag)) == -1)
 		error_f("stdfd_devnull failed");
-
 	/* we do the cipher switch here in the event that the client
 	   is forking or has a delayed fork */
 	cipher_switch(ssh);
@@ -2195,6 +2194,14 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 static void
 hpn_options_init(struct ssh *ssh)
 {
+	if (ssh->compat & SSH_HPNSSH)
+		debug("HPN to HPN Connection.");
+	else
+		debug("Non-HPN to HPN Connection.");
+
+	if(ssh->compat & SSH_RESTRICT_WINDOW)
+		debug ("---------------------- RESTRICT");
+
 	channel_set_hpn_disabled(options.hpn_disabled);
 	debug_f("HPN disabled: %d", options.hpn_disabled);
 }
