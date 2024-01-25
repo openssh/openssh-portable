@@ -2194,14 +2194,6 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 static void
 hpn_options_init(struct ssh *ssh)
 {
-	if (ssh->compat & SSH_HPNSSH)
-		debug("HPN to HPN Connection.");
-	else
-		debug("Non-HPN to HPN Connection.");
-
-	if(ssh->compat & SSH_RESTRICT_WINDOW)
-		debug ("---------------------- RESTRICT");
-
 	channel_set_hpn_disabled(options.hpn_disabled);
 	debug_f("HPN disabled: %d", options.hpn_disabled);
 }

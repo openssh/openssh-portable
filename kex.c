@@ -1753,8 +1753,8 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 		debug("Non-HPN to HPN Connection.");
 
 	if(ssh->compat & SSH_RESTRICT_WINDOW)
-		debug ("---------------------- RESTRICT");
-	
+		debug ("Window size restricted.");
+
 	mismatch = 0;
 	switch (remote_major) {
 	case 2:

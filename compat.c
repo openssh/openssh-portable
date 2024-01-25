@@ -124,11 +124,9 @@ compat_banner(struct ssh *ssh, const char *version)
 		{ NULL,			0 }
 	};
 
-	debug ("------------------------ VERSION IS %s", version);
 	/* process table, return first match */
 	ssh->compat = 0;
 	for (i = 0; check[i].pat; i++) {
-		debug_f("PATTERN IS %d for %s\n", i, check[i].pat);
 		if (match_pattern_list(version, check[i].pat, 0) == 1) {
 			debug_f("match: %s pat %s compat 0x%08x",
 			    version, check[i].pat, check[i].bugs);
@@ -155,6 +153,7 @@ compat_banner(struct ssh *ssh, const char *version)
 					debug("Remote uses HPNSSH prefixes.");
 					break;
 				}
+				/* if it's openssh and not hpn */
 				if ((strstr(version, "OpenSSH_8.9") != NULL) ||
 				    (strstr(version, "OpenSSH_9") != NULL)) {
 					ssh->compat |= SSH_RESTRICT_WINDOW;
@@ -162,6 +161,7 @@ compat_banner(struct ssh *ssh, const char *version)
 				}
 			}
 			debug("ssh->compat is %u", ssh->compat);
+			return;
 		}
 	}
 	debug_f("no match: %s", version);
