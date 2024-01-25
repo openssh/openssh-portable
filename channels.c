@@ -1252,8 +1252,8 @@ channel_tcpwinsz(struct ssh *ssh)
 	 * the size of the advertised window. Now this means that any HPN to non-HPN
 	 * connection will be window limited but thats okay. This bug shows up when
 	 * sending data to an hpn */
-	if ((ssh->compat & SSH_RESTRICT_WINDOW) && (tcpwinsz > NON_HPN_WINDOW_MAX))
-		tcpwinsz = NON_HPN_WINDOW_MAX;
+	//if ((ssh->compat & SSH_RESTRICT_WINDOW) && (tcpwinsz > NON_HPN_WINDOW_MAX))
+	//	tcpwinsz = NON_HPN_WINDOW_MAX;
 	return (tcpwinsz);
 }
 
@@ -2368,6 +2368,10 @@ channel_check_window(struct ssh *ssh, Channel *c)
 	    c->local_consumed > 0) {
 		u_int addition = 0;
 		u_int32_t tcpwinsz = channel_tcpwinsz(ssh);
+		if ((ssh->compat & SSH_RESTRICT_WINDOW) &&
+		    (tcpwinsz > NON_HPN_WINDOW_MAX))
+			tcpwinsz = NON_HPN_WINDOW_MAX;
+		
 		/* adjust max window size if we are in a dynamic environment
 		 * and the tcp receive buffer is larger than the ssh window */
 		if (c->dynamic_window && (tcpwinsz > c->local_window_max)) {
@@ -2386,13 +2390,10 @@ channel_check_window(struct ssh *ssh, Channel *c)
 				addition = tcpwinsz - c->local_window_max;
 			}
 			c->local_window_max += addition;
-			sshbuf_set_window_max(c->output, c->local_window_max);
-			sshbuf_set_window_max(c->input, c->local_window_max);
+			//sshbuf_set_window_max(c->output, c->local_window_max);
+			//sshbuf_set_window_max(c->input, c->local_window_max);
 			debug("Channel %d: Window growth to %d by %d bytes",c->self,
 			      c->local_window_max, addition);
-			//if ((ssh->compat & SSH_RESTRICT_WINDOW) &&
-			//    (addition > NON_HPN_WINDOW_MAX))
-			//	addition = NON_HPN_WINDOW_MAX;
 		}
 		if (!c->have_remote_id)
 			fatal_f("channel %d: no remote id", c->self);
