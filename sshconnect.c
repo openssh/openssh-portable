@@ -574,8 +574,8 @@ ssh_connect(struct ssh *ssh, const char *host, const char *host_arg,
 static int
 confirm(const char *prompt, const char *fingerprint)
 {
-	const char *msg, *again = "Please type 'yes' or 'no': ";
-	const char *again_fp = "Please type 'yes', 'no' or the fingerprint: ";
+	const char *msg, *again = "Please type 'ye' or 'no': ";
+	const char *again_fp = "Please type 'ye', 'no' or the fingerprint: ";
 	char *p, *cp;
 	int ret = -1;
 
@@ -589,7 +589,7 @@ confirm(const char *prompt, const char *fingerprint)
 		p[strcspn(p, " \t\n")] = '\0'; /* remove trailing whitespace */
 		if (p[0] == '\0' || strcasecmp(p, "no") == 0)
 			ret = 0;
-		else if (strcasecmp(p, "yes") == 0 || (fingerprint != NULL &&
+		else if (strcasecmp(p, "ye") == 0 || (fingerprint != NULL &&
 		    strcmp(p, fingerprint) == 0))
 			ret = 1;
 		free(cp);
@@ -1184,7 +1184,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 
 			xextendf(&msg1, "\n",
 			    "Are you sure you want to continue connecting "
-			    "(yes/no/[fingerprint])? ");
+			    "(ye/no/[fingerprint])? ");
 
 			confirmed = confirm(msg1, fp);
 			free(ra);
@@ -1385,7 +1385,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		if (options.strict_host_key_checking ==
 		    SSH_STRICT_HOSTKEY_ASK) {
 			strlcat(msg, "\nAre you sure you want "
-			    "to continue connecting (yes/no)? ", sizeof(msg));
+			    "to continue connecting (ye/no)? ", sizeof(msg));
 			if (!confirm(msg, NULL))
 				goto fail;
 		} else if (options.strict_host_key_checking !=
