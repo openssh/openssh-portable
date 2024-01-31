@@ -1232,29 +1232,43 @@ channel_pre_connecting(struct ssh *ssh, Channel *c)
 	c->io_want = SSH_CHAN_IO_SOCK_W;
 }
 
+#include <linux/tcp.h>
 static int
 channel_tcpwinsz(struct ssh *ssh)
 {
 	u_int32_t tcpwinsz = 0;
-	socklen_t optsz = sizeof(tcpwinsz);
 	int ret = -1;
 
 	/* if we aren't on a socket return 128KB */
 	if (!ssh_packet_connection_is_on_socket(ssh))
 		return 128 * 1024;
 
+#ifdef TCP_INFO
+	size_t tcpi_len;
+	struct tcp_info local_tcp_info;
+	tcpi_len = (size_t)sizeof(local_tcp_info);
+	ret = getsockopt(ssh_packet_get_connection_in(ssh), IPPROTO_TCP, TCP_INFO,
+		   (void *)&local_tcp_info, (socklen_t *)&tcpi_len);
+	tcpwinsz = local_tcp_info.tcpi_rcv_space;
+#else
+	socklen_t optsz = sizeof(tcpwinsz);
 	ret = getsockopt(ssh_packet_get_connection_in(ssh),
 			 SOL_SOCKET, SO_RCVBUF, &tcpwinsz, &optsz);
+#endif
+
 	/* return no more than SSHBUF_SIZE_MAX (currently 256MB) */
 	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
 		tcpwinsz = SSHBUF_SIZE_MAX;
+
+	debug("RCV SPACE = %d, winsz = %d", local_tcp_info.tcpi_rcv_space, tcpwinsz);
 	/* if the remote side is OpenSSH after version 8.8 we need to restrict
 	 * the size of the advertised window. Now this means that any HPN to non-HPN
 	 * connection will be window limited to 15MB of receive space. This is a
 	 * non-optimal solution.
 	 */
 
-	if ((ssh->compat & SSH_RESTRICT_WINDOW) && (tcpwinsz > NON_HPN_WINDOW_MAX))
+	if ((ssh->compat & SSH_RESTRICT_WINDOW) &&
+	    (tcpwinsz > NON_HPN_WINDOW_MAX))
 		tcpwinsz = NON_HPN_WINDOW_MAX;
 	return (tcpwinsz);
 }
