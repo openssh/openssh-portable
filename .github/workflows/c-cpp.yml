@@ -2,10 +2,10 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master, pre-stage, '*RC*', dev_major, dev_minor ]
+    branches: [ master, pre-stage, release_candidates, dev_major, dev_minor ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, release_candidates ]
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
 
 jobs:
