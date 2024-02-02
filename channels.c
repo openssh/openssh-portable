@@ -104,6 +104,11 @@
 /* Maximum number of fake X11 displays to try. */
 #define MAX_DISPLAYS  1000
 
+/* in version of OpenSSH later than 8.8 if we advertise a window
+ * 16MB or larger is causes a pathological behaviour that reduces
+ * throughput. This is not a great solution. */
+#define NON_HPN_WINDOW_MAX (15 * 1024 * 1024)
+
 /* Per-channel callback for pre/post IO actions */
 typedef void chan_fn(struct ssh *, Channel *c);
 
@@ -1243,8 +1248,15 @@ channel_tcpwinsz(struct ssh *ssh)
 	/* return no more than SSHBUF_SIZE_MAX (currently 256MB) */
 	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
 		tcpwinsz = SSHBUF_SIZE_MAX;
+	/* if the remote side is OpenSSH after version 8.8 we need to restrict
+	 * the size of the advertised window. Now this means that any HPN to non-HPN
+	 * connection will be window limited to 15MB of receive space. This is a
+	 * non-optimal solution.
+	 */
 
-	return tcpwinsz;
+	if ((ssh->compat & SSH_RESTRICT_WINDOW) && (tcpwinsz > NON_HPN_WINDOW_MAX))
+		tcpwinsz = NON_HPN_WINDOW_MAX;
+	return (tcpwinsz);
 }
 
 static void
@@ -2376,8 +2388,10 @@ channel_check_window(struct ssh *ssh, Channel *c)
 				addition = tcpwinsz - c->local_window_max;
 			}
 			c->local_window_max += addition;
-			sshbuf_set_window_max(c->output, c->local_window_max);
-			sshbuf_set_window_max(c->input, c->local_window_max);
+			/* doesn't look like we need these
+			 * sshbuf_set_window_max(c->output, c->local_window_max);
+			 * sshbuf_set_window_max(c->input, c->local_window_max);
+			 */
 			debug("Channel %d: Window growth to %d by %d bytes",c->self,
 			      c->local_window_max, addition);
 		}
@@ -2390,6 +2404,8 @@ channel_check_window(struct ssh *ssh, Channel *c)
 		    (r = sshpkt_send(ssh)) != 0) {
 			fatal_fr(r, "channel %i", c->self);
 		}
+		debug2("channel %d: window %d sent adjust %d", c->self,
+		       c->local_window, c->local_consumed + addition);
 		c->local_window += c->local_consumed + addition;
 		c->local_consumed = 0;
 	}
