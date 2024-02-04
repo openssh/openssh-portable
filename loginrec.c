@@ -187,6 +187,10 @@
 # include <util.h>
 #endif
 
+#ifdef USE_WTMPDB
+# include <wtmpdb.h>
+#endif
+
 /**
  ** prototypes for helper functions in this file
  **/
@@ -207,6 +211,9 @@ int wtmp_write_entry(struct logininfo *li);
 int wtmpx_write_entry(struct logininfo *li);
 int lastlog_write_entry(struct logininfo *li);
 int syslogin_write_entry(struct logininfo *li);
+#ifdef USE_WTMPDB
+int wtmpdb_write_entry(struct logininfo *li);
+#endif
 
 int getlast_entry(struct logininfo *li);
 int lastlog_get_entry(struct logininfo *li);
@@ -466,6 +473,9 @@ login_write(struct logininfo *li)
 #endif
 #ifdef USE_WTMPX
 	wtmpx_write_entry(li);
+#endif
+#ifdef USE_WTMPDB
+	wtmpdb_write_entry(li);
 #endif
 #ifdef CUSTOM_SYS_AUTH_RECORD_LOGIN
 	if (li->type == LTYPE_LOGIN &&
@@ -1408,6 +1418,64 @@ wtmpx_get_entry(struct logininfo *li)
 	return (1);
 }
 #endif /* USE_WTMPX */
+
+#ifdef USE_WTMPDB
+static int
+wtmpdb_perform_login(struct logininfo *li)
+{
+	uint64_t login_time = li->tv_sec * ((uint64_t) 1000000ULL) + li->tv_usec;
+	const char *tty;
+
+	if (strncmp(li->line, "/dev/", 5) == 0)
+		tty = &(li->line[5]);
+	else
+		tty = li->line;
+
+	li->wtmpdb_id = wtmpdb_login(NULL, USER_PROCESS, li->username,
+				     login_time, tty, li->hostname, 0, 0);
+	if (li->wtmpdb_id < 0)
+		return (0);
+
+	return (1);
+}
+
+
+static int
+wtmpdb_perform_logout(struct logininfo *li)
+{
+	uint64_t logout_time = li->tv_sec * ((uint64_t) 1000000ULL) + li->tv_usec;
+
+	if (li->wtmpdb_id == 0) {
+		const char *tty;
+
+	  if (strncmp(li->line, "/dev/", 5) == 0)
+		tty = &(li->line[5]);
+	  else
+		tty = li->line;
+
+	  li->wtmpdb_id = wtmpdb_get_id(NULL, tty, NULL);
+	}
+	wtmpdb_logout(NULL, li->wtmpdb_id, logout_time, NULL);
+
+	return (1);
+}
+
+
+int
+wtmpdb_write_entry(struct logininfo *li)
+{
+	switch(li->type) {
+	case LTYPE_LOGIN:
+		return (wtmpdb_perform_login(li));
+	case LTYPE_LOGOUT:
+		return (wtmpdb_perform_logout(li));
+	default:
+		logit("%s: invalid type field", __func__);
+		return (0);
+	}
+}
+#endif
+
 
 /**
  ** Low-level libutil login() functions
