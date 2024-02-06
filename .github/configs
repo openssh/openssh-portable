@@ -322,6 +322,10 @@ case "$host" in
 	# modern versions don't ship with libcrypto.
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
+
+	# On some OS X runners we can't write to /var/empty.
+	CONFIGFLAGS="${CONFIGFLAGS} --with-privsep-path=/usr/local/empty"
+
 	case "$host" in
 	*-darwin22.*)
 		# sudo -S nobody doesn't work on macos 13 for some reason.
