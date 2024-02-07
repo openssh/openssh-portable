@@ -84,6 +84,8 @@ int found_one = 0;		/* Successfully found a key */
 
 int hashalg = -1;		/* Hash for SSHFP records or -1 for all */
 
+char cipher[64] = {};		/* Cipher suite */
+
 #define MAXMAXFD 256
 
 /* The number of seconds after which to give up on a TCP connection */
@@ -242,6 +244,11 @@ keygrab_ssh2(con *c)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
 	int r;
+
+	if (cipher[0]) {
+		myproposal[PROPOSAL_ENC_ALGS_CTOS] = cipher;
+		myproposal[PROPOSAL_ENC_ALGS_STOC] = cipher;
+	}
 
 	switch (c->c_keytype) {
 	case KT_DSA:
@@ -778,11 +785,17 @@ main(int argc, char **argv)
 			break;
 		case 'O':
 			/* Maybe other misc options in the future too */
-			if (strncmp(optarg, "hashalg=", 8) != 0)
+			if (strncmp(optarg, "hashalg=", 8) == 0) {
+				if ((hashalg = ssh_digest_alg_by_name(
+						optarg + 8)) == -1)
+					fatal("Unsupported hash algorithm");
+			} else if (strncmp(optarg, "cipher=", 7) == 0) {
+				if (!ciphers_valid(optarg + 7))
+					fatal("Unsupported cipher");
+				strcpy(cipher, optarg + 7);
+			} else {
 				fatal("Unsupported -O option");
-			if ((hashalg = ssh_digest_alg_by_name(
-			    optarg + 8)) == -1)
-				fatal("Unsupported hash algorithm");
+			}
 			break;
 		case 't':
 			get_keytypes = 0;
