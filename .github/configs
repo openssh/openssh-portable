@@ -164,6 +164,11 @@ case "$config" in
     libressl-*)
 	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/libressl --with-rpath=-Wl,-rpath,"
 	;;
+    putty-*)
+	CONFIGFLAGS="--with-plink=/usr/local/bin/plink --with-puttygen=/usr/local/bin/puttygen"
+	# We don't need to rerun the regular tests, just the interop ones.
+	TEST_TARGET=interop-tests
+	;;
     openssl-*)
 	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/openssl --with-rpath=-Wl,-rpath,"
 	# OpenSSL 1.1.1 specifically has a bug in its RNG that breaks reexec
