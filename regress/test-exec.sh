@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.105 2023/10/31 04:15:40 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.106 2024/02/09 08:47:42 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -762,6 +762,11 @@ case "$SCRIPT" in
 esac
 
 if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
+    puttysetup() {
+	if test "x$REGRESS_INTEROP_PUTTY" != "xyes" ; then
+		skip "putty interop tests not enabled"
+	fi
+
 	mkdir -p ${OBJ}/.putty
 
 	# Add a PuTTY key to authorized_keys
@@ -794,8 +799,24 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	echo "ProxyTelnetCommand=${OBJ}/sshd-log-wrapper.sh -i -f $OBJ/sshd_proxy" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "ProxyLocalhost=1" >> ${OBJ}/.putty/sessions/localhost_proxy
 
+	PUTTYVER="`${PLINK} --version | awk '/plink: Release/{print $3}'`"
+	PUTTYMINORVER="`echo ${PUTTYVER} | cut -f2 -d.`"
+	verbose "plink version ${PUTTYVER} minor ${PUTTYMINORVER}"
+
+	# Re-enable ssh-rsa on older PuTTY versions since they don't do newer
+	# key types.
+	if [ "$PUTTYMINORVER" -lt "76" ]; then
+		echo "HostKeyAlgorithms +ssh-rsa" >> ${OBJ}/sshd_proxy
+		echo "PubkeyAcceptedKeyTypes +ssh-rsa" >> ${OBJ}/sshd_proxy
+	fi
+
+	if [ "$PUTTYMINORVER" -le "64" ]; then
+		echo "KexAlgorithms +diffie-hellman-group14-sha1" \
+		    >>${OBJ}/sshd_proxy
+	fi
 	PUTTYDIR=${OBJ}/.putty
 	export PUTTYDIR
+    }
 fi
 
 REGRESS_INTEROP_DROPBEAR=no
