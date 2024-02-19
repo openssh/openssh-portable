@@ -2802,8 +2802,8 @@ if test "x$openssl" = "xyes" ; then
 			AC_MSG_RESULT([$ssl_header_ver])
 		],
 		[
-			AC_MSG_RESULT([not found])
-			AC_MSG_ERROR([OpenSSL version header not found.])
+			AC_MSG_RESULT([failed])
+			AC_MSG_ERROR([OpenSSL version test program failed.])
 		],
 		[
 			AC_MSG_WARN([cross compiling: not checking])
