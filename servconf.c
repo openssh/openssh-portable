@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.403 2023/10/11 22:42:26 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.404 2024/02/20 04:10:03 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1945,7 +1945,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		arg = argv_assemble(1, &arg); /* quote command correctly */
 		arg2 = argv_assemble(ac, av); /* rest of command */
 		xasprintf(&options->subsystem_args[options->num_subsystems],
-		    "%s %s", arg, arg2);
+		    "%s%s%s", arg, *arg2 == '\0' ? "" : " ", arg2);
 		free(arg2);
 		argv_consume(&ac);
 		options->num_subsystems++;
