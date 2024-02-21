@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.354 2024/02/21 06:06:43 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.355 2024/02/21 06:17:29 djm Exp $
 .Dd $Mdocdate: February 21 2024 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -1792,6 +1792,14 @@ implements an in-process SFTP server.
 This may simplify configurations using
 .Cm ChrootDirectory
 to force a different filesystem root on clients.
+It accepts the same command line arguments as
+.Cm sftp-server
+and even though it is in-process, settings such as
+.Cm LogLevel
+or
+.Cm SyslogFacility
+do not apply to it and must be set explicitly via
+command line arguments.
 .Pp
 By default no subsystems are defined.
 .It Cm SyslogFacility
