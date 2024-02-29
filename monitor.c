@@ -417,7 +417,7 @@ static int
 monitor_read_log(struct monitor *pmonitor)
 {
 	struct sshbuf *logmsg;
-	u_int len, level, forced;
+	u_int32_t len, level, forced;
 	char *msg;
 	u_char *p;
 	int r;

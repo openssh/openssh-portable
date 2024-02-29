@@ -189,7 +189,7 @@ static void recip(unsigned int out[32],const unsigned int z[32])
   unsigned int z2_100_0[32];
   unsigned int t0[32];
   unsigned int t1[32];
-  int i;
+  unsigned int i;
 
   /* 2 */ square(z2,z);
   /* 4 */ square(t1,z2);

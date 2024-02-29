@@ -435,7 +435,7 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 	 */
 	if (!got_data) {
 		u_int8_t rnd[16];
-		u_int i;
+		size_t i;
 
 		logit("Warning: No xauth data; "
 		    "using fake authentication data for X11 forwarding.");
@@ -1446,7 +1446,8 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	struct pollfd *pfd = NULL;
 	u_int npfd_alloc = 0, npfd_active = 0;
 	double start_time, total_time;
-	int channel_did_enqueue = 0, r, len;
+	int channel_did_enqueue = 0, r;
+	size_t len;
 	u_int64_t ibytes, obytes;
 	int conn_in_ready, conn_out_ready;
 	sigset_t bsigset, osigset;
@@ -1676,7 +1677,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		len = atomicio(vwrite, fileno(stderr),
 		    (u_char *)sshbuf_ptr(stderr_buffer),
 		    sshbuf_len(stderr_buffer));
-		if (len < 0 || (u_int)len != sshbuf_len(stderr_buffer))
+		if (len != sshbuf_len(stderr_buffer))
 			error("Write failed flushing stderr buffer.");
 		else if ((r = sshbuf_consume(stderr_buffer, len)) != 0)
 			fatal_fr(r, "sshbuf_consume");
@@ -2188,7 +2189,7 @@ hostkeys_check_old(struct hostkey_foreach_line *l, void *_ctx)
 {
 	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
 	size_t i;
-	int hashed;
+	u_int hashed;
 
 	/* only care about lines that *don't* match the active host spec */
 	if (l->status == HKF_STATUS_MATCHED || l->key == NULL)

@@ -928,7 +928,7 @@ static int
 hexchar(const char *s)
 {
 	unsigned char result[2];
-	int i;
+	u_int i;
 
 	for (i = 0; i < 2; i++) {
 		if (s[i] >= '0' && s[i] <= '9')
@@ -1859,7 +1859,7 @@ static const struct {
 int
 parse_ipqos(const char *cp)
 {
-	u_int i;
+	size_t i;
 	char *ep;
 	long val;
 
@@ -1879,7 +1879,7 @@ parse_ipqos(const char *cp)
 const char *
 iptos2str(int iptos)
 {
-	int i;
+	size_t i;
 	static char iptos_str[sizeof "0xff"];
 
 	for (i = 0; ipqos[i].name != NULL; i++) {
@@ -2089,7 +2089,8 @@ argv_split(const char *s, int *argcp, char ***argvp, int terminate_on_comment)
 char *
 argv_assemble(int argc, char **argv)
 {
-	int i, j, ws, r;
+	int i, ws, r;
+	size_t j;
 	char c, *ret;
 	struct sshbuf *buf, *arg;
 

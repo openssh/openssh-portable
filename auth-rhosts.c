@@ -154,7 +154,7 @@ check_rhosts_file(const char *filename, const char *hostname,
 			if (!innetgr(host + 1, hostname, NULL, NULL) &&
 			    !innetgr(host + 1, ipaddr, NULL, NULL))
 				continue;
-		} else if (strcasecmp(host, hostname) &&
+		} else if (strcasecmp(host, hostname) != 0 &&
 		    strcmp(host, ipaddr) != 0)
 			continue;	/* Different hostname. */
 

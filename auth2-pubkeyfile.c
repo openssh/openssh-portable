@@ -225,7 +225,7 @@ auth_process_principals(FILE *f, const char *file,
 	char loc[256], *line = NULL, *cp, *ep;
 	size_t linesize = 0;
 	u_long linenum = 0, nonblank = 0;
-	u_int found_principal = 0;
+	int found_principal = 0;
 
 	if (authoptsp != NULL)
 		*authoptsp = NULL;

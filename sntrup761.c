@@ -484,7 +484,7 @@ static Fq Right(int8 T)
 static int Weightw_mask(small *r)
 {
   int weight = 0;
-  int i;
+  u_int i;
 
   for (i = 0;i < p;++i) weight += r[i]&1;
   return int16_nonzero_mask(weight-w);
@@ -493,7 +493,7 @@ static int Weightw_mask(small *r)
 /* R3_fromR(R_fromRq(r)) */
 static void R3_fromRq(small *out,const Fq *r)
 {
-  int i;
+  u_int i;
   for (i = 0;i < p;++i) out[i] = F3_freeze(r[i]);
 }
 
@@ -602,7 +602,7 @@ static void Rq_mult_small(Fq *h,const Fq *f,const small *g)
 /* h = 3f in Rq */
 static void Rq_mult3(Fq *h,const Fq *f)
 {
-  int i;
+  u_int i;
 
   for (i = 0;i < p;++i) h[i] = Fq_freeze(3*f[i]);
 }
@@ -612,7 +612,8 @@ static void Rq_mult3(Fq *h,const Fq *f)
 static int Rq_recip3(Fq *out,const small *in)
 {
   Fq f[p+1],g[p+1],v[p+1],r[p+1];
-  int i,loop,delta;
+  u_int i,loop;
+  crypto_int16 delta;
   int swap,t;
   int32 f0,g0;
   Fq scale;
@@ -661,7 +662,7 @@ static int Rq_recip3(Fq *out,const small *in)
 
 static void Round(Fq *out,const Fq *a)
 {
-  int i;
+  u_int i;
   for (i = 0;i < p;++i) out[i] = a[i]-F3_freeze(a[i]);
 }
 
@@ -670,7 +671,7 @@ static void Round(Fq *out,const Fq *a)
 static void Short_fromlist(small *out,const uint32 *in)
 {
   uint32 L[p];
-  int i;
+  u_int i;
 
   for (i = 0;i < w;++i) L[i] = in[i]&(uint32)-2;
   for (i = w;i < p;++i) L[i] = (in[i]&(uint32)-3)|1;
@@ -683,11 +684,11 @@ static void Short_fromlist(small *out,const uint32 *in)
 #define Hash_bytes 32
 
 /* e.g., b = 0 means out = Hash0(in) */
-static void Hash_prefix(unsigned char *out,int b,const unsigned char *in,int inlen)
+static void Hash_prefix(unsigned char *out,int b,const unsigned char *in,size_t inlen)
 {
   unsigned char x[inlen+1];
   unsigned char h[64];
-  int i;
+  size_t i;
 
   x[0] = b;
   for (i = 0;i < inlen;++i) x[i+1] = in[i];
@@ -713,7 +714,7 @@ static uint32 urandom32(void)
 static void Short_random(small *out)
 {
   uint32 L[p];
-  int i;
+  u_int i;
 
   for (i = 0;i < p;++i) L[i] = urandom32();
   Short_fromlist(out,L);
@@ -723,7 +724,7 @@ static void Short_random(small *out)
 
 static void Small_random(small *out)
 {
-  int i;
+  u_int i;
 
   for (i = 0;i < p;++i) out[i] = (((urandom32()&0x3fffffff)*3)>>30)-1;
 }
@@ -766,7 +767,7 @@ static void Decrypt(small *r,const Fq *c,const small *f,const small *ginv)
   small e[p];
   small ev[p];
   int mask;
-  int i;
+  u_int i;
 
   Rq_mult_small(cf,c,f);
   Rq_mult3(cf3,cf);
@@ -799,7 +800,7 @@ static void Encrypt(Fq *B,int8 *T,const int8 *r,const Fq *G,const Fq *A,const sm
 {
   Fq bG[p];
   Fq bA[p];
-  int i;
+  u_int i;
 
   Rq_mult_small(bG,G,b);
   Round(B,bG);
@@ -811,7 +812,7 @@ static void Encrypt(Fq *B,int8 *T,const int8 *r,const Fq *G,const Fq *A,const sm
 static void Decrypt(int8 *r,const Fq *B,const int8 *T,const small *a)
 {
   Fq aB[p];
-  int i;
+  u_int i;
 
   Rq_mult_small(aB,B,a);
   for (i = 0;i < I;++i)
@@ -829,7 +830,7 @@ typedef int8 Inputs[I]; /* passed by reference */
 
 static void Inputs_encode(unsigned char *s,const Inputs r)
 {
-  int i;
+  u_int i;
   for (i = 0;i < Inputs_bytes;++i) s[i] = 0;
   for (i = 0;i < I;++i) s[i>>3] |= r[i]<<(i&7);
 }
@@ -844,7 +845,7 @@ static const unsigned char aes_nonce[16] = {0};
 
 static void Expand(uint32 *L,const unsigned char *k)
 {
-  int i;
+  u_int i;
   crypto_stream_aes256ctr((unsigned char *) L,4*p,aes_nonce,k);
   for (i = 0;i < p;++i) {
     uint32 L0 = ((unsigned char *) L)[4*i];
@@ -878,7 +879,7 @@ static void Seeds_random(unsigned char *s)
 static void Generator(Fq *G,const unsigned char *k)
 {
   uint32 L[p];
-  int i;
+  u_int i;
 
   Expand(L,k);
   for (i = 0;i < p;++i) G[i] = uint32_mod_uint14(L[i],q)-q12;
@@ -937,7 +938,7 @@ static void XEncrypt(Fq *B,int8 *T,const int8 *r,const unsigned char *S,const Fq
 static void Small_encode(unsigned char *s,const small *f)
 {
   small x;
-  int i;
+  u_int i;
 
   for (i = 0;i < p/4;++i) {
     x = *f++ + 1;
@@ -953,7 +954,7 @@ static void Small_encode(unsigned char *s,const small *f)
 static void Small_decode(small *f,const unsigned char *s)
 {
   unsigned char x;
-  int i;
+  u_int i;
 
   for (i = 0;i < p/4;++i) {
     x = *s++;
@@ -973,7 +974,7 @@ static void Small_decode(small *f,const unsigned char *s)
 static void Rq_encode(unsigned char *s,const Fq *r)
 {
   uint16 R[p],M[p];
-  int i;
+  u_int i;
 
   for (i = 0;i < p;++i) R[i] = r[i]+q12;
   for (i = 0;i < p;++i) M[i] = q;
@@ -983,7 +984,7 @@ static void Rq_encode(unsigned char *s,const Fq *r)
 static void Rq_decode(Fq *r,const unsigned char *s)
 {
   uint16 R[p],M[p];
-  int i;
+  u_int i;
 
   for (i = 0;i < p;++i) M[i] = q;
   Decode(R,s,M,p);
@@ -997,7 +998,7 @@ static void Rq_decode(Fq *r,const unsigned char *s)
 static void Rounded_encode(unsigned char *s,const Fq *r)
 {
   uint16 R[p],M[p];
-  int i;
+  u_int i;
 
   for (i = 0;i < p;++i) R[i] = ((r[i]+q12)*10923)>>15;
   for (i = 0;i < p;++i) M[i] = (q+2)/3;
@@ -1007,7 +1008,7 @@ static void Rounded_encode(unsigned char *s,const Fq *r)
 static void Rounded_decode(Fq *r,const unsigned char *s)
 {
   uint16 R[p],M[p];
-  int i;
+  u_int i;
 
   for (i = 0;i < p;++i) M[i] = (q+2)/3;
   Decode(R,s,M,p);
@@ -1022,14 +1023,14 @@ static void Rounded_decode(Fq *r,const unsigned char *s)
 
 static void Top_encode(unsigned char *s,const int8 *T)
 {
-  int i;
+  u_int i;
   for (i = 0;i < Top_bytes;++i)
     s[i] = T[2*i]+(T[2*i+1]<<4);
 }
 
 static void Top_decode(int8 *T,const unsigned char *s)
 {
-  int i;
+  u_int i;
   for (i = 0;i < Top_bytes;++i) {
     T[2*i] = s[i]&15;
     T[2*i+1] = s[i]>>4;
@@ -1098,7 +1099,7 @@ static void ZDecrypt(Inputs r,const unsigned char *C,const unsigned char *sk)
 static void Inputs_random(Inputs r)
 {
   unsigned char s[Inputs_bytes];
-  int i;
+  u_int i;
 
   randombytes(s,sizeof s);
   for (i = 0;i < I;++i) r[i] = 1&(s[i>>3]>>(i&7));
@@ -1152,13 +1153,13 @@ static void HashConfirm(unsigned char *h,const unsigned char *r,const unsigned c
 {
 #ifndef LPR
   unsigned char x[Hash_bytes*2];
-  int i;
+  u_int i;
 
   Hash_prefix(x,3,r,Inputs_bytes);
   for (i = 0;i < Hash_bytes;++i) x[Hash_bytes+i] = cache[i];
 #else
   unsigned char x[Inputs_bytes+Hash_bytes];
-  int i;
+  u_int i;
 
   for (i = 0;i < Inputs_bytes;++i) x[i] = r[i];
   for (i = 0;i < Hash_bytes;++i) x[Inputs_bytes+i] = cache[i];
@@ -1173,13 +1174,13 @@ static void HashSession(unsigned char *k,int b,const unsigned char *y,const unsi
 {
 #ifndef LPR
   unsigned char x[Hash_bytes+Ciphertexts_bytes+Confirm_bytes];
-  int i;
+  u_int i;
 
   Hash_prefix(x,3,y,Inputs_bytes);
   for (i = 0;i < Ciphertexts_bytes+Confirm_bytes;++i) x[Hash_bytes+i] = z[i];
 #else
   unsigned char x[Inputs_bytes+Ciphertexts_bytes+Confirm_bytes];
-  int i;
+  u_int i;
 
   for (i = 0;i < Inputs_bytes;++i) x[i] = y[i];
   for (i = 0;i < Ciphertexts_bytes+Confirm_bytes;++i) x[Inputs_bytes+i] = z[i];
@@ -1192,7 +1193,7 @@ static void HashSession(unsigned char *k,int b,const unsigned char *y,const unsi
 /* pk,sk = KEM_KeyGen() */
 static void KEM_KeyGen(unsigned char *pk,unsigned char *sk)
 {
-  int i;
+  u_int i;
 
   ZKeyGen(pk,sk); sk += SecretKeys_bytes;
   for (i = 0;i < PublicKeys_bytes;++i) *sk++ = pk[i];
@@ -1225,9 +1226,9 @@ static void Encap(unsigned char *c,unsigned char *k,const unsigned char *pk)
 static int Ciphertexts_diff_mask(const unsigned char *c,const unsigned char *c2)
 {
   uint16 differentbits = 0;
-  int len = Ciphertexts_bytes+Confirm_bytes;
+  u_int len = Ciphertexts_bytes+Confirm_bytes;
 
-  while (len-- > 0) differentbits |= (*c++)^(*c2++);
+  for (;len;len--) differentbits |= (*c++)^(*c2++);
   return (1&((differentbits-1)>>8))-1;
 }
 
@@ -1241,7 +1242,7 @@ static void Decap(unsigned char *k,const unsigned char *c,const unsigned char *s
   unsigned char r_enc[Inputs_bytes];
   unsigned char cnew[Ciphertexts_bytes+Confirm_bytes];
   int mask;
-  int i;
+  u_int i;
 
   ZDecrypt(r,c,sk);
   Hide(cnew,r_enc,r,pk,cache);

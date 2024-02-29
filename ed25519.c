@@ -201,7 +201,7 @@ static void reduce_mul(fe25519 *r)
 /* reduction modulo 2^255-19 */
 static void fe25519_freeze(fe25519 *r)
 {
-  int i;
+  u_int i;
   crypto_uint32 m = fe25519_equal(r->v[31],127);
   for(i=30;i>0;i--)
     m &= fe25519_equal(r->v[i],255);
@@ -217,7 +217,7 @@ static void fe25519_freeze(fe25519 *r)
 
 static void fe25519_unpack(fe25519 *r, const unsigned char x[32])
 {
-  int i;
+  u_int i;
   for(i=0;i<32;i++) r->v[i] = x[i];
   r->v[31] &= 127;
 }
@@ -225,7 +225,7 @@ static void fe25519_unpack(fe25519 *r, const unsigned char x[32])
 /* Assumes input x being reduced below 2^255 */
 static void fe25519_pack(unsigned char r[32], const fe25519 *x)
 {
-  int i;
+  u_int i;
   fe25519 y = *x;
   fe25519_freeze(&y);
   for(i=0;i<32;i++)
@@ -234,19 +234,19 @@ static void fe25519_pack(unsigned char r[32], const fe25519 *x)
 
 static int fe25519_iszero(const fe25519 *x)
 {
-  int i;
-  int r;
+  u_int i;
+  crypto_uint32 r;
   fe25519 t = *x;
   fe25519_freeze(&t);
   r = fe25519_equal(t.v[0],0);
   for(i=1;i<32;i++)
     r &= fe25519_equal(t.v[i],0);
-  return r;
+  return (int)r;
 }
 
 static int fe25519_iseq_vartime(const fe25519 *x, const fe25519 *y)
 {
-  int i;
+  u_int i;
   fe25519 t1 = *x;
   fe25519 t2 = *y;
   fe25519_freeze(&t1);
@@ -258,7 +258,7 @@ static int fe25519_iseq_vartime(const fe25519 *x, const fe25519 *y)
 
 static void fe25519_cmov(fe25519 *r, const fe25519 *x, unsigned char b)
 {
-  int i;
+  u_int i;
   crypto_uint32 mask = b;
   mask = -mask;
   for(i=0;i<32;i++) r->v[i] ^= mask & (x->v[i] ^ r->v[i]);
@@ -273,21 +273,21 @@ unsigned char fe25519_getparity(const fe25519 *x)
 
 static void fe25519_setone(fe25519 *r)
 {
-  int i;
+  u_int i;
   r->v[0] = 1;
   for(i=1;i<32;i++) r->v[i]=0;
 }
 
 static void fe25519_setzero(fe25519 *r)
 {
-  int i;
+  u_int i;
   for(i=0;i<32;i++) r->v[i]=0;
 }
 
 static void fe25519_neg(fe25519 *r, const fe25519 *x)
 {
   fe25519 t;
-  int i;
+  u_int i;
   for(i=0;i<32;i++) t.v[i]=x->v[i];
   fe25519_setzero(r);
   fe25519_sub(r, r, &t);
@@ -295,14 +295,14 @@ static void fe25519_neg(fe25519 *r, const fe25519 *x)
 
 static void fe25519_add(fe25519 *r, const fe25519 *x, const fe25519 *y)
 {
-  int i;
+  u_int i;
   for(i=0;i<32;i++) r->v[i] = x->v[i] + y->v[i];
   fe25519_reduce_add_sub(r);
 }
 
 static void fe25519_sub(fe25519 *r, const fe25519 *x, const fe25519 *y)
 {
-  int i;
+  u_int i;
   crypto_uint32 t[32];
   t[0] = x->v[0] + 0x1da;
   t[31] = x->v[31] + 0xfe;
@@ -313,7 +313,7 @@ static void fe25519_sub(fe25519 *r, const fe25519 *x, const fe25519 *y)
 
 static void fe25519_mul(fe25519 *r, const fe25519 *x, const fe25519 *y)
 {
-  int i,j;
+  u_int i, j;
   crypto_uint32 t[63];
   for(i=0;i<63;i++)t[i] = 0;
 
@@ -345,7 +345,7 @@ static void fe25519_invert(fe25519 *r, const fe25519 *x)
 	fe25519 z2_100_0;
 	fe25519 t0;
 	fe25519 t1;
-	int i;
+  u_int i;
 
 	/* 2 */ fe25519_square(&z2,x);
 	/* 4 */ fe25519_square(&t1,&z2);
@@ -411,7 +411,7 @@ static void fe25519_pow2523(fe25519 *r, const fe25519 *x)
 	fe25519 z2_50_0;
 	fe25519 z2_100_0;
 	fe25519 t;
-	int i;
+  u_int i;
 
 	/* 2 */ fe25519_square(&z2,x);
 	/* 4 */ fe25519_square(&t,&z2);
@@ -533,7 +533,7 @@ static void sc25519_reduce_add_sub(sc25519 *r)
   crypto_uint32 pb = 0;
   crypto_uint32 b;
   crypto_uint32 mask;
-  int i;
+  u_int i;
   unsigned char t[32];
 
   for(i=0;i<32;i++)
@@ -602,7 +602,7 @@ static void barrett_reduce(sc25519 *r, const crypto_uint32 x[64])
 
 static void sc25519_from32bytes(sc25519 *r, const unsigned char x[32])
 {
-  int i;
+  u_int i;
   crypto_uint32 t[64];
   for(i=0;i<32;i++) t[i] = x[i];
   for(i=32;i<64;++i) t[i] = 0;
@@ -612,7 +612,7 @@ static void sc25519_from32bytes(sc25519 *r, const unsigned char x[32])
 
 static void sc25519_from64bytes(sc25519 *r, const unsigned char x[64])
 {
-  int i;
+  u_int i;
   crypto_uint32 t[64];
   for(i=0;i<64;i++) t[i] = x[i];
   barrett_reduce(r, t);
@@ -621,7 +621,7 @@ static void sc25519_from64bytes(sc25519 *r, const unsigned char x[64])
 
 static void sc25519_to32bytes(unsigned char r[32], const sc25519 *x)
 {
-  int i;
+  u_int i;
   for(i=0;i<32;i++) r[i] = x->v[i];
 }
 
@@ -667,7 +667,7 @@ static void sc25519_mul(sc25519 *r, const sc25519 *x, const sc25519 *y)
 static void sc25519_window3(signed char r[85], const sc25519 *s)
 {
   char carry;
-  int i;
+  u_int i;
   for(i=0;i<10;i++)
   {
     r[8*i+0]  =  s->v[3*i+0]       & 7;
@@ -704,7 +704,7 @@ static void sc25519_window3(signed char r[85], const sc25519 *s)
 
 static void sc25519_2interleave2(unsigned char r[127], const sc25519 *s1, const sc25519 *s2)
 {
-  int i;
+  u_int i;
   for(i=0;i<31;i++)
   {
     r[4*i]   = ( s1->v[i]       & 3) ^ (( s2->v[i]       & 3) << 2);
@@ -1895,7 +1895,7 @@ static void ge25519_double_scalarmult_vartime(ge25519_p3 *r, const ge25519_p3 *p
 static void ge25519_scalarmult_base(ge25519_p3 *r, const sc25519 *s)
 {
   signed char b[85];
-  int i;
+  u_int i;
   ge25519_aff t;
   sc25519_window3(b,s);
 

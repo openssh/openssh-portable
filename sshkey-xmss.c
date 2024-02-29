@@ -551,7 +551,7 @@ sshkey_xmss_forward_state(const struct sshkey *k, u_int32_t reserve)
 		return r;
 	if ((sig = malloc(required_siglen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	while (reserve-- > 0) {
+	do {
 		state->idx = PEEK_U32(k->xmss_sk);
 		smlen = required_siglen;
 		if ((ret = xmss_sign(k->xmss_sk, sshkey_xmss_bds_state(k),
@@ -559,7 +559,7 @@ sshkey_xmss_forward_state(const struct sshkey *k, u_int32_t reserve)
 			r = SSH_ERR_INVALID_ARGUMENT;
 			break;
 		}
-	}
+	} while (--reserve);
 	free(sig);
 	return r;
 }
@@ -894,7 +894,8 @@ sshkey_xmss_encrypt_state(const struct sshkey *k, struct sshbuf *b,
 	struct sshcipher_ctx *ciphercontext = NULL;
 	const struct sshcipher *cipher;
 	u_char *cp, *key, *iv = NULL;
-	size_t i, keylen, ivlen, blocksize, authlen, encrypted_len, aadlen;
+	size_t i, blocksize, encrypted_len, aadlen;
+	u_int keylen, ivlen, authlen;
 	int r = SSH_ERR_INTERNAL_ERROR;
 
 	if (retp != NULL)

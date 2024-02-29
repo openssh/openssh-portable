@@ -71,7 +71,7 @@ aesctr_encrypt_bytes(aesctr_ctx *x,const u8 *m,u8 *c,u32 bytes)
 	u32 n = 0;
 	u8 buf[AES_BLOCK_SIZE];
 
-	while ((bytes--) > 0) {
+	for(; bytes; bytes--) {
 		if (n == 0) {
 			rijndaelEncrypt(x->ek, x->rounds, x->ctr, buf);
 			aesctr_inc(x->ctr, AES_BLOCK_SIZE);

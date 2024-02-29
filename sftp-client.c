@@ -850,7 +850,7 @@ sftp_readdir(struct sftp_conn *conn, const char *path, SFTP_DIRENT ***dir)
 
 void sftp_free_dirents(SFTP_DIRENT **s)
 {
-	int i;
+	size_t i;
 
 	if (s == NULL)
 		return;
@@ -2120,7 +2120,7 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	for (;;) {
-		int len;
+		ssize_t len;
 
 		/*
 		 * Can't use atomicio here because it returns 0 on EOF,
@@ -2139,17 +2139,17 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 			fatal("read local \"%s\": %s",
 			    local_path, strerror(errno));
 		} else if (len != 0) {
-			ack = request_enqueue(&acks, ++id, len, offset);
+			ack = request_enqueue(&acks, ++id, (size_t)len, offset);
 			sshbuf_reset(msg);
 			if ((r = sshbuf_put_u8(msg, SSH2_FXP_WRITE)) != 0 ||
 			    (r = sshbuf_put_u32(msg, ack->id)) != 0 ||
 			    (r = sshbuf_put_string(msg, handle,
 			    handle_len)) != 0 ||
 			    (r = sshbuf_put_u64(msg, offset)) != 0 ||
-			    (r = sshbuf_put_string(msg, data, len)) != 0)
+			    (r = sshbuf_put_string(msg, data, (size_t)len)) != 0)
 				fatal_fr(r, "compose");
 			send_msg(conn, msg);
-			debug3("Sent message SSH2_FXP_WRITE I:%u O:%llu S:%u",
+			debug3("Sent message SSH2_FXP_WRITE I:%u O:%llu S:%zd",
 			    id, (unsigned long long)offset, len);
 		} else if (TAILQ_FIRST(&acks) == NULL)
 			break;

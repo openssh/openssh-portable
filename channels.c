@@ -1313,7 +1313,7 @@ x11_open_helper(struct ssh *ssh, struct sshbuf *b)
 {
 	struct ssh_channels *sc = ssh->chanctxt;
 	u_char *ucp;
-	u_int proto_len, data_len;
+	size_t proto_len, data_len;
 
 	/* Is this being called after the refusal deadline? */
 	if (sc->x11_refuse_time != 0 &&
@@ -1450,7 +1450,7 @@ channel_decode_socks4(Channel *c, struct sshbuf *input, struct sshbuf *output)
 {
 	const u_char *p;
 	char *host;
-	u_int len, have, i, found, need;
+	size_t len, have, i, found, need;
 	char username[256];
 	struct {
 		u_int8_t version;
@@ -1505,7 +1505,7 @@ channel_decode_socks4(Channel *c, struct sshbuf *input, struct sshbuf *output)
 		return -1;
 	}
 	len = strlen(p);
-	debug2("channel %d: decode socks4: user %s/%d", c->self, p, len);
+	debug2("channel %d: decode socks4: user %s/%zu", c->self, p, len);
 	len++; /* trailing '\0' */
 	strlcpy(username, p, sizeof(username));
 	if ((r = sshbuf_consume(input, len)) != 0)
@@ -1524,7 +1524,7 @@ channel_decode_socks4(Channel *c, struct sshbuf *input, struct sshbuf *output)
 			return -1;
 		}
 		len = strlen(p);
-		debug2("channel %d: decode socks4a: host %s/%d",
+		debug2("channel %d: decode socks4a: host %s/%zu",
 		    c->self, p, len);
 		len++;				/* trailing '\0' */
 		if (len > NI_MAXHOST) {
@@ -1577,8 +1577,8 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 	u_int16_t dest_port;
 	char dest_addr[255+1], ntop[INET6_ADDRSTRLEN];
 	const u_char *p;
-	u_int have, need, i, found, nmethods, addrlen, af;
-	int r;
+	u_int have, need, i, nmethods, addrlen;
+	int found, af, r;
 
 	debug2("channel %d: decode socks5", c->self);
 	p = sshbuf_ptr(input);
@@ -1638,7 +1638,7 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 		af = AF_INET6;
 		break;
 	default:
-		debug2("channel %d: bad socks5 atyp %d", c->self, s5_req.atyp);
+		debug2("channel %d: bad socks5 atyp %u", c->self, s5_req.atyp);
 		return -1;
 	}
 	need = sizeof(s5_req) + addrlen + 2;
@@ -5302,7 +5302,8 @@ x11_request_forwarding_with_spoofing(struct ssh *ssh, int client_session_id,
 	u_int i, value;
 	const char *cp;
 	char *new_data;
-	int r, screen_number;
+	int r;
+	u_int screen_number;
 
 	if (sc->x11_saved_display == NULL)
 		sc->x11_saved_display = xstrdup(disp);

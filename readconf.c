@@ -877,7 +877,7 @@ static OpCodes
 parse_token(const char *cp, const char *filename, int linenum,
     const char *ignored_unknown)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; keywords[i].name; i++)
 		if (strcmp(cp, keywords[i].name) == 0)
@@ -998,7 +998,7 @@ static int
 parse_multistate_value(const char *arg, const char *filename, int linenum,
     const struct multistate *multistate_ptr)
 {
-	int i;
+	size_t i;
 
 	if (!arg || *arg == '\0') {
 		error("%s line %d: missing argument.", filename, linenum);
@@ -1032,7 +1032,8 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
 {
 	char *str, **charptr, *endofnumber, *keyword, *arg, *arg2, *p;
 	char **cpptr, ***cppptr, fwdarg[256];
-	u_int i, *uintptr, uvalue, max_entries = 0;
+	size_t i;
+	u_int *uintptr, uvalue, max_entries = 0;
 	int r, oactive, negated, opcode, *intptr, value, value2, cmdline = 0;
 	int remotefwd, dynamicfwd, ca_only = 0;
 	LogLevel *log_level_ptr;
@@ -3304,7 +3305,7 @@ parse_ssh_uri(const char *uri, char **userp, char **hostp, int *portp)
 static const char *
 fmt_multistate_int(int val, const struct multistate *m)
 {
-	u_int i;
+	size_t i;
 
 	for (i = 0; m[i].key != NULL; i++) {
 		if (m[i].value == val)
@@ -3357,7 +3358,7 @@ fmt_intarg(OpCodes code, int val)
 static const char *
 lookup_opcode_name(OpCodes code)
 {
-	u_int i;
+	size_t i;
 
 	for (i = 0; keywords[i].name != NULL; i++)
 		if (keywords[i].opcode == code)

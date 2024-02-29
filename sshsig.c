@@ -948,9 +948,9 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 	}
 
 	/* check key time validity */
-	format_absolute_time((uint64_t)verify_time, tverify, sizeof(tverify));
+	format_absolute_time(verify_time, tverify, sizeof(tverify));
 	if (sigopts->valid_after != 0 &&
-	    (uint64_t)verify_time < sigopts->valid_after) {
+	    verify_time < sigopts->valid_after) {
 		format_absolute_time(sigopts->valid_after,
 		    tvalid, sizeof(tvalid));
 		error("%s:%lu: key is not yet valid: "
@@ -959,7 +959,7 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 		goto done;
 	}
 	if (sigopts->valid_before != 0 &&
-	    (uint64_t)verify_time > sigopts->valid_before) {
+	    verify_time > sigopts->valid_before) {
 		format_absolute_time(sigopts->valid_before,
 		    tvalid, sizeof(tvalid));
 		error("%s:%lu: key has expired: "

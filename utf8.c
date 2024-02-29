@@ -327,7 +327,7 @@ msetlocale(void)
 {
 	const char *vars[] = { "LC_ALL", "LC_CTYPE", "LANG", NULL };
 	char *cp;
-	int i;
+	size_t i;
 
 	/*
 	 * We can't yet cope with dotless/dotted I in Turkish locales,

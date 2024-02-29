@@ -334,7 +334,7 @@ int main(void)
 		"diffie-hellman-group-exchange-sha1",
 		NULL,
 	};
-	int i, j;
+	size_t i, j;
 	char *path;
 	FILE *f;
 

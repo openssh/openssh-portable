@@ -187,12 +187,13 @@ static void kdf(void *bufp, aes_int_key key, UINT8 ndx, int nbytes)
     UINT8 in_buf[AES_BLOCK_LEN] = {0};
     UINT8 out_buf[AES_BLOCK_LEN];
     UINT8 *dst_buf = (UINT8 *)bufp;
-    int i;
+    size_t i;
 
     /* Setup the initial value */
     in_buf[AES_BLOCK_LEN-9] = ndx;
-    in_buf[AES_BLOCK_LEN-1] = i = 1;
+    in_buf[AES_BLOCK_LEN-1] = 1;
 
+    i = 1;
     while (nbytes >= AES_BLOCK_LEN) {
         aes_encryption(in_buf, out_buf, key);
         memcpy(dst_buf,out_buf,AES_BLOCK_LEN);
@@ -832,11 +833,11 @@ static UINT64 poly64(UINT64 cur, UINT64 key, UINT64 data)
  */
 static void poly_hash(uhash_ctx_t hc, UINT32 data_in[])
 {
-    int i;
+    u_int i;
     UINT64 *data=(UINT64*)data_in;
 
     for (i = 0; i < STREAMS; i++) {
-        if ((UINT32)(data[i] >> 32) == 0xfffffffful) {
+        if ((UINT32)(data[i] >> 32) == 0xffffffffUL) {
             hc->poly_accum[i] = poly64(hc->poly_accum[i],
                                        hc->poly_key_8[i], p64 - 1);
             hc->poly_accum[i] = poly64(hc->poly_accum[i],
@@ -913,7 +914,7 @@ static void ip_short(uhash_ctx_t ahc, UINT8 *nh_res, u_char *res)
  */
 static void ip_long(uhash_ctx_t ahc, u_char *res)
 {
-    int i;
+    u_int i;
     UINT64 t;
 
     for (i = 0; i < STREAMS; i++) {
@@ -958,7 +959,7 @@ static int uhash_reset(uhash_ctx_t pc)
  */
 static void uhash_init(uhash_ctx_t ahc, aes_int_key prf_key)
 {
-    int i;
+    u_int i;
     UINT8 buf[(8*STREAMS+4)*sizeof(UINT64)];
 
     /* Zero the entire uhash context */
@@ -977,7 +978,7 @@ static void uhash_init(uhash_ctx_t ahc, aes_int_key prf_key)
         memcpy(ahc->poly_key_8+i, buf+24*i, 8);
         endian_convert_if_le(ahc->poly_key_8+i, 8, 8);
         /* Mask the 64-bit keys to their special domain */
-        ahc->poly_key_8[i] &= ((UINT64)0x01ffffffu << 32) + 0x01ffffffu;
+        ahc->poly_key_8[i] &= ((UINT64)0x01ffffffU << 32) | 0x01ffffffU;
         ahc->poly_accum[i] = 1;  /* Our polyhash prepends a non-zero word */
     }
 

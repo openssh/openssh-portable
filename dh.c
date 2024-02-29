@@ -237,7 +237,7 @@ dh_pub_is_valid(const DH *dh, const BIGNUM *dh_pub)
 {
 	int i;
 	int n = BN_num_bits(dh_pub);
-	int bits_set = 0;
+	u_int bits_set = 0;
 	BIGNUM *tmp;
 	const BIGNUM *dh_p;
 
@@ -267,13 +267,13 @@ dh_pub_is_valid(const DH *dh, const BIGNUM *dh_pub)
 	for (i = 0; i <= n; i++)
 		if (BN_is_bit_set(dh_pub, i))
 			bits_set++;
-	debug2("bits set: %d/%d", bits_set, BN_num_bits(dh_p));
+	debug2("bits set: %u/%d", bits_set, BN_num_bits(dh_p));
 
 	/*
 	 * if g==2 and bits_set==1 then computing log_g(dh_pub) is trivial
 	 */
 	if (bits_set < 4) {
-		logit("invalid public DH value (%d/%d)",
+		logit("invalid public DH value (%u/%d)",
 		    bits_set, BN_num_bits(dh_p));
 		return 0;
 	}

@@ -119,7 +119,7 @@ host_hash(const char *host, const char *name_from_hostfile, u_int src_len)
 	u_char salt[256], result[256];
 	char uu_salt[512], uu_result[512];
 	char *encoded = NULL;
-	u_int len;
+	size_t len;
 
 	len = ssh_digest_bytes(SSH_DIGEST_SHA1);
 

@@ -117,8 +117,8 @@ process_sign(struct sshbuf *req)
 	}
 
 	debug_f("ready to sign with key %s, provider %s: "
-	    "msg len %zu, compat 0x%lx", sshkey_type(key),
-	    provider, msglen, (u_long)compat);
+	    "msg len %zu, compat 0x%x", sshkey_type(key),
+	    provider, msglen, compat);
 
 	null_empty(&pin);
 

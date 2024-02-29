@@ -113,7 +113,7 @@ int login_log_entry(struct logininfo *li);
 
 /* set the network address based on network address type */
 void login_set_addr(struct logininfo *li, const struct sockaddr *sa,
-		    const unsigned int sa_size);
+		    const socklen_t sa_size);
 
 /*
  * lastlog retrieval functions
@@ -124,9 +124,9 @@ struct logininfo *login_get_lastlog(struct logininfo *li, const uid_t uid);
 unsigned int login_get_lastlog_time(const uid_t uid);
 
 /* produce various forms of the line filename */
-char *line_fullname(char *dst, const char *src, u_int dstsize);
-char *line_stripname(char *dst, const char *src, int dstsize);
-char *line_abbrevname(char *dst, const char *src, int dstsize);
+char *line_fullname(char *dst, const char *src, size_t dstsize);
+char *line_stripname(char *dst, const char *src, size_t dstsize);
+char *line_abbrevname(char *dst, const char *src, size_t dstsize);
 
 void record_failed_login(struct ssh *, const char *, const char *,
     const char *);

@@ -1151,7 +1151,8 @@ mux_master_read_cb(struct ssh *ssh, Channel *c)
 {
 	struct mux_master_state *state = (struct mux_master_state *)c->mux_ctx;
 	struct sshbuf *in = NULL, *out = NULL;
-	u_int type, rid, i;
+	u_int type, rid;
+	size_t i;
 	int r, ret = -1;
 
 	if ((out = sshbuf_new()) == NULL)
@@ -1358,7 +1359,8 @@ mux_session_confirm(struct ssh *ssh, int id, int success, void *arg)
 	struct mux_session_confirm_ctx *cctx = arg;
 	const char *display;
 	Channel *c, *cc;
-	int i, r;
+	size_t i;
+	int r;
 	struct sshbuf *reply;
 
 	if (cctx == NULL)
@@ -1887,6 +1889,7 @@ mux_client_request_session(int fd)
 	char *e;
 	const char *term = NULL;
 	u_int i, echar, rid, sid, esid, exitval, type, exitval_seen;
+	size_t j;
 	extern char **environ;
 	int r, rawmode = 0;
 
@@ -1926,10 +1929,10 @@ mux_client_request_session(int fd)
 
 	/* Pass environment */
 	if (options.num_send_env > 0 && environ != NULL) {
-		for (i = 0; environ[i] != NULL; i++) {
-			if (!env_permitted(environ[i]))
+		for (j = 0; environ[j] != NULL; j++) {
+			if (!env_permitted(environ[j]))
 				continue;
-			if ((r = sshbuf_put_cstring(m, environ[i])) != 0)
+			if ((r = sshbuf_put_cstring(m, environ[j])) != 0)
 				fatal_fr(r, "request sendenv");
 		}
 	}
@@ -2062,7 +2065,7 @@ mux_client_request_session(int fd)
 		debug2("Control master terminated unexpectedly");
 		exitval = 255;
 	} else
-		debug2("Received exit status from master %d", exitval);
+		debug2("Received exit status from master %u", exitval);
 
 	if (tty_flag && options.log_level >= SYSLOG_LEVEL_INFO)
 		fprintf(stderr, "Shared connection to %s closed.\r\n", host);
