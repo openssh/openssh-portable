@@ -14,6 +14,6 @@ PREFIX=${PREFIX:-"`pwd`/oqs"}
 cd oqs-scripts/tmp/liboqs
 rm -rf build
 mkdir build && cd build
-cmake .. -GNinja -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=${PREFIX}
+cmake .. -GNinja -DBUILD_SHARED_LIBS=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=${PREFIX}
 ninja
 ninja install
