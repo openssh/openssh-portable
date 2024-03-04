@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.155 2024/01/11 01:45:36 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.156 2024/03/04 02:16:11 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -155,12 +155,12 @@ typedef struct {
 	int	proxy_use_fdpass;
 
 	int	num_canonical_domains;
-	char	*canonical_domains[MAX_CANON_DOMAINS];
+	char	**canonical_domains;
 	int	canonicalize_hostname;
 	int	canonicalize_max_dots;
 	int	canonicalize_fallback_local;
 	int	num_permitted_cnames;
-	struct allowed_cname permitted_cnames[MAX_CANON_DOMAINS];
+	struct allowed_cname *permitted_cnames;
 
 	char	*revoked_host_keys;
 
