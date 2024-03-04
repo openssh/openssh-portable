@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.385 2024/03/04 02:16:11 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.386 2024/03/04 04:13:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -888,6 +888,20 @@ parse_token(const char *cp, const char *filename, int linenum,
 	error("%s: line %d: Bad configuration option: %s",
 	    filename, linenum, cp);
 	return oBadOption;
+}
+
+static void
+free_canon_cnames(struct allowed_cname *cnames, u_int n)
+{
+	u_int i;
+
+	if (cnames == NULL || n == 0)
+		return;
+	for (i = 0; i < n; i++) {
+		free(cnames[i].source_list);
+		free(cnames[i].target_list);
+	}
+	free(cnames);
 }
 
 /* Multistate option parsing */
@@ -2160,13 +2174,10 @@ parse_pubkey_algos:
 		if (found && *activep) {
 			options->permitted_cnames = cnames;
 			options->num_permitted_cnames = ncnames;
-		} else {
-			for (i = 0; i < ncnames; i++) {
-				free(cnames[i].source_list);
-				free(cnames[i].target_list);
-			}
-			free(cnames);
+			cnames = NULL; /* transferred */
+			ncnames = 0;
 		}
+		/* un-transferred cnames is cleaned up before exit */
 		break;
 
 	case oCanonicalizeHostname:
@@ -2405,6 +2416,7 @@ parse_pubkey_algos:
 	/* success */
 	ret = 0;
  out:
+	free_canon_cnames(cnames, ncnames);
 	opt_array_free2(strs, NULL, nstrs);
 	argv_free(oav, oac);
 	return ret;
