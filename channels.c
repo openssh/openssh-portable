@@ -3247,7 +3247,6 @@ channel_proxy_downstream(struct ssh *ssh, Channel *downstream)
 		/* Record that connection to this host/port is permitted. */
 		permission_set_add(ssh, FORWARD_USER, FORWARD_LOCAL, "<mux>", -1,
 		    listen_host, NULL, (int)listen_port, downstream);
-		listen_host = NULL;
 		break;
 	case SSH2_MSG_CHANNEL_CLOSE:
 		if (have < 4)
