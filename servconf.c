@@ -115,6 +115,7 @@ initialize_server_options(ServerOptions *options)
 	options->x11_use_localhost = -1;
 	options->permit_tty = -1;
 	options->permit_user_rc = -1;
+	options->num_user_rc_files = 0;
 	options->xauth_location = NULL;
 	options->strict_modes = -1;
 	options->tcp_keep_alive = -1;
@@ -141,6 +142,7 @@ initialize_server_options(ServerOptions *options)
 	options->permit_empty_passwd = -1;
 	options->permit_user_env = -1;
 	options->permit_user_env_allowlist = NULL;
+	options->num_user_env_files = 0;
 	options->compression = -1;
 	options->rekey_limit = -1;
 	options->rekey_interval = -1;
@@ -332,6 +334,11 @@ fill_default_server_options(ServerOptions *options)
 		options->permit_tty = 1;
 	if (options->permit_user_rc == -1)
 		options->permit_user_rc = 1;
+	if (options->num_user_rc_files == 0)
+		opt_array_append("[default]", 0, "UserRCFiles",
+		    &options->user_rc_files,
+		    &options->num_user_rc_files,
+		    _PATH_SSH_USER_RC);
 	if (options->strict_modes == -1)
 		options->strict_modes = 1;
 	if (options->tcp_keep_alive == -1)
@@ -372,6 +379,11 @@ fill_default_server_options(ServerOptions *options)
 		options->permit_user_env = 0;
 		options->permit_user_env_allowlist = NULL;
 	}
+	if (options->num_user_env_files == 0)
+		opt_array_append("[default]", 0, "UserEnvFiles",
+		    &options->user_env_files,
+		    &options->num_user_env_files,
+		    _PATH_SSH_USER_DIR "/environment");
 	if (options->compression == -1)
 #ifdef WITH_ZLIB
 		options->compression = COMP_DELAYED;
@@ -508,7 +520,8 @@ typedef enum {
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
-	sPermitUserEnvironment, sAllowTcpForwarding, sCompression,
+	sPermitUserEnvironment, sUserEnvironmentFile,
+	sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sPidFile, sModuliFile,
 	sGatewayPorts, sPubkeyAuthentication, sPubkeyAcceptedAlgorithms,
@@ -526,7 +539,7 @@ typedef enum {
 	sAuthorizedPrincipalsCommand, sAuthorizedPrincipalsCommandUser,
 	sKexAlgorithms, sCASignatureAlgorithms, sIPQoS, sVersionAddendum,
 	sAuthorizedKeysCommand, sAuthorizedKeysCommandUser,
-	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC,
+	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC, sUserRCFile,
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
@@ -628,6 +641,7 @@ static struct {
 	{ "strictmodes", sStrictModes, SSHCFG_GLOBAL },
 	{ "permitemptypasswords", sEmptyPasswd, SSHCFG_ALL },
 	{ "permituserenvironment", sPermitUserEnvironment, SSHCFG_GLOBAL },
+	{ "userenvironmentfile", sUserEnvironmentFile, SSHCFG_GLOBAL },
 	{ "uselogin", sDeprecated, SSHCFG_GLOBAL },
 	{ "compression", sCompression, SSHCFG_GLOBAL },
 	{ "rekeylimit", sRekeyLimit, SSHCFG_ALL },
@@ -663,6 +677,7 @@ static struct {
 	{ "permittunnel", sPermitTunnel, SSHCFG_ALL },
 	{ "permittty", sPermitTTY, SSHCFG_ALL },
 	{ "permituserrc", sPermitUserRC, SSHCFG_ALL },
+	{ "userrcfile", sUserRCFile, SSHCFG_ALL },
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
 	{ "permitlisten", sPermitListen, SSHCFG_ALL },
@@ -1673,6 +1688,30 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		intptr = &options->permit_user_rc;
 		goto parse_flag;
 
+	/*
+	 * These options can contain %X options expanded at
+	 * connect time, so that you can specify paths like:
+	 *
+	 * UserRCFile	/etc/ssh_user_rc/%u
+	 */
+	case sUserRCFile:
+		value = options->num_user_rc_files;
+		while ((arg = argv_next(&ac, &av)) != NULL) {
+			if (*arg == '\0') {
+				error("%s line %d: keyword %s empty argument",
+				    filename, linenum, keyword);
+				goto out;
+			}
+			arg2 = tilde_expand_filename(arg, getuid());
+			if (*activep && value == 0) {
+				opt_array_append(filename, linenum, keyword,
+				    &options->user_rc_files,
+				    &options->num_user_rc_files, arg2);
+			}
+			free(arg2);
+		}
+		break;
+
 	case sStrictModes:
 		intptr = &options->strict_modes;
 		goto parse_flag;
@@ -1709,6 +1748,30 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			p = NULL;
 		}
 		free(p);
+		break;
+
+	/*
+	 * These options can contain %X options expanded at
+	 * connect time, so that you can specify paths like:
+	 *
+	 * UserEnvironmentFile	/etc/ssh_user_env/%u
+	 */
+	case sUserEnvironmentFile:
+		value = options->num_user_env_files;
+		while ((arg = argv_next(&ac, &av)) != NULL) {
+			if (*arg == '\0') {
+				error("%s line %d: keyword %s empty argument",
+				    filename, linenum, keyword);
+				goto out;
+			}
+			arg2 = tilde_expand_filename(arg, getuid());
+			if (*activep && value == 0) {
+				opt_array_append(filename, linenum, keyword,
+				    &options->user_env_files,
+				    &options->num_user_env_files, arg2);
+			}
+			free(arg2);
+		}
 		break;
 
 	case sCompression:
@@ -3175,6 +3238,10 @@ dump_config(ServerOptions *o)
 	/* string array arguments */
 	dump_cfg_strarray_oneline(sAuthorizedKeysFile, o->num_authkeys_files,
 	    o->authorized_keys_files);
+	dump_cfg_strarray_oneline(sUserRCFile, o->num_user_rc_files,
+	    o->user_rc_files);
+	dump_cfg_strarray_oneline(sUserEnvironmentFile, o->num_user_env_files,
+	    o->user_env_files);
 	dump_cfg_strarray(sHostKeyFile, o->num_host_key_files,
 	    o->host_key_files);
 	dump_cfg_strarray(sHostCertificate, o->num_host_cert_files,
