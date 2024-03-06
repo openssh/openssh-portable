@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.304 2023/12/18 15:58:56 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.305 2024/03/06 00:31:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -250,6 +250,7 @@ free_dest_constraints(struct dest_constraint *dcs, size_t ndcs)
 	free(dcs);
 }
 
+#ifdef ENABLE_PKCS11
 static void
 dup_dest_constraint_hop(const struct dest_constraint_hop *dch,
     struct dest_constraint_hop *out)
@@ -289,6 +290,7 @@ dup_dest_constraints(const struct dest_constraint *dcs, size_t ndcs)
 	}
 	return ret;
 }
+#endif /* ENABLE_PKCS11 */
 
 #ifdef DEBUG_CONSTRAINTS
 static void
@@ -1522,6 +1524,7 @@ no_identities(SocketEntry *e)
 	sshbuf_free(msg);
 }
 
+#ifdef ENABLE_PKCS11
 /* Add an identity to idlist; takes ownership of 'key' and 'comment' */
 static void
 add_p11_identity(struct sshkey *key, char *comment, const char *provider,
@@ -1548,7 +1551,6 @@ add_p11_identity(struct sshkey *key, char *comment, const char *provider,
 	idtab->nentries++;
 }
 
-#ifdef ENABLE_PKCS11
 static void
 process_add_smartcard_key(SocketEntry *e)
 {
