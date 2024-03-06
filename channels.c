@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.436 2024/01/09 22:19:00 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.437 2024/03/06 02:59:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3245,9 +3245,8 @@ channel_proxy_downstream(struct ssh *ssh, Channel *downstream)
 			goto out;
 		}
 		/* Record that connection to this host/port is permitted. */
-		permission_set_add(ssh, FORWARD_USER, FORWARD_LOCAL, "<mux>", -1,
-		    listen_host, NULL, (int)listen_port, downstream);
-		listen_host = NULL;
+		permission_set_add(ssh, FORWARD_USER, FORWARD_LOCAL, "<mux>",
+		    -1, listen_host, NULL, (int)listen_port, downstream);
 		break;
 	case SSH2_MSG_CHANNEL_CLOSE:
 		if (have < 4)
