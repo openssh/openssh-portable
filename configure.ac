@@ -2743,7 +2743,15 @@ AC_ARG_WITH([ssl-dir],
 			else
 				CPPFLAGS="-I${withval} ${CPPFLAGS}"
 			fi
-			openssl_bin_PATH="${PATH}${PATH_SEPARATOR}${withval}/bin${PATH_SEPARATOR}${withval}/apps"
+			dnl Ensure specified openssl binary works, eg it can
+			dnl find its runtime libraries, before trying to use.
+			if test -x "${withval}/bin/openssl" && \
+			    "${withval}/bin/openssl" version >/dev/null 2>&1; then
+				openssl_bin_PATH="${withval}/bin${PATH_SEPARATOR}${PATH}"
+			elif test -x "${withval}/apps/openssl" && \
+			    "${withval}/apps/openssl" version >/dev/null 2>&1; then
+				openssl_bin_PATH="${withval}/apps${PATH_SEPARATOR}${PATH}"
+			fi
 		fi
 	]
 )
