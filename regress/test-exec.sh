@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.107 2024/02/19 09:25:52 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.108 2024/03/08 11:34:10 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -103,6 +103,9 @@ DROPBEAR=/usr/local/bin/dropbear
 DBCLIENT=/usr/local/bin/dbclient
 DROPBEARKEY=/usr/local/bin/dropbearkey
 DROPBEARCONVERT=/usr/local/bin/dropbearconvert
+
+# So we can override this in Portable.
+TEST_SHELL="${TEST_SHELL:-/bin/sh}"
 
 # Tools used by multiple tests
 NC=$OBJ/netcat
