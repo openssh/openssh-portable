@@ -165,6 +165,18 @@ time_t parent_alive_interval = 0;
 /* pid of process for which cleanup_socket is applicable */
 pid_t cleanup_pid = 0;
 
+/*
+ * Pair of pipe() fds used to indicate the process should clean up and exit
+ * after receiving a signal.
+ */
+static int signal_cleanup_pipe[2] = { -1, -1 };
+
+/**
+ * If non-zero, the process has received a signal and should clean up and
+ * exit.
+ */
+static int should_cleanup_on_signal = 0;
+
 /* pathname and directory for AUTH_SOCKET */
 char socket_name[PATH_MAX];
 char socket_dir[PATH_MAX];
@@ -2016,6 +2028,9 @@ after_poll(struct pollfd *pfd, size_t npfd, u_int maxfds)
 	for (i = 0; i < npfd; i++) {
 		if (pfd[i].revents == 0)
 			continue;
+		/* Cleanup is handled outside this function; ignore this. */
+		if (pfd[i].fd == signal_cleanup_pipe[0])
+			continue;
 		/* Find sockets entry */
 		for (socknum = 0; socknum < sockets_alloc; socknum++) {
 			if (sockets[socknum].type != AUTH_SOCKET &&
@@ -2065,7 +2080,7 @@ static int
 prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
 {
 	struct pollfd *pfd = *pfdp;
-	size_t i, j, npfd = 0;
+	size_t i, j, npfd = 1; /* npfd always starts at 1 for signal_cleanup_pipe[0] */
 	time_t deadline;
 	int r;
 
@@ -2083,13 +2098,21 @@ prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
 			break;
 		}
 	}
+
 	if (npfd != *npfdp &&
 	    (pfd = recallocarray(pfd, *npfdp, npfd, sizeof(*pfd))) == NULL)
 		fatal_f("recallocarray failed");
 	*pfdp = pfd;
 	*npfdp = npfd;
 
-	for (i = j = 0; i < sockets_alloc; i++) {
+        /* Add the read end of the cleanup pipe to the set of fds to poll. */
+	j = 0;
+	pfd[j].fd = signal_cleanup_pipe[0];
+	pfd[j].revents = 0;
+	pfd[j].events = POLLIN;
+	j++;
+
+	for (i = 0; i < sockets_alloc; i++) {
 		switch (sockets[i].type) {
 		case AUTH_SOCKET:
 			if (npfd > maxfds) {
@@ -2161,11 +2184,22 @@ cleanup_exit(int i)
 static void
 cleanup_handler(int sig)
 {
+	/* All work performed in a signal handler must be async signal safe. */
+	should_cleanup_on_signal = 1;
+	if (write(signal_cleanup_pipe[1], "X", 1) != 1) {
+		/* Nothing we can do here but exit. */
+		_exit(2);
+	}
+}
+
+static void
+do_signal_cleanup_and_exit(int i)
+{
 	cleanup_socket();
 #ifdef ENABLE_PKCS11
 	pkcs11_terminate();
 #endif
-	_exit(2);
+	_exit(i);
 }
 
 static void
@@ -2210,8 +2244,8 @@ main(int ac, char **av)
 	size_t len;
 	mode_t prev_mask;
 	int timeout = -1; /* INFTIM */
-	struct pollfd *pfd = NULL;
-	size_t npfd = 0;
+	struct pollfd *pfd;
+	size_t npfd;
 	u_int maxfds;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -2332,9 +2366,9 @@ main(int ac, char **av)
 	/*
 	 * Minimum file descriptors:
 	 * stdio (3) + listener (1) + syslog (1 maybe) + connection (1) +
-	 * a few spare for libc / stack protectors / sanitisers, etc.
+	 * cleanup pipe (2) + a few spare for libc / stack protectors / sanitisers, etc.
 	 */
-#define SSH_AGENT_MIN_FDS (3+1+1+1+4)
+#define SSH_AGENT_MIN_FDS (3+1+1+1+2+4)
 	if (rlim.rlim_cur < SSH_AGENT_MIN_FDS)
 		fatal("%s: file descriptor rlimit %lld too low (minimum %u)",
 		    __progname, (long long)rlim.rlim_cur, SSH_AGENT_MIN_FDS);
@@ -2443,6 +2477,15 @@ skip:
 	if (ac > 0)
 		parent_alive_interval = 10;
 	idtab_init();
+
+	if (pipe(signal_cleanup_pipe) == -1) {
+		error_f("pipe: %s", strerror(errno));
+		cleanup_exit(1);
+	}
+	/* The read end of signal_cleanup_pipe is always in pfd */
+	npfd = 1;
+	pfd = xcalloc(1, sizeof(pfd[0]));
+
 	ssh_signal(SIGPIPE, SIG_IGN);
 	ssh_signal(SIGINT, (d_flag | D_flag) ? cleanup_handler : SIG_IGN);
 	ssh_signal(SIGHUP, cleanup_handler);
@@ -2453,6 +2496,8 @@ skip:
 	platform_pledge_agent();
 
 	while (1) {
+		if (should_cleanup_on_signal)
+			do_signal_cleanup_and_exit(2);
 		prepare_poll(&pfd, &npfd, &timeout, maxfds);
 		result = poll(pfd, npfd, timeout);
 		saved_errno = errno;
