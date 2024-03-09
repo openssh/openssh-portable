@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.305 2024/03/06 00:31:04 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.306 2024/03/09 05:12:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -161,6 +161,8 @@ int max_fd = 0;
 /* pid of shell == parent of agent */
 pid_t parent_pid = -1;
 time_t parent_alive_interval = 0;
+
+sig_atomic_t signalled = 0;
 
 /* pid of process for which cleanup_socket is applicable */
 pid_t cleanup_pid = 0;
@@ -2062,7 +2064,7 @@ after_poll(struct pollfd *pfd, size_t npfd, u_int maxfds)
 }
 
 static int
-prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
+prepare_poll(struct pollfd **pfdp, size_t *npfdp, struct timespec *timeoutp, u_int maxfds)
 {
 	struct pollfd *pfd = *pfdp;
 	size_t i, j, npfd = 0;
@@ -2128,14 +2130,8 @@ prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
 	if (parent_alive_interval != 0)
 		deadline = (deadline == 0) ? parent_alive_interval :
 		    MINIMUM(deadline, parent_alive_interval);
-	if (deadline == 0) {
-		*timeoutp = -1; /* INFTIM */
-	} else {
-		if (deadline > INT_MAX / 1000)
-			*timeoutp = INT_MAX / 1000;
-		else
-			*timeoutp = deadline * 1000;
-	}
+	if (deadline != 0)
+		ptimeout_deadline_sec(timeoutp, deadline);
 	return (1);
 }
 
@@ -2155,17 +2151,16 @@ void
 cleanup_exit(int i)
 {
 	cleanup_socket();
+#ifdef ENABLE_PKCS11
+	pkcs11_terminate();
+#endif
 	_exit(i);
 }
 
 static void
 cleanup_handler(int sig)
 {
-	cleanup_socket();
-#ifdef ENABLE_PKCS11
-	pkcs11_terminate();
-#endif
-	_exit(2);
+	signalled = sig;
 }
 
 static void
@@ -2209,10 +2204,11 @@ main(int ac, char **av)
 	char pidstrbuf[1 + 3 * sizeof pid];
 	size_t len;
 	mode_t prev_mask;
-	int timeout = -1; /* INFTIM */
+	struct timespec timeout;
 	struct pollfd *pfd = NULL;
 	size_t npfd = 0;
 	u_int maxfds;
+	sigset_t nsigset, osigset;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -2448,13 +2444,25 @@ skip:
 	ssh_signal(SIGHUP, cleanup_handler);
 	ssh_signal(SIGTERM, cleanup_handler);
 
+	sigemptyset(&nsigset);
+	sigaddset(&nsigset, SIGINT);
+	sigaddset(&nsigset, SIGHUP);
+	sigaddset(&nsigset, SIGTERM);
+
 	if (pledge("stdio rpath cpath unix id proc exec", NULL) == -1)
 		fatal("%s: pledge: %s", __progname, strerror(errno));
 	platform_pledge_agent();
 
 	while (1) {
+		sigprocmask(SIG_BLOCK, &nsigset, &osigset);
+		if (signalled != 0) {
+			logit("exiting on signal %d", (int)signalled);
+			cleanup_exit(2);
+		}
+		ptimeout_init(&timeout);
 		prepare_poll(&pfd, &npfd, &timeout, maxfds);
-		result = poll(pfd, npfd, timeout);
+		result = ppoll(pfd, npfd, ptimeout_get_tsp(&timeout), &osigset);
+		sigprocmask(SIG_SETMASK, &osigset, NULL);
 		saved_errno = errno;
 		if (parent_alive_interval != 0)
 			check_parent_exists();
