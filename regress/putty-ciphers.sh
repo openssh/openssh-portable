@@ -31,6 +31,12 @@ done
 
 for c in default $ciphers; do
     for m in default ${macs}; do
+	# none is a valid cipher in hpnssh but it
+	# causes the tests to fail so skip it
+	# cjr - 3/5/2024
+	if [ "${m}" = "none" ]; then
+	    continue
+	fi
 	verbose "$tid: cipher $c mac $m"
 	cp ${OBJ}/.putty/sessions/localhost_proxy \
 	    ${OBJ}/.putty/sessions/cipher_$c

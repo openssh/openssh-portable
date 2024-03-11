@@ -208,12 +208,12 @@ t7: $(OBJ)/t7.out
 	fi
 
 $(OBJ)/t8.out:
-	set -xe ; if ssh -Q key | grep -q "^ssh-dss" ; then \
+	set -xe ; if ${TEST_SSH_SSH} -Q key | grep -q "^ssh-dss" ; then \
 		${TEST_SSH_SSHKEYGEN} -q -t dsa -N '' -f $@ ; \
 	fi
 
 t8: $(OBJ)/t8.out
-	set -xe ; if ssh -Q key | grep -q "^ssh-dss" ; then \
+	set -xe ; if ${TEST_SSH_SSH} -Q key | grep -q "^ssh-dss" ; then \
 		${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t8.out > /dev/null ; \
 		${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t8.out > /dev/null ; \
 	fi

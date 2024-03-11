@@ -792,12 +792,8 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-<<<<<<< HEAD
-"usage: hpnssh-add [-cDdKkLlqvXx] [-E fingerprint_hash] [-H hostkey_file]\n"
-=======
-"usage: ssh-add [-CcDdKkLlqvXx] [-E fingerprint_hash] [-H hostkey_file]\n"
->>>>>>> V_9_7_P1
-"               [-h destination_constraint] [-S provider] [-t life]\n"
+"usage: hpnssh-add [-CcDdKkLlqvXx] [-E fingerprint_hash] [-H hostkey_file]\n"
+"                  [-h destination_constraint] [-S provider] [-t life]\n"
 #ifdef WITH_XMSS
 "               [-M maxsign] [-m minleft]\n"
 #endif
