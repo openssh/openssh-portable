@@ -1206,6 +1206,9 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 	    (key == NULL || !authctxt->valid) ? "invalid" : sshkey_type(key),
 	    allowed ? "allowed" : "not allowed");
 
+	if (key == NULL)
+		fatal("%s: key is NULL", __func__);
+
 	auth2_record_key(authctxt, 0, key);
 
 	/* clear temporarily storage (used by verify) */
