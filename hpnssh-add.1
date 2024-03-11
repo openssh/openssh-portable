@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.85 2023/12/18 14:46:56 djm Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.86 2023/12/19 06:57:34 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,15 +35,25 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
+<<<<<<< HEAD:hpnssh-add.1
 .Dd $Mdocdate: December 18 2023 $
 .Dt HPNSSH-ADD 1
+=======
+.Dd $Mdocdate: December 19 2023 $
+.Dt SSH-ADD 1
+>>>>>>> V_9_7_P1:ssh-add.1
 .Os
 .Sh NAME
 .Nm hpnssh-add
 .Nd adds private key identities to the OpenSSH authentication agent
 .Sh SYNOPSIS
+<<<<<<< HEAD:hpnssh-add.1
 .Nm hpnssh-add
 .Op Fl cCDdKkLlqvXx
+=======
+.Nm ssh-add
+.Op Fl CcDdKkLlqvXx
+>>>>>>> V_9_7_P1:ssh-add.1
 .Op Fl E Ar fingerprint_hash
 .Op Fl H Ar hostkey_file
 .Op Fl h Ar destination_constraint
@@ -52,7 +62,7 @@
 .Op Ar
 .Nm hpnssh-add
 .Fl s Ar pkcs11
-.Op Fl vC
+.Op Fl Cv
 .Op Ar certificate ...
 .Nm hpnssh-add
 .Fl e Ar pkcs11
@@ -98,6 +108,9 @@ to work.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
+.It Fl C
+When loading keys into or deleting keys from the agent, process
+certificates only and skip plain keys.
 .It Fl c
 Indicates that added identities should be subject to confirmation before
 being used for authentication.
@@ -106,9 +119,6 @@ Confirmation is performed by
 Successful confirmation is signaled by a zero exit status from
 .Xr ssh-askpass 1 ,
 rather than text entered into the requester.
-.It Fl C
-When loading keys into or deleting keys from the agent, process
-certificates only and skip plain keys.
 .It Fl D
 Deletes all identities from the agent.
 .It Fl d
