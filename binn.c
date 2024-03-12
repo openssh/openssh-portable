@@ -950,8 +950,8 @@ BINN_PRIVATE BOOL AddValue(binn *item, int type, void *pvalue, int size) {
         break;
       case BINN_STORAGE_BLOB:
       case BINN_STORAGE_STRING:
-	/* fall through */
         if (size == 0) break; // the 2 above are allowed to have 0 length
+	/* fall through */
       default:
         return FALSE;
     }
@@ -2804,7 +2804,7 @@ double APIENTRY binn_list_double(const void *list, int pos) {
 }
 
 BOOL APIENTRY binn_list_bool(const void *list, int pos) {
-  BOOL value;
+  BOOL value = TRUE;
 
   binn_list_get(list, pos, BINN_BOOL, &value, NULL);
 
@@ -2940,7 +2940,7 @@ double APIENTRY binn_map_double(const void *map, int id) {
 }
 
 BOOL APIENTRY binn_map_bool(const void *map, int id) {
-  BOOL value;
+  BOOL value = TRUE;
 
   binn_map_get(map, id, BINN_BOOL, &value, NULL);
 
@@ -3076,7 +3076,7 @@ double APIENTRY binn_object_double(const void *obj, const char *key) {
 }
 
 BOOL APIENTRY binn_object_bool(const void *obj, const char *key) {
-  BOOL value;
+  BOOL value = TRUE;
 
   binn_object_get(obj, key, BINN_BOOL, &value, NULL);
 
