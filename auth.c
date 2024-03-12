@@ -670,7 +670,7 @@ remote_hostname(struct ssh *ssh)
 	debug3("Trying to reverse map address %.100s.", ntop);
 	/* Map the IP address to a host name. */
 	if (getnameinfo((struct sockaddr *)&from, fromlen, name, sizeof(name),
-	    NULL, 0, NI_NAMEREQD) != 0) {
+	    NULL, 0, NI_NAMEREQD|NI_IDN) != 0) {
 		/* Host name not found.  Use ip address. */
 		return xstrdup(ntop);
 	}
