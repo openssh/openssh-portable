@@ -357,7 +357,7 @@ ssh_packet_get_mux(struct ssh *ssh)
 }
 
 int
-ssh_packet_set_log_preamble(struct ssh *ssh, const char *fmt, ...)
+ssh_packet_set_log_preamble(struct ssh *ssh, const char *__restrict fmt, ...)
 {
 	va_list args;
 	int r;
@@ -1855,7 +1855,7 @@ ssh_packet_remaining(struct ssh *ssh)
  * exceed 1024 bytes.  This will automatically call ssh_packet_write_wait.
  */
 void
-ssh_packet_send_debug(struct ssh *ssh, const char *fmt,...)
+ssh_packet_send_debug(struct ssh *ssh, const char *__restrict fmt,...)
 {
 	char buf[1024];
 	va_list args;
@@ -1892,7 +1892,7 @@ sshpkt_fmt_connection_id(struct ssh *ssh, char *s, size_t l)
  * Pretty-print connection-terminating errors and exit.
  */
 static void
-sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
+sshpkt_vfatal(struct ssh *ssh, int r, const char *__restrict fmt, va_list ap)
 {
 	char *tag = NULL, remote_id[512];
 	int oerrno = errno;
@@ -1943,7 +1943,7 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 }
 
 void
-sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
+sshpkt_fatal(struct ssh *ssh, int r, const char *__restrict fmt, ...)
 {
 	va_list ap;
 
@@ -1961,7 +1961,7 @@ sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
  * not exceed 1024 bytes.
  */
 void
-ssh_packet_disconnect(struct ssh *ssh, const char *fmt,...)
+ssh_packet_disconnect(struct ssh *ssh, const char *__restrict fmt,...)
 {
 	char buf[1024], remote_id[512];
 	va_list args;
@@ -2736,7 +2736,7 @@ sshpkt_send(struct ssh *ssh)
 }
 
 int
-sshpkt_disconnect(struct ssh *ssh, const char *fmt,...)
+sshpkt_disconnect(struct ssh *ssh, const char *__restrict fmt,...)
 {
 	char buf[1024];
 	va_list args;

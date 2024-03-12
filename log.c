@@ -334,7 +334,7 @@ set_log_handler(log_handler_fn *handler, void *ctx)
 }
 
 static void
-do_log(LogLevel level, int force, const char *suffix, const char *fmt,
+do_log(LogLevel level, int force, const char *suffix, const char *__restrict fmt,
     va_list args)
 {
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
@@ -425,7 +425,7 @@ do_log(LogLevel level, int force, const char *suffix, const char *fmt,
 
 void
 sshlog(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *suffix, const char *fmt, ...)
+    LogLevel level, const char *suffix, const char *__restrict fmt, ...)
 {
 	va_list args;
 
@@ -436,7 +436,7 @@ sshlog(const char *file, const char *func, int line, int showfunc,
 
 void
 sshlogdie(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *suffix, const char *fmt, ...)
+    LogLevel level, const char *suffix, const char *__restrict fmt, ...)
 {
 	va_list args;
 
@@ -449,7 +449,7 @@ sshlogdie(const char *file, const char *func, int line, int showfunc,
 
 void
 sshsigdie(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *suffix, const char *fmt, ...)
+    LogLevel level, const char *suffix, const char *__restrict fmt, ...)
 {
 	va_list args;
 
@@ -462,7 +462,7 @@ sshsigdie(const char *file, const char *func, int line, int showfunc,
 
 void
 sshlogv(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *suffix, const char *fmt, va_list args)
+    LogLevel level, const char *suffix, const char *__restrict fmt, va_list args)
 {
 	char tag[128], fmt2[MSGBUFSIZ + 128];
 	int forced = 0;
@@ -494,7 +494,7 @@ sshlogv(const char *file, const char *func, int line, int showfunc,
 }
 
 void
-sshlogdirect(LogLevel level, int forced, const char *fmt, ...)
+sshlogdirect(LogLevel level, int forced, const char *__restrict fmt, ...)
 {
 	va_list args;
 

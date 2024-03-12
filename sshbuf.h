@@ -147,9 +147,9 @@ int	sshbuf_put(struct sshbuf *buf, const void *v, size_t len);
 int	sshbuf_putb(struct sshbuf *buf, const struct sshbuf *v);
 
 /* Append using a printf(3) format */
-int	sshbuf_putf(struct sshbuf *buf, const char *fmt, ...)
+int	sshbuf_putf(struct sshbuf *__restrict buf, const char *__restrict fmt, ...)
 	    __attribute__((format(printf, 2, 3)));
-int	sshbuf_putfv(struct sshbuf *buf, const char *fmt, va_list ap);
+int	sshbuf_putfv(struct sshbuf *__restrict buf, const char *__restrict fmt, va_list ap);
 
 /* Functions to extract or store big-endian words of various sizes */
 int	sshbuf_get_u64(struct sshbuf *buf, u_int64_t *valp);
@@ -227,10 +227,10 @@ int	sshbuf_put_eckey(struct sshbuf *buf, const EC_KEY *v);
 #endif /* WITH_OPENSSL */
 
 /* Dump the contents of the buffer in a human-readable format */
-void	sshbuf_dump(const struct sshbuf *buf, FILE *f);
+void	sshbuf_dump(const struct sshbuf *__restrict buf, FILE *__restrict f);
 
 /* Dump specified memory in a human-readable format */
-void	sshbuf_dump_data(const void *s, size_t len, FILE *f);
+void	sshbuf_dump_data(const void *__restrict s, size_t len, FILE *__restrict f);
 
 /* Return the hexadecimal representation of the contents of the buffer */
 char	*sshbuf_dtob16(struct sshbuf *buf);

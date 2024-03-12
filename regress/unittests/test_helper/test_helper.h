@@ -49,7 +49,7 @@ int test_is_verbose(void);
 int test_is_quiet(void);
 int test_is_fast(void);
 int test_is_slow(void);
-void test_subtest_info(const char *fmt, ...)
+void test_subtest_info(const char *__restrict fmt, ...)
     __attribute__((format(printf, 1, 2)));
 void ssl_err_check(const char *file, int line);
 #ifdef WITH_OPENSSL

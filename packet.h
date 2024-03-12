@@ -132,10 +132,10 @@ int      ssh_packet_read_seqnr(struct ssh *, u_char *, u_int32_t *seqnr_p);
 int      ssh_packet_read_poll_seqnr(struct ssh *, u_char *, u_int32_t *seqnr_p);
 
 const void *ssh_packet_get_string_ptr(struct ssh *, u_int *length_ptr);
-void     ssh_packet_disconnect(struct ssh *, const char *fmt, ...)
+void     ssh_packet_disconnect(struct ssh *, const char *__restrict fmt, ...)
 	__attribute__((format(printf, 2, 3)))
 	__attribute__((noreturn));
-void     ssh_packet_send_debug(struct ssh *, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void     ssh_packet_send_debug(struct ssh *, const char *__restrict fmt, ...) __attribute__((format(printf, 2, 3)));
 
 int	 ssh_set_newkeys(struct ssh *, int mode);
 void	 ssh_packet_get_bytes(struct ssh *, u_int64_t *, u_int64_t *);
@@ -175,10 +175,10 @@ void	*ssh_packet_get_output(struct ssh *);
 /* new API */
 int	sshpkt_start(struct ssh *ssh, u_char type);
 int	sshpkt_send(struct ssh *ssh);
-int     sshpkt_disconnect(struct ssh *, const char *fmt, ...)
+int     sshpkt_disconnect(struct ssh *, const char *__restrict fmt, ...)
 	    __attribute__((format(printf, 2, 3)));
 int	sshpkt_add_padding(struct ssh *, u_char);
-void	sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
+void	sshpkt_fatal(struct ssh *ssh, int r, const char *__restrict fmt, ...)
 	    __attribute__((format(printf, 3, 4)))
 	    __attribute__((noreturn));
 int	sshpkt_msg_ignore(struct ssh *, u_int);

@@ -20,7 +20,7 @@
 #endif
 
 static void
-fatal(const char *fmt, ...)
+fatal(const char *__restrict fmt, ...)
 {
 	va_list args;
 

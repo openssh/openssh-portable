@@ -302,7 +302,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
  * Export the fingerprint of a key as a DNS resource record
  */
 int
-export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic,
+export_dns_rr(const char *__restrict hostname, struct sshkey *__restrict key, FILE *__restrict f, int generic,
     int alg)
 {
 	u_int8_t rdata_pubkey_algorithm = 0;

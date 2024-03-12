@@ -695,7 +695,7 @@ do_host(char *host)
 
 void
 sshfatal(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *suffix, const char *fmt, ...)
+    LogLevel level, const char *suffix, const char *__restrict fmt, ...)
 {
 	va_list args;
 
