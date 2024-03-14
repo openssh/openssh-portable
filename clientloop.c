@@ -2766,7 +2766,7 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	kernel_version = binn_object_int32((void *)blob, "kernel_version");
 
 	/* create a string of the data from the binn object blob */
-	metrics_read_binn_object((void *)blob, &metricsstring);
+	metrics_read_binn_object((void *)blob, metricsstring);
 
 	/* have we printed the header? */
 	if (metrics_hdr_remote_flag == 0) {
@@ -2811,7 +2811,7 @@ localonly:
 	metrics_write_binn_object(&local_tcp_info, metricsobj);
 
 	/* create a string of the data from the binn object metricsobj */
-	metrics_read_binn_object((void *)metricsobj, &metricsstring);
+	metrics_read_binn_object((void *)metricsobj, metricsstring);
 
 	/* get the kernel version printing the header */
 	kernel_version = binn_object_int32(metricsobj, "kernel_version");
