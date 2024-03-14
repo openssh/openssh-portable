@@ -2670,7 +2670,10 @@ main(int argc, char **argv)
 
 	if (!quiet) {
 		if (sftp_direct == NULL)
-			fprintf(stderr, "Connected to %s.\n", host);
+			if (user != NULL)
+				fprintf(stderr, "Connected to %s@%s.\n", user, host);
+			else
+				fprintf(stderr, "Connected to %s.\n", host);
 		else
 			fprintf(stderr, "Attached to %s.\n", sftp_direct);
 	}
