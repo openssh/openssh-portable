@@ -273,7 +273,10 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	}
 	rrset->rri_rdclass = response->query->class;
 	rrset->rri_rdtype = response->query->type;
-	rrset->rri_ttl = response->answer->ttl;
+
+	if (response->answer != NULL)
+		rrset->rri_ttl = response->answer->ttl;
+
 	rrset->rri_nrdatas = response->header.ancount;
 
 #ifdef HAVE_HEADER_AD
