@@ -393,8 +393,11 @@ int
 do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 {
 	pid_t pid;
+	verbose("Calsoft: do_exec_no_pty. Command - %s pid: %d", command, getpid());
+
 #ifdef USE_PIPES
 	int pin[2], pout[2], perr[2];
+	verbose("Calsoft: Use Pipes");
 
 	if (s == NULL)
 		fatal("do_exec_no_pty: no session");
@@ -421,6 +424,7 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 	}
 #else
 	int inout[2], err[2];
+	verbose("Calsoft: Use Unix Sockets");
 
 	if (s == NULL)
 		fatal("do_exec_no_pty: no session");
@@ -461,7 +465,7 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 		return -1;
 	case 0:
 		is_child = 1;
-
+		verbose("Calsoft: Child process forked");
 		/*
 		 * Create a new session and process group since the 4.4BSD
 		 * setlogin() affects the entire process group.
@@ -695,7 +699,7 @@ do_exec(struct ssh *ssh, Session *s, const char *command)
 	int ret;
 	const char *forced = NULL, *tty = NULL;
 	char session_type[1024];
-
+	verbose("Calsoft: Entering do_exec. Command - '%s'", command);
 	if (options.adm_forced_command) {
 		original_command = command;
 		command = options.adm_forced_command;
@@ -731,14 +735,15 @@ do_exec(struct ssh *ssh, Session *s, const char *command)
 			tty += 5;
 	}
 
-	verbose("Starting session: %s%s%s for %s from %.200s port %d id %d",
+	verbose("Starting session: %s%s%s for %s from %.200s port %d id %d ttyfd %d",
 	    session_type,
 	    tty == NULL ? "" : " on ",
 	    tty == NULL ? "" : tty,
 	    s->pw->pw_name,
 	    ssh_remote_ipaddr(ssh),
 	    ssh_remote_port(ssh),
-	    s->self);
+	    s->self,
+	    s->ttyfd);
 
 #ifdef SSH_AUDIT_EVENTS
 	if (command != NULL)
@@ -1525,6 +1530,21 @@ child_close_fds(struct ssh *ssh)
 	closefrom(STDERR_FILENO + 1);
 }
 
+char* sanitize_string(const char* str) {
+    size_t len = strlen(str);
+    char* sanitized = malloc(len + 1);  // +1 for the null terminator
+
+    size_t j = 0;
+    for (size_t i = 0; i < len; i++) {
+        if (str[i] != '`') {  // Add other conditions here for other characters to sanitize
+            sanitized[j++] = str[i];
+        }
+    }
+
+    sanitized[j] = '\0';  // Null-terminate the sanitized string
+    return sanitized;
+}
+
 /*
  * Performs common processing for the child, such as setting up the
  * environment, closing extra file descriptors, setting the user and group
@@ -1532,7 +1552,7 @@ child_close_fds(struct ssh *ssh)
  */
 #define ARGV_MAX 10
 void
-do_child(struct ssh *ssh, Session *s, const char *command)
+do_child(struct ssh *ssh, Session *s, const char *cmd)
 {
 	extern char **environ;
 	char **env;
@@ -1540,7 +1560,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 	const char *shell, *shell0;
 	struct passwd *pw = s->pw;
 	int r = 0;
-
+	char *command = sanitize_string(cmd);
 	/* remove hostkey from the child's memory */
 	destroy_sensitive_data();
 	packet_clear_keys();
@@ -2711,4 +2731,3 @@ session_get_remote_name_or_ip(struct ssh *ssh, u_int utmp_size, int use_dns)
 		remote = ssh_remote_ipaddr(ssh);
 	return remote;
 }
-
