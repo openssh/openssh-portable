@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.15 2022/03/31 03:07:33 djm Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.16 2024/03/25 03:30:31 dtucker Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -28,12 +28,12 @@ rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2
 mkdir ${COPY}.dd
 
 verbose "$tid: lls"
-(echo "lcd ${OBJ}" ; echo "lls") | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
-	grep copy.dd >/dev/null 2>&1 || fail "lls failed"
+printf "cd ${OBJ}\nlls\n" | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
+	grep copy.dd >/dev/null || fail "lls failed"
 
 verbose "$tid: lls w/path"
 echo "lls ${OBJ}" | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
-	grep copy.dd >/dev/null 2>&1 || fail "lls w/path failed"
+	grep copy.dd >/dev/null || fail "lls w/path failed"
 
 verbose "$tid: ls"
 echo "ls ${OBJ}" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
@@ -116,13 +116,13 @@ done
 
 rm -f ${COPY}.dd/*
 verbose "$tid: get to local dir"
-(echo "lcd ${COPY}.dd"; echo "get $DATA" ) | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
+printf "lcd ${COPY}.dd\nget $DATA\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
 cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after get"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob get to local dir"
-(echo "lcd ${COPY}.dd"; echo "get /bin/l*") | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
+printf "lcd ${COPY}.dd\nget /bin/l*\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
 for x in $GLOBFILES; do
         cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after get"
@@ -162,13 +162,13 @@ done
 
 rm -f ${COPY}.dd/*
 verbose "$tid: put to local dir"
-(echo "cd ${COPY}.dd"; echo "put $DATA") | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
+printf "cd ${COPY}.dd\nput $DATA\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after put"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob put to local dir"
-(echo "cd ${COPY}.dd"; echo "put /bin/l?") | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
+printf "cd ${COPY}.dd\nput /bin/l*\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 for x in $GLOBFILES; do
         cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after put"
