@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.16 2024/03/25 03:30:31 dtucker Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.17 2024/03/25 06:05:42 dtucker Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -41,9 +41,8 @@ echo "ls ${OBJ}" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 # XXX always successful
 
 verbose "$tid: shell"
-echo "!echo hi there" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
-	|| fail "shell failed"
-# XXX always successful
+echo "!echo hi there" | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
+	grep -E '^hi there$' >/dev/null || fail "shell failed"
 
 verbose "$tid: pwd"
 echo "pwd" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
