@@ -8,6 +8,7 @@ on:
 
 jobs:
   ci:
+    name: "${{ matrix.target }} ${{ matrix.config }}"
     if: github.repository != 'openssh/openssh-portable-selfhosted'
     strategy:
       fail-fast: false

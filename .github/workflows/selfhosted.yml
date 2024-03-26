@@ -6,6 +6,7 @@ on:
 
 jobs:
   selfhosted:
+    name: "${{ matrix.target }} ${{ matrix.config }}"
     if: github.repository == 'openssh/openssh-portable-selfhosted'
     runs-on: ${{ matrix.host }}
     timeout-minutes: 600
