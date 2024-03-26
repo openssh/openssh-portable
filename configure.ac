@@ -3184,7 +3184,7 @@ if test "x$openssl" = "xyes" ; then
 		]], [[
 		unsigned char buf[64];
 		memset(buf, 0, sizeof(buf));
-		exit(EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519,
+		exit(EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519, NULL,
 		    buf, sizeof(buf)) == NULL);
 		]])],
 		[
