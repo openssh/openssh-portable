@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.17 2024/03/25 06:05:42 dtucker Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.18 2024/03/26 08:09:16 dtucker Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
