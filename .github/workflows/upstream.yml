@@ -7,7 +7,7 @@ on:
 
 jobs:
   selfhosted:
-    name: "upstream {{ matrix.target }} ${{ matrix.config }}"
+    name: "upstream ${{ matrix.target }} ${{ matrix.config }}"
     if: github.repository == 'openssh/openssh-portable-selfhosted'
     runs-on: 'libvirt'
     env:
