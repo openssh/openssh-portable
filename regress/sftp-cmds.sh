@@ -103,7 +103,7 @@ rm -f ${COPY}.dd/*
 verbose "$tid: get to directory"
 echo "get $DATA ${COPY}.dd" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
-cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after get"
+cmp $DATA ${COPY}.dd/${DATANAME} || fail "corrupted copy after get"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob get to directory"
@@ -117,7 +117,7 @@ rm -f ${COPY}.dd/*
 verbose "$tid: get to local dir"
 printf "lcd ${COPY}.dd\nget $DATA\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
-cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after get"
+cmp $DATA ${COPY}.dd/${DATANAME} || fail "corrupted copy after get"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob get to local dir"
@@ -149,7 +149,7 @@ rm -f ${COPY}.dd/*
 verbose "$tid: put to directory"
 echo "put $DATA ${COPY}.dd" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
-cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after put"
+cmp $DATA ${COPY}.dd/${DATANAME} || fail "corrupted copy after put"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob put to directory"
@@ -163,7 +163,7 @@ rm -f ${COPY}.dd/*
 verbose "$tid: put to local dir"
 printf "cd ${COPY}.dd\nput $DATA\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
-cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after put"
+cmp $DATA ${COPY}.dd/${DATANAME} || fail "corrupted copy after put"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob put to local dir"
