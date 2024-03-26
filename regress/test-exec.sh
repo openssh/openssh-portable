@@ -403,7 +403,7 @@ fi
 if [ -x "/usr/xpg4/bin/id" ]; then
 id()
 {
-	/usr/xpg4/bin/id
+	/usr/xpg4/bin/id $@
 }
 fi
 
