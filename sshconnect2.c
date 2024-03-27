@@ -1711,7 +1711,7 @@ pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 			    "certificate", options.identity_files[i]);
 			continue;
 		}
-		if (key && sshkey_is_sk(key) && options.sk_provider == NULL) {
+		if (sshkey_is_sk(key) && options.sk_provider == NULL) {
 			debug_f("ignoring authenticator-hosted key "
 			    "certificate %s as no "
 			    "SecurityKeyProvider has been specified",
