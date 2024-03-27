@@ -23,6 +23,7 @@ clean:
 distclean:	clean
 
 LTESTS= 	connect \
+		connect-unix \
 		proxy-connect \
 		sshfp-connect \
 		connect-privsep \
