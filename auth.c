@@ -381,7 +381,7 @@ auth_root_allowed(struct ssh *ssh, const char *method)
  * This returns a buffer allocated by xmalloc.
  */
 char *
-expand_authorized_keys(const char *filename, struct passwd *pw)
+expand_user_file(const char *filename, struct passwd *pw, const char *filetype)
 {
 	char *file, uidstr[32], ret[PATH_MAX];
 	int i;
@@ -400,7 +400,7 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 
 	i = snprintf(ret, sizeof(ret), "%s/%s", pw->pw_dir, file);
 	if (i < 0 || (size_t)i >= sizeof(ret))
-		fatal("expand_authorized_keys: path too long");
+		fatal("expand_user_file (%s): path too long", filetype);
 	free(file);
 	return (xstrdup(ret));
 }
@@ -410,7 +410,8 @@ authorized_principals_file(struct passwd *pw)
 {
 	if (options.authorized_principals_file == NULL)
 		return NULL;
-	return expand_authorized_keys(options.authorized_principals_file, pw);
+	return expand_user_file(options.authorized_principals_file, pw,
+	    "AuthorizedPrincipals");
 }
 
 /* return ok if key exists in sysfile or userfile */
