@@ -127,8 +127,9 @@ read_passphrase(const char *prompt, int flags)
 	const char *askpass_hint = NULL;
 	const char *s;
 
-	if ((s = getenv("DISPLAY")) != NULL)
-		allow_askpass = *s != '\0';
+	if ((((s = getenv("DISPLAY")) != NULL) && (*s != '\0')) ||
+            (((s = getenv("WAYLAND_DISPLAY")) != NULL) && (*s != '\0')))
+		allow_askpass = 1;
 	if ((s = getenv(SSH_ASKPASS_REQUIRE_ENV)) != NULL) {
 		if (strcasecmp(s, "force") == 0) {
 			use_askpass = 1;
@@ -262,6 +263,7 @@ notify_start(int force_askpass, const char *fmt, ...)
 		goto out;
 	}
 	if (getenv("DISPLAY") == NULL &&
+            getenv("WAYLAND_DISPLAY") == NULL &&
 	    ((s = getenv(SSH_ASKPASS_REQUIRE_ENV)) == NULL ||
 	    strcmp(s, "force") != 0)) {
 		debug3_f("cannot notify: no display");
