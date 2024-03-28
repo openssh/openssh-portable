@@ -608,9 +608,15 @@ int aes_mt_do_cipher(void *vevp_ctx,
 		 * may need to do it in 8 or 4 bytes chunks
 		 * worst case is doing it as a loop */
 #ifdef CIPHER_INT128_OK
-		if ((align & 0xf) == 0) {
-			destp.u128[0] = srcp.u128[0] ^ bufp.u128[0];
-		} else
+		/* with GCC 13 we have having consistent seg faults
+		 * in this section of code. Since this is a critical
+		 * code path we are removing this until we have a solution
+		 * in place -cjr 02/22/24
+		 * TODO: FIX THIS
+		 */
+		/* if ((align & 0xf) == 0) { */
+		/* 	destp.u128[0] = srcp.u128[0] ^ bufp.u128[0]; */
+		/* } else */
 #endif
 		/* 64 bits */
 		if ((align & 0x7) == 0) {

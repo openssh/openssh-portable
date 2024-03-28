@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.402 2023/11/24 00:31:30 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.403 2024/02/21 05:57:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -525,7 +525,7 @@ send_chaff(struct ssh *ssh)
 {
 	int r;
 
-	if ((ssh->kex->flags & KEX_HAS_PING) == 0)
+	if (ssh->kex == NULL || (ssh->kex->flags & KEX_HAS_PING) == 0)
 		return 0;
 	/* XXX probabilistically send chaff? */
 	/*
@@ -2766,7 +2766,7 @@ client_process_request_metrics (struct ssh *ssh, int type, u_int32_t seq, void *
 	kernel_version = binn_object_int32((void *)blob, "kernel_version");
 
 	/* create a string of the data from the binn object blob */
-	metrics_read_binn_object((void *)blob, &metricsstring);
+	metrics_read_binn_object((void *)blob, metricsstring);
 
 	/* have we printed the header? */
 	if (metrics_hdr_remote_flag == 0) {
@@ -2811,7 +2811,7 @@ localonly:
 	metrics_write_binn_object(&local_tcp_info, metricsobj);
 
 	/* create a string of the data from the binn object metricsobj */
-	metrics_read_binn_object((void *)metricsobj, &metricsstring);
+	metrics_read_binn_object((void *)metricsobj, metricsstring);
 
 	/* get the kernel version printing the header */
 	kernel_version = binn_object_int32(metricsobj, "kernel_version");

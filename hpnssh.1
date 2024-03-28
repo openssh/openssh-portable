@@ -79,7 +79,12 @@ X11 connections, arbitrary TCP ports and
 sockets can also be forwarded over the secure channel.
 .Nm
 is binary compatible with the more well known OpenSSH and uses the same configuration
-directives, methods, and keywords except where noted. 
+directives, methods, and keywords except where noted with the exception of the default port.
+HPN-SSH servers, by default, use port 2222 for connection, and as such,
+.Nm
+clients
+attempt to connect on that port. If the connection attempt on port 2222 fails it will fallback to
+port 22. Please see the -p switch for more information.
 .Pp
 .Nm
 connects and logs into the specified
@@ -531,6 +536,7 @@ For full details of the options listed below, and their possible values, see
 .It EnableEscapeCommandline
 .It EscapeChar
 .It ExitOnForwardFailure
+.It FallbackPort
 .It FingerprintHash
 .It ForkAfterAuthentication
 .It ForwardAgent
@@ -607,7 +613,7 @@ For full details of the options listed below, and their possible values, see
 .It VisualHostKey
 .It XAuthLocation
 .Pp
-.It * Hpnssh specific configuration option.  
+.It * Hpnssh specific configuration option.
 .El
 .Pp
 .It Fl P Ar tag
@@ -624,6 +630,13 @@ for more information.
 Port to connect to on the remote host.
 This can be specified on a
 per-host basis in the configuration file.
+HPN-SSH uses a default port of 2222. It will automatically
+fallback to use the SSH standard port 22 if it cannot connect
+on port 2222. This fallback behaviour can be modified with the
+FallbackPort option. Note: if outbound port 2222 is
+blocked it may appear that the hpnssh client is non-responsive. In that event,
+either specify the correct port or use the ConnectTimeout option
+to trigger the port fallback more quickly.
 .Pp
 .It Fl Q Ar query_option
 Queries for the algorithms supported by one of the following features:
@@ -1813,4 +1826,4 @@ protocol versions 1.5 and 2.0.
 Chris Rapier, Michael Stevens, Ben Bennet, and Mike Tasota developed
 the HPN extensions at the Pittsburgh Supercomuting Center with grants
 from Cisco, the National Library of Medicine, and the National Science
-Foundation. 
+Foundation.
