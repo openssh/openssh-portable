@@ -11,23 +11,30 @@ jobs:
     if: github.repository == 'openssh/openssh-portable-selfhosted'
     runs-on: 'libvirt'
     env:
-      DEBUG_ACTIONS: false
-      HOST: 'libvirt'
+      DEBUG_ACTIONS: true
       EPHEMERAL: true
+      HOST: 'libvirt'
       TARGET_HOST: ${{ matrix.target }}
       TARGET_CONFIG: ${{ matrix.config }}
+      TARGET_DOMAIN: ${{ format('{0}-{1}-{2}', matrix.target, matrix.config, github.run_id) || matrix.target }}
     strategy:
       fail-fast: false
       matrix:
         target: [ obsdsnap, obsdsnap-i386 ]
         config: [ default, without-openssl, ubsan ]
     steps:
+    - name: unmount stale workspace
+      run: fusermount -u ${GITHUB_WORKSPACE} || true
+      working-directory: ${{ runner.temp }}
     - name: shutdown VM if running
       run: vmshutdown
       working-directory: ${{ runner.temp }}
     - uses: actions/checkout@main
     - name: startup VM
       run: vmstartup
+      working-directory: ${{ runner.temp }}
+    - name: copy and mount workspace
+      run: sshfs_mount
       working-directory: ${{ runner.temp }}
     - name: update source
       run: vmrun "cd /usr/src && cvs up -dPA usr.bin/ssh regress/usr.bin/ssh"
@@ -50,6 +57,10 @@ jobs:
         path: |
           /usr/obj/regress/usr.bin/ssh/obj/*.log
           /usr/obj/regress/usr.bin/ssh/obj/log/*
+    - name: unmount workspace
+      if: always()
+      run: fusermount -u ${GITHUB_WORKSPACE} || true
+      working-directory: ${{ runner.temp }}
     - name: shutdown VM
       if: always()
       run: vmshutdown
