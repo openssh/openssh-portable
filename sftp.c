@@ -2301,8 +2301,10 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 			break;
 		}
 		if (el == NULL) {
-			if (interactive)
+			if (interactive) {
 				printf("sftp> ");
+				fflush(stdout);
+			}
 			if (fgets(cmd, sizeof(cmd), infile) == NULL) {
 				if (interactive)
 					printf("\n");
