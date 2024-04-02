@@ -281,7 +281,7 @@ test_done(void)
 }
 
 void
-test_subtest_info(const char *fmt, ...)
+test_subtest_info(const char *__restrict fmt, ...)
 {
 	va_list ap;
 

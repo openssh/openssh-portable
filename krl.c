@@ -1292,7 +1292,7 @@ ssh_krl_file_contains_key(const char *path, const struct sshkey *key)
 }
 
 int
-krl_dump(struct ssh_krl *krl, FILE *f)
+krl_dump(struct ssh_krl *__restrict krl, FILE *__restrict f)
 {
 	struct sshkey *key = NULL;
 	struct revoked_blob *rb;

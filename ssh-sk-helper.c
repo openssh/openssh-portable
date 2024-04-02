@@ -49,11 +49,11 @@
 #ifdef ENABLE_SK
 extern char *__progname;
 
-static struct sshbuf *reply_error(int r, char *fmt, ...)
+static struct sshbuf *reply_error(int r, char *__restrict fmt, ...)
     __attribute__((__format__ (printf, 2, 3)));
 
 static struct sshbuf *
-reply_error(int r, char *fmt, ...)
+reply_error(int r, char *__restrict fmt, ...)
 {
 	char *msg;
 	va_list ap;

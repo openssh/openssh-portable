@@ -564,7 +564,7 @@ auth_key_is_revoked(struct sshkey *key)
 }
 
 void
-auth_debug_add(const char *fmt,...)
+auth_debug_add(const char *__restrict fmt,...)
 {
 	char buf[1024];
 	va_list args;

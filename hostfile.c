@@ -434,8 +434,8 @@ lookup_marker_in_hostkeys(struct hostkeys *hostkeys, int want_marker)
 }
 
 static int
-write_host_entry(FILE *f, const char *host, const char *ip,
-    const struct sshkey *key, int store_hash)
+write_host_entry(FILE *__restrict f, const char *host, const char *ip,
+    const struct sshkey *__restrict key, int store_hash)
 {
 	int r, success = 0;
 	char *hashed_host = NULL, *lhost;

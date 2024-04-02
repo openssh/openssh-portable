@@ -61,11 +61,11 @@
 # define sk_load_resident_keys	ssh_sk_load_resident_keys
 #endif /* !SK_STANDALONE */
 
-static void skdebug(const char *func, const char *fmt, ...)
+static void skdebug(const char *func, const char *__restrict fmt, ...)
     __attribute__((__format__ (printf, 2, 3)));
 
 static void
-skdebug(const char *func, const char *fmt, ...)
+skdebug(const char *func, const char *__restrict fmt, ...)
 {
 #if defined(SK_DEBUG)
 	va_list ap;
