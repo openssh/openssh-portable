@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.59 2023/07/27 22:26:49 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.60 2024/04/02 09:32:28 deraadt Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -1386,6 +1386,20 @@ pkcs11_rsa_generate_private_key(struct pkcs11_provider *p, CK_ULONG slotidx,
 }
 
 static int
+h2i(char c)
+{
+	if (c >= '0' && c <= '9')
+		c -= '0';
+	else if (c >= 'a' && c <= 'f')
+		c -= 'a';
+	else if (c >= 'A' && c <= 'F')
+		c -= 'A';
+	else
+		return -1;
+	return c;
+}
+
+static int
 pkcs11_decode_hex(const char *hex, unsigned char **dest, size_t *rlen)
 {
 	size_t	i, len;
@@ -1404,11 +1418,13 @@ pkcs11_decode_hex(const char *hex, unsigned char **dest, size_t *rlen)
 
 	ptr[2] = '\0';
 	for (i = 0; i < len; i++) {
-		ptr[0] = hex[2 * i];
-		ptr[1] = hex[(2 * i) + 1];
-		if (!isxdigit(ptr[0]) || !isxdigit(ptr[1]))
+		int hi, low;
+
+		hi = h2i(hex[2 * i]);
+		lo = h2i(hex[(2 * i) + 1]);
+		if (hi == -1 || lo == -1)
 			return -1;
-		(*dest)[i] = (unsigned char)strtoul(ptr, NULL, 16);
+		(*dest)[i] = (hi << 4) | lo;
 	}
 
 	if (rlen)
