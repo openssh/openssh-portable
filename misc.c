@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.191 2024/04/02 09:52:14 deraadt Exp $ */
+/* $OpenBSD: misc.c,v 1.192 2024/04/02 09:56:58 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2428,13 +2428,10 @@ const char *
 atoi_err(const char *nptr, int *val)
 {
 	const char *errstr = NULL;
-	long long num;
 
 	if (nptr == NULL || *nptr == '\0')
 		return "missing";
-	num = strtonum(nptr, 0, INT_MAX, &errstr);
-	if (errstr == NULL)
-		*val = (int)num;
+	*val = strtonum(nptr, 0, INT_MAX, &errstr);
 	return errstr;
 }
 
