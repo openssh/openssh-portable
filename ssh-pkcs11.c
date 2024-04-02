@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.61 2024/04/02 09:48:24 claudio Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.62 2024/04/02 12:22:38 deraadt Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -1389,14 +1389,13 @@ static int
 h2i(char c)
 {
 	if (c >= '0' && c <= '9')
-		c -= '0';
+		return c - '0';
 	else if (c >= 'a' && c <= 'f')
-		c -= 'a';
+		return c - 'a' + 10;
 	else if (c >= 'A' && c <= 'F')
-		c -= 'A';
+		return c - 'A' + 10;
 	else
 		return -1;
-	return c;
 }
 
 static int
