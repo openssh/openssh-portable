@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.190 2024/03/04 02:16:11 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.191 2024/04/02 09:52:14 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -563,6 +563,14 @@ a2tun(const char *s, int *remote)
 #define DAYS		(HOURS * 24)
 #define WEEKS		(DAYS * 7)
 
+static char *
+scandigits(char *s)
+{
+	while (isdigit((unsigned char)*s))
+		s++;
+	return s;
+}
+
 /*
  * Convert a time string into seconds; format is
  * a sequence of:
@@ -587,28 +595,31 @@ a2tun(const char *s, int *remote)
 int
 convtime(const char *s)
 {
-	long total, secs, multiplier;
-	const char *p;
-	char *endp;
+	int secs, total = 0, multiplier;
+	char *p, *os, *np, c;
+	const char *errstr;
 
-	errno = 0;
-	total = 0;
-	p = s;
-
-	if (p == NULL || *p == '\0')
+	if (s == NULL || *s == '\0')
+		return -1;
+	p = os = strdup(s);	/* deal with const */
+	if (os == NULL)
 		return -1;
 
 	while (*p) {
-		secs = strtol(p, &endp, 10);
-		if (p == endp ||
-		    (errno == ERANGE && (secs == INT_MIN || secs == INT_MAX)) ||
-		    secs < 0)
-			return -1;
+		np = scandigits(p);
+		if (np) {
+			c = *np;
+			*np = '\0';
+		}
+		secs = (int)strtonum(p, 0, INT_MAX, &errstr);
+		if (errstr)
+			goto fail;
+		*np = c;
 
 		multiplier = 1;
-		switch (*endp++) {
+		switch (c) {
 		case '\0':
-			endp--;
+			np--;	/* back up */
 			break;
 		case 's':
 		case 'S':
@@ -630,20 +641,23 @@ convtime(const char *s)
 			multiplier = WEEKS;
 			break;
 		default:
-			return -1;
+			goto fail;
 		}
 		if (secs > INT_MAX / multiplier)
-			return -1;
+			goto fail;
 		secs *= multiplier;
 		if  (total > INT_MAX - secs)
-			return -1;
+			goto fail;
 		total += secs;
 		if (total < 0)
-			return -1;
-		p = endp;
+			goto fail;
+		p = ++np;
 	}
-
+	free(os);
 	return total;
+fail:
+	free(os);
+	return -1;
 }
 
 #define TF_BUFS	8
