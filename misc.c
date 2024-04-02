@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.192 2024/04/02 09:56:58 deraadt Exp $ */
+/* $OpenBSD: misc.c,v 1.193 2024/04/02 10:02:08 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -1873,9 +1873,9 @@ static const struct {
 int
 parse_ipqos(const char *cp)
 {
+	const char *errstr;
 	u_int i;
-	char *ep;
-	long val;
+	int val;
 
 	if (cp == NULL)
 		return -1;
@@ -1884,8 +1884,8 @@ parse_ipqos(const char *cp)
 			return ipqos[i].value;
 	}
 	/* Try parsing as an integer */
-	val = strtol(cp, &ep, 0);
-	if (*cp == '\0' || *ep != '\0' || val < 0 || val > 255)
+	val = (int)strtonum(cp, 0, 255, &errstr);
+	if (errstr)
 		return -1;
 	return val;
 }
