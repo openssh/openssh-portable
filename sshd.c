@@ -2077,6 +2077,8 @@ main(int ac, char **av)
 		ssh_signal(SIGTERM, sigterm_handler);
 		ssh_signal(SIGQUIT, sigterm_handler);
 
+		platform_post_listen();
+
 		/*
 		 * Write out the pid file after the sigterm handler
 		 * is setup and the listen sockets are bound

@@ -45,6 +45,14 @@ platform_pre_listen(void)
 }
 
 void
+platform_post_listen(void)
+{
+#ifdef SYSTEMD_NOTIFY
+	ssh_systemd_notify_ready();
+#endif
+}
+
+void
 platform_pre_fork(void)
 {
 #ifdef USE_SOLARIS_PROCESS_CONTRACTS
@@ -55,6 +63,9 @@ platform_pre_fork(void)
 void
 platform_pre_restart(void)
 {
+#ifdef SYSTEMD_NOTIFY
+	ssh_systemd_notify_reload();
+#endif
 #ifdef LINUX_OOM_ADJUST
 	oom_adjust_restore();
 #endif
