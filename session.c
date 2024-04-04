@@ -832,6 +832,40 @@ check_quietlogin(Session *s, const char *command)
 	return 0;
 }
 
+static int
+safe_user_file(const char *filename, struct passwd *pw)
+{
+	struct stat st;
+	char *path;
+
+	if (stat(filename, &st) == -1) {
+		fprintf(stderr, "User file %s not found, ignoring.\n",
+		    filename);
+		return 0;
+	}
+
+	path = realpath(filename, NULL);
+	if (strncmp(path, pw->pw_dir, strlen(pw->pw_dir)) == 0) {
+		if (st.st_uid != pw->pw_uid) {
+			fprintf(stderr, "Bad owner on %s, ignoring.\n",
+			    filename);
+			return 0;
+		}
+		if ((st.st_mode & 077) != 0) {
+			fprintf(stderr,
+			    "Permissions too open (%3o) on %s, ignoring.\n",
+			    st.st_mode & 0777u, filename);
+			return 0;
+		}
+		return 1;
+	}
+	if (st.st_uid != 0) {
+		fprintf(stderr, "%s not root-owned, ignoring.\n", filename);
+		return 0;
+	}
+	return 1;
+}
+
 /*
  * Reads environment variables from the given file and adds/overrides them
  * into the environment.  If the file does not exist, this does nothing.
@@ -1121,8 +1155,9 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		for (i = 0; i < options.num_user_env_files; i++) {
 			userenv = expand_user_file(options.user_env_files[i], pw,
 			    "UserEnvironment");
-			read_environment_file(&env, &envsize, userenv,
-			    options.permit_user_env_allowlist);
+			if (safe_user_file(userenv, pw))
+				read_environment_file(&env, &envsize, userenv,
+				    options.permit_user_env_allowlist);
 		}
 		free(userenv);
 	}
@@ -1218,7 +1253,7 @@ do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 		for (i = 0; i < options.num_user_rc_files; i++) {
 			user_rc = expand_user_file(options.user_rc_files[i],
 			    s->pw, "UserRC");
-			if (stat(user_rc, &st) >= 0) {
+			if (safe_user_file(user_rc, s->pw)) {
 				if (xasprintf(&cmd, "%s -c '%s %s'", shell,
 				    _PATH_BSHELL, user_rc) == -1)
 					fatal_f("xasprintf: %s", strerror(errno));
