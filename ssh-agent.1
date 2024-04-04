@@ -247,6 +247,14 @@ starts, it creates a
 socket and stores its pathname in this variable.
 It is accessible only to the current user,
 but is easily abused by root or another instance of the same user.
+.It Ev SD_LISTEN_FDS
+When
+.Nm
+starts, if no socket path has been specified, but this variable and the
+accompanying SD_LISTEN_PID are set as described in
+.Xr sd_listen_fds 3 ,
+.Nm
+uses the socket passed in by the systemd supervisor.
 .El
 .Sh FILES
 .Bl -tag -width Ds
