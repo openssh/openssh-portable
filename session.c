@@ -210,8 +210,12 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 	xasprintf(&auth_sock_name, "%s/agent.%ld",
 	    auth_sock_dir, (long) getpid());
 
-	/* Start a Unix listener on auth_sock_name. */
+	/* Start a Unix listener on auth_sock_name.
+           Make sure the permissions on the forwarded agent is srw-------
+           just like the original ssh-agent socket. */
+        mode_t old_umask = umask(0177);
 	sock = unix_listener(auth_sock_name, SSH_LISTEN_BACKLOG, 0);
+	umask(old_umask);
 
 	/* Restore the privileged uid. */
 	restore_uid();
