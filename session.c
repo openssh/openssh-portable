@@ -838,29 +838,26 @@ safe_user_file(const char *filename, struct passwd *pw)
 	struct stat st;
 	char *path;
 
-	if (stat(filename, &st) == -1) {
-		fprintf(stderr, "User file %s not found, ignoring.\n",
-		    filename);
+	if (stat(filename, &st) == -1)
 		return 0;
-	}
 
 	path = realpath(filename, NULL);
 	if (strncmp(path, pw->pw_dir, strlen(pw->pw_dir)) == 0) {
 		if (st.st_uid != pw->pw_uid) {
 			fprintf(stderr, "Bad owner on %s, ignoring.\n",
-			    filename);
+			    path);
 			return 0;
 		}
 		if ((st.st_mode & 077) != 0) {
 			fprintf(stderr,
 			    "Permissions too open (%3o) on %s, ignoring.\n",
-			    st.st_mode & 0777u, filename);
+			    st.st_mode & 0777u, path);
 			return 0;
 		}
 		return 1;
 	}
 	if (st.st_uid != 0) {
-		fprintf(stderr, "%s not root-owned, ignoring.\n", filename);
+		fprintf(stderr, "%s not root-owned, ignoring.\n", path);
 		return 0;
 	}
 	return 1;
