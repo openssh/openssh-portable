@@ -2303,8 +2303,11 @@ main(int ac, char **av)
 
 		pidstr = getenv(SSH_AGENTPID_ENV_NAME);
 		if (pidstr == NULL) {
-			fprintf(stderr, "%s not set, cannot kill agent\n",
-			    SSH_AGENTPID_ENV_NAME);
+			execlp("systemctl", "systemctl", "--user", "stop", "ssh-agent.service", (char*)NULL);
+			fprintf(stderr, "%s not set, cannot kill agent directly.\n"
+					"'systemctl --user stop ssh-agent.service' did not run: %d (%s).\n",
+					SSH_AGENTPID_ENV_NAME,
+					errno, strerror(errno));
 			exit(1);
 		}
 		pid = (int)strtonum(pidstr, 2, INT_MAX, &errstr);
