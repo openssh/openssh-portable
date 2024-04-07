@@ -834,45 +834,44 @@ check_quietlogin(Session *s, const char *command)
 
 /*
  * Check that any custom user environment/rc file is "safe" to run, i.e.
- * - it belongs to either the superuser or to the logged in user, of which
- *   the latter must also own the parent directory
- * - if it belongs to the logged in user, either the file or its parent dir
- *   is only accessible to the user
+ * - If the file is located in the logged-in user's $HOME, it is owned by the
+ *   user and accessible *only* to the user
+ * - If the file is located outside the user's $HOME, it is owned by the super
+ *   user
  */
 static int
-safe_user_file(const char *filename, uid_t uid)
+safe_user_file(const char *filename, struct passwd *pw)
 {
 	struct stat st;
-	char *lastsep;
-        uid_t dirowner;
-        mode_t dirmode;
+	char *path;
+	int safe = 0;
 
-        /* Gather parent dir owner and mode first */
-        lastsep = strrchr(filename, '/');
-        *lastsep = '\0';
 	if (stat(filename, &st) == -1)
-		return 0;
-        dirowner = st.st_uid;
-        dirmode = st.st_mode;
-        /* Then gather actual file info */
-        *lastsep = '/';
-        if (stat(filename, &st) == -1)
-                return 0;
+		return safe;
 
-        if (st.st_uid != 0 && st.st_uid != uid && st.st_uid != dirowner) {
-                fprintf(stderr, "Bad owner on %s, ignoring.\n",
-		    filename);
-		return 0;
-        }
-
-	if (st.st_uid == uid &&
-            (st.st_mode & 077) != 0 && (dirmode & 077) != 0) {
-		fprintf(stderr,
-		    "Permissions too open on %s or its parent dir, ignoring.\n",
-    		    filename);
-                return 0;
+	path = realpath(filename, NULL);
+	if (strncmp(path, pw->pw_dir, strlen(pw->pw_dir)) == 0) {
+		if (st.st_uid != pw->pw_uid) {
+			fprintf(stderr, "Bad owner on %s, ignoring.\n", path);
+			goto out;
+		}
+		if ((st.st_mode & 077) != 0) {
+			fprintf(stderr,
+			    "Permissions too open (%3o) on %s, ignoring.\n",
+			    st.st_mode & 0777u, path);
+			goto out;
+		}
+		safe = 1;
+		goto out;
 	}
-	return 1;
+	if (st.st_uid != 0 || st.st_gid != 0) {
+		fprintf(stderr, "%s not root-owned, ignoring.\n", path);
+		goto out;
+	}
+	safe = 1;
+out:
+	free(path);
+	return safe;
 }
 
 /*
@@ -1164,7 +1163,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		for (i = 0; i < options.num_user_env_files; i++) {
 			userenv = expand_user_file(options.user_env_files[i], pw,
 			    "UserEnvironment");
-			if (safe_user_file(userenv, pw->pw_uid))
+			if (safe_user_file(userenv, pw))
 				read_environment_file(&env, &envsize, userenv,
 				    options.permit_user_env_allowlist);
 		}
@@ -1262,7 +1261,7 @@ do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 		for (i = 0; i < options.num_user_rc_files; i++) {
 			user_rc = expand_user_file(options.user_rc_files[i],
 			    s->pw, "UserRC");
-			if (safe_user_file(user_rc, s->pw->pw_uid)) {
+			if (safe_user_file(user_rc, s->pw)) {
 				if (xasprintf(&cmd, "%s -c '%s %s'", shell,
 				    _PATH_BSHELL, user_rc) == -1)
 					fatal_f("xasprintf: %s", strerror(errno));
@@ -1278,7 +1277,7 @@ do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 					fprintf(stderr, "Could not run %s\n",
 					    user_rc);
 			}
-                }
+		}
 	} else if (stat(_PATH_SSH_SYSTEM_RC, &st) >= 0) {
 		if (debug_flag)
 			fprintf(stderr, "Running %s %s\n", _PATH_BSHELL,
