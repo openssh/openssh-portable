@@ -67,8 +67,8 @@ ssh_rsa_cleanup(struct sshkey *k)
 static int
 ssh_rsa_equal(const struct sshkey *a, const struct sshkey *b)
 {
-	const BIGNUM *rsa_e_a, *rsa_n_a;
-	const BIGNUM *rsa_e_b, *rsa_n_b;
+	const BIGNUM *rsa_e_a = NULL, *rsa_n_a = NULL;
+	const BIGNUM *rsa_e_b = NULL, *rsa_n_b = NULL;
 
 	if (a->rsa == NULL || b->rsa == NULL)
 		return 0;
