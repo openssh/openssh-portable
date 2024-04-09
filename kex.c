@@ -1041,9 +1041,11 @@ patch_list(char * orig)
 int
 kex_ready(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 {
-	int r;
+	int r = 0;
 
 #ifdef WITH_OPENSSL
+	char * orig_ctos = proposal[PROPOSAL_ENC_ALGS_CTOS];
+	char * orig_stoc = proposal[PROPOSAL_ENC_ALGS_STOC];
 	proposal[PROPOSAL_ENC_ALGS_CTOS] =
 	    patch_list(proposal[PROPOSAL_ENC_ALGS_CTOS]);
 	proposal[PROPOSAL_ENC_ALGS_STOC] =
@@ -1057,11 +1059,18 @@ kex_ready(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 #endif
 
 	if ((r = kex_prop2buf(ssh->kex->my, proposal)) != 0)
-		return r;
+		goto restoreProposal;
 	ssh->kex->flags = KEX_INITIAL;
 	kex_reset_dispatch(ssh);
 	ssh_dispatch_set(ssh, SSH2_MSG_KEXINIT, &kex_input_kexinit);
-	return 0;
+ restoreProposal:
+#ifdef WITH_OPENSSL
+	free(proposal[PROPOSAL_ENC_ALGS_CTOS]);
+	free(proposal[PROPOSAL_ENC_ALGS_STOC]);
+	proposal[PROPOSAL_ENC_ALGS_CTOS] = orig_ctos;
+	proposal[PROPOSAL_ENC_ALGS_STOC] = orig_stoc;
+#endif
+	return r;
 }
 
 int
