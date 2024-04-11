@@ -76,8 +76,8 @@ ssh_dss_cleanup(struct sshkey *k)
 static int
 ssh_dss_equal(const struct sshkey *a, const struct sshkey *b)
 {
-	const BIGNUM *dsa_p_a = NULL, *dsa_q_a = NULL, *dsa_g_a = NULL, *dsa_pub_key_a = NULL;
-	const BIGNUM *dsa_p_b = NULL, *dsa_q_b = NULL, *dsa_g_b = NULL, *dsa_pub_key_b = NULL;
+	const BIGNUM *dsa_p_a, *dsa_q_a, *dsa_g_a, *dsa_pub_key_a;
+	const BIGNUM *dsa_p_b, *dsa_q_b, *dsa_g_b, *dsa_pub_key_b;
 
 	if (a->dsa == NULL || b->dsa == NULL)
 		return 0;
