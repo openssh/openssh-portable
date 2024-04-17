@@ -2425,7 +2425,7 @@ atoi_err(const char *nptr, int *val)
 }
 
 int
-parse_absolute_time(const char *s, uint64_t *tp)
+parse_absolute_time(const char *s, u_int64_t *tp)
 {
 	struct tm tm;
 	time_t tt;
@@ -2479,12 +2479,12 @@ parse_absolute_time(const char *s, uint64_t *tp)
 			return SSH_ERR_INVALID_FORMAT;
 	}
 	/* success */
-	*tp = (uint64_t)tt;
+	*tp = (u_int64_t)tt;
 	return 0;
 }
 
 void
-format_absolute_time(uint64_t t, char *buf, size_t len)
+format_absolute_time(u_int64_t t, char *buf, size_t len)
 {
 	time_t tt = t > SSH_TIME_T_MAX ? SSH_TIME_T_MAX : t;
 	struct tm tm;
