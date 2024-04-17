@@ -362,8 +362,10 @@ sshbuf_check_reserve(const struct sshbuf *buf, size_t len)
 		return SSH_ERR_BUFFER_READ_ONLY;
 	SSHBUF_TELL("check");
 	/* Check that len is reasonable and that max size + available < len */
-	if (len > (buf->max_size / 2) ||
-	    (buf->max_size / 2) - len < buf->size - buf->off)
+	/* prior we'd check ((buf->max_size / 2) - len) */
+	/* cjr 4/17/24 */
+	if ((len > (buf->max_size / 2) ||
+	     ((buf->max_size - len) < (buf->size - buf->off))))
 		return SSH_ERR_NO_BUFFER_SPACE;
 	return 0;
 }
@@ -418,11 +420,19 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * Turns out the extra functions on the following conditional aren't needed
 	 * -cjr 04/06/23
 	 */
-	if (rlen > BUF_WATERSHED) {
-		/* debug_f ("Prior: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
-		   buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
+	if (strstr(buf->label, "channel input") != NULL) {
+		/* debug_f ("Prior: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu", */
+		/*    buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
 		/* easiest thing to do is grow the nuffer by 4MB each time. It might end
 		 * up being somewhat overallocated but works quickly */
+		need = (4*1024*1024);
+		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
+		/* debug_f ("Post: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu", */
+		/* 	 buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
+	}
+	if (strstr(buf->label, "channel output") != NULL) {
+		/* debug_f ("Pre: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu", */
+		/* 	 buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
 		need = (4*1024*1024);
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
 		/* debug_f ("Post: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu", */
