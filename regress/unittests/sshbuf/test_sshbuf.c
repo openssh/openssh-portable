@@ -176,8 +176,6 @@ sshbuf_tests(void)
 	ASSERT_SIZE_T_EQ(sshbuf_len(p1), 1223);
 	ASSERT_SIZE_T_EQ(sshbuf_avail(p1), 0);
 	r = sshbuf_reserve(p1, 1, &dp);
-	/* this test is currently failing. This will
-	 * be addressed ASAP. TODO. cjr 4/18/24 */
 	ASSERT_INT_EQ(r, SSH_ERR_NO_BUFFER_SPACE);
 	ASSERT_PTR_EQ(dp, NULL);
 	TEST_DONE();

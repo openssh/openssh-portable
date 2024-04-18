@@ -52,7 +52,7 @@ enum buffer_types {
  * Create a new sshbuf buffer.
  * Returns pointer to buffer on success, or NULL on allocation failure.
  */
-/* struct sshbuf *sshbuf_new(void); */
+/* struct sshbuf *sshbuf_new(void);*/
 
 /*
  * Create a new labeled sshbuf buffer.
