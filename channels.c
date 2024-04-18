@@ -534,9 +534,16 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	    (c->output = sshbuf_new()) == NULL ||
 	    (c->extended = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
+
+	/* these buffers are important in terms of tracking channel
+	 * buffer usage so label and type them with descriptive names */
 	sshbuf_relabel(c->input, "channel input");
+	sshbuf_type(c->input, BUF_CHANNEL_INPUT);
 	sshbuf_relabel(c->output, "channel output");
+	sshbuf_type(c->output, BUF_CHANNEL_OUTPUT);	
 	sshbuf_relabel(c->extended, "channel extended");
+	sshbuf_type(c->extended, BUF_CHANNEL_EXTENDED);
+
 	if ((r = sshbuf_set_max_size(c->input, CHAN_INPUT_MAX)) != 0)
 		fatal_fr(r, "sshbuf_set_max_size");
 	c->ostate = CHAN_OUTPUT_OPEN;

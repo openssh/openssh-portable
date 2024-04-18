@@ -65,6 +65,7 @@ struct sshbuf {
 	u_int refcount;		/* Tracks self and number of child buffers */
 	struct sshbuf *parent;	/* If child, pointer to parent */
 	char label[MAX_LABEL_LEN];   /* String for buffer label - debugging use */
+	int type;               /* buffer type from enum */
 	struct timeval buf_ts; /* creation time of buffer */
 };
 
@@ -73,6 +74,11 @@ sshbuf_relabel(struct sshbuf *buf, const char *label)
 {
 	if (label != NULL)
 		strncpy(buf->label, label, MAX_LABEL_LEN-1);
+}
+
+void sshbuf_type (struct sshbuf *buf, int type) {
+	if (type && type < BUF_MAX_TYPE)
+		buf->type = type;
 }
 
 float time_diff(struct timeval *start, struct timeval *end)
@@ -420,7 +426,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * Turns out the extra functions on the following conditional aren't needed
 	 * -cjr 04/06/23
 	 */
-	if (strstr(buf->label, "channel input") != NULL) {
+	if (rlen > BUF_WATERSHED && buf->type == BUF_CHANNEL_INPUT) {
 		/* debug_f ("Prior: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu", */
 		/*    buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
 		/* easiest thing to do is grow the nuffer by 4MB each time. It might end
@@ -430,7 +436,7 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 		/* debug_f ("Post: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu", */
 		/* 	 buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
 	}
-	if (strstr(buf->label, "channel output") != NULL) {
+	if (rlen > BUF_WATERSHED && buf->type == BUF_CHANNEL_OUTPUT) {
 		/* debug_f ("Pre: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu", */
 		/* 	 buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
 		need = (4*1024*1024);
