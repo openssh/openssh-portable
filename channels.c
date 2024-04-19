@@ -540,7 +540,7 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	sshbuf_relabel(c->input, "channel input");
 	sshbuf_type(c->input, BUF_CHANNEL_INPUT);
 	sshbuf_relabel(c->output, "channel output");
-	sshbuf_type(c->output, BUF_CHANNEL_OUTPUT);	
+	sshbuf_type(c->output, BUF_CHANNEL_OUTPUT);
 	sshbuf_relabel(c->extended, "channel extended");
 	sshbuf_type(c->extended, BUF_CHANNEL_EXTENDED);
 

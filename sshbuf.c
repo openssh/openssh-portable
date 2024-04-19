@@ -321,7 +321,7 @@ sshbuf_avail(const struct sshbuf *buf)
 	/* we need to reserve a small amount of overhead on the input buffer
 	 * or we can enter into a pathological state during bulk
 	 * data transfers. We use a fraction of the max size as we want it to scale
-         * with the size of the input buffer. If we do it for all of the buffers
+	 * with the size of the input buffer. If we do it for all of the buffers
 	 * we fail the regression unit tests. This seems like a reasonable
 	 * solution. Of course, I still need to figure out *why* this is
 	 * happening and come up with an actual fix. TODO
