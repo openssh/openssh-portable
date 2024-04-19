@@ -318,7 +318,18 @@ sshbuf_avail(const struct sshbuf *buf)
 {
 	if (sshbuf_check_sanity(buf) != 0 || buf->readonly || buf->refcount > 1)
 		return 0;
-	return buf->max_size - (buf->size - buf->off);
+	/* we need to reserve a small amount of overhead on the input buffer
+	 * or we can enter into a pathological state during bulk
+	 * data transfers. We use a fraction of the max size as we want it to scale
+         * with the size of the input buffer. If we do it for all of the buffers
+	 * we fail the regression unit tests. This seems like a reasonable
+	 * solution. Of course, I still need to figure out *why* this is
+	 * happening and come up with an actual fix. TODO
+	 * cjr 4/19/2024 */
+	if (buf->type == BUF_CHANNEL_INPUT)
+		return buf->max_size / 1.05 - (buf->size - buf->off);
+	else
+		return buf->max_size - (buf->size - buf->off);
 }
 
 const u_char *
