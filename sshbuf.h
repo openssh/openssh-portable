@@ -28,7 +28,7 @@
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 
-#define SSHBUF_SIZE_MAX		0xFFFFFFF	/* Hard maximum size 256MB */
+#define SSHBUF_SIZE_MAX		0x8000000	/* Hard maximum size 128MB */
 #define SSHBUF_REFS_MAX		0x100000	/* Max child buffers */
 #define SSHBUF_MAX_BIGNUM	(16384 / 8)	/* Max bignum *bytes* */
 #define SSHBUF_MAX_ECPOINT	((528 * 2 / 8) + 1) /* Max EC point *bytes* */
@@ -37,11 +37,22 @@
 
 struct sshbuf;
 
+enum buffer_types {
+	BUF_CHANNEL_OUTPUT,
+	BUF_CHANNEL_INPUT,
+	BUF_CHANNEL_EXTENDED,
+	BUF_PACKET_INPUT,
+	BUF_PACKET_INCOMING,
+	BUF_PACKET_OUTPUT,
+	BUF_PACKET_OUTGOING,
+	BUF_MAX_TYPE
+};
+
 /*
  * Create a new sshbuf buffer.
  * Returns pointer to buffer on success, or NULL on allocation failure.
  */
-/* struct sshbuf *sshbuf_new(void); */
+/* struct sshbuf *sshbuf_new(void);*/
 
 /*
  * Create a new labeled sshbuf buffer.
@@ -53,6 +64,13 @@ struct sshbuf *sshbuf_new_label(const char *);
  * relabel the sshbuf struct
  */
 void sshbuf_relabel(struct sshbuf *, const char *);
+
+/*
+ * assign a type (from the buffer_types enum) to
+ * the buffer. Used to quickly identify the purpose of
+ * the buffer.
+ */
+void sshbuf_type(struct sshbuf *, int);
 
 /*
  * Create a new, read-only sshbuf buffer from existing data.
