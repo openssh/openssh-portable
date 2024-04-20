@@ -27,6 +27,7 @@
 #define SSHBUF_INTERNAL
 #include "sshbuf.h"
 #include "misc.h"
+/* #include "log.h" */
 
 #define BUF_WATERSHED 256*1024
 
@@ -51,18 +52,12 @@ struct sshbuf {
 	int readonly;		/* Refers to external, const data */
 	u_int refcount;		/* Tracks self and number of child buffers */
 	struct sshbuf *parent;	/* If child, pointer to parent */
-	struct timeval buf_ts;  /* creation time of buffer */
-	size_t window_max;      /* channel window max */
 	char label[MAX_LABEL_LEN];   /* String for buffer label - debugging use */
 	int type;               /* type of buffer enum (sshbuf_types)*/
 };
 
-float
-time_diff(struct timeval *start, struct timeval *end)
-{
-	return (end->tv_sec - start->tv_sec) + 1e-6*(end->tv_usec - start->tv_usec);
-}
-
+/* update the label string for a given sshbuf. Useful
+ * for debugging */
 void
 sshbuf_relabel(struct sshbuf *buf, const char *label)
 {
@@ -70,6 +65,9 @@ sshbuf_relabel(struct sshbuf *buf, const char *label)
 		strncpy(buf->label, label, MAX_LABEL_LEN-1);
 }
 
+/* set the type (from enum sshbuf_type) of the given sshbuf.
+ * The purpose is to allow different classes of buffers to
+ * follow different code paths if necessary */
 void
 sshbuf_type(struct sshbuf *buf, int type)
 {
@@ -393,38 +391,32 @@ sshbuf_allocate(struct sshbuf *buf, size_t len)
 	 * slowly. It's knows that it needs to grow but it only does so 32K
 	 * at a time. This means a lot of calls to realloc and memcpy which
 	 * kills performance until the buffer reaches some maximum size.
-	 * so we explicitly test for a buffer that's trying to grow and
-	 * if it is then we push the growth to whatever the adjusted value of
-	 * local_window_max happens to be. This significantly reduces overhead
+	 * So we explicitly test for a buffer that's trying to grow and
+	 * if it is then we push the growth by 4MB at a time. This can result in
+	 * the buffer being over allocated (in terms of actual needs) but the
+	 * process is fast. This significantly reduces overhead
 	 * and improves performance. In this case we look for a buffer that is trying
 	 * to grow larger than BUF_WATERSHED (256*1024 taken from PACKET_MAX_SIZE)
-	 * and where the local_window_max isn't zero (which is usally in the Channels
-	 * struct but we copied it into the shhbuf as window_max). If it is zero or
-	 * the buffer is smaller than BUF_WATERSHED we just use the
-	 * normal value for need. We also don't want to grow the buffer past
-	 * what we need (the size of window_max) so if the current allocation (in
-	 * buf->alloc) is greater than window_max we skip it.
-	 *
-	 * Turns out the extra functions on the following conditional aren't needed
-	 * -cjr 04/06/23
+	 * and explcitly check that the buffer is being used for inbound outbound
+	 * channel buffering.
+	 * Updated for 18.4.1 -cjr 04/20/24
 	 */
 	if (rlen > BUF_WATERSHED && (buf->type == BUF_CHANNEL_OUTPUT || buf->type == BUF_CHANNEL_INPUT)) {
-		/* debug_f ("Prior: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu",
-		   buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
+		/* debug_f ("Prior: label: %s, %p, rlen is %zu need is %zu max_size is %zu",
+		   buf->label, buf, rlen, need, buf->max_size); */
 		/* easiest thing to do is grow the nuffer by 4MB each time. It might end
 		 * up being somewhat overallocated but works quickly */
 		need = (4*1024*1024);
 		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
-		/* debug_f ("Post: label: %s, %p, rlen is %zu need is %zu win_max is %zu max_size is %zu", */
-		/* 	 buf->label, buf, rlen, need, buf->window_max, buf->max_size); */
+		/* debug_f ("Post: label: %s, %p, rlen is %zu need is %zu max_size is %zu", */
+		/* 	 buf->label, buf, rlen, need, buf->max_size); */
 	}
 	SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 
 	/* rlen might be above the max allocation */
-	if (rlen > buf->max_size) {
+	if (rlen > buf->max_size)
 		rlen = buf->max_size;
-		/* debug_f("set rlen to %zu", buf->max_size);*/
-	}
+
 	SSHBUF_DBG(("adjusted rlen %zu", rlen));
 	if ((dp = recallocarray(buf->d, buf->alloc, rlen, 1)) == NULL) {
 		SSHBUF_DBG(("realloc fail"));
