@@ -259,13 +259,13 @@ ssh_alloc_session_state(void)
 	/* these buffers are important in terms of tracking buffer usage
 	 * so we explicitly label and type them with descriptive names */
 	sshbuf_relabel(state->input, "input");
-	sshbuf_type(state->input, "BUF_PACKET_INPUT");
+	sshbuf_type(state->input, BUF_PACKET_INPUT);
 	sshbuf_relabel(state->incoming_packet, "inpacket");
-	sshbuf_type(state->incoming_packet, "BUF_PACKET_INCOMING");
+	sshbuf_type(state->incoming_packet, BUF_PACKET_INCOMING);
 	sshbuf_relabel(state->output, "output");
-	sshbuf_type(state->output, "BUF_PACKET_OUTPUT");
+	sshbuf_type(state->output, BUF_PACKET_OUTPUT);
 	sshbuf_relabel(state->outgoing_packet, "outpacket");
-	sshbuf_type(state->outgoing_packet, "BUF_PACKET_OUTGOING");
+	sshbuf_type(state->outgoing_packet, BUF_PACKET_OUTGOING);
 
 	TAILQ_INIT(&state->outgoing);
 	TAILQ_INIT(&ssh->private_keys);
