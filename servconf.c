@@ -192,7 +192,6 @@ initialize_server_options(ServerOptions *options)
 	options->hpn_disabled = -1;
 	options->none_enabled = -1;
 	options->nonemac_enabled = -1;
-	options->hpn_buffer_limit = -1;
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
 	options->version_addendum = NULL;
@@ -441,8 +440,6 @@ fill_default_server_options(ServerOptions *options)
 	}
 	if (options->hpn_disabled == -1)
 		options->hpn_disabled = 0;
-	if (options->hpn_buffer_limit == -1)
-		options->hpn_buffer_limit = 0;
 	if (options->ip_qos_interactive == -1)
 		options->ip_qos_interactive = IPTOS_DSCP_AF21;
 	if (options->ip_qos_bulk == -1)
@@ -524,8 +521,7 @@ typedef enum {
 	sKerberosGetAFSToken, sPasswordAuthentication,
 	sKbdInteractiveAuthentication, sListenAddress, sAddressFamily,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
-	sNoneEnabled, sNoneMacEnabled, sHPNBufferLimit,
-	sTcpRcvBufPoll, sHPNDisabled,
+	sNoneEnabled, sNoneMacEnabled, sTcpRcvBufPoll, sHPNDisabled,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sAllowTcpForwarding, sCompression,
@@ -696,7 +692,6 @@ static struct {
 	{ "tcprcvbufpoll", sTcpRcvBufPoll, SSHCFG_ALL },
 	{ "noneenabled", sNoneEnabled, SSHCFG_ALL },
 	{ "nonemacenabled", sNoneMacEnabled, SSHCFG_ALL },
-	{ "hpnbufferlimit", sHPNBufferLimit, SSHCFG_ALL },
 	{ "kexalgorithms", sKexAlgorithms, SSHCFG_GLOBAL },
 	{ "include", sInclude, SSHCFG_ALL },
 	{ "ipqos", sIPQoS, SSHCFG_ALL },
@@ -1575,10 +1570,6 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 	case sNoneMacEnabled:
 		intptr = &options->nonemac_enabled;
 		goto parse_flag;
-		
-	case sHPNBufferLimit:
-		intptr = &options->hpn_buffer_limit;
-		goto parse_flag;		
 		
 	case sHostbasedAuthentication:
 		intptr = &options->hostbased_authentication;

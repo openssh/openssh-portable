@@ -2408,40 +2408,20 @@ channel_check_window(struct ssh *ssh, Channel *c)
 {
 	int r;
 
-	/* going back to a set denominator of 2. Prior versions had a
-	 * dynamic denominator based on the size of the buffer. This may
-	 * have been helpful in some situations but it isn't helping in
-	 * the general case -cjr 6/30/23 */
 	if (c->type == SSH_CHANNEL_OPEN &&
 	    !(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
 	    ((c->local_window_max - c->local_window > c->local_maxpacket*3) ||
 	    c->local_window < c->local_window_max/2) &&
 	    c->local_consumed > 0) {
-		u_int addition = 0;
+		int addition = 0;
 		u_int32_t tcpwinsz = channel_tcpwinsz(ssh);
 		/* adjust max window size if we are in a dynamic environment
 		 * and the tcp receive buffer is larger than the ssh window */
 		if (c->dynamic_window && (tcpwinsz > c->local_window_max)) {
-			if (c->hpn_buffer_limit) {
-				/* limit window growth to prevent buffer issues
-				 * still not sure what is causing the buffer issues
-				 * but it may be an issue with c->local_consumed not being
-				 * handled properly in the cases of bottenecked IO to the
-				 * wfd endpoint. This does have an impact on throughput
-				 * as we're essentially maxing out local_window_max to
-				 * half of the window size */
-				addition = (tcpwinsz/2 - c->local_window_max);
-			}
-			else {
-				/* aggressively grow the window */
-				addition = tcpwinsz - c->local_window_max;
-			}
+			/* aggressively grow the window */
+			addition = tcpwinsz - c->local_window_max;
 			c->local_window_max += addition;
-			/* doesn't look like we need these
-			 * sshbuf_set_window_max(c->output, c->local_window_max);
-			 * sshbuf_set_window_max(c->input, c->local_window_max);
-			 */
-			debug("Channel %d: Window growth to %d by %d bytes",c->self,
+			debug_f("Channel %d: Window growth to %d by %d bytes",c->self,
 			      c->local_window_max, addition);
 		}
 		if (!c->have_remote_id)

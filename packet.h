@@ -97,9 +97,6 @@ struct ssh {
 
 	/* track if we have disabled the mac as well */
 	int none_mac;
-
-	/* use the less agressive window growth option */
-	int hpn_buffer_limit;
 };
 
 typedef int (ssh_packet_hook_fn)(struct ssh *, struct sshbuf *,

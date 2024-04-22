@@ -1081,15 +1081,6 @@ In some situations, such as transfers on a local area network, the impact
 of the HPN code produces a net decrease in performance. In these cases it is
 helpful to disable the HPN functionality. By default HPNDisabled is set to 
 .Cm no. HPNSSH only.
-.It Cm HPNBufferLimit
-This option will force the hpnssh receive buffer to grow more slowly and limits
-the growth to one half of the TCP receive buffer. This option can prove useful
-in situation where a high speed path with larger RTTs are writing to a slower
-device or file system. Enabling this option will reduce performance but may provide
-a more stable connection. The option only impacts the receiving side of the connection. 
-For example, a client receiving data from a server but not a client sending data.
-By default this option is set to 
-.Cm no. HPNSSH only.
 .It Cm IdentitiesOnly
 Specifies that
 .Xr ssh 1
