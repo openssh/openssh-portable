@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.366 2024/01/11 01:45:36 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.367 2024/04/23 13:34:50 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -647,7 +647,7 @@ get_hostfile_hostname_ipaddr(char *hostname, struct sockaddr *hostaddr,
 		if (options.proxy_command == NULL) {
 			if (getnameinfo(hostaddr, addrlen,
 			    ntop, sizeof(ntop), NULL, 0, NI_NUMERICHOST) != 0)
-			fatal_f("getnameinfo failed");
+				fatal_f("getnameinfo failed");
 			*hostfile_ipaddr = put_host_port(ntop, port);
 		} else {
 			*hostfile_ipaddr = xstrdup("<no hostip for proxy "
