@@ -2911,11 +2911,6 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 	if ((c = channel_lookup(ssh, id)) == NULL)
 		fatal_f("channel %d: unknown channel", id);
 
-	if (options.hpn_buffer_limit) {
-		debug_f("Limiting receive buffer size");
-		c->hpn_buffer_limit = 1;
-	}
-
 	ssh_packet_set_interactive(ssh, want_tty,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 
