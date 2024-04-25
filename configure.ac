@@ -2878,12 +2878,9 @@ if test "x$openssl" = "xyes" ; then
 				*) ;;	# Assume all other versions are good.
 				esac
 				;;
-			300*)
+			30*)
 				# OpenSSL 3; we use the 1.1x API
-				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
-				;;
-			301*|302*|303*)
-				# OpenSSL development branch; request 1.1x API
+				# https://openssl.org/policies/general/versioning-policy.html
 				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
 				;;
 		        *)
