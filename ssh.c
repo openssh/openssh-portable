@@ -776,8 +776,9 @@ main(int ac, char **av)
 			use_syslog = 1;
 			break;
 		case 'E':
-			free(options.log_path);
+			p = tilde_expand_filename(optarg, getuid());
 			options.log_path = xstrdup(optarg);
+			free(p);
 			break;
 		case 'G':
 			config_test = 1;
@@ -1186,14 +1187,22 @@ main(int ac, char **av)
 
 	ssh_signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
 
+	/* Parse the configuration files */
+	process_config_files(options.host_arg, pw, 0, &want_final_pass);
+
 	/*
 	 * Initialize "log" output.  Since we are the client all output
 	 * goes to stderr unless otherwise specified by -y or -E.
 	 */
 	if (use_syslog && options.log_path != NULL)
 		fatal("Can't specify both -y and -E");
-	if (options.log_path != NULL)
+	if (options.log_path != NULL) {
+		p = tilde_expand_filename(options.log_path, getuid());
+		options.log_path = p;
+		logit("Debug logging to file: %s", options.log_path);
 		log_redirect_stderr_to(options.log_path);
+		free(p);
+	}
 	log_init(argv0,
 	    options.log_level == SYSLOG_LEVEL_NOT_SET ?
 	    SYSLOG_LEVEL_INFO : options.log_level,
@@ -1204,8 +1213,6 @@ main(int ac, char **av)
 	if (debug_flag)
 		logit("%s, %s", SSH_RELEASE, SSH_OPENSSL_VERSION);
 
-	/* Parse the configuration files */
-	process_config_files(options.host_arg, pw, 0, &want_final_pass);
 	if (want_final_pass)
 		debug("configuration requests final Match pass");
 

@@ -2968,6 +2968,7 @@ free_options(Options *o)
 	free(o->forward_agent_sock_path);
 	free(o->xauth_location);
 	FREE_ARRAY(u_int, o->num_log_verbose, o->log_verbose);
+	free(o->log_path);
 	free(o->log_verbose);
 	free(o->ciphers);
 	free(o->macs);
@@ -3590,6 +3591,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oLocalCommand, o->local_command);
 	dump_cfg_string(oRemoteCommand, o->remote_command);
 	dump_cfg_string(oLogLevel, log_level_name(o->log_level));
+	dump_cfg_string(oLogPath, o->log_path);
 	dump_cfg_string(oMacs, o->macs);
 #ifdef ENABLE_PKCS11
 	dump_cfg_string(oPKCS11Provider, o->pkcs11_provider);
