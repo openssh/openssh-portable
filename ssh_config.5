@@ -1393,6 +1393,14 @@ function, and all code in the
 .Pa packet.c
 file.
 This option is intended for debugging and no overrides are enabled by default.
+.It Cm LogPath
+Specify the path to the log file where debug logging should be appended.
+Arguments to
+.Cm LogPath
+may use the tilde syntax to refer to a user's home directory and
+environment variables as described in the
+.Sx ENVIRONMENT VARIABLES
+section.
 .It Cm MACs
 Specifies the MAC (message authentication code) algorithms
 in order of preference.
