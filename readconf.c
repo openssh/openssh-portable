@@ -156,7 +156,7 @@ typedef enum {
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oTCPKeepAlive, oNumberOfPasswordPrompts,
-	oLogFacility, oLogLevel, oLogVerbose, oCiphers, oMacs,
+	oLogFacility, oLogLevel, oLogPath, oLogVerbose, oCiphers, oMacs,
 	oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
@@ -271,6 +271,7 @@ static struct {
 	{ "numberofpasswordprompts", oNumberOfPasswordPrompts },
 	{ "syslogfacility", oLogFacility },
 	{ "loglevel", oLogLevel },
+	{ "logpath", oLogPath },
 	{ "logverbose", oLogVerbose },
 	{ "dynamicforward", oDynamicForward },
 	{ "preferredauthentications", oPreferredAuthentications },
@@ -1629,6 +1630,10 @@ parse_pubkey_algos:
 		}
 		break;
 
+	case oLogPath:
+		charptr = &options->log_path;
+		goto parse_string;
+
 	case oLocalForward:
 	case oRemoteForward:
 	case oDynamicForward:
@@ -2585,6 +2590,7 @@ initialize_options(Options * options)
 	options->num_permitted_remote_opens = 0;
 	options->log_facility = SYSLOG_FACILITY_NOT_SET;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
+	options->log_path = NULL;
 	options->num_log_verbose = 0;
 	options->log_verbose = NULL;
 	options->preferred_authentications = NULL;

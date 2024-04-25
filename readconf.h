@@ -54,6 +54,7 @@ typedef struct {
 	int	ip_qos_bulk;		/* IP ToS/DSCP/class for bulk traffic */
 	SyslogFacility log_facility;	/* Facility for system logging. */
 	LogLevel log_level;	/* Level for logging. */
+	char   *log_path;	/* Path for debug logs. */
 	u_int	num_log_verbose;	/* Verbose log overrides */
 	char   **log_verbose;
 	int     port;		/* Port to connect. */
