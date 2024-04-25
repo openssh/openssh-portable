@@ -776,9 +776,8 @@ main(int ac, char **av)
 			use_syslog = 1;
 			break;
 		case 'E':
-			p = tilde_expand_filename(optarg, getuid());
+			free(options.control_path);
 			options.log_path = xstrdup(optarg);
-			free(p);
 			break;
 		case 'G':
 			config_test = 1;
