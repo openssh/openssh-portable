@@ -9,7 +9,3 @@ master :
 9.7 :
 [![C/C++ CI](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml/badge.svg?branch=V_9_7)](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml?query=branch:V_9_7)
 [![C/C++ CI self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml/badge.svg?branch=V_9_7)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml?query=branch:V_9_7)
-
-9.6 :
-[![C/C++ CI](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml/badge.svg?branch=V_9_6)](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml?query=branch:V_9_6)
-[![C/C++ CI self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml/badge.svg?branch=V_9_6)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml?query=branch:V_9_6)
