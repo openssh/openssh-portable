@@ -268,7 +268,7 @@ main(int argc, char **argv)
 		    __progname, rver, version);
 	if ((r = sshbuf_get_u32(b, (u_int *)&fd)) != 0)
 		fatal_r(r, "%s: buffer error", __progname);
-	if (fd < 0 || fd == STDIN_FILENO || fd == STDOUT_FILENO)
+	if (fd < 0 || fd == STDIN_FILENO || fd == STDOUT_FILENO || fd == STDERR_FILENO)
 		fatal("%s: bad fd = %d", __progname, fd);
 	if ((host = get_local_name(fd)) == NULL)
 		fatal("%s: cannot get local name for fd", __progname);
