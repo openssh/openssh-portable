@@ -1630,6 +1630,27 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	}
 	free(pfd);
 
+	/*
+	 * In interactive mode (with pseudo tty) display a message indicating
+	 * that the connection has been closed.
+	 */
+	if (have_pty && options.log_level >= SYSLOG_LEVEL_INFO)
+		quit_message("Connection to %s closed.", host);
+
+	/* Output any buffered data for stderr. */
+	if (sshbuf_len(stderr_buffer) > 0) {
+		len = atomicio(vwrite, fileno(stderr),
+		    (u_char *)sshbuf_ptr(stderr_buffer),
+		    sshbuf_len(stderr_buffer));
+		if (len < 0 || (u_int)len != sshbuf_len(stderr_buffer))
+			error("Write failed flushing stderr buffer.");
+		else if ((r = sshbuf_consume(stderr_buffer, len)) != 0)
+			fatal_fr(r, "sshbuf_consume");
+	}
+
+	/* Clear and free any buffers. */
+	sshbuf_free(stderr_buffer);
+
 	/* Terminate the session. */
 
 	/* Stop watching for window change. */
@@ -1663,27 +1684,6 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		verbose("Killed by signal %d.", (int) received_signal);
 		cleanup_exit(255);
 	}
-
-	/*
-	 * In interactive mode (with pseudo tty) display a message indicating
-	 * that the connection has been closed.
-	 */
-	if (have_pty && options.log_level >= SYSLOG_LEVEL_INFO)
-		quit_message("Connection to %s closed.", host);
-
-	/* Output any buffered data for stderr. */
-	if (sshbuf_len(stderr_buffer) > 0) {
-		len = atomicio(vwrite, fileno(stderr),
-		    (u_char *)sshbuf_ptr(stderr_buffer),
-		    sshbuf_len(stderr_buffer));
-		if (len < 0 || (u_int)len != sshbuf_len(stderr_buffer))
-			error("Write failed flushing stderr buffer.");
-		else if ((r = sshbuf_consume(stderr_buffer, len)) != 0)
-			fatal_fr(r, "sshbuf_consume");
-	}
-
-	/* Clear and free any buffers. */
-	sshbuf_free(stderr_buffer);
 
 	/* Report bytes transferred, and transfer rates. */
 	total_time = monotime_double() - start_time;
