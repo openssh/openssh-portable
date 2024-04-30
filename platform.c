@@ -33,6 +33,7 @@
 #include "openbsd-compat/openbsd-compat.h"
 
 extern int use_privsep;
+extern int notify_fd;
 extern ServerOptions options;
 
 void
@@ -47,6 +48,12 @@ platform_pre_listen(void)
 void
 platform_post_listen(void)
 {
+	if (notify_fd) {
+		/* newline notification */
+		write(STDOUT_FILENO, "\n", 1);
+		/* close stdout */
+		dup2(STDERR_FILENO, STDOUT_FILENO);
+	}
 #ifdef SYSTEMD_NOTIFY
 	ssh_systemd_notify_ready();
 #endif

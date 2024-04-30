@@ -151,6 +151,11 @@ char *config_file_name = _PATH_SERVER_CONFIG_FILE;
 int debug_flag = 0;
 
 /*
+ * Write a newline to stdout after listening.
+ */
+int notify_fd = 0;
+
+/*
  * Indicating that the daemon should only test the configuration and keys.
  * If test_flag > 1 ("-T" flag), then sshd will also dump the effective
  * configuration, optionally using connection information provided by the
@@ -896,7 +901,7 @@ usage(void)
 {
 	fprintf(stderr, "%s, %s\n", SSH_RELEASE, SSH_OPENSSL_VERSION);
 	fprintf(stderr,
-"usage: sshd [-46DdeGiqTtV] [-C connection_spec] [-c host_cert_file]\n"
+"usage: sshd [-46DdeGiqTtV3] [-C connection_spec] [-c host_cert_file]\n"
 "            [-E log_file] [-f config_file] [-g login_grace_time]\n"
 "            [-h host_key_file] [-o option] [-p port] [-u len]\n"
 	);
@@ -1591,7 +1596,7 @@ main(int ac, char **av)
 
 	/* Parse command-line arguments. */
 	while ((opt = getopt(ac, av,
-	    "C:E:b:c:f:g:h:k:o:p:u:46DGQRTdeiqrtV")) != -1) {
+	    "C:E:b:c:f:g:h:k:o:p:u:46DGQRTdeiqrtV3")) != -1) {
 		switch (opt) {
 		case '4':
 			options.address_family = AF_INET;
@@ -1699,6 +1704,11 @@ main(int ac, char **av)
 			fprintf(stderr, "%s, %s\n",
 			    SSH_RELEASE, SSH_OPENSSL_VERSION);
 			exit(0);
+		case '3':
+			/* implies process will be supervised */
+			no_daemon_flag = 1;
+			notify_fd = 1;
+			break;
 		default:
 			usage();
 			break;
@@ -1708,10 +1718,12 @@ main(int ac, char **av)
 		rexec_flag = 0;
 	if (!test_flag && !do_dump_cfg && rexec_flag && !path_absolute(av[0]))
 		fatal("sshd re-exec requires execution with an absolute path");
-	if (rexeced_flag)
+	if (rexeced_flag) {
+		notify_fd = 0;
 		closefrom(REEXEC_MIN_FREE_FD);
-	else
+	} else {
 		closefrom(REEXEC_DEVCRYPTO_RESERVED_FD);
+	}
 
 	seed_rng();
 
