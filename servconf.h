@@ -202,7 +202,6 @@ typedef struct {
 	int	hpn_disabled;		/* disable hpn functionality. false by default */
 	int	none_enabled;		/* Enable NONE cipher switch */
 	int     nonemac_enabled;        /* Enable NONE MAC switch */
-	int     hpn_buffer_limit;       /* limit local_window_max to 1/2 receive buffer */
   
 	int	permit_tun;
 

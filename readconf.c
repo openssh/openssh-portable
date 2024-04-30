@@ -171,7 +171,7 @@ typedef enum {
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
 	oTcpRcvBufPoll, oHPNDisabled,
-	oNoneEnabled, oNoneMacEnabled, oNoneSwitch, oHPNBufferLimit,
+	oNoneEnabled, oNoneMacEnabled, oNoneSwitch,
 	oMetrics, oMetricsPath, oMetricsInterval, oFallback, oFallbackPort,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType, oStdinNull,
@@ -310,7 +310,6 @@ static struct {
 	{ "noneenabled", oNoneEnabled },
 	{ "nonemacenabled", oNoneMacEnabled },
 	{ "noneswitch", oNoneSwitch },
-	{ "hpnbufferlimit", oHPNBufferLimit },
 	{ "metrics", oMetrics },
 	{ "metricspath", oMetricsPath },
 	{ "metricsinterval", oMetricsInterval },
@@ -1268,10 +1267,6 @@ parse_time:
 
 	case oNoneMacEnabled:
 		intptr = &options->nonemac_enabled;
-		goto parse_flag;
-
-	case oHPNBufferLimit:
-		intptr = &options->hpn_buffer_limit;
 		goto parse_flag;
 
 	case oMetrics:
@@ -2701,7 +2696,6 @@ initialize_options(Options * options)
 	options->metrics_path = NULL;
 	options->metrics_interval = -1;
 	options->hpn_disabled = -1;
-	options->hpn_buffer_limit = -1;
 	options->fallback = -1;
 	options->fallback_port = -1;
 	options->tcp_rcv_buf_poll = -1;
@@ -2880,8 +2874,6 @@ fill_default_options(Options * options)
 		options->server_alive_count_max = 3;
 	if (options->hpn_disabled == -1)
 		options->hpn_disabled = 0;
-	if (options->hpn_buffer_limit == -1)
-		options->hpn_buffer_limit = 0;
 	if (options->tcp_rcv_buf_poll == -1)
 		options->tcp_rcv_buf_poll = 1;
 	if (options->none_switch == -1)
