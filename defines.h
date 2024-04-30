@@ -942,4 +942,10 @@ struct winsize {
 #if defined(VARIABLE_LENGTH_ARRAYS) && defined(VARIABLE_DECLARATION_AFTER_CODE)
 # define USE_SNTRUP761X25519 1
 #endif
+
+/* Enable mceliece6688128x25519-sha512@openssh.com. */
+#if defined(USE_LIBMCELIECE) || defined(VARIABLE_LENGTH_ARRAYS)
+# define USE_MCELIECE6688128X25519 1
+#endif
+
 #endif /* _DEFINES_H */
