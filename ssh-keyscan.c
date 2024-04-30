@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.155 2024/01/11 01:45:36 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.156 2024/04/30 15:40:43 tobias Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -854,7 +854,8 @@ main(int argc, char **argv)
 		if (argv[j] == NULL)
 			fp = stdin;
 		else if ((fp = fopen(argv[j], "r")) == NULL)
-			fatal("%s: %s: %s", __progname, argv[j], strerror(errno));
+			fatal("%s: %s: %s", __progname,
+			    fp == stdin ? "<stdin>" : argv[j], strerror(errno));
 
 		while (getline(&line, &linesize, fp) != -1) {
 			/* Chomp off trailing whitespace and comments */
@@ -876,9 +877,11 @@ main(int argc, char **argv)
 		}
 
 		if (ferror(fp))
-			fatal("%s: %s: %s", __progname, argv[j], strerror(errno));
+			fatal("%s: %s: %s", __progname,
+			    fp == stdin ? "<stdin>" : argv[j], strerror(errno));
 
-		fclose(fp);
+		if (fp != stdin)
+			fclose(fp);
 	}
 	free(line);
 
