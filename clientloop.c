@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.404 2024/04/30 02:10:49 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.405 2024/04/30 02:14:10 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1585,7 +1585,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		client_wait_until_can_do_something(ssh, &pfd, &npfd_alloc,
 		    &npfd_active, channel_did_enqueue, &osigset,
 		    &conn_in_ready, &conn_out_ready);
-		if (sigprocmask(SIG_UNBLOCK, &bsigset, &osigset) == -1)
+		if (sigprocmask(SIG_SETMASK, &osigset, NULL) == -1)
 			error_f("osigset sigprocmask: %s", strerror(errno));
 
 		if (quit_pending)
