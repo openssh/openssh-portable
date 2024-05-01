@@ -1669,6 +1669,7 @@ pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 	struct sshkey *key;
 	int disallowed, agent_fd = -1, i, r, found;
 	size_t j;
+	size_t k;
 	struct ssh_identitylist *idlist;
 	char *cp, *ident;
 
@@ -1742,6 +1743,22 @@ pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 					TAILQ_REMOVE(&files, id, next);
 					TAILQ_INSERT_TAIL(preferred, id, next);
 					id->agent_fd = agent_fd;
+					if (options.identities_only && !sshkey_is_cert(idlist->keys[j])) {
+						for (k = 0; k < idlist->nkeys; k++) {
+							if (k != j && sshkey_is_cert(idlist->keys[k]) && sshkey_equal_public(idlist->keys[j], idlist->keys[k])) {
+								id = xcalloc(1, sizeof(*id));
+								/* XXX "steals" key/comment from idlist */
+								id->key = idlist->keys[k];
+								id->filename = idlist->comments[k];
+								idlist->keys[k] = NULL;
+								idlist->comments[k] = NULL;
+								id->agent_fd = agent_fd;
+								TAILQ_INSERT_TAIL(&agent, id, next);
+								/* Prepare no more than one certificate for each found identity */
+								break;
+							}
+						}
+					}
 					found = 1;
 					break;
 				}
