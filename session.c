@@ -1184,6 +1184,15 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		child_set_env(&env, &envsize, "SSH_ORIGINAL_COMMAND",
 		    original_command);
 
+	if(
+		s->authctxt->auth_method_key != NULL
+		&& s->authctxt->auth_method_key->cert != NULL
+		&& s->authctxt->auth_method_key->cert->key_id != NULL
+	) {
+		child_set_env(&env, &envsize, "SSH_KEY_ID",
+		    s->authctxt->auth_method_key->cert->key_id);
+	}
+
 	if (debug_flag) {
 		/* dump the environment */
 		fprintf(stderr, "Environment:\n");
