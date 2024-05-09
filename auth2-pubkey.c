@@ -777,8 +777,8 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 	for (i = 0; !success && i < options.num_authkeys_files; i++) {
 		if (strcasecmp(options.authorized_keys_files[i], "none") == 0)
 			continue;
-		file = expand_authorized_keys(
-		    options.authorized_keys_files[i], pw);
+		file = expand_user_file(options.authorized_keys_files[i], pw,
+		    "AuthorizedKeys");
 		success = user_key_allowed2(pw, key, file,
 		    remote_ip, remote_host, &opts);
 		free(file);

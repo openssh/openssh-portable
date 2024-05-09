@@ -833,6 +833,48 @@ check_quietlogin(Session *s, const char *command)
 }
 
 /*
+ * Check that any custom user environment/rc file is "safe" to run, i.e.
+ * - If the file is located in the logged-in user's $HOME, it is owned by the
+ *   user and accessible *only* to the user
+ * - If the file is located outside the user's $HOME, it is owned by the super
+ *   user
+ */
+static int
+safe_user_file(const char *filename, struct passwd *pw)
+{
+	struct stat st;
+	char *path;
+	int safe = 0;
+
+	if (stat(filename, &st) == -1)
+		return safe;
+
+	path = realpath(filename, NULL);
+	if (strncmp(path, pw->pw_dir, strlen(pw->pw_dir)) == 0) {
+		if (st.st_uid != pw->pw_uid) {
+			fprintf(stderr, "Bad owner on %s, ignoring.\n", path);
+			goto out;
+		}
+		if ((st.st_mode & 077) != 0) {
+			fprintf(stderr,
+			    "Permissions too open (%3o) on %s, ignoring.\n",
+			    st.st_mode & 0777u, path);
+			goto out;
+		}
+		safe = 1;
+		goto out;
+	}
+	if (st.st_uid != 0 || st.st_gid != 0) {
+		fprintf(stderr, "%s not root-owned, ignoring.\n", path);
+		goto out;
+	}
+	safe = 1;
+out:
+	free(path);
+	return safe;
+}
+
+/*
  * Reads environment variables from the given file and adds/overrides them
  * into the environment.  If the file does not exist, this does nothing.
  * Otherwise, it must consist of empty lines, comments (line starts with '#')
@@ -984,7 +1026,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 	char buf[256];
 	size_t n;
 	u_int i, envsize;
-	char *ocp, *cp, *value, **env, *laddr;
+	char *ocp, *cp, *value, **env, *laddr, *userenv = NULL;
 	struct passwd *pw = s->pw;
 #if !defined (HAVE_LOGIN_CAP) && !defined (HAVE_CYGWIN)
 	char *path = NULL;
@@ -1116,12 +1158,16 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		}
 	}
 
-	/* read $HOME/.ssh/environment. */
+	/* read user environment files. */
 	if (options.permit_user_env) {
-		snprintf(buf, sizeof buf, "%.200s/%s/environment",
-		    pw->pw_dir, _PATH_SSH_USER_DIR);
-		read_environment_file(&env, &envsize, buf,
-		    options.permit_user_env_allowlist);
+		for (i = 0; i < options.num_user_env_files; i++) {
+			userenv = expand_user_file(options.user_env_files[i], pw,
+			    "UserEnvironment");
+			if (safe_user_file(userenv, pw))
+				read_environment_file(&env, &envsize, userenv,
+				    options.permit_user_env_allowlist);
+		}
+		free(userenv);
 	}
 
 #ifdef USE_PAM
@@ -1204,29 +1250,34 @@ do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 	char *cmd = NULL, *user_rc = NULL;
 	int do_xauth;
 	struct stat st;
+	u_int i;
 
 	do_xauth =
 	    s->display != NULL && s->auth_proto != NULL && s->auth_data != NULL;
-	xasprintf(&user_rc, "%s/%s", s->pw->pw_dir, _PATH_SSH_USER_RC);
 
 	/* ignore _PATH_SSH_USER_RC for subsystems and admin forced commands */
 	if (!s->is_subsystem && options.adm_forced_command == NULL &&
-	    auth_opts->permit_user_rc && options.permit_user_rc &&
-	    stat(user_rc, &st) >= 0) {
-		if (xasprintf(&cmd, "%s -c '%s %s'", shell, _PATH_BSHELL,
-		    user_rc) == -1)
-			fatal_f("xasprintf: %s", strerror(errno));
-		if (debug_flag)
-			fprintf(stderr, "Running %s\n", cmd);
-		f = popen(cmd, "w");
-		if (f) {
-			if (do_xauth)
-				fprintf(f, "%s %s\n", s->auth_proto,
-				    s->auth_data);
-			pclose(f);
-		} else
-			fprintf(stderr, "Could not run %s\n",
-			    user_rc);
+	    auth_opts->permit_user_rc && options.permit_user_rc) {
+		for (i = 0; i < options.num_user_rc_files; i++) {
+			user_rc = expand_user_file(options.user_rc_files[i],
+			    s->pw, "UserRC");
+			if (safe_user_file(user_rc, s->pw)) {
+				if (xasprintf(&cmd, "%s -c '%s %s'", shell,
+				    _PATH_BSHELL, user_rc) == -1)
+					fatal_f("xasprintf: %s", strerror(errno));
+				if (debug_flag)
+					fprintf(stderr, "Running %s\n", cmd);
+				f = popen(cmd, "w");
+				if (f) {
+					if (do_xauth)
+						fprintf(f, "%s %s\n", s->auth_proto,
+						    s->auth_data);
+					pclose(f);
+				} else
+					fprintf(stderr, "Could not run %s\n",
+					    user_rc);
+			}
+		}
 	} else if (stat(_PATH_SSH_SYSTEM_RC, &st) >= 0) {
 		if (debug_flag)
 			fprintf(stderr, "Running %s %s\n", _PATH_BSHELL,

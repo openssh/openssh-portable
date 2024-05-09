@@ -233,6 +233,11 @@ typedef struct {
 	u_int	num_channel_timeouts;
 
 	int	unused_connection_timeout;
+
+	u_int   num_user_env_files;     /* alternative .ssh/environment files */
+	u_int   num_user_rc_files;      /* alternative .ssh/rc files */
+	char   **user_env_files;
+	char   **user_rc_files;
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */
@@ -281,6 +286,8 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STROPT(routing_domain); \
 		M_CP_STROPT(permit_user_env_allowlist); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
+		M_CP_STRARRAYOPT(user_rc_files, num_user_rc_files); \
+		M_CP_STRARRAYOPT(user_env_files, num_user_env_files); \
 		M_CP_STRARRAYOPT(allow_users, num_allow_users); \
 		M_CP_STRARRAYOPT(deny_users, num_deny_users); \
 		M_CP_STRARRAYOPT(allow_groups, num_allow_groups); \
