@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.154 2023/12/18 14:47:20 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.155 2024/05/17 06:42:04 jsg Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -325,7 +325,6 @@ int	 channel_input_ieof(int, u_int32_t, struct ssh *);
 int	 channel_input_oclose(int, u_int32_t, struct ssh *);
 int	 channel_input_open_confirmation(int, u_int32_t, struct ssh *);
 int	 channel_input_open_failure(int, u_int32_t, struct ssh *);
-int	 channel_input_port_open(int, u_int32_t, struct ssh *);
 int	 channel_input_window_adjust(int, u_int32_t, struct ssh *);
 int	 channel_input_status_confirm(int, u_int32_t, struct ssh *);
 

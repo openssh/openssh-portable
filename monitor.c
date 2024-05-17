@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.238 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.239 2024/05/17 06:42:04 jsg Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -125,8 +125,6 @@ int mm_answer_keyverify(struct ssh *, int, struct sshbuf *);
 int mm_answer_pty(struct ssh *, int, struct sshbuf *);
 int mm_answer_pty_cleanup(struct ssh *, int, struct sshbuf *);
 int mm_answer_term(struct ssh *, int, struct sshbuf *);
-int mm_answer_sesskey(struct ssh *, int, struct sshbuf *);
-int mm_answer_sessid(struct ssh *, int, struct sshbuf *);
 
 #ifdef USE_PAM
 int mm_answer_pam_start(struct ssh *, int, struct sshbuf *);

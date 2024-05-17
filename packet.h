@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.97 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.98 2024/05/17 06:42:04 jsg Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -124,14 +124,12 @@ int	 ssh_packet_send2_wrapped(struct ssh *);
 int	 ssh_packet_send2(struct ssh *);
 
 int      ssh_packet_read(struct ssh *);
-int      ssh_packet_read_poll(struct ssh *);
 int ssh_packet_read_poll2(struct ssh *, u_char *, u_int32_t *seqnr_p);
 int	 ssh_packet_process_incoming(struct ssh *, const char *buf, u_int len);
 int	 ssh_packet_process_read(struct ssh *, int);
 int      ssh_packet_read_seqnr(struct ssh *, u_char *, u_int32_t *seqnr_p);
 int      ssh_packet_read_poll_seqnr(struct ssh *, u_char *, u_int32_t *seqnr_p);
 
-const void *ssh_packet_get_string_ptr(struct ssh *, u_int *length_ptr);
 void     ssh_packet_disconnect(struct ssh *, const char *fmt, ...)
 	__attribute__((format(printf, 2, 3)))
 	__attribute__((noreturn));

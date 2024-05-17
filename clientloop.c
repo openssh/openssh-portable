@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.406 2024/05/09 09:46:47 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.407 2024/05/17 06:42:04 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -193,7 +193,6 @@ TAILQ_HEAD(global_confirms, global_confirm);
 static struct global_confirms global_confirms =
     TAILQ_HEAD_INITIALIZER(global_confirms);
 
-void ssh_process_session2_setup(int, int, int, struct sshbuf *);
 static void quit_message(const char *fmt, ...)
     __attribute__((__format__ (printf, 1, 2)));
 

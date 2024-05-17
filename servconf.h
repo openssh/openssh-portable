@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.161 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.162 2024/05/17 06:42:04 jsg Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -303,9 +303,7 @@ void	 parse_server_config(ServerOptions *, const char *, struct sshbuf *,
 	    struct include_list *includes, struct connection_info *, int);
 void	 parse_server_match_config(ServerOptions *,
 	    struct include_list *includes, struct connection_info *);
-int	 parse_channel_timeout(const char *, char **, u_int *);
 int	 parse_server_match_testspec(struct connection_info *, char *);
-int	 server_match_spec_complete(struct connection_info *);
 void	 servconf_merge_subsystems(ServerOptions *, ServerOptions *);
 void	 copy_set_server_options(ServerOptions *, ServerOptions *, int);
 void	 dump_config(ServerOptions *);
