@@ -668,7 +668,7 @@ static struct pam_conv store_conv = { sshpam_store_conv, NULL };
 void
 sshpam_cleanup(void)
 {
-	if (sshpam_handle == NULL || (use_privsep && !mm_is_monitor()))
+	if (sshpam_handle == NULL || !mm_is_monitor())
 		return;
 	debug("PAM: cleanup");
 	pam_set_item(sshpam_handle, PAM_CONV, (const void *)&null_conv);
@@ -705,7 +705,8 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 			fatal("%s: called initially with no "
 			    "packet context", __func__);
 		}
-	} if (sshpam_handle != NULL) {
+	}
+	if (sshpam_handle != NULL) {
 		/* We already have a PAM context; check if the user matches */
 		sshpam_err = pam_get_item(sshpam_handle,
 		    PAM_USER, (sshpam_const void **)ptr_pam_user);
@@ -1101,20 +1102,15 @@ do_pam_account(void)
 }
 
 void
-do_pam_setcred(int init)
+do_pam_setcred(void)
 {
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
 	    (const void *)&store_conv);
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: failed to set PAM_CONV: %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
-	if (init) {
-		debug("PAM: establishing credentials");
-		sshpam_err = pam_setcred(sshpam_handle, PAM_ESTABLISH_CRED);
-	} else {
-		debug("PAM: reinitializing credentials");
-		sshpam_err = pam_setcred(sshpam_handle, PAM_REINITIALIZE_CRED);
-	}
+	debug("PAM: establishing credentials");
+	sshpam_err = pam_setcred(sshpam_handle, PAM_ESTABLISH_CRED);
 	if (sshpam_err == PAM_SUCCESS) {
 		sshpam_cred_established = 1;
 		return;
@@ -1127,6 +1123,7 @@ do_pam_setcred(int init)
 		    pam_strerror(sshpam_handle, sshpam_err));
 }
 
+#if 0
 static int
 sshpam_tty_conv(int n, sshpam_const struct pam_message **msg,
     struct pam_response **resp, void *data)
@@ -1182,6 +1179,7 @@ sshpam_tty_conv(int n, sshpam_const struct pam_message **msg,
 }
 
 static struct pam_conv tty_conv = { sshpam_tty_conv, NULL };
+#endif
 
 /*
  * XXX this should be done in the authentication phase, but ssh1 doesn't
@@ -1190,8 +1188,8 @@ static struct pam_conv tty_conv = { sshpam_tty_conv, NULL };
 void
 do_pam_chauthtok(void)
 {
-	if (use_privsep)
-		fatal("Password expired (unable to change with privsep)");
+	fatal("Password expired");
+#if 0
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
 	    (const void *)&tty_conv);
 	if (sshpam_err != PAM_SUCCESS)
@@ -1202,6 +1200,7 @@ do_pam_chauthtok(void)
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: pam_chauthtok(): %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
+#endif
 }
 
 void

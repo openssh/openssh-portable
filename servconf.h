@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.160 2023/09/06 23:35:35 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.161 2024/05/17 00:30:24 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -26,11 +26,6 @@
 #define	PERMIT_FORCED_ONLY	1
 #define	PERMIT_NO_PASSWD	2
 #define	PERMIT_YES		3
-
-/* use_privsep */
-#define PRIVSEP_OFF		0
-#define PRIVSEP_ON		1
-#define PRIVSEP_NOSANDBOX	2
 
 /* PermitOpen */
 #define PERMITOPEN_ANY		0
@@ -233,6 +228,8 @@ typedef struct {
 	u_int	num_channel_timeouts;
 
 	int	unused_connection_timeout;
+
+	char   *sshd_session_path;
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */
@@ -297,18 +294,16 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STRARRAYOPT(subsystem_args, num_subsystems); \
 	} while (0)
 
-struct connection_info *get_connection_info(struct ssh *, int, int);
 void	 initialize_server_options(ServerOptions *);
 void	 fill_default_server_options(ServerOptions *);
 int	 process_server_config_line(ServerOptions *, char *, const char *, int,
 	    int *, struct connection_info *, struct include_list *includes);
-void	 process_permitopen(struct ssh *ssh, ServerOptions *options);
-void	 process_channel_timeouts(struct ssh *ssh, ServerOptions *);
 void	 load_server_config(const char *, struct sshbuf *);
 void	 parse_server_config(ServerOptions *, const char *, struct sshbuf *,
 	    struct include_list *includes, struct connection_info *, int);
 void	 parse_server_match_config(ServerOptions *,
 	    struct include_list *includes, struct connection_info *);
+int	 parse_channel_timeout(const char *, char **, u_int *);
 int	 parse_server_match_testspec(struct connection_info *, char *);
 int	 server_match_spec_complete(struct connection_info *);
 void	 servconf_merge_subsystems(ServerOptions *, ServerOptions *);

@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.193 2024/04/02 10:02:08 deraadt Exp $ */
+/* $OpenBSD: misc.c,v 1.194 2024/05/17 00:30:23 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2002,6 +2002,19 @@ forward_equals(const struct Forward *a, const struct Forward *b)
 		return 0;
 	/* allocated_port and handle are not checked */
 	return 1;
+}
+
+/* returns port number, FWD_PERMIT_ANY_PORT or -1 on error */
+int
+permitopen_port(const char *p)
+{
+	int port;
+
+	if (strcmp(p, "*") == 0)
+		return FWD_PERMIT_ANY_PORT;
+	if ((port = a2port(p)) > 0)
+		return port;
+	return -1;
 }
 
 /* returns 1 if process is already daemonized, 0 otherwise */

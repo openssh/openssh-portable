@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.405 2024/03/04 02:16:11 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.406 2024/05/17 00:30:24 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -77,8 +77,6 @@ static void parse_server_config_depth(ServerOptions *options,
     const char *filename, struct sshbuf *conf, struct include_list *includes,
     struct connection_info *connectinfo, int flags, int *activep, int depth);
 
-/* Use of privilege separation or not */
-extern int use_privsep;
 extern struct sshbuf *cfg;
 
 /* Initializes the server options to their default values. */
@@ -197,6 +195,7 @@ initialize_server_options(ServerOptions *options)
 	options->channel_timeouts = NULL;
 	options->num_channel_timeouts = 0;
 	options->unused_connection_timeout = -1;
+	options->sshd_session_path = NULL;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -447,12 +446,10 @@ fill_default_server_options(ServerOptions *options)
 		options->required_rsa_size = SSH_RSA_MINIMUM_MODULUS_SIZE;
 	if (options->unused_connection_timeout == -1)
 		options->unused_connection_timeout = 0;
+	if (options->sshd_session_path == NULL)
+		options->sshd_session_path = xstrdup(_PATH_SSHD_SESSION);
 
 	assemble_algorithms(options);
-
-	/* Turn privilege separation and sandboxing on by default */
-	if (use_privsep == -1)
-		use_privsep = PRIVSEP_ON;
 
 #define CLEAR_ON_NONE(v) \
 	do { \
@@ -531,6 +528,7 @@ typedef enum {
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
 	sRequiredRSASize, sChannelTimeout, sUnusedConnectionTimeout,
+	sSshdMonitorPath,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -693,6 +691,7 @@ static struct {
 	{ "requiredrsasize", sRequiredRSASize, SSHCFG_ALL },
 	{ "channeltimeout", sChannelTimeout, SSHCFG_ALL },
 	{ "unusedconnectiontimeout", sUnusedConnectionTimeout, SSHCFG_ALL },
+	{ "sshdmonitorpath", sSshdMonitorPath, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -900,95 +899,6 @@ process_queued_listen_addrs(ServerOptions *options)
 	free(options->queued_listen_addrs);
 	options->queued_listen_addrs = NULL;
 	options->num_queued_listens = 0;
-}
-
-/*
- * Inform channels layer of permitopen options for a single forwarding
- * direction (local/remote).
- */
-static void
-process_permitopen_list(struct ssh *ssh, ServerOpCodes opcode,
-    char **opens, u_int num_opens)
-{
-	u_int i;
-	int port;
-	char *host, *arg, *oarg;
-	int where = opcode == sPermitOpen ? FORWARD_LOCAL : FORWARD_REMOTE;
-	const char *what = lookup_opcode_name(opcode);
-
-	channel_clear_permission(ssh, FORWARD_ADM, where);
-	if (num_opens == 0)
-		return; /* permit any */
-
-	/* handle keywords: "any" / "none" */
-	if (num_opens == 1 && strcmp(opens[0], "any") == 0)
-		return;
-	if (num_opens == 1 && strcmp(opens[0], "none") == 0) {
-		channel_disable_admin(ssh, where);
-		return;
-	}
-	/* Otherwise treat it as a list of permitted host:port */
-	for (i = 0; i < num_opens; i++) {
-		oarg = arg = xstrdup(opens[i]);
-		host = hpdelim(&arg);
-		if (host == NULL)
-			fatal_f("missing host in %s", what);
-		host = cleanhostname(host);
-		if (arg == NULL || ((port = permitopen_port(arg)) < 0))
-			fatal_f("bad port number in %s", what);
-		/* Send it to channels layer */
-		channel_add_permission(ssh, FORWARD_ADM,
-		    where, host, port);
-		free(oarg);
-	}
-}
-
-/*
- * Inform channels layer of permitopen options from configuration.
- */
-void
-process_permitopen(struct ssh *ssh, ServerOptions *options)
-{
-	process_permitopen_list(ssh, sPermitOpen,
-	    options->permitted_opens, options->num_permitted_opens);
-	process_permitopen_list(ssh, sPermitListen,
-	    options->permitted_listens,
-	    options->num_permitted_listens);
-}
-
-void
-process_channel_timeouts(struct ssh *ssh, ServerOptions *options)
-{
-	int secs;
-	u_int i;
-	char *type;
-
-	debug3_f("setting %u timeouts", options->num_channel_timeouts);
-	channel_clear_timeouts(ssh);
-	for (i = 0; i < options->num_channel_timeouts; i++) {
-		if (parse_pattern_interval(options->channel_timeouts[i],
-		    &type, &secs) != 0) {
-			fatal_f("internal error: bad timeout %s",
-			    options->channel_timeouts[i]);
-		}
-		channel_add_timeout(ssh, type, secs);
-		free(type);
-	}
-}
-
-struct connection_info *
-get_connection_info(struct ssh *ssh, int populate, int use_dns)
-{
-	static struct connection_info ci;
-
-	if (ssh == NULL || !populate)
-		return &ci;
-	ci.host = auth_get_canonical_hostname(ssh, use_dns);
-	ci.address = ssh_remote_ipaddr(ssh);
-	ci.laddress = ssh_local_ipaddr(ssh);
-	ci.lport = ssh_local_port(ssh);
-	ci.rdomain = ssh_packet_rdomain_in(ssh);
-	return &ci;
 }
 
 /*
@@ -2593,6 +2503,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		}
 		goto parse_time;
 
+	case sSshdMonitorPath:
+		charptr = &options->sshd_session_path;
+		goto parse_filename;
+
 	case sDeprecated:
 	case sIgnore:
 	case sUnsupported:
@@ -3167,6 +3081,7 @@ dump_config(ServerOptions *o)
 #if defined(__OpenBSD__) || defined(HAVE_SYS_SET_PROCESS_RDOMAIN)
 	dump_cfg_string(sRDomain, o->routing_domain);
 #endif
+	dump_cfg_string(sSshdMonitorPath, o->sshd_session_path);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));
