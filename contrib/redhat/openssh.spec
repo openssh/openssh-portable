@@ -393,6 +393,7 @@ fi
 %defattr(-,root,root)
 %dir %attr(0111,root,root) %{_var}/empty/sshd
 %attr(0755,root,root) %{_sbindir}/sshd
+%attr(0755,root,root) %{_libexecdir}/openssh/sshd-session
 %attr(0755,root,root) %{_libexecdir}/openssh/sftp-server
 %attr(0644,root,root) %{_mandir}/man8/sshd.8*
 %attr(0644,root,root) %{_mandir}/man5/moduli.5*
