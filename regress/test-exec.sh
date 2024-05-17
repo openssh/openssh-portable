@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.110 2024/04/03 06:01:11 anton Exp $
+#	$OpenBSD: test-exec.sh,v 1.111 2024/05/17 01:45:22 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -90,6 +90,7 @@ SSHKEYGEN=ssh-keygen
 SSHKEYSCAN=ssh-keyscan
 SFTP=sftp
 SFTPSERVER=/usr/libexec/openssh/sftp-server
+SSHD_SESSION=/usr/libexec/sshd-session
 SCP=scp
 
 # Set by make_tmpdir() on demand (below).
@@ -114,6 +115,9 @@ NC=$OBJ/netcat
 
 if [ "x$TEST_SSH_SSH" != "x" ]; then
 	SSH="${TEST_SSH_SSH}"
+fi
+if [ "x$TEST_SSH_SSHD_SESSION" != "x" ]; then
+	SSHD_SESSION="${TEST_SSH_SSHD_SESSION}"
 fi
 if [ "x$TEST_SSH_SSHD" != "x" ]; then
 	SSHD="${TEST_SSH_SSHD}"
@@ -617,6 +621,7 @@ cat << EOF > $OBJ/sshd_config
 	AcceptEnv		_XXX_TEST_*
 	AcceptEnv		_XXX_TEST
 	Subsystem	sftp	$SFTPSERVER
+	SshdSessionPath		$SSHD_SESSION
 EOF
 
 # This may be necessary if /usr/src and/or /usr/obj are group-writable,
