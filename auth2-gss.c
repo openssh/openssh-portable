@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.35 2024/05/17 00:30:23 djm Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.36 2024/05/17 04:42:13 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -255,7 +255,6 @@ input_gssapi_exchange_complete(int type, u_int32_t plen, struct ssh *ssh)
 {
 	Authctxt *authctxt = ssh->authctxt;
 	int r, authenticated;
-	const char *displayname;
 
 	if (authctxt == NULL)
 		fatal("No authentication or GSSAPI context");
@@ -287,7 +286,6 @@ input_gssapi_mic(int type, u_int32_t plen, struct ssh *ssh)
 	int r, authenticated = 0;
 	struct sshbuf *b;
 	gss_buffer_desc mic, gssbuf;
-	const char *displayname;
 	u_char *p;
 	size_t len;
 
