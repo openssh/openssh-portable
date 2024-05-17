@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.1 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.2 2024/05/17 02:39:11 jsg Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -1132,7 +1132,7 @@ main(int ac, char **av)
 		}
 	}
 	if (!have_key)
-		fatal("internal error: monitor recieved no hostkeys");
+		fatal("internal error: monitor received no hostkeys");
 
 	/* Ensure that umask disallows at least group and world write */
 	new_umask = umask(0077) | 0022;
