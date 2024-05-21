@@ -10,7 +10,7 @@
 # config: /etc/ssh/ssh_host_key.pub
 # config: /etc/ssh/ssh_random_seed
 # config: /etc/ssh/sshd_config
-# pidfile: /var/run/sshd.pid
+# pidfile: /var/run/hpnsshd.pid
 
 # source function library
 . /etc/rc.d/init.d/functions
@@ -23,7 +23,7 @@ prog="sshd"
 
 # Some functions to make the below more readable
 SSHD=/usr/sbin/sshd
-PID_FILE=/var/run/sshd.pid
+PID_FILE=/var/run/hpnsshd.pid
 
 do_restart_sanity_check()
 {

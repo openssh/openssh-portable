@@ -353,9 +353,9 @@ usage(void)
 {
 	fprintf(stderr, "%s, %s\n", SSH_RELEASE, SSH_OPENSSL_VERSION);
 	fprintf(stderr,
-"usage: sshd [-46DdeGiqTtV] [-C connection_spec] [-c host_cert_file]\n"
-"            [-E log_file] [-f config_file] [-g login_grace_time]\n"
-"            [-h host_key_file] [-o option] [-p port] [-u len]\n"
+"usage: hpnsshd [-46DdeGiqTtV] [-C connection_spec] [-c host_cert_file]\n"
+"               [-E log_file] [-f config_file] [-g login_grace_time]\n"
+"               [-h host_key_file] [-o option] [-p port] [-u len]\n"
 	);
 	exit(1);
 }
@@ -475,6 +475,8 @@ listen_on_addrs(struct listenaddr *la)
 	int ret, listen_sock;
 	struct addrinfo *ai;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	int socksize;
+	int socksizelen = sizeof(int);
 
 	for (ai = la->addrs; ai; ai = ai->ai_next) {
 		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
@@ -519,6 +521,10 @@ listen_on_addrs(struct listenaddr *la)
 			sock_set_v6only(listen_sock);
 
 		debug("Bind to port %s on %s.", strport, ntop);
+
+		getsockopt(listen_sock, SOL_SOCKET, SO_RCVBUF,
+				   &socksize, &socksizelen);
+		debug("Server TCP RWIN socket size: %d", socksize);
 
 		/* Bind the socket to the desired port. */
 		if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) == -1) {
@@ -1115,6 +1121,19 @@ main(int ac, char **av)
 
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);
+
+	if (options.none_enabled == 1) {
+		char *old_ciphers = options.ciphers;
+		xasprintf(&options.ciphers, "%s,none", old_ciphers);
+		free(old_ciphers);
+
+		/* only enable the none MAC in context of the none cipher -cjr */
+		if (options.nonemac_enabled == 1) {
+			char *old_macs = options.macs;
+			xasprintf(&options.macs, "%s,none", old_macs);
+			free(old_macs);
+		}
+	}
 
 	/* Check that options are sensible */
 	if (options.authorized_keys_command_user == NULL &&

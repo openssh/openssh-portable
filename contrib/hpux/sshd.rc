@@ -24,7 +24,7 @@ export PATH
 
 WHAT='OpenSSH'
 WHAT_PATH=/opt/openssh/sbin/sshd
-WHAT_PID=/var/run/sshd.pid
+WHAT_PID=/var/run/hpnsshd.pid
 WHAT_CONFIG=/etc/rc.config.d/sshd
 
 # NOTE: If your script executes in run state 0 or state 1, then /usr might

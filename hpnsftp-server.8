@@ -22,14 +22,14 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: July 27 2021 $
-.Dt SFTP-SERVER 8
+.Dd $Mdocdate: February 7 2022 $
+.Dt HPNSFTP-SERVER 8
 .Os
 .Sh NAME
-.Nm sftp-server
-.Nd OpenSSH SFTP server subsystem
+.Nm hpnsftp-server
+.Nd HPN/OpenSSH SFTP server subsystem
 .Sh SYNOPSIS
-.Nm sftp-server
+.Nm hpnsftp-server
 .Bk -words
 .Op Fl ehR
 .Op Fl d Ar start_directory
@@ -47,7 +47,7 @@ is a program that speaks the server side of SFTP protocol
 to stdout and expects client requests from stdin.
 .Nm
 is not intended to be called directly, but from
-.Xr sshd 8
+.Xr hpnsshd 8
 using the
 .Cm Subsystem
 option.
@@ -58,7 +58,7 @@ should be specified in the
 .Cm Subsystem
 declaration.
 See
-.Xr sshd_config 5
+.Xr hpnsshd_config 5
 for more information.
 .Pp
 Valid options are:
@@ -150,10 +150,10 @@ in a chroot configuration therefore requires that
 .Xr syslogd 8
 establish a logging socket inside the chroot directory.
 .Sh SEE ALSO
-.Xr sftp 1 ,
-.Xr ssh 1 ,
-.Xr sshd_config 5 ,
-.Xr sshd 8
+.Xr hpnsftp 1 ,
+.Xr hpnssh 1 ,
+.Xr hpnsshd_config 5 ,
+.Xr hpnsshd 8
 .Rs
 .%A T. Ylonen
 .%A S. Lehtinen

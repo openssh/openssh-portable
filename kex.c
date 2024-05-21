@@ -61,6 +61,7 @@
 
 #include "ssherr.h"
 #include "sshbuf.h"
+#include "canohost.h"
 #include "digest.h"
 #include "xmalloc.h"
 
@@ -745,17 +746,83 @@ kex_free(struct kex *kex)
 	free(kex);
 }
 
+/*
+ * This function seeks through a comma-separated list and checks for instances
+ * of the multithreaded CC20 cipher. If found, it then ensures that the serial
+ * CC20 cipher is also in the list, adding it if necessary.
+ */
+char *
+patch_list(char * orig)
+{
+	char * adj = xstrdup(orig);
+	char * match;
+	u_int next;
+
+	const char * ccpstr = "chacha20-poly1305@openssh.com";
+	const char * ccpmtstr = "chacha20-poly1305-mt@hpnssh.org";
+
+	match = match_list(ccpmtstr, orig, &next);
+	if (match != NULL) { /* CC20-MT found in the list */
+		free(match);
+		match = match_list(ccpstr, orig, NULL);
+		if (match == NULL) { /* CC20-Serial NOT found in the list */
+			adj = xreallocarray(adj,
+			    strlen(adj) /* original string length */
+			    + 1 /* for the original null-terminator */
+			    + strlen(ccpstr) /* make room for ccpstr */
+			    + 1 /* make room for the comma delimiter */
+			    , sizeof(char));
+			/*
+			 * adj[next] points to the character after the CC20-MT
+			 * string. adj[next] might be ',' or '\0' at this point.
+			 */
+			adj[next] = ',';
+			/* adj + next + 1 is the character after that comma */
+			memcpy(adj + next + 1, ccpstr, strlen(ccpstr));
+			/* rewrite the rest of the original list */
+			memcpy(adj + next + 1 + strlen(ccpstr), orig + next,
+			    strlen(orig + next) + 1);
+		} else { /* CC20-Serial found in the list, nothing to do */
+			free(match);
+		}
+	}
+
+	return adj;
+}
+
 int
 kex_ready(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 {
-	int r;
+	int r = 0;
+
+#ifdef WITH_OPENSSL
+	char * orig_ctos = proposal[PROPOSAL_ENC_ALGS_CTOS];
+	char * orig_stoc = proposal[PROPOSAL_ENC_ALGS_STOC];
+	proposal[PROPOSAL_ENC_ALGS_CTOS] =
+	    patch_list(proposal[PROPOSAL_ENC_ALGS_CTOS]);
+	proposal[PROPOSAL_ENC_ALGS_STOC] =
+	    patch_list(proposal[PROPOSAL_ENC_ALGS_STOC]);
+
+	/*
+	 * TODO: Likely memory leak here. The original contents of
+	 * proposal[PROPOSAL_ENC_ALGS_CTOS] are no longer accessible or
+	 * freeable.
+	 */
+#endif
 
 	if ((r = kex_prop2buf(ssh->kex->my, proposal)) != 0)
-		return r;
+		goto restoreProposal;
 	ssh->kex->flags = KEX_INITIAL;
 	kex_reset_dispatch(ssh);
 	ssh_dispatch_set(ssh, SSH2_MSG_KEXINIT, &kex_input_kexinit);
-	return 0;
+ restoreProposal:
+#ifdef WITH_OPENSSL
+	free(proposal[PROPOSAL_ENC_ALGS_CTOS]);
+	free(proposal[PROPOSAL_ENC_ALGS_STOC]);
+	proposal[PROPOSAL_ENC_ALGS_CTOS] = orig_ctos;
+	proposal[PROPOSAL_ENC_ALGS_STOC] = orig_stoc;
+#endif
+	return r;
 }
 
 int
@@ -934,6 +1001,11 @@ kex_choose_conf(struct ssh *ssh, uint32_t seq)
 	int nenc, nmac, ncomp;
 	u_int mode, ctos, need, dh_need, authlen;
 	int r, first_kex_follows;
+	int auth_flag = 0;
+	int log_flag = 0;
+
+	auth_flag = packet_authentication_state(ssh);
+	debug("AUTH STATE IS %d", auth_flag);
 
 	debug2("local %s KEXINIT proposal", kex->server ? "server" : "client");
 	if ((r = kex_buf2prop(kex->my, NULL, &my)) != 0)
@@ -1010,6 +1082,31 @@ kex_choose_conf(struct ssh *ssh, uint32_t seq)
 			peer[nenc] = NULL;
 			goto out;
 		}
+#ifdef WITH_OPENSSL
+		if ((strcmp(newkeys->enc.name, "chacha20-poly1305@openssh.com")
+		    == 0) && (match_list("chacha20-poly1305-mt@hpnssh.org",
+		    my[nenc], NULL) != NULL)) {
+			/*
+			 * if we're using the serial CC20 cipher while the
+			 * multithreaded implementation is an option...
+			 */
+			free(newkeys->enc.name);
+			newkeys->enc.cipher = cipher_by_name(
+			    "chacha20-poly1305-mt@hpnssh.org");
+			if (newkeys->enc.cipher == NULL) {
+				error_f("%s cipher not found.",
+				    "chacha20-poly1305-mt@hpnssh.org");
+				r = SSH_ERR_INTERNAL_ERROR;
+				kex->failed_choice = peer[nenc];
+				peer[nenc] = NULL;
+				goto out;
+			} else {
+				newkeys->enc.name = xstrdup(
+				    "chacha20-poly1305-mt@hpnssh.org");
+			}
+			/* we promote to the multithreaded implementation */
+		}
+#endif
 		authlen = cipher_authlen(newkeys->enc.cipher);
 		/* ignore mac for authenticated encryption */
 		if (authlen == 0 &&
@@ -1025,11 +1122,43 @@ kex_choose_conf(struct ssh *ssh, uint32_t seq)
 			peer[ncomp] = NULL;
 			goto out;
 		}
+		debug("REQUESTED ENC.NAME is '%s'", newkeys->enc.name);
+		debug("REQUESTED MAC.NAME is '%s'", newkeys->mac.name);
+		if (strcmp(newkeys->enc.name, "none") == 0) {
+			if (auth_flag == 1) {
+				debug("None requested post authentication.");
+				ssh->none = 1;
+			}
+			else
+				fatal("Pre-authentication none cipher requests are not allowed.");
+
+			if (newkeys->mac.name != NULL && strcmp(newkeys->mac.name, "none") == 0) {
+				debug("Requesting: NONEMAC. Authflag is %d", auth_flag);
+				ssh->none_mac = 1;
+			}
+		}
+
 		debug("kex: %s cipher: %s MAC: %s compression: %s",
 		    ctos ? "client->server" : "server->client",
 		    newkeys->enc.name,
 		    authlen == 0 ? newkeys->mac.name : "<implicit>",
 		    newkeys->comp.name);
+		/*
+		 * client starts with ctos = 0 && log flag = 0 and no log.
+		 * 2nd client pass ctos = 1 and flag = 1 so no log.
+		 * server starts with ctos = 1 && log_flag = 0 so log.
+		 * 2nd sever pass ctos = 1 && log flag = 1 so no log.
+		 * -cjr
+		 */
+		if (ctos && !log_flag) {
+			logit("SSH: Server;Ltype: Kex;Remote: %s-%d;Enc: %s;MAC: %s;Comp: %s",
+			    ssh_remote_ipaddr(ssh),
+			    ssh_remote_port(ssh),
+			    newkeys->enc.name,
+			    authlen == 0 ? newkeys->mac.name : "<implicit>",
+			    newkeys->comp.name);
+		}
+		log_flag = 1;
 	}
 	need = dh_need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
@@ -1253,7 +1382,7 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 	if (version_addendum != NULL && *version_addendum == '\0')
 		version_addendum = NULL;
 	if ((r = sshbuf_putf(our_version, "SSH-%d.%d-%s%s%s\r\n",
-	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION,
+	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_RELEASE,
 	    version_addendum == NULL ? "" : " ",
 	    version_addendum == NULL ? "" : version_addendum)) != 0) {
 		oerrno = errno;
@@ -1389,9 +1518,24 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
+
+	/* report the version information to syslog if this is the server */
+        if (timeout_ms == -1) { /* only the server uses this value */
+		logit("SSH: Server;Ltype: Version;Remote: %s-%d;Protocol: %d.%d;Client: %.100s",
+		      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+		      remote_major, remote_minor, remote_version);
+	}
+
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	    remote_major, remote_minor, remote_version);
 	compat_banner(ssh, remote_version);
+	if (ssh->compat & SSH_HPNSSH)
+		debug("HPN to HPN Connection.");
+	else
+		debug("Non-HPN to HPN Connection.");
+
+	if(ssh->compat & SSH_RESTRICT_WINDOW)
+		debug ("Window size restricted.");
 
 	mismatch = 0;
 	switch (remote_major) {
@@ -1437,4 +1581,3 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 		errno = oerrno;
 	return r;
 }
-

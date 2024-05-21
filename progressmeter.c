@@ -66,6 +66,8 @@ static const char *file;	/* name of the file being transferred */
 static off_t start_pos;		/* initial position of transfer */
 static off_t end_pos;		/* ending position of transfer */
 static off_t cur_pos;		/* transfer position as of last refresh */
+static off_t last_pos;
+static off_t max_delta_pos = 0;
 static volatile off_t *counter;	/* progress counter */
 static long stalled;		/* how long we have been stalled */
 static int bytes_per_second;	/* current speed in bytes per second */
@@ -132,6 +134,7 @@ refresh_progress_meter(int force_update)
 	int cur_speed;
 	int hours, minutes, seconds;
 	int file_len, cols;
+	off_t delta_pos;
 
 	if ((!force_update && !alarm_fired && !win_resized) || !can_output())
 		return;
@@ -146,6 +149,10 @@ refresh_progress_meter(int force_update)
 	cur_pos = *counter;
 	now = monotime_double();
 	bytes_left = end_pos - cur_pos;
+
+	delta_pos = cur_pos - last_pos;
+	if (delta_pos > max_delta_pos)
+		max_delta_pos = delta_pos;
 
 	if (bytes_left > 0)
 		elapsed = now - last_update;
@@ -176,7 +183,7 @@ refresh_progress_meter(int force_update)
 		return;
 
 	/* filename */
-	file_len = cols = win_size - 36;
+	file_len = cols = win_size - 45;
 	if (file_len > 0) {
 		asmprintf(&buf, INT_MAX, &cols, "%-*s", file_len, file);
 		/* If we used fewer columns than expected then pad */
@@ -192,6 +199,12 @@ refresh_progress_meter(int force_update)
 	/* percent / amount transferred / bandwidth usage */
 	xextendf(&buf, NULL, " %3d%% %s %s/s ", percent, format_size(cur_pos),
 	    format_rate((off_t)bytes_per_second));
+
+	/* instantaneous rate */
+	if (bytes_left > 0)
+		xextendf(&buf, NULL, "%s/s", format_rate((off_t)delta_pos));
+	else
+		xextendf(&buf, NULL, "%s/s", format_rate((off_t)max_delta_pos));
 
 	/* ETA */
 	if (!transferred)
@@ -235,6 +248,7 @@ refresh_progress_meter(int force_update)
 	}
 	free(buf);
 	free(obuf);
+	last_pos = cur_pos;
 }
 
 static void

@@ -8,6 +8,11 @@ cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 for c in `${SSH} -Q cipher`; do
 	n=0
 	for m in `${SSH} -Q mac`; do
+		# skip testing the none mac as that only works with the
+		# none cipher
+		if echo ${m} | grep -Eq "none"; then
+			continue
+		fi
 		trace "cipher $c mac $m"
 		verbose "test $tid: cipher $c mac $m"
 		cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy

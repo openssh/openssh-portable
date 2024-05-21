@@ -23,7 +23,7 @@ ssh_data_rekeying()
 	_opts="$_opts -oCompression=no"
 	${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
 	if [ $? -ne 0 ]; then
-		fail "ssh failed ($@)"
+		fail "ssh failed ($@ $?)"
 	fi
 	cmp ${DATA} ${COPY}		|| fail "corrupted copy ($@)"
 	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`

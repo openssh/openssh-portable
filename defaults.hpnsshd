@@ -1,0 +1,5 @@
+# Default settings for openssh-server. 
+# Options to pass to sshd
+# Rename this file to 'hpnssh' and copy to the
+# /etc/defaults directory
+SSHD_OPTS= 

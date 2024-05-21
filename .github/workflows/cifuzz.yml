@@ -1,26 +1,27 @@
 name: CIFuzz
 on:
   push:
-    paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/workflows/cifuzz.yml' ]
+    branches: [master, dev_minor, dev_major, release_candidates]
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '.github/**', '**/Makefile.in', 'configure.ac' ]
   pull_request:
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/workflows/cifuzz.yml' ]
 
 jobs:
   Fuzzing:
-    if: github.repository != 'openssh/openssh-portable-selfhosted'
+    if: github.repository != 'rapier1/hpn-ssh-selfhosted'
     runs-on: ubuntu-latest
     steps:
     - name: Build Fuzzers
       id: build
       uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
       with:
-        oss-fuzz-project-name: 'openssh'
+        oss-fuzz-project-name: 'hpn-ssh'
         dry-run: false
         language: c++
     - name: Run Fuzzers
       uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
       with:
-        oss-fuzz-project-name: 'openssh'
+        oss-fuzz-project-name: 'hpn-ssh'
         fuzz-seconds: 600
         dry-run: false
         language: c++

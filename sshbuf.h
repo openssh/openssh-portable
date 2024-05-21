@@ -28,18 +28,49 @@
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 
-#define SSHBUF_SIZE_MAX		0x8000000	/* Hard maximum size */
+#define SSHBUF_SIZE_MAX		0x8000000	/* Hard maximum size 128MB */
 #define SSHBUF_REFS_MAX		0x100000	/* Max child buffers */
 #define SSHBUF_MAX_BIGNUM	(16384 / 8)	/* Max bignum *bytes* */
 #define SSHBUF_MAX_ECPOINT	((528 * 2 / 8) + 1) /* Max EC point *bytes* */
+#define MAX_LABEL_LEN           64 /*maximum size of sshbuf label */
+#define sshbuf_new() sshbuf_new_label(__func__)
 
 struct sshbuf;
+
+enum buffer_types {
+	BUF_CHANNEL_OUTPUT,
+	BUF_CHANNEL_INPUT,
+	BUF_CHANNEL_EXTENDED,
+	BUF_PACKET_INPUT,
+	BUF_PACKET_INCOMING,
+	BUF_PACKET_OUTPUT,
+	BUF_PACKET_OUTGOING,
+	BUF_MAX_TYPE
+};
 
 /*
  * Create a new sshbuf buffer.
  * Returns pointer to buffer on success, or NULL on allocation failure.
  */
-struct sshbuf *sshbuf_new(void);
+/* struct sshbuf *sshbuf_new(void);*/
+
+/*
+ * Create a new labeled sshbuf buffer.
+ * Returns pointer to buffer on success, or NULL on allocation failure.
+ */
+struct sshbuf *sshbuf_new_label(const char *);
+
+/*
+ * relabel the sshbuf struct
+ */
+void sshbuf_relabel(struct sshbuf *, const char *);
+
+/*
+ * assign a type (from the buffer_types enum) to
+ * the buffer. Used to quickly identify the purpose of
+ * the buffer.
+ */
+void sshbuf_type(struct sshbuf *, int);
 
 /*
  * Create a new, read-only sshbuf buffer from existing data.
@@ -75,12 +106,13 @@ void	sshbuf_free(struct sshbuf *buf);
 void	sshbuf_reset(struct sshbuf *buf);
 
 /*
- * Return the maximum size of buf
+ * Return the maximum usable size of buf
  */
 size_t	sshbuf_max_size(const struct sshbuf *buf);
 
 /*
- * Set the maximum size of buf
+ * Set the maximum usable size of buf. Note that the buffer may consume up
+ * to 2x this memory plus bookkeeping overhead.
  * Returns 0 on success, or a negative SSH_ERR_* error code on failure.
  */
 int	sshbuf_set_max_size(struct sshbuf *buf, size_t max_size);
@@ -343,6 +375,9 @@ int sshbuf_read(int, struct sshbuf *, size_t, size_t *)
 		((u_char *)(p))[0] = (__v >> 8) & 0xff; \
 		((u_char *)(p))[1] = __v & 0xff; \
 	} while (0)
+
+
+void sshbuf_set_window_max(struct sshbuf *buf , size_t len);
 
 /* Internal definitions follow. Exposed for regress tests */
 #ifdef SSHBUF_INTERNAL

@@ -48,18 +48,34 @@
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "digest.h"
+#include "log.h"
 
 #include "openbsd-compat/openssl-compat.h"
 
+/* for provider functions */
+#ifdef WITH_OPENSSL3
+#include <openssl/err.h>
+#include <openssl/params.h>
+#include <openssl/provider.h>
+#endif
+
 #ifndef WITH_OPENSSL
 #define EVP_CIPHER_CTX void
+#define EVP_CIPHER void
+#else
+/* for multi-threaded aes-ctr cipher */
+extern const EVP_CIPHER *evp_aes_ctr_mt(void);
 #endif
 
 struct sshcipher_ctx {
 	int	plaintext;
 	int	encrypt;
 	EVP_CIPHER_CTX *evp;
+	const EVP_CIPHER *meth_ptr; /*used to free memory in aes_ctr_mt */
 	struct chachapoly_ctx *cp_ctx;
+#ifdef WITH_OPENSSL
+	struct chachapoly_ctx_mt *cp_ctx_mt;
+#endif
 	struct aesctr_ctx ac_ctx; /* XXX union with evp? */
 	const struct sshcipher *cipher;
 };
@@ -77,13 +93,14 @@ struct sshcipher {
 #define CFLAG_NONE		(1<<3)
 #define CFLAG_INTERNAL		CFLAG_NONE /* Don't use "none" for packets */
 #ifdef WITH_OPENSSL
+#define CFLAG_MT		(1<<4)
 	const EVP_CIPHER	*(*evptype)(void);
 #else
 	void	*ignored;
 #endif
 };
 
-static const struct sshcipher ciphers[] = {
+static struct sshcipher ciphers[] = {
 #ifdef WITH_OPENSSL
 #ifndef OPENSSL_NO_DES
 	{ "3des-cbc",		8, 24, 0, 0, CFLAG_CBC, EVP_des_ede3_cbc },
@@ -105,9 +122,13 @@ static const struct sshcipher ciphers[] = {
 #endif
 	{ "chacha20-poly1305@openssh.com",
 				8, 64, 0, 16, CFLAG_CHACHAPOLY, NULL },
-	{ "none",		8, 0, 0, 0, CFLAG_NONE, NULL },
+#ifdef WITH_OPENSSL
+	{ "chacha20-poly1305-mt@hpnssh.org",
+				8, 64, 0, 16, CFLAG_CHACHAPOLY|CFLAG_MT, NULL },
+#endif
+	{ "none",               8, 0, 0, 0, CFLAG_NONE, NULL },
 
-	{ NULL,			0, 0, 0, 0, 0, NULL }
+	{ NULL,                 0, 0, 0, 0, 0, NULL }
 };
 
 /*--*/
@@ -150,10 +171,61 @@ compression_alg_list(int compression)
 #endif
 }
 
+/* used to get the cipher name when we are testing to
+ * see if we can move from a serial to parallel cipher
+ * only called in cipher-switch.c
+ */
+const char *
+cipher_ctx_name(const struct sshcipher_ctx *cc)
+{
+        return cc->cipher->name;
+}
+
 u_int
 cipher_blocksize(const struct sshcipher *c)
 {
 	return (c->block_size);
+}
+
+uint64_t
+cipher_rekey_blocks(const struct sshcipher *c)
+{
+	/*
+	 * Chacha20-Poly1305 does not benefit from data-based rekeying,
+	 * per "The Security of ChaCha20-Poly1305 in the Multi-user Setting",
+	 * Degabriele, J. P., Govinden, J, Gunther, F. and Paterson K.
+	 * ACM CCS 2021; https://eprint.iacr.org/2023/085.pdf
+	 *
+	 * Cryptanalysis aside, we do still want do need to prevent the SSH
+	 * sequence number wrapping and also to rekey to provide some
+	 * protection for long lived sessions against key disclosure at the
+	 * endpoints, so arrange for rekeying every 2**32 blocks as the
+	 * 128-bit block ciphers do (i.e. every 32GB data).
+	 */
+	if ((c->flags & CFLAG_CHACHAPOLY) != 0)
+		return (uint64_t)1 << 32;
+
+	/* there is no actual need to rekey the NULL cipher but
+	 * rekeying is a necessary step. In part, as mentioned above,
+	 * to keep the seqnr from wrapping. So we set it to the
+	 * maximum possible -cjr 4/10/23 */
+	if ((c->flags & CFLAG_NONE) != 0)
+		return (uint64_t)1 << 32;
+
+	/*
+	 * The 2^(blocksize*2) limit is too expensive for 3DES,
+	 * so enforce a 1GB data limit for small blocksizes.
+	 * See discussion in RFC4344 section 3.2.
+	 */
+	if (c->block_size < 16)
+		return ((uint64_t)1 << 30) / c->block_size;
+	/*
+	 * Otherwise, use the RFC4344 s3.2 recommendation of 2**(L/4) blocks
+	 * before rekeying where L is the blocksize in bits.
+	 * Most other ciphers have a 128 bit blocksize, so this equates to
+	 * 2**32 blocks / 64GB data.
+	 */
+	return (uint64_t)1 << (c->block_size * 2);
 }
 
 u_int
@@ -199,10 +271,10 @@ cipher_ctx_is_plaintext(struct sshcipher_ctx *cc)
 	return cc->plaintext;
 }
 
-const struct sshcipher *
+struct sshcipher *
 cipher_by_name(const char *name)
 {
-	const struct sshcipher *c;
+	struct sshcipher *c;
 	for (c = ciphers; c->name != NULL; c++)
 		if (strcmp(c->name, name) == 0)
 			return c;
@@ -224,7 +296,8 @@ ciphers_valid(const char *names)
 	for ((p = strsep(&cp, CIPHER_SEP)); p && *p != '\0';
 	    (p = strsep(&cp, CIPHER_SEP))) {
 		c = cipher_by_name(p);
-		if (c == NULL || (c->flags & CFLAG_INTERNAL) != 0) {
+		  if (c == NULL || ((c->flags & CFLAG_INTERNAL) != 0 &&
+				    (c->flags & CFLAG_NONE) != 0)) {
 			free(cipher_list);
 			return 0;
 		}
@@ -245,7 +318,7 @@ cipher_warning_message(const struct sshcipher_ctx *cc)
 int
 cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
     const u_char *key, u_int keylen, const u_char *iv, u_int ivlen,
-    int do_encrypt)
+    u_int seqnr, int do_encrypt, int enable_threads)
 {
 	struct sshcipher_ctx *cc = NULL;
 	int ret = SSH_ERR_INTERNAL_ERROR;
@@ -260,6 +333,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 
 	cc->plaintext = (cipher->flags & CFLAG_NONE) != 0;
 	cc->encrypt = do_encrypt;
+	cc->meth_ptr = NULL;
 
 	if (keylen < cipher->key_len ||
 	    (iv != NULL && ivlen < cipher_ivlen(cipher))) {
@@ -269,8 +343,19 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 
 	cc->cipher = cipher;
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
+#ifdef WITH_OPENSSL
+		if ((cc->cipher->flags & CFLAG_MT) != 0) {
+			cc->cp_ctx_mt = chachapoly_new_mt(seqnr, key, keylen);
+			ret = cc->cp_ctx_mt != NULL ? 0 :
+			    SSH_ERR_INVALID_ARGUMENT;
+		} else {
+			cc->cp_ctx = chachapoly_new(key, keylen);
+			ret = cc->cp_ctx != NULL ? 0 : SSH_ERR_INVALID_ARGUMENT;
+		}
+#else
 		cc->cp_ctx = chachapoly_new(key, keylen);
 		ret = cc->cp_ctx != NULL ? 0 : SSH_ERR_INVALID_ARGUMENT;
+#endif
 		goto out;
 	}
 	if ((cc->cipher->flags & CFLAG_NONE) != 0) {
@@ -292,6 +377,53 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
+	/* the following block is for AES-CTR-MT cipher switching
+	 * if we are using the ctr cipher and we are post-auth then
+	 * start the threaded cipher. If OSSL supports providers (OSSL 3.0+) then
+	 * we load our hpnssh provider. If it doesn't (OSSL < 1.1) then we use the
+	 * _meth_new process found in cipher-ctr-mt.c */
+	if (strstr(cc->cipher->name, "ctr") && enable_threads) {
+#ifdef WITH_OPENSSL3
+		/* this version of openssl uses providers */
+		OSSL_LIB_CTX *aes_lib = NULL; /* probably not needed */
+		OSSL_PROVIDER *aes_mt_provider = NULL;
+		type = NULL;
+
+		if (OSSL_PROVIDER_add_builtin(aes_lib, "hpnssh",
+					      OSSL_provider_init) != 1) {
+			fatal("Failed to add HPNSSH provider for AES-CTR");
+		}
+		aes_mt_provider = OSSL_PROVIDER_load(aes_lib, "hpnssh");
+
+		if (aes_mt_provider != NULL) {
+			/* use the previous key length to determine which cipher to load */
+			if (cipher->key_len == 32)
+				type = EVP_CIPHER_fetch(aes_lib, "aes_ctr_mt_256", NULL);
+			if (cipher->key_len == 24)
+				type = EVP_CIPHER_fetch(aes_lib, "aes_ctr_mt_192", NULL);
+			if (cipher->key_len == 16)
+				type = EVP_CIPHER_fetch(aes_lib, "aes_ctr_mt_128", NULL);
+			if (type == NULL) {
+				ERR_print_errors_fp(stderr);
+				fatal("FAILED TO LOAD aes_ctr_mt");
+			} else {
+				debug("LOADED aes_ctr_mt");
+			}
+		}
+		else {
+			ERR_print_errors_fp(stderr);
+			fatal("Failed to load HPN-SSH AES-CTR-MT provider.");
+		}
+#else
+		type = (*evp_aes_ctr_mt)(); /* see cipher-ctr-mt.c */
+		/* we need to free this later if using aes_ctr_mt
+		 * under OSSL 1.1. Honestly, we could avoid this by making
+		 * it a global in cipher-ctr_mt.c and exporting it here
+		 * then we'd only have to call EVP_CIPHER_meth once but this
+		 * works for now. TODO: This. cjr 02.22.2023 */
+		cc->meth_ptr = type;
+#endif /* WITH_OPENSSL3 */
+	} /* if (strstr()) */
 	if (EVP_CipherInit(cc->evp, type, NULL, (u_char *)iv,
 	    (do_encrypt == CIPHER_ENCRYPT)) == 0) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
@@ -346,6 +478,12 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
    const u_char *src, u_int len, u_int aadlen, u_int authlen)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
+#ifdef WITH_OPENSSL
+		if ((cc->cipher->flags & CFLAG_MT) != 0) {
+			return chachapoly_crypt_mt(cc->cp_ctx_mt, seqnr, dest,
+			    src, len, aadlen, authlen, cc->encrypt);
+		}
+#endif
 		return chachapoly_crypt(cc->cp_ctx, seqnr, dest, src,
 		    len, aadlen, authlen, cc->encrypt);
 	}
@@ -357,8 +495,8 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
 	if ((cc->cipher->flags & CFLAG_AESCTR) != 0) {
 		if (aadlen)
 			memcpy(dest, src, aadlen);
-		aesctr_encrypt_bytes(&cc->ac_ctx, src + aadlen,
-		    dest + aadlen, len);
+		aesctr_encrypt_bytes(&cc->ac_ctx, src + aadlen, dest + aadlen,
+		    len);
 		return 0;
 	}
 	return SSH_ERR_INVALID_ARGUMENT;
@@ -408,9 +546,16 @@ int
 cipher_get_length(struct sshcipher_ctx *cc, u_int *plenp, u_int seqnr,
     const u_char *cp, u_int len)
 {
-	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
+	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
+#ifdef WITH_OPENSSL
+		if ((cc->cipher->flags & CFLAG_MT) != 0) {
+			return chachapoly_get_length_mt(cc->cp_ctx_mt, plenp,
+			    seqnr, cp, len);
+		}
+#endif
 		return chachapoly_get_length(cc->cp_ctx, plenp, seqnr,
 		    cp, len);
+	}
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 	*plenp = PEEK_U32(cp);
@@ -423,13 +568,33 @@ cipher_free(struct sshcipher_ctx *cc)
 	if (cc == NULL)
 		return;
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
+#ifdef WITH_OPENSSL
+		if ((cc->cipher->flags & CFLAG_MT) != 0) {
+			chachapoly_free_mt(cc->cp_ctx_mt);
+			cc->cp_ctx_mt = NULL;
+		} else {
+			chachapoly_free(cc->cp_ctx);
+			cc->cp_ctx = NULL;
+		}
+#else
 		chachapoly_free(cc->cp_ctx);
 		cc->cp_ctx = NULL;
+#endif
 	} else if ((cc->cipher->flags & CFLAG_AESCTR) != 0)
 		explicit_bzero(&cc->ac_ctx, sizeof(cc->ac_ctx));
 #ifdef WITH_OPENSSL
 	EVP_CIPHER_CTX_free(cc->evp);
 	cc->evp = NULL;
+	/* if meth_ptr isn't null then we are using the aes_ctr_mt
+	 * evp_cipher_meth_new() in cipher-ctr-mt.c under OSSL 1.1
+	 * if we don't explicitly free it then, even though we free
+	 * the ctx it is a part of it doesn't get freed. So...
+	 * cjr 2/7/2023
+	 */
+	if (cc->meth_ptr != NULL) {
+		EVP_CIPHER_meth_free((void *)(EVP_CIPHER *)cc->meth_ptr);
+		cc->meth_ptr = NULL;
+	}
 #endif
 	freezero(cc, sizeof(*cc));
 }

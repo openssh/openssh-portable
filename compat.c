@@ -131,6 +131,36 @@ compat_banner(struct ssh *ssh, const char *version)
 			debug_f("match: %s pat %s compat 0x%08x",
 			    version, check[i].pat, check[i].bugs);
 			ssh->compat = check[i].bugs;
+			/* Check to see if the remote side is OpenSSH and not HPN */
+			/* TODO: See if we can work this into the new method for bug checks */
+			if (strstr(version, "OpenSSH") != NULL) {
+				if (strstr(version, "hpn")) {
+					ssh->compat |= SSH_HPNSSH;
+					debug("Remote is HPN enabled");
+				}
+				/* this checks to see if the remote
+				 * version string indicates that we
+				 * have access to hpn prefixed binaries
+				 * You'll need to change this to include
+				 * new major version numbers. Which is
+				 * why we should figure out how to make
+				 * the match pattern list work
+				 */
+				if ((strstr(version, "hpn16") != NULL) ||
+				    (strstr(version, "hpn17") != NULL) ||
+				    (strstr(version, "hpn18") != NULL)) {
+					ssh->compat |= SSH_HPNSSH_PREFIX;
+					debug("Remote uses HPNSSH prefixes.");
+					break;
+				}
+				/* if it's openssh and not hpn */
+				if ((strstr(version, "OpenSSH_8.9") != NULL) ||
+				    (strstr(version, "OpenSSH_9") != NULL)) {
+					ssh->compat |= SSH_RESTRICT_WINDOW;
+					debug("Restricting adverstised window size.");
+				}
+			}
+			debug("ssh->compat is %u", ssh->compat);
 			return;
 		}
 	}
@@ -163,4 +193,3 @@ compat_kex_proposal(struct ssh *ssh, const char *p)
 	debug2_f("compat KEX proposal: %s", cp);
 	return cp;
 }
-

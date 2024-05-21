@@ -1,0 +1,24 @@
+[Unit]
+Description=HPN/OpenBSD Secure Shell server
+Documentation=man:hpnsshd(8) man:hpnsshd_config(5)
+After=network.target auditd.service
+#The following is a best guess and should be reviewed by the installer
+ConditionPathExists=!@prefix@/etc/hpnssh/sshd_not_to_be_run
+
+
+[Service]
+EnvironmentFile=-/etc/default/hpnssh
+ExecStartPre=@prefix@/sbin/hpnsshd -t
+ExecStart=@prefix@/sbin/hpnsshd -D $SSHD_OPTS
+ExecReload=@prefix@/sbin/hpnsshd -t
+ExecReload=@KILL@ -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartPreventExitStatus=255
+Type=notify
+RuntimeDirectory=hpnsshd
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target
+Alias=hpnsshd.service
