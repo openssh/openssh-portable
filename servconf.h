@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.162 2024/05/17 06:42:04 jsg Exp $ */
+/* $OpenBSD: servconf.h,v 1.163 2024/05/23 23:47:16 jsg Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -47,7 +47,6 @@
 #define PUBKEYAUTH_VERIFY_REQUIRED	(1<<1)
 
 struct ssh;
-struct fwd_perm_list;
 
 /*
  * Used to store addresses from ListenAddr directives. These may be

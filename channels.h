@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.155 2024/05/17 06:42:04 jsg Exp $ */
+/* $OpenBSD: channels.h,v 1.156 2024/05/23 23:47:16 jsg Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -85,7 +85,6 @@
 struct ssh;
 struct Channel;
 typedef struct Channel Channel;
-struct fwd_perm_list;
 
 typedef void channel_open_fn(struct ssh *, int, int, void *);
 typedef void channel_callback_fn(struct ssh *, int, int, void *);
