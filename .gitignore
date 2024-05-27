@@ -5,7 +5,7 @@ config.h.in
 config.h.in~
 config.log
 config.status
-configure
+#configure
 aclocal.m4
 openbsd-compat/Makefile
 openbsd-compat/regress/Makefile
