@@ -17,7 +17,6 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/queue.h>
 
 #include <stdlib.h>
 #include <string.h>
