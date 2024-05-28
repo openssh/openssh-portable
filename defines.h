@@ -601,19 +601,19 @@ struct winsize {
 #endif
 
 /* Structure used for storage of ancillary data object information.  */
-struct cmsghdr
-  {
-    size_t cmsg_len;		/* Length of data in cmsg_data plus length
-				   of cmsghdr structure.
-				   !! The type should be socklen_t but the
-				   definition of the kernel is incompatible
-				   with this.  */
-    int cmsg_level;		/* Originating protocol.  */
-    int cmsg_type;		/* Protocol specific type.  */
-#if __glibc_c99_flexarr_available
-    __extension__ unsigned char __cmsg_data __flexarr; /* Ancillary data.  */
-#endif
-  };
+//struct cmsghdr
+//  {
+//    size_t cmsg_len;		/* Length of data in cmsg_data plus length
+//				   of cmsghdr structure.
+//				   !! The type should be socklen_t but the
+//				   definition of the kernel is incompatible
+//				   with this.  */
+//    int cmsg_level;		/* Originating protocol.  */
+//    int cmsg_type;		/* Protocol specific type.  */
+//#if __glibc_c99_flexarr_available
+//    __extension__ unsigned char __cmsg_data __flexarr; /* Ancillary data.  */
+//#endif
+//  };
 
 
 /* Length of the contents of a control message of length len */

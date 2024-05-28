@@ -274,5 +274,39 @@ extern const struct res_sym __p_type_syms[];
 #define	res_mkquery	__res_mkquery
 #endif
 
+int			res_hnok(const char *);
+int			res_ownok(const char *);
+int			res_mailok(const char *);
+int			res_dnok(const char *);
+const char *		sym_ntos(const struct res_sym *, int, int *);
+int			b64_ntop(unsigned char const *, size_t, char *, size_t);
+int			b64_pton(char const *, unsigned char *, size_t);
+int			dn_skipname(const unsigned char *, 
+			    const unsigned char *);
+void			putlong(u_int32_t, unsigned char *);
+void			putshort(u_int16_t, unsigned char *);
+const char *		p_class(int);
+const char *		p_type(int);
+int			dn_comp(const char *, unsigned char *, int,
+			    unsigned char **, unsigned char **);
+int			dn_expand(const unsigned char *, const unsigned char *, 
+			    const unsigned char *, char *, int);
+int			res_init(void);
+unsigned int		res_randomid(void);
+int			res_query(const char *, int, int, unsigned char *, int)
+			__attribute__((__bounded__(__string__,4,5)));
+int			res_search(const char *, int, int, unsigned char *, int)
+			    __attribute__((__bounded__(__string__,4,5)));
+int			res_querydomain(const char *, const char *, int, int,
+			    unsigned char *, int)
+			__attribute__((__bounded__(__string__,5,6)));
+int			res_mkquery(int, const char *, int, int, 
+			    const unsigned char *, int, const unsigned char *, 
+			    unsigned char *, int)
+			__attribute__((__bounded__(__string__,5,6)))
+			__attribute__((__bounded__(__string__,8,9)));
+int			res_send(const unsigned char *, int, unsigned char *, 
+			    int)
+			__attribute__((__bounded__(__string__,3,4)));
 
 #endif /* !_RESOLV_H_ */

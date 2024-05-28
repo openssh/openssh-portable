@@ -56,21 +56,6 @@
 #include "log.h"
 #include "match.h"
 
-static LogLevel log_level = SYSLOG_LEVEL_INFO;
-static int log_on_stderr = 1;
-static int log_stderr_fd = STDERR_FILENO;
-static int log_facility = LOG_AUTH;
-static const char *argv0;
-static log_handler_fn *log_handler;
-static void *log_handler_ctx;
-static char **log_verbose;
-static size_t nlog_verbose;
-
-extern char *__progname;
-
-#define LOG_SYSLOG_VIS	(VIS_CSTYLE|VIS_NL|VIS_TAB|VIS_OCTAL)
-#define LOG_STDERR_VIS	(VIS_SAFE|VIS_OCTAL)
-
 /*
  * ========= Disabled variables due lack of syslog support in Redox =====
  */
@@ -86,6 +71,7 @@ extern char *__progname;
 #define LOG_LOCAL5 0
 #define LOG_LOCAL6 0
 #define LOG_LOCAL7 0
+#define LOG_CRIT 0
 #define LOG_INFO 0
 #define LOG_ERR 0
 #define LOG_DEBUG 0
@@ -94,6 +80,21 @@ extern char *__progname;
 /*
  * ========== end block ===============
  */
+
+static LogLevel log_level = SYSLOG_LEVEL_INFO;
+static int log_on_stderr = 1;
+static int log_stderr_fd = STDERR_FILENO;
+static int log_facility = LOG_AUTH;
+static const char *argv0;
+static log_handler_fn *log_handler;
+static void *log_handler_ctx;
+static char **log_verbose;
+static size_t nlog_verbose;
+
+extern char *__progname;
+
+#define LOG_SYSLOG_VIS	(VIS_CSTYLE|VIS_NL|VIS_TAB|VIS_OCTAL)
+#define LOG_STDERR_VIS	(VIS_SAFE|VIS_OCTAL)
 
 
 /* textual representation of log-facilities/levels */
