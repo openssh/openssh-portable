@@ -294,8 +294,7 @@ typedef struct {
 	unsigned	ad: 1;		/* authentic data from named */
 	unsigned	cd: 1;		/* checking disabled by resolver */
 	unsigned	rcode :4;	/* response code */
-#endif
-#if _BYTE_ORDER == _LITTLE_ENDIAN || _BYTE_ORDER == _PDP_ENDIAN
+#elif _BYTE_ORDER == _LITTLE_ENDIAN || _BYTE_ORDER == _PDP_ENDIAN
 			/* fields in third byte */
 	unsigned	rd :1;		/* recursion desired */
 	unsigned	tc :1;		/* truncated message */
