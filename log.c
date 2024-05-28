@@ -43,7 +43,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syslog.h>
+//#if defined(HAVE_SYS_SYSLOG_H)
+# include <sys/syslog.h>
+//#endif
+
 #include <unistd.h>
 #include <errno.h>
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
