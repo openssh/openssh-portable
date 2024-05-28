@@ -253,7 +253,7 @@ extern const struct res_sym __p_type_syms[];
 #define	res_dnok	__res_dnok
 #define	sym_ntos	__sym_ntos
 #define b64_ntop	__b64_ntop
-#define	b64_pton	__b64_pton
+//#define	b64_pton	__b64_pton
 #define	dn_skipname	__dn_skipname
 #define	putlong		__putlong
 #define	putshort	__putshort
