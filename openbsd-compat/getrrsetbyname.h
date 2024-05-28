@@ -54,9 +54,9 @@
 
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <arpa/nameser.h>
+#include "arpa/nameser.h"
 #include <netdb.h>
-#include <resolv.h>
+#include "resolv.h"
 
 #ifndef HFIXEDSZ
 #define HFIXEDSZ 12
