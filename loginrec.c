@@ -170,6 +170,10 @@
 # include <wtmpdb.h>
 #endif
 
+#ifdef USE_LOGIND
+# include <systemd/sd-bus.h>
+#endif
+
 /**
  ** prototypes for helper functions in this file
  **/
@@ -182,6 +186,9 @@ void construct_utmp(struct logininfo *li, struct utmp *ut);
 #ifdef HAVE_UTMPX_H
 void set_utmpx_time(struct logininfo *li, struct utmpx *ut);
 void construct_utmpx(struct logininfo *li, struct utmpx *ut);
+#endif
+#ifdef USE_LOGIND
+int logind_set_tty(struct logininfo *li);
 #endif
 
 int utmp_write_entry(struct logininfo *li);
@@ -455,6 +462,9 @@ login_write(struct logininfo *li)
 #endif
 #ifdef USE_WTMPDB
 	wtmpdb_write_entry(li);
+#endif
+#ifdef USE_LOGIND
+	logind_set_tty(li);
 #endif
 #ifdef CUSTOM_SYS_AUTH_RECORD_LOGIN
 	if (li->type == LTYPE_LOGIN &&
@@ -1452,6 +1462,88 @@ wtmpdb_write_entry(struct logininfo *li)
 		return (wtmpdb_perform_login(li));
 	case LTYPE_LOGOUT:
 		return (wtmpdb_perform_logout(li));
+	default:
+		logit("%s: invalid type field", __func__);
+		return (0);
+	}
+}
+#endif
+
+#ifdef USE_LOGIND
+#define DBUS_DESTINATION "org.freedesktop.login1"
+#define DBUS_PATH_ID "/org/freedesktop/login1/session/auto"
+#define DBUS_INTERFACE "org.freedesktop.login1.Session"
+#define DBUS_PATH "/org/freedesktop/login1/session/%s"
+
+static int
+logind_perform_login(struct logininfo *li)
+{
+  sd_bus *bus = NULL;
+  sd_bus_error error = SD_BUS_ERROR_NULL;
+  char *session_id = NULL;
+  char *dbus_path;
+  const char *tty;
+  char buf[PATH_MAX];
+  int r;
+  int fd;
+
+  if (sd_bus_open_system(&bus) < 0)
+    {
+      logit("logind: canot open dbus");
+      return (0);
+    }
+
+  if (sd_bus_get_property_string(bus, DBUS_DESTINATION,
+				 DBUS_PATH_ID, DBUS_INTERFACE,
+				 "Id", &error, &session_id) < 0)
+    {
+      logit("logind: cannot get session ID");
+      return (0);
+    }
+
+  if (strncmp(li->line, "/dev/", 5) != 0)
+    snprintf (buf, sizeof(buf), "/dev/%s", li->line);
+  else
+    tty = li->line;
+
+  fd = open(tty, O_RDWR|O_CLOEXEC|O_NOCTTY);
+
+  if (asprintf (&dbus_path, DBUS_PATH, session_id) < 0)
+    return (0);
+
+  if (sd_bus_call_method(bus, DBUS_DESTINATION, dbus_path,
+			 DBUS_INTERFACE, "TakeControl", &error, NULL,
+			 "b", 1) < 0) {
+    logit("logind: cannot take control");
+    free(dbus_path);
+    return (0);
+  }
+
+  if ((r = sd_bus_call_method(bus, DBUS_DESTINATION, dbus_path,
+			      DBUS_INTERFACE, "SetTTY", &error, NULL,
+			      "h", fd)) < 0) {
+    if (r != -EBADR) /* logind does not support "SetTTY" */
+      logit("logind: cannot set TTY(%s, %s): %s", session_id, tty, strerror(-r));
+    free(dbus_path);
+    return (0);
+  }
+
+  free(dbus_path);
+
+  if (sd_bus_flush(bus) < 0)
+    return (0);
+
+  return (1);
+}
+
+int
+logind_set_tty(struct logininfo *li)
+{
+	switch(li->type) {
+	case LTYPE_LOGIN:
+		return (logind_perform_login(li));
+	case LTYPE_LOGOUT:
+	        return (1);
 	default:
 		logit("%s: invalid type field", __func__);
 		return (0);
