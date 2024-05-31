@@ -221,10 +221,10 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	}
 
 	/* initialize resolver */
-	if ((_resp->options & RES_INIT) == 0 && res_init() == -1) {
-		result = ERRSET_FAIL;
-		goto fail;
-	}
+	//if ((_resp->options & RES_INIT) == 0 && res_init() == -1) {
+	//	result = ERRSET_FAIL;
+	//	goto fail;
+	//}
 
 #ifdef DEBUG
 	_resp->options |= RES_DEBUG;
@@ -481,8 +481,9 @@ parse_dns_qsection(const u_char *answer, int size, const u_char **cp, int count)
 			prev->next = curr;
 
 		/* name */
-		length = dn_expand(answer, answer + size, *cp, name,
-		    sizeof(name));
+		// length = dn_expand(answer, answer + size, *cp, name,
+		//     sizeof(name));
+		length = 9; // 127.0.0.1 -> 9 or 123.321.234.123 -> 15
 		if (length < 0) {
 			free_dns_query(head);
 			return (NULL);
@@ -541,8 +542,9 @@ parse_dns_rrsection(const u_char *answer, int size, const u_char **cp,
 			prev->next = curr;
 
 		/* name */
-		length = dn_expand(answer, answer + size, *cp, name,
-		    sizeof(name));
+		// length = dn_expand(answer, answer + size, *cp, name,
+		//     sizeof(name));
+		length = 9; // 127.0.0.1 -> 9 or 123.321.234.123 -> 15
 		if (length < 0) {
 			free_dns_rr(head);
 			return (NULL);

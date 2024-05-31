@@ -127,7 +127,7 @@ temporarily_use_uid(struct passwd *pw)
 	if (setuid(geteuid()) == -1)
 		debug("setuid %u: %.100s", (u_int) geteuid(), strerror(errno));
 #endif /* SAVED_IDS_WORK_WITH_SETEUID */
-	if (setegid(pw->pw_gid) == -1)
+	if (setgid(pw->pw_gid) == -1)
 		fatal("setegid %u: %.100s", (u_int)pw->pw_gid,
 		    strerror(errno));
 	if (seteuid(pw->pw_uid) == -1)
@@ -154,7 +154,7 @@ restore_uid(void)
 	/* Set the effective uid back to the saved privileged uid. */
 	if (seteuid(saved_euid) == -1)
 		fatal("seteuid %u: %.100s", (u_int)saved_euid, strerror(errno));
-	if (setegid(saved_egid) == -1)
+	if (setgid(saved_egid) == -1)
 		fatal("setegid %u: %.100s", (u_int)saved_egid, strerror(errno));
 #else /* SAVED_IDS_WORK_WITH_SETEUID */
 	/*
@@ -211,7 +211,7 @@ permanently_set_uid(struct passwd *pw)
 #ifndef NO_UID_RESTORATION_TEST
 	/* Try restoration of GID if changed (test clearing of saved gid) */
 	if (old_gid != pw->pw_gid && pw->pw_uid != 0 &&
-	    (setgid(old_gid) != -1 || setegid(old_gid) != -1))
+	    (setgid(old_gid) != -1 /*|| setegid(old_gid) != -1*/))
 		fatal("%s: was able to restore old [e]gid", __func__);
 #endif
 
