@@ -46,7 +46,6 @@ OPENBSD=arc4random.o \
 	reallocarray.o \
 	recallocarray.o \
 	rresvport.o \
-	res_init.o \
 	setenv.o \
 	setproctitle.o \
 	sha1.o \

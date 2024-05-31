@@ -600,20 +600,18 @@ struct winsize {
 #define	__CMSG_ALIGN(p) (((u_int)(p) + OSSH_ALIGNBYTES) &~ OSSH_ALIGNBYTES)
 #endif
 
-/* Structure used for storage of ancillary data object information.  */
-//struct cmsghdr
-//  {
-//    size_t cmsg_len;		/* Length of data in cmsg_data plus length
-//				   of cmsghdr structure.
-//				   !! The type should be socklen_t but the
-//				   definition of the kernel is incompatible
-//				   with this.  */
-//    int cmsg_level;		/* Originating protocol.  */
-//    int cmsg_type;		/* Protocol specific type.  */
-//#if __glibc_c99_flexarr_available
-//    __extension__ unsigned char __cmsg_data __flexarr; /* Ancillary data.  */
-//#endif
-//  };
+/*
+ * Header for ancillary data objects in msg_control buffer.
+ * Used for additional information with/about a datagram
+ * not expressible by flags.  The format is a sequence
+ * of message elements headed by cmsghdr structures.
+ */
+struct cmsghdr {
+	socklen_t	cmsg_len;	/* data byte count, including hdr */
+	int		cmsg_level;	/* originating protocol */
+	int		cmsg_type;	/* protocol-specific type */
+/* followed by	u_char  cmsg_data[]; */
+};
 
 
 /* Length of the contents of a control message of length len */
@@ -958,4 +956,10 @@ struct winsize {
 #if defined(VARIABLE_LENGTH_ARRAYS) && defined(VARIABLE_DECLARATION_AFTER_CODE)
 # define USE_SNTRUP761X25519 1
 #endif
+
+
+// Defines for redox
+//#define __b64_ntop(a, b, c, d) b64_ntop(a, b, c, d)
+//#define __b64_pton(a, b, c, d) b64_pton(a, b, c, d)
+
 #endif /* _DEFINES_H */
