@@ -57,6 +57,8 @@
 
 #include "getrrsetbyname.h"
 
+#include "resolv.h"
+
 #if defined(HAVE_DECL_H_ERRNO) && !HAVE_DECL_H_ERRNO
 extern int h_errno;
 #endif
