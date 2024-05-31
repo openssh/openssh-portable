@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.603 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.604 2024/05/31 09:01:08 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -983,7 +983,7 @@ main(int ac, char **av)
 			inetd_flag = 1;
 			break;
 		case 'r':
-			/* ignored */
+			logit("-r option is deprecated");
 			break;
 		case 'R':
 			fatal("-R not supported here");
