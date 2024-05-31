@@ -31,13 +31,13 @@
 extern ServerOptions options;
 
 /*
- * Configuration of enabled authentication methods. Separate to the rest of
+ * Configuration of enabled authentication methods. Separate from the rest of
  * auth2-*.c because we want to query it during server configuration validity
  * checking in the sshd listener process without pulling all the auth code in
  * too.
  */
 
-/* "none" is allowed only one time and it cleared by userauth_none() later */
+/* "none" is allowed only one time and it is cleared by userauth_none() later */
 int none_enabled = 1;
 struct authmethod_cfg methodcfg_none = {
 	"none",
@@ -85,7 +85,7 @@ static struct authmethod_cfg *authmethod_cfgs[] = {
 };
 
 /*
- * Check a comma-separated list of methods for validity. Is need_enable is
+ * Check a comma-separated list of methods for validity. If need_enable is
  * non-zero, then also require that the methods are enabled.
  * Returns 0 on success or -1 if the methods list is invalid.
  */

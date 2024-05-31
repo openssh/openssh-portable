@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.314 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.315 2024/05/31 08:49:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -539,7 +539,7 @@ ssh_remote_ipaddr(struct ssh *ssh)
  * be freed. NB. this will usually trigger a DNS query. Return value is on
  * heap and no caching is performed.
  * This function does additional checks on the hostname to mitigate some
- * attacks on based on conflation of hostnames and addresses and will
+ * attacks based on conflation of hostnames and addresses and will
  * fall back to returning an address on error.
  */
 
