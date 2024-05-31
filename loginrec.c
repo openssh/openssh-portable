@@ -182,6 +182,7 @@
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "misc.h"
+#include "utmpx.h"
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
