@@ -959,8 +959,24 @@ struct cmsghdr {
 
 
 // Defines for redox
+#if defined(__redox__)
 //#define __b64_ntop(a, b, c, d) b64_ntop(a, b, c, d)
 //#define __b64_pton(a, b, c, d) b64_pton(a, b, c, d)
 #define _PATH_MAILDIR "/var/mail"
+#define IPPORT_RESERVED 1024
+#define IXANY 0x800
+#define O_NOCTTY 0
+#define SCM_RIGHTS 0x01
+#define _BIG_ENDIAN 0x04
+#define _LITTLE_ENDIAN 0x02
+#define _BYTE_ORDER _LITTLE_ENDIAN
+#define NETDB_INTERNAL -1
+#define NETDB_SUCCESS 0
+#define IN_LOOPBACKNET 127
+#define ST_RDONLY 0x0001UL
+#define ST_NOSUID 0x0002UL
+#define DISABLE_PUTUTXLINE 1 
+#define HOST_NAME_MAX 255
+#endif
 
 #endif /* _DEFINES_H */
