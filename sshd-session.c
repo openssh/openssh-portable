@@ -1465,7 +1465,7 @@ cleanup_exit(int i)
 	}
 #ifdef SSH_AUDIT_EVENTS
 	/* done after do_cleanup so it can cancel the PAM auth 'thread' */
-	if (the_active_state != NULL && (!use_privsep || mm_is_monitor()))
+	if (the_active_state != NULL && mm_is_monitor())
 		audit_event(the_active_state, SSH_CONNECTION_ABANDON);
 #endif
 	_exit(i);
