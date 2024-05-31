@@ -23,7 +23,7 @@
 # include <sys/time.h>
 #endif
 
-#include <net/if.h>
+//#include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
