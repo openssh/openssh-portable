@@ -901,7 +901,7 @@ main(int ac, char **av)
 	int r, opt, do_dump_cfg = 0, keytype, already_daemon, have_agent = 0;
 	int sock_in = -1, sock_out = -1, newsock = -1, rexec_argc = 0;
 	int config_s[2] = { -1 , -1 }, have_connection_info = 0;
-	int need_privsep = 1;
+	int need_chroot = 1;
 	char *fp, *line, *logfile = NULL, **rexec_argv = NULL;
 	struct stat sb;
 	u_int i, j;
@@ -1307,15 +1307,15 @@ main(int ac, char **av)
 	}
 
 	/* Ensure privsep directory is correctly configured. */
-	need_privsep = ((getuid() == 0 || geteuid() == 0) ||
+	need_chroot = ((getuid() == 0 || geteuid() == 0) ||
 	    options.kerberos_authentication);
-	if ((getpwnam(SSH_PRIVSEP_USER)) == NULL && need_privsep) {
+	if ((getpwnam(SSH_PRIVSEP_USER)) == NULL && need_chroot) {
 		fatal("Privilege separation user %s does not exist",
 		    SSH_PRIVSEP_USER);
 	}
 	endpwent();
 
-	if (need_privsep) {
+	if (need_chroot) {
 		if ((stat(_PATH_PRIVSEP_CHROOT_DIR, &sb) == -1) ||
 		    (S_ISDIR(sb.st_mode) == 0))
 			fatal("Missing privilege separation directory: %s",
