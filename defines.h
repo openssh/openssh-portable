@@ -961,5 +961,6 @@ struct cmsghdr {
 // Defines for redox
 //#define __b64_ntop(a, b, c, d) b64_ntop(a, b, c, d)
 //#define __b64_pton(a, b, c, d) b64_pton(a, b, c, d)
+#define _PATH_MAILDIR "/var/mail"
 
 #endif /* _DEFINES_H */
