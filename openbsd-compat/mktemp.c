@@ -140,17 +140,17 @@ mktemp(char *path)
 }
 #endif
 
-int
-mkstemp(char *path)
-{
-	return(mktemp_internal(path, 0, MKTEMP_FILE));
-}
+// int
+// mkstemp(char *path)
+// {
+// 	return(mktemp_internal(path, 0, MKTEMP_FILE));
+// }
 
-int
-mkstemps(char *path, int slen)
-{
-	return(mktemp_internal(path, slen, MKTEMP_FILE));
-}
+// int
+// mkstemps(char *path, int slen)
+// {
+// 	return(mktemp_internal(path, slen, MKTEMP_FILE));
+// }
 
 char *
 mkdtemp(char *path)
