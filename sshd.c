@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.604 2024/05/31 09:01:08 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.605 2024/06/01 07:03:37 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -900,7 +900,7 @@ main(int ac, char **av)
 	char *config_file_name = _PATH_SERVER_CONFIG_FILE;
 	int r, opt, do_dump_cfg = 0, keytype, already_daemon, have_agent = 0;
 	int sock_in = -1, sock_out = -1, newsock = -1, rexec_argc = 0;
-	int config_s[2] = { -1 , -1 }, have_connection_info = 0;
+	int devnull, config_s[2] = { -1 , -1 }, have_connection_info = 0;
 	int need_chroot = 1;
 	char *fp, *line, *logfile = NULL, **rexec_argv = NULL;
 	struct stat sb;
@@ -1059,7 +1059,16 @@ main(int ac, char **av)
 	}
 	if (!test_flag && !do_dump_cfg && !path_absolute(av[0]))
 		fatal("sshd requires execution with an absolute path");
-	closefrom(REEXEC_DEVCRYPTO_RESERVED_FD);
+
+	closefrom(STDERR_FILENO + 1);
+
+	/* Reserve fds we'll need later for reexec things */
+	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1)
+		fatal("open %s: %s", _PATH_DEVNULL, strerror(errno));
+	while (devnull < REEXEC_MIN_FREE_FD) {
+		if ((devnull = dup(devnull)) == -1)
+			fatal("dup %s: %s", _PATH_DEVNULL, strerror(errno));
+	}
 
 	seed_rng();
 
@@ -1458,22 +1467,25 @@ main(int ac, char **av)
 	    sock_in, sock_out, newsock, startup_pipe, config_s[0], config_s[1]);
 	if (!inetd_flag) {
 		if (dup2(newsock, STDIN_FILENO) == -1)
-			debug3("dup2 stdin: %s", strerror(errno));
+			fatal("dup2 stdin: %s", strerror(errno));
 		if (dup2(STDIN_FILENO, STDOUT_FILENO) == -1)
-			debug3("dup2 stdout: %s", strerror(errno));
+			fatal("dup2 stdout: %s", strerror(errno));
+		if (newsock > STDOUT_FILENO)
+			close(newsock);
 	}
 	if (config_s[1] != REEXEC_CONFIG_PASS_FD) {
 		if (dup2(config_s[1], REEXEC_CONFIG_PASS_FD) == -1)
-			debug3("dup2 config_s: %s", strerror(errno));
+			fatal("dup2 config_s: %s", strerror(errno));
 		close(config_s[1]);
 	}
 	if (startup_pipe == -1)
 		close(REEXEC_STARTUP_PIPE_FD);
 	else if (startup_pipe != REEXEC_STARTUP_PIPE_FD) {
 		if (dup2(startup_pipe, REEXEC_STARTUP_PIPE_FD) == -1)
-			debug3("dup2 startup_p: %s", strerror(errno));
+			fatal("dup2 startup_p: %s", strerror(errno));
 		close(startup_pipe);
 	}
+	closefrom(REEXEC_MIN_FREE_FD);
 
 	ssh_signal(SIGHUP, SIG_IGN); /* avoid reset to SIG_DFL */
 	execv(rexec_argv[0], rexec_argv);
