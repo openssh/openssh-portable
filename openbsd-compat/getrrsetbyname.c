@@ -57,7 +57,9 @@
 
 #include "getrrsetbyname.h"
 
-#include "resolv.h"
+#ifndef __redox__
+#include <resolv.h>
+#endif
 
 #if defined(HAVE_DECL_H_ERRNO) && !HAVE_DECL_H_ERRNO
 extern int h_errno;

@@ -20,7 +20,10 @@
 #include <sys/wait.h>
 #include <sys/un.h>
 
-//#include <net/if.h>
+#ifndef __redox__
+#include <net/if.h>
+#endif
+
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>

@@ -600,6 +600,7 @@ struct winsize {
 #define	__CMSG_ALIGN(p) (((u_int)(p) + OSSH_ALIGNBYTES) &~ OSSH_ALIGNBYTES)
 #endif
 
+#ifdef __redox__
 /*
  * Header for ancillary data objects in msg_control buffer.
  * Used for additional information with/about a datagram
@@ -612,6 +613,7 @@ struct cmsghdr {
 	int		cmsg_type;	/* protocol-specific type */
 /* followed by	u_char  cmsg_data[]; */
 };
+#endif
 
 
 /* Length of the contents of a control message of length len */
@@ -959,7 +961,7 @@ struct cmsghdr {
 
 
 // Defines for redox
-#if defined(__redox__)
+#ifdef __redox__
 //#define __b64_ntop(a, b, c, d) b64_ntop(a, b, c, d)
 //#define __b64_pton(a, b, c, d) b64_pton(a, b, c, d)
 #define _PATH_MAILDIR "/var/mail"
@@ -967,8 +969,8 @@ struct cmsghdr {
 #define IXANY 0x800
 #define O_NOCTTY 0
 #define SCM_RIGHTS 0x01
-#define _BIG_ENDIAN 0x04
-#define _LITTLE_ENDIAN 0x02
+//#define _BIG_ENDIAN 0x04
+//#define _LITTLE_ENDIAN 0x02
 #define _BYTE_ORDER _LITTLE_ENDIAN
 #define NETDB_INTERNAL -1
 #define NETDB_SUCCESS 0
