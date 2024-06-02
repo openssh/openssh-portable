@@ -224,11 +224,13 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 		goto fail;
 	}
 
+#ifndef __redox__
 	/* initialize resolver */
-	//if ((_resp->options & RES_INIT) == 0 && res_init() == -1) {
-	//	result = ERRSET_FAIL;
-	//	goto fail;
-	//}
+	if ((_resp->options & RES_INIT) == 0 && res_init() == -1) {
+		result = ERRSET_FAIL;
+		goto fail;
+	}
+#endif
 
 #ifdef DEBUG
 	_resp->options |= RES_DEBUG;
@@ -241,9 +243,12 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 #endif /* RES_USE_DNSEC */
 
 	/* make query */
-	// length = res_query(hostname, (signed int) rdclass, (signed int) rdtype,
-	//     answer, sizeof(answer));
+#ifndef __redox__
+	length = res_query(hostname, (signed int) rdclass, (signed int) rdtype,
+	    answer, sizeof(answer));
+#else
 	length = 9; // 127.0.0.1 -> 9 or 123.321.234.123 -> 15
+#endif
 	if (length < 0) {
 		switch(h_errno) {
 		case HOST_NOT_FOUND:
@@ -486,9 +491,12 @@ parse_dns_qsection(const u_char *answer, int size, const u_char **cp, int count)
 			prev->next = curr;
 
 		/* name */
-		// length = dn_expand(answer, answer + size, *cp, name,
-		//     sizeof(name));
+#ifndef __redox__
+		length = dn_expand(answer, answer + size, *cp, name,
+		    sizeof(name));
+#else
 		length = 9; // 127.0.0.1 -> 9 or 123.321.234.123 -> 15
+#endif
 		if (length < 0) {
 			free_dns_query(head);
 			return (NULL);
@@ -547,9 +555,12 @@ parse_dns_rrsection(const u_char *answer, int size, const u_char **cp,
 			prev->next = curr;
 
 		/* name */
-		// length = dn_expand(answer, answer + size, *cp, name,
-		//     sizeof(name));
+#ifndef __redox__
+		length = dn_expand(answer, answer + size, *cp, name,
+		    sizeof(name));
+#else
 		length = 9; // 127.0.0.1 -> 9 or 123.321.234.123 -> 15
+#endif
 		if (length < 0) {
 			free_dns_rr(head);
 			return (NULL);

@@ -1384,7 +1384,9 @@ usage(int ret)
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-// #include <resolv.h>
+#ifndef __redox__
+#include <resolv.h>
+#endif
 
 #define SOCKS_PORT	"1080"
 #define HTTP_PROXY_PORT	"3128"

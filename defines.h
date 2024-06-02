@@ -969,9 +969,6 @@ struct cmsghdr {
 #define IXANY 0x800
 #define O_NOCTTY 0
 #define SCM_RIGHTS 0x01
-//#define _BIG_ENDIAN 0x04
-//#define _LITTLE_ENDIAN 0x02
-#define _BYTE_ORDER _LITTLE_ENDIAN
 #define NETDB_INTERNAL -1
 #define NETDB_SUCCESS 0
 #define IN_LOOPBACKNET 127

@@ -2214,7 +2214,9 @@ main(int ac, char **av)
 	sanitise_stdfd();
 
 	/* drop */
-	//(void)setegid(getgid());
+#ifndef __redox__
+	(void)setegid(getgid());
+#endif
 	(void)setgid(getgid());
 
 	platform_disable_tracing(0);	/* strict=no */
