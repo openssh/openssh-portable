@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.113 2024/06/06 19:47:48 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.114 2024/06/06 19:48:40 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -886,6 +886,7 @@ start_sshd ()
 		i=`expr $i + 1`
 		sleep $i
 	done
+	ln -f -s ${logfile} $TEST_SSHD_LOGFILE
 
 	test -f $PIDFILE || fatal "no sshd running on port $PORT"
 }
