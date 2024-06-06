@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.606 2024/06/06 17:15:25 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.607 2024/06/06 19:50:01 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -1793,6 +1793,7 @@ main(int ac, char **av)
 			fatal("dup2 startup_p: %s", strerror(errno));
 		close(startup_pipe);
 	}
+	log_redirect_stderr_to(NULL);
 	closefrom(REEXEC_MIN_FREE_FD);
 
 	ssh_signal(SIGHUP, SIG_IGN); /* avoid reset to SIG_DFL */
