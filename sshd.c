@@ -1337,7 +1337,7 @@ main(int ac, char **av)
 		if (sb.st_uid != 0 || (sb.st_mode & (S_IWGRP|S_IWOTH)) != 0)
 #endif
 			fatal("%s must be owned by root and not group or "
-			    "world-writable.", _PATH_PRIVSEP_CHROOT_DIR);	
+			    "world-writable.", _PATH_PRIVSEP_CHROOT_DIR);
 	}
 
 	if (test_flag > 1)
