@@ -2735,16 +2735,16 @@ sig_sign(const char *keypath, const char *sig_namespace, int require_agent,
 	if (sig_process_opts(opts, nopts, &hashalg, NULL, NULL) != 0)
 		goto done; /* error already logged */
 
-	if ((r = sshkey_load_public(keypath, &pubkey, NULL)) != 0) {
-		error_r(r, "Couldn't load public key %s", keypath);
-		goto done;
-	}
+	if ((r = sshkey_load_public(keypath, &pubkey, NULL)) != 0)
+		debug_r(r, "Couldn't load public key %s", keypath);
 
 	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0) {
 		if (require_agent)
 			fatal("Couldn't get agent socket");
 		debug_r(r, "Couldn't get agent socket");
 	} else {
+		if (pubkey == NULL)
+			fatal("Couldn't load public key %s", keypath);
 		if ((r = ssh_agent_has_key(agent_fd, pubkey)) == 0)
 			signer = agent_signer;
 		else {
