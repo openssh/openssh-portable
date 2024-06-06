@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.111 2024/05/17 01:45:22 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.112 2024/06/06 18:48:13 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -622,6 +622,7 @@ cat << EOF > $OBJ/sshd_config
 	AcceptEnv		_XXX_TEST
 	Subsystem	sftp	$SFTPSERVER
 	SshdSessionPath		$SSHD_SESSION
+	PerSourcePenalties	no
 EOF
 
 # This may be necessary if /usr/src and/or /usr/obj are group-writable,
