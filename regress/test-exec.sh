@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.112 2024/06/06 18:48:13 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.113 2024/06/06 19:47:48 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -456,33 +456,31 @@ make_tmpdir ()
 
 stop_sshd ()
 {
-	if [ -f $PIDFILE ]; then
-		pid=`$SUDO cat $PIDFILE`
-		if [ "X$pid" = "X" ]; then
-			echo no sshd running
-		else
-			if [ $pid -lt 2 ]; then
-				echo bad pid for sshd: $pid
-			else
-				$SUDO kill $pid
-				trace "wait for sshd to exit"
-				i=0;
-				while [ -f $PIDFILE -a $i -lt 5 ]; do
-					i=`expr $i + 1`
-					sleep $i
-				done
-				if test -f $PIDFILE; then
-					if $SUDO kill -0 $pid; then
-						echo "sshd didn't exit " \
-						    "port $PORT pid $pid"
-					else
-						echo "sshd died without cleanup"
-					fi
-					exit 1
-				fi
-			fi
-		fi
+	[ -f $PIDFILE ] || return
+	pid=`$SUDO cat $PIDFILE`
+	if [ "X$pid" = "X" ]; then
+		echo "no sshd running" 1>&2
+		return
+	elif [ $pid -lt 2 ]; then
+		echo "bad pid for sshd: $pid" 1>&2
+		return
 	fi
+	$SUDO kill $pid
+	trace "wait for sshd to exit"
+	i=0;
+	while [ -f $PIDFILE -a $i -lt 5 ]; do
+		i=`expr $i + 1`
+		sleep $i
+	done
+	if test -f $PIDFILE; then
+		if $SUDO kill -0 $pid; then
+			echo "sshd didn't exit port $PORT pid $pid" 1>&2
+		else
+			echo "sshd died without cleanup" 1>&2
+		fi
+		exit 1
+	fi
+	PIDFILE=""
 }
 
 # helper
