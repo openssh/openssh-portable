@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.356 2024/06/06 17:15:25 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.357 2024/06/06 20:20:42 djm Exp $
 .Dd $Mdocdate: June 6 2024 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -1564,8 +1564,9 @@ If a penalty is enforced against a client then its source address and any
 others in the
 .Cm PerSourceNetBlockSize
 will be refused connection for a period.
-Multiple penalties from the same source from concurrent connections will
-accumulate up to a maximum.
+A penalty doesn't affect concurrent connections in progress, but multiple
+penalties from the same source from concurrent connections will accumulate
+up to a maximum.
 Conversely, penalties are not applied until a minimum threshold time has been
 accumulated.
 Penalties are off by default but may be enabled using default settings using the
