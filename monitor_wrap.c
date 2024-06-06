@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.130 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.131 2024/06/06 17:15:25 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -29,6 +29,7 @@
 
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <sys/wait.h>
 
 #include <errno.h>
 #include <pwd.h>
@@ -73,6 +74,7 @@
 #include "session.h"
 #include "servconf.h"
 #include "monitor_wrap.h"
+#include "srclimit.h"
 
 #include "ssherr.h"
 
@@ -137,6 +139,36 @@ mm_request_send(int sock, enum monitor_reqtype type, struct sshbuf *m)
 		fatal_f("write: %s", strerror(errno));
 }
 
+static void
+mm_reap(void)
+{
+	int status = -1;
+
+	if (!mm_is_monitor())
+		return;
+	while (waitpid(pmonitor->m_pid, &status, 0) == -1) {
+		if (errno == EINTR)
+			continue;
+		pmonitor->m_pid = -1;
+		fatal_f("waitpid: %s", strerror(errno));
+	}
+	if (WIFEXITED(status)) {
+		if (WEXITSTATUS(status) != 0) {
+			debug_f("preauth child exited with status %d",
+			    WEXITSTATUS(status));
+			cleanup_exit(255);
+		}
+	} else if (WIFSIGNALED(status)) {
+		error_f("preauth child terminated by signal %d",
+		    WTERMSIG(status));
+		cleanup_exit(signal_is_crash(WTERMSIG(status)) ?
+		    EXIT_CHILD_CRASH : 255);
+	} else {
+		error_f("preauth child terminated abnormally");
+		cleanup_exit(EXIT_CHILD_CRASH);
+	}
+}
+
 void
 mm_request_receive(int sock, struct sshbuf *m)
 {
@@ -149,6 +181,7 @@ mm_request_receive(int sock, struct sshbuf *m)
 	if (atomicio(read, sock, buf, sizeof(buf)) != sizeof(buf)) {
 		if (errno == EPIPE) {
 			debug3_f("monitor fd closed");
+			mm_reap();
 			cleanup_exit(255);
 		}
 		fatal_f("read: %s", strerror(errno));

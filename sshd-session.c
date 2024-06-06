@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.2 2024/05/17 02:39:11 jsg Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.3 2024/06/06 17:15:25 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -209,11 +209,7 @@ grace_alarm_handler(int sig)
 		ssh_signal(SIGTERM, SIG_IGN);
 		kill(0, SIGTERM);
 	}
-
-	/* Log error and exit. */
-	sigdie("Timeout before authentication for %s port %d",
-	    ssh_remote_ipaddr(the_active_state),
-	    ssh_remote_port(the_active_state));
+	_exit(EXIT_LOGIN_GRACE);
 }
 
 /* Destroy the host and server keys.  They will no longer be needed. */
@@ -1303,6 +1299,8 @@ main(int ac, char **av)
 	ssh_signal(SIGALRM, SIG_DFL);
 	authctxt->authenticated = 1;
 	if (startup_pipe != -1) {
+		/* signal listener that authentication completed successfully */
+		(void)atomicio(vwrite, startup_pipe, "\001", 1);
 		close(startup_pipe);
 		startup_pipe = -1;
 	}
@@ -1451,6 +1449,8 @@ do_ssh2_kex(struct ssh *ssh)
 void
 cleanup_exit(int i)
 {
+	extern int auth_attempted; /* monitor.c */
+
 	if (the_active_state != NULL && the_authctxt != NULL) {
 		do_cleanup(the_active_state, the_authctxt);
 		if (privsep_is_preauth &&
@@ -1463,6 +1463,9 @@ cleanup_exit(int i)
 			}
 		}
 	}
+	/* Override default fatal exit value when auth was attempted */
+	if (i == 255 && auth_attempted)
+		_exit(EXIT_AUTH_ATTEMPTED);
 #ifdef SSH_AUDIT_EVENTS
 	/* done after do_cleanup so it can cancel the PAM auth 'thread' */
 	if (the_active_state != NULL && mm_is_monitor())

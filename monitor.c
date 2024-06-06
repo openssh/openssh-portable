@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.239 2024/05/17 06:42:04 jsg Exp $ */
+/* $OpenBSD: monitor.c,v 1.240 2024/06/06 17:15:25 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -161,6 +161,7 @@ static char *auth_submethod = NULL;
 static u_int session_id2_len = 0;
 static u_char *session_id2 = NULL;
 static pid_t monitor_child_pid;
+int auth_attempted = 0;
 
 struct mon_table {
 	enum monitor_reqtype type;
@@ -296,6 +297,10 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 		authenticated = (monitor_read(ssh, pmonitor,
 		    mon_dispatch, &ent) == 1);
 
+		/* Record that auth was attempted to set exit status later */
+		if ((ent->flags & MON_AUTH) != 0)
+			auth_attempted = 1;
+
 		/* Special handling for multiple required authentications */
 		if (options.num_auth_methods != 0) {
 			if (authenticated &&
@@ -353,6 +358,7 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 		fatal_f("authentication method name unknown");
 
 	debug_f("user %s authenticated by privileged process", authctxt->user);
+	auth_attempted = 0;
 	ssh->authctxt = NULL;
 	ssh_packet_set_log_preamble(ssh, "user %s", authctxt->user);
 

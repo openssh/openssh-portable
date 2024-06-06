@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.163 2024/05/23 23:47:16 jsg Exp $ */
+/* $OpenBSD: servconf.h,v 1.164 2024/06/06 17:15:25 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -63,6 +63,20 @@ struct queued_listenaddr {
 struct listenaddr {
 	char *rdomain;
 	struct addrinfo *addrs;
+};
+
+#define PER_SOURCE_PENALTY_OVERFLOW_DENY_ALL	1
+#define PER_SOURCE_PENALTY_OVERFLOW_PERMISSIVE	2
+struct per_source_penalty {
+	int	enabled;
+	int	max_sources;
+	int	overflow_mode;
+	int	penalty_crash;
+	int	penalty_grace;
+	int	penalty_authfail;
+	int	penalty_noauth;
+	int	penalty_max;
+	int	penalty_min;
 };
 
 typedef struct {
@@ -172,6 +186,8 @@ typedef struct {
 	int	per_source_max_startups;
 	int	per_source_masklen_ipv4;
 	int	per_source_masklen_ipv6;
+	char	*per_source_penalty_exempt;
+	struct per_source_penalty per_source_penalty;
 	int	max_authtries;
 	int	max_sessions;
 	char   *banner;			/* SSH-2 banner message */
