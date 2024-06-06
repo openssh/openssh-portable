@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.408 2024/06/06 17:15:25 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.409 2024/06/06 20:25:48 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -413,7 +413,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->per_source_masklen_ipv6 == -1)
 		options->per_source_masklen_ipv6 = 128;
 	if (options->per_source_penalty.enabled == -1)
-		options->per_source_penalty.enabled = 0;
+		options->per_source_penalty.enabled = 1;
 	if (options->per_source_penalty.max_sources == -1)
 		options->per_source_penalty.max_sources = 65536;
 	if (options->per_source_penalty.overflow_mode == -1)
