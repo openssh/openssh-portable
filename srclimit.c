@@ -44,7 +44,7 @@ static char *penalty_exempt;
 static struct child_info {
 	int id;
 	struct xaddr addr;
-} *child;
+} *children;
 
 /*
  * Penalised addresses, active entries here prohibit connections until expired.
@@ -114,9 +114,9 @@ srclimit_init(int max, int persource, int ipv4len, int ipv6len,
 	    max, persource, ipv4len, ipv6len);
 	if (max <= 0)
 		fatal("%s: invalid number of sockets: %d", __func__, max);
-	child = xcalloc(max_children, sizeof(*child));
+	children = xcalloc(max_children, sizeof(*children));
 	for (i = 0; i < max_children; i++)
-		child[i].id = -1;
+		children[i].id = -1;
 	RB_INIT(&penalties_by_addr);
 	RB_INIT(&penalties_by_expiry);
 }
@@ -142,10 +142,10 @@ srclimit_check_allow(int sock, int id)
 	first_unused = max_children;
 	/* Count matching entries and find first unused one. */
 	for (i = 0; i < max_children; i++) {
-		if (child[i].id == -1) {
+		if (children[i].id == -1) {
 			if (i < first_unused)
 				first_unused = i;
-		} else if (addr_cmp(&child[i].addr, &xb) == 0) {
+		} else if (addr_cmp(&children[i].addr, &xb) == 0) {
 			count++;
 		}
 	}
@@ -168,8 +168,8 @@ srclimit_check_allow(int sock, int id)
 		return 0;
 
 	/* Connection allowed, store masked address. */
-	child[first_unused].id = id;
-	memcpy(&child[first_unused].addr, &xb, sizeof(xb));
+	children[first_unused].id = id;
+	memcpy(&children[first_unused].addr, &xb, sizeof(xb));
 	return 1;
 }
 
@@ -184,8 +184,8 @@ srclimit_done(int id)
 	debug("%s: id %d", __func__, id);
 	/* Clear corresponding state entry. */
 	for (i = 0; i < max_children; i++) {
-		if (child[i].id == id) {
-			child[i].id = -1;
+		if (children[i].id == id) {
+			children[i].id = -1;
 			return;
 		}
 	}
