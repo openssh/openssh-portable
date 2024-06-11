@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.409 2024/06/06 20:25:48 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.410 2024/06/11 00:36:20 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1981,7 +1981,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		charptr = &options->per_source_penalty_exempt;
 		arg = argv_next(&ac, &av);
 		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing file name.",
+			fatal("%s line %d: missing argument.",
 			    filename, linenum);
 		if (addr_match_list(NULL, arg) != 0) {
 			fatal("%s line %d: keyword %s "
