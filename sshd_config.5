@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.359 2024/06/11 01:07:35 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.360 2024/06/11 05:24:39 jmc Exp $
 .Dd $Mdocdate: June 11 2024 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -1594,7 +1594,8 @@ scanning tools such as
 .Xr ssh-keyscan 1 .
 .It Cm grace-exceeded:duration
 Specifies how long to refuse clients that fail to authenticate after
-.Cm LoginGraceTime (default: 20s).
+.Cm LoginGraceTime
+(default: 20s).
 .It Cm max:duration
 Specifies the maximum time a particular source address range will be refused
 access for (default: 10m).
