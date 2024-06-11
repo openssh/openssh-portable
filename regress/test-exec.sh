@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.114 2024/06/06 19:48:40 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.115 2024/06/11 01:58:27 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -456,6 +456,7 @@ make_tmpdir ()
 
 stop_sshd ()
 {
+	[ -z $PIDFILE ] && return
 	[ -f $PIDFILE ] || return
 	pid=`$SUDO cat $PIDFILE`
 	if [ "X$pid" = "X" ]; then
@@ -874,6 +875,7 @@ chmod a+x $OBJ/ssh_proxy.sh
 
 start_sshd ()
 {
+	PIDFILE=$OBJ/pidfile
 	# start sshd
 	logfile="${TEST_SSH_LOGDIR}/sshd.`$OBJ/timestamp`.$$.log"
 	$SUDO ${SSHD} -f $OBJ/sshd_config "$@" -t || fatal "sshd_config broken"
