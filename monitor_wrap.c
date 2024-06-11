@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.131 2024/06/06 17:15:25 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.132 2024/06/11 00:40:21 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -164,7 +164,8 @@ mm_reap(void)
 		cleanup_exit(signal_is_crash(WTERMSIG(status)) ?
 		    EXIT_CHILD_CRASH : 255);
 	} else {
-		error_f("preauth child terminated abnormally");
+		error_f("preauth child terminated abnormally (status=0x%x)",
+		    status);
 		cleanup_exit(EXIT_CHILD_CRASH);
 	}
 }
