@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.134 2024/06/11 02:00:30 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.135 2024/06/11 02:54:51 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -121,6 +121,24 @@ mm_is_monitor(void)
 	return (pmonitor && pmonitor->m_pid > 0);
 }
 
+void
+mm_request_send(int sock, enum monitor_reqtype type, struct sshbuf *m)
+{
+	size_t mlen = sshbuf_len(m);
+	u_char buf[5];
+
+	debug3_f("entering, type %d", type);
+
+	if (mlen >= 0xffffffff)
+		fatal_f("bad length %zu", mlen);
+	POKE_U32(buf, mlen + 1);
+	buf[4] = (u_char) type;		/* 1st byte of payload is mesg-type */
+	if (atomicio(vwrite, sock, buf, sizeof(buf)) != sizeof(buf))
+		fatal_f("write: %s", strerror(errno));
+	if (atomicio(vwrite, sock, sshbuf_mutable_ptr(m), mlen) != mlen)
+		fatal_f("write: %s", strerror(errno));
+}
+
 static void
 mm_reap(void)
 {
@@ -153,41 +171,11 @@ mm_reap(void)
 }
 
 void
-mm_request_send(int sock, enum monitor_reqtype type, struct sshbuf *m)
-{
-	size_t mlen = sshbuf_len(m);
-	u_char buf[5];
-
-	debug3_f("entering, type %d", type);
-
-	if (mlen >= 0xffffffff)
-		fatal_f("bad length %zu", mlen);
-	POKE_U32(buf, mlen + 1);
-	buf[4] = (u_char) type;		/* 1st byte of payload is mesg-type */
-	if (atomicio(vwrite, sock, buf, sizeof(buf)) != sizeof(buf)) {
-		if (errno == EPIPE) {
-			debug3_f("monitor fd closed (header)");
-			mm_reap();
-			cleanup_exit(255);
-		}
-		fatal_f("write: %s", strerror(errno));
-	}
-	if (atomicio(vwrite, sock, sshbuf_mutable_ptr(m), mlen) != mlen) {
-		if (errno == EPIPE) {
-			debug3_f("monitor fd closed (body)");
-			mm_reap();
-			cleanup_exit(255);
-		}
-		fatal_f("write: %s", strerror(errno));
-	}
-}
-
-void
 mm_request_receive(int sock, struct sshbuf *m)
 {
 	u_char buf[4], *p = NULL;
 	u_int msg_len;
-	int r;
+	int oerrno, r;
 
 	debug3_f("entering");
 
@@ -206,12 +194,11 @@ mm_request_receive(int sock, struct sshbuf *m)
 	if ((r = sshbuf_reserve(m, msg_len, &p)) != 0)
 		fatal_fr(r, "reserve");
 	if (atomicio(read, sock, p, msg_len) != msg_len) {
-		if (errno == EPIPE) {
-			debug3_f("monitor fd closed");
+		oerrno = errno;
+		error_f("read: %s", strerror(errno));
+		if (oerrno == EPIPE)
 			mm_reap();
-			cleanup_exit(255);
-		}
-		fatal_f("read: %s", strerror(errno));
+		cleanup_exit(255);
 	}
 }
 
