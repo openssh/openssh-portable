@@ -295,14 +295,14 @@ srclimit_remove_expired_penalties(void)
 	while (npenalties > (size_t)penalty_cfg.max_sources) {
 		if ((p = RB_MIN(penalties_by_expiry,
 		    &penalties_by_expiry)) == NULL)
-			break; /* shouldn't happen */
+			fatal_f("internal error: penalty tables corrupt (find)");
 		bits = p->addr.af == AF_INET ? ipv4_masklen : ipv6_masklen;
 		addr_masklen_ntop(&p->addr, bits, s, sizeof(s));
 		debug3_f("overflow, remove %s", s);
 		if (RB_REMOVE(penalties_by_expiry,
 		    &penalties_by_expiry, p) != p ||
 		    RB_REMOVE(penalties_by_addr, &penalties_by_addr, p) != p)
-			fatal_f("internal error: penalty tables corrupt");
+			fatal_f("internal error: penalty tables corrupt (remove)");
 		free(p);
 		npenalties--;
 	}
