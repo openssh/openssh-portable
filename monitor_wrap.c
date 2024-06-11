@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.132 2024/06/11 00:40:21 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.133 2024/06/11 00:44:52 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -175,7 +175,7 @@ mm_request_receive(int sock, struct sshbuf *m)
 {
 	u_char buf[4], *p = NULL;
 	u_int msg_len;
-	int r;
+	int oerrno, r;
 
 	debug3_f("entering");
 
@@ -193,8 +193,13 @@ mm_request_receive(int sock, struct sshbuf *m)
 	sshbuf_reset(m);
 	if ((r = sshbuf_reserve(m, msg_len, &p)) != 0)
 		fatal_fr(r, "reserve");
-	if (atomicio(read, sock, p, msg_len) != msg_len)
-		fatal_f("read: %s", strerror(errno));
+	if (atomicio(read, sock, p, msg_len) != msg_len) {
+		oerrno = errno;
+		error_f("read: %s", strerror(errno));
+		if (oerrno == EPIPE)
+			mm_reap();
+		cleanup_exit(255);
+	}
 }
 
 void
