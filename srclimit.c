@@ -108,6 +108,8 @@ srclimit_init(int max, int persource, int ipv4len, int ipv6len,
 	penalty_cfg = *penalty_conf;
 	penalty_exempt = penalty_exempt_conf == NULL ?
 	    NULL : xstrdup(penalty_exempt_conf);
+	RB_INIT(&penalties_by_addr);
+	RB_INIT(&penalties_by_expiry);
 	if (max_persource == INT_MAX)	/* no limit */
 		return;
 	debug("%s: max connections %d, per source %d, masks %d,%d", __func__,
@@ -117,8 +119,6 @@ srclimit_init(int max, int persource, int ipv4len, int ipv6len,
 	children = xcalloc(max_children, sizeof(*children));
 	for (i = 0; i < max_children; i++)
 		children[i].id = -1;
-	RB_INIT(&penalties_by_addr);
-	RB_INIT(&penalties_by_expiry);
 }
 
 /* returns 1 if connection allowed, 0 if not allowed. */
