@@ -261,7 +261,7 @@ srclimit_penalty_check_allow(int sock, const char **reason)
 			return 1;
 		}
 	}
-	if (npenalties > (size_t)penalty_cfg.max_sources &&
+	if (npenalties >= (size_t)penalty_cfg.max_sources &&
 	    penalty_cfg.overflow_mode == PER_SOURCE_PENALTY_OVERFLOW_DENY_ALL) {
 		*reason = "too many penalised addresses";
 		return 0;
