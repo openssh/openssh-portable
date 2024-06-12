@@ -23,7 +23,10 @@
 # include <sys/time.h>
 #endif
 
+#ifndef __redox__
 #include <net/if.h>
+#endif
+
 #include <netinet/in.h>
 #include <arpa/inet.h>
 

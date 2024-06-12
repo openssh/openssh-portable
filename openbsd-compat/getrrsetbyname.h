@@ -54,9 +54,11 @@
 
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <arpa/nameser.h>
+#include "arpa/nameser.h"
 #include <netdb.h>
+#ifndef __redox__
 #include <resolv.h>
+#endif
 
 #ifndef HFIXEDSZ
 #define HFIXEDSZ 12

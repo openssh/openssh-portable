@@ -43,7 +43,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syslog.h>
+#if defined(HAVE_SYS_SYSLOG_H)
+# include <sys/syslog.h>
+#endif
+
 #include <unistd.h>
 #include <errno.h>
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
@@ -52,6 +55,31 @@
 
 #include "log.h"
 #include "match.h"
+
+/*
+ * ========= Disabled variables due lack of syslog support in Redox =====
+ */
+
+#define LOG_AUTH 0
+#define LOG_DAEMON 0
+#define LOG_USER 0
+#define LOG_LOCAL0 0
+#define LOG_LOCAL1 0
+#define LOG_LOCAL2 0
+#define LOG_LOCAL3 0
+#define LOG_LOCAL4 0
+#define LOG_LOCAL5 0
+#define LOG_LOCAL6 0
+#define LOG_LOCAL7 0
+#define LOG_CRIT 0
+#define LOG_INFO 0
+#define LOG_ERR 0
+#define LOG_DEBUG 0
+#define LOG_PID 0
+
+/*
+ * ========== end block ===============
+ */
 
 static LogLevel log_level = SYSLOG_LEVEL_INFO;
 static int log_on_stderr = 1;
@@ -67,6 +95,7 @@ extern char *__progname;
 
 #define LOG_SYSLOG_VIS	(VIS_CSTYLE|VIS_NL|VIS_TAB|VIS_OCTAL)
 #define LOG_STDERR_VIS	(VIS_SAFE|VIS_OCTAL)
+
 
 /* textual representation of log-facilities/levels */
 
@@ -264,12 +293,13 @@ log_init(const char *av0, LogLevel level, SyslogFacility facility,
 	 * immediately after reexec, syslog may be pointing to the wrong
 	 * facility, so we force an open/close of syslog here.
 	 */
+// TODO: DISABLED
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
-	openlog_r(argv0 ? argv0 : __progname, LOG_PID, log_facility, &sdata);
-	closelog_r(&sdata);
+//	openlog_r(argv0 ? argv0 : __progname, LOG_PID, log_facility, &sdata);
+//	closelog_r(&sdata);
 #else
-	openlog(argv0 ? argv0 : __progname, LOG_PID, log_facility);
-	closelog();
+//	openlog(argv0 ? argv0 : __progname, LOG_PID, log_facility);
+//	closelog();
 #endif
 }
 
@@ -410,14 +440,15 @@ do_log(LogLevel level, int force, const char *suffix, const char *fmt,
 		    (int)sizeof msgbuf - 3, fmtbuf);
 		(void)write(log_stderr_fd, msgbuf, strlen(msgbuf));
 	} else {
+// TODO: DISABLED
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
-		openlog_r(progname, LOG_PID, log_facility, &sdata);
-		syslog_r(pri, &sdata, "%.500s", fmtbuf);
-		closelog_r(&sdata);
+//		openlog_r(progname, LOG_PID, log_facility, &sdata);
+//		syslog_r(pri, &sdata, "%.500s", fmtbuf);
+//		closelog_r(&sdata);
 #else
-		openlog(progname, LOG_PID, log_facility);
-		syslog(pri, "%.500s", fmtbuf);
-		closelog();
+//		openlog(progname, LOG_PID, log_facility);
+//		syslog(pri, "%.500s", fmtbuf);
+//		closelog();
 #endif
 	}
 	errno = saved_errno;

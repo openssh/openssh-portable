@@ -600,6 +600,22 @@ struct winsize {
 #define	__CMSG_ALIGN(p) (((u_int)(p) + OSSH_ALIGNBYTES) &~ OSSH_ALIGNBYTES)
 #endif
 
+#ifdef __redox__
+/*
+ * Header for ancillary data objects in msg_control buffer.
+ * Used for additional information with/about a datagram
+ * not expressible by flags.  The format is a sequence
+ * of message elements headed by cmsghdr structures.
+ */
+struct cmsghdr {
+	socklen_t	cmsg_len;	/* data byte count, including hdr */
+	int		cmsg_level;	/* originating protocol */
+	int		cmsg_type;	/* protocol-specific type */
+/* followed by	u_char  cmsg_data[]; */
+};
+#endif
+
+
 /* Length of the contents of a control message of length len */
 #ifndef CMSG_LEN
 #define	CMSG_LEN(len)	(__CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
@@ -942,4 +958,24 @@ struct winsize {
 #if defined(VARIABLE_LENGTH_ARRAYS) && defined(VARIABLE_DECLARATION_AFTER_CODE)
 # define USE_SNTRUP761X25519 1
 #endif
+
+
+// Defines for redox
+#ifdef __redox__
+//#define __b64_ntop(a, b, c, d) b64_ntop(a, b, c, d)
+//#define __b64_pton(a, b, c, d) b64_pton(a, b, c, d)
+#define _PATH_MAILDIR "/var/mail"
+#define IPPORT_RESERVED 1024
+#define IXANY 0x800
+#define O_NOCTTY 0
+#define SCM_RIGHTS 0x01
+#define NETDB_INTERNAL -1
+#define NETDB_SUCCESS 0
+#define IN_LOOPBACKNET 127
+#define ST_RDONLY 0x0001UL
+#define ST_NOSUID 0x0002UL
+#define DISABLE_PUTUTXLINE 1 
+#define HOST_NAME_MAX 255
+#endif
+
 #endif /* _DEFINES_H */

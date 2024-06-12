@@ -182,6 +182,9 @@
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "misc.h"
+#ifdef __redox__
+#include "utmpx.h"
+#endif
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -1033,7 +1036,12 @@ utmpx_perform_login(struct logininfo *li)
 		return (0);
 	}
 # else
-	if (!utmpx_write_direct(li, &ut)) {
+#ifdef __redox__
+#define REDOX_UT_VAR utx
+#else
+#define REDOX_UT_VAR ut
+#endif
+	if (!utmpx_write_direct(li, &REDOX_UT_VAR)) {
 		logit("%s: utmp_write_direct() failed", __func__);
 		return (0);
 	}

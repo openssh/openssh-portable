@@ -140,6 +140,7 @@ mktemp(char *path)
 }
 #endif
 
+#ifndef __redox__
 int
 mkstemp(char *path)
 {
@@ -151,6 +152,7 @@ mkstemps(char *path, int slen)
 {
 	return(mktemp_internal(path, slen, MKTEMP_FILE));
 }
+#endif
 
 char *
 mkdtemp(char *path)

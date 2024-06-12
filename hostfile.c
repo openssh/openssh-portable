@@ -44,7 +44,9 @@
 #include <netinet/in.h>
 
 #include <errno.h>
+#ifndef __redox__
 #include <resolv.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
