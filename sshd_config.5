@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.361 2024/06/12 22:36:00 djm Exp $
-.Dd $Mdocdate: June 12 2024 $
+.\" $OpenBSD: sshd_config.5,v 1.362 2024/06/13 15:06:33 naddy Exp $
+.Dd $Mdocdate: June 13 2024 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1603,7 +1603,7 @@ Repeated penalties will accumulate up to this maximum.
 .It Cm min:duration
 Specifies the minimum penalty that must accrue before enforcement begins
 (default: 15s).
-.It Cm max-sources4:number max-sources6:number
+.It Cm max-sources4:number , max-sources6:number
 Specifies the maximum number of client IPv4 and IPv6 address ranges to
 track for penalties (default: 65536 for both).
 .It Cm overflow:mode
