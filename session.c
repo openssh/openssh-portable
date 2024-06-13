@@ -107,7 +107,7 @@
  * Hack for systems that do not support FD passing: allocate PTYs directly
  * without calling into the monitor. This requires either the post-auth
  * privsep process retain root privileges (see the comment in
- * sshd-session:privsep_postauth) or that PTY allocation doesn't require
+ * sshd-session.c:privsep_postauth) or that PTY allocation doesn't require
  * privileges to begin with (e.g. Cygwin).
  */
 #ifdef DISABLE_FD_PASSING
