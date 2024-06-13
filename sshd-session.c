@@ -1036,6 +1036,17 @@ main(int ac, char **av)
 
 	debug("sshd version %s, %s", SSH_VERSION, SSH_OPENSSL_VERSION);
 
+	/* Fetch our configuration */
+	if ((cfg = sshbuf_new()) == NULL)
+		fatal("sshbuf_new config buf failed");
+	setproctitle("%s", "[rexeced]");
+	recv_rexec_state(REEXEC_CONFIG_PASS_FD, cfg, &timing_secret);
+	close(REEXEC_CONFIG_PASS_FD);
+	parse_server_config(&options, "rexec", cfg, &includes, NULL, 1);
+	/* Fill in default values for those options not explicitly set. */
+	fill_default_server_options(&options);
+	options.timing_secret = timing_secret;
+
 	/* Store privilege separation user for later use if required. */
 	privsep_chroot = (getuid() == 0 || geteuid() == 0);
 	if ((privsep_pw = getpwnam(SSH_PRIVSEP_USER)) == NULL) {
@@ -1048,17 +1059,6 @@ main(int ac, char **av)
 		privsep_pw->pw_passwd = xstrdup("*");
 	}
 	endpwent();
-
-	/* Fetch our configuration */
-	if ((cfg = sshbuf_new()) == NULL)
-		fatal("sshbuf_new config buf failed");
-	setproctitle("%s", "[rexeced]");
-	recv_rexec_state(REEXEC_CONFIG_PASS_FD, cfg, &timing_secret);
-	close(REEXEC_CONFIG_PASS_FD);
-	parse_server_config(&options, "rexec", cfg, &includes, NULL, 1);
-	/* Fill in default values for those options not explicitly set. */
-	fill_default_server_options(&options);
-	options.timing_secret = timing_secret;
 
 	if (!debug_flag) {
 		startup_pipe = dup(REEXEC_STARTUP_PIPE_FD);
