@@ -68,8 +68,7 @@
 #endif
 
 #if !defined(SSHD_PAM_SERVICE)
-extern char *__progname;
-# define SSHD_PAM_SERVICE		__progname
+# define SSHD_PAM_SERVICE		"sshd"
 #endif
 
 /* OpenGroup RFC86.0 and XSSO specify no "const" on arguments */
