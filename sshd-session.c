@@ -379,6 +379,21 @@ privsep_preauth(struct ssh *ssh)
 static void
 privsep_postauth(struct ssh *ssh, Authctxt *authctxt)
 {
+	int skip_privdrop = 0;
+
+	/*
+	 * Hack for systems that don't support FD passing: retain privileges
+	 * in the post-auth privsep process so it can allocate PTYs directly.
+	 * This is basically equivalent to what we did <= 9.7, which was to
+	 * disable post-auth privsep entriely.
+	 * Cygwin doesn't need to drop privs here although it doesn't support
+	 * fd passing, as AFAIK PTY allocation on this platform doesn't require
+	 * special privileges to begin with.
+	 */
+#if defined(DISABLE_FD_PASSING) && !defined(HAVE_CYGWIN)
+	skip_privdrop = 1;
+#endif
+
 	/* New socket pair */
 	monitor_reinit(pmonitor);
 
@@ -406,7 +421,8 @@ privsep_postauth(struct ssh *ssh, Authctxt *authctxt)
 	reseed_prngs();
 
 	/* Drop privileges */
-	do_setusercontext(authctxt->pw);
+	if (!skip_privdrop)
+		do_setusercontext(authctxt->pw);
 
 	/* It is safe now to apply the key state */
 	monitor_apply_keystate(ssh, pmonitor);
