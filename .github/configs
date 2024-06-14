@@ -208,6 +208,7 @@ case "$config" in
 		# and hostbased (since valgrind won't let ssh exec keysign).
 		# Slow ones are run separately to increase parallelism.
 		SKIP_LTESTS="agent-timeout connection-timeout hostbased"
+		SKIP_LTESTS="$SKIP_LTESTS penalty-expire"
 		SKIP_LTESTS="$SKIP_LTESTS ${tests2} ${tests3} ${tests4} ${tests5}"
 		;;
 	    valgrind-2)
