@@ -14,7 +14,7 @@ conf() {
 	start_sshd
 }
 
-conf "noauth:10s authfail:6s grace-exceeded:10s min:8s max:20s"
+conf "authfail:30s min:50s max:200s"
 
 verbose "test connect"
 ${SSH} -F $OBJ/ssh_config somehost true || fatal "basic connect failed"
@@ -36,13 +36,10 @@ cp $OBJ/authorized_keys_${USER}.bak $OBJ/authorized_keys_${USER}
 
 # These should be refused by the active penalty
 ${SSH} -F $OBJ/ssh_config somehost true && fail "authfail not rejected"
-sleep 5
 ${SSH} -F $OBJ/ssh_config somehost true && fail "repeat authfail not rejected"
 
-# Penalty should have expired, this should succeed.
-sleep 8
-${SSH} -F $OBJ/ssh_config somehost true || fail "authfail not expired"
-
+conf "noauth:100s"
+${SSH} -F $OBJ/ssh_config somehost true || fatal "basic connect failed"
 verbose "penalty for no authentication"
 ${SSHKEYSCAN} -t ssh-ed25519 -p $PORT 127.0.0.1 >/dev/null || fatal "keyscan failed"
 

@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.134 2024/06/06 19:49:25 djm Exp $
+#	$OpenBSD: Makefile,v 1.135 2024/06/14 04:43:11 djm Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -110,7 +110,8 @@ LTESTS= 	connect \
 		match-subsystem \
 		agent-pkcs11-restrict \
 		agent-pkcs11-cert \
-		penalty
+		penalty \
+		penalty-expire
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 INTEROP_TESTS+=	dropbear-ciphers dropbear-kex
