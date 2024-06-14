@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.49 2023/02/10 06:41:53 jmc Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.50 2024/06/14 05:00:42 djm Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -6,7 +6,7 @@
 .\" permitted provided that due credit is given to the author and the
 .\" OpenBSD project by leaving this copyright notice intact.
 .\"
-.Dd $Mdocdate: February 10 2023 $
+.Dd $Mdocdate: June 14 2024 $
 .Dt SSH-KEYSCAN 1
 .Os
 .Sh NAME
@@ -14,7 +14,7 @@
 .Nd gather SSH public keys from servers
 .Sh SYNOPSIS
 .Nm ssh-keyscan
-.Op Fl 46cDHv
+.Op Fl 46cDHqv
 .Op Fl f Ar file
 .Op Fl O Ar option
 .Op Fl p Ar port
@@ -143,6 +143,9 @@ The default is to fetch
 and
 .Dq ed25519-sk
 keys.
+.It Fl q
+Quiet mode:
+do not print server host name and banners in comments.
 .It Fl v
 Verbose mode:
 print debugging messages about progress.
