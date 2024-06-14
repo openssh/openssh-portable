@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.50 2024/06/14 05:00:42 djm Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.51 2024/06/14 05:20:34 jmc Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -116,6 +116,9 @@ The default is to print both.
 Connect to
 .Ar port
 on the remote host.
+.It Fl q
+Quiet mode:
+do not print server host name and banners in comments.
 .It Fl T Ar timeout
 Set the timeout for connection attempts.
 If
@@ -143,9 +146,6 @@ The default is to fetch
 and
 .Dq ed25519-sk
 keys.
-.It Fl q
-Quiet mode:
-do not print server host name and banners in comments.
 .It Fl v
 Verbose mode:
 print debugging messages about progress.
