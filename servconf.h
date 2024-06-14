@@ -210,6 +210,7 @@ typedef struct {
 	char   *adm_forced_command;
 
 	int	use_pam;		/* Enable auth via PAM */
+	char   *pam_service_name;
 
 	int	permit_tun;
 
@@ -294,6 +295,7 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STROPT(ca_sign_algorithms); \
 		M_CP_STROPT(routing_domain); \
 		M_CP_STROPT(permit_user_env_allowlist); \
+		M_CP_STROPT(pam_service_name); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
 		M_CP_STRARRAYOPT(allow_users, num_allow_users); \
 		M_CP_STRARRAYOPT(deny_users, num_deny_users); \

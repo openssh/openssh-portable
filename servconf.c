@@ -69,6 +69,10 @@
 #include "myproposal.h"
 #include "digest.h"
 
+#if !defined(SSHD_PAM_SERVICE)
+# define SSHD_PAM_SERVICE		"sshd"
+#endif
+
 static void add_listen_addr(ServerOptions *, const char *,
     const char *, int);
 static void add_one_listen_addr(ServerOptions *, const char *,
@@ -88,6 +92,7 @@ initialize_server_options(ServerOptions *options)
 
 	/* Portable-specific options */
 	options->use_pam = -1;
+	options->pam_service_name = NULL;
 
 	/* Standard Options */
 	options->num_ports = 0;
@@ -291,6 +296,8 @@ fill_default_server_options(ServerOptions *options)
 	/* Portable-specific options */
 	if (options->use_pam == -1)
 		options->use_pam = 0;
+	if (options->pam_service_name == NULL)
+		options->pam_service_name = xstrdup(SSHD_PAM_SERVICE);
 
 	/* Standard Options */
 	if (options->num_host_key_files == 0) {
@@ -530,7 +537,7 @@ fill_default_server_options(ServerOptions *options)
 typedef enum {
 	sBadOption,		/* == unknown option */
 	/* Portable-specific options */
-	sUsePAM,
+	sUsePAM, sPAMServiceName,
 	/* Standard Options */
 	sPort, sHostKeyFile, sLoginGraceTime,
 	sPermitRootLogin, sLogFacility, sLogLevel, sLogVerbose,
@@ -583,8 +590,10 @@ static struct {
 	/* Portable-specific options */
 #ifdef USE_PAM
 	{ "usepam", sUsePAM, SSHCFG_GLOBAL },
+	{ "pamservicename", sPAMServiceName, SSHCFG_ALL },
 #else
 	{ "usepam", sUnsupported, SSHCFG_GLOBAL },
+	{ "pamservicename", sUnsupported, SSHCFG_ALL },
 #endif
 	{ "pamauthenticationviakbdint", sDeprecated, SSHCFG_GLOBAL },
 	/* Standard Options */
@@ -1318,6 +1327,16 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 	case sUsePAM:
 		intptr = &options->use_pam;
 		goto parse_flag;
+	case sPAMServiceName:
+		charptr = &options->pam_service_name;
+		arg = argv_next(&ac, &av);
+		if (!arg || *arg == '\0') {
+			fatal("%s line %d: missing argument.",
+			    filename, linenum);
+		}
+		if (*activep && *charptr == NULL)
+			*charptr = xstrdup(arg);
+		break;
 
 	/* Standard Options */
 	case sBadOption:
@@ -3128,6 +3147,7 @@ dump_config(ServerOptions *o)
 	/* integer arguments */
 #ifdef USE_PAM
 	dump_cfg_fmtint(sUsePAM, o->use_pam);
+	dump_cfg_string(sPAMServiceName, o->pam_service_name);
 #endif
 	dump_cfg_int(sLoginGraceTime, o->login_grace_time);
 	dump_cfg_int(sX11DisplayOffset, o->x11_display_offset);
