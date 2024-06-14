@@ -44,7 +44,7 @@ sleep 8
 ${SSH} -F $OBJ/ssh_config somehost true || fail "authfail not expired"
 
 verbose "penalty for no authentication"
-${SSHKEYSCAN} -t ssh-ed25519 -p $PORT 127.0.0.1 >/dev/null 2>&1 || fatal "keyscan failed"
+${SSHKEYSCAN} -t ssh-ed25519 -p $PORT 127.0.0.1 >/dev/null || fatal "keyscan failed"
 
 # Repeat attempt should be penalised
 ${SSHKEYSCAN} -t ssh-ed25519 -p $PORT 127.0.0.1 >/dev/null 2>&1 && fail "keyscan not rejected"
