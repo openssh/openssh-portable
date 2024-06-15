@@ -14,7 +14,7 @@ conf() {
 	start_sshd
 }
 
-conf "authfail:30s min:50s max:200s"
+conf "authfail:300s min:350s max:900s"
 
 verbose "test connect"
 ${SSH} -F $OBJ/ssh_config somehost true || fatal "basic connect failed"
