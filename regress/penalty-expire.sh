@@ -24,6 +24,7 @@ verbose "penalty expiry"
 # Incur a penalty
 cat /dev/null > $OBJ/authorized_keys_${USER}
 ${SSH} -F $OBJ/ssh_config somehost true && fatal "authfail connect succeeded"
+sleep 2
 
 # Check denied
 cp $OBJ/authorized_keys_${USER}.bak $OBJ/authorized_keys_${USER}
