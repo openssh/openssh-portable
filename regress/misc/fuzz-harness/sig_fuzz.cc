@@ -26,7 +26,6 @@ int LLVMFuzzerTestOneInput(const uint8_t* sig, size_t slen)
 {
 #ifdef WITH_OPENSSL
   static struct sshkey *rsa = generate_or_die(KEY_RSA, 2048);
-  static struct sshkey *dsa = generate_or_die(KEY_DSA, 1024);
   static struct sshkey *ecdsa256 = generate_or_die(KEY_ECDSA, 256);
   static struct sshkey *ecdsa384 = generate_or_die(KEY_ECDSA, 384);
   static struct sshkey *ecdsa521 = generate_or_die(KEY_ECDSA, 521);
