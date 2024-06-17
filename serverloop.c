@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.239 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.240 2024/06/17 08:28:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -266,11 +266,11 @@ process_input(struct ssh *ssh, int connection_in)
 		if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK)
 			return 0;
 		if (errno == EPIPE) {
-			verbose("Connection closed by %.100s port %d",
+			logit("Connection closed by %.100s port %d",
 			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 			return -1;
 		}
-		verbose("Read error from remote host %s port %d: %s",
+		logit("Read error from remote host %s port %d: %s",
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 		    strerror(errno));
 		cleanup_exit(255);
