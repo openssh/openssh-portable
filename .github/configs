@@ -290,7 +290,7 @@ case "${TARGET_HOST}" in
 	    hostkey-agent key-options keyscan knownhosts-command login-timeout
 	    reconfigure reexec rekey scp scp-uri scp3 sftp sftp-badcmds
 	    sftp-batch sftp-cmds sftp-glob sftp-perm sftp-uri stderr-data
-	    transfer"
+	    transfer penalty penalty-expire"
 	SKIP_LTESTS="$(echo $T)"
 	TEST_TARGET=t-exec
 	SUDO=""
