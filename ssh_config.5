@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.395 2024/06/14 05:01:22 djm Exp $
-.Dd $Mdocdate: June 14 2024 $
+.\" $OpenBSD: ssh_config.5,v 1.396 2024/06/17 08:30:29 djm Exp $
+.Dd $Mdocdate: June 17 2024 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1114,7 +1114,7 @@ section and environment variables as described in the
 .Sx ENVIRONMENT VARIABLES
 section.
 .It Cm IdentityFile
-Specifies a file from which the user's DSA, ECDSA, authenticator-hosted ECDSA,
+Specifies a file from which the user's ECDSA, authenticator-hosted ECDSA,
 Ed25519, authenticator-hosted Ed25519 or RSA authentication identity is read.
 You can also specify a public key file to use the corresponding
 private key that is loaded in
@@ -1124,10 +1124,9 @@ The default is
 .Pa ~/.ssh/id_rsa ,
 .Pa ~/.ssh/id_ecdsa ,
 .Pa ~/.ssh/id_ecdsa_sk ,
-.Pa ~/.ssh/id_ed25519 ,
-.Pa ~/.ssh/id_ed25519_sk
+.Pa ~/.ssh/id_ed25519
 and
-.Pa ~/.ssh/id_dsa .
+.Pa ~/.ssh/id_ed25519_sk .
 Additionally, any identities represented by the authentication agent
 will be used for authentication unless
 .Cm IdentitiesOnly

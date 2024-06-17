@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.51 2024/06/14 05:20:34 jmc Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.52 2024/06/17 08:30:29 djm Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -6,7 +6,7 @@
 .\" permitted provided that due credit is given to the author and the
 .\" OpenBSD project by leaving this copyright notice intact.
 .\"
-.Dd $Mdocdate: June 14 2024 $
+.Dd $Mdocdate: June 17 2024 $
 .Dt SSH-KEYSCAN 1
 .Os
 .Sh NAME
@@ -130,7 +130,6 @@ The default is 5 seconds.
 .It Fl t Ar type
 Specify the type of the key to fetch from the scanned hosts.
 The possible values are
-.Dq dsa ,
 .Dq ecdsa ,
 .Dq ed25519 ,
 .Dq ecdsa-sk ,
@@ -138,14 +137,7 @@ The possible values are
 or
 .Dq rsa .
 Multiple values may be specified by separating them with commas.
-The default is to fetch
-.Dq rsa ,
-.Dq ecdsa ,
-.Dq ed25519 ,
-.Dq ecdsa-sk ,
-and
-.Dq ed25519-sk
-keys.
+The default is to fetch all the above key types.
 .It Fl v
 Verbose mode:
 print debugging messages about progress.
@@ -177,7 +169,7 @@ Find all hosts from the file
 which have new or different keys from those in the sorted file
 .Pa ssh_known_hosts :
 .Bd -literal -offset indent
-$ ssh-keyscan -t rsa,dsa,ecdsa,ed25519 -f ssh_hosts | \e
+$ ssh-keyscan -t rsa,ecdsa,ed25519 -f ssh_hosts | \e
 	sort -u - ssh_known_hosts | diff ssh_known_hosts -
 .Ed
 .Sh SEE ALSO

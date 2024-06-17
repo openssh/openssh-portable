@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.440 2024/05/26 20:35:12 naddy Exp $
-.Dd $Mdocdate: May 26 2024 $
+.\" $OpenBSD: ssh.1,v 1.441 2024/06/17 08:30:29 djm Exp $
+.Dd $Mdocdate: June 17 2024 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -304,10 +304,9 @@ The default is
 .Pa ~/.ssh/id_rsa ,
 .Pa ~/.ssh/id_ecdsa ,
 .Pa ~/.ssh/id_ecdsa_sk ,
-.Pa ~/.ssh/id_ed25519 ,
-.Pa ~/.ssh/id_ed25519_sk
+.Pa ~/.ssh/id_ed25519
 and
-.Pa ~/.ssh/id_dsa .
+.Pa ~/.ssh/id_ed25519_sk .
 Identity files may also be specified on
 a per-host basis in the configuration file.
 It is possible to have multiple
@@ -929,10 +928,10 @@ key pair for authentication purposes.
 The server knows the public key, and only the user knows the private key.
 .Nm
 implements public key authentication protocol automatically,
-using one of the DSA, ECDSA, Ed25519 or RSA algorithms.
+using one of the ECDSA, Ed25519 or RSA algorithms.
 The HISTORY section of
 .Xr ssl 8
-contains a brief discussion of the DSA and RSA algorithms.
+contains a brief discussion of the RSA and ECDSA algorithms.
 .Pp
 The file
 .Pa ~/.ssh/authorized_keys
@@ -959,8 +958,6 @@ flag).
 The user creates their key pair by running
 .Xr ssh-keygen 1 .
 This stores the private key in
-.Pa ~/.ssh/id_dsa
-(DSA),
 .Pa ~/.ssh/id_ecdsa
 (ECDSA),
 .Pa ~/.ssh/id_ecdsa_sk
@@ -973,8 +970,6 @@ or
 .Pa ~/.ssh/id_rsa
 (RSA)
 and stores the public key in
-.Pa ~/.ssh/id_dsa.pub
-(DSA),
 .Pa ~/.ssh/id_ecdsa.pub
 (ECDSA),
 .Pa ~/.ssh/id_ecdsa_sk.pub
@@ -1556,7 +1551,7 @@ secret, but the recommended permissions are read/write/execute for the user,
 and not accessible by others.
 .Pp
 .It Pa ~/.ssh/authorized_keys
-Lists the public keys (DSA, ECDSA, Ed25519, RSA)
+Lists the public keys (ECDSA, Ed25519, RSA)
 that can be used for logging in as this user.
 The format of this file is described in the
 .Xr sshd 8
@@ -1576,7 +1571,6 @@ Contains additional definitions for environment variables; see
 .Sx ENVIRONMENT ,
 above.
 .Pp
-.It Pa ~/.ssh/id_dsa
 .It Pa ~/.ssh/id_ecdsa
 .It Pa ~/.ssh/id_ecdsa_sk
 .It Pa ~/.ssh/id_ed25519
@@ -1592,7 +1586,6 @@ It is possible to specify a passphrase when
 generating the key which will be used to encrypt the
 sensitive part of this file using AES-128.
 .Pp
-.It Pa ~/.ssh/id_dsa.pub
 .It Pa ~/.ssh/id_ecdsa.pub
 .It Pa ~/.ssh/id_ecdsa_sk.pub
 .It Pa ~/.ssh/id_ed25519.pub
