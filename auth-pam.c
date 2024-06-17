@@ -100,6 +100,7 @@
 #include "ssh-gss.h"
 #endif
 #include "monitor_wrap.h"
+#include "srclimit.h"
 
 extern ServerOptions options;
 extern struct sshbuf *loginmsg;
@@ -166,13 +167,13 @@ sshpam_sigchld_handler(int sig)
 			return;
 		}
 	}
-	if (WIFSIGNALED(sshpam_thread_status) &&
-	    WTERMSIG(sshpam_thread_status) == SIGTERM)
-		return;	/* terminated by pthread_cancel */
-	if (!WIFEXITED(sshpam_thread_status))
-		sigdie("PAM: authentication thread exited unexpectedly");
-	if (WEXITSTATUS(sshpam_thread_status) != 0)
-		sigdie("PAM: authentication thread exited uncleanly");
+	if (sshpam_thread_status == -1)
+		return;
+	if (WIFSIGNALED(sshpam_thread_status)) {
+		if (signal_is_crash(WTERMSIG(sshpam_thread_status)))
+			_exit(EXIT_CHILD_CRASH);
+	} else if (!WIFEXITED(sshpam_thread_status))
+		_exit(EXIT_CHILD_CRASH);
 }
 
 /* ARGSUSED */
