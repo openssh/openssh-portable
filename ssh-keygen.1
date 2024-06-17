@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.231 2024/06/17 08:30:29 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.232 2024/06/17 13:50:18 naddy Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -295,7 +295,6 @@ Show the bubblebabble digest of specified private or public key file.
 Specifies the number of bits in the key to create.
 For RSA keys, the minimum size is 1024 bits and the default is 3072 bits.
 Generally, 3072 bits is considered sufficient.
-DSA keys must be exactly 1024 bits as specified by FIPS 186-2.
 For ECDSA keys, the
 .Fl b
 flag determines the key length by selecting from one of three elliptic
