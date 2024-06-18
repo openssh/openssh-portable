@@ -1,4 +1,4 @@
-#	$OpenBSD: dropbear-kex.sh,v 1.1 2023/10/20 06:56:45 dtucker Exp $
+#	$OpenBSD: dropbear-kex.sh,v 1.2 2024/06/18 06:14:27 anton Exp $
 #	Placed in the Public Domain.
 
 tid="dropbear kex"
@@ -8,8 +8,8 @@ if test "x$REGRESS_INTEROP_DROPBEAR" != "xyes" ; then
 fi
 
 cat >>$OBJ/sshd_proxy <<EOD
-PubkeyAcceptedAlgorithms +ssh-rsa,ssh-dss
-HostkeyAlgorithms +ssh-rsa,ssh-dss
+PubkeyAcceptedAlgorithms +ssh-rsa
+HostkeyAlgorithms +ssh-rsa
 EOD
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy.bak
 

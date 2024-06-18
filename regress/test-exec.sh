@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.115 2024/06/11 01:58:27 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.116 2024/06/18 06:14:27 anton Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -846,7 +846,7 @@ esac
 if test "$REGRESS_INTEROP_DROPBEAR" = "yes" ; then
 	trace Create dropbear keys and add to authorized_keys
 	mkdir -p $OBJ/.dropbear
-	for i in rsa ecdsa ed25519 dss; do
+	for i in rsa ecdsa ed25519; do
 		if [ ! -f "$OBJ/.dropbear/id_$i" ]; then
 			($DROPBEARKEY -t $i -f $OBJ/.dropbear/id_$i
 			$DROPBEARCONVERT dropbear openssh \
