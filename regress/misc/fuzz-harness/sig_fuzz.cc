@@ -40,19 +40,20 @@ int LLVMFuzzerTestOneInput(const uint8_t* sig, size_t slen)
   sshkey_verify(rsa, sig, slen, (const u_char *)data, dlen, NULL, 0, &details);
   sshkey_sig_details_free(details);
   details = NULL;
-  sshkey_verify(dsa, sig, slen, (const u_char *)data, dlen, NULL, 0, &details);
-  sshkey_sig_details_free(details);
-  details = NULL;
+
   sshkey_verify(ecdsa256, sig, slen, (const u_char *)data, dlen, NULL, 0, &details);
   sshkey_sig_details_free(details);
   details = NULL;
+
   sshkey_verify(ecdsa384, sig, slen, (const u_char *)data, dlen, NULL, 0, &details);
   sshkey_sig_details_free(details);
   details = NULL;
+
   sshkey_verify(ecdsa521, sig, slen, (const u_char *)data, dlen, NULL, 0, &details);
   sshkey_sig_details_free(details);
   details = NULL;
 #endif
+
   sshkey_verify(ed25519, sig, slen, (const u_char *)data, dlen, NULL, 0, &details);
   sshkey_sig_details_free(details);
   return 0;
