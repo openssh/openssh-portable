@@ -1,4 +1,4 @@
-#	$OpenBSD: dropbear-ciphers.sh,v 1.1 2023/10/20 06:56:45 dtucker Exp $
+#	$OpenBSD: dropbear-ciphers.sh,v 1.2 2024/06/19 10:15:51 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="dropbear ciphers"
@@ -7,13 +7,23 @@ if test "x$REGRESS_INTEROP_DROPBEAR" != "xyes" ; then
 	skip "dropbear interop tests not enabled"
 fi
 
+# Enable all support algorithms
+algs=`$SSH -Q key-sig | tr '\n' ,`
 cat >>$OBJ/sshd_proxy <<EOD
-PubkeyAcceptedAlgorithms +ssh-rsa,ssh-dss
-HostkeyAlgorithms +ssh-rsa,ssh-dss
+PubkeyAcceptedAlgorithms $algs
+HostkeyAlgorithms $algs
 EOD
 
 ciphers=`$DBCLIENT -c help 2>&1 | awk '/ ciphers: /{print $4}' | tr ',' ' '`
+if [ -z "$ciphers" ]; then
+	trace dbclient query ciphers failed, making assumptions.
+	ciphers="chacha20-poly1305@openssh.com aes128-ctr aes256-ctr"
+fi
 macs=`$DBCLIENT -m help 2>&1 | awk '/ MACs: /{print $4}' | tr ',' ' '`
+if [ -z "$macs" ]; then
+	trace dbclient query macs failed, making assumptions.
+	macs="hmac-sha1 hmac-sha2-256"
+fi
 keytype=`(cd $OBJ/.dropbear && ls id_*)`
 
 for c in $ciphers ; do
