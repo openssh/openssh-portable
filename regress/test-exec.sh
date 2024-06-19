@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.117 2024/06/18 08:11:48 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.118 2024/06/19 10:08:34 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -845,20 +845,28 @@ esac
 
 if test "$REGRESS_INTEROP_DROPBEAR" = "yes" ; then
 	trace Create dropbear keys and add to authorized_keys
-	kt="rsa ecdsa ed25519"
-	if $SSH -Q key-plain | grep ssh-dss >/dev/null; then
+	kt="ed25519"
+	if $SSH -Q key-plain | grep '^ssh-dss$' >/dev/null; then
 		kt="$kt dss"
 	fi
+	if $SSH -Q key-plain | grep '^ssh-rsa$' >/dev/null; then
+		kt="$kt rsa"
+	fi
+	if $SSH -Q key-plain | grep '^ecdsa-sha2' >/dev/null; then
+		kt="$kt ecdsa"
+	fi
 	mkdir -p $OBJ/.dropbear
-	for i in rsa ecdsa ed25519; do
+	for i in $kt; do
 		if [ ! -f "$OBJ/.dropbear/id_$i" ]; then
-			($DROPBEARKEY -t $i -f $OBJ/.dropbear/id_$i
-			$DROPBEARCONVERT dropbear openssh \
-			    $OBJ/.dropbear/id_$i $OBJ/.dropbear/ossh.id_$i
-			) > /dev/null 2>&1
+			verbose Create dropbear key type $i
+			$DROPBEARKEY -t $i -f $OBJ/.dropbear/id_$i \
+			    >/dev/null 2>&1
 		fi
+		$DROPBEARCONVERT dropbear openssh $OBJ/.dropbear/id_$i \
+		    $OBJ/.dropbear/ossh.id_$i >/dev/null 2>&1
 		$SSHKEYGEN -y -f $OBJ/.dropbear/ossh.id_$i \
 		   >>$OBJ/authorized_keys_$USER
+		rm -f $OBJ/.dropbear/id_$i.pub $OBJ/.dropbear/ossh.id_$i
 	done
 fi
 
