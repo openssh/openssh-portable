@@ -43,7 +43,7 @@ jobs:
     - name: make
       run: vmrun "cd /usr/src/usr.bin/ssh && case ${{ matrix.config }} in without-openssl) make OPENSSL=no;; ubsan) make DEBUG='-fsanitize-minimal-runtime -fsanitize=undefined';; *) make; esac"
     - name: make install
-      run: vmrun "cd /usr/src/usr.bin/ssh && sudo make install && sudo /etc/rc.d/sshd restart"
+      run: vmrun "cd /usr/src/usr.bin/ssh && sudo make install && sudo /etc/rc.d/sshd restart -f"
     - name: make tests`
       run: vmrun "cd /usr/src/regress/usr.bin/ssh && case ${{ matrix.config }} in without-openssl) make OPENSSL=no;; ubsan) make DEBUG='-fsanitize-minimal-runtime -fsanitize=undefined';; *) make; esac"
       env:
