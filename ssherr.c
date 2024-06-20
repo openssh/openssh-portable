@@ -145,6 +145,8 @@ ssh_err(int n)
 		return "requested feature not supported";
 	case SSH_ERR_DEVICE_NOT_FOUND:
 		return "device not found";
+	case SSH_ERR_DEVICE_PIN_NOT_SET:
+		return "PIN not set";
 	default:
 		return "unknown error";
 	}
