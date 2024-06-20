@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.118 2024/06/19 10:08:34 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.119 2024/06/20 08:18:34 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -845,17 +845,15 @@ esac
 
 if test "$REGRESS_INTEROP_DROPBEAR" = "yes" ; then
 	trace Create dropbear keys and add to authorized_keys
-	kt="ed25519"
-	if $SSH -Q key-plain | grep '^ssh-dss$' >/dev/null; then
-		kt="$kt dss"
-	fi
-	if $SSH -Q key-plain | grep '^ssh-rsa$' >/dev/null; then
-		kt="$kt rsa"
-	fi
-	if $SSH -Q key-plain | grep '^ecdsa-sha2' >/dev/null; then
-		kt="$kt ecdsa"
-	fi
 	mkdir -p $OBJ/.dropbear
+	kt="ed25519"
+	for i in dss rsa ecdsa; do
+		if $SSH -Q key-plain | grep "$i" >/dev/null; then
+			kt="$kt $i"
+		else
+			rm -f "$OBJ/.dropbear/id_$i"
+		fi
+	done
 	for i in $kt; do
 		if [ ! -f "$OBJ/.dropbear/id_$i" ]; then
 			verbose Create dropbear key type $i
