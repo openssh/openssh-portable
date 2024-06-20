@@ -1,4 +1,4 @@
-#	$OpenBSD: dropbear-ciphers.sh,v 1.2 2024/06/19 10:15:51 dtucker Exp $
+#	$OpenBSD: dropbear-ciphers.sh,v 1.3 2024/06/20 08:23:18 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="dropbear ciphers"
@@ -14,15 +14,10 @@ PubkeyAcceptedAlgorithms $algs
 HostkeyAlgorithms $algs
 EOD
 
-ciphers=`$DBCLIENT -c help 2>&1 | awk '/ ciphers: /{print $4}' | tr ',' ' '`
-if [ -z "$ciphers" ]; then
-	trace dbclient query ciphers failed, making assumptions.
-	ciphers="chacha20-poly1305@openssh.com aes128-ctr aes256-ctr"
-fi
-macs=`$DBCLIENT -m help 2>&1 | awk '/ MACs: /{print $4}' | tr ',' ' '`
-if [ -z "$macs" ]; then
-	trace dbclient query macs failed, making assumptions.
-	macs="hmac-sha1 hmac-sha2-256"
+ciphers=`$DBCLIENT -c help hst 2>&1 | awk '/ ciphers: /{print $4}' | tr ',' ' '`
+macs=`$DBCLIENT -m help hst 2>&1 | awk '/ MACs: /{print $4}' | tr ',' ' '`
+if [ -z "$macs" ] || [ -z "$ciphers" ]; then
+	skip "dbclient query ciphers '$ciphers' or macs '$macs' failed"
 fi
 keytype=`(cd $OBJ/.dropbear && ls id_*)`
 
