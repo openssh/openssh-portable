@@ -3,7 +3,7 @@ name: Upstream self-hosted
 on:
   push:
     branches: [ master ]
-    paths: [ '**.c', '**.h', '.github/configs', '.github/workflows/upstream.yml' ]
+    paths: [ '**.c', '**.h', '**.sh', '.github/configs', '.github/workflows/upstream.yml' ]
 
 jobs:
   selfhosted:
