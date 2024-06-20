@@ -405,7 +405,7 @@ srclimit_penalise(struct xaddr *addr, int penalty_type)
 	    penalty_cfg.overflow_mode : penalty_cfg.overflow_mode6;
 	npenaltiesp = addr->af == AF_INET ?  &npenalties4 : &npenalties6;
 	t = addr->af == AF_INET ? "ipv4" : "ipv6";
-	if (*npenaltiesp > (size_t)max_sources &&
+	if (*npenaltiesp >= (size_t)max_sources &&
 	    overflow_mode == PER_SOURCE_PENALTY_OVERFLOW_DENY_ALL) {
 		verbose_f("%s penalty table full, cannot penalise %s for %s", t,
 		    addrnetmask, reason);
