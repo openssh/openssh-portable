@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.364 2024/06/24 04:05:11 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.365 2024/06/24 06:59:39 jmc Exp $
 .Dd $Mdocdate: June 24 2024 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -1832,9 +1832,9 @@ via
 or
 .Cm PermitUserEnvironment .
 .It Cm SshdSessionPath
-overrides the default path to the
+Overrides the default path to the
 .Cm sshd-session
-binaries that invoked to handle each connection.
+binary that is invoked to handle each connection.
 The default is
 .Pa /usr/libexec/sshd-session .
 This option is intended for use by tests.
