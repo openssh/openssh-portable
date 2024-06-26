@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.3 2024/06/06 17:15:25 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.4 2024/06/26 23:16:52 deraadt Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -197,6 +197,8 @@ static void do_ssh2_kex(struct ssh *);
 
 /*
  * Signal handler for the alarm after the login grace period has expired.
+ * As usual, this may only take signal-safe actions, even though it is
+ * terminal.
  */
 static void
 grace_alarm_handler(int sig)
@@ -206,7 +208,14 @@ grace_alarm_handler(int sig)
 	 * keys command helpers or privsep children.
 	 */
 	if (getpgid(0) == getpid()) {
-		ssh_signal(SIGTERM, SIG_IGN);
+		struct sigaction sa;
+
+		/* mask all other signals while in handler */
+		memset(&sa, 0, sizeof(sa));
+		sa.sa_handler = SIG_IGN;
+		sigfillset(&sa.sa_mask);
+		sa.sa_flags = SA_RESTART;
+		(void)sigaction(SIGTERM, &sa, NULL);
 		kill(0, SIGTERM);
 	}
 	_exit(EXIT_LOGIN_GRACE);
