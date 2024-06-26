@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.607 2024/06/06 19:50:01 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.608 2024/06/26 23:47:46 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -423,9 +423,25 @@ static void
 child_reap_all_exited(void)
 {
 	int i;
+	pid_t pid;
+	int status;
 
 	if (children == NULL)
 		return;
+
+	for (;;) {
+		if ((pid = waitpid(-1, &status, WNOHANG)) == 0)
+			break;
+		else if (pid == -1) {
+			if (errno == EINTR || errno == EAGAIN)
+				continue;
+			if (errno != ECHILD)
+				error_f("waitpid: %s", strerror(errno));
+			break;
+		}
+		child_exit(pid, status);
+	}
+
 	for (i = 0; i < options.max_startups; i++) {
 		if (!children[i].have_status)
 			continue;
@@ -515,29 +531,10 @@ siginfo_handler(int sig)
 }
 #endif
 
-/*
- * SIGCHLD handler.  This is called whenever a child dies.  This will then
- * reap any zombies left by exited children.
- */
 static void
 main_sigchld_handler(int sig)
 {
-	int save_errno = errno;
-	pid_t pid;
-	int status;
-
-	for (;;) {
-		if ((pid = waitpid(-1, &status, WNOHANG)) == 0)
-			break;
-		else if (pid == -1) {
-			if (errno == EINTR)
-				continue;
-			break;
-		}
-		child_exit(pid, status);
-		received_sigchld = 1;
-	}
-	errno = save_errno;
+	received_sigchld = 1;
 }
 
 /*
