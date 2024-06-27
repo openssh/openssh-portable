@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.608 2024/06/26 23:47:46 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.609 2024/06/27 23:01:15 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -390,25 +390,7 @@ child_reap(struct early_child *child)
 			break;
 		}
 	}
-	/*
-	 * XXX would be nice to have more subtlety here.
-	 *  - Different penalties
-	 *      a) authentication failures without success (e.g. brute force)
-	 *      b) login grace exceeded (penalise DoS)
-	 *      c) monitor crash (penalise exploit attempt)
-	 *      d) unpriv preauth crash (penalise exploit attempt)
-	 *  - Unpriv auth exit status/WIFSIGNALLED is not available because
-	 *    the "mm_request_receive: monitor fd closed" fatal kills the
-	 *    monitor before waitpid() can occur. It would be good to use the
-	 *    unpriv exit status to detect crashes.
-	 *
-	 * For now, just penalise (a), (b) and (c), since that is what we have
-	 * readily available. The authentication failures detection cannot
-	 * discern between failed authentication and other connection problems
-	 * until we have the unpriv exist status plumbed through (and the unpriv
-	 * child modified to use a different exit status when auth has been
-	 * attempted), but it's a start.
-	 */
+
 	if (child->have_addr)
 		srclimit_penalise(&child->addr, penalty_type);
 
