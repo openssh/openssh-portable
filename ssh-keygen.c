@@ -323,10 +323,14 @@ load_identity(const char *filename, char **commentp)
 		return prv;
 	if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 		fatal_r(r, "Load key \"%s\"", filename);
-	if (identity_passphrase)
+	if (identity_passphrase) {
 		pass = xstrdup(identity_passphrase);
-	else
-		pass = read_passphrase("Enter passphrase: ", RP_ALLOW_STDIN);
+	} else {
+		char prompt[300];
+		snprintf(prompt, sizeof prompt,
+				 "Enter passphrase for key '%.100s': ", filename);
+		pass = read_passphrase(prompt, RP_ALLOW_STDIN);
+	}
 	r = sshkey_load_private(filename, pass, &prv, commentp);
 	freezero(pass, strlen(pass));
 	if (r != 0)
@@ -1548,13 +1552,16 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	else if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 		fatal_r(r, "Cannot load private key \"%s\"", identity_file);
 	else {
-		if (identity_passphrase)
+		if (identity_passphrase) {
 			passphrase = xstrdup(identity_passphrase);
-		else if (identity_new_passphrase)
+		} else if (identity_new_passphrase) {
 			passphrase = xstrdup(identity_new_passphrase);
-		else
-			passphrase = read_passphrase("Enter passphrase: ",
-			    RP_ALLOW_STDIN);
+		} else {
+			char prompt[300];
+			snprintf(prompt, sizeof prompt,
+					 "Enter passphrase for key '%.100s': ", identity_file);
+			passphrase = read_passphrase(prompt, RP_ALLOW_STDIN);
+		}
 		/* Try to load using the passphrase. */
 		if ((r = sshkey_load_private(identity_file, passphrase,
 		    &private, &comment)) != 0) {
