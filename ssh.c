@@ -1887,7 +1887,8 @@ fork_postauth(struct ssh *ssh)
 		error_f("stdfd_devnull failed");
 	/* we do the cipher switch here in the event that the client
 	   is forking or has a delayed fork */
-	cipher_switch(ssh);
+	if (options.disable_multithreaded == 0)
+		cipher_switch(ssh);
 }
 
 static void
@@ -2365,7 +2366,8 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 		 * one of our parallel versions. If the client is
 		 * forking then we handle it in fork_postauth()
 		 */
-		cipher_switch(ssh);
+		if (options.disable_multithreaded == 0)
+			cipher_switch(ssh);
 	}
 	return client_loop(ssh, tty_flag, tty_flag ?
 	    options.escape_char : SSH_ESCAPECHAR_NONE, id);

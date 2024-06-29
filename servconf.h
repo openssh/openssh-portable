@@ -202,6 +202,7 @@ typedef struct {
 	int	hpn_disabled;		/* disable hpn functionality. false by default */
 	int	none_enabled;		/* Enable NONE cipher switch */
 	int     nonemac_enabled;        /* Enable NONE MAC switch */
+	int disable_multithreaded; /* Disable multithreaded aes-ctr cipher */
   
 	int	permit_tun;
 

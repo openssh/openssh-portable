@@ -547,7 +547,8 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 	    s->is_subsystem, 0);
 #endif
 	/* switch to the parallel ciphers if necessary */
-	cipher_switch(ssh);
+	if (options.disable_multithreaded == 0)
+		cipher_switch(ssh);
 	return 0;
 }
 
@@ -651,7 +652,8 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 	session_set_fds(ssh, s, ptyfd, fdout, -1, 1, 1);
 	/* switch to the parallel cipher if appropriate */
-	cipher_switch(ssh);
+	if (options.disable_multithreaded == 0)
+		cipher_switch(ssh);
 	return 0;
 }
 
