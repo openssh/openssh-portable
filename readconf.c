@@ -156,7 +156,7 @@ typedef enum {
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oTCPKeepAlive, oNumberOfPasswordPrompts,
-	oLogFacility, oLogLevel, oLogVerbose, oCiphers, oMacs,
+	oLogFacility, oLogLevel, oLogPath, oLogVerbose, oCiphers, oMacs,
 	oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
@@ -271,6 +271,7 @@ static struct {
 	{ "numberofpasswordprompts", oNumberOfPasswordPrompts },
 	{ "syslogfacility", oLogFacility },
 	{ "loglevel", oLogLevel },
+	{ "logpath", oLogPath },
 	{ "logverbose", oLogVerbose },
 	{ "dynamicforward", oDynamicForward },
 	{ "preferredauthentications", oPreferredAuthentications },
@@ -1629,6 +1630,10 @@ parse_pubkey_algos:
 		}
 		break;
 
+	case oLogPath:
+		charptr = &options->log_path;
+		goto parse_string;
+
 	case oLocalForward:
 	case oRemoteForward:
 	case oDynamicForward:
@@ -2585,6 +2590,7 @@ initialize_options(Options * options)
 	options->num_permitted_remote_opens = 0;
 	options->log_facility = SYSLOG_FACILITY_NOT_SET;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
+	options->log_path = NULL;
 	options->num_log_verbose = 0;
 	options->log_verbose = NULL;
 	options->preferred_authentications = NULL;
@@ -2962,6 +2968,7 @@ free_options(Options *o)
 	free(o->forward_agent_sock_path);
 	free(o->xauth_location);
 	FREE_ARRAY(u_int, o->num_log_verbose, o->log_verbose);
+	free(o->log_path);
 	free(o->log_verbose);
 	free(o->ciphers);
 	free(o->macs);
@@ -3584,6 +3591,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oLocalCommand, o->local_command);
 	dump_cfg_string(oRemoteCommand, o->remote_command);
 	dump_cfg_string(oLogLevel, log_level_name(o->log_level));
+	dump_cfg_string(oLogPath, o->log_path);
 	dump_cfg_string(oMacs, o->macs);
 #ifdef ENABLE_PKCS11
 	dump_cfg_string(oPKCS11Provider, o->pkcs11_provider);
