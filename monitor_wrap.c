@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.135 2024/06/11 02:54:51 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.136 2024/06/19 23:24:47 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -121,24 +121,6 @@ mm_is_monitor(void)
 	return (pmonitor && pmonitor->m_pid > 0);
 }
 
-void
-mm_request_send(int sock, enum monitor_reqtype type, struct sshbuf *m)
-{
-	size_t mlen = sshbuf_len(m);
-	u_char buf[5];
-
-	debug3_f("entering, type %d", type);
-
-	if (mlen >= 0xffffffff)
-		fatal_f("bad length %zu", mlen);
-	POKE_U32(buf, mlen + 1);
-	buf[4] = (u_char) type;		/* 1st byte of payload is mesg-type */
-	if (atomicio(vwrite, sock, buf, sizeof(buf)) != sizeof(buf))
-		fatal_f("write: %s", strerror(errno));
-	if (atomicio(vwrite, sock, sshbuf_mutable_ptr(m), mlen) != mlen)
-		fatal_f("write: %s", strerror(errno));
-}
-
 static void
 mm_reap(void)
 {
@@ -167,6 +149,29 @@ mm_reap(void)
 		error_f("preauth child terminated abnormally (status=0x%x)",
 		    status);
 		cleanup_exit(EXIT_CHILD_CRASH);
+	}
+}
+
+void
+mm_request_send(int sock, enum monitor_reqtype type, struct sshbuf *m)
+{
+	size_t mlen = sshbuf_len(m);
+	u_char buf[5];
+
+	debug3_f("entering, type %d", type);
+
+	if (mlen >= 0xffffffff)
+		fatal_f("bad length %zu", mlen);
+	POKE_U32(buf, mlen + 1);
+	buf[4] = (u_char) type;		/* 1st byte of payload is mesg-type */
+	if (atomicio(vwrite, sock, buf, sizeof(buf)) != sizeof(buf) ||
+	    atomicio(vwrite, sock, sshbuf_mutable_ptr(m), mlen) != mlen) {
+		if (errno == EPIPE) {
+			debug3_f("monitor fd closed");
+			mm_reap();
+			cleanup_exit(255);
+		}
+		fatal_f("write: %s", strerror(errno));
 	}
 }
 

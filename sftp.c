@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.238 2024/04/30 06:16:55 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.239 2024/06/26 23:14:14 deraadt Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -234,12 +234,14 @@ killchild(int signo)
 static void
 suspchild(int signo)
 {
+	int save_errno = errno;
 	if (sshpid > 1) {
 		kill(sshpid, signo);
 		while (waitpid(sshpid, NULL, WUNTRACED) == -1 && errno == EINTR)
 			continue;
 	}
 	kill(getpid(), SIGSTOP);
+	errno = save_errno;
 }
 
 static void

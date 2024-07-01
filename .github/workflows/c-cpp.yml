@@ -102,7 +102,6 @@ jobs:
 #          - { target: macos-12, config: pam }
 #          - { target: macos-13, config: pam }
 #          - { target: macos-14, config: pam }
->>>>>>> master
     runs-on: ${{ matrix.target }}
     steps:
     - uses: actions/checkout@main

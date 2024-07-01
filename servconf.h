@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.164 2024/06/06 17:15:25 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.165 2024/06/12 22:36:00 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -69,8 +69,10 @@ struct listenaddr {
 #define PER_SOURCE_PENALTY_OVERFLOW_PERMISSIVE	2
 struct per_source_penalty {
 	int	enabled;
-	int	max_sources;
+	int	max_sources4;
+	int	max_sources6;
 	int	overflow_mode;
+	int	overflow_mode6;
 	int	penalty_crash;
 	int	penalty_grace;
 	int	penalty_authfail;
@@ -208,6 +210,8 @@ typedef struct {
 	char   *adm_forced_command;
 
 	int	use_pam;		/* Enable auth via PAM */
+	char   *pam_service_name;
+
         int     tcp_rcv_buf_poll;       /* poll tcp rcv window in autotuning kernels*/
 	int	hpn_disabled;		/* disable hpn functionality. false by default */
 	int	none_enabled;		/* Enable NONE cipher switch */
@@ -296,6 +300,7 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STROPT(ca_sign_algorithms); \
 		M_CP_STROPT(routing_domain); \
 		M_CP_STROPT(permit_user_env_allowlist); \
+		M_CP_STROPT(pam_service_name); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
 		M_CP_STRARRAYOPT(allow_users, num_allow_users); \
 		M_CP_STRARRAYOPT(deny_users, num_deny_users); \
