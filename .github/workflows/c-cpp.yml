@@ -18,9 +18,10 @@ jobs:
         # First we test all OSes in the default configuration.
         target:
           - ubuntu-20.04
-	  - ubuntu-22.04
-	  - macos-11
-	  - macos-12
+          - ubuntu-22.04
+          - ubuntu-24.04
+          - macos-11
+          - macos-12
           - macos-13
           - macos-14
           - windows-2019
