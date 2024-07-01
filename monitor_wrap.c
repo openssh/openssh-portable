@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.130 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.135 2024/06/11 02:54:51 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -29,6 +29,7 @@
 
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <sys/wait.h>
 
 #include <errno.h>
 #include <pwd.h>
@@ -73,6 +74,7 @@
 #include "session.h"
 #include "servconf.h"
 #include "monitor_wrap.h"
+#include "srclimit.h"
 
 #include "ssherr.h"
 
@@ -137,18 +139,50 @@ mm_request_send(int sock, enum monitor_reqtype type, struct sshbuf *m)
 		fatal_f("write: %s", strerror(errno));
 }
 
+static void
+mm_reap(void)
+{
+	int status = -1;
+
+	if (!mm_is_monitor())
+		return;
+	while (waitpid(pmonitor->m_pid, &status, 0) == -1) {
+		if (errno == EINTR)
+			continue;
+		pmonitor->m_pid = -1;
+		fatal_f("waitpid: %s", strerror(errno));
+	}
+	if (WIFEXITED(status)) {
+		if (WEXITSTATUS(status) != 0) {
+			debug_f("preauth child exited with status %d",
+			    WEXITSTATUS(status));
+			cleanup_exit(255);
+		}
+	} else if (WIFSIGNALED(status)) {
+		error_f("preauth child terminated by signal %d",
+		    WTERMSIG(status));
+		cleanup_exit(signal_is_crash(WTERMSIG(status)) ?
+		    EXIT_CHILD_CRASH : 255);
+	} else {
+		error_f("preauth child terminated abnormally (status=0x%x)",
+		    status);
+		cleanup_exit(EXIT_CHILD_CRASH);
+	}
+}
+
 void
 mm_request_receive(int sock, struct sshbuf *m)
 {
 	u_char buf[4], *p = NULL;
 	u_int msg_len;
-	int r;
+	int oerrno, r;
 
 	debug3_f("entering");
 
 	if (atomicio(read, sock, buf, sizeof(buf)) != sizeof(buf)) {
 		if (errno == EPIPE) {
 			debug3_f("monitor fd closed");
+			mm_reap();
 			cleanup_exit(255);
 		}
 		fatal_f("read: %s", strerror(errno));
@@ -159,8 +193,13 @@ mm_request_receive(int sock, struct sshbuf *m)
 	sshbuf_reset(m);
 	if ((r = sshbuf_reserve(m, msg_len, &p)) != 0)
 		fatal_fr(r, "reserve");
-	if (atomicio(read, sock, p, msg_len) != msg_len)
-		fatal_f("read: %s", strerror(errno));
+	if (atomicio(read, sock, p, msg_len) != msg_len) {
+		oerrno = errno;
+		error_f("read: %s", strerror(errno));
+		if (oerrno == EPIPE)
+			mm_reap();
+		cleanup_exit(255);
+	}
 }
 
 void

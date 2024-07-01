@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.194 2024/05/17 00:30:23 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.196 2024/06/06 17:15:25 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -619,7 +619,7 @@ int
 convtime(const char *s)
 {
 	int secs, total = 0, multiplier;
-	char *p, *os, *np, c;
+	char *p, *os, *np, c = 0;
 	const char *errstr;
 
 	if (s == NULL || *s == '\0')
@@ -3097,4 +3097,20 @@ lib_contains_symbol(const char *path, const char *s)
 	close(fd);
 	return ret;
 #endif /* HAVE_NLIST_H */
+}
+
+int
+signal_is_crash(int sig)
+{
+	switch (sig) {
+	case SIGSEGV:
+	case SIGBUS:
+	case SIGTRAP:
+	case SIGSYS:
+	case SIGFPE:
+	case SIGILL:
+	case SIGABRT:
+		return 1;
+	}
+	return 0;
 }

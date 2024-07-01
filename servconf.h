@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.161 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.164 2024/06/06 17:15:25 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -47,7 +47,6 @@
 #define PUBKEYAUTH_VERIFY_REQUIRED	(1<<1)
 
 struct ssh;
-struct fwd_perm_list;
 
 /*
  * Used to store addresses from ListenAddr directives. These may be
@@ -64,6 +63,20 @@ struct queued_listenaddr {
 struct listenaddr {
 	char *rdomain;
 	struct addrinfo *addrs;
+};
+
+#define PER_SOURCE_PENALTY_OVERFLOW_DENY_ALL	1
+#define PER_SOURCE_PENALTY_OVERFLOW_PERMISSIVE	2
+struct per_source_penalty {
+	int	enabled;
+	int	max_sources;
+	int	overflow_mode;
+	int	penalty_crash;
+	int	penalty_grace;
+	int	penalty_authfail;
+	int	penalty_noauth;
+	int	penalty_max;
+	int	penalty_min;
 };
 
 typedef struct {
@@ -173,6 +186,8 @@ typedef struct {
 	int	per_source_max_startups;
 	int	per_source_masklen_ipv4;
 	int	per_source_masklen_ipv6;
+	char	*per_source_penalty_exempt;
+	struct per_source_penalty per_source_penalty;
 	int	max_authtries;
 	int	max_sessions;
 	char   *banner;			/* SSH-2 banner message */
@@ -307,9 +322,7 @@ void	 parse_server_config(ServerOptions *, const char *, struct sshbuf *,
 	    struct include_list *includes, struct connection_info *, int);
 void	 parse_server_match_config(ServerOptions *,
 	    struct include_list *includes, struct connection_info *);
-int	 parse_channel_timeout(const char *, char **, u_int *);
 int	 parse_server_match_testspec(struct connection_info *, char *);
-int	 server_match_spec_complete(struct connection_info *);
 void	 servconf_merge_subsystems(ServerOptions *, ServerOptions *);
 void	 copy_set_server_options(ServerOptions *, ServerOptions *, int);
 void	 dump_config(ServerOptions *);
