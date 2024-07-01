@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.19 2024/03/29 10:40:07 dtucker Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.20 2024/07/01 03:10:19 djm Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -28,7 +28,7 @@ rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2
 mkdir ${COPY}.dd
 
 verbose "$tid: lls"
-printf "cd ${OBJ}\nlls\n" | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
+printf "lcd ${OBJ}\nlls\n" | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
 	grep copy.dd >/dev/null || fail "lls failed"
 
 verbose "$tid: lls w/path"
