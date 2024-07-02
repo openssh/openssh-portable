@@ -322,6 +322,9 @@ case "${TARGET_HOST}" in
 	# No sudo on Windows.
 	SUDO=""
 	;;
+    windows*)
+	SUDO=""
+	;;
 esac
 
 host=`./config.guess`

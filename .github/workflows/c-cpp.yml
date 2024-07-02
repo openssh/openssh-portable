@@ -20,7 +20,6 @@ jobs:
           - ubuntu-20.04
           - ubuntu-22.04
           - ubuntu-24.04
-          - macos-11
           - macos-12
           - macos-13
           - macos-14
@@ -41,7 +40,7 @@ jobs:
           - { target: ubuntu-22.04, config: valgrind-unit }
 # binn.c no longer works with c89 so remove this test.
 #          - { target: ubuntu-22.04, config: c89 }
-          - { target: ubuntu-22.04, config: clang-6.0 }
+          - { target: ubuntu-20.04, config: clang-6.0 }
           - { target: ubuntu-20.04, config: clang-8 }
           - { target: ubuntu-20.04, config: clang-9 }
           - { target: ubuntu-20.04, config: clang-10 }
@@ -59,7 +58,13 @@ jobs:
           - { target: ubuntu-22.04, config: pam }
           - { target: ubuntu-22.04, config: kitchensink }
           - { target: ubuntu-22.04, config: hardenedmalloc }
-          - { target: ubuntu-22.04, config: tcmalloc }
+          - { target: ubuntu-20.04, config: tcmalloc }
+          - { target: ubuntu-22.04, config: krb5 }
+          - { target: ubuntu-22.04, config: heimdal }
+          - { target: ubuntu-22.04, config: libedit }
+          - { target: ubuntu-22.04, config: sk }
+          - { target: ubuntu-22.04, config: selinux }
+          - { target: ubuntu-22.04, config: without-openssl }
 #	  musl doesn't work because it doesn't know about linux/tcp.h
 #         - { target: ubuntu-20.04, config: musl }
           - { target: ubuntu-latest, config: libressl-master }
@@ -94,14 +99,6 @@ jobs:
           - { target: ubuntu-latest, config: putty-0.80 }
           - { target: ubuntu-latest, config: putty-snapshot }
           - { target: ubuntu-latest, config: zlib-develop }
-          - { target: ubuntu-22.04, config: pam }
-          - { target: ubuntu-22.04, config: krb5 }
-          - { target: ubuntu-22.04, config: heimdal }
-          - { target: ubuntu-22.04, config: libedit }
-          - { target: ubuntu-22.04, config: sk }
-          - { target: ubuntu-22.04, config: selinux }
-          - { target: ubuntu-22.04, config: kitchensink }
-          - { target: ubuntu-22.04, config: without-openssl }
 # we know pam doesn't work because we can't install a new pam file
 # for hpnssh via the CI test methods
 #          - { target: macos-12, config: pam }
