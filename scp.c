@@ -485,13 +485,8 @@ main(int argc, char **argv)
 
 	msetlocale();
 
-	/* Copy argv, because we modify it */
-	argv0 = argv[0];
-	newargv = xcalloc(MAXIMUM(argc + 1, 1), sizeof(*newargv));
-	for (n = 0; n < argc; n++)
-		newargv[n] = xstrdup(argv[n]);
-	argv = newargv;
 
+	argv0 = argv[0];
 	__progname = ssh_get_progname(argv[0]);
 
 	log_init(argv0, log_level, SYSLOG_FACILITY_USER, 2);
