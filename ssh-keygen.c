@@ -325,6 +325,8 @@ load_identity(const char *filename, char **commentp)
 		fatal_r(r, "Load key \"%s\"", filename);
 	if (identity_passphrase) {
 		pass = xstrdup(identity_passphrase);
+	} else if (getenv("SSH_PROMPT_INCLUDE_KEYFILE") == NULL) {
+		pass = read_passphrase("Enter passphrase: ", RP_ALLOW_STDIN);
 	} else {
 		char prompt[300];
 		snprintf(prompt, sizeof prompt,
@@ -1556,6 +1558,9 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 			passphrase = xstrdup(identity_passphrase);
 		} else if (identity_new_passphrase) {
 			passphrase = xstrdup(identity_new_passphrase);
+		} else if (getenv("SSH_PROMPT_INCLUDE_KEYFILE") == NULL) {
+			passphrase = read_passphrase("Enter passphrase: ",
+			    RP_ALLOW_STDIN);
 		} else {
 			char prompt[300];
 			snprintf(prompt, sizeof prompt,
