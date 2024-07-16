@@ -61,6 +61,7 @@ const struct ssh_digest digests[] = {
 	{ SSH_DIGEST_SHA256,	"SHA256",	32,	EVP_sha256 },
 	{ SSH_DIGEST_SHA384,	"SHA384",	48,	EVP_sha384 },
 	{ SSH_DIGEST_SHA512,	"SHA512",	64,	EVP_sha512 },
+	{ SSH_DIGEST_SM3,	"SM3",		32,	EVP_sm3 },
 	{ -1,			NULL,		0,	NULL },
 };
 
