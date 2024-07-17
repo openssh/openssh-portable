@@ -98,6 +98,8 @@ tests(void)
 	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "!127.0.0.1,10.0.0.1"), -1);
 	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "10.0.0.1,127.0.0.2"), 0);
 	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "127.0.0.2,10.0.0.1"), 0);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "127.0.0.2, 127.0.0.1"), 1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "127.0.0.2,       127.0.0.1"), 1);
 	/* XXX negated ASSERT_INT_EQ(addr_match_list("127.0.0.1", "10.0.0.1,!127.0.0.2"), 1); */
 	/* XXX negated ASSERT_INT_EQ(addr_match_list("127.0.0.1", "!127.0.0.2,10.0.0.1"), 1); */
 	TEST_DONE();
