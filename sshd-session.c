@@ -214,7 +214,9 @@ grace_alarm_handler(int sig)
 		memset(&sa, 0, sizeof(sa));
 		sa.sa_handler = SIG_IGN;
 		sigfillset(&sa.sa_mask);
+#if defined(SA_RESTART)
 		sa.sa_flags = SA_RESTART;
+#endif
 		(void)sigaction(SIGTERM, &sa, NULL);
 		kill(0, SIGTERM);
 	}
