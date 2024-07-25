@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.411 2024/06/12 22:36:00 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.412 2024/07/25 23:44:01 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -434,7 +434,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->per_source_penalty.penalty_crash == -1)
 		options->per_source_penalty.penalty_crash = 90;
 	if (options->per_source_penalty.penalty_grace == -1)
-		options->per_source_penalty.penalty_grace = 20;
+		options->per_source_penalty.penalty_grace = 10;
 	if (options->per_source_penalty.penalty_authfail == -1)
 		options->per_source_penalty.penalty_authfail = 5;
 	if (options->per_source_penalty.penalty_noauth == -1)
