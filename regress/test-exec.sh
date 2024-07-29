@@ -175,6 +175,11 @@ if [ "x$TEST_SSH_OPENSSL" != "x" ]; then
 fi
 
 # Path to sshd must be absolute for rexec
+case "$SSH" in
+/*) ;;
+*) SSH=`which $SSH` ;;
+esac
+
 case "$SSHD" in
 /*) ;;
 *) SSHD=`which $SSHD` ;;
