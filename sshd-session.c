@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.5 2024/07/08 03:04:34 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.6 2024/07/31 12:00:18 dlg Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -882,6 +882,7 @@ main(int ac, char **av)
 	struct connection_info *connection_info = NULL;
 	sigset_t sigmask;
 	uint64_t timing_secret = 0;
+	struct itimerval itv;
 
 	sigemptyset(&sigmask);
 	sigprocmask(SIG_SETMASK, &sigmask, NULL);
@@ -1276,8 +1277,17 @@ main(int ac, char **av)
 	 * are about to discover the bug.
 	 */
 	ssh_signal(SIGALRM, grace_alarm_handler);
-	if (!debug_flag)
-		alarm(options.login_grace_time);
+	if (!debug_flag && options.login_grace_time > 0) {
+		int ujitter = arc4random_uniform(4 * 1000000);
+
+		timerclear(&itv.it_interval);
+		itv.it_value.tv_sec = options.login_grace_time;
+		itv.it_value.tv_sec += ujitter / 1000000;
+		itv.it_value.tv_usec = ujitter % 1000000; 
+
+		if (setitimer(ITIMER_REAL, &itv, NULL) == -1)
+			fatal("login grace time setitimer failed");
+	}
 
 	if ((r = kex_exchange_identification(ssh, -1,
 	    options.version_addendum)) != 0)
@@ -1321,7 +1331,10 @@ main(int ac, char **av)
 	 * Cancel the alarm we set to limit the time taken for
 	 * authentication.
 	 */
-	alarm(0);
+	timerclear(&itv.it_interval);
+	timerclear(&itv.it_value);
+	if (setitimer(ITIMER_REAL, &itv, NULL) == -1)
+		fatal("login grace time clear failed");
 	ssh_signal(SIGALRM, SIG_DFL);
 	authctxt->authenticated = 1;
 	if (startup_pipe != -1) {
