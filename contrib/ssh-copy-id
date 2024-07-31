@@ -288,23 +288,23 @@ installkeys_via_sftp() {
   # repopulate "$@" inside this function
   eval set -- "$SSH_OPTS"
 
-  L_KEYS=$SCRATCH_DIR/authorized_keys
-  L_SHARED_CON=$SCRATCH_DIR/master-conn
+  L_KEYS="$SCRATCH_DIR"/authorized_keys
+  L_SHARED_CON="$SCRATCH_DIR"/master-conn
   $SSH -f -N -M -S "$L_SHARED_CON" "$@"
-  L_CLEANUP="$SSH -S $L_SHARED_CON -O exit 'ignored' >/dev/null 2>&1 ; $SCRATCH_CLEANUP"
+  L_CLEANUP="$SSH -S '$L_SHARED_CON' -O exit 'ignored' >/dev/null 2>&1 ; $SCRATCH_CLEANUP"
   #shellcheck disable=SC2064
   trap "$L_CLEANUP" EXIT TERM INT QUIT
-  sftp -b - -o "ControlPath=$L_SHARED_CON" "ignored" <<-EOF || return 1
+  sftp -b - -o "ControlPath='$L_SHARED_CON'" "ignored" <<-EOF || return 1
 	-get "$AUTH_KEY_FILE" "$L_KEYS"
 	EOF
   # add a newline or create file if it's missing, same like above
   [ -z "$(tail -1c "$L_KEYS" 2>/dev/null)" ] || echo >> "$L_KEYS"
   # append the keys being piped in here
   cat >> "$L_KEYS"
-  sftp -b - -o "ControlPath=$L_SHARED_CON" "ignored" <<-EOF || return 1
+  sftp -b - -o "ControlPath='$L_SHARED_CON'" "ignored" <<-EOF || return 1
 	-mkdir "$AUTH_KEY_DIR"
 	chmod 700 "$AUTH_KEY_DIR"
-	put $L_KEYS "$AUTH_KEY_FILE"
+	put "$L_KEYS" "$AUTH_KEY_FILE"
 	chmod 600 "$AUTH_KEY_FILE"
 	EOF
   #shellcheck disable=SC2064
