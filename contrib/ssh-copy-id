@@ -379,7 +379,7 @@ else
 
 	Number of key(s) added: $ADDED
 
-	Now try logging into the machine, with: "${SFTP:-ssh}${SSH_PORT:+ -${PORT_OPT:-p} $SSH_PORT}${SEEN_OPT_I:+ -i $PRIV_ID_FILE} ${OPTS_USER_HOST}"
+	Now try logging into the machine, with: "${SFTP:-ssh}${SEEN_OPT_I:+ -i $PRIV_ID_FILE}${SSH_PORT:+ -${PORT_OPT:-p} $SSH_PORT} ${OPTS_USER_HOST}"
 	and check to make sure that only the key(s) you wanted were added.
 
 	EOF
