@@ -56,7 +56,7 @@ then
 	  a bug describing your setup, and the shell you used to make it work.
 
 	EOF
-    printf '%s: ERROR: Less dimwitted shell required.\n' "$0"
+    printf '%s: ERROR: Less dimwitted shell required.\n' "$0" >&2
     exit 1
   fi
 fi
@@ -86,7 +86,7 @@ use_id_file() {
   L_ID_FILE="$1"
 
   if [ -z "$L_ID_FILE" ] ; then
-    printf '%s: ERROR: no ID file found\n' "$0"
+    printf '%s: ERROR: no ID file found\n' "$0" >&2
     exit 1
   fi
 
@@ -103,7 +103,7 @@ use_id_file() {
     ErrMSG=$( { : < "$f" ; } 2>&1 ) || {
       L_PRIVMSG=""
       [ "$f" = "$PRIV_ID_FILE" ] && L_PRIVMSG="	(to install the contents of '$PUB_ID_FILE' anyway, look at the -f option)"
-      printf "\\n%s: ERROR: failed to open ID file '%s': %s\\n" "$0" "$f" "$(printf '%s\n%s\n' "$ErrMSG" "$L_PRIVMSG" | sed -e 's/.*: *//')"
+      printf "\\n%s: ERROR: failed to open ID file '%s': %s\\n" "$0" "$f" "$(printf '%s\n%s\n' "$ErrMSG" "$L_PRIVMSG" | sed -e 's/.*: *//')" >&2
       exit 1
     }
   done
@@ -120,7 +120,7 @@ do
   case "$OPT" in
     i)
       [ "${SEEN_OPT_I}" ] && {
-        printf '\n%s: ERROR: -i option must not be specified more than once\n\n' "$0"
+        printf '\n%s: ERROR: -i option must not be specified more than once\n\n' "$0" >&2
         usage
       }
       SEEN_OPT_I="yes"
