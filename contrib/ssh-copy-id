@@ -182,10 +182,20 @@ if [ -z "$(eval $GET_ID)" ] ; then
   exit 1
 fi
 
+# assert_scratch_ok()
+# ensures that $SCRATCH_DIR is setup.
+assert_scratch_ok() {
+  [ "$SCRATCH_DIR" ] && [ -d "$SCRATCH_DIR" ] && [ -w "$SCRATCH_DIR" ] && return 0
+
+  printf 'ERROR: Assertion failure: in %s(): scratch_dir was not correctly set up (SCRATCH_DIR = "%s")\n' "$1" "$SCRATCH_DIR" >&2
+  return 1
+}
+
 # filter_ids()
 # tries to log in using the keys piped to it, and filters out any that work
 filter_ids() {
   L_SUCCESS="$1"
+  assert_scratch_ok filter_ids || return
   L_TMP_ID_FILE="$SCRATCH_DIR"/popids_tmp_id
   L_OUTPUT_FILE="$SCRATCH_DIR"/popids_output
 
@@ -288,6 +298,7 @@ installkeys_via_sftp() {
   # repopulate "$@" inside this function
   eval set -- "$SSH_OPTS"
 
+  assert_scratch_ok installkeys_via_sftp || return 1
   L_KEYS="$SCRATCH_DIR"/authorized_keys
   L_SHARED_CON="$SCRATCH_DIR"/master-conn
   $SSH -f -N -M -S "$L_SHARED_CON" "$@"
