@@ -332,7 +332,7 @@ then
   #shellcheck disable=SC2064
   trap "$SCRATCH_CLEANUP" EXIT TERM INT QUIT
 else
-  printf '%s: ERROR: failed to create required temporary directory under ~/.ssh\n' "$0" >&2
+  printf '%s: ERROR: failed to create required temporary directory under ~/.ssh (HOME="%s")\n' "$0" "$HOME" >&2
   exit 1
 fi
 
