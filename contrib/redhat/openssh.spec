@@ -33,10 +33,10 @@
 
 %global without_openssl 0
 # build without openssl where 1.1.1 is not available
-%if 0%{?fedora} <= 28
+%if %{defined fedora} && 0%{?fedora} <= 28
 %global without_openssl 1
 %endif
-%if 0%{?rhel} <= 7
+%if %{defined rhel} && 0%{?rhel} <= 7
 %global without_openssl 1
 %endif
 
