@@ -62,7 +62,7 @@ then
 fi
 
 # shellcheck disable=SC2010
-DEFAULT_PUB_ID_FILE=$(ls -t "${HOME}"/.ssh/id*.pub 2>/dev/null | grep -v -- '-cert.pub$' | head -n 1)
+DEFAULT_PUB_ID_FILE=$(ls -dt "${HOME}"/.ssh/id*.pub 2>/dev/null | grep -v -- '-cert.pub$' | head -n 1)
 SSH="ssh -a -x"
 TARGET_PATH=".ssh/authorized_keys"
 umask 0177
