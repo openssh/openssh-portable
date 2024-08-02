@@ -107,7 +107,6 @@ use_id_file() {
       exit 1
     }
   done
-  printf '%s: INFO: Source of key(s) to be installed: "%s"\n' "$0" "$PUB_ID_FILE" >&2
   GET_ID="cat \"$PUB_ID_FILE\""
 }
 
@@ -175,6 +174,8 @@ eval set -- "$SSH_OPTS"
 if [ -z "$(eval $GET_ID)" ] && [ -r "${PUB_ID_FILE:=$DEFAULT_PUB_ID_FILE}" ] ; then
   use_id_file "$PUB_ID_FILE"
 fi
+
+printf '%s: INFO: Source of key(s) to be installed: %s\n' "$0" "${GET_ID#cat }" >&2
 
 # shellcheck disable=SC2086
 if [ -z "$(eval $GET_ID)" ] ; then
