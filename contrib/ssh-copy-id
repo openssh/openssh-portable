@@ -114,7 +114,9 @@ if [ -n "$SSH_AUTH_SOCK" ] && ssh-add -L >/dev/null 2>&1 ; then
   GET_ID="ssh-add -L"
 fi
 
-while getopts "i:o:p:F:t:fnsxh?" OPT
+OPTS="io:p:F:t:fnsxh?"
+
+while getopts "$OPTS" OPT
 do
   case "$OPT" in
     i)
@@ -123,6 +125,20 @@ do
         usage
       }
       SEEN_OPT_I="yes"
+
+      # Check for -i's optional parameter
+      eval "nextarg=\${$OPTIND}"
+      # shellcheck disable=SC2154
+      if [ $OPTIND = $# ]; then
+        if [ -r "$nextarg" ] && grep -iq ssh "$nextarg"; then
+          printf '\n%s: ERROR: Missing hostname. Use "-i -- %s" if you really mean to use this as the hostname\n\n' "$0" "$nextarg" >&2
+          usage
+        fi
+      elif ! expr -- "$nextarg" : "-[$(echo "$OPTS" | tr -d :)-]" >/dev/null ; then
+        # when not at the last arg, and not followed by an option, -i has an argument
+        OPTARG="$nextarg"
+        OPTIND=$((OPTIND + 1))
+      fi
       use_id_file "${OPTARG:-$DEFAULT_PUB_ID_FILE}"
       ;;
     o|F)
