@@ -20,6 +20,7 @@
 #include "includes.h"
 #ifdef WITH_OPENSSL
 
+#include <openssl/bn.h>
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>

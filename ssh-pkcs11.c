@@ -34,6 +34,7 @@
 #include "openbsd-compat/openssl-compat.h"
 
 #ifdef WITH_OPENSSL
+#include <openssl/bn.h>
 #include <openssl/ecdsa.h>
 #include <openssl/x509.h>
 #include <openssl/err.h>

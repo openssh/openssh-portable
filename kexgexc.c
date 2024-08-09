@@ -30,6 +30,7 @@
 
 #include <sys/types.h>
 
+#include <openssl/bn.h>
 #include <openssl/dh.h>
 
 #include <stdarg.h>

@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 
 #ifdef WITH_OPENSSL
+#include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include "openbsd-compat/openssl-compat.h"

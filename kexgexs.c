@@ -34,6 +34,7 @@
 #include <string.h>
 #include <signal.h>
 
+#include <openssl/bn.h>
 #include <openssl/dh.h>
 
 #include "openbsd-compat/openssl-compat.h"

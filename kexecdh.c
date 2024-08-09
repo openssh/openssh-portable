@@ -34,6 +34,7 @@
 #include <string.h>
 #include <signal.h>
 
+#include <openssl/bn.h>
 #include <openssl/ecdh.h>
 
 #include "sshkey.h"

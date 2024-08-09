@@ -32,6 +32,7 @@
 #include <netinet/in.h>
 
 #ifdef WITH_OPENSSL
+#include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>

@@ -34,6 +34,7 @@
 #include <signal.h>
 
 #include "openbsd-compat/openssl-compat.h"
+#include <openssl/bn.h>
 #include <openssl/dh.h>
 
 #include "sshkey.h"
