@@ -106,6 +106,12 @@ jobs:
 #          - { target: macos-14, config: pam }
     runs-on: ${{ matrix.target }}
     steps:
+    - name: set cygwin git params
+      if: ${{ startsWith(matrix.target, 'windows') }}
+      run: git config --global core.autocrlf input
+    - name: install cygwin
+      if: ${{ startsWith(matrix.target, 'windows') }}
+      uses: cygwin/cygwin-install-action@master
     - uses: actions/checkout@main
     - name: setup CI system
       run: sh ./.github/setup_ci.sh ${{ matrix.config }}
