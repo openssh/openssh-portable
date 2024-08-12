@@ -1933,6 +1933,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		xasprintf(&options->subsystem_args[options->num_subsystems],
 		    "%s%s%s", arg, *arg2 == '\0' ? "" : " ", arg2);
 		free(arg2);
+		free(arg);
 		argv_consume(&ac);
 		options->num_subsystems++;
 		break;
