@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.c,v 1.20 2024/08/14 15:35:23 tobias Exp $	*/
+/*	$OpenBSD: sshbuf.c,v 1.21 2024/08/14 15:37:11 tobias Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -185,10 +185,8 @@ sshbuf_free(struct sshbuf *buf)
 	sshbuf_free(buf->parent);
 	buf->parent = NULL;
 
-	if (!buf->readonly) {
-		explicit_bzero(buf->d, buf->alloc);
-		free(buf->d);
-	}
+	if (!buf->readonly)
+		freezero(buf->d, buf->alloc);
 	freezero(buf, sizeof(*buf));
 }
 
