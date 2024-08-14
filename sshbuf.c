@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.c,v 1.19 2022/12/02 04:40:27 djm Exp $	*/
+/*	$OpenBSD: sshbuf.c,v 1.20 2024/08/14 15:35:23 tobias Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -179,7 +179,7 @@ sshbuf_free(struct sshbuf *buf)
 		return;
 
 	/*
-	 * If we are a child, the free our parent to decrement its reference
+	 * If we are a child, then free our parent to decrement its reference
 	 * count and possibly free it.
 	 */
 	sshbuf_free(buf->parent);
