@@ -3639,7 +3639,9 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 	BIO_free(bio);
 	EVP_PKEY_free(pk);
 	RSA_free(rsa);
+#ifdef OPENSSL_HAS_ECC
 	EC_KEY_free(ecdsa);
+#endif
 	sshkey_free(prv);
 	return r;
 }
