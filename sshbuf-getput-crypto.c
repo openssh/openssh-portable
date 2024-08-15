@@ -176,7 +176,7 @@ sshbuf_put_eckey(struct sshbuf *buf, const EC_KEY *v)
 	return sshbuf_put_ec(buf, EC_KEY_get0_public_key(v),
 	    EC_KEY_get0_group(v));
 }
-#endif /* OPENSSL_HAS_ECC */
+
 int
 sshbuf_put_ec_pkey(struct sshbuf *buf, EVP_PKEY *pkey)
 {
@@ -186,4 +186,5 @@ sshbuf_put_ec_pkey(struct sshbuf *buf, EVP_PKEY *pkey)
 		return SSH_ERR_LIBCRYPTO_ERROR;
 	return sshbuf_put_eckey(buf, ec);
 }
+#endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
