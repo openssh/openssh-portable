@@ -193,8 +193,12 @@ process_sign(void)
 	int len, r, ok = -1;
 	struct sshkey *key = NULL, *found;
 	struct sshbuf *msg;
+#ifdef WITH_OPENSSL
 	RSA *rsa = NULL;
+#ifdef OPENSSL_HAS_ECC
 	EC_KEY *ecdsa = NULL;
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
 
 	/* XXX support SHA2 signature flags */
 	if ((r = sshbuf_get_string(iqueue, &blob, &blen)) != 0 ||
@@ -257,7 +261,9 @@ process_sign(void)
 	}
 	sshkey_free(key);
 	RSA_free(rsa);
+#if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 	EC_KEY_free(ecdsa);
+#endif
 	free(data);
 	free(blob);
 	free(signature);
