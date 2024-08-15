@@ -2637,12 +2637,6 @@ sshpkt_put_stringb(struct ssh *ssh, const struct sshbuf *v)
 	return sshbuf_put_stringb(ssh->state->outgoing_packet, v);
 }
 
-int
-sshpkt_getb_froms(struct ssh *ssh, struct sshbuf **valp)
-{
-	return sshbuf_froms(ssh->state->incoming_packet, valp);
-}
-
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 int
@@ -2713,6 +2707,12 @@ int
 sshpkt_get_cstring(struct ssh *ssh, char **valp, size_t *lenp)
 {
 	return sshbuf_get_cstring(ssh->state->incoming_packet, valp, lenp);
+}
+
+int
+sshpkt_getb_froms(struct ssh *ssh, struct sshbuf **valp)
+{
+	return sshbuf_froms(ssh->state->incoming_packet, valp);
 }
 
 #ifdef WITH_OPENSSL
