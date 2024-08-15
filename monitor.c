@@ -1181,7 +1181,7 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 	    (r = sshbuf_get_u32(m, &pubkey_auth_attempt)) != 0)
 		fatal_fr(r, "parse");
 
-	if (key != NULL && authctxt->valid) {
+	if (authctxt->valid) {
 		switch (type) {
 		case MM_USERKEY:
 			auth_method = "publickey";
@@ -1218,7 +1218,7 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	debug3_f("%s authentication%s: %s key is %s", auth_method,
 	    pubkey_auth_attempt ? "" : " test",
-	    (key == NULL || !authctxt->valid) ? "invalid" : sshkey_type(key),
+	    !authctxt->valid ? "invalid" : sshkey_type(key),
 	    allowed ? "allowed" : "not allowed");
 
 	auth2_record_key(authctxt, 0, key);
