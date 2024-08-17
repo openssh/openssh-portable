@@ -1199,7 +1199,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 				if ((r = sshbuf_putf(berr, "%c.\r\n",
 				    efc->escape_char)) != 0)
 					fatal_fr(r, "sshbuf_putf");
-				if (c && c->ctl_chan != -1) {
+				if (c->ctl_chan != -1) {
 					channel_force_close(ssh, c, 1);
 					return 0;
 				} else
@@ -1208,7 +1208,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 
 			case 'Z' - 64:
 				/* XXX support this for mux clients */
-				if (c && c->ctl_chan != -1) {
+				if (c->ctl_chan != -1) {
 					char b[16];
  noescape:
 					if (ch == 'Z' - 64)
@@ -1255,7 +1255,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 			case 'V':
 				/* FALLTHROUGH */
 			case 'v':
-				if (c && c->ctl_chan != -1)
+				if (c->ctl_chan != -1)
 					goto noescape;
 				if (!log_is_on_stderr()) {
 					if ((r = sshbuf_putf(berr,
@@ -1313,7 +1313,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 				return -1;
 			case '?':
 				print_escape_help(berr, efc->escape_char,
-				    (c && c->ctl_chan != -1),
+				    (c->ctl_chan != -1),
 				    log_is_on_stderr());
 				continue;
 
@@ -1328,7 +1328,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 				continue;
 
 			case 'C':
-				if (c && c->ctl_chan != -1)
+				if (c->ctl_chan != -1)
 					goto noescape;
 				if (options.enable_escape_commandline == 0) {
 					if ((r = sshbuf_putf(berr,
