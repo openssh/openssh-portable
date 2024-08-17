@@ -2983,6 +2983,8 @@ if test "x$openssl" = "xyes" ; then
 		BN_is_prime_ex \
 		DES_crypt \
 		DSA_generate_parameters_ex \
+		EVP_DigestSign \
+		EVP_DigestVerify \
 		EVP_DigestFinal_ex \
 		EVP_DigestInit_ex \
 		EVP_MD_CTX_cleanup \
