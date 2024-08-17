@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.609 2024/06/27 23:01:15 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.610 2024/08/17 08:09:50 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -262,7 +262,7 @@ child_register(int pipefd, int sockfd)
 	} else {
 		laddr = get_local_ipaddr(sockfd);
 		raddr = get_peer_ipaddr(sockfd);
-		xasprintf(&child->id, "connection from %s to %s", laddr, raddr);
+		xasprintf(&child->id, "connection from %s to %s", raddr, laddr);
 	}
 	free(laddr);
 	free(raddr);
