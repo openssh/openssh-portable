@@ -1093,7 +1093,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([SSH_TUN_OPENBSD], [1], [Open tunnel devices the OpenBSD way])
 	AC_DEFINE([SYSLOG_R_SAFE_IN_SIGHAND], [1],
 	    [syslog_r function is safe to use in in a signal handler])
-	TEST_MALLOC_OPTIONS="AFGJPRX"
+	TEST_MALLOC_OPTIONS="SJRU"
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
@@ -1886,6 +1886,8 @@ AC_SUBST([PICFLAG])
 
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS([ \
+	auth_hostok \
+	auth_timeok \
 	Blowfish_initstate \
 	Blowfish_expandstate \
 	Blowfish_expand0state \
@@ -2981,6 +2983,8 @@ if test "x$openssl" = "xyes" ; then
 		BN_is_prime_ex \
 		DES_crypt \
 		DSA_generate_parameters_ex \
+		EVP_DigestSign \
+		EVP_DigestVerify \
 		EVP_DigestFinal_ex \
 		EVP_DigestInit_ex \
 		EVP_MD_CTX_cleanup \

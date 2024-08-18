@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.411 2024/06/12 22:36:00 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.413 2024/08/17 08:23:04 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -434,7 +434,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->per_source_penalty.penalty_crash == -1)
 		options->per_source_penalty.penalty_crash = 90;
 	if (options->per_source_penalty.penalty_grace == -1)
-		options->per_source_penalty.penalty_grace = 20;
+		options->per_source_penalty.penalty_grace = 10;
 	if (options->per_source_penalty.penalty_authfail == -1)
 		options->per_source_penalty.penalty_authfail = 5;
 	if (options->per_source_penalty.penalty_noauth == -1)
@@ -1933,6 +1933,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		xasprintf(&options->subsystem_args[options->num_subsystems],
 		    "%s%s%s", arg, *arg2 == '\0' ? "" : " ", arg2);
 		free(arg2);
+		free(arg);
 		argv_consume(&ac);
 		options->num_subsystems++;
 		break;
