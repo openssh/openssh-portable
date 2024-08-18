@@ -31,13 +31,13 @@
 %global build6x 1
 %endif
 
-%global without_openssl 1
+%global without_openssl 0
 # build without openssl where 1.1.1 is not available
-%if 0%{?fedora} > 28
-%global without_openssl 0
+%if %{defined fedora} && 0%{?fedora} <= 28
+%global without_openssl 1
 %endif
-%if 0%{?rhel} > 7
-%global without_openssl 0
+%if %{defined rhel} && 0%{?rhel} <= 7
+%global without_openssl 1
 %endif
 
 # Do we want kerberos5 support (1=yes 0=no)
