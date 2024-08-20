@@ -1,9 +1,10 @@
-#	$OpenBSD: rekey.sh,v 1.25 2024/08/20 09:15:49 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.26 2024/08/20 12:36:59 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
 
 LOG=${TEST_SSH_LOGFILE}
+COPY2=$OBJ/copy2
 
 rm -f ${LOG}
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
@@ -12,29 +13,37 @@ echo "Compression no" >> $OBJ/ssh_proxy
 echo "RekeyLimit 256k" >> $OBJ/ssh_proxy
 
 # Test rekeying based on data volume only.
-# Arguments will be passed to ssh.
+# Arguments: rekeylimit, kex method, optional remaining opts are passed to ssh.
 ssh_data_rekeying()
 {
+	_bytes=$1 ; shift
 	_kexopt=$1 ; shift
 	_opts="$@"
+	if test -z "$_bytes"; then
+		_bytes=32k
+	fi
 	if ! test -z "$_kexopt" ; then
 		cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 		echo "$_kexopt" >> $OBJ/sshd_proxy
 		_opts="$_opts -o$_kexopt"
 	fi
-	rm -f ${COPY} ${LOG}
-	_opts="$_opts"
-	${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
+	trace  bytes $_bytes kex $_kexopt opts $_opts
+	rm -f ${COPY} ${COPY2} ${LOG}
+	# Create data file just big enough to reach rekey threshold.
+	dd if=${DATA} of=${COPY} bs=$_bytes count=1 2>/dev/null
+	${SSH} <${COPY} $_opts -v \
+	    -oRekeyLimit=$_bytes -F $OBJ/ssh_proxy somehost "cat >${COPY2}"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed ($@)"
 	fi
-	cmp ${DATA} ${COPY}		|| fail "corrupted copy ($@)"
+	cmp ${COPY} ${COPY2}		|| fail "corrupted copy ($@)"
 	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`
 	n=`expr $n - 1`
 	trace "$n rekeying(s)"
 	if [ $n -lt 1 ]; then
 		fail "no rekeying occurred ($@)"
 	fi
+	cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 }
 
 increase_datafile_size 300
@@ -62,16 +71,16 @@ for opt in $opts; do
 	    grep $opt >/dev/null; then
 		trace AEAD cipher, testing all KexAlgorithms
 		for kex in $kexs; do
-			ssh_data_rekeying "KexAlgorithms=$kex" "-o$opt"
+			ssh_data_rekeying "" "KexAlgorithms=$kex" "-o$opt"
 		done
 	else
-		ssh_data_rekeying "$opt"
+		ssh_data_rekeying "" "$opt"
 	fi
 done
 
 for s in 16 1k 128k 256k; do
 	verbose "client rekeylimit ${s}"
-	ssh_data_rekeying "" -oRekeyLimit=$s
+	ssh_data_rekeying "$s" ""
 done
 
 for s in 5 10; do
@@ -111,13 +120,13 @@ for s in 16 1k 128k 256k; do
 	verbose "server rekeylimit ${s}"
 	cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 	echo "rekeylimit ${s}" >>$OBJ/sshd_proxy
-	rm -f ${COPY} ${LOG}
-	${SSH} -F $OBJ/ssh_proxy somehost "cat ${DATA}" \
-	    > ${COPY}
+	rm -f ${COPY} ${COPY2} ${LOG}
+	dd if=${DATA} of=${COPY} bs=$s count=1 2>/dev/null
+	${SSH} -F $OBJ/ssh_proxy somehost "cat ${COPY}" >${COPY2}
 	if [ $? -ne 0 ]; then
 		fail "ssh failed"
 	fi
-	cmp ${DATA} ${COPY}		|| fail "corrupted copy"
+	cmp ${COPY} ${COPY2}		|| fail "corrupted copy"
 	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`
 	n=`expr $n - 1`
 	trace "$n rekeying(s)"
@@ -176,4 +185,4 @@ for time in 1 1m 1M 1h 1H 1d 1D 1w 1W; do
 	fi
 done
 
-rm -f ${COPY} ${DATA}
+rm -f ${COPY} ${COPY2} ${DATA}
