@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.22 2024/08/20 07:41:35 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.23 2024/08/20 07:52:43 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -7,6 +7,8 @@ LOG=${TEST_SSH_LOGFILE}
 
 rm -f ${LOG}
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
+
+echo "Compression no" >> $OBJ/ssh_proxy
 
 # Test rekeying based on data volume only.
 # Arguments will be passed to ssh.
@@ -20,7 +22,7 @@ ssh_data_rekeying()
 		_opts="$_opts -o$_kexopt"
 	fi
 	rm -f ${COPY} ${LOG}
-	_opts="$_opts -oCompression=no"
+	_opts="$_opts"
 	${SSH} <${DATA} $_opts -v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed ($@)"
@@ -70,13 +72,13 @@ fi
 
 for s in 16 1k 128k 256k; do
 	verbose "client rekeylimit ${s}"
-	ssh_data_rekeying "" -oCompression=no -oRekeyLimit=$s
+	ssh_data_rekeying "" -oRekeyLimit=$s
 done
 
 for s in 5 10; do
 	verbose "client rekeylimit default ${s}"
 	rm -f ${COPY} ${LOG}
-	${SSH} < ${DATA} -oCompression=no -oRekeyLimit="default $s" -F \
+	${SSH} < ${DATA} -oRekeyLimit="default $s" -F \
 		$OBJ/ssh_proxy somehost "cat >${COPY};sleep $s;sleep 10"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed"
@@ -93,7 +95,7 @@ done
 for s in 5 10; do
 	verbose "client rekeylimit default ${s} no data"
 	rm -f ${COPY} ${LOG}
-	${SSH} -oCompression=no -oRekeyLimit="default $s" -F \
+	${SSH} -oRekeyLimit="default $s" -F \
 		$OBJ/ssh_proxy somehost "sleep $s;sleep 10"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed"
@@ -111,7 +113,7 @@ for s in 16 1k 128k 256k; do
 	cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 	echo "rekeylimit ${s}" >>$OBJ/sshd_proxy
 	rm -f ${COPY} ${LOG}
-	${SSH} -oCompression=no -F $OBJ/ssh_proxy somehost "cat ${DATA}" \
+	${SSH} -F $OBJ/ssh_proxy somehost "cat ${DATA}" \
 	    > ${COPY}
 	if [ $? -ne 0 ]; then
 		fail "ssh failed"
@@ -130,7 +132,7 @@ for s in 5 10; do
 	cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 	echo "rekeylimit default ${s}" >>$OBJ/sshd_proxy
 	rm -f ${COPY} ${LOG}
-	${SSH} -oCompression=no -F $OBJ/ssh_proxy somehost "sleep $s;sleep 10"
+	${SSH} -F $OBJ/ssh_proxy somehost "sleep $s;sleep 10"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed"
 	fi
