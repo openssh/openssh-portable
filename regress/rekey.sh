@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.23 2024/08/20 07:52:43 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.24 2024/08/20 09:02:45 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -9,6 +9,7 @@ rm -f ${LOG}
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
 echo "Compression no" >> $OBJ/ssh_proxy
+echo "RekeyLimit 256k" >> $OBJ/ssh_proxy
 
 # Test rekeying based on data volume only.
 # Arguments will be passed to ssh.
@@ -57,7 +58,7 @@ done
 
 for opt in $opts; do
 	verbose "client rekey $opt"
-	ssh_data_rekeying "$opt" -oRekeyLimit=256k
+	ssh_data_rekeying "$opt"
 done
 
 # AEAD ciphers are magical so test with all KexAlgorithms
@@ -65,7 +66,7 @@ if ${SSH} -Q cipher-auth | grep '^.*$' >/dev/null 2>&1 ; then
   for c in `${SSH} -Q cipher-auth`; do
     for kex in `${SSH} -Q kex`; do
 	verbose "client rekey $c $kex"
-	ssh_data_rekeying "KexAlgorithms=$kex" -oRekeyLimit=256k -oCiphers=$c
+	ssh_data_rekeying "KexAlgorithms=$kex" -oCiphers=$c
     done
   done
 fi
