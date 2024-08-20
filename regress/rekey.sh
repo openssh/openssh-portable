@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.24 2024/08/20 09:02:45 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.25 2024/08/20 09:15:49 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -58,18 +58,16 @@ done
 
 for opt in $opts; do
 	verbose "client rekey $opt"
-	ssh_data_rekeying "$opt"
+	if ${SSH} -Q cipher-auth | sed 's/^/Ciphers=/' | \
+	    grep $opt >/dev/null; then
+		trace AEAD cipher, testing all KexAlgorithms
+		for kex in $kexs; do
+			ssh_data_rekeying "KexAlgorithms=$kex" "-o$opt"
+		done
+	else
+		ssh_data_rekeying "$opt"
+	fi
 done
-
-# AEAD ciphers are magical so test with all KexAlgorithms
-if ${SSH} -Q cipher-auth | grep '^.*$' >/dev/null 2>&1 ; then
-  for c in `${SSH} -Q cipher-auth`; do
-    for kex in `${SSH} -Q kex`; do
-	verbose "client rekey $c $kex"
-	ssh_data_rekeying "KexAlgorithms=$kex" -oCiphers=$c
-    done
-  done
-fi
 
 for s in 16 1k 128k 256k; do
 	verbose "client rekeylimit ${s}"
