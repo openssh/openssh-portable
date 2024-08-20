@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.143 2024/08/15 00:51:51 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.144 2024/08/20 03:48:30 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -28,6 +28,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/mman.h>
 #include <netinet/in.h>
 
 #ifdef WITH_OPENSSL
@@ -739,6 +740,27 @@ sshkey_sk_cleanup(struct sshkey *k)
 	k->sk_key_handle = k->sk_reserved = NULL;
 }
 
+static int
+sshkey_prekey_alloc(u_char **prekeyp, size_t len)
+{
+	u_char *prekey;
+
+	*prekeyp = NULL;
+	if ((prekey = mmap(NULL, SSHKEY_SHIELD_PREKEY_LEN, PROT_READ|PROT_WRITE,
+	    MAP_ANON|MAP_PRIVATE|MAP_CONCEAL, -1, 0)) == MAP_FAILED)
+		return SSH_ERR_SYSTEM_ERROR;
+	*prekeyp = prekey;
+	return 0;
+}
+
+static void
+sshkey_prekey_free(void *prekey, size_t len)
+{
+	if (prekey == NULL)
+		return;
+	munmap(prekey, len);
+}
+
 static void
 sshkey_free_contents(struct sshkey *k)
 {
@@ -752,7 +774,7 @@ sshkey_free_contents(struct sshkey *k)
 	if (sshkey_is_cert(k))
 		cert_free(k->cert);
 	freezero(k->shielded_private, k->shielded_len);
-	freezero(k->shield_prekey, k->shield_prekey_len);
+	sshkey_prekey_free(k->shield_prekey, k->shield_prekey_len);
 }
 
 void
@@ -1620,10 +1642,8 @@ sshkey_shield_private(struct sshkey *k)
 	}
 
 	/* Prepare a random pre-key, and from it an ephemeral key */
-	if ((prekey = malloc(SSHKEY_SHIELD_PREKEY_LEN)) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
+	if ((r = sshkey_prekey_alloc(&prekey, SSHKEY_SHIELD_PREKEY_LEN)) != 0)
 		goto out;
-	}
 	arc4random_buf(prekey, SSHKEY_SHIELD_PREKEY_LEN);
 	if ((r = ssh_digest_memory(SSHKEY_SHIELD_PREKEY_HASH,
 	    prekey, SSHKEY_SHIELD_PREKEY_LEN,
@@ -1701,7 +1721,7 @@ sshkey_shield_private(struct sshkey *k)
 	explicit_bzero(keyiv, sizeof(keyiv));
 	explicit_bzero(&tmp, sizeof(tmp));
 	freezero(enc, enclen);
-	freezero(prekey, SSHKEY_SHIELD_PREKEY_LEN);
+	sshkey_prekey_free(prekey, SSHKEY_SHIELD_PREKEY_LEN);
 	sshkey_free(kswap);
 	sshbuf_free(prvbuf);
 	return r;
