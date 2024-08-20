@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.144 2024/08/20 03:48:30 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.145 2024/08/20 11:10:04 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -747,15 +747,15 @@ sshkey_prekey_alloc(u_char **prekeyp, size_t len)
 
 	*prekeyp = NULL;
 #if defined(MAP_CONCEAL)
-	if ((prekey = mmap(NULL, SSHKEY_SHIELD_PREKEY_LEN, PROT_READ|PROT_WRITE,
+	if ((prekey = mmap(NULL, len, PROT_READ|PROT_WRITE,
 	    MAP_ANON|MAP_PRIVATE|MAP_CONCEAL, -1, 0)) == MAP_FAILED)
 		return SSH_ERR_SYSTEM_ERROR;
 #elif defined(MAP_NOCORE)
-	if ((prekey = mmap(NULL, SSHKEY_SHIELD_PREKEY_LEN, PROT_READ|PROT_WRITE,
+	if ((prekey = mmap(NULL, len, PROT_READ|PROT_WRITE,
 	    MAP_ANON|MAP_PRIVATE|MAP_NOCORE, -1, 0)) == MAP_FAILED)
 		return SSH_ERR_SYSTEM_ERROR;
 #elif defined(MADV_DONTDUMP)
-	if ((prekey = mmap(NULL, SSHKEY_SHIELD_PREKEY_LEN, PROT_READ|PROT_WRITE,
+	if ((prekey = mmap(NULL, len, PROT_READ|PROT_WRITE,
 	    MAP_ANON|MAP_PRIVATE, -1, 0)) == MAP_FAILED)
 		return SSH_ERR_SYSTEM_ERROR;
 	(void)madvise(prekey, len, MADV_DONTDUMP);
