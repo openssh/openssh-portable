@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.21 2024/08/20 07:27:25 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.22 2024/08/20 07:41:35 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -37,13 +37,19 @@ ssh_data_rekeying()
 increase_datafile_size 300
 
 opts=""
-for i in `${SSH} -Q kex`; do
+
+# Filter out duplicate curve algo
+kexs=`${SSH} -Q kex | grep -v curve25519-sha256@libssh.org`
+ciphers=`${SSH} -Q cipher`
+macs=`${SSH} -Q mac`
+
+for i in $kexs; do
 	opts="$opts KexAlgorithms=$i"
 done
-for i in `${SSH} -Q cipher`; do
+for i in $ciphers; do
 	opts="$opts Ciphers=$i"
 done
-for i in `${SSH} -Q mac`; do
+for i in $macs; do
 	opts="$opts MACs=$i"
 done
 
