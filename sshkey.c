@@ -746,9 +746,23 @@ sshkey_prekey_alloc(u_char **prekeyp, size_t len)
 	u_char *prekey;
 
 	*prekeyp = NULL;
+#if defined(MAP_CONCEAL)
 	if ((prekey = mmap(NULL, SSHKEY_SHIELD_PREKEY_LEN, PROT_READ|PROT_WRITE,
 	    MAP_ANON|MAP_PRIVATE|MAP_CONCEAL, -1, 0)) == MAP_FAILED)
 		return SSH_ERR_SYSTEM_ERROR;
+#elif defined(MAP_NOCORE)
+	if ((prekey = mmap(NULL, SSHKEY_SHIELD_PREKEY_LEN, PROT_READ|PROT_WRITE,
+	    MAP_ANON|MAP_PRIVATE|MAP_NOCORE, -1, 0)) == MAP_FAILED)
+		return SSH_ERR_SYSTEM_ERROR;
+#elif defined(MADV_DONTDUMP)
+	if ((prekey = mmap(NULL, SSHKEY_SHIELD_PREKEY_LEN, PROT_READ|PROT_WRITE,
+	    MAP_ANON|MAP_PRIVATE, -1, 0)) == MAP_FAILED)
+		return SSH_ERR_SYSTEM_ERROR;
+	(void)madvise(prekey, len, MADV_DONTDUMP);
+#else
+	if ((prekey = calloc(1, len)) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+#endif
 	*prekeyp = prekey;
 	return 0;
 }
@@ -758,7 +772,11 @@ sshkey_prekey_free(void *prekey, size_t len)
 {
 	if (prekey == NULL)
 		return;
+#if defined(MAP_CONCEAL) || defined(MAP_NOCORE) || defined(MADV_DONTDUMP)
 	munmap(prekey, len);
+#else
+	freezero(prekey, len);
+#endif
 }
 
 static void
