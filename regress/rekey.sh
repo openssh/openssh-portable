@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.26 2024/08/20 12:36:59 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.27 2024/08/21 06:59:08 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -11,6 +11,7 @@ cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
 echo "Compression no" >> $OBJ/ssh_proxy
 echo "RekeyLimit 256k" >> $OBJ/ssh_proxy
+echo "KexAlgorithms curve25519-sha256" >> ssh_proxy
 
 # Test rekeying based on data volume only.
 # Arguments: rekeylimit, kex method, optional remaining opts are passed to ssh.
@@ -31,7 +32,7 @@ ssh_data_rekeying()
 	rm -f ${COPY} ${COPY2} ${LOG}
 	# Create data file just big enough to reach rekey threshold.
 	dd if=${DATA} of=${COPY} bs=$_bytes count=1 2>/dev/null
-	${SSH} <${COPY} $_opts -v \
+	${SSH} <${COPY} $_opts -vv \
 	    -oRekeyLimit=$_bytes -F $OBJ/ssh_proxy somehost "cat >${COPY2}"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed ($@)"
@@ -39,6 +40,16 @@ ssh_data_rekeying()
 	cmp ${COPY} ${COPY2}		|| fail "corrupted copy ($@)"
 	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`
 	n=`expr $n - 1`
+	case "$_kexopt" in
+	KexAlgorithms*)
+		_want=`echo $_kexopt | cut -f2 -d=`
+		_got=`awk 'BEGIN{FS="[ \r]+"} /kex: algorithm: /{print $4}' \
+		    ${LOG} | sort -u`
+		if [ "$_want" != "$_got" ]; then
+			fail "expected kex $_want, got $_got"
+		fi
+		 ;;
+	esac
 	trace "$n rekeying(s)"
 	if [ $n -lt 1 ]; then
 		fail "no rekeying occurred ($@)"
