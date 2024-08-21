@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.27 2024/08/21 06:59:08 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.28 2024/08/21 10:33:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -43,8 +43,8 @@ ssh_data_rekeying()
 	case "$_kexopt" in
 	KexAlgorithms*)
 		_want=`echo $_kexopt | cut -f2 -d=`
-		_got=`awk 'BEGIN{FS="[ \r]+"} /kex: algorithm: /{print $4}' \
-		    ${LOG} | sort -u`
+		_got=`awk '/kex: algorithm: /{print $4}' ${LOG} | \
+		    tr -d '\r' | sort -u`
 		if [ "$_want" != "$_got" ]; then
 			fail "expected kex $_want, got $_got"
 		fi
