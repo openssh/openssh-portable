@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.28 2024/08/21 10:33:27 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.29 2024/08/22 10:21:02 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -28,6 +28,11 @@ ssh_data_rekeying()
 		echo "$_kexopt" >> $OBJ/sshd_proxy
 		_opts="$_opts -o$_kexopt"
 	fi
+	case "$_kexopt" in
+	MACs=*)
+		# default chacha20-poly1305 cipher has implicit MAC
+		_opts="$_opts -oCiphers=aes128-ctr" ;;
+	esac
 	trace  bytes $_bytes kex $_kexopt opts $_opts
 	rm -f ${COPY} ${COPY2} ${LOG}
 	# Create data file just big enough to reach rekey threshold.
@@ -40,16 +45,22 @@ ssh_data_rekeying()
 	cmp ${COPY} ${COPY2}		|| fail "corrupted copy ($@)"
 	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`
 	n=`expr $n - 1`
+	_want=`echo $_kexopt | cut -f2 -d=`
+	_got=""
 	case "$_kexopt" in
-	KexAlgorithms*)
-		_want=`echo $_kexopt | cut -f2 -d=`
+	KexAlgorithms=*)
 		_got=`awk '/kex: algorithm: /{print $4}' ${LOG} | \
-		    tr -d '\r' | sort -u`
-		if [ "$_want" != "$_got" ]; then
-			fail "expected kex $_want, got $_got"
-		fi
-		 ;;
+		    tr -d '\r' | sort -u` ;;
+	Ciphers=*)
+		_got=`awk '/kex: client->server cipher:/{print $5}' ${LOG} | \
+		    tr -d '\r' | sort -u` ;;
+	MACs=*)
+		_got=`awk '/kex: client->server cipher:/{print $7}' ${LOG} | \
+		    tr -d '\r' | sort -u` ;;
 	esac
+	if [ "$_want" != "$_got" ]; then
+		fail "unexpected algorithm, want $_want, got $_got"
+	fi
 	trace "$n rekeying(s)"
 	if [ $n -lt 1 ]; then
 		fail "no rekeying occurred ($@)"
