@@ -1502,13 +1502,13 @@ cleanup_exit(int i)
 			}
 		}
 	}
-	/* Override default fatal exit value when auth was attempted */
-	if (i == 255 && auth_attempted)
-		_exit(EXIT_AUTH_ATTEMPTED);
 #ifdef SSH_AUDIT_EVENTS
 	/* done after do_cleanup so it can cancel the PAM auth 'thread' */
 	if (the_active_state != NULL && mm_is_monitor())
 		audit_event(the_active_state, SSH_CONNECTION_ABANDON);
 #endif
+	/* Override default fatal exit value when auth was attempted */
+	if (i == 255 && auth_attempted)
+		_exit(EXIT_AUTH_ATTEMPTED);
 	_exit(i);
 }
