@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.123 2024/05/17 00:30:23 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.124 2024/08/22 23:11:30 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -62,7 +62,8 @@
 #define	KEX_ECDH_SHA2_NISTP521		"ecdh-sha2-nistp521"
 #define	KEX_CURVE25519_SHA256		"curve25519-sha256"
 #define	KEX_CURVE25519_SHA256_OLD	"curve25519-sha256@libssh.org"
-#define	KEX_SNTRUP761X25519_SHA512	"sntrup761x25519-sha512@openssh.com"
+#define	KEX_SNTRUP761X25519_SHA512	"sntrup761x25519-sha512"
+#define	KEX_SNTRUP761X25519_SHA512_OLD	"sntrup761x25519-sha512@openssh.com"
 
 #define COMP_NONE	0
 /* pre-auth compression (COMP_ZLIB) is only supported in the client */
