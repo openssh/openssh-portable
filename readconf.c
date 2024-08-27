@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.387 2024/05/17 02:39:11 jsg Exp $ */
+/* $OpenBSD: readconf.c,v 1.388 2024/08/23 04:51:00 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1002,7 +1002,7 @@ static const struct multistate multistate_pubkey_auth[] = {
 };
 static const struct multistate multistate_compression[] = {
 #ifdef WITH_ZLIB
-	{ "yes",			COMP_ZLIB },
+	{ "yes",			COMP_DELAYED },
 #endif
 	{ "no",				COMP_NONE },
 	{ NULL, -1 }

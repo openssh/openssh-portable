@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.316 2024/08/15 00:51:51 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.317 2024/08/23 04:51:00 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1015,9 +1015,8 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	/* explicit_bzero(enc->iv,  enc->block_size);
 	   explicit_bzero(enc->key, enc->key_len);
 	   explicit_bzero(mac->key, mac->key_len); */
-	if ((comp->type == COMP_ZLIB ||
-	    (comp->type == COMP_DELAYED &&
-	    state->after_authentication)) && comp->enabled == 0) {
+	if (((comp->type == COMP_DELAYED && state->after_authentication)) &&
+	    comp->enabled == 0) {
 		if ((r = ssh_packet_init_compression(ssh)) < 0)
 			return r;
 		if (mode == MODE_OUT) {
