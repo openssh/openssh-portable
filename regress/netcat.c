@@ -79,11 +79,6 @@
 #define WONT	252
 #define WILL	251
 
-#ifndef SUN_LEN
-#define SUN_LEN(su) \
-	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
-#endif
-
 #define PORT_MAX	65535
 #define PORT_MAX_LEN	6
 #define UNIX_DG_TMP_SOCKET_SIZE	19
@@ -543,7 +538,7 @@ unix_bind(char *path)
 		return (-1);
 	}
 
-	if (bind(s, (struct sockaddr *)&sun_sa, SUN_LEN(&sun_sa)) < 0) {
+	if (bind(s, (struct sockaddr *)&sun_sa, sizeof(sun_sa)) < 0) {
 		close(s);
 		return (-1);
 	}
@@ -578,7 +573,7 @@ unix_connect(char *path)
 		errno = ENAMETOOLONG;
 		return (-1);
 	}
-	if (connect(s, (struct sockaddr *)&sun_sa, SUN_LEN(&sun_sa)) < 0) {
+	if (connect(s, (struct sockaddr *)&sun_sa, sizeof(sun_sa)) < 0) {
 		close(s);
 		return (-1);
 	}
