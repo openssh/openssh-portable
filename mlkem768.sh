@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: mlkem768.sh,v 1.1 2024/09/02 12:13:56 djm Exp $
+#       $OpenBSD: mlkem768.sh,v 1.2 2024/09/04 05:11:33 djm Exp $
 #       Placed in the Public Domain.
 #
 
@@ -31,7 +31,7 @@ set +x
 
 cd $START
 (
-echo -n '/*  $OpenBSD: mlkem768.sh,v 1.1 2024/09/02 12:13:56 djm Exp $ */'
+printf '/*  $Open'; printf 'BSD$ */\n' # Sigh
 echo
 echo "/* Extracted from libcrux revision $LIBCRUX_REVISION */"
 echo
