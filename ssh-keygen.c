@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.473 2024/08/15 00:51:51 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.474 2024/09/04 05:33:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -261,7 +261,7 @@ ask_filename(struct passwd *pw, const char *prompt)
 	if (key_type_name == NULL)
 		name = _PATH_SSH_CLIENT_ID_ED25519;
 	else {
-		switch (sshkey_type_from_name(key_type_name)) {
+		switch (sshkey_type_from_shortname(key_type_name)) {
 #ifdef WITH_DSA
 		case KEY_DSA_CERT:
 		case KEY_DSA:
@@ -1140,7 +1140,7 @@ do_gen_all_hostkeys(struct passwd *pw)
 		}
 		printf("%s ", key_types[i].key_type_display);
 		fflush(stdout);
-		type = sshkey_type_from_name(key_types[i].key_type);
+		type = sshkey_type_from_shortname(key_types[i].key_type);
 		if ((fd = mkstemp(prv_tmp)) == -1) {
 			error("Could not save your private key in %s: %s",
 			    prv_tmp, strerror(errno));
@@ -1846,7 +1846,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 	free(tmp);
 
 	if (key_type_name != NULL) {
-		if (sshkey_type_from_name(key_type_name) != ca->type) {
+		if (sshkey_type_from_shortname(key_type_name) != ca->type) {
 			fatal("CA key type %s doesn't match specified %s",
 			    sshkey_ssh_name(ca), key_type_name);
 		}
@@ -3836,7 +3836,7 @@ main(int argc, char **argv)
 	if (key_type_name == NULL)
 		key_type_name = DEFAULT_KEY_TYPE_NAME;
 
-	type = sshkey_type_from_name(key_type_name);
+	type = sshkey_type_from_shortname(key_type_name);
 	type_bits_valid(type, key_type_name, &bits);
 
 	if (!quiet)

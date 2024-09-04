@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.145 2024/08/20 11:10:04 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.146 2024/09/04 05:33:34 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -249,20 +249,34 @@ sshkey_ssh_name_plain(const struct sshkey *k)
 	    k->ecdsa_nid);
 }
 
-int
-sshkey_type_from_name(const char *name)
+static int
+type_from_name(const char *name, int allow_short)
 {
 	int i;
 	const struct sshkey_impl *impl;
 
 	for (i = 0; keyimpls[i] != NULL; i++) {
 		impl = keyimpls[i];
+		if (impl->name != NULL && strcmp(name, impl->name) == 0)
+			return impl->type;
 		/* Only allow shortname matches for plain key types */
-		if ((impl->name != NULL && strcmp(name, impl->name) == 0) ||
-		    (!impl->cert && strcasecmp(impl->shortname, name) == 0))
+		if (allow_short && !impl->cert && impl->shortname != NULL &&
+		    strcasecmp(impl->shortname, name) == 0)
 			return impl->type;
 	}
 	return KEY_UNSPEC;
+}
+
+int
+sshkey_type_from_name(const char *name)
+{
+	return type_from_name(name, 0);
+}
+
+int
+sshkey_type_from_shortname(const char *name)
+{
+	return type_from_name(name, 1);
 }
 
 static int

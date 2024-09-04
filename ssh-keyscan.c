@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.159 2024/09/02 12:13:56 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.160 2024/09/04 05:33:34 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -754,7 +754,7 @@ main(int argc, char **argv)
 			get_keytypes = 0;
 			tname = strtok(optarg, ",");
 			while (tname) {
-				int type = sshkey_type_from_name(tname);
+				int type = sshkey_type_from_shortname(tname);
 
 				switch (type) {
 #ifdef WITH_DSA

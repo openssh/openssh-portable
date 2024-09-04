@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.64 2024/08/15 00:51:51 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.65 2024/09/04 05:33:34 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -224,6 +224,7 @@ int		 sshkey_shield_private(struct sshkey *);
 int		 sshkey_unshield_private(struct sshkey *);
 
 int	 sshkey_type_from_name(const char *);
+int	 sshkey_type_from_shortname(const char *);
 int	 sshkey_is_cert(const struct sshkey *);
 int	 sshkey_is_sk(const struct sshkey *);
 int	 sshkey_type_is_cert(int);
