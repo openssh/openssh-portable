@@ -42,7 +42,7 @@ do { \
 static void crypto_sort_int32(void *array,long long n)
 {
   long long top,p,q,r,i,j;
-  int32 *x = array;
+  int32 *x = (int32*)array;
 
   if (n < 2) return;
   top = 1;
@@ -104,7 +104,7 @@ static void crypto_sort_int32(void *array,long long n)
 
 static void crypto_sort_uint32(void *array,long long n)
 {
-  crypto_uint32 *x = array;
+  crypto_uint32 *x = (crypto_uint32 *)array;
   long long j;
   for (j = 0;j < n;++j) x[j] ^= 0x80000000;
   crypto_sort_int32(array,n);
