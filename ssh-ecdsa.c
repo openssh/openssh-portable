@@ -42,7 +42,7 @@
 #include "digest.h"
 #define SSHKEY_INTERNAL
 #include "sshkey.h"
-
+#include "ssh-pkcs11.h"
 #include "openbsd-compat/openssl-compat.h"
 
 static u_int

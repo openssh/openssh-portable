@@ -26,7 +26,7 @@
 
 #include <stdarg.h>
 #include <string.h>
-
+#include "ssh-pkcs11.h"
 #include "sshbuf.h"
 #include "ssherr.h"
 #define SSHKEY_INTERNAL
