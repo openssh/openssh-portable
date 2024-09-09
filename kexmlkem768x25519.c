@@ -25,8 +25,6 @@
 
 #include "includes.h"
 
-#ifdef USE_MLKEM768X25519
-
 #include <sys/types.h>
 
 #include <stdio.h>
@@ -41,6 +39,8 @@
 #include "digest.h"
 #include "ssherr.h"
 #include "log.h"
+
+#ifdef USE_MLKEM768X25519
 
 #include "libcrux_mlkem768_sha3.h"
 
@@ -253,5 +253,26 @@ kex_kem_mlkem768x25519_dec(struct kex *kex,
 	explicit_bzero(mlkem_key, sizeof(mlkem_key));
 	sshbuf_free(buf);
 	return r;
+}
+#else /* USE_MLKEM768X25519 */
+int
+kex_kem_mlkem768x25519_keypair(struct kex *kex)
+{
+	return SSH_ERR_SIGN_ALG_UNSUPPORTED;
+}
+
+int
+kex_kem_mlkem768x25519_enc(struct kex *kex,
+   const struct sshbuf *client_blob, struct sshbuf **server_blobp,
+   struct sshbuf **shared_secretp)
+{
+	return SSH_ERR_SIGN_ALG_UNSUPPORTED;
+}
+
+int
+kex_kem_mlkem768x25519_dec(struct kex *kex,
+    const struct sshbuf *server_blob, struct sshbuf **shared_secretp)
+{
+	return SSH_ERR_SIGN_ALG_UNSUPPORTED;
 }
 #endif /* USE_MLKEM768X25519 */
