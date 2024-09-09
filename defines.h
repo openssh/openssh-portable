@@ -942,4 +942,8 @@ struct winsize {
 #if defined(VARIABLE_LENGTH_ARRAYS) && defined(VARIABLE_DECLARATION_AFTER_CODE)
 # define USE_SNTRUP761X25519 1
 #endif
+/* The ML-KEM768 imlementation similarly uses named struct initialisers */
+#ifdef NAMED_STRUCT_INITIALISERS
+# define USE_MLKEM768X25519	1
+#endif
 #endif /* _DEFINES_H */

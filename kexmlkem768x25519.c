@@ -25,6 +25,8 @@
 
 #include "includes.h"
 
+#ifdef USE_MLKEM768X25519
+
 #include <sys/types.h>
 
 #include <stdio.h>
@@ -252,3 +254,4 @@ kex_kem_mlkem768x25519_dec(struct kex *kex,
 	sshbuf_free(buf);
 	return r;
 }
+#endif /* USE_MLKEM768X25519 */
