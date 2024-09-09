@@ -75,6 +75,7 @@ jobs:
           - { target: dfly58, config: pam, host: libvirt }
           - { target: dfly60, config: pam, host: libvirt }
           - { target: dfly62, config: pam, host: libvirt }
+          - { target: dfly64, config: pam, host: libvirt }
           - { target: fbsd10, config: pam, host: libvirt }
           - { target: fbsd12, config: pam, host: libvirt }
           - { target: fbsd13, config: pam, host: libvirt }
