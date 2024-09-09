@@ -2095,15 +2095,6 @@ AC_ARG_ENABLE([dsa-keys],
 	]
 )
 
-AC_ARG_ENABLE([ml-kem],
-	[  --enable-ml-kem         enable experimental ML-KEM/x25519 key exchange [no]],
-	[
-		if test "x$enableval" != "xno" ; then
-			AC_DEFINE([WITH_MLKEM], [], [Enable for ML-KEM KEX support])
-		fi
-	]
-)
-
 AC_SEARCH_LIBS([dlopen], [dl])
 AC_CHECK_FUNCS([dlopen])
 AC_CHECK_DECL([RTLD_NOW], [], [], [#include <dlfcn.h>])

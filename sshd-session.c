@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.8 2024/09/02 12:18:35 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.9 2024/09/09 02:39:57 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -1465,9 +1465,7 @@ do_ssh2_kex(struct ssh *ssh)
 #endif
 	kex->kex[KEX_C25519_SHA256] = kex_gen_server;
 	kex->kex[KEX_KEM_SNTRUP761X25519_SHA512] = kex_gen_server;
-#ifdef WITH_MLKEM
  	kex->kex[KEX_KEM_MLKEM768X25519_SHA256] = kex_gen_server;
-#endif
 	kex->load_host_public_key=&get_hostkey_public_by_type;
 	kex->load_host_private_key=&get_hostkey_private_by_type;
 	kex->host_key_index=&get_hostkey_index;

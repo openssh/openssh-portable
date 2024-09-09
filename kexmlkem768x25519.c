@@ -25,8 +25,6 @@
 
 #include "includes.h"
 
-#ifdef WITH_MLKEM
-
 #include <sys/types.h>
 
 #include <stdio.h>
@@ -254,4 +252,3 @@ kex_kem_mlkem768x25519_dec(struct kex *kex,
 	sshbuf_free(buf);
 	return r;
 }
-#endif /* WITH_MLKEM */
