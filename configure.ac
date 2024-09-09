@@ -353,20 +353,6 @@ AC_COMPILE_IFELSE(
     [ AC_MSG_RESULT([no]) ]
 )
 
-AC_MSG_CHECKING([if compiler supports compound literals])
-AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <stdlib.h>]],
-    [[  struct foo { int bar; int baz; };
-        void *fooc = &(struct foo){.bar = 1, .baz = 2};
-        struct foo *foo2 = (struct foo *)fooc;
-        return (foo2->bar == 1 && foo2->baz == 2) ? 0 : 1;
-    ]])],
-    [ AC_MSG_RESULT([yes])
-      AC_DEFINE(COMPOUND_LITERALS, [1],
-	 [compiler supports compound literals]) ],
-    [ AC_MSG_RESULT([no]) ]
-)
-
 AC_MSG_CHECKING([if compiler accepts variable declarations after code])
 AC_COMPILE_IFELSE(
     [AC_LANG_PROGRAM([[#include <stdlib.h>]],
