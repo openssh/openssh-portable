@@ -730,6 +730,8 @@ fidoerr_to_skerr(int fidoerr)
 	case FIDO_ERR_PIN_INVALID:
 	case FIDO_ERR_OPERATION_DENIED:
 		return SSH_SK_ERR_PIN_REQUIRED;
+	case FIDO_ERR_PIN_NOT_SET:
+		return SSH_SK_ERR_PIN_NOT_SET;
 	default:
 		return -1;
 	}
@@ -777,7 +779,7 @@ key_lookup(fido_dev_t *dev, const char *application, const uint8_t *user_id,
 	fido_assert_t *assert = NULL;
 	uint8_t message[32];
 	int r = FIDO_ERR_INTERNAL;
-	int sk_supports_uv, uv;
+	int sk_supports_uv, uv, sk_supports_pin;
 	size_t i;
 
 	memset(message, '\0', sizeof(message));
@@ -801,9 +803,22 @@ key_lookup(fido_dev_t *dev, const char *application, const uint8_t *user_id,
 		goto out;
 	}
 	uv = FIDO_OPT_OMIT;
-	if (pin == NULL && check_sk_options(dev, "uv", &sk_supports_uv) == 0 &&
-	    sk_supports_uv != -1)
-		uv = FIDO_OPT_TRUE;
+	if (pin == NULL) {
+		if (check_sk_options(dev, "uv", &sk_supports_uv) == 0 &&
+		    sk_supports_uv != -1)
+			uv = FIDO_OPT_TRUE;
+		else if (check_sk_options(dev, "clientPin",
+			 &sk_supports_pin) == 0 && sk_supports_pin != -1) {
+			if (sk_supports_pin != 1) {
+				skdebug(__func__, "PIN not set");
+				r = FIDO_ERR_PIN_NOT_SET;
+			} else {
+				skdebug(__func__, "PIN required");
+				r = FIDO_ERR_PIN_REQUIRED;
+			}
+			goto out;
+		}
+	}
 	if ((r = fido_assert_set_uv(assert, uv)) != FIDO_OK) {
 		skdebug(__func__, "fido_assert_set_uv: %s", fido_strerr(r));
 		goto out;
@@ -829,6 +844,27 @@ key_lookup(fido_dev_t *dev, const char *application, const uint8_t *user_id,
 	return r;
 }
 
+static int
+set_pin(fido_dev_t *dev, const char *pin)
+{
+	int sk_has_pin;
+
+	if (pin == NULL) {
+		skdebug(__func__, "NULL pin");
+		return FIDO_ERR_INVALID_ARGUMENT;
+	}
+	if (check_sk_options(dev, "clientPin", &sk_has_pin) != 0) {
+		skdebug(__func__, "check_sk_options failed");
+		return FIDO_ERR_INTERNAL;
+	}
+	if (sk_has_pin == 1) {
+		skdebug(__func__, "PIN already set");
+		return FIDO_OK;
+	}
+
+	return fido_dev_set_pin(dev, pin, NULL);
+}
+
 int
 sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags, const char *pin,
@@ -841,6 +877,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	struct sk_enroll_response *response = NULL;
 	size_t len;
 	int credprot;
+	int sk_has_pin, sk_has_uv;
 	int cose_alg;
 	int ret = SSH_SK_ERR_GENERAL;
 	int r;
@@ -881,6 +918,12 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 		goto out;
 	}
 	skdebug(__func__, "using device %s", sk->path);
+	if ((flags & SSH_SK_SET_PIN) != 0 &&
+	    (r = set_pin(sk->dev, pin)) != FIDO_OK) {
+		skdebug(__func__, "fido_dev_set_pin: %s", fido_strerr(r));
+		ret = fidoerr_to_skerr(r);
+		goto out;
+	}
 	if ((flags & SSH_SK_RESIDENT_KEY) != 0 &&
 	    (flags & SSH_SK_FORCE_OPERATION) == 0 &&
 	    (r = key_lookup(sk->dev, application, user_id, sizeof(user_id),
@@ -941,6 +984,15 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 			credprot = FIDO_CRED_PROT_UV_REQUIRED;
 		else
 			credprot = FIDO_CRED_PROT_UV_OPTIONAL_WITH_ID;
+
+		if ((flags & SSH_SK_FORCE_OPERATION) == 0 &&
+		    check_sk_options(sk->dev, "uv", &sk_has_uv) == 0 &&
+		    check_sk_options(sk->dev, "clientPin", &sk_has_pin) == 0 &&
+		    sk_has_uv != 1 && sk_has_pin == 0) {
+			skdebug(__func__, "PIN not set");
+			ret = SSH_SK_ERR_PIN_NOT_SET;
+			goto out;
+		}
 
 		if ((r = fido_cred_set_prot(cred, credprot)) != FIDO_OK) {
 			skdebug(__func__, "fido_cred_set_prot: %s",
