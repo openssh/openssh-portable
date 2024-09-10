@@ -52,6 +52,7 @@ jobs:
           - obsd74
           - obsdsnap
           - obsdsnap-i386
+          - onmios
           - openindiana
           - ubuntu-2204
         config:
@@ -83,6 +84,7 @@ jobs:
           - { target: nbsd8,  config: pam, host: libvirt }
           - { target: nbsd9,  config: pam, host: libvirt }
           - { target: nbsd10, config: pam, host: libvirt }
+          - { target: omnios, config: pam, host: libvirt }
           # ARM64 VMs
           - { target: obsd-arm64, config: default, host: libvirt-arm64 }
           # VMs with persistent disks that have their own runner.
