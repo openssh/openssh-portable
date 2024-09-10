@@ -52,7 +52,7 @@ jobs:
           - obsd74
           - obsdsnap
           - obsdsnap-i386
-          - onmios
+          - omnios
           - openindiana
           - ubuntu-2204
         config:
