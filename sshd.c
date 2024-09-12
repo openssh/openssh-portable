@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.610 2024/08/17 08:09:50 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.611 2024/09/12 00:36:27 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -1341,7 +1341,7 @@ main(int ac, char **av)
 			break;
 		}
 	}
-	if (!test_flag && !do_dump_cfg && !path_absolute(av[0]))
+	if (!test_flag && !inetd_flag && !do_dump_cfg && !path_absolute(av[0]))
 		fatal("sshd requires execution with an absolute path");
 
 	closefrom(STDERR_FILENO + 1);
