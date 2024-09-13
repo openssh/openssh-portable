@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.386 2024/03/04 04:13:18 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.387 2024/05/17 02:39:11 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -172,6 +172,7 @@ typedef enum {
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
 	oTcpRcvBufPoll, oHPNDisabled,
 	oNoneEnabled, oNoneMacEnabled, oNoneSwitch,
+	oDisableMTAES,
 	oMetrics, oMetricsPath, oMetricsInterval, oFallback, oFallbackPort,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oSessionType, oStdinNull,
@@ -310,6 +311,7 @@ static struct {
 	{ "noneenabled", oNoneEnabled },
 	{ "nonemacenabled", oNoneMacEnabled },
 	{ "noneswitch", oNoneSwitch },
+	{ "disablemtaes", oDisableMTAES },
 	{ "metrics", oMetrics },
 	{ "metricspath", oMetricsPath },
 	{ "metricsinterval", oMetricsInterval },
@@ -1267,6 +1269,10 @@ parse_time:
 
 	case oNoneMacEnabled:
 		intptr = &options->nonemac_enabled;
+		goto parse_flag;
+
+	case oDisableMTAES:
+		intptr = &options->disable_multithreaded;
 		goto parse_flag;
 
 	case oMetrics:
@@ -2692,6 +2698,7 @@ initialize_options(Options * options)
 	options->none_switch = -1;
 	options->none_enabled = -1;
 	options->nonemac_enabled = -1;
+	options->disable_multithreaded = -1;
 	options->metrics = -1;
 	options->metrics_path = NULL;
 	options->metrics_interval = -1;
@@ -2891,6 +2898,8 @@ fill_default_options(Options * options)
 		fprintf(stderr, "None MAC can only be used with the None cipher. None MAC disabled.\n");
 		options->nonemac_enabled = 0;
 	}
+	if (options->disable_multithreaded == -1)
+		options->disable_multithreaded = 0;
 	if (options->metrics == -1)
 		options->metrics = 0;
 	if (options->metrics_interval == -1)
@@ -3441,7 +3450,7 @@ parse_ssh_uri(const char *uri, char **userp, char **hostp, int *portp)
 	return r;
 }
 
-/* XXX the following is a near-vebatim copy from servconf.c; refactor */
+/* XXX the following is a near-verbatim copy from servconf.c; refactor */
 static const char *
 fmt_multistate_int(int val, const struct multistate *m)
 {

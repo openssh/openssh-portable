@@ -125,6 +125,7 @@ typedef struct {
 	int     none_switch;    /* Use none cipher */
 	int     none_enabled;   /* Allow none to be used */
 	int     nonemac_enabled;   /* Allow none to be used */
+	int     disable_multithreaded; /* Disable multithreaded aes-ctr */
         int     metrics; /* enable metrics */
         int     metrics_interval; /* time in seconds between polls */
         char   *metrics_path; /* path for the metrics files */
