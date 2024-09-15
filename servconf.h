@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.167 2024/09/15 01:11:26 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.168 2024/09/15 01:18:26 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -256,6 +256,7 @@ typedef struct {
 /* Information about the incoming connection as used by Match */
 struct connection_info {
 	const char *user;
+	int user_invalid;
 	const char *host;	/* possibly resolved hostname */
 	const char *address;	/* remote address */
 	const char *laddress;	/* local address */

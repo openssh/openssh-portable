@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.416 2024/09/15 01:11:26 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.417 2024/09/15 01:18:26 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1038,9 +1038,10 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 	if (ci == NULL)
 		debug3("checking syntax for 'Match %s'", full_line);
 	else {
-		debug3("checking match for '%s' user %s host %s addr %s "
+		debug3("checking match for '%s' user %s%s host %s addr %s "
 		    "laddr %s lport %d", full_line,
 		    ci->user ? ci->user : "(null)",
+		    ci->user_invalid ? " (invalid)" : "",
 		    ci->host ? ci->host : "(null)",
 		    ci->address ? ci->address : "(null)",
 		    ci->laddress ? ci->laddress : "(null)", ci->lport);
@@ -1066,6 +1067,16 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 			if (arg != NULL && *arg == '#')
 				argv_consume(acp); /* consume remaining args */
 			return 1;
+		}
+		/* Criterion "invalid-user" also has no argument */
+		if (strcasecmp(attrib, "invalid-user") == 0) {
+			if (ci == NULL)
+				continue;
+			if (ci->user_invalid == 0)
+				result = 0;
+			else
+				debug("matched invalid-user at line %d", line);
+			continue;
 		}
 		/* All other criteria require an argument */
 		if ((arg = argv_next(acp, avp)) == NULL ||
@@ -2784,6 +2795,8 @@ int parse_server_match_testspec(struct connection_info *ci, char *spec)
 				    " specification %s\n", p+6, p);
 				return -1;
 			}
+		} else if (strcmp(p, "invalid-user") == 0) {
+			ci->user_invalid = 1;
 		} else {
 			fprintf(stderr, "Invalid test mode specification %s\n",
 			    p);

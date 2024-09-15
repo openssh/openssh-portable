@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.161 2024/05/17 00:30:23 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.162 2024/09/15 01:18:26 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -476,6 +476,7 @@ getpwnamallow(struct ssh *ssh, const char *user)
 
 	ci = server_get_connection_info(ssh, 1, options.use_dns);
 	ci->user = user;
+	ci->user_invalid = getpwnam(user) == NULL;
 	parse_server_match_config(&options, &includes, ci);
 	log_change_level(options.log_level);
 	log_verbose_reset();
