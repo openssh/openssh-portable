@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.474 2024/09/04 05:33:34 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.475 2024/09/15 00:47:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -313,7 +313,7 @@ ask_filename(struct passwd *pw, const char *prompt)
 static struct sshkey *
 load_identity(const char *filename, char **commentp)
 {
-	char *pass;
+	char *prompt, *pass;
 	struct sshkey *prv;
 	int r;
 
@@ -325,8 +325,11 @@ load_identity(const char *filename, char **commentp)
 		fatal_r(r, "Load key \"%s\"", filename);
 	if (identity_passphrase)
 		pass = xstrdup(identity_passphrase);
-	else
-		pass = read_passphrase("Enter passphrase: ", RP_ALLOW_STDIN);
+	else {
+		xasprintf(&prompt, "Enter passphrase for \"%s\": ", filename);
+		pass = read_passphrase(prompt, RP_ALLOW_STDIN);
+		free(prompt);
+	}
 	r = sshkey_load_private(filename, pass, &prv, commentp);
 	freezero(pass, strlen(pass));
 	if (r != 0)
@@ -3133,17 +3136,22 @@ read_check_passphrase(const char *prompt1, const char *prompt2,
 }
 
 static char *
-private_key_passphrase(void)
+private_key_passphrase(const char *path)
 {
+	char *prompt, *ret;
+
 	if (identity_passphrase)
 		return xstrdup(identity_passphrase);
 	if (identity_new_passphrase)
 		return xstrdup(identity_new_passphrase);
 
-	return read_check_passphrase(
-	    "Enter passphrase (empty for no passphrase): ",
+	xasprintf(&prompt, "Enter passphrase for \"%s\" "
+	    "(empty for no passphrase): ", path);
+	ret = read_check_passphrase(prompt,
 	    "Enter same passphrase again: ",
 	    "Passphrases do not match.  Try again.");
+	free(prompt);
+	return ret;
 }
 
 static char *
@@ -3239,7 +3247,7 @@ do_download_sk(const char *skprovider, const char *device)
 
 		/* Save the key with the application string as the comment */
 		if (pass == NULL)
-			pass = private_key_passphrase();
+			pass = private_key_passphrase(path);
 		if ((r = sshkey_save_private(key, path, pass,
 		    key->sk_application, private_key_format,
 		    openssh_format_cipher, rounds)) != 0) {
@@ -3938,7 +3946,7 @@ main(int argc, char **argv)
 		exit(1);
 
 	/* Determine the passphrase for the private key */
-	passphrase = private_key_passphrase();
+	passphrase = private_key_passphrase(identity_file);
 	if (identity_comment) {
 		strlcpy(comment, identity_comment, sizeof(comment));
 	} else {
