@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.373 2024/09/15 01:18:26 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.374 2024/09/15 08:27:38 jmc Exp $
 .Dd $Mdocdate: September 15 2024 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -1326,8 +1326,8 @@ Available keywords are
 .Cm PubkeyAcceptedAlgorithms ,
 .Cm PubkeyAuthentication ,
 .Cm PubkeyAuthOptions ,
-.Cm RekeyLimit ,
 .Cm RefuseConnection ,
+.Cm RekeyLimit ,
 .Cm RevokedKeys ,
 .Cm RDomain ,
 .Cm SetEnv ,
@@ -1608,7 +1608,7 @@ Specifies how long to refuse clients that cause a crash of
 Specifies how long to refuse clients that disconnect after making one or more
 unsuccessful authentication attempts (default: 5s).
 .It Cm refuseconnection:duration
-Specified how long to refuse clients that were administratively prohibited
+Specifies how long to refuse clients that were administratively prohibited
 connection via the
 .Cm RefuseConnection
 option (default: 10s).
@@ -1775,7 +1775,7 @@ Indicates that
 should unconditionally terminate the connection.
 Additionally, a
 .Cm refuseconnection
-penalty may be recorded against the source of the connection of
+penalty may be recorded against the source of the connection if
 .Cm PerSourcePenalties
 are enabled.
 This option is only really useful in a
