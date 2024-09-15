@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.417 2024/09/15 01:18:26 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.418 2024/09/15 03:09:44 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -3352,7 +3352,7 @@ dump_config(ServerOptions *o)
 
 	if (o->per_source_penalty.enabled) {
 		printf("persourcepenalties crash:%d authfail:%d noauth:%d "
-		    "grace-exceeded:%d refuseconnection: %d max:%d min:%d "
+		    "grace-exceeded:%d refuseconnection:%d max:%d min:%d "
 		    "max-sources4:%d max-sources6:%d "
 		    "overflow:%s overflow6:%s\n",
 		    o->per_source_penalty.penalty_crash,
