@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.414 2024/09/15 00:58:01 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.415 2024/09/15 01:09:40 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -213,6 +213,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_channel_timeouts = 0;
 	options->unused_connection_timeout = -1;
 	options->sshd_session_path = NULL;
+	options->refuse_connection = -1;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -489,6 +490,8 @@ fill_default_server_options(ServerOptions *options)
 		options->unused_connection_timeout = 0;
 	if (options->sshd_session_path == NULL)
 		options->sshd_session_path = xstrdup(_PATH_SSHD_SESSION);
+	if (options->refuse_connection == -1)
+		options->refuse_connection = 0;
 
 	assemble_algorithms(options);
 
@@ -571,7 +574,7 @@ typedef enum {
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
 	sRequiredRSASize, sChannelTimeout, sUnusedConnectionTimeout,
-	sSshdSessionPath,
+	sSshdSessionPath, sRefuseConnection,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -739,6 +742,7 @@ static struct {
 	{ "channeltimeout", sChannelTimeout, SSHCFG_ALL },
 	{ "unusedconnectiontimeout", sUnusedConnectionTimeout, SSHCFG_ALL },
 	{ "sshdsessionpath", sSshdSessionPath, SSHCFG_GLOBAL },
+	{ "refuseconnection", sRefuseConnection, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2655,6 +2659,11 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		charptr = &options->sshd_session_path;
 		goto parse_filename;
 
+	case sRefuseConnection:
+		intptr = &options->refuse_connection;
+		multistate_ptr = multistate_flag;
+		goto parse_multistate;
+
 	case sDeprecated:
 	case sIgnore:
 	case sUnsupported:
@@ -2870,6 +2879,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(log_level);
 	M_CP_INTOPT(required_rsa_size);
 	M_CP_INTOPT(unused_connection_timeout);
+	M_CP_INTOPT(refuse_connection);
 
 	/*
 	 * The bind_mask is a mode_t that may be unsigned, so we can't use
@@ -3200,6 +3210,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(sFingerprintHash, o->fingerprint_hash);
 	dump_cfg_fmtint(sExposeAuthInfo, o->expose_userauth_info);
+	dump_cfg_fmtint(sRefuseConnection, o->refuse_connection);
 
 	/* string arguments */
 	dump_cfg_string(sPidFile, o->pid_file);

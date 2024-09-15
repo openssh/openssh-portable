@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.370 2024/09/09 14:41:21 naddy Exp $
-.Dd $Mdocdate: September 9 2024 $
+.\" $OpenBSD: sshd_config.5,v 1.371 2024/09/15 01:09:40 djm Exp $
+.Dd $Mdocdate: September 15 2024 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1325,6 +1325,7 @@ Available keywords are
 .Cm PubkeyAuthentication ,
 .Cm PubkeyAuthOptions ,
 .Cm RekeyLimit ,
+.Cm RefuseConnection ,
 .Cm RevokedKeys ,
 .Cm RDomain ,
 .Cm SetEnv ,
@@ -1761,6 +1762,13 @@ options have any effect for other, non-FIDO, public key types.
 Specifies whether public key authentication is allowed.
 The default is
 .Cm yes .
+.It Cm RefuseConnection
+Indicates that
+.Xr sshd 8
+should unconditionally terminate the connection.
+This option is only really useful in a
+.Cm Match
+block.
 .It Cm RekeyLimit
 Specifies the maximum amount of data that may be transmitted or received
 before the session key is renegotiated, optionally followed by a maximum
