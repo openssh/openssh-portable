@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.389 2024/09/03 05:29:55 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.390 2024/09/15 00:57:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -706,11 +706,11 @@ expand_match_exec_or_include_path(const char *path, Options *options,
  * Parse and execute a Match directive.
  */
 static int
-match_cfg_line(Options *options, char **condition, struct passwd *pw,
-    const char *host_arg, const char *original_host, int final_pass,
-    int *want_final_pass, const char *filename, int linenum)
+match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
+    struct passwd *pw, const char *host_arg, const char *original_host,
+    int final_pass, int *want_final_pass, const char *filename, int linenum)
 {
-	char *arg, *oattrib, *attrib, *cmd, *cp = *condition, *host, *criteria;
+	char *arg, *oattrib, *attrib, *cmd, *host, *criteria;
 	const char *ruser;
 	int r, this_result, result = 1, attributes = 0, negate;
 
@@ -730,11 +730,11 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	}
 
 	debug2("checking match for '%s' host %s originally %s",
-	    cp, host, original_host);
-	while ((oattrib = attrib = strdelim(&cp)) && *attrib != '\0') {
+	    full_line, host, original_host);
+	while ((oattrib = attrib = argv_next(acp, avp)) != NULL) {
 		/* Terminate on comment */
 		if (*attrib == '#') {
-			cp = NULL; /* mark all arguments consumed */
+			argv_consume(acp);
 			break;
 		}
 		arg = criteria = NULL;
@@ -743,7 +743,8 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			attrib++;
 		/* Criterion "all" has no argument and must appear alone */
 		if (strcasecmp(attrib, "all") == 0) {
-			if (attributes > 1 || ((arg = strdelim(&cp)) != NULL &&
+			if (attributes > 1 ||
+			    ((arg = argv_next(acp, avp)) != NULL &&
 			    *arg != '\0' && *arg != '#')) {
 				error("%.200s line %d: '%s' cannot be combined "
 				    "with other Match attributes",
@@ -752,7 +753,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 				goto out;
 			}
 			if (arg != NULL && *arg == '#')
-				cp = NULL; /* mark all arguments consumed */
+				argv_consume(acp); /* consume remaining args */
 			if (result)
 				result = negate ? 0 : 1;
 			goto out;
@@ -777,7 +778,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			continue;
 		}
 		/* All other criteria require an argument */
-		if ((arg = strdelim(&cp)) == NULL ||
+		if ((arg = argv_next(acp, avp)) == NULL ||
 		    *arg == '\0' || *arg == '#') {
 			error("Missing Match criteria for %s", attrib);
 			result = -1;
@@ -864,7 +865,6 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
  out:
 	if (result != -1)
 		debug2("match %sfound", result ? "" : "not ");
-	*condition = cp;
 	free(host);
 	return result;
 }
@@ -1807,8 +1807,8 @@ parse_pubkey_algos:
 			    "option");
 			goto out;
 		}
-		value = match_cfg_line(options, &str, pw, host, original_host,
-		    flags & SSHCONF_FINAL, want_final_pass,
+		value = match_cfg_line(options, str, &ac, &av, pw, host,
+		    original_host, flags & SSHCONF_FINAL, want_final_pass,
 		    filename, linenum);
 		if (value < 0) {
 			error("%.200s line %d: Bad Match condition", filename,
@@ -1816,13 +1816,6 @@ parse_pubkey_algos:
 			goto out;
 		}
 		*activep = (flags & SSHCONF_NEVERMATCH) ? 0 : value;
-		/*
-		 * If match_cfg_line() didn't consume all its arguments then
-		 * arrange for the extra arguments check below to fail.
-		 */
-
-		if (str == NULL || *str == '\0')
-			argv_consume(&ac);
 		break;
 
 	case oEscapeChar:
