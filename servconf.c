@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.415 2024/09/15 01:09:40 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.416 2024/09/15 01:11:26 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -178,6 +178,7 @@ initialize_server_options(ServerOptions *options)
 	options->per_source_penalty.penalty_authfail = -1;
 	options->per_source_penalty.penalty_noauth = -1;
 	options->per_source_penalty.penalty_grace = -1;
+	options->per_source_penalty.penalty_refuseconnection = -1;
 	options->per_source_penalty.penalty_max = -1;
 	options->per_source_penalty.penalty_min = -1;
 	options->max_authtries = -1;
@@ -440,6 +441,8 @@ fill_default_server_options(ServerOptions *options)
 		options->per_source_penalty.penalty_authfail = 5;
 	if (options->per_source_penalty.penalty_noauth == -1)
 		options->per_source_penalty.penalty_noauth = 1;
+	if (options->per_source_penalty.penalty_refuseconnection == -1)
+		options->per_source_penalty.penalty_refuseconnection = 10;
 	if (options->per_source_penalty.penalty_min == -1)
 		options->per_source_penalty.penalty_min = 15;
 	if (options->per_source_penalty.penalty_max == -1)
@@ -2054,6 +2057,9 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			} else if (strncmp(arg, "grace-exceeded:", 15) == 0) {
 				p = arg + 15;
 				intptr = &options->per_source_penalty.penalty_grace;
+			} else if (strncmp(arg, "refuseconnection:", 17) == 0) {
+				p = arg + 17;
+				intptr = &options->per_source_penalty.penalty_refuseconnection;
 			} else if (strncmp(arg, "max:", 4) == 0) {
 				p = arg + 4;
 				intptr = &options->per_source_penalty.penalty_max;
@@ -3333,12 +3339,14 @@ dump_config(ServerOptions *o)
 
 	if (o->per_source_penalty.enabled) {
 		printf("persourcepenalties crash:%d authfail:%d noauth:%d "
-		    "grace-exceeded:%d max:%d min:%d max-sources4:%d "
-		    "max-sources6:%d overflow:%s overflow6:%s\n",
+		    "grace-exceeded:%d refuseconnection: %d max:%d min:%d "
+		    "max-sources4:%d max-sources6:%d "
+		    "overflow:%s overflow6:%s\n",
 		    o->per_source_penalty.penalty_crash,
 		    o->per_source_penalty.penalty_authfail,
 		    o->per_source_penalty.penalty_noauth,
 		    o->per_source_penalty.penalty_grace,
+		    o->per_source_penalty.penalty_refuseconnection,
 		    o->per_source_penalty.penalty_max,
 		    o->per_source_penalty.penalty_min,
 		    o->per_source_penalty.max_sources4,

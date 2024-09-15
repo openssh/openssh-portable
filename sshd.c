@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.611 2024/09/12 00:36:27 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.612 2024/09/15 01:11:26 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -378,6 +378,13 @@ child_reap(struct early_child *child)
 			penalty_type = SRCLIMIT_PENALTY_AUTHFAIL;
 			debug_f("preauth child %ld for %s exited "
 			    "after unsuccessful auth attempt %s",
+			    (long)child->pid, child->id,
+			    child->early ? " (early)" : "");
+			break;
+		case EXIT_CONFIG_REFUSED:
+			penalty_type = SRCLIMIT_PENALTY_REFUSECONNECTION;
+			debug_f("preauth child %ld for %s prohibited by"
+			    "RefuseConnection %s",
 			    (long)child->pid, child->id,
 			    child->early ? " (early)" : "");
 			break;

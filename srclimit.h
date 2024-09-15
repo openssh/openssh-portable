@@ -22,11 +22,12 @@ void	srclimit_init(int, int, int, int,
 int	srclimit_check_allow(int, int);
 void	srclimit_done(int);
 
-#define SRCLIMIT_PENALTY_NONE		0
-#define SRCLIMIT_PENALTY_CRASH		1
-#define SRCLIMIT_PENALTY_AUTHFAIL	2
-#define SRCLIMIT_PENALTY_GRACE_EXCEEDED	3
-#define SRCLIMIT_PENALTY_NOAUTH		4
+#define SRCLIMIT_PENALTY_NONE			0
+#define SRCLIMIT_PENALTY_CRASH			1
+#define SRCLIMIT_PENALTY_AUTHFAIL		2
+#define SRCLIMIT_PENALTY_GRACE_EXCEEDED		3
+#define SRCLIMIT_PENALTY_NOAUTH			4
+#define SRCLIMIT_PENALTY_REFUSECONNECTION	5
 
 /* meaningful exit values, used by sshd listener for penalties */
 #define EXIT_LOGIN_GRACE	3	/* login grace period exceeded */
