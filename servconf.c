@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.413 2024/08/17 08:23:04 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.414 2024/09/15 00:58:01 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1022,43 +1022,46 @@ match_test_missing_fatal(const char *criteria, const char *attrib)
  * not match.
  */
 static int
-match_cfg_line(char **condition, int line, struct connection_info *ci)
+match_cfg_line(const char *full_line, int *acp, char ***avp,
+    int line, struct connection_info *ci)
 {
 	int result = 1, attributes = 0, port;
-	char *arg, *attrib, *cp = *condition;
+	char *arg, *attrib;
 
 	if (ci == NULL)
-		debug3("checking syntax for 'Match %s'", cp);
-	else
+		debug3("checking syntax for 'Match %s'", full_line);
+	else {
 		debug3("checking match for '%s' user %s host %s addr %s "
-		    "laddr %s lport %d", cp, ci->user ? ci->user : "(null)",
+		    "laddr %s lport %d", full_line,
+		    ci->user ? ci->user : "(null)",
 		    ci->host ? ci->host : "(null)",
 		    ci->address ? ci->address : "(null)",
 		    ci->laddress ? ci->laddress : "(null)", ci->lport);
+	}
 
-	while ((attrib = strdelim(&cp)) && *attrib != '\0') {
+	while ((attrib = argv_next(acp, avp)) != NULL) {
 		/* Terminate on comment */
 		if (*attrib == '#') {
-			cp = NULL; /* mark all arguments consumed */
+			argv_consume(acp); /* mark all arguments consumed */
 			break;
 		}
 		arg = NULL;
 		attributes++;
 		/* Criterion "all" has no argument and must appear alone */
 		if (strcasecmp(attrib, "all") == 0) {
-			if (attributes > 1 || ((arg = strdelim(&cp)) != NULL &&
+			if (attributes > 1 ||
+			    ((arg = argv_next(acp, avp)) != NULL &&
 			    *arg != '\0' && *arg != '#')) {
 				error("'all' cannot be combined with other "
 				    "Match attributes");
 				return -1;
 			}
 			if (arg != NULL && *arg == '#')
-				cp = NULL; /* mark all arguments consumed */
-			*condition = cp;
+				argv_consume(acp); /* consume remaining args */
 			return 1;
 		}
 		/* All other criteria require an argument */
-		if ((arg = strdelim(&cp)) == NULL ||
+		if ((arg = argv_next(acp, avp)) == NULL ||
 		    *arg == '\0' || *arg == '#') {
 			error("Missing Match criteria for %s", attrib);
 			return -1;
@@ -1189,7 +1192,6 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 	}
 	if (ci != NULL)
 		debug3("match %sfound", result ? "" : "not ");
-	*condition = cp;
 	return result;
 }
 
@@ -2326,7 +2328,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		if (cmdline)
 			fatal("Match directive not supported as a command-line "
 			    "option");
-		value = match_cfg_line(&str, linenum,
+		value = match_cfg_line(str, &ac, &av, linenum,
 		    (*inc_flags & SSHCFG_NEVERMATCH ? NULL : connectinfo));
 		if (value < 0)
 			fatal("%s line %d: Bad Match condition", filename,
@@ -2337,12 +2339,6 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		 * match block.
 		 */
 		*inc_flags &= ~SSHCFG_MATCH_ONLY;
-		/*
-		 * If match_cfg_line() didn't consume all its arguments then
-		 * arrange for the extra arguments check below to fail.
-		 */
-		if (str == NULL || *str == '\0')
-			argv_consume(&ac);
 		break;
 
 	case sPermitListen:
