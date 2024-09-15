@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.242 2024/09/09 02:39:57 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.243 2024/09/15 00:41:18 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1496,7 +1496,7 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 	}
 	auth2_record_key(authctxt, ret == 0, key);
 
-	if (key_blobtype == MM_USERKEY)
+	if (key_blobtype == MM_USERKEY && ret == 0)
 		auth_activate_options(ssh, key_opts);
 	monitor_reset_key_state();
 
