@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: sntrup761.sh,v 1.8 2024/09/15 02:20:51 djm Exp $
+#       $OpenBSD: sntrup761.sh,v 1.9 2024/09/16 05:37:05 djm Exp $
 #       Placed in the Public Domain.
 #
 AUTHOR="supercop-20240808/crypto_kem/sntrup761/ref/implementors"
@@ -63,8 +63,13 @@ for i in $FILES; do
 	        -e "s/static void crypto_int16_minmax/void crypto_int16_minmax/"
 	    ;;
 	*/cryptoint/crypto_int32.h)
+	# Use int64_t for intermediate values in crypto_int32_minmax to
+	# prevent signed 32-bit integer overflow when called by
+	# crypto_sort_int32. Original code depends on -fwrapv (we set -ftrapv)
 	    sed -e "s/static void crypto_int32_store/void crypto_int32_store/" \
 		-e "s/^[#]define crypto_int32_optblocker.*//" \
+		-e "s/crypto_int32 crypto_int32_r = crypto_int32_y ^ crypto_int32_x;/crypto_int64 crypto_int32_r = (crypto_int64)crypto_int32_y ^ (crypto_int64)crypto_int32_x;/" \
+		-e "s/crypto_int32 crypto_int32_z = crypto_int32_y - crypto_int32_x;/crypto_int64 crypto_int32_z = (crypto_int64)crypto_int32_y - (crypto_int64)crypto_int32_x;/" \
 	        -e "s/static void crypto_int32_minmax/void crypto_int32_minmax/"
 	    ;;
 	*/cryptoint/crypto_int64.h)
