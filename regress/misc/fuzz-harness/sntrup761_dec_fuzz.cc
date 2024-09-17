@@ -50,8 +50,8 @@ void privkeys(unsigned char *zero_sk, unsigned char *rnd_sk)
 int LLVMFuzzerTestOneInput(const uint8_t* input, size_t len)
 {
 	static bool once;
-	unsigned char zero_sk[crypto_kem_sntrup761_SECRETKEYBYTES];
-	unsigned char rnd_sk[crypto_kem_sntrup761_SECRETKEYBYTES];
+	static unsigned char zero_sk[crypto_kem_sntrup761_SECRETKEYBYTES];
+	static unsigned char rnd_sk[crypto_kem_sntrup761_SECRETKEYBYTES];
 	unsigned char ciphertext[crypto_kem_sntrup761_CIPHERTEXTBYTES];
 	unsigned char secret[crypto_kem_sntrup761_BYTES];
 
