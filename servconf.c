@@ -71,7 +71,7 @@
 #include "sshbuf.h"
 
 #if !defined(SSHD_PAM_SERVICE)
-# define SSHD_PAM_SERVICE		"sshd"
+# define SSHD_PAM_SERVICE		"hpnsshd"
 #endif
 
 static void add_listen_addr(ServerOptions *, const char *,
