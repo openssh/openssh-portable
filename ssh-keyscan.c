@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.161 2024/09/09 02:39:57 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.162 2024/09/20 02:00:46 jsg Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -650,7 +650,7 @@ do_host(char *host)
 			if (addr_cmp(&addr, &end_addr) == 0)
 				break;
 			addr_increment(&addr);
-		};
+		}
 	}
 }
 
