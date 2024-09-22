@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.146 2024/09/04 05:33:34 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.147 2024/09/22 12:56:21 jsg Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -78,9 +78,6 @@
 #define SALT_LEN		16
 #define DEFAULT_CIPHERNAME	"aes256-ctr"
 #define	DEFAULT_ROUNDS		24
-
-/* Version identification string for SSH v1 identity files. */
-#define LEGACY_BEGIN		"SSH PRIVATE KEY FILE FORMAT 1.1\n"
 
 /*
  * Constants relating to "shielding" support; protection of keys expected

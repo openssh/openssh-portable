@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.244 2024/09/15 01:09:40 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.245 2024/09/22 12:56:21 jsg Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1833,8 +1833,6 @@ monitor_openfds(struct monitor *mon, int do_logfds)
 	} else
 		mon->m_log_recvfd = mon->m_log_sendfd = -1;
 }
-
-#define MM_MEMSIZE	65536
 
 struct monitor *
 monitor_init(void)
