@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.306 2024/03/09 05:12:13 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.307 2024/09/24 02:28:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1701,6 +1701,10 @@ process_ext_session_bind(SocketEntry *e)
 	    (r = sshbuf_froms(e->request, &sig)) != 0 ||
 	    (r = sshbuf_get_u8(e->request, &fwd)) != 0) {
 		error_fr(r, "parse");
+		goto out;
+	}
+	if (sshbuf_len(sid) > AGENT_MAX_SID_LEN) {
+		error_f("session ID too long");
 		goto out;
 	}
 	if ((fp = sshkey_fingerprint(key, SSH_FP_HASH_DEFAULT,
