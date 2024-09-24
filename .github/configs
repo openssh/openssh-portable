@@ -301,6 +301,14 @@ case "${TARGET_HOST}" in
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET="t-exec"
 	;;
+    openwrt-mips)
+	# Test most of the flags that OpenWRT sets for their package build.
+	# We only do this on one OpenWRT target for better coverage.
+	OPENWRT_FLAGS="--disable-strip --disable-lastlog
+	   --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx
+	   --with-stackprotect --with-cflags-after=-fzero-call-used-regs=skip"
+	CONFIGFLAGS="${CONFIGFLAGS} $(echo ${OPENWRT_FLAGS})"
+	;;
     sol10|sol11)
 	# sol10 VM is 32bit and the unit tests are slow.
 	# sol11 has 4 test configs so skip unit tests to speed up.
