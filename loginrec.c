@@ -614,7 +614,7 @@ line_abbrevname(char *dst, const char *src, int dstsize)
  ** into account.
  **/
 
-#if defined(USE_UTMP) || defined (USE_WTMP) || defined (USE_LOGIN)
+#if defined(USE_BTMP) || defined(USE_UTMP) || defined (USE_WTMP) || defined (USE_LOGIN)
 
 /* build the utmp structure */
 void
@@ -698,7 +698,7 @@ construct_utmp(struct logininfo *li,
 	}
 # endif
 }
-#endif /* USE_UTMP || USE_WTMP || USE_LOGIN */
+#endif /* USE_BTMP || USE_UTMP || USE_WTMP || USE_LOGIN */
 
 /**
  ** utmpx utility functions
