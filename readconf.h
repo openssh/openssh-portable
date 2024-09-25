@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.156 2024/03/04 02:16:11 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.157 2024/09/25 23:01:39 jsg Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -19,7 +19,6 @@
 /* Data structure for representing option data. */
 
 #define SSH_MAX_HOSTS_FILES	32
-#define MAX_CANON_DOMAINS	32
 #define PATH_MAX_SUN		(sizeof((struct sockaddr_un *)0)->sun_path)
 
 struct allowed_cname {
