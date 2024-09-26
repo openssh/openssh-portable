@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.391 2024/09/25 01:24:04 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.392 2024/09/26 23:55:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -710,7 +710,7 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
     struct passwd *pw, const char *host_arg, const char *original_host,
     int final_pass, int *want_final_pass, const char *filename, int linenum)
 {
-	char *arg, *oattrib, *attrib = NULL, *cmd, *host, *criteria;
+	char *arg, *oattrib = NULL, *attrib = NULL, *cmd, *host, *criteria;
 	const char *ruser;
 	int r, this_result, result = 1, attributes = 0, negate;
 
@@ -731,8 +731,8 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 
 	debug2("checking match for '%s' host %s originally %s",
 	    full_line, host, original_host);
-	while ((oattrib = argv_next(acp, avp)) != NULL) {
-		attrib = xstrdup(oattrib);
+	while ((attrib = argv_next(acp, avp)) != NULL) {
+		attrib = oattrib = xstrdup(attrib);
 		/* Terminate on comment */
 		if (*attrib == '#') {
 			argv_consume(acp);
@@ -871,8 +871,8 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 		    criteria == NULL ? "" : criteria,
 		    criteria == NULL ? "" : "\"");
 		free(criteria);
-		free(attrib);
-		attrib = NULL;
+		free(oattrib);
+		oattrib = attrib = NULL;
 	}
 	if (attributes == 0) {
 		error("One or more attributes required for Match");
@@ -882,7 +882,7 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
  out:
 	if (result != -1)
 		debug2("match %sfound", result ? "" : "not ");
-	free(attrib);
+	free(oattrib);
 	free(host);
 	return result;
 }
