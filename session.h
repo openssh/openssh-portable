@@ -38,7 +38,7 @@ struct Session {
 	int	forced;
 
 	/* tty */
-	char	*term;
+	char	*term, *colorterm;
 	int	ptyfd, ttyfd, ptymaster;
 	u_int	row, col, xpixel, ypixel;
 	char	tty[TTYSZ];
