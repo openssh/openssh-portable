@@ -662,6 +662,18 @@ sshpam_store_conv(int n, sshpam_const struct pam_message **msg,
 static struct pam_conv store_conv = { sshpam_store_conv, NULL };
 
 void
+sshpam_cleanup_in_child(void)
+{
+	if (sshpam_handle == NULL)
+		return;
+
+#ifdef PAM_DATA_SILENT
+	/* macOS PAM doesn't support PAM_DATA_SILENT.  */
+	pam_end(sshpam_handle, PAM_SUCCESS | PAM_DATA_SILENT);
+#endif
+}
+
+void
 sshpam_cleanup(void)
 {
 	if (sshpam_handle == NULL || !mm_is_monitor())
