@@ -1545,10 +1545,23 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 #endif /* HAVE_OSF_SIA */
 
 #ifdef USE_PAM
-	if (options.use_pam && !is_pam_session_open()) {
-		debug3("PAM session not opened, exiting");
-		display_loginmsg();
-		exit(254);
+	if (options.use_pam) {
+		if (!is_pam_session_open()) {
+			debug3("PAM session not opened, exiting");
+			display_loginmsg();
+			exit(254);
+		}
+
+		/*
+		 * Shutting down the forked PAM handle must be done as per the
+		 * Linux-PAM documentation, specifically after setuid.
+		 *
+		 * Concretely, this ensures pam_cap can configure ambient
+		 * capabilities for the session by applying them during
+		 * cleanup. Without this, the ambient capability vector gets
+		 * cleared during setuid.
+		 */
+		sshpam_cleanup_in_child();
 	}
 #endif
 
