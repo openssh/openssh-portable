@@ -467,6 +467,32 @@ sshpam_thread_conv(int n, sshpam_const struct pam_message **msg,
 	return (PAM_CONV_ERR);
 }
 
+static int
+check_pam_user(Authctxt *authctxt)
+{
+	const char *pam_user;
+
+	if (authctxt == NULL || authctxt->pw == NULL ||
+	    authctxt->pw->pw_name == NULL)
+		fatal("%s: PAM authctxt user not initialized", __func__);
+
+	if ((sshpam_err = pam_get_item(sshpam_handle, PAM_USER,
+	    (sshpam_const void **) &pam_user)) != PAM_SUCCESS)
+		return sshpam_err;
+
+	if (pam_user == NULL) {
+		debug("PAM error: PAM_USER is NULL");
+		return PAM_USER_UNKNOWN;
+	}
+
+	if (strcmp(authctxt->pw->pw_name, pam_user) != 0) {
+		debug("PAM user \"%s\" does not match expected \"%s\"",
+		      pam_user, authctxt->pw->pw_name);
+		return PAM_USER_UNKNOWN;
+	}
+	return PAM_SUCCESS;
+}
+
 /*
  * Authentication thread.
  */
@@ -520,6 +546,8 @@ sshpam_thread(void *ctxtp)
 	if (sshpam_err == PAM_MAXTRIES)
 		sshpam_set_maxtries_reached(1);
 	if (sshpam_err != PAM_SUCCESS)
+		goto auth_fail;
+	if ((sshpam_err = check_pam_user(sshpam_authctxt)) != PAM_SUCCESS)
 		goto auth_fail;
 
 	if (!do_pam_account()) {
@@ -686,8 +714,7 @@ sshpam_cleanup(void)
 static int
 sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 {
-	const char *pam_user, *user = authctxt->user;
-	const char **ptr_pam_user = &pam_user;
+	const char *user = authctxt->user;
 	int r;
 
 	if (options.pam_service_name == NULL)
@@ -706,12 +733,8 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 	}
 	if (sshpam_handle != NULL) {
 		/* We already have a PAM context; check if the user matches */
-		sshpam_err = pam_get_item(sshpam_handle,
-		    PAM_USER, (sshpam_const void **)ptr_pam_user);
-		if (sshpam_err == PAM_SUCCESS && strcmp(user, pam_user) == 0)
-			return (0);
-		pam_end(sshpam_handle, sshpam_err);
-		sshpam_handle = NULL;
+		if ((sshpam_err = check_pam_user(authctxt)) != PAM_SUCCESS)
+			fatal("PAM user mismatch");
 	}
 	debug("PAM: initializing for \"%s\" with service \"%s\"", user,
 	    options.pam_service_name);
@@ -1378,6 +1401,8 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 	sshpam_err = pam_authenticate(sshpam_handle, flags);
 	sshpam_password = NULL;
 	free(fake);
+	if (sshpam_err == PAM_SUCCESS)
+		sshpam_err = check_pam_user(authctxt);
 	if (sshpam_err == PAM_MAXTRIES)
 		sshpam_set_maxtries_reached(1);
 	if (sshpam_err == PAM_SUCCESS && authctxt->valid) {
