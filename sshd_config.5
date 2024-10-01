@@ -250,7 +250,7 @@ If no arguments are specified then the username of the target user is used.
 .Pp
 The program should produce on standard output zero or
 more lines of authorized_keys output (see
-.Sx AUTHORIZED_KEYS
+.Cm AUTHORIZED_KEYS
 in
 .Xr sshd 8 ) .
 .Cm AuthorizedKeysCommand
@@ -339,7 +339,7 @@ When using certificates signed by a key listed in
 this file lists names, one of which must appear in the certificate for it
 to be accepted for authentication.
 Names are listed one per line preceded by key options (as described in
-.Sx AUTHORIZED_KEYS FILE FORMAT
+.Cm AUTHORIZED_KEYS FILE FORMAT
 in
 .Xr sshd 8 ) .
 Empty lines and comments starting with
