@@ -1885,10 +1885,8 @@ userauth_pubkey(struct ssh *ssh)
 			debug("Trying private key: %s", id->filename);
 			id->key = load_identity_file(id);
 			if (id->key != NULL) {
-				if (id->key != NULL) {
-					id->isprivate = 1;
-					sent = sign_and_send_pubkey(ssh, id);
-				}
+				id->isprivate = 1;
+				sent = sign_and_send_pubkey(ssh, id);
 				sshkey_free(id->key);
 				id->key = NULL;
 				id->isprivate = 0;
