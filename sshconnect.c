@@ -392,6 +392,9 @@ ssh_create_socket(struct addrinfo *ai)
 		}
 		memcpy(&bindaddr, res->ai_addr, res->ai_addrlen);
 		bindaddrlen = res->ai_addrlen;
+#ifdef IP_BIND_ADDRESS_NO_PORT
+		setsockopt(sock, SOL_IP, IP_BIND_ADDRESS_NO_PORT, &(int) {1}, sizeof(int));
+#endif
 	} else if (options.bind_interface != NULL) {
 #ifdef HAVE_IFADDRS_H
 		if ((r = getifaddrs(&ifaddrs)) != 0) {
@@ -415,6 +418,9 @@ ssh_create_socket(struct addrinfo *ai)
 		error_f("getnameinfo failed: %s", ssh_gai_strerror(r));
 		goto fail;
 	}
+#ifdef IP_BIND_ADDRESS_NO_PORT
+	(void) setsockopt(sock, SOL_IP, IP_BIND_ADDRESS_NO_PORT, &(int) {1}, sizeof(int));
+#endif
 	if (bind(sock, (struct sockaddr *)&bindaddr, bindaddrlen) != 0) {
 		error("bind %s: %s", ntop, strerror(errno));
 		goto fail;
