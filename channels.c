@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.439 2024/07/25 22:40:08 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.440 2024/10/13 22:20:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -5335,4 +5335,23 @@ x11_request_forwarding_with_spoofing(struct ssh *ssh, int client_session_id,
 	    (r = ssh_packet_write_wait(ssh)) != 0)
 		fatal_fr(r, "send x11-req");
 	free(new_data);
+}
+
+/*
+ * Returns whether an x11 channel was used recently (less than a second ago)
+ */
+int
+x11_channel_used_recently(struct ssh *ssh) {
+	u_int i;
+	Channel *c;
+	time_t lastused = 0;
+
+	for (i = 0; i < ssh->chanctxt->channels_alloc; i++) {
+		c = ssh->chanctxt->channels[i];
+		if (c == NULL || c->ctype == NULL || c->lastused == 0 ||
+		    strcmp(c->ctype, "x11-connection") != 0)
+			continue;
+		lastused = c->lastused;
+	}
+	return lastused != 0 && monotime() > lastused + 1;
 }
