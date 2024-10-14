@@ -163,6 +163,10 @@ static void do_ssh2_kex(struct ssh *);
 /* Unprivileged user */
 struct passwd *privsep_pw = NULL;
 
+#ifndef HAVE_PLEDGE
+static struct ssh_sandbox *box;
+#endif
+
 /* XXX stub */
 int
 mm_is_monitor(void)
@@ -174,9 +178,8 @@ static void
 privsep_child_demote(void)
 {
 	gid_t gidset[1];
-#ifndef HAVE_PLEDGE
-	struct ssh_sandbox *box = NULL;
 
+#ifndef HAVE_PLEDGE
 	if ((box = ssh_sandbox_init(pmonitor)) == NULL)
 		fatal_f("ssh_sandbox_init failed");
 #endif
