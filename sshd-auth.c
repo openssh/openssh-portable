@@ -42,7 +42,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
-#include <paths.h>
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
 #include <pwd.h>
 #include <grp.h>
 #include <signal.h>
@@ -456,8 +458,23 @@ main(int ac, char **av)
 	sigemptyset(&sigmask);
 	sigprocmask(SIG_SETMASK, &sigmask, NULL);
 
-	/* Save argv. */
-	saved_argv = av;
+#ifdef HAVE_SECUREWARE
+	(void)set_auth_parameters(ac, av);
+#endif
+	__progname = ssh_get_progname(av[0]);
+
+	/* Save argv. Duplicate so setproctitle emulation doesn't clobber it */
+	saved_argc = ac;
+	saved_argv = xcalloc(ac + 1, sizeof(*saved_argv));
+	for (i = 0; (int)i < ac; i++)
+		saved_argv[i] = xstrdup(av[i]);
+	saved_argv[i] = NULL;
+
+#ifndef HAVE_SETPROCTITLE
+	/* Prepare for later setproctitle emulation */
+	compat_init_setproctitle(ac, av);
+	av = saved_argv;
+#endif
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
