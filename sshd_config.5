@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.375 2024/10/06 23:37:17 djm Exp $
-.Dd $Mdocdate: October 6 2024 $
+.\" $OpenBSD: sshd_config.5,v 1.376 2024/10/14 23:53:34 naddy Exp $
+.Dd $Mdocdate: October 14 2024 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1853,6 +1853,13 @@ via
 .Cm AcceptEnv
 or
 .Cm PermitUserEnvironment .
+.It Cm SshdAuthPath
+Overrides the default path to the
+.Cm sshd-auth
+binary that is invoked to complete user authentication.
+The default is
+.Pa /usr/libexec/sshd-auth .
+This option is intended for use by tests.
 .It Cm SshdSessionPath
 Overrides the default path to the
 .Cm sshd-session
