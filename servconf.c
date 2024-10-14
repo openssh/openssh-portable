@@ -214,6 +214,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_channel_timeouts = 0;
 	options->unused_connection_timeout = -1;
 	options->sshd_session_path = NULL;
+	options->sshd_auth_path = NULL;
 	options->refuse_connection = -1;
 }
 
@@ -493,6 +494,8 @@ fill_default_server_options(ServerOptions *options)
 		options->unused_connection_timeout = 0;
 	if (options->sshd_session_path == NULL)
 		options->sshd_session_path = xstrdup(_PATH_SSHD_SESSION);
+	if (options->sshd_auth_path == NULL)
+		options->sshd_auth_path = xstrdup(_PATH_SSHD_AUTH);
 	if (options->refuse_connection == -1)
 		options->refuse_connection = 0;
 
@@ -577,7 +580,7 @@ typedef enum {
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
 	sRequiredRSASize, sChannelTimeout, sUnusedConnectionTimeout,
-	sSshdSessionPath, sRefuseConnection,
+	sSshdSessionPath, sSshdAuthPath, sRefuseConnection,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -745,6 +748,7 @@ static struct {
 	{ "channeltimeout", sChannelTimeout, SSHCFG_ALL },
 	{ "unusedconnectiontimeout", sUnusedConnectionTimeout, SSHCFG_ALL },
 	{ "sshdsessionpath", sSshdSessionPath, SSHCFG_GLOBAL },
+	{ "sshdauthpath", sSshdAuthPath, SSHCFG_GLOBAL },
 	{ "refuseconnection", sRefuseConnection, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
@@ -2703,6 +2707,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		charptr = &options->sshd_session_path;
 		goto parse_filename;
 
+	case sSshdAuthPath:
+		charptr = &options->sshd_auth_path;
+		goto parse_filename;
+
 	case sRefuseConnection:
 		intptr = &options->refuse_connection;
 		multistate_ptr = multistate_flag;
@@ -3288,6 +3296,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sRDomain, o->routing_domain);
 #endif
 	dump_cfg_string(sSshdSessionPath, o->sshd_session_path);
+	dump_cfg_string(sSshdAuthPath, o->sshd_auth_path);
 	dump_cfg_string(sPerSourcePenaltyExemptList, o->per_source_penalty_exempt);
 
 	/* string arguments requiring a lookup */

@@ -1664,6 +1664,13 @@ main(int ac, char **av)
 		fatal("%s does not exist or is not executable", rexec_argv[0]);
 	debug3("using %s for re-exec", rexec_argv[0]);
 
+	/* Ensure that the privsep binary exists now too. */
+	if (stat(options.sshd_auth_path, &sb) != 0 ||
+	    !(sb.st_mode & (S_IXOTH|S_IXUSR))) {
+		fatal("%s does not exist or is not executable",
+		    options.sshd_auth_path);
+	}
+
 	listener_proctitle = prepare_proctitle(ac, av);
 
 	/* Ensure that umask disallows at least group and world write */
