@@ -126,6 +126,8 @@ static int inetd_flag = 0;
 
 /* Saved arguments to main(). */
 static char **saved_argv;
+static int saved_argc;
+
 
 /* Daemon's agent connection */
 int auth_sock = -1;
