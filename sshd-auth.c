@@ -472,6 +472,8 @@ main(int ac, char **av)
 		saved_argv[i] = xstrdup(av[i]);
 	saved_argv[i] = NULL;
 
+	seed_rng();
+
 #ifndef HAVE_SETPROCTITLE
 	/* Prepare for later setproctitle emulation */
 	compat_init_setproctitle(ac, av);
