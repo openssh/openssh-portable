@@ -17,9 +17,9 @@ jobs:
         target:
           - ubuntu-20.04
           - ubuntu-22.04
-          - macos-12
           - macos-13
           - macos-14
+          - macos-15
           - windows-2019
           - windows-2022
         config: [default]
@@ -100,9 +100,9 @@ jobs:
           - { target: ubuntu-22.04, config: selinux }
           - { target: ubuntu-22.04, config: kitchensink }
           - { target: ubuntu-22.04, config: without-openssl }
-          - { target: macos-12, config: pam }
           - { target: macos-13, config: pam }
           - { target: macos-14, config: pam }
+          - { target: macos-15, config: pam }
     runs-on: ${{ matrix.target }}
     steps:
     - name: set cygwin git params
