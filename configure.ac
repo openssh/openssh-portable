@@ -614,6 +614,9 @@ SPP_MSG="no"
 # the --with-solaris-privs option and --with-sandbox=solaris).
 SOLARIS_PRIVS="no"
 
+# Default shared library extension
+SHLIBEXT=".so"
+
 # Check for some target-specific stuff
 case "$host" in
 *-*-aix*)
@@ -732,6 +735,7 @@ case "$host" in
 	# Cygwin defines optargs, optargs as declspec(dllimport) for historical
 	# reasons which cause compile warnings, so we disable those warnings.
 	OSSH_CHECK_CFLAG_COMPILE([-Wno-attributes])
+	SHLIBEXT=".dll"
 	;;
 *-*-dgux*)
 	AC_DEFINE([IP_TOS_IS_BROKEN], [1],
@@ -791,6 +795,7 @@ int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	# cf. Apple bug 3710161 (not public, but searchable)
 	AC_DEFINE([BROKEN_POLL], [1],
 	    [System poll(2) implementation is broken])
+	SHLIBEXT=".dylib"
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS"
@@ -2079,6 +2084,12 @@ AC_ARG_WITH([security-key-builtin],
 	[ enable_sk_internal=$withval ]
 )
 
+enable_sk_standalone=
+AC_ARG_WITH([security-key-standalone],
+	[  --with-security-key-standalone build standalone sk-libfido2 SecurityKeyProvider],
+	[ enable_sk_standalone=$withval ]
+)
+
 enable_dsa=
 AC_ARG_ENABLE([dsa-keys],
 	[  --enable-dsa-keys       enable DSA key support [no]],
@@ -3314,6 +3325,16 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" != "xno" ; then
 		])
 		LIBS="$saved_LIBS"
 	fi
+fi
+
+# Check for standalone SecurityKeyProvider
+AC_MSG_CHECKING([whether to build standlone sk-libfido2])
+if test "x$enable_sk_standalone" = "xyes" ; then
+	AC_MSG_RESULT([yes])
+	AC_SUBST([SK_STANDALONE], [sk-libfido2$SHLIBEXT])
+else
+	AC_MSG_RESULT([no])
+	AC_SUBST([SK_STANDALONE], [""])
 fi
 
 AC_CHECK_FUNCS([ \

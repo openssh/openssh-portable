@@ -77,10 +77,11 @@
 #define FIDO_CRED_PROT_UV_OPTIONAL_WITH_ID 0
 #endif
 
+# include "misc.h"
+
 #ifndef SK_STANDALONE
 # include "log.h"
 # include "xmalloc.h"
-# include "misc.h"
 /*
  * If building as part of OpenSSH, then rename exported functions.
  * This must be done before including sk-api.h.
