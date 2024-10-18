@@ -181,7 +181,7 @@ case "$config" in
 	CONFIGFLAGS="--with-selinux"
 	;;
     sk)
-	CONFIGFLAGS="--with-security-key-builtin"
+	CONFIGFLAGS="--with-security-key-builtin --with-security-key-standalone"
         ;;
     without-openssl)
 	LIBCRYPTOFLAGS="--without-openssl"
