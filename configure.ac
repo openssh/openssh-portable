@@ -114,11 +114,6 @@ AC_C_INLINE
 
 AC_CHECK_DECL([LLONG_MAX], [have_llong_max=1], , [#include <limits.h>])
 AC_CHECK_DECL([LONG_LONG_MAX], [have_long_long_max=1], , [#include <limits.h>])
-AC_CHECK_DECL([SYSTR_POLICY_KILL], [have_systr_policy_kill=1], , [
-	#include <sys/types.h>
-	#include <sys/param.h>
-	#include <dev/systrace.h>
-])
 AC_CHECK_DECL([RLIMIT_NPROC],
     [AC_DEFINE([HAVE_RLIMIT_NPROC], [], [sys/resource.h has RLIMIT_NPROC])], , [
 	#include <sys/types.h>
@@ -3614,7 +3609,7 @@ AC_CHECK_TYPES([nfds_t], , , [
 # Decide which sandbox style to use
 sandbox_arg=""
 AC_ARG_WITH([sandbox],
-	[  --with-sandbox=style    Specify privilege separation sandbox (no, capsicum, darwin, rlimit, seccomp_filter, systrace, pledge)],
+	[  --with-sandbox=style    Specify privilege separation sandbox (no, capsicum, darwin, rlimit, seccomp_filter)],
 	[
 		if test "x$withval" = "xyes" ; then
 			sandbox_arg=""
@@ -3731,19 +3726,7 @@ if test "x$sandbox_arg" != "xno"; then
     )
 fi
 
-if test "x$sandbox_arg" = "xpledge" || \
-   ( test -z "$sandbox_arg" && test "x$ac_cv_func_pledge" = "xyes" ) ; then
-	test "x$ac_cv_func_pledge" != "xyes" && \
-		AC_MSG_ERROR([pledge sandbox requires pledge(2) support])
-	SANDBOX_STYLE="pledge"
-	AC_DEFINE([SANDBOX_PLEDGE], [1], [Sandbox using pledge(2)])
-elif test "x$sandbox_arg" = "xsystrace" || \
-   ( test -z "$sandbox_arg" && test "x$have_systr_policy_kill" = "x1" ) ; then
-	test "x$have_systr_policy_kill" != "x1" && \
-		AC_MSG_ERROR([systrace sandbox requires systrace headers and SYSTR_POLICY_KILL support])
-	SANDBOX_STYLE="systrace"
-	AC_DEFINE([SANDBOX_SYSTRACE], [1], [Sandbox using systrace(4)])
-elif test "x$sandbox_arg" = "xdarwin" || \
+if test "x$sandbox_arg" = "xdarwin" || \
      ( test -z "$sandbox_arg" && test "x$ac_cv_func_sandbox_init" = "xyes" && \
        test "x$ac_cv_header_sandbox_h" = "xyes") ; then
 	test "x$ac_cv_func_sandbox_init" != "xyes" -o \
