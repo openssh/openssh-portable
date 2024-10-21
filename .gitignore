@@ -29,6 +29,8 @@ ssh-keysign
 ssh-pkcs11-helper
 ssh-sk-helper
 sshd
+sshd-session
+sshd-auth
 !regress/misc/fuzz-harness/Makefile
 !regress/unittests/sshsig/Makefile
 tags
