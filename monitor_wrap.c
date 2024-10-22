@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.137 2024/10/14 01:57:50 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.138 2024/10/22 06:13:00 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -273,7 +273,8 @@ mm_sshkey_sign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	if ((r = sshbuf_get_string(m, sigp, lenp)) != 0)
 		fatal_fr(r, "parse");
 	sshbuf_free(m);
-	debug3_f("%s signature len=%zu", hostkey_alg, *lenp);
+	debug3_f("%s signature len=%zu", hostkey_alg ? hostkey_alg : "(null)",
+	    *lenp);
 
 	return (0);
 }
