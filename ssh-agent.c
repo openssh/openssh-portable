@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.307 2024/09/24 02:28:17 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.308 2024/10/24 03:15:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -162,7 +162,8 @@ int max_fd = 0;
 pid_t parent_pid = -1;
 time_t parent_alive_interval = 0;
 
-sig_atomic_t signalled = 0;
+static sig_atomic_t signalled_exit;
+static sig_atomic_t signalled_keydrop;
 
 /* pid of process for which cleanup_socket is applicable */
 pid_t cleanup_pid = 0;
@@ -1021,7 +1022,7 @@ process_remove_identity(SocketEntry *e)
 }
 
 static void
-process_remove_all_identities(SocketEntry *e)
+remove_all_identities(void)
 {
 	Identity *id;
 
@@ -1035,6 +1036,12 @@ process_remove_all_identities(SocketEntry *e)
 
 	/* Mark that there are no identities. */
 	idtab->nentries = 0;
+}
+
+static void
+process_remove_all_identities(SocketEntry *e)
+{
+	remove_all_identities();
 
 	/* Send success. */
 	send_status(e, 1);
@@ -2164,7 +2171,13 @@ cleanup_exit(int i)
 static void
 cleanup_handler(int sig)
 {
-	signalled = sig;
+	signalled_exit = sig;
+}
+
+static void
+keydrop_handler(int sig)
+{
+	signalled_keydrop = sig;
 }
 
 static void
@@ -2447,11 +2460,13 @@ skip:
 	ssh_signal(SIGINT, (d_flag | D_flag) ? cleanup_handler : SIG_IGN);
 	ssh_signal(SIGHUP, cleanup_handler);
 	ssh_signal(SIGTERM, cleanup_handler);
+	ssh_signal(SIGUSR1, keydrop_handler);
 
 	sigemptyset(&nsigset);
 	sigaddset(&nsigset, SIGINT);
 	sigaddset(&nsigset, SIGHUP);
 	sigaddset(&nsigset, SIGTERM);
+	sigaddset(&nsigset, SIGUSR1);
 
 	if (pledge("stdio rpath cpath unix id proc exec", NULL) == -1)
 		fatal("%s: pledge: %s", __progname, strerror(errno));
@@ -2459,9 +2474,15 @@ skip:
 
 	while (1) {
 		sigprocmask(SIG_BLOCK, &nsigset, &osigset);
-		if (signalled != 0) {
-			logit("exiting on signal %d", (int)signalled);
+		if (signalled_exit != 0) {
+			logit("exiting on signal %d", (int)signalled_exit);
 			cleanup_exit(2);
+		}
+		if (signalled_keydrop) {
+			logit("signal %d received; removing all keys",
+			    signalled_keydrop);
+			remove_all_identities();
+			signalled_keydrop = 0;
 		}
 		ptimeout_init(&timeout);
 		prepare_poll(&pfd, &npfd, &timeout, maxfds);
