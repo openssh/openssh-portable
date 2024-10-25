@@ -40,7 +40,6 @@ jobs:
           - fbsd12
           - fbsd13
           - fbsd14
-          - minix3
           - nbsd3
           - nbsd4
           - nbsd8
