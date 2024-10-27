@@ -2008,7 +2008,6 @@ AC_CHECK_FUNCS([ \
 	strtoll \
 	strtoul \
 	strtoull \
-	swap32 \
 	sysconf \
 	tcgetpgrp \
 	timegm \
