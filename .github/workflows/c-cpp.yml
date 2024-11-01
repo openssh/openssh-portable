@@ -63,18 +63,20 @@ jobs:
           - { target: ubuntu-latest, config: libressl-3.6.1 }
           - { target: ubuntu-latest, config: libressl-3.7.2 }
           - { target: ubuntu-latest, config: libressl-3.8.4 }
-          - { target: ubuntu-latest, config: libressl-3.9.1 }
+          - { target: ubuntu-latest, config: libressl-3.9.2 }
+          - { target: ubuntu-latest, config: libressl-4.0.0 }
           - { target: ubuntu-latest, config: openssl-master }
           - { target: ubuntu-latest, config: openssl-noec }
           - { target: ubuntu-latest, config: openssl-1.1.1 }
           - { target: ubuntu-latest, config: openssl-1.1.1t }
           - { target: ubuntu-latest, config: openssl-1.1.1w }
           - { target: ubuntu-latest, config: openssl-3.0.0 }
-          - { target: ubuntu-latest, config: openssl-3.0.13 }
+          - { target: ubuntu-latest, config: openssl-3.0.15 }
           - { target: ubuntu-latest, config: openssl-3.1.0 }
-          - { target: ubuntu-latest, config: openssl-3.1.5 }
-          - { target: ubuntu-latest, config: openssl-3.2.1 }
-          - { target: ubuntu-latest, config: openssl-3.3.0 }
+          - { target: ubuntu-latest, config: openssl-3.1.7 }
+          - { target: ubuntu-latest, config: openssl-3.2.3 }
+          - { target: ubuntu-latest, config: openssl-3.3.2 }
+          - { target: ubuntu-latest, config: openssl-3.4.0 }
           - { target: ubuntu-latest, config: openssl-1.1.1_stable }
           - { target: ubuntu-latest, config: openssl-3.0 }  # stable branch
           - { target: ubuntu-latest, config: openssl-3.1 }  # stable branch
