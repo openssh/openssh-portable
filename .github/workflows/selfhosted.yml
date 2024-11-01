@@ -44,6 +44,7 @@ jobs:
           - nbsd4
           - nbsd8
           - nbsd9
+          - nbsd10
           - obsd51
           - obsd67
           - obsd72
