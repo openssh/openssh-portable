@@ -2,9 +2,9 @@ name: C/C++ CI
 
 on:
   push:
-    paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/workflows/c-cpp.yaml' ]
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/workflows/c-cpp.yml' ]
   pull_request:
-    paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/workflows/c-cpp.yaml' ]
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/workflows/c-cpp.yml' ]
 
 jobs:
   ci:
