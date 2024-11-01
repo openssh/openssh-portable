@@ -757,6 +757,8 @@ unit: regress-unit-binaries
 		OBJ="$(BUILDDIR)/regress" \
 		$@ && echo $@ tests passed
 
+TEST_SSH_SSHD="$(BUILDDIR)/sshd"
+
 interop-tests t-exec file-tests extra-tests: regress-prep regress-binaries $(TARGETS)
 	cd $(srcdir)/regress || exit $$?; \
 	EGREP='@EGREP@' \
@@ -771,7 +773,7 @@ interop-tests t-exec file-tests extra-tests: regress-prep regress-binaries $(TAR
 		TEST_MALLOC_OPTIONS="@TEST_MALLOC_OPTIONS@" \
 		TEST_SSH_SCP="$(BUILDDIR)/scp" \
 		TEST_SSH_SSH="$(BUILDDIR)/ssh" \
-		TEST_SSH_SSHD="$(BUILDDIR)/sshd" \
+		TEST_SSH_SSHD="$(TEST_SSH_SSHD)" \
 		TEST_SSH_SSHD_SESSION="$(BUILDDIR)/sshd-session" \
 		TEST_SSH_SSHD_AUTH="$(BUILDDIR)/sshd-auth" \
 		TEST_SSH_SSHAGENT="$(BUILDDIR)/ssh-agent" \
