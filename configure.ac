@@ -628,6 +628,7 @@ case "$host" in
 	AC_MSG_CHECKING([if compiler allows macro redefinitions])
 	AC_COMPILE_IFELSE(
 	    [AC_LANG_PROGRAM([[
+#include <stdlib.h>
 #define testmacro foo
 #define testmacro bar]],
 	    [[ exit(0); ]])],
@@ -4407,7 +4408,11 @@ int main(void)
 	long long num = 0x7fffffffffffffffll;
 #endif
 	strcpy(expected_out, "9223372036854775807");
+#if (SIZEOF_LONG_INT == 8)
+	snprintf(buf, mazsize, "%ld", num);
+#else
 	snprintf(buf, mazsize, "%lld", num);
+#endif
 	if(strcmp(buf, expected_out) != 0)
 		exit(1);
 	exit(0);
