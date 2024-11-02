@@ -20,7 +20,6 @@
 #endif
 
 #include <netinet/in.h>
-#include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #ifdef HAVE_NET_ROUTE_H
 #include <net/route.h>
