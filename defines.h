@@ -55,7 +55,6 @@ enum
 /*
  * Definitions for IP type of service (ip_tos)
  */
-#include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #ifndef IPTOS_LOWDELAY
 # define IPTOS_LOWDELAY          0x10
