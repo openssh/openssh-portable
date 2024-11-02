@@ -216,7 +216,9 @@ including rpc/rpc.h breaks Solaris 6
 /* (or die trying) */
 
 #ifndef HAVE_U_INT
+typedef unsigned short u_short;
 typedef unsigned int u_int;
+typedef unsigned long u_long;
 #endif
 
 #ifndef HAVE_INTXX_T
