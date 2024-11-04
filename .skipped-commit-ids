@@ -37,6 +37,7 @@ ef9341d5a50f0d33e3a6fbe995e92964bc7ef2d3	Makefile relinking changes
 fb39324748824cb0387e9d67c41d1bef945c54ea	Makefile change
 5f378c38ad8976d507786dc4db9283a879ec8cd0	Makefile change
 112aacedd3b61cc5c34b1fa6d9fb759214179172	Makefile change
+a959fc45ea3431b36f52eda04faefc58bcde00db	groupaccess.c changes
 
 Old upstream tree:
 
