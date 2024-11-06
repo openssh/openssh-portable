@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.308 2024/10/24 03:15:47 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.309 2024/11/06 22:51:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -93,6 +93,9 @@
 
 #ifndef DEFAULT_ALLOWED_PROVIDERS
 # define DEFAULT_ALLOWED_PROVIDERS "/usr/lib*/*,/usr/local/lib*/*"
+#endif
+#ifndef DEFAULT_WEBSAFE_ALLOWLIST
+# define DEFAULT_WEBSAFE_ALLOWLIST "ssh:*"
 #endif
 
 /* Maximum accepted message length */
@@ -198,6 +201,7 @@ static int fingerprint_hash = SSH_FP_HASH_DEFAULT;
 
 /* Refuse signing of non-SSH messages for web-origin FIDO keys */
 static int restrict_websafe = 1;
+static char *websafe_allowlist;
 
 static void
 close_socket(SocketEntry *e)
@@ -925,7 +929,8 @@ process_sign_request2(SocketEntry *e)
 	}
 	if (sshkey_is_sk(id->key)) {
 		if (restrict_websafe &&
-		    strncmp(id->key->sk_application, "ssh:", 4) != 0 &&
+		    match_pattern_list(id->key->sk_application,
+		    websafe_allowlist, 0) != 1 &&
 		    !check_websafe_message_contents(key, data)) {
 			/* error already logged */
 			goto send;
@@ -2212,6 +2217,7 @@ main(int ac, char **av)
 	int c_flag = 0, d_flag = 0, D_flag = 0, k_flag = 0, s_flag = 0;
 	int sock, ch, result, saved_errno;
 	char *shell, *format, *pidstr, *agentsocket = NULL;
+	const char *ccp;
 #ifdef HAVE_SETRLIMIT
 	struct rlimit rlim;
 #endif
@@ -2264,7 +2270,12 @@ main(int ac, char **av)
 				restrict_websafe = 0;
 			else if (strcmp(optarg, "allow-remote-pkcs11") == 0)
 				remote_add_provider = 1;
-			else
+			else if ((ccp = strprefix(optarg,
+			    "websafe-allow=", 0)) != NULL) {
+				if (websafe_allowlist != NULL)
+					fatal("websafe-allow already set");
+				websafe_allowlist = xstrdup(ccp);
+			} else
 				fatal("Unknown -O option");
 			break;
 		case 'P':
@@ -2308,6 +2319,8 @@ main(int ac, char **av)
 
 	if (allowed_providers == NULL)
 		allowed_providers = xstrdup(DEFAULT_ALLOWED_PROVIDERS);
+	if (websafe_allowlist == NULL)
+		websafe_allowlist = xstrdup(DEFAULT_WEBSAFE_ALLOWLIST);
 
 	if (ac == 0 && !c_flag && !s_flag) {
 		shell = getenv("SHELL");

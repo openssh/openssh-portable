@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.80 2024/10/24 03:15:47 djm Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.81 2024/11/06 22:51:26 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: October 24 2024 $
+.Dd $Mdocdate: November 6 2024 $
 .Dt SSH-AGENT 1
 .Os
 .Sh NAME
@@ -107,10 +107,11 @@ environment variable).
 .It Fl O Ar option
 Specify an option when starting
 .Nm .
-Currently two options are supported:
-.Cm allow-remote-pkcs11
+The supported options are:
+.Cm allow-remote-pkcs11 ,
+.Cm no-restrict-websafe
 and
-.Cm no-restrict-websafe .
+.Cm websafe-allow .
 .Pp
 The
 .Cm allow-remote-pkcs11
@@ -143,6 +144,16 @@ user authentication request or a
 signature.
 The default behaviour prevents forwarded access to a FIDO key from also
 implicitly forwarding the ability to authenticate to websites.
+.Pp
+Alternately the
+.Cm websafe-allow
+option allows specifying a pattern-list of key application strings to
+replace the default application allow-list, for example:
+.Dq websafe-allow=ssh:*,example.org,*.example.com
+.Pp
+See PATTERNS in
+.Xr ssh_config 5
+for a description of pattern-list syntax.
 .It Fl P Ar allowed_providers
 Specify a pattern-list of acceptable paths for PKCS#11 provider and FIDO
 authenticator middleware shared libraries that may be used with the
@@ -152,11 +163,12 @@ or
 options to
 .Xr ssh-add 1 .
 Libraries that do not match the pattern list will be refused.
+The default list is
+.Dq usr/lib*/*,/usr/local/lib*/* .
+.Pp
 See PATTERNS in
 .Xr ssh_config 5
 for a description of pattern-list syntax.
-The default list is
-.Dq usr/lib*/*,/usr/local/lib*/* .
 .It Fl s
 Generate Bourne shell commands on
 .Dv stdout .
