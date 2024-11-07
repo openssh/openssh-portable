@@ -1438,8 +1438,11 @@ do_pwchange(Session *s)
 		setexeccon(NULL);
 #endif
 #ifdef PASSWD_NEEDS_USERNAME
-		execl(_PATH_PASSWD_PROG, "passwd", s->pw->pw_name,
-		    (char *)NULL);
+               if (getuid() != 0) {
+                       execl(_PATH_PASSWD_PROG, "passwd", (char *)NULL);
+               } else {
+                       execl(_PATH_PASSWD_PROG, "passwd", s->pw->pw_name, (char *)NULL);
+               }		
 #else
 		execl(_PATH_PASSWD_PROG, "passwd", (char *)NULL);
 #endif
