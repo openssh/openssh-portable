@@ -296,18 +296,22 @@ case "${TARGET_HOST}" in
 	# SHA256 functions in sha2.h conflict with OpenSSL's breaking sk-dummy
 	CONFIGFLAGS="${CONFIGFLAGS} --without-hardening --disable-security-key"
 	;;
-    openwrt-*)
-	CONFIGFLAGS="${CONFIGFLAGS} --without-zlib"
-	LIBCRYPTOFLAGS="--without-openssl"
-	TEST_TARGET="t-exec"
-	;;
-    openwrt-mips)
+    openwrt-mipsel)
 	# Test most of the flags that OpenWRT sets for their package build.
 	# We only do this on one OpenWRT target for better coverage.
+	# The installed shared libraries installed by default are stripped and
+	# can't be linked to on the target systems.
 	OPENWRT_FLAGS="--disable-strip --disable-lastlog
 	   --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx
 	   --with-stackprotect --with-cflags-after=-fzero-call-used-regs=skip"
-	CONFIGFLAGS="${CONFIGFLAGS} $(echo ${OPENWRT_FLAGS})"
+	CONFIGFLAGS="${CONFIGFLAGS} $(echo ${OPENWRT_FLAGS}) --without-zlib --disable-security-key"
+	LIBCRYPTOFLAGS="--without-openssl"
+	TEST_TARGET="t-exec"
+	;;
+    openwrt-*)
+	CONFIGFLAGS="${CONFIGFLAGS} --without-zlib --disable-security-key"
+	LIBCRYPTOFLAGS="--without-openssl"
+	TEST_TARGET="t-exec"
 	;;
     sol10|sol11)
 	# sol10 VM is 32bit and the unit tests are slow.
