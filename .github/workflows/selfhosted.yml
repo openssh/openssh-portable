@@ -153,7 +153,7 @@ jobs:
       if: env.SSHFS == 'true' && env.BIGENDIAN == 'true'
       run: |
         set -x
-        vmrun sudo chown -R $LOGNAME ~/$(basename ${GITHUB_WORKSPACE})
+        vmrun sudo chown -R $LOGNAME ~/$(basename ${GITHUB_WORKSPACE}) || true
         vmrun "cd $(basename ${GITHUB_WORKSPACE}/regress) && sudo make clean"
         sshfs_mount regress
         vmrun "sudo mkdir -p $(dirname ${GITHUB_WORKSPACE})"
