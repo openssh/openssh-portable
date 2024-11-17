@@ -100,6 +100,8 @@
 /* Per-channel callback for pre/post IO actions */
 typedef void chan_fn(struct ssh *, Channel *c);
 
+int fwd_tcp_listen_port = 0;
+
 /*
  * Data structure for storing which hosts are permitted for forward requests.
  * The local sides of any remote forwards are stored in this array to prevent
@@ -3937,6 +3939,7 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 			c->listening_port = *allocated_listen_port;
 		else
 			c->listening_port = fwd->listen_port;
+		fwd_tcp_listen_port = c->listening_port;
 		success = 1;
 	}
 	if (success == 0)
