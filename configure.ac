@@ -1772,6 +1772,48 @@ AC_ARG_WITH([libedit],
 	fi ]
 )
 
+# Check whether user wants wtmpdb support
+WTMPDB_MSG="no"
+AC_ARG_WITH([wtmpdb],
+	[  --with-wtmpdb[[=PATH]]   Enable wtmpdb support for sshd],
+	[ if test "x$withval" != "xno" ; then
+		if test "x$withval" = "xyes" ; then
+			if test "x$PKGCONFIG" != "xno"; then
+				AC_MSG_CHECKING([if $PKGCONFIG knows about wtmpdb])
+				if "$PKGCONFIG" libwtmpdb; then
+					AC_MSG_RESULT([yes])
+					use_pkgconfig_for_libwtmpdb=yes
+				else
+					AC_MSG_RESULT([no])
+				fi
+			fi
+		else
+			CPPFLAGS="$CPPFLAGS -I${withval}/include"
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
+			else
+				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
+			fi
+		fi
+		if test "x$use_pkgconfig_for_libwtmpdb" = "xyes"; then
+			LIBWTMPDB=`$PKGCONFIG --libs libwtmpdb`
+			CPPFLAGS="$CPPFLAGS `$PKGCONFIG --cflags libwtmpdb`"
+		else
+			LIBWTMPDB="-lwtmpdb"
+		fi
+		OTHERLIBS=`echo $LIBWTMPDB | sed 's/-lwtmpdb//'`
+		AC_CHECK_LIB([wtmpdb], [wtmpdb_login],
+			[ AC_DEFINE([USE_WTMPDB], [1], [Use libwtmpdb for sshd])
+			  WTMPDB_MSG="yes"
+			  AC_SUBST([LIBWTMPDB])
+			],
+			[ AC_MSG_ERROR([libwtmpdb not found]) ],
+			[ $OTHERLIBS ]
+		)
+	fi ]
+)
+
+
 AUDIT_MODULE=none
 AC_ARG_WITH([audit],
 	[  --with-audit=module     Enable audit support (modules=debug,bsm,linux)],
