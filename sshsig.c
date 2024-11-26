@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.35 2024/03/08 22:16:32 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.36 2024/11/26 21:23:35 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -190,8 +190,13 @@ sshsig_wrap_sign(struct sshkey *key, const char *hashalg,
 	}
 
 	/* If using RSA keys then default to a good signature algorithm */
-	if (sshkey_type_plain(key->type) == KEY_RSA)
+	if (sshkey_type_plain(key->type) == KEY_RSA) {
 		sign_alg = RSA_SIGN_ALG;
+		if (strcmp(hashalg, "sha256") == 0)
+			sign_alg = "rsa-sha2-256";
+		else if (strcmp(hashalg, "sha512") == 0)
+			sign_alg = "rsa-sha2-512";
+	}
 
 	if (signer != NULL) {
 		if ((r = signer(key, &sig, &slen,
