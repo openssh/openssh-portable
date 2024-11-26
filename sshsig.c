@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.36 2024/11/26 21:23:35 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.37 2024/11/26 22:05:51 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -40,9 +40,9 @@
 #define MAGIC_PREAMBLE_LEN	(sizeof(MAGIC_PREAMBLE) - 1)
 #define BEGIN_SIGNATURE		"-----BEGIN SSH SIGNATURE-----"
 #define END_SIGNATURE		"-----END SSH SIGNATURE-----"
-#define RSA_SIGN_ALG		"rsa-sha2-512" /* XXX maybe make configurable */
+#define RSA_SIGN_ALG		"rsa-sha2-512"
 #define RSA_SIGN_ALLOWED	"rsa-sha2-512,rsa-sha2-256"
-#define HASHALG_DEFAULT		"sha512" /* XXX maybe make configurable */
+#define HASHALG_DEFAULT		"sha512"
 #define HASHALG_ALLOWED		"sha256,sha512"
 
 int
