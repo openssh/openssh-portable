@@ -961,13 +961,15 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 			    fido_strerr(r));
 			goto out;
 		}
-	} else {
+	} else if (strcmp(fido_cred_fmt(cred), "none") != 0) {
 		skdebug(__func__, "self-attested credential");
 		if ((r = fido_cred_verify_self(cred)) != FIDO_OK) {
 			skdebug(__func__, "fido_cred_verify_self: %s",
 			    fido_strerr(r));
 			goto out;
 		}
+	} else {
+		skdebug(__func__, "no attestation data");
 	}
 	if ((response = calloc(1, sizeof(*response))) == NULL) {
 		skdebug(__func__, "calloc response failed");
