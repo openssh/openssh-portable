@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.75 2024/10/25 01:34:18 djm Exp $ */
+/* $OpenBSD: myproposal.h,v 1.76 2024/12/02 13:37:18 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -60,8 +60,8 @@
 
 #define	KEX_SERVER_ENCRYPT \
 	"chacha20-poly1305@openssh.com," \
-	"aes128-ctr,aes192-ctr,aes256-ctr," \
-	"aes128-gcm@openssh.com,aes256-gcm@openssh.com"
+	"aes128-gcm@openssh.com,aes256-gcm@openssh.com,"
+	"aes128-ctr,aes192-ctr,aes256-ctr" \
 
 #define KEX_CLIENT_ENCRYPT KEX_SERVER_ENCRYPT
 
