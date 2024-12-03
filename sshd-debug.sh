@@ -46,7 +46,7 @@ done
 echo >&2 Debugging ${SSHD} auth ${SSHD_AUTH} session ${SSHD_SESSION}
 
 # Append SshdSessionPath and SshdAuthPath pointing to the build directory.
-# If you explicity specify these in the command line, the first-match
+# If you explicitly specify these in the command line, the first-match
 # keyword semantics will override these.
 exec "${SSHD}" $@ \
     -oSshdAuthPath="${SSHD_AUTH}" -oSshdSessionPath="${SSHD_SESSION}"

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.245 2024/09/22 12:56:21 jsg Exp $ */
+/* $OpenBSD: monitor.c,v 1.247 2024/12/03 22:30:03 jsg Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -595,7 +595,7 @@ mm_answer_state(struct ssh *ssh, int sock, struct sshbuf *m)
 	    (confdata = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 
-	/* XXX unneccessary? */
+	/* XXX unnecessary? */
 	/* pack includes into a string */
 	TAILQ_FOREACH(item, &includes, entry) {
 		if ((r = sshbuf_put_cstring(inc, item->selector)) != 0 ||

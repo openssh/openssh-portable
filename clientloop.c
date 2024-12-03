@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.409 2024/10/13 22:20:06 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.410 2024/12/03 22:30:03 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -661,7 +661,7 @@ obfuscate_keystroke_timing(struct ssh *ssh, struct timespec *timeout,
 
 	/* Don't arm output fd for poll until the timing interval has elapsed... */
 	if (timespeccmp(&now, &next_interval, <))
-		/* ...unless there's x11 communicattion happening */
+		/* ...unless there's x11 communication happening */
 		return x11_channel_used_recently(ssh);
 
 	/* Calculate number of intervals missed since the last check */
