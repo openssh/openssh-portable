@@ -753,6 +753,50 @@ machine's default store.
 This facility is provided to assist with operation on multi homed machines.
 The default is
 .Cm yes .
+.It Cm GSSAPIIndicators
+Specifies whether to accept or deny GSSAPI authenticated access if Kerberos
+mechanism is used and Kerberos ticket contains a particular set of
+authentication indicators. The values can be specified as a comma-separated list
+.Cm [!]name1,[!]name2,... .
+When indicator's name is prefixed with !, the authentication indicator 'name'
+will deny access to the system. Otherwise, one of non-negated authentication
+indicators must be present in the Kerberos ticket to allow access. If
+.Cm GSSAPIIndicators
+is defined, a Kerberos ticket that has indicators but does not match the
+policy will get denial. If at least one indicator is configured, whether for
+access or denial, tickets without authentication indicators will be explicitly
+rejected.
+.Pp
+By default systems using MIT Kerberos 1.17 or later will not assign any
+indicators. SPAKE and PKINIT methods add authentication indicators
+to all successful authentications. The SPAKE pre-authentication method is
+preferred over an encrypted timestamp pre-authentication when passwords used to
+authenticate user principals. Kerberos KDCs built with Heimdal Kerberos
+(including Samba AD DC built with Heimdal) do not add authentication
+indicators. However, OpenSSH built against Heimdal Kerberos library is able to
+inquire authentication indicators and thus can be used to check for their presence.
+.Pp
+Indicator name is case-sensitive and depends on the configuration of a
+particular Kerberos deployment. Indicators available in MIT Kerberos and
+FreeIPA environments:
+.Pp
+.Bl -tag -width XXXX -offset indent -compact
+.It Cm hardened
+SPAKE or encrypted timestamp pre-authentication mechanisms in MIT Kerberos and FreeIPA
+.It Cm pkinit
+smartcard or PKCS11 token-based pre-authentication in MIT Kerberos and FreeIPA
+.It Cm radius
+pre-authentication based on a RADIUS server in MIT Kerberos and FreeIPA
+.It Cm otp
+TOTP/HOTP-based two-factor pre-authentication in FreeIPA
+.It Cm idp
+OAuth2-based pre-authentication in FreeIPA using an external identity provider
+and device authorization grant flow
+.It Cm passkey
+FIDO2-based pre-authentication in FreeIPA, using FIDO2 USB and NFC tokens
+.El
+.Pp
+The default is to not use GSSAPI authentication indicators for access decisions.
 .It Cm HostbasedAcceptedAlgorithms
 Specifies the signature algorithms that will be accepted for hostbased
 authentication as a list of comma-separated patterns.
