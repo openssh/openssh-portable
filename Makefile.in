@@ -335,7 +335,8 @@ clean:	regressclean
 	rm -f regress/unittests/utf8/test_utf8$(EXEEXT)
 	rm -f regress/misc/sk-dummy/*.o
 	rm -f regress/misc/sk-dummy/*.lo
-	rm -f regress/misc/sk-dummy/sk-dummy.so
+	rm -f regress/misc/ssh-verify-attestation/ssh-verify-attestation$(EXEEXT)
+	rm -f regress/misc/ssh-verify-attestation/*.o
 	(cd openbsd-compat && $(MAKE) clean)
 
 distclean:	regressclean
@@ -373,6 +374,8 @@ distclean:	regressclean
 	rm -f regress/misc/sk-dummy/*.o
 	rm -f regress/misc/sk-dummy/*.lo
 	rm -f regress/misc/sk-dummy/sk-dummy.so
+	rm -f regress/misc/ssh-verify-attestation/ssh-verify-attestation$(EXEEXT)
+	rm -f regress/misc/ssh-verify-attestation/*.o
 	(cd openbsd-compat && $(MAKE) distclean)
 	if test -d pkg ; then \
 		rm -fr pkg ; \
@@ -549,6 +552,7 @@ regress-prep:
 	$(MKDIR_P) `pwd`/regress/unittests/sshsig
 	$(MKDIR_P) `pwd`/regress/unittests/utf8
 	$(MKDIR_P) `pwd`/regress/misc/sk-dummy
+	$(MKDIR_P) `pwd`/regress/misc/ssh-verify-attestation
 	[ -f `pwd`/regress/Makefile ] || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
@@ -734,6 +738,16 @@ SK_DUMMY_LIBRARY=@SK_DUMMY_LIBRARY@
 regress/misc/sk-dummy/sk-dummy.so: $(SK_DUMMY_OBJS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(PICFLAG) -shared -o $@ $(SK_DUMMY_OBJS) \
 	    -L. -Lopenbsd-compat -lopenbsd-compat $(LDFLAGS_NOPIE) $(TESTLIBS)
+
+SSH_VERIFY_ATTESTATION_OBJS=\
+	regress/misc/ssh-verify-attestation/ssh-verify-attestation.o \
+	$(SKOBJS)
+
+ssh-verify-attestation: regress/misc/ssh-verify-attestation/ssh-verify-attestation$(EXEEXT)
+
+regress/misc/ssh-verify-attestation/ssh-verify-attestation$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSH_VERIFY_ATTESTATION_OBJS)
+	$(LD) -o $@ $(SSH_VERIFY_ATTESTATION_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) $(CHANNELLIBS) $(LIBFIDO2)
+
 
 regress-binaries: regress-prep $(LIBCOMPAT) \
 	regress/modpipe$(EXEEXT) \
