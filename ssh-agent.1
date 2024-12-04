@@ -190,7 +190,7 @@ The agent exits automatically when the command given on the command
 line terminates.
 .El
 .Pp
-There are two main ways to get an agent set up.
+There are three main ways to get an agent set up.
 The first is at the start of an X session,
 where all other windows or programs are started as children of the
 .Nm
@@ -208,10 +208,32 @@ it prints the shell commands required to set its environment variables,
 which in turn can be evaluated in the calling shell, for example
 .Cm eval `ssh-agent -s` .
 .Pp
-In both cases,
+In both of these cases,
 .Xr ssh 1
 looks at these environment variables
 and uses them to establish a connection to the agent.
+.Pp
+The third way to run
+.Nm
+is via socket activation from a supervising process, such as systemd.
+In this mode, the supervising process creates the listening socket and
+is responsible for starting
+.Nm
+as needed, and also for communicating the location of the socket listener
+to other programs in the user's session.
+Socket activation is used when
+.Nm
+is started with either of the
+.Fl d
+or
+.Fl D
+flags, so socket listening address specified by the
+.Fl a
+flag, and both the
+.Ev LISTEN_FDS
+and
+.Ev LISTEN_PID
+environment variables correctly supplied by the supervising process.
 .Pp
 The agent initially does not have any private keys.
 Keys are added using
