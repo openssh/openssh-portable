@@ -1,4 +1,4 @@
-#	$OpenBSD: hostkey-agent.sh,v 1.14 2024/11/26 22:02:28 djm Exp $
+#	$OpenBSD: hostkey-agent.sh,v 1.15 2024/12/04 10:51:13 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="hostkey agent"
@@ -49,7 +49,7 @@ for k in $SSH_KEYTYPES ; do
 	fi
 done
 
-SSH_CERTTYPES=`ssh -Q key-sig | grep 'cert-v01@openssh.com'`
+SSH_CERTTYPES=`ssh -Q key-sig | grep 'cert-v01@openssh.com' | maybe_filter_sk`
 
 # Prepare sshd_proxy for certificates.
 cp $OBJ/sshd_proxy.orig $OBJ/sshd_proxy
