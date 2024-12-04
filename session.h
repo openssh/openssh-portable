@@ -80,5 +80,6 @@ void	 session_close(struct ssh *, Session *);
 void	 do_setusercontext(struct passwd *);
 
 const char	*session_get_remote_name_or_ip(struct ssh *, u_int, int);
+char	*session_get_runtime_directory(void);
 
 #endif
