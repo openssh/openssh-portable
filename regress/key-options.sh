@@ -121,4 +121,6 @@ check_valid_before "default"	""				"pass"
 check_valid_before "invalid"	'expiry-time="INVALID"'		"fail"
 check_valid_before "expired"	'expiry-time="19990101"'	"fail"
 check_valid_before "valid"	'expiry-time="20380101"'	"pass"
+if ! config_defined "SIZEOF_TIME_T 4"; then
 check_valid_before "valid-64b"	'expiry-time="25250101"'	"pass"
+fi
