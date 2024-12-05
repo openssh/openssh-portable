@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.440 2024/10/13 22:20:06 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.441 2024/12/05 06:47:00 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -4998,13 +4998,13 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
     u_int *display_numberp, int **chanids)
 {
 	Channel *nc = NULL;
-	int display_number, sock;
-	u_short port;
+	int display_number, sock, port;
 	struct addrinfo hints, *ai, *aitop;
 	char strport[NI_MAXSERV];
 	int gaierr, n, num_socks = 0, socks[NUM_SOCKS];
 
-	if (chanids == NULL)
+	if (chanids == NULL || x11_display_offset < 0 ||
+	    x11_display_offset > UINT16_MAX - 6000 - MAX_DISPLAYS)
 		return -1;
 
 	for (display_number = x11_display_offset;
@@ -5226,7 +5226,8 @@ x11_connect_display(struct ssh *ssh)
 	 * buf now contains the host name.  But first we parse the
 	 * display number.
 	 */
-	if (sscanf(cp + 1, "%u", &display_number) != 1) {
+	if (sscanf(cp + 1, "%u", &display_number) != 1 ||
+	    display_number > UINT16_MAX - 6000) {
 		error("Could not parse display number from DISPLAY: %.100s",
 		    display);
 		return -1;
