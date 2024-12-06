@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-verify-attestation.c,v 1.1 2024/12/04 16:42:49 djm Exp $ */
+/* $OpenBSD: ssh-verify-attestation.c,v 1.2 2024/12/06 10:37:42 djm Exp $ */
 /*
  * Copyright (c) 2022-2024 Damien Miller
  *
@@ -38,10 +38,11 @@
  * 1) It doesn't automatically detect the attestation statement format. It
  *    assumes the "packed" format used by FIDO2 keys. If that doesn't work,
  *    then try using the -U option to select the "fido-u2f" format.
- * 2) Only ECDSA keys are currently supported. Ed25519 support is not yet
- *    implemented.
+ * 2) It makes assumptions about RK, UV, etc status of the key/cred.
  * 3) Probably bugs.
  *
+ * Thanks to Markus Friedl and Pedro Martelletto for help getting this
+ * working.
  */
 
 #include "includes.h"
@@ -61,6 +62,7 @@
 #include "ssherr.h"
 #include "misc.h"
 #include "digest.h"
+#include "crypto_api.h"
 
 #include <fido.h>
 #include <openssl/x509.h>
@@ -103,12 +105,11 @@ prepare_fido_cred(fido_cred_t *cred, int credtype, const char *attfmt,
 		error_fr(r, "parse body");
 		goto out;
 	}
-	debug3_f("blob len=%zu, attestation cert len=%zu, sig len=%zu, "
+	debug3_f("attestation cert len=%zu, sig len=%zu, "
 	    "authdata len=%zu challenge len=%zu", sshbuf_len(attestation_cert),
-	    sshbuf_len(b), sshbuf_len(sig), sshbuf_len(authdata),
-	    sshbuf_len(challenge));
+	    sshbuf_len(sig), sshbuf_len(authdata), sshbuf_len(challenge));
 
-	fido_cred_set_type(cred, COSE_ES256);
+	fido_cred_set_type(cred, credtype);
 	fido_cred_set_fmt(cred, attfmt);
 	fido_cred_set_clientdata(cred, sshbuf_ptr(challenge),
 	    sshbuf_len(challenge));
@@ -259,12 +260,63 @@ cred_matches_key_ecdsa(const fido_cred_t *cred, const struct sshkey *k)
 	return r;
 }
 
+
+/* copied from sshsk_ed25519_assemble() */
+static int
+cred_matches_key_ed25519(const fido_cred_t *cred, const struct sshkey *k)
+{
+	struct sshkey *key = NULL;
+	const uint8_t *ptr;
+	int r = -1;
+
+	if ((ptr = fido_cred_pubkey_ptr(cred)) == NULL) {
+		error_f("fido_cred_pubkey_ptr failed");
+		goto out;
+	}
+	if (fido_cred_pubkey_len(cred) != ED25519_PK_SZ) {
+		error_f("bad fido_cred_pubkey_len %zu",
+		    fido_cred_pubkey_len(cred));
+		goto out;
+	}
+
+	if ((key = sshkey_new(KEY_ED25519_SK)) == NULL) {
+		error_f("sshkey_new failed");
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((key->ed25519_pk = malloc(ED25519_PK_SZ)) == NULL) {
+		error_f("malloc failed");
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	memcpy(key->ed25519_pk, ptr, ED25519_PK_SZ);
+	key->sk_application = xstrdup(k->sk_application); /* XXX */
+	if (!sshkey_equal_public(key, k)) {
+		error("sshkey_equal_public failed");
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
+	r = 0; /* success */
+ out:
+	sshkey_free(key);
+	return r;
+}
+
 static int
 cred_matches_key(const fido_cred_t *cred, const struct sshkey *k)
 {
 	switch (sshkey_type_plain(k->type)) {
 	case KEY_ECDSA_SK:
-		return cred_matches_key_ecdsa(cred, k);
+		switch (k->ecdsa_nid) {
+		case NID_X9_62_prime256v1:
+			return cred_matches_key_ecdsa(cred, k);
+			break;
+		default:
+			fatal("Unsupported ECDSA key size");
+		}
+		break;
+	case KEY_ED25519_SK:
+		return cred_matches_key_ed25519(cred, k);
 	default:
 		error_f("key type %s not supported", sshkey_type(k));
 		return -1;
@@ -280,7 +332,7 @@ main(int argc, char **argv)
 	struct sshbuf *attestation = NULL, *challenge = NULL;
 	struct sshbuf *attestation_cert = NULL;
 	char *fp;
-	const char *attfmt = "packed";
+	const char *attfmt = "packed", *style = NULL;
 	fido_cred_t *cred = NULL;
 	int write_attestation_cert = 0;
 	extern int optind;
@@ -335,7 +387,16 @@ main(int argc, char **argv)
 
 	switch (sshkey_type_plain(k->type)) {
 	case KEY_ECDSA_SK:
-		credtype = COSE_ES256;
+		switch (k->ecdsa_nid) {
+		case NID_X9_62_prime256v1:
+			credtype = COSE_ES256;
+			break;
+		default:
+			fatal("Unsupported ECDSA key size");
+		}
+		break;
+	case KEY_ED25519_SK:
+		credtype = COSE_EDDSA;
 		break;
 	default:
 		fatal("unsupported key type %s", sshkey_type(k));
@@ -346,13 +407,15 @@ main(int argc, char **argv)
 		fatal_r(r, "prepare_fido_cred %s", argv[2]);
 	if (fido_cred_x5c_ptr(cred) != NULL) {
 		debug("basic attestation");
-		r = fido_cred_verify(cred);
+		if ((r = fido_cred_verify(cred)) != FIDO_OK)
+			fatal("basic attestation failed");
+		style = "basic";
 	} else {
 		debug("self attestation");
-		r = fido_cred_verify_self(cred);
+		if ((r = fido_cred_verify_self(cred)) != FIDO_OK)
+			fatal("self attestation failed");
+		style = "self";
 	}
-	if (r != FIDO_OK)
-		fatal("verification of attestation data failed");
 	if (cred_matches_key(cred, k) != 0)
 		fatal("cred authdata does not match key");
 
@@ -364,7 +427,7 @@ main(int argc, char **argv)
 	}
 	sshbuf_free(attestation_cert);
 
-	logit("%s: GOOD", argv[2]);
+	logit("%s: verified %s attestation", argv[2], style);
 
 	return (0);
 }
