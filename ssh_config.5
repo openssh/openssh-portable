@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.406 2024/12/05 22:45:03 naddy Exp $
-.Dd $Mdocdate: December 5 2024 $
+.\" $OpenBSD: ssh_config.5,v 1.407 2024/12/06 16:21:48 djm Exp $
+.Dd $Mdocdate: December 6 2024 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -2149,6 +2149,11 @@ See also
 .Sx VERIFYING HOST KEYS
 in
 .Xr ssh 1 .
+.It Cm VersionAddendum
+Optionally specifies additional text to append to the SSH protocol banner
+sent by the client upon connection.
+The default is
+.Cm none .
 .It Cm VisualHostKey
 If this flag is set to
 .Cm yes ,
@@ -2294,8 +2299,9 @@ The local username.
 .Cm RemoteCommand ,
 .Cm RemoteForward ,
 .Cm RevokedHostKeys ,
-and
 .Cm UserKnownHostsFile
+and
+.Cm VersionAddendum
 accept the tokens %%, %C, %d, %h, %i, %j, %k, %L, %l, %n, %p, %r, and %u.
 .Pp
 .Cm KnownHostsCommand
