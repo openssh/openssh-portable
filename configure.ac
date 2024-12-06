@@ -3370,7 +3370,7 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" != "xno" ; then
 fi
 
 # Check for standalone SecurityKeyProvider
-AC_MSG_CHECKING([whether to build standlone sk-libfido2])
+AC_MSG_CHECKING([whether to build standalone sk-libfido2])
 if test "x$enable_sk_standalone" = "xyes" ; then
 	AC_MSG_RESULT([yes])
 	AC_SUBST([SK_STANDALONE], [sk-libfido2$SHLIBEXT])
