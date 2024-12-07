@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.612 2024/09/15 01:11:26 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.614 2024/12/07 10:12:19 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -564,59 +564,51 @@ should_drop_connection(int startups)
 static int
 drop_connection(int sock, int startups, int notify_pipe)
 {
+	static struct log_ratelimit_ctx ratelimit_maxstartups;
+	static struct log_ratelimit_ctx ratelimit_penalty;
+	static int init_done;
 	char *laddr, *raddr;
-	const char *reason = NULL, msg[] = "Not allowed at this time\r\n";
-	static time_t last_drop, first_drop;
-	static u_int ndropped;
-	LogLevel drop_level = SYSLOG_LEVEL_VERBOSE;
-	time_t now;
+	const char *reason = NULL, *subreason = NULL;
+	const char msg[] = "Not allowed at this time\r\n";
+	struct log_ratelimit_ctx *rl = NULL;
+	int ratelimited;
+	u_int ndropped;
 
-	if (!srclimit_penalty_check_allow(sock, &reason)) {
-		drop_level = SYSLOG_LEVEL_INFO;
-		goto handle;
+	if (!init_done) {
+		init_done = 1;
+		log_ratelimit_init(&ratelimit_maxstartups, 4, 60, 20, 5*60);
+		log_ratelimit_init(&ratelimit_penalty, 8, 60, 30, 2*60);
 	}
 
-	now = monotime();
-	if (!should_drop_connection(startups) &&
-	    srclimit_check_allow(sock, notify_pipe) == 1) {
-		if (last_drop != 0 &&
-		    startups < options.max_startups_begin - 1) {
-			/* XXX maybe need better hysteresis here */
-			logit("exited MaxStartups throttling after %s, "
-			    "%u connections dropped",
-			    fmt_timeframe(now - first_drop), ndropped);
-			last_drop = 0;
-		}
-		return 0;
+	/* PerSourcePenalties */
+	if (!srclimit_penalty_check_allow(sock, &subreason)) {
+		reason = "PerSourcePenalties";
+		rl = &ratelimit_penalty;
+	} else {
+		/* MaxStartups */
+		if (!should_drop_connection(startups) &&
+		    srclimit_check_allow(sock, notify_pipe) == 1)
+			return 0;
+		reason = "Maxstartups";
+		rl = &ratelimit_maxstartups;
 	}
 
-#define SSHD_MAXSTARTUPS_LOG_INTERVAL	(5 * 60)
-	if (last_drop == 0) {
-		error("beginning MaxStartups throttling");
-		drop_level = SYSLOG_LEVEL_INFO;
-		first_drop = now;
-		ndropped = 0;
-	} else if (last_drop + SSHD_MAXSTARTUPS_LOG_INTERVAL < now) {
-		/* Periodic logs */
-		error("in MaxStartups throttling for %s, "
-		    "%u connections dropped",
-		    fmt_timeframe(now - first_drop), ndropped + 1);
-		drop_level = SYSLOG_LEVEL_INFO;
-	}
-	last_drop = now;
-	ndropped++;
-	reason = "past Maxstartups";
-
- handle:
 	laddr = get_local_ipaddr(sock);
 	raddr = get_peer_ipaddr(sock);
-	do_log2(drop_level, "drop connection #%d from [%s]:%d on [%s]:%d %s",
+	ratelimited = log_ratelimit(rl, time(NULL), NULL, &ndropped);
+	do_log2(ratelimited ? SYSLOG_LEVEL_DEBUG3 : SYSLOG_LEVEL_INFO,
+	    "drop connection #%d from [%s]:%d on [%s]:%d %s",
 	    startups,
 	    raddr, get_peer_port(sock),
 	    laddr, get_local_port(sock),
-	    reason);
+	    subreason != NULL ? subreason : reason);
 	free(laddr);
 	free(raddr);
+	if (ndropped != 0) {
+		logit("%s logging rate-limited: additional %u connections "
+		    "dropped", reason, ndropped);
+	}
+
 	/* best-effort notification to client */
 	(void)write(sock, msg, sizeof(msg) - 1);
 	return 1;
