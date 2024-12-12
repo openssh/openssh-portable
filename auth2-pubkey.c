@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.121 2024/12/06 16:24:27 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.122 2024/12/12 09:09:09 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -790,7 +790,7 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
     int auth_attempt, struct sshauthopt **authoptsp)
 {
 	u_int success = 0, i, j;
-	char *file, *conn_id;
+	char *file = NULL, *conn_id;
 	struct sshauthopt *opts = NULL;
 	const char *rdomain, *remote_ip, *remote_host;
 
@@ -826,6 +826,8 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 			if (r != GLOB_NOMATCH) {
 				logit_f("glob \"%s\" failed", file);
 			}
+			free(file);
+			file = NULL;
 			continue;
 		} else if (gl.gl_pathc > INT_MAX) {
 			fatal_f("too many glob results for \"%s\"", file);
@@ -842,6 +844,7 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 			}
 		}
 		free(file);
+		file = NULL;
 		globfree(&gl);
 	}
 	if (success)
