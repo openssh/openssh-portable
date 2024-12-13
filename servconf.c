@@ -216,6 +216,7 @@ initialize_server_options(ServerOptions *options)
 	options->sshd_session_path = NULL;
 	options->sshd_auth_path = NULL;
 	options->refuse_connection = -1;
+	options->socket_protocol = -1;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -498,6 +499,8 @@ fill_default_server_options(ServerOptions *options)
 		options->sshd_auth_path = xstrdup(_PATH_SSHD_AUTH);
 	if (options->refuse_connection == -1)
 		options->refuse_connection = 0;
+	if (options->socket_protocol == -1)
+		options->socket_protocol = 0;
 
 	assemble_algorithms(options);
 
@@ -580,7 +583,7 @@ typedef enum {
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
 	sRequiredRSASize, sChannelTimeout, sUnusedConnectionTimeout,
-	sSshdSessionPath, sSshdAuthPath, sRefuseConnection,
+	sSshdSessionPath, sSshdAuthPath, sRefuseConnection, sSocketProtocol,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -750,6 +753,7 @@ static struct {
 	{ "sshdsessionpath", sSshdSessionPath, SSHCFG_GLOBAL },
 	{ "sshdauthpath", sSshdAuthPath, SSHCFG_GLOBAL },
 	{ "refuseconnection", sRefuseConnection, SSHCFG_ALL },
+	{ "socketprotocol", sSocketProtocol, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2716,6 +2720,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		multistate_ptr = multistate_flag;
 		goto parse_multistate;
 
+	case sSocketProtocol:
+		intptr = &options->socket_protocol;
+		goto parse_int;
+
 	case sDeprecated:
 	case sIgnore:
 	case sUnsupported:
@@ -3219,6 +3227,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_int(sRequiredRSASize, o->required_rsa_size);
 	dump_cfg_oct(sStreamLocalBindMask, o->fwd_opts.streamlocal_bind_mask);
 	dump_cfg_int(sUnusedConnectionTimeout, o->unused_connection_timeout);
+	dump_cfg_int(sSocketProtocol, o->socket_protocol);
 
 	/* formatted integer arguments */
 	dump_cfg_fmtint(sPermitRootLogin, o->permit_root_login);

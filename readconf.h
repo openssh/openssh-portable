@@ -186,6 +186,8 @@ typedef struct {
 
 	char	*version_addendum;
 
+	int	socket_protocol;
+
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;
 
