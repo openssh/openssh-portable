@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-gss.h,v 1.14 2018/07/10 09:13:30 djm Exp $ */
+/* $OpenBSD: ssh-gss.h,v 1.16 2024/05/17 06:42:04 jsg Exp $ */
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
  *
@@ -103,7 +103,6 @@ int  ssh_gssapi_check_oid(Gssctxt *, void *, size_t);
 void ssh_gssapi_set_oid_data(Gssctxt *, void *, size_t);
 void ssh_gssapi_set_oid(Gssctxt *, gss_OID);
 void ssh_gssapi_supported_oids(gss_OID_set *);
-ssh_gssapi_mech *ssh_gssapi_get_ctype(Gssctxt *);
 void ssh_gssapi_prepare_supported_oids(void);
 OM_uint32 ssh_gssapi_test_oid_supported(OM_uint32 *, gss_OID, int *);
 
@@ -122,7 +121,7 @@ void ssh_gssapi_build_ctx(Gssctxt **);
 void ssh_gssapi_delete_ctx(Gssctxt **);
 OM_uint32 ssh_gssapi_sign(Gssctxt *, gss_buffer_t, gss_buffer_t);
 void ssh_gssapi_buildmic(struct sshbuf *, const char *,
-    const char *, const char *);
+    const char *, const char *, const struct sshbuf *);
 int ssh_gssapi_check_mechanism(Gssctxt **, gss_OID, const char *);
 
 /* In the server */

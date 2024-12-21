@@ -1,78 +1,65 @@
-%define ver 7.9p1
-%define rel 1%{?dist}
+%global ver 9.9p1
+%global rel 1%{?dist}
 
 # OpenSSH privilege separation requires a user & group ID
-%define sshd_uid    74
-%define sshd_gid    74
+%global sshd_uid    74
+%global sshd_gid    74
 
 # Version of ssh-askpass
-%define aversion 1.2.4.1
+%global aversion 1.2.4.1
 
 # Do we want to disable building of x11-askpass? (1=yes 0=no)
-%define no_x11_askpass 0
+%global no_x11_askpass 0
 
 # Do we want to disable building of gnome-askpass? (1=yes 0=no)
-%define no_gnome_askpass 0
+%global no_gnome_askpass 0
 
 # Do we want to link against a static libcrypto? (1=yes 0=no)
-%define static_libcrypto 0
+%global static_libcrypto 0
 
 # Do we want smartcard support (1=yes 0=no)
-%define scard 0
+%global scard 0
 
 # Use GTK2 instead of GNOME in gnome-ssh-askpass
-%define gtk2 1
+%global gtk2 1
 
-# Use build6x options for older RHEL builds
-# RHEL 7 not yet supported
-%if 0%{?rhel} > 6
-%define build6x 0
-%else
-%define build6x 1
+%global without_openssl 0
+# build without openssl where 1.1.1 is not available
+%if %{defined fedora} && 0%{?fedora} <= 28
+%global without_openssl 1
 %endif
-
-%if 0%{?fedora} >= 26
-%define compat_openssl 1
-%else
-%define compat_openssl 0
+%if %{defined rhel} && 0%{?rhel} <= 7
+%global without_openssl 1
 %endif
 
 # Do we want kerberos5 support (1=yes 0=no)
-%define kerberos5 1
+%global kerberos5 1
 
 # Reserve options to override askpass settings with:
 # rpm -ba|--rebuild --define 'skip_xxx 1'
-%{?skip_x11_askpass:%define no_x11_askpass 1}
-%{?skip_gnome_askpass:%define no_gnome_askpass 1}
+%{?skip_x11_askpass:%global no_x11_askpass 1}
+%{?skip_gnome_askpass:%global no_gnome_askpass 1}
 
 # Add option to build without GTK2 for older platforms with only GTK+.
 # RedHat <= 7.2 and Red Hat Advanced Server 2.1 are examples.
 # rpm -ba|--rebuild --define 'no_gtk2 1'
-%{?no_gtk2:%define gtk2 0}
-
-# Is this a build for RHL 6.x or earlier?
-%{?build_6x:%define build6x 1}
-
-# If this is RHL 6.x, the default configuration has sysconfdir in /usr/etc.
-%if %{build6x}
-%define _sysconfdir /etc
-%endif
+%{?no_gtk2:%global gtk2 0}
 
 # Options for static OpenSSL link:
 # rpm -ba|--rebuild --define "static_openssl 1"
-%{?static_openssl:%define static_libcrypto 1}
+%{?static_openssl:%global static_libcrypto 1}
 
 # Options for Smartcard support: (needs libsectok and openssl-engine)
 # rpm -ba|--rebuild --define "smartcard 1"
-%{?smartcard:%define scard 1}
+%{?smartcard:%global scard 1}
 
-# Is this a build for the rescue CD (without PAM, with MD5)? (1=yes 0=no)
-%define rescue 0
-%{?build_rescue:%define rescue 1}
+# Is this a build for the rescue CD (without PAM)? (1=yes 0=no)
+%global rescue 0
+%{?build_rescue:%global rescue 1}
 
 # Turn off some stuff for resuce builds
 %if %{rescue}
-%define kerberos5 0
+%global kerberos5 0
 %endif
 
 Summary: The OpenSSH implementation of SSH protocol version 2.
@@ -90,24 +77,13 @@ License: BSD
 Group: Applications/Internet
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 Obsoletes: ssh
-%if %{build6x}
-PreReq: initscripts >= 5.00
-%else
 Requires: initscripts >= 5.20
-%endif
 BuildRequires: perl
-%if %{compat_openssl}
-BuildRequires: compat-openssl10-devel
-%else
-BuildRequires: openssl-devel >= 1.0.1
-BuildRequires: openssl-devel < 1.1
+%if ! %{without_openssl}
+BuildRequires: openssl-devel >= 1.1.1
 %endif
 BuildRequires: /bin/login
-%if ! %{build6x}
 BuildRequires: glibc-devel, pam
-%else
-BuildRequires: /usr/include/security/pam_appl.h
-%endif
 %if ! %{no_x11_askpass}
 BuildRequires: /usr/include/X11/Xlib.h
 # Xt development tools
@@ -136,9 +112,7 @@ Summary: The OpenSSH server daemon.
 Group: System Environment/Daemons
 Obsoletes: ssh-server
 Requires: openssh = %{version}-%{release}, chkconfig >= 0.9
-%if ! %{build6x}
 Requires: /etc/pam.d/system-auth
-%endif
 
 %package askpass
 Summary: A passphrase dialog for OpenSSH and X.
@@ -211,10 +185,12 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 	--with-default-path=/usr/local/bin:/bin:/usr/bin \
 	--with-superuser-path=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin \
 	--with-privsep-path=%{_var}/empty/sshd \
-	--with-md5-passwords \
 	--mandir=%{_mandir} \
 	--with-mantype=man \
 	--disable-strip \
+%if %{without_openssl}
+	--without-openssl \
+%endif
 %if %{scard}
 	--with-smartcard \
 %endif
@@ -273,11 +249,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -d $RPM_BUILD_ROOT%{_libexecdir}/openssh
-%if %{build6x}
-install -m644 contrib/redhat/sshd.pam.old $RPM_BUILD_ROOT/etc/pam.d/sshd
-%else
-install -m644 contrib/redhat/sshd.pam     $RPM_BUILD_ROOT/etc/pam.d/sshd
-%endif
+install -m644 contrib/redhat/sshd.pam  $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
 %if ! %{no_x11_askpass}
@@ -363,8 +335,10 @@ fi
 %attr(0755,root,root) %dir %{_libexecdir}/openssh
 %attr(4711,root,root) %{_libexecdir}/openssh/ssh-keysign
 %attr(0755,root,root) %{_libexecdir}/openssh/ssh-pkcs11-helper
+%attr(0755,root,root) %{_libexecdir}/openssh/ssh-sk-helper
 %attr(0644,root,root) %{_mandir}/man8/ssh-keysign.8*
 %attr(0644,root,root) %{_mandir}/man8/ssh-pkcs11-helper.8*
+%attr(0644,root,root) %{_mandir}/man8/ssh-sk-helper.8*
 %endif
 %if %{scard}
 %attr(0755,root,root) %dir %{_datadir}/openssh
@@ -393,6 +367,7 @@ fi
 %defattr(-,root,root)
 %dir %attr(0111,root,root) %{_var}/empty/sshd
 %attr(0755,root,root) %{_sbindir}/sshd
+%attr(0755,root,root) %{_libexecdir}/openssh/sshd-session
 %attr(0755,root,root) %{_libexecdir}/openssh/sftp-server
 %attr(0644,root,root) %{_mandir}/man8/sshd.8*
 %attr(0644,root,root) %{_mandir}/man5/moduli.5*
@@ -422,6 +397,19 @@ fi
 %endif
 
 %changelog
+* Mon Oct 16 2023 Fabio Pedretti <pedretti.fabio@gmail.com>
+- Remove reference of dropped sshd.pam.old file
+- Update openssl-devel dependency to require >= 1.1.1
+- Build with --without-openssl elsewhere
+- Remove ancient build6x config, intended for RHL 6.x
+  (the distro predating Fedora, not RHEL)
+
+* Thu Oct 28 2021 Damien Miller <djm@mindrot.org>
+- Remove remaining traces of --with-md5-passwords
+
+* Mon Jul 20 2020 Damien Miller <djm@mindrot.org>
+- Add ssh-sk-helper and corresponding manual page.
+
 * Sat Feb 10 2018 Darren Tucker <dtucker@dtucker.net>
 - Update openssl-devel dependency to match current requirements.
 - Handle Fedora >=6 openssl 1.0 compat libs.

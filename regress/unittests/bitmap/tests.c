@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.1 2015/01/15 07:36:28 djm Exp $ */
+/* 	$OpenBSD: tests.c,v 1.2 2021/12/14 21:25:27 deraadt Exp $ */
 /*
  * Regress test for bitmap.h bitmap API
  *
@@ -8,7 +8,6 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/param.h>
 #include <stdio.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -16,7 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef WITH_OPENSSL
 #include <openssl/bn.h>
+#endif
 
 #include "../test_helper/test_helper.h"
 
@@ -27,6 +28,7 @@
 void
 tests(void)
 {
+#ifdef WITH_OPENSSL
 	struct bitmap *b;
 	BIGNUM *bn;
 	size_t len;
@@ -131,5 +133,6 @@ tests(void)
 	bitmap_free(b);
 	BN_free(bn);
 	TEST_DONE();
+#endif
 }
 

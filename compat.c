@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.113 2018/08/13 02:41:05 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.126 2023/03/06 12:14:48 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -36,13 +36,10 @@
 #include "compat.h"
 #include "log.h"
 #include "match.h"
-#include "kex.h"
 
-int datafellows = 0;
-
-/* datafellows bug compatibility */
-u_int
-compat_datafellows(const char *version)
+/* determine bug flags from SSH protocol banner */
+void
+compat_banner(struct ssh *ssh, const char *version)
 {
 	int i;
 	static struct {
@@ -65,11 +62,12 @@ compat_datafellows(const char *version)
 		{ "OpenSSH_6.5*,"
 		  "OpenSSH_6.6*",	SSH_NEW_OPENSSH|SSH_BUG_CURVE25519PAD|
 					SSH_BUG_SIGTYPE},
+		{ "OpenSSH_7.4*",	SSH_NEW_OPENSSH|SSH_BUG_SIGTYPE|
+					SSH_BUG_SIGTYPE74},
 		{ "OpenSSH_7.0*,"
 		  "OpenSSH_7.1*,"
 		  "OpenSSH_7.2*,"
 		  "OpenSSH_7.3*,"
-		  "OpenSSH_7.4*,"
 		  "OpenSSH_7.5*,"
 		  "OpenSSH_7.6*,"
 		  "OpenSSH_7.7*",	SSH_NEW_OPENSSH|SSH_BUG_SIGTYPE},
@@ -78,26 +76,8 @@ compat_datafellows(const char *version)
 		{ "3.0.*",		SSH_BUG_DEBUG },
 		{ "3.0 SecureCRT*",	SSH_OLD_SESSIONID },
 		{ "1.7 SecureFX*",	SSH_OLD_SESSIONID },
-		{ "1.2.18*,"
-		  "1.2.19*,"
-		  "1.2.20*,"
-		  "1.2.21*,"
-		  "1.2.22*",		SSH_BUG_IGNOREMSG },
-		{ "1.3.2*",		/* F-Secure */
-					SSH_BUG_IGNOREMSG },
 		{ "Cisco-1.*",		SSH_BUG_DHGEX_LARGE|
 					SSH_BUG_HOSTKEYS },
-		{ "*SSH Compatible Server*",			/* Netscreen */
-					SSH_BUG_PASSWORDPAD },
-		{ "*OSU_0*,"
-		  "OSU_1.0*,"
-		  "OSU_1.1*,"
-		  "OSU_1.2*,"
-		  "OSU_1.3*,"
-		  "OSU_1.4*,"
-		  "OSU_1.5alpha1*,"
-		  "OSU_1.5alpha2*,"
-		  "OSU_1.5alpha3*",	SSH_BUG_PASSWORDPAD },
 		{ "*SSH_Version_Mapper*",
 					SSH_BUG_SCANNER },
 		{ "PuTTY_Local:*,"	/* dev versions < Sep 2014 */
@@ -145,91 +125,42 @@ compat_datafellows(const char *version)
 	};
 
 	/* process table, return first match */
+	ssh->compat = 0;
 	for (i = 0; check[i].pat; i++) {
 		if (match_pattern_list(version, check[i].pat, 0) == 1) {
-			debug("match: %s pat %s compat 0x%08x",
+			debug_f("match: %s pat %s compat 0x%08x",
 			    version, check[i].pat, check[i].bugs);
-			datafellows = check[i].bugs;	/* XXX for now */
-			return check[i].bugs;
+			ssh->compat = check[i].bugs;
+			return;
 		}
 	}
-	debug("no match: %s", version);
-	return 0;
+	debug_f("no match: %s", version);
 }
 
-#define	SEP	","
-int
-proto_spec(const char *spec)
-{
-	char *s, *p, *q;
-	int ret = SSH_PROTO_UNKNOWN;
-
-	if (spec == NULL)
-		return ret;
-	q = s = strdup(spec);
-	if (s == NULL)
-		return ret;
-	for ((p = strsep(&q, SEP)); p && *p != '\0'; (p = strsep(&q, SEP))) {
-		switch (atoi(p)) {
-		case 2:
-			ret |= SSH_PROTO_2;
-			break;
-		default:
-			logit("ignoring bad proto spec: '%s'.", p);
-			break;
-		}
-	}
-	free(s);
-	return ret;
-}
-
+/* Always returns pointer to allocated memory, caller must free. */
 char *
-compat_cipher_proposal(char *cipher_prop)
+compat_kex_proposal(struct ssh *ssh, const char *p)
 {
-	if (!(datafellows & SSH_BUG_BIGENDIANAES))
-		return cipher_prop;
-	debug2("%s: original cipher proposal: %s", __func__, cipher_prop);
-	if ((cipher_prop = match_filter_blacklist(cipher_prop, "aes*")) == NULL)
-		fatal("match_filter_blacklist failed");
-	debug2("%s: compat cipher proposal: %s", __func__, cipher_prop);
-	if (*cipher_prop == '\0')
-		fatal("No supported ciphers found");
-	return cipher_prop;
-}
+	char *cp = NULL, *cp2 = NULL;
 
-char *
-compat_pkalg_proposal(char *pkalg_prop)
-{
-	if (!(datafellows & SSH_BUG_RSASIGMD5))
-		return pkalg_prop;
-	debug2("%s: original public key proposal: %s", __func__, pkalg_prop);
-	if ((pkalg_prop = match_filter_blacklist(pkalg_prop, "ssh-rsa")) == NULL)
-		fatal("match_filter_blacklist failed");
-	debug2("%s: compat public key proposal: %s", __func__, pkalg_prop);
-	if (*pkalg_prop == '\0')
-		fatal("No supported PK algorithms found");
-	return pkalg_prop;
-}
-
-char *
-compat_kex_proposal(char *p)
-{
-	if ((datafellows & (SSH_BUG_CURVE25519PAD|SSH_OLD_DHGEX)) == 0)
-		return p;
-	debug2("%s: original KEX proposal: %s", __func__, p);
-	if ((datafellows & SSH_BUG_CURVE25519PAD) != 0)
-		if ((p = match_filter_blacklist(p,
+	if ((ssh->compat & (SSH_BUG_CURVE25519PAD|SSH_OLD_DHGEX)) == 0)
+		return xstrdup(p);
+	debug2_f("original KEX proposal: %s", p);
+	if ((ssh->compat & SSH_BUG_CURVE25519PAD) != 0)
+		if ((cp = match_filter_denylist(p,
 		    "curve25519-sha256@libssh.org")) == NULL)
-			fatal("match_filter_blacklist failed");
-	if ((datafellows & SSH_OLD_DHGEX) != 0) {
-		if ((p = match_filter_blacklist(p,
+			fatal("match_filter_denylist failed");
+	if ((ssh->compat & SSH_OLD_DHGEX) != 0) {
+		if ((cp2 = match_filter_denylist(cp ? cp : p,
 		    "diffie-hellman-group-exchange-sha256,"
 		    "diffie-hellman-group-exchange-sha1")) == NULL)
-			fatal("match_filter_blacklist failed");
+			fatal("match_filter_denylist failed");
+		free(cp);
+		cp = cp2;
 	}
-	debug2("%s: compat KEX proposal: %s", __func__, p);
-	if (*p == '\0')
+	if (cp == NULL || *cp == '\0')
 		fatal("No supported key exchange algorithms found");
-	return p;
+	debug2_f("compat KEX proposal: %s", cp);
+	return cp;
 }
 

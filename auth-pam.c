@@ -56,6 +56,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -64,11 +65,6 @@
 #include <security/pam_appl.h>
 #elif defined (HAVE_PAM_PAM_APPL_H)
 #include <pam/pam_appl.h>
-#endif
-
-#if !defined(SSHD_PAM_SERVICE)
-extern char *__progname;
-# define SSHD_PAM_SERVICE		__progname
 #endif
 
 /* OpenGroup RFC86.0 and XSSO specify no "const" on arguments */
@@ -99,10 +95,12 @@ extern char *__progname;
 #include "servconf.h"
 #include "ssh2.h"
 #include "auth-options.h"
+#include "misc.h"
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
 #include "monitor_wrap.h"
+#include "srclimit.h"
 
 extern ServerOptions options;
 extern struct sshbuf *loginmsg;
@@ -150,12 +148,12 @@ static struct pam_ctxt *cleanup_ctxt;
  */
 
 static int sshpam_thread_status = -1;
-static mysig_t sshpam_oldsig;
+static sshsig_t sshpam_oldsig;
 
 static void
 sshpam_sigchld_handler(int sig)
 {
-	signal(SIGCHLD, SIG_DFL);
+	ssh_signal(SIGCHLD, SIG_DFL);
 	if (cleanup_ctxt == NULL)
 		return;	/* handler called after PAM cleanup, shouldn't happen */
 	if (waitpid(cleanup_ctxt->pam_thread, &sshpam_thread_status, WNOHANG)
@@ -169,13 +167,13 @@ sshpam_sigchld_handler(int sig)
 			return;
 		}
 	}
-	if (WIFSIGNALED(sshpam_thread_status) &&
-	    WTERMSIG(sshpam_thread_status) == SIGTERM)
-		return;	/* terminated by pthread_cancel */
-	if (!WIFEXITED(sshpam_thread_status))
-		sigdie("PAM: authentication thread exited unexpectedly");
-	if (WEXITSTATUS(sshpam_thread_status) != 0)
-		sigdie("PAM: authentication thread exited uncleanly");
+	if (sshpam_thread_status == -1)
+		return;
+	if (WIFSIGNALED(sshpam_thread_status)) {
+		if (signal_is_crash(WTERMSIG(sshpam_thread_status)))
+			_exit(EXIT_CHILD_CRASH);
+	} else if (!WIFEXITED(sshpam_thread_status))
+		_exit(EXIT_CHILD_CRASH);
 }
 
 /* ARGSUSED */
@@ -197,7 +195,7 @@ pthread_create(sp_pthread_t *thread, const void *attr,
 	switch ((pid = fork())) {
 	case -1:
 		error("fork(): %s", strerror(errno));
-		return (-1);
+		return errno;
 	case 0:
 		close(ctx->pam_psock);
 		ctx->pam_psock = -1;
@@ -207,7 +205,7 @@ pthread_create(sp_pthread_t *thread, const void *attr,
 		*thread = pid;
 		close(ctx->pam_csock);
 		ctx->pam_csock = -1;
-		sshpam_oldsig = signal(SIGCHLD, sshpam_sigchld_handler);
+		sshpam_oldsig = ssh_signal(SIGCHLD, sshpam_sigchld_handler);
 		return (0);
 	}
 }
@@ -215,7 +213,7 @@ pthread_create(sp_pthread_t *thread, const void *attr,
 static int
 pthread_cancel(sp_pthread_t thread)
 {
-	signal(SIGCHLD, sshpam_oldsig);
+	ssh_signal(SIGCHLD, sshpam_oldsig);
 	return (kill(thread, SIGTERM));
 }
 
@@ -227,7 +225,7 @@ pthread_join(sp_pthread_t thread, void **value)
 
 	if (sshpam_thread_status != -1)
 		return (sshpam_thread_status);
-	signal(SIGCHLD, sshpam_oldsig);
+	ssh_signal(SIGCHLD, sshpam_oldsig);
 	while (waitpid(thread, &status, 0) == -1) {
 		if (errno == EINTR)
 			continue;
@@ -250,7 +248,6 @@ static Authctxt *sshpam_authctxt = NULL;
 static const char *sshpam_password = NULL;
 static char *sshpam_rhost = NULL;
 static char *sshpam_laddr = NULL;
-static char *sshpam_conninfo = NULL;
 
 /* Some PAM implementations don't implement this */
 #ifndef HAVE_PAM_GETENVLIST
@@ -258,13 +255,21 @@ static char **
 pam_getenvlist(pam_handle_t *pamh)
 {
 	/*
-	 * XXX - If necessary, we can still support envrionment passing
+	 * XXX - If necessary, we can still support environment passing
 	 * for platforms without pam_getenvlist by searching for known
 	 * env vars (e.g. KRB5CCNAME) from the PAM environment.
 	 */
 	 return NULL;
 }
 #endif
+
+#ifndef HAVE_PAM_PUTENV
+static int
+pam_putenv(pam_handle_t *pamh, const char *name_value)
+{
+	return PAM_SUCCESS;
+}
+#endif /* HAVE_PAM_PUTENV */
 
 /*
  * Some platforms, notably Solaris, do not enforce password complexity
@@ -291,7 +296,7 @@ sshpam_chauthtok_ruid(pam_handle_t *pamh, int flags)
 # define pam_chauthtok(a,b)	(sshpam_chauthtok_ruid((a), (b)))
 #endif
 
-void
+static void
 sshpam_password_change_required(int reqd)
 {
 	extern struct sshauthopt *auth_opts;
@@ -342,11 +347,12 @@ import_environments(struct sshbuf *b)
 	/* Import environment from subprocess */
 	if ((r = sshbuf_get_u32(b, &num_env)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (num_env > 1024)
-		fatal("%s: received %u environment variables, expected <= 1024",
-		    __func__, num_env);
+	if (num_env > 1024) {
+		fatal_f("received %u environment variables, expected <= 1024",
+		    num_env);
+	}
 	sshpam_env = xcalloc(num_env + 1, sizeof(*sshpam_env));
-	debug3("PAM: num env strings %d", num_env);
+	debug3("PAM: num env strings %u", num_env);
 	for(i = 0; i < num_env; i++) {
 		if ((r = sshbuf_get_cstring(b, &(sshpam_env[i]), NULL)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -356,18 +362,24 @@ import_environments(struct sshbuf *b)
 	/* Import PAM environment from subprocess */
 	if ((r = sshbuf_get_u32(b, &num_env)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	debug("PAM: num PAM env strings %d", num_env);
+	if (num_env > 1024) {
+		fatal_f("received %u PAM env variables, expected <= 1024",
+		    num_env);
+	}
+	debug("PAM: num PAM env strings %u", num_env);
 	for (i = 0; i < num_env; i++) {
 		if ((r = sshbuf_get_cstring(b, &env, NULL)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
-#ifdef HAVE_PAM_PUTENV
 		/* Errors are not fatal here */
 		if ((r = pam_putenv(sshpam_handle, env)) != PAM_SUCCESS) {
 			error("PAM: pam_putenv: %s",
 			    pam_strerror(sshpam_handle, r));
 		}
-#endif
-		/* XXX leak env? */
+		/*
+		 * XXX this possibly leaks env because it is not documented
+		 * what pam_putenv() does with it. Does it copy it? Does it
+		 * take ownweship? We don't know, so it's safest just to leak.
+		 */
 	}
 #endif
 }
@@ -535,7 +547,7 @@ sshpam_thread(void *ctxtp)
 	for (i = 0; environ[i] != NULL; i++) {
 		/* Count */
 		if (i > INT_MAX)
-			fatal("%s: too many enviornment strings", __func__);
+			fatal("%s: too many environment strings", __func__);
 	}
 	if ((r = sshbuf_put_u32(buffer, i)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -548,7 +560,7 @@ sshpam_thread(void *ctxtp)
 	for (i = 0; env_from_pam != NULL && env_from_pam[i] != NULL; i++) {
 		/* Count */
 		if (i > INT_MAX)
-			fatal("%s: too many PAM enviornment strings", __func__);
+			fatal("%s: too many PAM environment strings", __func__);
 	}
 	if ((r = sshbuf_put_u32(buffer, i)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -652,7 +664,7 @@ static struct pam_conv store_conv = { sshpam_store_conv, NULL };
 void
 sshpam_cleanup(void)
 {
-	if (sshpam_handle == NULL || (use_privsep && !mm_is_monitor()))
+	if (sshpam_handle == NULL || !mm_is_monitor())
 		return;
 	debug("PAM: cleanup");
 	pam_set_item(sshpam_handle, PAM_CONV, (const void *)&null_conv);
@@ -676,13 +688,23 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 {
 	const char *pam_user, *user = authctxt->user;
 	const char **ptr_pam_user = &pam_user;
+	int r;
 
+	if (options.pam_service_name == NULL)
+		fatal_f("internal error: NULL PAM service name");
+#if defined(PAM_SUN_CODEBASE) && defined(PAM_MAX_RESP_SIZE)
+	/* Protect buggy PAM implementations from excessively long usernames */
+	if (strlen(user) >= PAM_MAX_RESP_SIZE)
+		fatal("Username too long from %s port %d",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
+#endif
 	if (sshpam_handle == NULL) {
 		if (ssh == NULL) {
 			fatal("%s: called initially with no "
 			    "packet context", __func__);
 		}
-	} if (sshpam_handle != NULL) {
+	}
+	if (sshpam_handle != NULL) {
 		/* We already have a PAM context; check if the user matches */
 		sshpam_err = pam_get_item(sshpam_handle,
 		    PAM_USER, (sshpam_const void **)ptr_pam_user);
@@ -691,9 +713,10 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 		pam_end(sshpam_handle, sshpam_err);
 		sshpam_handle = NULL;
 	}
-	debug("PAM: initializing for \"%s\"", user);
-	sshpam_err =
-	    pam_start(SSHD_PAM_SERVICE, user, &store_conv, &sshpam_handle);
+	debug("PAM: initializing for \"%s\" with service \"%s\"", user,
+	    options.pam_service_name);
+	sshpam_err = pam_start(options.pam_service_name, user,
+	    &store_conv, &sshpam_handle);
 	sshpam_authctxt = authctxt;
 
 	if (sshpam_err != PAM_SUCCESS) {
@@ -709,11 +732,8 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 		 */
 		sshpam_rhost = xstrdup(auth_get_canonical_hostname(ssh,
 		    options.use_dns));
-	        sshpam_laddr = get_local_ipaddr(
+		sshpam_laddr = get_local_ipaddr(
 		    ssh_packet_get_connection_in(ssh));
-	        xasprintf(&sshpam_conninfo, "SSH_CONNECTION=%.50s %d %.50s %d",
-		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
-		    sshpam_laddr, ssh_local_port(ssh));
 	}
 	if (sshpam_rhost != NULL) {
 		debug("PAM: setting PAM_RHOST to \"%s\"", sshpam_rhost);
@@ -724,8 +744,17 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 			sshpam_handle = NULL;
 			return (-1);
 		}
+	}
+	if (ssh != NULL && sshpam_laddr != NULL) {
+		char *conninfo;
+
 		/* Put SSH_CONNECTION in the PAM environment too */
-		pam_putenv(sshpam_handle, sshpam_conninfo);
+		xasprintf(&conninfo, "SSH_CONNECTION=%.50s %d %.50s %d",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+		    sshpam_laddr, ssh_local_port(ssh));
+		if ((r = pam_putenv(sshpam_handle, conninfo)) != PAM_SUCCESS)
+			logit("pam_putenv: %s", pam_strerror(sshpam_handle, r));
+		free(conninfo);
 	}
 
 #ifdef PAM_TTY_KLUDGE
@@ -770,7 +799,7 @@ static void *
 sshpam_init_ctx(Authctxt *authctxt)
 {
 	struct pam_ctxt *ctxt;
-	int socks[2];
+	int result, socks[2];
 
 	debug3("PAM: %s entering", __func__);
 	/*
@@ -797,9 +826,10 @@ sshpam_init_ctx(Authctxt *authctxt)
 	}
 	ctxt->pam_psock = socks[0];
 	ctxt->pam_csock = socks[1];
-	if (pthread_create(&ctxt->pam_thread, NULL, sshpam_thread, ctxt) == -1) {
+	result = pthread_create(&ctxt->pam_thread, NULL, sshpam_thread, ctxt);
+	if (result != 0) {
 		error("PAM: failed to start authentication thread: %s",
-		    strerror(errno));
+		    strerror(result));
 		close(socks[0]);
 		close(socks[1]);
 		free(ctxt);
@@ -818,7 +848,7 @@ sshpam_query(void *ctx, char **name, char **info,
 	size_t plen;
 	u_char type;
 	char *msg;
-	size_t len, mlen;
+	size_t len, mlen, nmesg = 0;
 	int r;
 
 	debug3("PAM: %s entering", __func__);
@@ -831,6 +861,8 @@ sshpam_query(void *ctx, char **name, char **info,
 	plen = 0;
 	*echo_on = xmalloc(sizeof(u_int));
 	while (ssh_msg_recv(ctxt->pam_psock, buffer) == 0) {
+		if (++nmesg > PAM_MAX_NUM_MSG)
+			fatal_f("too many query messages");
 		if ((r = sshbuf_get_u8(buffer, &type)) != 0 ||
 		    (r = sshbuf_get_cstring(buffer, &msg, &mlen)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -844,6 +876,7 @@ sshpam_query(void *ctx, char **name, char **info,
 			plen += mlen;
 			**echo_on = (type == PAM_PROMPT_ECHO_ON);
 			free(msg);
+			sshbuf_free(buffer);
 			return (0);
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
@@ -866,12 +899,14 @@ sshpam_query(void *ctx, char **name, char **info,
 		case PAM_AUTH_ERR:
 			debug3("PAM: %s", pam_strerror(sshpam_handle, type));
 			if (**prompts != NULL && strlen(**prompts) != 0) {
+				free(*info);
 				*info = **prompts;
 				**prompts = NULL;
 				*num = 0;
 				**echo_on = 0;
 				ctxt->pam_done = -1;
 				free(msg);
+				sshbuf_free(buffer);
 				return 0;
 			}
 			/* FALLTHROUGH */
@@ -898,6 +933,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				**echo_on = 0;
 				ctxt->pam_done = 1;
 				free(msg);
+				sshbuf_free(buffer);
 				return (0);
 			}
 			error("PAM: %s for %s%.100s from %.100s", msg,
@@ -909,9 +945,11 @@ sshpam_query(void *ctx, char **name, char **info,
 			**echo_on = 0;
 			free(msg);
 			ctxt->pam_done = -1;
+			sshbuf_free(buffer);
 			return (-1);
 		}
 	}
+	sshbuf_free(buffer);
 	return (-1);
 }
 
@@ -1063,20 +1101,15 @@ do_pam_account(void)
 }
 
 void
-do_pam_setcred(int init)
+do_pam_setcred(void)
 {
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
 	    (const void *)&store_conv);
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: failed to set PAM_CONV: %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
-	if (init) {
-		debug("PAM: establishing credentials");
-		sshpam_err = pam_setcred(sshpam_handle, PAM_ESTABLISH_CRED);
-	} else {
-		debug("PAM: reinitializing credentials");
-		sshpam_err = pam_setcred(sshpam_handle, PAM_REINITIALIZE_CRED);
-	}
+	debug("PAM: establishing credentials");
+	sshpam_err = pam_setcred(sshpam_handle, PAM_ESTABLISH_CRED);
 	if (sshpam_err == PAM_SUCCESS) {
 		sshpam_cred_established = 1;
 		return;
@@ -1089,6 +1122,7 @@ do_pam_setcred(int init)
 		    pam_strerror(sshpam_handle, sshpam_err));
 }
 
+#if 0
 static int
 sshpam_tty_conv(int n, sshpam_const struct pam_message **msg,
     struct pam_response **resp, void *data)
@@ -1144,6 +1178,7 @@ sshpam_tty_conv(int n, sshpam_const struct pam_message **msg,
 }
 
 static struct pam_conv tty_conv = { sshpam_tty_conv, NULL };
+#endif
 
 /*
  * XXX this should be done in the authentication phase, but ssh1 doesn't
@@ -1152,8 +1187,8 @@ static struct pam_conv tty_conv = { sshpam_tty_conv, NULL };
 void
 do_pam_chauthtok(void)
 {
-	if (use_privsep)
-		fatal("Password expired (unable to change with privsep)");
+	fatal("Password expired");
+#if 0
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
 	    (const void *)&tty_conv);
 	if (sshpam_err != PAM_SUCCESS)
@@ -1164,6 +1199,7 @@ do_pam_chauthtok(void)
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: pam_chauthtok(): %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
+#endif
 }
 
 void
@@ -1205,7 +1241,6 @@ int
 do_pam_putenv(char *name, char *value)
 {
 	int ret = 1;
-#ifdef HAVE_PAM_PUTENV
 	char *compound;
 	size_t len;
 
@@ -1215,7 +1250,6 @@ do_pam_putenv(char *name, char *value)
 	snprintf(compound, len, "%s=%s", name, value);
 	ret = pam_putenv(sshpam_handle, compound);
 	free(compound);
-#endif
 
 	return (ret);
 }
@@ -1339,6 +1373,8 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 		fatal("PAM: %s: failed to set PAM_CONV: %s", __func__,
 		    pam_strerror(sshpam_handle, sshpam_err));
 
+	expose_authinfo(__func__);
+
 	sshpam_err = pam_authenticate(sshpam_handle, flags);
 	sshpam_password = NULL;
 	free(fake);
@@ -1370,6 +1406,5 @@ sshpam_set_maxtries_reached(int reached)
 	sshpam_maxtries_reached = 1;
 	options.password_authentication = 0;
 	options.kbd_interactive_authentication = 0;
-	options.challenge_response_authentication = 0;
 }
 #endif /* USE_PAM */

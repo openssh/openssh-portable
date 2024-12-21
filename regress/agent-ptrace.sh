@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-ptrace.sh,v 1.3 2015/09/11 04:55:01 djm Exp $
+#	$OpenBSD: agent-ptrace.sh,v 1.5 2022/04/22 05:08:43 anton Exp $
 #	Placed in the Public Domain.
 
 tid="disallow agent ptrace attach"
@@ -38,10 +38,11 @@ else
 	$SUDO chown 0 ${SSHAGENT}
 	$SUDO chgrp 0 ${SSHAGENT}
 	$SUDO chmod 2755 ${SSHAGENT}
+	trap "$SUDO chown ${USER} ${SSHAGENT}; $SUDO chmod 755 ${SSHAGENT}" 0
 fi
 
 trace "start agent"
-eval `${SSHAGENT} -s` > /dev/null
+eval `${SSHAGENT} ${EXTRA_AGENT_ARGS} -s` > /dev/null
 r=$?
 if [ $r -ne 0 ]; then
 	fail "could not start ssh-agent: exit code $r"
@@ -54,7 +55,7 @@ EOF
 	if [ $r -ne 0 ]; then
 		fail "gdb failed: exit code $r"
 	fi
-	egrep 'ptrace: Operation not permitted.|procfs:.*Permission denied.|ttrace.*Permission denied.|procfs:.*: Invalid argument.|Unable to access task ' >/dev/null ${OBJ}/gdb.out
+	egrep 'Operation not permitted.|Permission denied.|Invalid argument.|Unable to access task|Inappropriate ioctl for device.' >/dev/null ${OBJ}/gdb.out
 	r=$?
 	rm -f ${OBJ}/gdb.out
 	if [ $r -ne 0 ]; then

@@ -1,12 +1,10 @@
-#	$OpenBSD: keys-command.sh,v 1.5 2018/11/22 08:48:32 dtucker Exp $
+#	$OpenBSD: keys-command.sh,v 1.8 2021/09/30 04:22:50 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="authorized keys from command"
 
 if [ -z "$SUDO" -a ! -w /var/run ]; then
-	echo "skipped (SUDO not set)"
-	echo "need SUDO to create file in /var/run, test won't work without"
-	exit 0
+	skip "need SUDO to create file in /var/run, test won't work without"
 fi
 
 rm -f $OBJ/keys-command-args
@@ -14,8 +12,8 @@ rm -f $OBJ/keys-command-args
 touch $OBJ/keys-command-args
 chmod a+rw $OBJ/keys-command-args
 
-expected_key_text=`awk '{ print $2 }' < $OBJ/rsa.pub`
-expected_key_fp=`$SSHKEYGEN -lf $OBJ/rsa.pub | awk '{ print $2 }'`
+expected_key_text=`awk '{ print $2 }' < $OBJ/ssh-ed25519.pub`
+expected_key_fp=`$SSHKEYGEN -lf $OBJ/ssh-ed25519.pub | awk '{ print $2 }'`
 
 # Establish a AuthorizedKeysCommand in /var/run where it will have
 # acceptable directory permissions.
@@ -77,5 +75,5 @@ if [ -x $KEY_COMMAND ]; then
 		fail "connect failed"
 	fi
 else
-	echo "SKIPPED: $KEY_COMMAND not executable (/var/run mounted noexec?)"
+	skip "$KEY_COMMAND not executable (/var/run mounted noexec?)"
 fi

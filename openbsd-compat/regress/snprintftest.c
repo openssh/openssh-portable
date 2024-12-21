@@ -17,6 +17,8 @@
 
 #define BUFSZ 2048
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,10 +49,12 @@ int
 main(void)
 {
 	char b[5];
-	char *src;
+	char *src = NULL;
+	int ret;
 
-	snprintf(b,5,"123456789");
-	if (b[4] != '\0')
+	memset(b, 'X', sizeof(b));
+	ret = snprintf(b, 5, "123456789");
+	if (ret != 9 || b[4] != '\0')
 		fail("snprintf does not correctly terminate long strings");
 
 	/* check for read overrun on unterminated string */
@@ -69,5 +73,6 @@ main(void)
 	if (x_snprintf(b, 1, "%s %d", "hello", 12345) != 11)
 		fail("vsnprintf does not return required length");
 
+	free(src);
 	return failed;
 }

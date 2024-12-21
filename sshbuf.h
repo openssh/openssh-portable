@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.13 2019/01/21 09:54:11 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.29 2024/08/15 00:51:51 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -23,6 +23,7 @@
 #include <stdio.h>
 #ifdef WITH_OPENSSL
 # include <openssl/bn.h>
+# include <openssl/evp.h>
 # ifdef OPENSSL_HAS_ECC
 #  include <openssl/ec.h>
 # endif /* OPENSSL_HAS_ECC */
@@ -33,22 +34,7 @@
 #define SSHBUF_MAX_BIGNUM	(16384 / 8)	/* Max bignum *bytes* */
 #define SSHBUF_MAX_ECPOINT	((528 * 2 / 8) + 1) /* Max EC point *bytes* */
 
-/*
- * NB. do not depend on the internals of this. It will be made opaque
- * one day.
- */
-struct sshbuf {
-	u_char *d;		/* Data */
-	const u_char *cd;	/* Const data */
-	size_t off;		/* First available byte is buf->d + buf->off */
-	size_t size;		/* Last byte is buf->d + buf->size - 1 */
-	size_t max_size;	/* Maximum size of buffer */
-	size_t alloc;		/* Total bytes allocated to buf->d */
-	int readonly;		/* Refers to external, const data */
-	int dont_free;		/* Kludge to support sshbuf_init */
-	u_int refcount;		/* Tracks self and number of child buffers */
-	struct sshbuf *parent;	/* If child, pointer to parent */
-};
+struct sshbuf;
 
 /*
  * Create a new sshbuf buffer.
@@ -140,7 +126,7 @@ int	sshbuf_allocate(struct sshbuf *buf, size_t len);
 /*
  * Reserve len bytes in buf.
  * Returns 0 on success and a pointer to the first reserved byte via the
- * optional dpp parameter or a negative * SSH_ERR_* error code on failure.
+ * optional dpp parameter or a negative SSH_ERR_* error code on failure.
  */
 int	sshbuf_reserve(struct sshbuf *buf, size_t len, u_char **dpp);
 
@@ -176,6 +162,26 @@ int	sshbuf_put_u32(struct sshbuf *buf, u_int32_t val);
 int	sshbuf_put_u16(struct sshbuf *buf, u_int16_t val);
 int	sshbuf_put_u8(struct sshbuf *buf, u_char val);
 
+/* Functions to peek at the contents of a buffer without modifying it. */
+int	sshbuf_peek_u64(const struct sshbuf *buf, size_t offset,
+    u_int64_t *valp);
+int	sshbuf_peek_u32(const struct sshbuf *buf, size_t offset,
+    u_int32_t *valp);
+int	sshbuf_peek_u16(const struct sshbuf *buf, size_t offset,
+    u_int16_t *valp);
+int	sshbuf_peek_u8(const struct sshbuf *buf, size_t offset,
+    u_char *valp);
+
+/*
+ * Functions to poke values into an existing buffer (e.g. a length header
+ * to a packet). The destination bytes must already exist in the buffer.
+ */
+int sshbuf_poke_u64(struct sshbuf *buf, size_t offset, u_int64_t val);
+int sshbuf_poke_u32(struct sshbuf *buf, size_t offset, u_int32_t val);
+int sshbuf_poke_u16(struct sshbuf *buf, size_t offset, u_int16_t val);
+int sshbuf_poke_u8(struct sshbuf *buf, size_t offset, u_char val);
+int sshbuf_poke(struct sshbuf *buf, size_t offset, void *v, size_t len);
+
 /*
  * Functions to extract or store SSH wire encoded strings (u32 len || data)
  * The "cstring" variants admit no \0 characters in the string contents.
@@ -202,7 +208,6 @@ int	sshbuf_get_string_direct(struct sshbuf *buf, const u_char **valp,
 /* Another variant: "peeks" into the buffer without modifying it */
 int	sshbuf_peek_string_direct(const struct sshbuf *buf, const u_char **valp,
 	    size_t *lenp);
-/* XXX peek_u8 / peek_u32 */
 
 /*
  * Functions to extract or store SSH wire encoded bignums and elliptic
@@ -219,11 +224,12 @@ int	sshbuf_get_ec(struct sshbuf *buf, EC_POINT *v, const EC_GROUP *g);
 int	sshbuf_get_eckey(struct sshbuf *buf, EC_KEY *v);
 int	sshbuf_put_ec(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g);
 int	sshbuf_put_eckey(struct sshbuf *buf, const EC_KEY *v);
+int	sshbuf_put_ec_pkey(struct sshbuf *buf, EVP_PKEY *pkey);
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 
 /* Dump the contents of the buffer in a human-readable format */
-void	sshbuf_dump(struct sshbuf *buf, FILE *f);
+void	sshbuf_dump(const struct sshbuf *buf, FILE *f);
 
 /* Dump specified memory in a human-readable format */
 void	sshbuf_dump_data(const void *s, size_t len, FILE *f);
@@ -232,10 +238,40 @@ void	sshbuf_dump_data(const void *s, size_t len, FILE *f);
 char	*sshbuf_dtob16(struct sshbuf *buf);
 
 /* Encode the contents of the buffer as base64 */
-char	*sshbuf_dtob64(struct sshbuf *buf);
+char	*sshbuf_dtob64_string(const struct sshbuf *buf, int wrap);
+int	sshbuf_dtob64(const struct sshbuf *d, struct sshbuf *b64, int wrap);
+/* RFC4648 "base64url" encoding variant */
+int	sshbuf_dtourlb64(const struct sshbuf *d, struct sshbuf *b64, int wrap);
 
 /* Decode base64 data and append it to the buffer */
 int	sshbuf_b64tod(struct sshbuf *buf, const char *b64);
+
+/*
+ * Tests whether the buffer contains the specified byte sequence at the
+ * specified offset. Returns 0 on successful match, or a ssherr.h code
+ * otherwise. SSH_ERR_INVALID_FORMAT indicates sufficient bytes were
+ * present but the buffer contents did not match those supplied. Zero-
+ * length comparisons are not allowed.
+ *
+ * If sufficient data is present to make a comparison, then it is
+ * performed with timing independent of the value of the data. If
+ * insufficient data is present then the comparison is not attempted at
+ * all.
+ */
+int	sshbuf_cmp(const struct sshbuf *b, size_t offset,
+    const void *s, size_t len);
+
+/*
+ * Searches the buffer for the specified string. Returns 0 on success
+ * and updates *offsetp with the offset of the first match, relative to
+ * the start of the buffer. Otherwise sshbuf_find will return a ssherr.h
+ * error code. SSH_ERR_INVALID_FORMAT indicates sufficient bytes were
+ * present in the buffer for a match to be possible but none was found.
+ * Searches for zero-length data are not allowed.
+ */
+int
+sshbuf_find(const struct sshbuf *b, size_t start_offset,
+    const void *s, size_t len, size_t *offsetp);
 
 /*
  * Duplicate the contents of a buffer to a string (caller to free).
@@ -243,6 +279,26 @@ int	sshbuf_b64tod(struct sshbuf *buf, const char *b64);
  * nul character.
  */
 char *sshbuf_dup_string(struct sshbuf *buf);
+
+/*
+ * Fill a buffer from a file descriptor or filename. Both allocate the
+ * buffer for the caller.
+ */
+int sshbuf_load_fd(int, struct sshbuf **)
+    __attribute__((__nonnull__ (2)));
+int sshbuf_load_file(const char *, struct sshbuf **)
+    __attribute__((__nonnull__ (2)));
+
+/*
+ * Write a buffer to a path, creating/truncating as needed (mode 0644,
+ * subject to umask). The buffer contents are not modified.
+ */
+int sshbuf_write_file(const char *path, struct sshbuf *buf)
+    __attribute__((__nonnull__ (2)));
+
+/* Read up to maxlen bytes from a fd directly to a buffer */
+int sshbuf_read(int, struct sshbuf *, size_t, size_t *)
+    __attribute__((__nonnull__ (2)));
 
 /* Macros for decoding/encoding integers */
 #define PEEK_U64(p) \
@@ -315,7 +371,7 @@ u_int	sshbuf_refcount(const struct sshbuf *buf);
 
 # define SSHBUF_SIZE_INIT	256		/* Initial allocation */
 # define SSHBUF_SIZE_INC	256		/* Preferred increment length */
-# define SSHBUF_PACK_MIN	8192		/* Minimim packable offset */
+# define SSHBUF_PACK_MIN	8192		/* Minimum packable offset */
 
 /* # define SSHBUF_ABORT abort */
 /* # define SSHBUF_DEBUG */
@@ -325,12 +381,6 @@ u_int	sshbuf_refcount(const struct sshbuf *buf);
 # endif
 
 # ifdef SSHBUF_DEBUG
-#  define SSHBUF_TELL(what) do { \
-		printf("%s:%d %s: %s size %zu alloc %zu off %zu max %zu\n", \
-		    __FILE__, __LINE__, __func__, what, \
-		    buf->size, buf->alloc, buf->off, buf->max_size); \
-		fflush(stdout); \
-	} while (0)
 #  define SSHBUF_DBG(x) do { \
 		printf("%s:%d %s: ", __FILE__, __LINE__, __func__); \
 		printf x; \
@@ -338,7 +388,6 @@ u_int	sshbuf_refcount(const struct sshbuf *buf);
 		fflush(stdout); \
 	} while (0)
 # else
-#  define SSHBUF_TELL(what)
 #  define SSHBUF_DBG(x)
 # endif
 #endif /* SSHBUF_INTERNAL */

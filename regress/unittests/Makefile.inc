@@ -1,6 +1,4 @@
-#	$OpenBSD: Makefile.inc,v 1.13 2018/10/17 23:28:05 djm Exp $
-
-REGRESS_FAIL_EARLY?=	yes
+#	$OpenBSD: Makefile.inc,v 1.16 2024/01/11 01:45:58 djm Exp $
 
 .include <bsd.own.mk>
 .include <bsd.obj.mk>
@@ -15,6 +13,11 @@ TEST_ENV?=		MALLOC_OPTIONS=${MALLOC_OPTIONS}
 
 # XXX detect from ssh binary?
 OPENSSL?=	yes
+DSAKEY?=	yes
+
+.if (${DSAKEY:L} == "yes")
+CFLAGS+=	-DWITH_DSA
+.endif
 
 .if (${OPENSSL:L} == "yes")
 CFLAGS+=	-DWITH_OPENSSL
@@ -73,6 +76,9 @@ DPADD+= ${LIBUTIL}
 LDADD+= -lcrypto
 DPADD+= ${LIBCRYPTO}
 .endif
+
+LDADD+= -lfido2 -lcbor -lusbhid
+DPADD+= ${LIBFIDO2} ${LIBCBOR} ${LIBUSBHID}
 
 UNITTEST_ARGS?=
 

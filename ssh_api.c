@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.15 2019/01/21 10:38:54 djm Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.32 2024/10/18 05:14:51 djm Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -17,11 +17,17 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "ssh_api.h"
 #include "compat.h"
 #include "log.h"
 #include "authfile.h"
 #include "sshkey.h"
+#include "dh.h"
 #include "misc.h"
 #include "ssh2.h"
 #include "version.h"
@@ -44,37 +50,44 @@ int	_ssh_host_key_sign(struct ssh *, struct sshkey *, struct sshkey *,
     u_char **, size_t *, const u_char *, size_t, const char *);
 
 /*
- * stubs for the server side implementation of kex.
- * disable privsep so our stubs will never be called.
+ * stubs for privsep calls in the server side implementation of kex.
  */
-int	use_privsep = 0;
 int	mm_sshkey_sign(struct sshkey *, u_char **, u_int *,
-    u_char *, u_int, char *, u_int);
-DH	*mm_choose_dh(int, int, int);
+    const u_char *, u_int, const char *, const char *, const char *, u_int);
 
-/* Define these two variables here so that they are part of the library */
-u_char *session_id2 = NULL;
-u_int session_id2_len = 0;
+#ifdef WITH_OPENSSL
+DH	*mm_choose_dh(int, int, int);
+#endif
 
 int
 mm_sshkey_sign(struct sshkey *key, u_char **sigp, u_int *lenp,
-    u_char *data, u_int datalen, char *alg, u_int compat)
+    const u_char *data, u_int datalen, const char *alg,
+    const char *sk_provider, const char *sk_pin, u_int compat)
 {
-	return (-1);
+	size_t slen = 0;
+	int ret;
+
+	ret = sshkey_sign(key, sigp, &slen, data, datalen, alg,
+	    sk_provider, sk_pin, compat);
+	*lenp = slen;
+	return ret;
 }
 
+#ifdef WITH_OPENSSL
 DH *
 mm_choose_dh(int min, int nbits, int max)
 {
-	return (NULL);
+	return choose_dh(min, nbits, max);
 }
+#endif
 
 /* API */
 
 int
 ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 {
-        char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
+	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
+	char *populated[PROPOSAL_MAX];
 	struct ssh *ssh;
 	char **proposal;
 	static int called;
@@ -92,10 +105,19 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 
 	/* Initialize key exchange */
 	proposal = kex_params ? kex_params->proposal : myproposal;
-	if ((r = kex_ready(ssh, proposal)) != 0) {
+	kex_proposal_populate_entries(ssh, populated,
+	    proposal[PROPOSAL_KEX_ALGS],
+	    proposal[PROPOSAL_ENC_ALGS_CTOS],
+	    proposal[PROPOSAL_MAC_ALGS_CTOS],
+	    proposal[PROPOSAL_COMP_ALGS_CTOS],
+	    proposal[PROPOSAL_SERVER_HOST_KEY_ALGS]);
+	r = kex_ready(ssh, populated);
+	kex_proposal_free_entries(populated);
+	if (r != 0) {
 		ssh_free(ssh);
 		return r;
 	}
+
 	ssh->kex->server = is_server;
 	if (is_server) {
 #ifdef WITH_OPENSSL
@@ -111,7 +133,8 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 # endif
 #endif /* WITH_OPENSSL */
 		ssh->kex->kex[KEX_C25519_SHA256] = kex_gen_server;
-		ssh->kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_gen_server;
+		ssh->kex->kex[KEX_KEM_SNTRUP761X25519_SHA512] = kex_gen_server;
+		ssh->kex->kex[KEX_KEM_MLKEM768X25519_SHA256] = kex_gen_server;
 		ssh->kex->load_host_public_key=&_ssh_host_public_key;
 		ssh->kex->load_host_private_key=&_ssh_host_private_key;
 		ssh->kex->sign=&_ssh_host_key_sign;
@@ -129,7 +152,8 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 # endif
 #endif /* WITH_OPENSSL */
 		ssh->kex->kex[KEX_C25519_SHA256] = kex_gen_client;
-		ssh->kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_gen_client;
+		ssh->kex->kex[KEX_KEM_SNTRUP761X25519_SHA512] = kex_gen_client;
+		ssh->kex->kex[KEX_KEM_MLKEM768X25519_SHA256] = kex_gen_client;
 		ssh->kex->verify_host_key =&_ssh_verify_host_key;
 	}
 	*sshp = ssh;
@@ -141,7 +165,9 @@ ssh_free(struct ssh *ssh)
 {
 	struct key_entry *k;
 
-	ssh_packet_close(ssh);
+	if (ssh == NULL)
+		return;
+
 	/*
 	 * we've only created the public keys variants in case we
 	 * are a acting as a server.
@@ -156,8 +182,7 @@ ssh_free(struct ssh *ssh)
 		TAILQ_REMOVE(&ssh->private_keys, k, next);
 		free(k);
 	}
-	if (ssh->kex)
-		kex_free(ssh->kex);
+	ssh_packet_close(ssh);
 	free(ssh);
 }
 
@@ -320,8 +345,8 @@ _ssh_read_banner(struct ssh *ssh, struct sshbuf *banner)
 	const char *mismatch = "Protocol mismatch.\r\n";
 	const u_char *s = sshbuf_ptr(input);
 	u_char c;
-	char *cp, *remote_version;
-	int r, remote_major, remote_minor, expect_nl;
+	char *cp = NULL, *remote_version = NULL;
+	int r = 0, remote_major, remote_minor, expect_nl;
 	size_t n, j;
 
 	for (j = n = 0;;) {
@@ -347,15 +372,13 @@ _ssh_read_banner(struct ssh *ssh, struct sshbuf *banner)
 		if (sshbuf_len(banner) >= 4 &&
 		    memcmp(sshbuf_ptr(banner), "SSH-", 4) == 0)
 			break;
-		if ((cp = sshbuf_dup_string(banner)) == NULL)
-			return SSH_ERR_ALLOC_FAIL;
-		debug("%s: %s", __func__, cp);
-		free(cp);
+		debug_f("%.*s", (int)sshbuf_len(banner),
+		    sshbuf_ptr(banner));
 		/* Accept lines before banner only on client */
 		if (ssh->kex->server || ++n > SSH_MAX_PRE_BANNER_LINES) {
   bad:
 			if ((r = sshbuf_put(ssh_packet_get_output(ssh),
-			   mismatch, strlen(mismatch))) != 0)
+			    mismatch, strlen(mismatch))) != 0)
 				return r;
 			return SSH_ERR_NO_PROTOCOL_VERSION;
 		}
@@ -363,32 +386,38 @@ _ssh_read_banner(struct ssh *ssh, struct sshbuf *banner)
 	if ((r = sshbuf_consume(input, j)) != 0)
 		return r;
 
-	if ((cp = sshbuf_dup_string(banner)) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
 	/* XXX remote version must be the same size as banner for sscanf */
-	if ((remote_version = calloc(1, sshbuf_len(banner))) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
+	if ((cp = sshbuf_dup_string(banner)) == NULL ||
+	    (remote_version = calloc(1, sshbuf_len(banner))) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
 
 	/*
 	 * Check that the versions match.  In future this might accept
 	 * several versions and set appropriate flags to handle them.
 	 */
 	if (sscanf(cp, "SSH-%d.%d-%[^\n]\n",
-	    &remote_major, &remote_minor, remote_version) != 3)
-		return SSH_ERR_INVALID_FORMAT;
+	    &remote_major, &remote_minor, remote_version) != 3) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	    remote_major, remote_minor, remote_version);
 
-	ssh->compat = compat_datafellows(remote_version);
+	compat_banner(ssh, remote_version);
 	if  (remote_major == 1 && remote_minor == 99) {
 		remote_major = 2;
 		remote_minor = 0;
 	}
 	if (remote_major != 2)
-		return SSH_ERR_PROTOCOL_MISMATCH;
+		r = SSH_ERR_PROTOCOL_MISMATCH;
+
 	debug("Remote version string %.100s", cp);
+ out:
 	free(cp);
-	return 0;
+	free(remote_version);
+	return r;
 }
 
 /* Send our own protocol version identification. */
@@ -456,9 +485,9 @@ _ssh_host_public_key(int type, int nid, struct ssh *ssh)
 {
 	struct key_entry *k;
 
-	debug3("%s: need %d", __func__, type);
+	debug3_f("need %d", type);
 	TAILQ_FOREACH(k, &ssh->public_keys, next) {
-		debug3("%s: check %s", __func__, sshkey_type(k->key));
+		debug3_f("check %s", sshkey_type(k->key));
 		if (k->key->type == type &&
 		    (type != KEY_ECDSA || k->key->ecdsa_nid == nid))
 			return (k->key);
@@ -471,9 +500,9 @@ _ssh_host_private_key(int type, int nid, struct ssh *ssh)
 {
 	struct key_entry *k;
 
-	debug3("%s: need %d", __func__, type);
+	debug3_f("need %d", type);
 	TAILQ_FOREACH(k, &ssh->private_keys, next) {
-		debug3("%s: check %s", __func__, sshkey_type(k->key));
+		debug3_f("check %s", sshkey_type(k->key));
 		if (k->key->type == type &&
 		    (type != KEY_ECDSA || k->key->ecdsa_nid == nid))
 			return (k->key);
@@ -486,9 +515,9 @@ _ssh_verify_host_key(struct sshkey *hostkey, struct ssh *ssh)
 {
 	struct key_entry *k;
 
-	debug3("%s: need %s", __func__, sshkey_type(hostkey));
+	debug3_f("need %s", sshkey_type(hostkey));
 	TAILQ_FOREACH(k, &ssh->public_keys, next) {
-		debug3("%s: check %s", __func__, sshkey_type(k->key));
+		debug3_f("check %s", sshkey_type(k->key));
 		if (sshkey_equal_public(hostkey, k->key))
 			return (0);	/* ok */
 	}
@@ -503,7 +532,7 @@ _ssh_order_hostkeyalgs(struct ssh *ssh)
 	char *orig, *avail, *oavail = NULL, *alg, *replace = NULL;
 	char **proposal;
 	size_t maxlen;
-	int ktype, r;
+	int ktype, nid, r;
 
 	/* XXX we de-serialize ssh->kex->my, modify it, and change it */
 	if ((r = kex_buf2prop(ssh->kex->my, NULL, &proposal)) != 0)
@@ -522,20 +551,25 @@ _ssh_order_hostkeyalgs(struct ssh *ssh)
 	while ((alg = strsep(&avail, ",")) && *alg != '\0') {
 		if ((ktype = sshkey_type_from_name(alg)) == KEY_UNSPEC)
 			continue;
+		nid = sshkey_ecdsa_nid_from_name(alg);
 		TAILQ_FOREACH(k, &ssh->public_keys, next) {
-			if (k->key->type == ktype ||
-			    (sshkey_is_cert(k->key) && k->key->type ==
-			    sshkey_type_plain(ktype))) {
-				if (*replace != '\0')
-					strlcat(replace, ",", maxlen);
-				strlcat(replace, alg, maxlen);
-				break;
-			}
+			if (k->key->type != ktype &&
+			    (!sshkey_is_cert(k->key) ||
+			    k->key->type != sshkey_type_plain(ktype)))
+				continue;
+			if (sshkey_type_plain(k->key->type) == KEY_ECDSA &&
+			    k->key->ecdsa_nid != nid)
+				continue;
+			/* Candidate */
+			if (*replace != '\0')
+				strlcat(replace, ",", maxlen);
+			strlcat(replace, alg, maxlen);
+			break;
 		}
 	}
 	if (*replace != '\0') {
-		debug2("%s: orig/%d    %s", __func__, ssh->kex->server, orig);
-		debug2("%s: replace/%d %s", __func__, ssh->kex->server, replace);
+		debug2_f("orig/%d    %s", ssh->kex->server, orig);
+		debug2_f("replace/%d %s", ssh->kex->server, replace);
 		free(orig);
 		proposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = replace;
 		replace = NULL;	/* owned by proposal */
@@ -554,5 +588,5 @@ _ssh_host_key_sign(struct ssh *ssh, struct sshkey *privkey,
     const u_char *data, size_t dlen, const char *alg)
 {
 	return sshkey_sign(privkey, signature, slen, data, dlen,
-	    alg, ssh->compat);
+	    alg, NULL, NULL, ssh->compat);
 }

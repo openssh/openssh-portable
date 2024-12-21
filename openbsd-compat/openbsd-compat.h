@@ -44,9 +44,22 @@
 #include "getrrsetbyname.h"
 #include "sha1.h"
 #include "sha2.h"
-#include "rmd160.h"
 #include "md5.h"
 #include "blf.h"
+#include "fnmatch.h"
+
+#ifndef __THROW
+# if defined __cplusplus
+#  define __THROW throw()
+# else
+#  define __THROW
+# endif
+#endif
+
+#if defined(HAVE_LOGIN_CAP) && !defined(HAVE_LOGIN_GETPWCLASS)
+# include <login_cap.h>
+# define login_getpwclass(pw) login_getclass(pw->pw_class)
+#endif
 
 #ifndef HAVE_BASENAME
 char *basename(const char *path);
@@ -58,6 +71,10 @@ int bindresvport_sa(int sd, struct sockaddr *sa);
 
 #ifndef HAVE_CLOSEFROM
 void closefrom(int);
+#endif
+
+#if defined(HAVE_DECL_FTRUNCATE) && HAVE_DECL_FTRUNCATE == 0
+int ftruncate(int filedes, off_t length);
 #endif
 
 #ifndef HAVE_GETLINE
@@ -73,24 +90,20 @@ int getpagesize(void);
 char *getcwd(char *pt, size_t size);
 #endif
 
+#ifndef HAVE_KILLPG
+int killpg(pid_t, int);
+#endif
+
+#if defined(HAVE_DECL_MEMMEM) && HAVE_DECL_MEMMEM == 0
+void *memmem(const void *, size_t, const void *, size_t);
+#endif
+
 #ifndef HAVE_REALLOCARRAY
 void *reallocarray(void *, size_t, size_t);
 #endif
 
 #ifndef HAVE_RECALLOCARRAY
 void *recallocarray(void *, size_t, size_t, size_t);
-#endif
-
-#if !defined(HAVE_REALPATH) || defined(BROKEN_REALPATH)
-/*
- * glibc's FORTIFY_SOURCE can redefine this and prevent us picking up the
- * compat version.
- */
-# ifdef BROKEN_REALPATH
-#  define realpath(x, y) _ssh_compat_realpath(x, y)
-# endif
-
-char *realpath(const char *path, char *resolved);
 #endif
 
 #ifndef HAVE_RRESVPORT_AF
@@ -109,6 +122,14 @@ size_t strlcat(char *dst, const char *src, size_t siz);
 char *strcasestr(const char *, const char *);
 #endif
 
+#ifndef HAVE_STRNLEN
+size_t strnlen(const char *, size_t);
+#endif
+
+#ifndef HAVE_STRNDUP
+char *strndup(const char *s, size_t n);
+#endif
+
 #ifndef HAVE_SETENV
 int setenv(register const char *name, register const char *value, int rewrite);
 #endif
@@ -122,11 +143,14 @@ void strmode(int mode, char *p);
 char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
 
-#if !defined(HAVE_MKDTEMP) || defined(HAVE_STRICT_MKSTEMP)
+#if !defined(HAVE_MKDTEMP)
 int mkstemps(char *path, int slen);
 int mkstemp(char *path);
 char *mkdtemp(char *path);
 #endif
+
+#define mkstemp(x) _ssh_mkstemp(x)
+int _ssh_mkstemp(char *);
 
 #ifndef HAVE_DAEMON
 int daemon(int nochdir, int noclose);
@@ -171,7 +195,7 @@ int getgrouplist(const char *, gid_t, gid_t *, int *);
 #endif
 
 #if !defined(HAVE_GETOPT) || !defined(HAVE_GETOPT_OPTRESET)
-int BSDgetopt(int argc, char * const *argv, const char *opts);
+int BSDgetopt(int argc, char * const *argv, const char *opts) __THROW;
 #include "openbsd-compat/getopt.h"
 #endif
 
@@ -190,32 +214,31 @@ int writev(int, struct iovec *, int);
 #endif
 
 /* Home grown routines */
+#include "bsd-signal.h"
 #include "bsd-misc.h"
 #include "bsd-setres_id.h"
-#include "bsd-signal.h"
 #include "bsd-statvfs.h"
 #include "bsd-waitpid.h"
 #include "bsd-poll.h"
 
-#ifndef HAVE_GETPEEREID
+#if defined(HAVE_DECL_GETPEEREID) && HAVE_DECL_GETPEEREID == 0
 int getpeereid(int , uid_t *, gid_t *);
 #endif
 
-#ifdef HAVE_ARC4RANDOM
-# ifndef HAVE_ARC4RANDOM_STIR
-#  define arc4random_stir()
-# endif
-#else
-unsigned int arc4random(void);
-void arc4random_stir(void);
+#ifndef HAVE_ARC4RANDOM
+uint32_t arc4random(void);
 #endif /* !HAVE_ARC4RANDOM */
 
 #ifndef HAVE_ARC4RANDOM_BUF
 void arc4random_buf(void *, size_t);
 #endif
 
+#ifndef HAVE_ARC4RANDOM_STIR
+# define arc4random_stir()
+#endif
+
 #ifndef HAVE_ARC4RANDOM_UNIFORM
-u_int32_t arc4random_uniform(u_int32_t);
+uint32_t arc4random_uniform(uint32_t);
 #endif
 
 #ifndef HAVE_ASPRINTF
@@ -310,8 +333,8 @@ int timingsafe_bcmp(const void *, const void *, size_t);
 #endif
 
 #ifndef HAVE_BCRYPT_PBKDF
-int	bcrypt_pbkdf(const char *, size_t, const u_int8_t *, size_t,
-    u_int8_t *, size_t, unsigned int);
+int	bcrypt_pbkdf(const char *, size_t, const uint8_t *, size_t,
+    uint8_t *, size_t, unsigned int);
 #endif
 
 #ifndef HAVE_EXPLICIT_BZERO
@@ -320,6 +343,15 @@ void explicit_bzero(void *p, size_t n);
 
 #ifndef HAVE_FREEZERO
 void freezero(void *, size_t);
+#endif
+
+#ifndef HAVE_LOCALTIME_R
+struct tm *localtime_r(const time_t *, struct tm *);
+#endif
+
+#ifndef HAVE_TIMEGM
+#include <time.h>
+time_t timegm(struct tm *);
 #endif
 
 char *xcrypt(const char *password, const char *salt);

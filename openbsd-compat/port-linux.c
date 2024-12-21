@@ -21,19 +21,28 @@
 
 #include "includes.h"
 
-#if defined(WITH_SELINUX) || defined(LINUX_OOM_ADJUST)
+#if defined(WITH_SELINUX) || defined(LINUX_OOM_ADJUST) || \
+    defined(SYSTEMD_NOTIFY)
+#include <sys/socket.h>
+#include <sys/un.h>
+
 #include <errno.h>
+#include <inttypes.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "log.h"
 #include "xmalloc.h"
 #include "port-linux.h"
+#include "misc.h"
 
 #ifdef WITH_SELINUX
 #include <selinux/selinux.h>
+#include <selinux/label.h>
 #include <selinux/get_context_list.h>
 
 #ifndef SSH_SELINUX_UNCONFINED_TYPE
@@ -55,11 +64,10 @@ ssh_selinux_enabled(void)
 }
 
 /* Return the default security context for the given username */
-static security_context_t
+static char *
 ssh_selinux_getctxbyname(char *pwname)
 {
-	security_context_t sc = NULL;
-	char *sename = NULL, *lvl = NULL;
+	char *sc = NULL, *sename = NULL, *lvl = NULL;
 	int r;
 
 #ifdef HAVE_GETSEUSERBYNAME
@@ -105,7 +113,7 @@ ssh_selinux_getctxbyname(char *pwname)
 void
 ssh_selinux_setup_exec_context(char *pwname)
 {
-	security_context_t user_ctx = NULL;
+	char *user_ctx = NULL;
 
 	if (!ssh_selinux_enabled())
 		return;
@@ -136,9 +144,7 @@ ssh_selinux_setup_exec_context(char *pwname)
 void
 ssh_selinux_setup_pty(char *pwname, const char *tty)
 {
-	security_context_t new_tty_ctx = NULL;
-	security_context_t user_ctx = NULL;
-	security_context_t old_tty_ctx = NULL;
+	char *new_tty_ctx = NULL, *user_ctx = NULL, *old_tty_ctx = NULL;
 	security_class_t chrclass;
 
 	if (!ssh_selinux_enabled())
@@ -180,20 +186,20 @@ ssh_selinux_setup_pty(char *pwname, const char *tty)
 void
 ssh_selinux_change_context(const char *newname)
 {
-	int len, newlen;
-	char *oldctx, *newctx, *cx;
-	void (*switchlog) (const char *fmt,...) = logit;
+	char *oldctx, *newctx, *cx, *cx2;
+	LogLevel log_level = SYSLOG_LEVEL_INFO;
 
 	if (!ssh_selinux_enabled())
 		return;
 
-	if (getcon((security_context_t *)&oldctx) < 0) {
-		logit("%s: getcon failed with %s", __func__, strerror(errno));
+	if (getcon(&oldctx) < 0) {
+		logit_f("getcon failed with %s", strerror(errno));
 		return;
 	}
-	if ((cx = index(oldctx, ':')) == NULL || (cx = index(cx + 1, ':')) ==
-	    NULL) {
-		logit ("%s: unparseable context %s", __func__, oldctx);
+	if ((cx = strchr(oldctx, ':')) == NULL ||
+	    (cx = strchr(cx + 1, ':')) == NULL ||
+	    (cx - oldctx) >= INT_MAX) {
+		logit_f("unparsable context %s", oldctx);
 		return;
 	}
 
@@ -203,19 +209,15 @@ ssh_selinux_change_context(const char *newname)
 	 */
 	if (strncmp(cx, SSH_SELINUX_UNCONFINED_TYPE,
 	    sizeof(SSH_SELINUX_UNCONFINED_TYPE) - 1) == 0)
-		switchlog = debug3;
+		log_level = SYSLOG_LEVEL_DEBUG3;
 
-	newlen = strlen(oldctx) + strlen(newname) + 1;
-	newctx = xmalloc(newlen);
-	len = cx - oldctx + 1;
-	memcpy(newctx, oldctx, len);
-	strlcpy(newctx + len, newname, newlen - len);
-	if ((cx = index(cx + 1, ':')))
-		strlcat(newctx, cx, newlen);
-	debug3("%s: setting context from '%s' to '%s'", __func__,
-	    oldctx, newctx);
+	cx2 = strchr(cx + 1, ':');
+	xasprintf(&newctx, "%.*s%s%s", (int)(cx - oldctx + 1), oldctx,
+	    newname, cx2 == NULL ? "" : cx2);
+
+	debug3_f("setting context from '%s' to '%s'", oldctx, newctx);
 	if (setcon(newctx) < 0)
-		switchlog("%s: setcon %s from %s failed with %s", __func__,
+		do_log2_f(log_level, "setcon %s from %s failed with %s",
 		    newctx, oldctx, strerror(errno));
 	free(oldctx);
 	free(newctx);
@@ -224,7 +226,8 @@ ssh_selinux_change_context(const char *newname)
 void
 ssh_selinux_setfscreatecon(const char *path)
 {
-	security_context_t context;
+	char *context;
+	struct selabel_handle *shandle = NULL;
 
 	if (!ssh_selinux_enabled())
 		return;
@@ -232,8 +235,13 @@ ssh_selinux_setfscreatecon(const char *path)
 		setfscreatecon(NULL);
 		return;
 	}
-	if (matchpathcon(path, 0700, &context) == 0)
+	if ((shandle = selabel_open(SELABEL_CTX_FILE, NULL, 0)) == NULL) {
+		debug_f("selabel_open failed");
+		return;
+	}
+	if (selabel_lookup(shandle, &context, path, 0700) == 0)
 		setfscreatecon(context);
+	selabel_close(shandle);
 }
 
 #endif /* WITH_SELINUX */
@@ -310,4 +318,90 @@ oom_adjust_restore(void)
 	return;
 }
 #endif /* LINUX_OOM_ADJUST */
-#endif /* WITH_SELINUX || LINUX_OOM_ADJUST */
+
+#ifdef SYSTEMD_NOTIFY
+
+static void ssh_systemd_notify(const char *, ...)
+    __attribute__((__format__ (printf, 1, 2))) __attribute__((__nonnull__ (1)));
+
+static void
+ssh_systemd_notify(const char *fmt, ...)
+{
+	char *s = NULL;
+	const char *path;
+	struct stat sb;
+	struct sockaddr_un addr;
+	int fd = -1;
+	va_list ap;
+
+	if ((path = getenv("NOTIFY_SOCKET")) == NULL || strlen(path) == 0)
+		return;
+
+	va_start(ap, fmt);
+	xvasprintf(&s, fmt, ap);
+	va_end(ap);
+
+	/* Only AF_UNIX is supported, with path or abstract sockets */
+	if (path[0] != '/' && path[0] != '@') {
+		error_f("socket \"%s\" is not compatible with AF_UNIX", path);
+		goto out;
+	}
+
+	if (path[0] == '/' && stat(path, &sb) != 0) {
+		error_f("socket \"%s\" stat: %s", path, strerror(errno));
+		goto out;
+	}
+
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	if (strlcpy(addr.sun_path, path,
+	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path)) {
+		error_f("socket path \"%s\" too long", path);
+		goto out;
+	}
+	/* Support for abstract socket */
+	if (addr.sun_path[0] == '@')
+		addr.sun_path[0] = 0;
+	if ((fd = socket(PF_UNIX, SOCK_DGRAM, 0)) == -1) {
+		error_f("socket \"%s\": %s", path, strerror(errno));
+		goto out;
+	}
+	if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+		error_f("socket \"%s\" connect: %s", path, strerror(errno));
+		goto out;
+	}
+	if (write(fd, s, strlen(s)) != (ssize_t)strlen(s)) {
+		error_f("socket \"%s\" write: %s", path, strerror(errno));
+		goto out;
+	}
+	debug_f("socket \"%s\" notified %s", path, s);
+ out:
+	if (fd != -1)
+		close(fd);
+	free(s);
+}
+
+void
+ssh_systemd_notify_ready(void)
+{
+	ssh_systemd_notify("READY=1");
+}
+
+void
+ssh_systemd_notify_reload(void)
+{
+	struct timespec now;
+
+	monotime_ts(&now);
+	if (now.tv_sec < 0 || now.tv_nsec < 0) {
+		error_f("monotime returned negative value");
+		ssh_systemd_notify("RELOADING=1");
+	} else {
+		ssh_systemd_notify("RELOADING=1\nMONOTONIC_USEC=%llu",
+		    ((uint64_t)now.tv_sec * 1000000ULL) +
+		    ((uint64_t)now.tv_nsec / 1000ULL));
+	}
+}
+#endif /* SYSTEMD_NOTIFY */
+
+#endif /* WITH_SELINUX || LINUX_OOM_ADJUST || SYSTEMD_NOTIFY */

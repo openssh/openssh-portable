@@ -17,11 +17,8 @@
 #include "config.h"
 #include "includes.h"
 
-#ifdef USE_SOLARIS_PROCESS_CONTRACTS
-
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/param.h>
 
 #include <errno.h>
 #ifdef HAVE_FCNTL_H
@@ -31,11 +28,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "log.h"
+
+#ifdef USE_SOLARIS_PROCESS_CONTRACTS
+
 #include <libcontract.h>
 #include <sys/contract/process.h>
 #include <sys/ctfs.h>
-
-#include "log.h"
 
 #define CT_TEMPLATE	CTFS_ROOT "/process/template"
 #define CT_LATEST	CTFS_ROOT "/process/latest"
@@ -284,15 +283,37 @@ solaris_drop_privs_pinfo_net_fork_exec(void)
 	    priv_addset(npset, PRIV_FILE_OWNER) != 0)
 		fatal("priv_addset: %s", strerror(errno));
 
-	if (priv_delset(npset, PRIV_FILE_LINK_ANY) != 0 ||
+	if (priv_delset(npset, PRIV_PROC_EXEC) != 0 ||
 #ifdef PRIV_NET_ACCESS
 	    priv_delset(npset, PRIV_NET_ACCESS) != 0 ||
 #endif
-	    priv_delset(npset, PRIV_PROC_EXEC) != 0 ||
 	    priv_delset(npset, PRIV_PROC_FORK) != 0 ||
 	    priv_delset(npset, PRIV_PROC_INFO) != 0 ||
 	    priv_delset(npset, PRIV_PROC_SESSION) != 0)
 		fatal("priv_delset: %s", strerror(errno));
+
+#ifdef PRIV_XPOLICY
+	/*
+	 * It is possible that the user has an extended policy
+	 * in place; the LIMIT set restricts the extended policy
+	 * and so should not be restricted.
+	 * PRIV_XPOLICY is newly defined in Solaris 11 though the extended
+	 * policy was not implemented until Solaris 11.1.
+	 */
+	if (getpflags(PRIV_XPOLICY) == 1) {
+		if (getppriv(PRIV_LIMIT, pset) != 0)
+			fatal("getppriv: %s", strerror(errno));
+		priv_intersect(pset, npset);
+		if (setppriv(PRIV_SET, PRIV_LIMIT, npset) != 0)
+			fatal("setppriv: %s", strerror(errno));
+	} else
+#endif
+	{
+		/* Cannot exec, so we can kill the limit set. */
+		priv_emptyset(pset);
+		if (setppriv(PRIV_SET, PRIV_LIMIT, pset) != 0)
+			fatal("setppriv: %s", strerror(errno));
+	}
 
 	if (getppriv(PRIV_PERMITTED, pset) != 0)
 		fatal("getppriv: %s", strerror(errno));
@@ -300,7 +321,6 @@ solaris_drop_privs_pinfo_net_fork_exec(void)
 	priv_intersect(pset, npset);
 
 	if (setppriv(PRIV_SET, PRIV_PERMITTED, npset) != 0 ||
-	    setppriv(PRIV_SET, PRIV_LIMIT, npset) != 0 ||
 	    setppriv(PRIV_SET, PRIV_INHERITABLE, npset) != 0)
 		fatal("setppriv: %s", strerror(errno));
 
@@ -348,8 +368,7 @@ solaris_drop_privs_root_pinfo_net_exec(void)
 	    priv_delset(pset, PRIV_NET_ACCESS) != 0 ||
 #endif
 	    priv_delset(pset, PRIV_PROC_EXEC) != 0 ||
-	    priv_delset(pset, PRIV_PROC_INFO) != 0 ||
-	    priv_delset(pset, PRIV_PROC_SESSION) != 0)
+	    priv_delset(pset, PRIV_PROC_INFO) != 0)
 		fatal("priv_delset: %s", strerror(errno));
 
 	if (setppriv(PRIV_SET, PRIV_PERMITTED, pset) != 0 ||

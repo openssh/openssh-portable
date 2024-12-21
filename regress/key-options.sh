@@ -1,4 +1,4 @@
-#	$OpenBSD: key-options.sh,v 1.9 2018/07/03 13:53:26 djm Exp $
+#	$OpenBSD: key-options.sh,v 1.11 2024/12/05 14:28:39 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="key options"
@@ -6,6 +6,12 @@ tid="key options"
 origkeys="$OBJ/authkeys_orig"
 authkeys="$OBJ/authorized_keys_${USER}"
 cp $authkeys $origkeys
+
+# Allocating ptys can require privileges on some platforms.
+skip_pty=""
+if ! config_defined HAVE_OPENPTY && [ "x$SUDO" = "x" ]; then
+	skip_pty="no openpty(3) and SUDO not set"
+fi
 
 # Test command= forced command
 for c in 'command="echo bar"' 'no-pty,command="echo bar"'; do
@@ -27,7 +33,7 @@ expect_pty_succeed() {
 	rm -f $OBJ/data
 	sed "s/.*/$opts &/" $origkeys >$authkeys
 	verbose "key option pty $which"
-	config_defined HAVE_OPENPTY || verbose "skipped for no openpty(3)"
+	[ "x$skip_pty" != "x" ] && verbose "skipped because $skip_pty" && return
 	${SSH} -ttq -F $OBJ/ssh_proxy somehost "tty > $OBJ/data; exit 0"
 	if [ $? -ne 0 ] ; then
 		fail "key option failed $which"
@@ -45,7 +51,7 @@ expect_pty_fail() {
 	rm -f $OBJ/data
 	sed "s/.*/$opts &/" $origkeys >$authkeys
 	verbose "key option pty $which"
-	config_defined HAVE_OPENPTY || verbose "skipped for no openpty(3)"
+	[ "x$skip_pty" != "x" ] && verbose "skipped because $skip_pty" && return
 	${SSH} -ttq -F $OBJ/ssh_proxy somehost "tty > $OBJ/data; exit 0"
 	if [ $? -eq 0 ]; then
 		r=`cat $OBJ/data`
@@ -114,5 +120,8 @@ check_valid_before() {
 check_valid_before "default"	""				"pass"
 check_valid_before "invalid"	'expiry-time="INVALID"'		"fail"
 check_valid_before "expired"	'expiry-time="19990101"'	"fail"
+if config_defined "SIZEOF_TIME_T 4"; then
 check_valid_before "valid"	'expiry-time="20380101"'	"pass"
-
+else
+check_valid_before "valid-64b"	'expiry-time="25250101"'	"pass"
+fi

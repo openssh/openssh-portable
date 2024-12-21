@@ -17,6 +17,8 @@
 #include "includes.h"
 
 #include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "log.h"
@@ -30,52 +32,7 @@
 
 #include "openbsd-compat/openbsd-compat.h"
 
-extern int use_privsep;
 extern ServerOptions options;
-
-void
-platform_pre_listen(void)
-{
-#ifdef LINUX_OOM_ADJUST
-	/* Adjust out-of-memory killer so listening process is not killed */
-	oom_adjust_setup();
-#endif
-}
-
-void
-platform_pre_fork(void)
-{
-#ifdef USE_SOLARIS_PROCESS_CONTRACTS
-	solaris_contract_pre_fork();
-#endif
-}
-
-void
-platform_pre_restart(void)
-{
-#ifdef LINUX_OOM_ADJUST
-	oom_adjust_restore();
-#endif
-}
-
-void
-platform_post_fork_parent(pid_t child_pid)
-{
-#ifdef USE_SOLARIS_PROCESS_CONTRACTS
-	solaris_contract_post_fork_parent(child_pid);
-#endif
-}
-
-void
-platform_post_fork_child(void)
-{
-#ifdef USE_SOLARIS_PROCESS_CONTRACTS
-	solaris_contract_post_fork_child();
-#endif
-#ifdef LINUX_OOM_ADJUST
-	oom_adjust_restore();
-#endif
-}
 
 /* return 1 if we are running with privilege to swap UIDs, 0 otherwise */
 int
@@ -123,7 +80,7 @@ platform_setusercontext(struct passwd *pw)
 	 */
 	if (getuid() == 0 || geteuid() == 0) {
 		if (options.use_pam) {
-			do_pam_setcred(use_privsep);
+			do_pam_setcred();
 		}
 	}
 # endif /* USE_PAM */
@@ -151,7 +108,7 @@ platform_setusercontext_post_groups(struct passwd *pw)
 	 * Reestablish them here.
 	 */
 	if (options.use_pam) {
-		do_pam_setcred(use_privsep);
+		do_pam_setcred();
 	}
 #endif /* USE_PAM */
 
@@ -195,4 +152,54 @@ platform_krb5_get_principal_name(const char *pw_name)
 #else
 	return NULL;
 #endif
+}
+
+/* returns 1 if account is locked */
+int
+platform_locked_account(struct passwd *pw)
+{
+	int locked = 0;
+	char *passwd = pw->pw_passwd;
+#ifdef USE_SHADOW
+	struct spwd *spw = NULL;
+#ifdef USE_LIBIAF
+	char *iaf_passwd = NULL;
+#endif
+
+	spw = getspnam(pw->pw_name);
+#ifdef HAS_SHADOW_EXPIRE
+	if (spw != NULL && auth_shadow_acctexpired(spw))
+		return 1;
+#endif /* HAS_SHADOW_EXPIRE */
+
+	if (spw != NULL)
+#ifdef USE_LIBIAF
+		iaf_passwd = passwd = get_iaf_password(pw);
+#else
+		passwd = spw->sp_pwdp;
+#endif /* USE_LIBIAF */
+#endif
+
+	/* check for locked account */
+	if (passwd && *passwd) {
+#ifdef LOCKED_PASSWD_STRING
+		if (strcmp(passwd, LOCKED_PASSWD_STRING) == 0)
+			locked = 1;
+#endif
+#ifdef LOCKED_PASSWD_PREFIX
+		if (strncmp(passwd, LOCKED_PASSWD_PREFIX,
+		    strlen(LOCKED_PASSWD_PREFIX)) == 0)
+			locked = 1;
+#endif
+#ifdef LOCKED_PASSWD_SUBSTR
+		if (strstr(passwd, LOCKED_PASSWD_SUBSTR))
+			locked = 1;
+#endif
+	}
+#ifdef USE_LIBIAF
+	if (iaf_passwd != NULL)
+		freezero(iaf_passwd, strlen(iaf_passwd));
+#endif /* USE_LIBIAF */
+
+	return locked;
 }

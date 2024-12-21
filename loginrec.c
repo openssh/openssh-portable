@@ -25,27 +25,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * The btmp logging code is derived from login.c from util-linux and is under
- * the the following license:
- *
- * Copyright (c) 1980, 1987, 1988 The Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice and this paragraph are
- * duplicated in all such forms and that any documentation,
- * advertising materials, and other materials related to such
- * distribution and use acknowledge that the software was developed
- * by the University of California, Berkeley.  The name of the
- * University may not be used to endorse or promote products derived
- * from this software without specific prior written permission.
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- */
-
-
 /**
  ** loginrec.c:  platform-independent login recording and lastlog retrieval
  **/
@@ -156,6 +135,7 @@
 
 #include <netinet/in.h>
 
+#include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
 #ifdef HAVE_PATHS_H
@@ -163,6 +143,7 @@
 #endif
 #include <pwd.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -179,9 +160,14 @@
 #include "auth.h"
 #include "sshbuf.h"
 #include "ssherr.h"
+#include "misc.h"
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
+#endif
+
+#ifdef USE_WTMPDB
+# include <wtmpdb.h>
 #endif
 
 /**
@@ -204,6 +190,9 @@ int wtmp_write_entry(struct logininfo *li);
 int wtmpx_write_entry(struct logininfo *li);
 int lastlog_write_entry(struct logininfo *li);
 int syslogin_write_entry(struct logininfo *li);
+#ifdef USE_WTMPDB
+int wtmpdb_write_entry(struct logininfo *li);
+#endif
 
 int getlast_entry(struct logininfo *li);
 int lastlog_get_entry(struct logininfo *li);
@@ -464,6 +453,9 @@ login_write(struct logininfo *li)
 #ifdef USE_WTMPX
 	wtmpx_write_entry(li);
 #endif
+#ifdef USE_WTMPDB
+	wtmpdb_write_entry(li);
+#endif
 #ifdef CUSTOM_SYS_AUTH_RECORD_LOGIN
 	if (li->type == LTYPE_LOGIN &&
 	    !sys_auth_record_login(li->username,li->hostname,li->line,
@@ -600,6 +592,9 @@ line_abbrevname(char *dst, const char *src, int dstsize)
 
 	memset(dst, '\0', dstsize);
 
+	if (strcmp(src, "ssh:notty") == 0)
+		return dst;
+
 	/* Always skip prefix if present */
 	if (strncmp(src, "/dev/", 5) == 0)
 		src += 5;
@@ -629,7 +624,7 @@ line_abbrevname(char *dst, const char *src, int dstsize)
  ** into account.
  **/
 
-#if defined(USE_UTMP) || defined (USE_WTMP) || defined (USE_LOGIN)
+#if defined(USE_BTMP) || defined(USE_UTMP) || defined (USE_WTMP) || defined (USE_LOGIN)
 
 /* build the utmp structure */
 void
@@ -713,7 +708,7 @@ construct_utmp(struct logininfo *li,
 	}
 # endif
 }
-#endif /* USE_UTMP || USE_WTMP || USE_LOGIN */
+#endif /* USE_BTMP || USE_UTMP || USE_WTMP || USE_LOGIN */
 
 /**
  ** utmpx utility functions
@@ -738,7 +733,7 @@ set_utmpx_time(struct logininfo *li, struct utmpx *utx)
 void
 construct_utmpx(struct logininfo *li, struct utmpx *utx)
 {
-# ifdef HAVE_ADDR_V6_IN_UTMP
+# ifdef HAVE_ADDR_V6_IN_UTMPX
 	struct sockaddr_in6 *sa6;
 #  endif
 	memset(utx, '\0', sizeof(*utx));
@@ -776,12 +771,15 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 	strncpy(utx->ut_host, li->hostname,
 	    MIN_SIZEOF(utx->ut_host, li->hostname));
 # endif
+# ifdef HAVE_SS_IN_UTMPX
+	utx->ut_ss = li->hostaddr.sa_storage;
+# endif
 # ifdef HAVE_ADDR_IN_UTMPX
 	/* this is just a 32-bit IP address */
 	if (li->hostaddr.sa.sa_family == AF_INET)
 		utx->ut_addr = li->hostaddr.sa_in.sin_addr.s_addr;
 # endif
-# ifdef HAVE_ADDR_V6_IN_UTMP
+# ifdef HAVE_ADDR_V6_IN_UTMPX
 	/* this is just a 128-bit IPv6 address */
 	if (li->hostaddr.sa.sa_family == AF_INET6) {
 		sa6 = ((struct sockaddr_in6 *)&li->hostaddr.sa);
@@ -796,7 +794,7 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 # endif
 # ifdef HAVE_SYSLEN_IN_UTMPX
 	/* ut_syslen is the length of the utx_host string */
-	utx->ut_syslen = MIN(strlen(li->hostname), sizeof(utx->ut_host));
+	utx->ut_syslen = MINIMUM(strlen(li->hostname), sizeof(utx->ut_host));
 # endif
 }
 #endif /* USE_UTMPX || USE_WTMPX */
@@ -1027,7 +1025,7 @@ utmpx_perform_login(struct logininfo *li)
 		return (0);
 	}
 # else
-	if (!utmpx_write_direct(li, &ut)) {
+	if (!utmpx_write_direct(li, &utx)) {
 		logit("%s: utmp_write_direct() failed", __func__);
 		return (0);
 	}
@@ -1403,6 +1401,64 @@ wtmpx_get_entry(struct logininfo *li)
 }
 #endif /* USE_WTMPX */
 
+#ifdef USE_WTMPDB
+static int
+wtmpdb_perform_login(struct logininfo *li)
+{
+	uint64_t login_time = li->tv_sec * ((uint64_t) 1000000ULL) +
+	    li->tv_usec;
+	const char *tty;
+
+	if (strncmp(li->line, "/dev/", 5) == 0)
+		tty = &(li->line[5]);
+	else
+		tty = li->line;
+
+	li->wtmpdb_id = wtmpdb_login(NULL, USER_PROCESS, li->username,
+	    login_time, tty, li->hostname, 0, 0);
+
+	if (li->wtmpdb_id < 0)
+		return (0);
+
+	return (1);
+}
+
+static int
+wtmpdb_perform_logout(struct logininfo *li)
+{
+	uint64_t logout_time = li->tv_sec * ((uint64_t) 1000000ULL) +
+	   li->tv_usec;
+
+	if (li->wtmpdb_id == 0) {
+		const char *tty;
+
+		if (strncmp(li->line, "/dev/", 5) == 0)
+			tty = &(li->line[5]);
+		else
+			tty = li->line;
+
+		li->wtmpdb_id = wtmpdb_get_id(NULL, tty, NULL);
+	}
+	wtmpdb_logout(NULL, li->wtmpdb_id, logout_time, NULL);
+
+	return (1);
+}
+
+int
+wtmpdb_write_entry(struct logininfo *li)
+{
+	switch(li->type) {
+	case LTYPE_LOGIN:
+		return (wtmpdb_perform_login(li));
+	case LTYPE_LOGOUT:
+		return (wtmpdb_perform_logout(li));
+	default:
+		logit("%s: invalid type field", __func__);
+		return (0);
+	}
+}
+#endif
+
 /**
  ** Low-level libutil login() functions
  **/
@@ -1541,10 +1597,10 @@ lastlog_write_entry(struct logininfo *li)
 		strlcpy(last.ll_host, li->hostname,
 		    MIN_SIZEOF(last.ll_host, li->hostname));
 		last.ll_time = li->tv_sec;
-	
+
 		if (!lastlog_openseek(li, &fd, O_RDWR|O_CREAT))
 			return (0);
-	
+
 		/* write the entry */
 		if (atomicio(vwrite, fd, &last, sizeof(last)) != sizeof(last)) {
 			close(fd);
@@ -1552,7 +1608,7 @@ lastlog_write_entry(struct logininfo *li)
 			    LASTLOG_FILE, strerror(errno));
 			return (0);
 		}
-	
+
 		close(fd);
 		return (1);
 	default:
@@ -1645,23 +1701,20 @@ utmpx_get_entry(struct logininfo *li)
 #endif /* USE_UTMPX && HAVE_SETUTXDB && UTXDB_LASTLOGIN && HAVE_GETUTXUSER */
 
 #ifdef USE_BTMP
-  /*
-   * Logs failed login attempts in _PATH_BTMP if that exists.
-   * The most common login failure is to give password instead of username.
-   * So the _PATH_BTMP file checked for the correct permission, so that
-   * only root can read it.
-   */
-
+/*
+ * Logs failed login attempts in _PATH_BTMP if that exists.
+ * The most common login failure is to give password instead of username.
+ * So the _PATH_BTMP file checked for the correct permission, so that only
+ * root can read it.
+ */
 void
 record_failed_login(struct ssh *ssh, const char *username, const char *hostname,
     const char *ttyn)
 {
 	int fd;
 	struct utmp ut;
-	struct sockaddr_storage from;
-	socklen_t fromlen = sizeof(from);
-	struct sockaddr_in *a4;
-	struct sockaddr_in6 *a6;
+	struct logininfo li;
+	socklen_t fromlen = sizeof(li.hostaddr);
 	time_t t;
 	struct stat fst;
 
@@ -1677,47 +1730,31 @@ record_failed_login(struct ssh *ssh, const char *username, const char *hostname,
 		    strerror(errno));
 		goto out;
 	}
-	if((fst.st_mode & (S_IXGRP | S_IRWXO)) || (fst.st_uid != 0)){
+	if ((fst.st_mode & (S_IXGRP | S_IRWXO)) || fst.st_uid != 0) {
 		logit("Excess permission or bad ownership on file %s",
 		    _PATH_BTMP);
 		goto out;
 	}
 
-	memset(&ut, 0, sizeof(ut));
-	/* strncpy because we don't necessarily want nul termination */
-	strncpy(ut.ut_user, username, sizeof(ut.ut_user));
-	strlcpy(ut.ut_line, "ssh:notty", sizeof(ut.ut_line));
-
+	/* Construct a logininfo and turn it into a utmp */
+	memset(&li, 0, sizeof(li));
+	li.type = LTYPE_LOGIN;
+	li.pid = getpid();
+	strlcpy(li.line, "ssh:notty", sizeof(li.line));
+	strlcpy(li.username, username, sizeof(li.username));
+	strlcpy(li.hostname, hostname, sizeof(li.hostname));
 	time(&t);
-	ut.ut_time = t;     /* ut_time is not always a time_t */
-	ut.ut_type = LOGIN_PROCESS;
-	ut.ut_pid = getpid();
-
-	/* strncpy because we don't necessarily want nul termination */
-	strncpy(ut.ut_host, hostname, sizeof(ut.ut_host));
-
-	if (ssh_packet_connection_is_on_socket(ssh) &&
-	    getpeername(ssh_packet_get_connection_in(ssh),
-	    (struct sockaddr *)&from, &fromlen) == 0) {
-		ipv64_normalise_mapped(&from, &fromlen);
-		if (from.ss_family == AF_INET) {
-			a4 = (struct sockaddr_in *)&from;
-			memcpy(&ut.ut_addr, &(a4->sin_addr),
-			    MIN_SIZEOF(ut.ut_addr, a4->sin_addr));
-		}
-#ifdef HAVE_ADDR_V6_IN_UTMP
-		if (from.ss_family == AF_INET6) {
-			a6 = (struct sockaddr_in6 *)&from;
-			memcpy(&ut.ut_addr_v6, &(a6->sin6_addr),
-			    MIN_SIZEOF(ut.ut_addr_v6, a6->sin6_addr));
-		}
-#endif
+	li.tv_sec = t > 0 ? (unsigned long)t : 0;
+	if (ssh_packet_connection_is_on_socket(ssh)) {
+		(void)getpeername(ssh_packet_get_connection_in(ssh),
+		    &li.hostaddr.sa, &fromlen);
 	}
+	construct_utmp(&li, &ut);
 
-	if (atomicio(vwrite, fd, &ut, sizeof(ut)) != sizeof(ut))
+	if (atomicio(vwrite, fd, &ut, sizeof(ut)) != sizeof(ut)) {
 		error("Failed to write to %s: %s", _PATH_BTMP,
 		    strerror(errno));
-
+	}
 out:
 	close(fd);
 }

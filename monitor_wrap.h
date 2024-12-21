@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.41 2019/01/19 21:43:56 djm Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.51 2024/05/17 06:42:04 jsg Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -28,9 +28,6 @@
 #ifndef _MM_WRAP_H_
 #define _MM_WRAP_H_
 
-extern int use_privsep;
-#define PRIVSEP(x)	(use_privsep ? mm_##x : x)
-
 enum mm_keytype { MM_NOKEY, MM_HOSTKEY, MM_USERKEY };
 
 struct ssh;
@@ -38,24 +35,30 @@ struct monitor;
 struct Authctxt;
 struct sshkey;
 struct sshauthopt;
+struct sshkey_sig_details;
 
-void mm_log_handler(LogLevel, const char *, void *);
+void mm_log_handler(LogLevel, int, const char *, void *);
 int mm_is_monitor(void);
+#ifdef WITH_OPENSSL
 DH *mm_choose_dh(int, int, int);
+#endif
 int mm_sshkey_sign(struct ssh *, struct sshkey *, u_char **, size_t *,
-    const u_char *, size_t, const char *, u_int compat);
+    const u_char *, size_t, const char *, const char *,
+    const char *, u_int compat);
 void mm_inform_authserv(char *, char *);
 struct passwd *mm_getpwnamallow(struct ssh *, const char *);
 char *mm_auth2_read_banner(void);
 int mm_auth_password(struct ssh *, char *);
 int mm_key_allowed(enum mm_keytype, const char *, const char *, struct sshkey *,
     int, struct sshauthopt **);
-int mm_user_key_allowed(struct ssh *, struct passwd *, struct sshkey *, int,
+int mm_user_key_allowed(struct ssh *ssh, struct passwd *, struct sshkey *, int,
     struct sshauthopt **);
 int mm_hostbased_key_allowed(struct ssh *, struct passwd *, const char *,
     const char *, struct sshkey *);
 int mm_sshkey_verify(const struct sshkey *, const u_char *, size_t,
-    const u_char *, size_t, const char *, u_int);
+    const u_char *, size_t, const char *, u_int, struct sshkey_sig_details **);
+
+void mm_decode_activate_server_options(struct ssh *ssh, struct sshbuf *m);
 
 #ifdef GSSAPI
 OM_uint32 mm_ssh_gssapi_server_ctx(Gssctxt **, gss_OID);
@@ -85,14 +88,22 @@ void mm_terminate(void);
 int mm_pty_allocate(int *, int *, char *, size_t);
 void mm_session_pty_cleanup2(struct Session *);
 
-/* Key export functions */
-struct newkeys *mm_newkeys_from_blob(u_char *, int);
-int mm_newkeys_to_blob(int, u_char **, u_int *);
-
 void mm_send_keystate(struct ssh *, struct monitor*);
+
+/* state */
+struct include_list;
+void mm_get_state(struct ssh *, struct include_list *, struct sshbuf *,
+    struct sshbuf **, uint64_t *, struct sshbuf **, struct sshbuf **,
+    u_char **, struct sshbuf **, struct sshbuf **);
 
 /* bsdauth */
 int mm_bsdauth_query(void *, char **, char **, u_int *, char ***, u_int **);
 int mm_bsdauth_respond(void *, u_int, char **);
+
+/* config / channels glue */
+void	 server_process_permitopen(struct ssh *);
+void	 server_process_channel_timeouts(struct ssh *ssh);
+struct connection_info *
+	 server_get_connection_info(struct ssh *, int, int);
 
 #endif /* _MM_WRAP_H_ */

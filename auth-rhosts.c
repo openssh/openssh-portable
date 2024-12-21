@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rhosts.c,v 1.49 2018/07/09 21:35:50 markus Exp $ */
+/* $OpenBSD: auth-rhosts.c,v 1.58 2024/05/17 00:30:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -19,6 +19,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <errno.h>
+#include <fcntl.h>
 #ifdef HAVE_NETGROUP_H
 # include <netgroup.h>
 #endif
@@ -26,7 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-#include <fcntl.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "packet.h"
@@ -34,17 +36,16 @@
 #include "pathnames.h"
 #include "log.h"
 #include "misc.h"
+#include "xmalloc.h"
 #include "sshbuf.h"
 #include "sshkey.h"
 #include "servconf.h"
 #include "canohost.h"
-#include "sshkey.h"
 #include "hostfile.h"
 #include "auth.h"
 
 /* import */
 extern ServerOptions options;
-extern int use_privsep;
 
 /*
  * This function processes an rhosts-style file (.rhosts, .shosts, or
@@ -190,12 +191,13 @@ int
 auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
     const char *ipaddr)
 {
-	char buf[1024];
+	char *path = NULL;
 	struct stat st;
-	static const char *rhosts_files[] = {".shosts", ".rhosts", NULL};
+	static const char * const rhosts_files[] = {".shosts", ".rhosts", NULL};
 	u_int rhosts_file_index;
+	int r;
 
-	debug2("auth_rhosts2: clientuser %s hostname %s ipaddr %s",
+	debug2_f("clientuser %s hostname %s ipaddr %s",
 	    client_user, hostname, ipaddr);
 
 	/* Switch to the user's uid. */
@@ -209,9 +211,11 @@ auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
 	for (rhosts_file_index = 0; rhosts_files[rhosts_file_index];
 	    rhosts_file_index++) {
 		/* Check users .rhosts or .shosts. */
-		snprintf(buf, sizeof buf, "%.500s/%.100s",
-			 pw->pw_dir, rhosts_files[rhosts_file_index]);
-		if (stat(buf, &st) >= 0)
+		xasprintf(&path, "%s/%s",
+		    pw->pw_dir, rhosts_files[rhosts_file_index]);
+		r = stat(path, &st);
+		free(path);
+		if (r >= 0)
 			break;
 	}
 	/* Switch back to privileged uid. */
@@ -222,9 +226,9 @@ auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
 	 * are no system-wide files.
 	 */
 	if (!rhosts_files[rhosts_file_index] &&
-	    stat(_PATH_RHOSTS_EQUIV, &st) < 0 &&
-	    stat(_PATH_SSH_HOSTS_EQUIV, &st) < 0) {
-		debug3("%s: no hosts access files exist", __func__);
+	    stat(_PATH_RHOSTS_EQUIV, &st) == -1 &&
+	    stat(_PATH_SSH_HOSTS_EQUIV, &st) == -1) {
+		debug3_f("no hosts access files exist");
 		return 0;
 	}
 
@@ -233,7 +237,7 @@ auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
 	 * shosts.equiv.
 	 */
 	if (pw->pw_uid == 0)
-		debug3("%s: root user, ignoring system hosts files", __func__);
+		debug3_f("root user, ignoring system hosts files");
 	else {
 		if (check_rhosts_file(_PATH_RHOSTS_EQUIV, hostname, ipaddr,
 		    client_user, pw->pw_name)) {
@@ -253,7 +257,7 @@ auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
 	 * Check that the home directory is owned by root or the user, and is
 	 * not group or world writable.
 	 */
-	if (stat(pw->pw_dir, &st) < 0) {
+	if (stat(pw->pw_dir, &st) == -1) {
 		logit("Rhosts authentication refused for %.100s: "
 		    "no home directory %.200s", pw->pw_name, pw->pw_dir);
 		auth_debug_add("Rhosts authentication refused for %.100s: "
@@ -276,10 +280,13 @@ auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
 	for (rhosts_file_index = 0; rhosts_files[rhosts_file_index];
 	    rhosts_file_index++) {
 		/* Check users .rhosts or .shosts. */
-		snprintf(buf, sizeof buf, "%.500s/%.100s",
-			 pw->pw_dir, rhosts_files[rhosts_file_index]);
-		if (stat(buf, &st) < 0)
+		xasprintf(&path, "%s/%s",
+		    pw->pw_dir, rhosts_files[rhosts_file_index]);
+		if (stat(path, &st) == -1) {
+			debug3_f("stat %s: %s", path, strerror(errno));
+			free(path);
 			continue;
+		}
 
 		/*
 		 * Make sure that the file is either owned by the user or by
@@ -290,22 +297,26 @@ auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
 		if (options.strict_modes &&
 		    ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
 		    (st.st_mode & 022) != 0)) {
-			logit("Rhosts authentication refused for %.100s: bad modes for %.200s",
-			    pw->pw_name, buf);
-			auth_debug_add("Bad file modes for %.200s", buf);
+			logit("Rhosts authentication refused for %.100s: "
+			    "bad modes for %.200s", pw->pw_name, path);
+			auth_debug_add("Bad file modes for %.200s", path);
+			free(path);
 			continue;
 		}
 		/*
 		 * Check if we have been configured to ignore .rhosts
 		 * and .shosts files.
 		 */
-		if (options.ignore_rhosts) {
+		if (options.ignore_rhosts == IGNORE_RHOSTS_YES ||
+		    (options.ignore_rhosts == IGNORE_RHOSTS_SHOSTS &&
+		    strcmp(rhosts_files[rhosts_file_index], ".shosts") != 0)) {
 			auth_debug_add("Server has been configured to "
 			    "ignore %.100s.", rhosts_files[rhosts_file_index]);
+			free(path);
 			continue;
 		}
 		/* Check if authentication is permitted by the file. */
-		if (check_rhosts_file(buf, hostname, ipaddr,
+		if (check_rhosts_file(path, hostname, ipaddr,
 		    client_user, pw->pw_name)) {
 			auth_debug_add("Accepted by %.100s.",
 			    rhosts_files[rhosts_file_index]);
@@ -314,8 +325,10 @@ auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
 			auth_debug_add("Accepted host %s ip %s client_user "
 			    "%s server_user %s", hostname, ipaddr,
 			    client_user, pw->pw_name);
+			free(path);
 			return 1;
 		}
+		free(path);
 	}
 
 	/* Restore the privileged uid. */

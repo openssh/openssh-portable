@@ -20,6 +20,7 @@
 #include "includes.h"
 
 char *ssh_get_progname(char *);
+int seed_from_prngd(unsigned char *, size_t);
 
 #ifndef HAVE_SETSID
 #define setsid() setpgrp(0, getpid())
@@ -61,16 +62,8 @@ struct timeval {
 }
 #endif /* HAVE_STRUCT_TIMEVAL */
 
-int utimes(char *, struct timeval *);
+int utimes(const char *, struct timeval *);
 #endif /* HAVE_UTIMES */
-
-#ifndef HAVE_UTIMENSAT
-/* start with the high bits and work down to minimise risk of overlap */
-# ifndef AT_SYMLINK_NOFOLLOW
-#  define AT_SYMLINK_NOFOLLOW 0x80000000
-# endif
-int utimensat(int, const char *, const struct timespec[2], int);
-#endif
 
 #ifndef AT_FDCWD
 # define AT_FDCWD (-2)
@@ -88,15 +81,26 @@ int fchownat(int, const char *, uid_t, gid_t, int);
 int truncate (const char *, off_t);
 #endif /* HAVE_TRUNCATE */
 
-#if !defined(HAVE_NANOSLEEP) && !defined(HAVE_NSLEEP)
 #ifndef HAVE_STRUCT_TIMESPEC
 struct timespec {
 	time_t	tv_sec;
 	long	tv_nsec;
 };
-#endif
+#endif /* !HAVE_STRUCT_TIMESPEC */
+
+#if !defined(HAVE_NANOSLEEP) && !defined(HAVE_NSLEEP)
+# include <time.h>
 int nanosleep(const struct timespec *, struct timespec *);
 #endif
+
+#ifndef HAVE_UTIMENSAT
+# include <time.h>
+/* start with the high bits and work down to minimise risk of overlap */
+# ifndef AT_SYMLINK_NOFOLLOW
+#  define AT_SYMLINK_NOFOLLOW 0x80000000
+# endif
+int utimensat(int, const char *, const struct timespec[2], int);
+#endif /* !HAVE_UTIMENSAT */
 
 #ifndef HAVE_USLEEP
 int usleep(unsigned int useconds);
@@ -120,6 +124,11 @@ int	isblank(int);
 
 #ifndef HAVE_GETPGID
 pid_t getpgid(pid_t);
+#endif
+
+#ifndef HAVE_PSELECT
+int pselect(int, fd_set *, fd_set *, fd_set *, const struct timespec *,
+    const sigset_t *);
 #endif
 
 #ifndef HAVE_ENDGRENT
@@ -175,6 +184,14 @@ int flock(int, int);
 
 #ifdef FFLUSH_NULL_BUG
 # define fflush(x)	(_ssh_compat_fflush(x))
+#endif
+
+#ifndef HAVE_LOCALTIME_R
+struct tm *localtime_r(const time_t *, struct tm *);
+#endif
+
+#ifndef HAVE_REALPATH
+#define realpath(x, y)	(sftp_realpath((x), (y)))
 #endif
 
 #endif /* _BSD_MISC_H */

@@ -1,4 +1,4 @@
-/* $OpenBSD: xmalloc.c,v 1.34 2017/05/31 09:15:42 deraadt Exp $ */
+/* $OpenBSD: xmalloc.c,v 1.37 2022/03/13 23:27:54 cheloha Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -17,7 +17,7 @@
 
 #include <stdarg.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+# include <stdint.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,15 +26,9 @@
 #include "xmalloc.h"
 #include "log.h"
 
-void
-ssh_malloc_init(void)
-{
 #if defined(__OpenBSD__)
-	extern char *malloc_options;
-
-	malloc_options = "S";
+char *malloc_options = "S";
 #endif /* __OpenBSD__ */
-}
 
 void *
 xmalloc(size_t size)
@@ -97,8 +91,18 @@ xstrdup(const char *str)
 
 	len = strlen(str) + 1;
 	cp = xmalloc(len);
-	strlcpy(cp, str, len);
-	return cp;
+	return memcpy(cp, str, len);
+}
+
+int
+xvasprintf(char **ret, const char *fmt, va_list ap)
+{
+	int i;
+
+	i = vasprintf(ret, fmt, ap);
+	if (i < 0 || *ret == NULL)
+		fatal("xvasprintf: could not allocate memory");
+	return i;
 }
 
 int
@@ -108,11 +112,7 @@ xasprintf(char **ret, const char *fmt, ...)
 	int i;
 
 	va_start(ap, fmt);
-	i = vasprintf(ret, fmt, ap);
+	i = xvasprintf(ret, fmt, ap);
 	va_end(ap);
-
-	if (i < 0 || *ret == NULL)
-		fatal("xasprintf: could not allocate memory");
-
-	return (i);
+	return i;
 }

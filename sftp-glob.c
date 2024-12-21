@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-glob.c,v 1.27 2015/01/14 13:54:13 djm Exp $ */
+/* $OpenBSD: sftp-glob.c,v 1.33 2023/09/10 23:12:32 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -25,14 +25,14 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdlib.h>
+#include <stdarg.h>
 
 #include "xmalloc.h"
 #include "sftp.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
 
-int remote_glob(struct sftp_conn *, const char *, int,
+int sftp_glob(struct sftp_conn *, const char *, int,
     int (*)(const char *, int), glob_t *);
 
 struct SFTP_OPENDIR {
@@ -51,7 +51,7 @@ fudge_opendir(const char *path)
 
 	r = xcalloc(1, sizeof(*r));
 
-	if (do_readdir(cur.conn, (char *)path, &r->dir)) {
+	if (sftp_readdir(cur.conn, path, &r->dir)) {
 		free(r);
 		return(NULL);
 	}
@@ -103,40 +103,45 @@ fudge_readdir(struct SFTP_OPENDIR *od)
 static void
 fudge_closedir(struct SFTP_OPENDIR *od)
 {
-	free_sftp_dirents(od->dir);
+	sftp_free_dirents(od->dir);
 	free(od);
 }
 
 static int
 fudge_lstat(const char *path, struct stat *st)
 {
-	Attrib *a;
+	Attrib a;
 
-	if (!(a = do_lstat(cur.conn, (char *)path, 1)))
-		return(-1);
+	if (sftp_lstat(cur.conn, path, 1, &a) != 0)
+		return -1;
 
-	attrib_to_stat(a, st);
+	attrib_to_stat(&a, st);
 
-	return(0);
+	return 0;
 }
 
 static int
 fudge_stat(const char *path, struct stat *st)
 {
-	Attrib *a;
+	Attrib a;
 
-	if (!(a = do_stat(cur.conn, (char *)path, 1)))
-		return(-1);
+	if (sftp_stat(cur.conn, path, 1, &a) != 0)
+		return -1;
 
-	attrib_to_stat(a, st);
+	attrib_to_stat(&a, st);
 
 	return(0);
 }
 
 int
-remote_glob(struct sftp_conn *conn, const char *pattern, int flags,
+sftp_glob(struct sftp_conn *conn, const char *pattern, int flags,
     int (*errfunc)(const char *, int), glob_t *pglob)
 {
+	int r;
+	size_t l;
+	char *s;
+	struct stat sb;
+
 	pglob->gl_opendir = fudge_opendir;
 	pglob->gl_readdir = (struct dirent *(*)(void *))fudge_readdir;
 	pglob->gl_closedir = (void (*)(void *))fudge_closedir;
@@ -146,5 +151,30 @@ remote_glob(struct sftp_conn *conn, const char *pattern, int flags,
 	memset(&cur, 0, sizeof(cur));
 	cur.conn = conn;
 
-	return(glob(pattern, flags | GLOB_ALTDIRFUNC, errfunc, pglob));
+	if ((r = glob(pattern, flags | GLOB_ALTDIRFUNC, errfunc, pglob)) != 0)
+		return r;
+	/*
+	 * When both GLOB_NOCHECK and GLOB_MARK are active, a single gl_pathv
+	 * entry has been returned and that entry has not already been marked,
+	 * then check whether it needs a '/' appended as a directory mark.
+	 *
+	 * This ensures that a NOCHECK result is annotated as a directory.
+	 * The glob(3) spec doesn't promise to mark NOCHECK entries, but doing
+	 * it simplifies our callers (sftp/scp) considerably.
+	 *
+	 * XXX doesn't try to handle gl_offs.
+	 */
+	if ((flags & (GLOB_NOCHECK|GLOB_MARK)) == (GLOB_NOCHECK|GLOB_MARK) &&
+	    pglob->gl_matchc == 0 && pglob->gl_offs == 0 &&
+	    pglob->gl_pathc == 1 && (s = pglob->gl_pathv[0]) != NULL &&
+	    (l = strlen(s)) > 0 && s[l-1] != '/') {
+		if (fudge_stat(s, &sb) == 0 && S_ISDIR(sb.st_mode)) {
+			/* NOCHECK on a directory; annotate */
+			if ((s = realloc(s, l + 2)) != NULL) {
+				memcpy(s + l, "/", 2);
+				pglob->gl_pathv[0] = s;
+			}
+		}
+	}
+	return 0;
 }

@@ -33,10 +33,10 @@
 
 /*
  * OpenSSL version numbers: MNNFFPPS: major minor fix patch status
- * We match major, minor, fix and status (not patch) for <1.0.0.
- * After that, we acceptable compatible fix versions (so we
- * allow 1.0.1 to work with 1.0.0). Going backwards is only allowed
- * within a patch series.
+ * Versions >=3 require only major versions to match.
+ * For versions <3, we accept compatible fix versions (so we allow 1.0.1
+ * to work with 1.0.0). Going backwards is only allowed within a patch series.
+ * See https://www.openssl.org/policies/releasestrat.html
  */
 
 int
@@ -48,15 +48,17 @@ ssh_compatible_openssl(long headerver, long libver)
 	if (headerver == libver)
 		return 1;
 
-	/* for versions < 1.0.0, major,minor,fix,status must match */
-	if (headerver < 0x1000000f) {
-		mask = 0xfffff00fL; /* major,minor,fix,status */
+	/*
+	 * For versions >= 3.0, only the major and status must match.
+	 */
+	if (headerver >= 0x3000000f) {
+		mask = 0xf000000fL; /* major,status */
 		return (headerver & mask) == (libver & mask);
 	}
 
 	/*
-	 * For versions >= 1.0.0, major,minor,status must match and library
-	 * fix version must be equal to or newer than the header.
+	 * For versions >= 1.0.0, but <3, major,minor,status must match and
+	 * library fix version must be equal to or newer than the header.
 	 */
 	mask = 0xfff0000fL; /* major,minor,status */
 	hfix = (headerver & 0x000ff000) >> 12;
@@ -92,5 +94,31 @@ ssh_libcrypto_init(void)
 # endif
 #endif /* USE_OPENSSL_ENGINE */
 }
+
+#ifndef HAVE_EVP_DIGESTSIGN
+int
+EVP_DigestSign(EVP_MD_CTX *ctx, unsigned char *sigret, size_t *siglen,
+    const unsigned char *tbs, size_t tbslen)
+{
+	if (sigret != NULL) {
+		if (EVP_DigestSignUpdate(ctx, tbs, tbslen) <= 0)
+			return 0;
+	}
+
+	return EVP_DigestSignFinal(ctx, sigret, siglen);
+}
+#endif
+
+#ifndef HAVE_EVP_DIGESTVERIFY
+int
+EVP_DigestVerify(EVP_MD_CTX *ctx, const unsigned char *sigret, size_t siglen,
+    const unsigned char *tbs, size_t tbslen)
+{
+	if (EVP_DigestVerifyUpdate(ctx, tbs, tbslen) <= 0)
+		return -1;
+
+	return EVP_DigestVerifyFinal(ctx, sigret, siglen);
+}
+#endif
 
 #endif /* WITH_OPENSSL */

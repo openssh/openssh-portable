@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.33 2019/01/20 02:01:59 tb Exp $ */
+/* $OpenBSD: moduli.c,v 1.39 2023/03/02 06:41:56 dtucker Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -159,6 +159,8 @@ qfileout(FILE * ofile, u_int32_t otype, u_int32_t otests, u_int32_t otries,
 
 	time(&time_now);
 	gtm = gmtime(&time_now);
+	if (gtm == NULL)
+		return -1;
 
 	res = fprintf(ofile, "%04d%02d%02d%02d%02d%02d %u %u %u %u %x ",
 	    gtm->tm_year + 1900, gtm->tm_mon + 1, gtm->tm_mday,
@@ -182,20 +184,20 @@ qfileout(FILE * ofile, u_int32_t otype, u_int32_t otests, u_int32_t otries,
  ** Sieve p's and q's with small factors
  */
 static void
-sieve_large(u_int32_t s)
+sieve_large(u_int32_t s32)
 {
-	u_int32_t r, u;
+	u_int64_t r, u, s = s32;
 
-	debug3("sieve_large %u", s);
+	debug3("sieve_large %u", s32);
 	largetries++;
 	/* r = largebase mod s */
-	r = BN_mod_word(largebase, s);
+	r = BN_mod_word(largebase, s32);
 	if (r == 0)
 		u = 0; /* s divides into largebase exactly */
 	else
 		u = s - r; /* largebase+u is first entry divisible by s */
 
-	if (u < largebits * 2) {
+	if (u < largebits * 2ULL) {
 		/*
 		 * The sieve omits p's and q's divisible by 2, so ensure that
 		 * largebase+u is odd. Then, step through the sieve in
@@ -216,7 +218,7 @@ sieve_large(u_int32_t s)
 	else
 		u = s - r; /* p+u is first entry divisible by s */
 
-	if (u < largebits * 4) {
+	if (u < largebits * 4ULL) {
 		/*
 		 * The sieve omits p's divisible by 4, so ensure that
 		 * largebase+u is not. Then, step through the sieve in
@@ -450,10 +452,10 @@ write_checkpoint(char *cpfile, u_int32_t lineno)
 {
 	FILE *fp;
 	char tmp[PATH_MAX];
-	int r;
+	int r, writeok, closeok;
 
 	r = snprintf(tmp, sizeof(tmp), "%s.XXXXXXXXXX", cpfile);
-	if (r == -1 || r >= PATH_MAX) {
+	if (r < 0 || r >= PATH_MAX) {
 		logit("write_checkpoint: temp pathname too long");
 		return;
 	}
@@ -467,13 +469,16 @@ write_checkpoint(char *cpfile, u_int32_t lineno)
 		close(r);
 		return;
 	}
-	if (fprintf(fp, "%lu\n", (unsigned long)lineno) > 0 && fclose(fp) == 0
-	    && rename(tmp, cpfile) == 0)
+	writeok = (fprintf(fp, "%lu\n", (unsigned long)lineno) > 0);
+	closeok = (fclose(fp) == 0);
+	if (writeok && closeok && rename(tmp, cpfile) == 0) {
 		debug3("wrote checkpoint line %lu to '%s'",
 		    (unsigned long)lineno, cpfile);
-	else
+	} else {
 		logit("failed to write to checkpoint file '%s': %s", cpfile,
 		    strerror(errno));
+		(void)unlink(tmp);
+	}
 }
 
 static unsigned long
@@ -576,7 +581,6 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
     char *checkpoint_file, unsigned long start_lineno, unsigned long num_lines)
 {
 	BIGNUM *q, *p, *a;
-	BN_CTX *ctx;
 	char *cp, *lp;
 	u_int32_t count_in = 0, count_out = 0, count_possible = 0;
 	u_int32_t generator_known, in_tests, in_tries, in_type, in_size;
@@ -600,8 +604,6 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
 		fatal("BN_new failed");
 	if ((q = BN_new()) == NULL)
 		fatal("BN_new failed");
-	if ((ctx = BN_CTX_new()) == NULL)
-		fatal("BN_CTX_new failed");
 
 	debug2("%.24s Final %u Miller-Rabin trials (%x generator)",
 	    ctime(&time_start), trials, generator_wanted);
@@ -716,8 +718,6 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
 		if (generator_known == 0) {
 			if (BN_mod_word(p, 24) == 11)
 				generator_known = 2;
-			else if (BN_mod_word(p, 12) == 5)
-				generator_known = 3;
 			else {
 				u_int32_t r = BN_mod_word(p, 10);
 
@@ -753,7 +753,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
 		 * that p is also prime. A single pass will weed out the
 		 * vast majority of composite q's.
 		 */
-		is_prime = BN_is_prime_ex(q, 1, ctx, NULL);
+		is_prime = BN_is_prime_ex(q, 1, NULL, NULL);
 		if (is_prime < 0)
 			fatal("BN_is_prime_ex failed");
 		if (is_prime == 0) {
@@ -769,7 +769,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
 		 * will show up on the first Rabin-Miller iteration so it
 		 * doesn't hurt to specify a high iteration count.
 		 */
-		is_prime = BN_is_prime_ex(p, trials, ctx, NULL);
+		is_prime = BN_is_prime_ex(p, trials, NULL, NULL);
 		if (is_prime < 0)
 			fatal("BN_is_prime_ex failed");
 		if (is_prime == 0) {
@@ -779,7 +779,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
 		debug("%10u: p is almost certainly prime", count_in);
 
 		/* recheck q more rigorously */
-		is_prime = BN_is_prime_ex(q, trials - 1, ctx, NULL);
+		is_prime = BN_is_prime_ex(q, trials - 1, NULL, NULL);
 		if (is_prime < 0)
 			fatal("BN_is_prime_ex failed");
 		if (is_prime == 0) {
@@ -802,7 +802,6 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
 	free(lp);
 	BN_free(p);
 	BN_free(q);
-	BN_CTX_free(ctx);
 
 	if (checkpoint_file != NULL)
 		unlink(checkpoint_file);

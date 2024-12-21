@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.14 2013/06/21 02:26:26 djm Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.20 2024/07/01 03:10:19 djm Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -28,12 +28,12 @@ rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2
 mkdir ${COPY}.dd
 
 verbose "$tid: lls"
-(echo "lcd ${OBJ}" ; echo "lls") | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
-	grep copy.dd >/dev/null 2>&1 || fail "lls failed"
+printf "lcd ${OBJ}\nlls\n" | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
+	grep copy.dd >/dev/null || fail "lls failed"
 
 verbose "$tid: lls w/path"
 echo "lls ${OBJ}" | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
-	grep copy.dd >/dev/null 2>&1 || fail "lls w/path failed"
+	grep copy.dd >/dev/null || fail "lls w/path failed"
 
 verbose "$tid: ls"
 echo "ls ${OBJ}" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
@@ -41,9 +41,8 @@ echo "ls ${OBJ}" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 # XXX always successful
 
 verbose "$tid: shell"
-echo "!echo hi there" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
-	|| fail "shell failed"
-# XXX always successful
+echo "!echo hi there" | ${SFTP} -D ${SFTPSERVER} 2>&1 | \
+	egrep '^hi there$' >/dev/null || fail "shell failed"
 
 verbose "$tid: pwd"
 echo "pwd" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
@@ -77,7 +76,6 @@ echo "get \"$DATA\" $COPY" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "get failed"
 cmp $DATA ${COPY} || fail "corrupted copy after get"
 
-if [ "$os" != "cygwin" ]; then
 rm -f ${QUOTECOPY}
 cp $DATA ${QUOTECOPY}
 verbose "$tid: get filename with quotes"
@@ -85,7 +83,6 @@ echo "get \"$QUOTECOPY_ARG\" ${COPY}" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1
 	|| fail "get failed"
 cmp ${COPY} ${QUOTECOPY} || fail "corrupted copy after get with quotes"
 rm -f ${QUOTECOPY} ${COPY}
-fi
 
 rm -f "$SPACECOPY" ${COPY}
 cp $DATA "$SPACECOPY"
@@ -106,7 +103,7 @@ rm -f ${COPY}.dd/*
 verbose "$tid: get to directory"
 echo "get $DATA ${COPY}.dd" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
-cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after get"
+cmp $DATA ${COPY}.dd/${DATANAME} || fail "corrupted copy after get"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob get to directory"
@@ -118,13 +115,13 @@ done
 
 rm -f ${COPY}.dd/*
 verbose "$tid: get to local dir"
-(echo "lcd ${COPY}.dd"; echo "get $DATA" ) | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
+printf "lcd ${COPY}.dd\nget $DATA\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
-cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after get"
+cmp $DATA ${COPY}.dd/${DATANAME} || fail "corrupted copy after get"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob get to local dir"
-(echo "lcd ${COPY}.dd"; echo "get /bin/l*") | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
+printf "lcd ${COPY}.dd\nget /bin/l*\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
 for x in $GLOBFILES; do
         cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after get"
@@ -136,13 +133,11 @@ echo "put $DATA $COPY" | \
 	${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 || fail "put failed"
 cmp $DATA ${COPY} || fail "corrupted copy after put"
 
-if [ "$os" != "cygwin" ]; then
 rm -f ${QUOTECOPY}
 verbose "$tid: put filename with quotes"
 echo "put $DATA \"$QUOTECOPY_ARG\"" | \
 	${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 || fail "put failed"
 cmp $DATA ${QUOTECOPY} || fail "corrupted copy after put with quotes"
-fi
 
 rm -f "$SPACECOPY"
 verbose "$tid: put filename with spaces"
@@ -154,7 +149,7 @@ rm -f ${COPY}.dd/*
 verbose "$tid: put to directory"
 echo "put $DATA ${COPY}.dd" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
-cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after put"
+cmp $DATA ${COPY}.dd/${DATANAME} || fail "corrupted copy after put"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob put to directory"
@@ -166,13 +161,13 @@ done
 
 rm -f ${COPY}.dd/*
 verbose "$tid: put to local dir"
-(echo "cd ${COPY}.dd"; echo "put $DATA") | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
+printf "cd ${COPY}.dd\nput $DATA\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
-cmp $DATA ${COPY}.dd/$DATANAME || fail "corrupted copy after put"
+cmp $DATA ${COPY}.dd/${DATANAME} || fail "corrupted copy after put"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob put to local dir"
-(echo "cd ${COPY}.dd"; echo "put /bin/l?") | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
+printf "cd ${COPY}.dd\nput /bin/l*\n" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 for x in $GLOBFILES; do
         cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after put"
@@ -200,6 +195,11 @@ verbose "$tid: ln -s"
 rm -f ${COPY}.2
 echo "ln -s ${COPY}.1 ${COPY}.2" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 || fail "ln -s failed"
 test -h ${COPY}.2 || fail "missing file after ln -s"
+
+verbose "$tid: cp"
+rm -f ${COPY}.2
+echo "cp ${COPY}.1 ${COPY}.2" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 || fail "cp failed"
+cmp ${COPY}.1 ${COPY}.2 || fail "created file is not equal after cp"
 
 verbose "$tid: mkdir"
 echo "mkdir ${COPY}.dd" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \

@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.51 2018/07/27 12:03:17 markus Exp $ */
+/* $OpenBSD: log.c,v 1.64 2024/12/07 10:05:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -38,27 +38,32 @@
 
 #include <sys/types.h>
 
+#include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include <time.h>
 #include <unistd.h>
-#include <errno.h>
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>
 #endif
 
 #include "log.h"
+#include "match.h"
 
 static LogLevel log_level = SYSLOG_LEVEL_INFO;
 static int log_on_stderr = 1;
 static int log_stderr_fd = STDERR_FILENO;
 static int log_facility = LOG_AUTH;
-static char *argv0;
+static const char *argv0;
 static log_handler_fn *log_handler;
 static void *log_handler_ctx;
+static char **log_verbose;
+static size_t nlog_verbose;
 
 extern char *__progname;
 
@@ -157,96 +162,30 @@ log_level_name(LogLevel level)
 	return NULL;
 }
 
-/* Error messages that should be logged. */
-
 void
-error(const char *fmt,...)
+log_verbose_add(const char *s)
 {
-	va_list args;
+	char **tmp;
 
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_ERROR, fmt, args);
-	va_end(args);
+	/* Ignore failures here */
+	if ((tmp = recallocarray(log_verbose, nlog_verbose, nlog_verbose + 1,
+	    sizeof(*log_verbose))) != NULL) {
+		log_verbose = tmp;
+		if ((log_verbose[nlog_verbose] = strdup(s)) != NULL)
+			nlog_verbose++;
+	}
 }
 
 void
-sigdie(const char *fmt,...)
+log_verbose_reset(void)
 {
-#ifdef DO_LOG_SAFE_IN_SIGHAND
-	va_list args;
+	size_t i;
 
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_FATAL, fmt, args);
-	va_end(args);
-#endif
-	_exit(1);
-}
-
-void
-logdie(const char *fmt,...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_INFO, fmt, args);
-	va_end(args);
-	cleanup_exit(255);
-}
-
-/* Log this message (information that usually should go to the log). */
-
-void
-logit(const char *fmt,...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_INFO, fmt, args);
-	va_end(args);
-}
-
-/* More detailed messages (information that does not need to go to the log). */
-
-void
-verbose(const char *fmt,...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_VERBOSE, fmt, args);
-	va_end(args);
-}
-
-/* Debugging messages that should not be logged during normal operation. */
-
-void
-debug(const char *fmt,...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_DEBUG1, fmt, args);
-	va_end(args);
-}
-
-void
-debug2(const char *fmt,...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_DEBUG2, fmt, args);
-	va_end(args);
-}
-
-void
-debug3(const char *fmt,...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_DEBUG3, fmt, args);
-	va_end(args);
+	for (i = 0; i < nlog_verbose; i++)
+		free(log_verbose[i]);
+	free(log_verbose);
+	log_verbose = NULL;
+	nlog_verbose = 0;
 }
 
 /*
@@ -254,7 +193,8 @@ debug3(const char *fmt,...)
  */
 
 void
-log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
+log_init(const char *av0, LogLevel level, SyslogFacility facility,
+    int on_stderr)
 {
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
 	struct syslog_data sdata = SYSLOG_DATA_INIT;
@@ -370,9 +310,17 @@ log_redirect_stderr_to(const char *logfile)
 {
 	int fd;
 
+	if (logfile == NULL) {
+		if (log_stderr_fd != STDERR_FILENO) {
+			close(log_stderr_fd);
+			log_stderr_fd = STDERR_FILENO;
+		}
+		return;
+	}
+
 	if ((fd = open(logfile, O_WRONLY|O_CREAT|O_APPEND, 0600)) == -1) {
 		fprintf(stderr, "Couldn't open logfile %s: %s\n", logfile,
-		     strerror(errno));
+		    strerror(errno));
 		exit(1);
 	}
 	log_stderr_fd = fd;
@@ -387,18 +335,9 @@ set_log_handler(log_handler_fn *handler, void *ctx)
 	log_handler_ctx = ctx;
 }
 
-void
-do_log2(LogLevel level, const char *fmt,...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	do_log(level, fmt, args);
-	va_end(args);
-}
-
-void
-do_log(LogLevel level, const char *fmt, va_list args)
+static void
+do_log(LogLevel level, int force, const char *suffix, const char *fmt,
+    va_list args)
 {
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
 	struct syslog_data sdata = SYSLOG_DATA_INIT;
@@ -409,8 +348,9 @@ do_log(LogLevel level, const char *fmt, va_list args)
 	int pri = LOG_INFO;
 	int saved_errno = errno;
 	log_handler_fn *tmp_handler;
+	const char *progname = argv0 != NULL ? argv0 : __progname;
 
-	if (level > log_level)
+	if (!force && level > log_level)
 		return;
 
 	switch (level) {
@@ -453,28 +393,265 @@ do_log(LogLevel level, const char *fmt, va_list args)
 	} else {
 		vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
 	}
+	if (suffix != NULL) {
+		snprintf(fmtbuf, sizeof(fmtbuf), "%s: %s", msgbuf, suffix);
+		strlcpy(msgbuf, fmtbuf, sizeof(msgbuf));
+	}
 	strnvis(fmtbuf, msgbuf, sizeof(fmtbuf),
 	    log_on_stderr ? LOG_STDERR_VIS : LOG_SYSLOG_VIS);
 	if (log_handler != NULL) {
 		/* Avoid recursion */
 		tmp_handler = log_handler;
 		log_handler = NULL;
-		tmp_handler(level, fmtbuf, log_handler_ctx);
+		tmp_handler(level, force, fmtbuf, log_handler_ctx);
 		log_handler = tmp_handler;
 	} else if (log_on_stderr) {
-		snprintf(msgbuf, sizeof msgbuf, "%.*s\r\n",
+		snprintf(msgbuf, sizeof msgbuf, "%s%s%.*s\r\n",
+		    (log_on_stderr > 1) ? progname : "",
+		    (log_on_stderr > 1) ? ": " : "",
 		    (int)sizeof msgbuf - 3, fmtbuf);
 		(void)write(log_stderr_fd, msgbuf, strlen(msgbuf));
 	} else {
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
-		openlog_r(argv0 ? argv0 : __progname, LOG_PID, log_facility, &sdata);
+		openlog_r(progname, LOG_PID, log_facility, &sdata);
 		syslog_r(pri, &sdata, "%.500s", fmtbuf);
 		closelog_r(&sdata);
 #else
-		openlog(argv0 ? argv0 : __progname, LOG_PID, log_facility);
+		openlog(progname, LOG_PID, log_facility);
 		syslog(pri, "%.500s", fmtbuf);
 		closelog();
 #endif
 	}
 	errno = saved_errno;
+}
+
+void
+sshlog(const char *file, const char *func, int line, int showfunc,
+    LogLevel level, const char *suffix, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	sshlogv(file, func, line, showfunc, level, suffix, fmt, args);
+	va_end(args);
+}
+
+void
+sshlogdie(const char *file, const char *func, int line, int showfunc,
+    LogLevel level, const char *suffix, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	sshlogv(file, func, line, showfunc, SYSLOG_LEVEL_INFO,
+	    suffix, fmt, args);
+	va_end(args);
+	cleanup_exit(255);
+}
+
+void
+sshlogv(const char *file, const char *func, int line, int showfunc,
+    LogLevel level, const char *suffix, const char *fmt, va_list args)
+{
+	char tag[128], fmt2[MSGBUFSIZ + 128];
+	int forced = 0;
+	const char *cp;
+	size_t i;
+
+	/* short circuit processing early if we're not going to log anything */
+	if (nlog_verbose == 0 && level > log_level)
+		return;
+
+	snprintf(tag, sizeof(tag), "%.48s:%.48s():%d (bin=%s, pid=%ld)",
+	    (cp = strrchr(file, '/')) == NULL ? file : cp + 1, func, line,
+	    argv0 == NULL ? "UNKNOWN" : argv0, (long)getpid());
+	for (i = 0; i < nlog_verbose; i++) {
+		if (match_pattern_list(tag, log_verbose[i], 0) == 1) {
+			forced = 1;
+			break;
+		}
+	}
+
+	if (forced)
+		snprintf(fmt2, sizeof(fmt2), "%s: %s", tag, fmt);
+	else if (showfunc)
+		snprintf(fmt2, sizeof(fmt2), "%s: %s", func, fmt);
+	else
+		strlcpy(fmt2, fmt, sizeof(fmt2));
+
+	do_log(level, forced, suffix, fmt2, args);
+}
+
+void
+sshlogdirect(LogLevel level, int forced, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	do_log(level, forced, NULL, fmt, args);
+	va_end(args);
+}
+
+
+/*
+ * A simple system for ratelimiting aperiodic events such as logs, without
+ * needing to be hooked into a mainloop/timer. A running total of events is
+ * maintained and when it exceeds a threshold further events are dropped
+ * until the rate falls back below that threshold.
+ *
+ * To prevent flipping in and out of rate-limiting, there is a hysteresis
+ * timer that delays leaving the rate-limited state.
+ *
+ * While in the rate-limited state, events can be periodically allowed though
+ * and the number of dropped events since the last log obtained.
+ *
+ * XXX a moving average rate of events might be a better approach here rather
+ *     than linear decay, which can suppress events for a while after large
+ *     bursts.
+ */
+
+/* #define RATELIMIT_DEBUG 1 */
+
+#ifdef RATELIMIT_DEBUG
+# define RLDBG(x) do { \
+		printf("%s:%d %s: ", __FILE__, __LINE__, __func__); \
+		printf x; \
+		printf("\n"); \
+		fflush(stdout); \
+	} while (0)
+#else
+# define RLDBG(x)
+#endif
+
+/* set up a ratelimit */
+void
+log_ratelimit_init(struct log_ratelimit_ctx *rl, u_int threshold,
+    u_int max_accum, u_int hysteresis, u_int log_every)
+{
+	memset(rl, 0, sizeof(*rl));
+	rl->threshold = threshold;
+	rl->max_accum = max_accum;
+	rl->hysteresis = hysteresis;
+	rl->log_every = log_every;
+	RLDBG(("called: rl=%p thresh=%u max=%u hys=%u log_every=%u",
+	    rl, rl->threshold, rl->max_accum, rl->hysteresis, rl->log_every));
+}
+
+/*
+ * check whether a log event should be dropped because of rate-limiting.
+ * returns non-zero if the event should be dropped. If events_since_last
+ * is supplied then, for periodic logs, it will be set to the number of
+ * dropped events since the last message.
+ */
+int
+log_ratelimit(struct log_ratelimit_ctx *rl, time_t now, int *active,
+    u_int *events_dropped)
+{
+	time_t olast_event;
+
+	RLDBG(("called: rl=%p thresh=%u max=%u hys=%u log_every=%u "
+	    "accum=%u since=%ld since_last=%u", rl, rl->threshold,
+	    rl->max_accum, rl->hysteresis,
+	    rl->log_every, rl->accumulated_events,
+	    rl->last_event == 0 ? -1 : (long)(now - rl->last_event),
+	    rl->ratelimited_events));
+
+	if (now < 0)
+		return 0;
+	if (events_dropped != NULL)
+		*events_dropped = 0;
+	if (active != NULL)
+		*active = rl->ratelimit_active;
+
+	/* First, decay accumulated events */
+	if (rl->last_event <= 0)
+		rl->last_event = now;
+	if (now > rl->last_event) {
+		uint64_t n = now - rl->last_event;
+
+		if (n > UINT_MAX)
+			n = UINT_MAX;
+		if (rl->accumulated_events < (u_int)n)
+			rl->accumulated_events = 0;
+		else
+			rl->accumulated_events -= (u_int)n;
+		RLDBG(("decay: accum=%u", rl->accumulated_events));
+	}
+	rl->accumulated_events++; /* add this event */
+	if (rl->accumulated_events > rl->max_accum)
+		rl->accumulated_events = rl->max_accum;
+	olast_event = rl->last_event;
+	rl->last_event = now;
+	RLDBG(("check threshold: accum=%u vs thresh=%u",
+	    rl->accumulated_events, rl->threshold));
+
+	/* Are we under threshold? */
+	if (rl->accumulated_events < rl->threshold) {
+		if (!rl->ratelimit_active)
+			return 0;
+		RLDBG(("under threshold: hys=%u since_hys=%ld since_last=%ld",
+		    rl->hysteresis, rl->hysteresis_start == 0 ? -1 :
+		    (long)(now - rl->hysteresis_start),
+		    olast_event == 0 ? -1 : (long)(now - olast_event)));
+		if (rl->hysteresis_start == 0) {
+			/* active, but under threshold; hysteresis */
+			if (olast_event + rl->hysteresis < now) {
+				/* hysteresis expired before this event */
+				RLDBG(("hysteresis preexpired"));
+				goto inactive;
+			}
+			RLDBG(("start hysteresis"));
+			rl->hysteresis_start = now;
+		} else if (rl->hysteresis_start + rl->hysteresis < now) {
+			/* Hysteresis period expired, transition to inactive */
+			RLDBG(("complete hysteresis"));
+ inactive:
+			if (events_dropped != NULL)
+				*events_dropped = rl->ratelimited_events;
+			if (active != NULL)
+				*active = 0;
+			rl->ratelimit_active = 0;
+			rl->ratelimit_start = 0;
+			rl->last_log = 0;
+			rl->hysteresis_start = 0;
+			rl->ratelimited_events = 0;
+			return 0;
+		}
+		/* ratelimiting active, but in hysteresis period */
+	} else if (!rl->ratelimit_active) {
+		/* Transition to rate-limiting */
+		RLDBG(("start ratelimit"));
+		rl->ratelimit_active = 1;
+		rl->ratelimit_start = now;
+		rl->last_log = now;
+		rl->hysteresis_start = 0;
+		rl->ratelimited_events = 1;
+		if (active != NULL)
+			*active = 1;
+		return 1;
+	} else if (rl->hysteresis_start != 0) {
+		/* active and over threshold; reset hysteresis timer */
+		RLDBG(("clear hysteresis"));
+		rl->hysteresis_start = 0;
+	}
+
+	/* over threshold or in hysteresis period; log periodically */
+	if (active != NULL)
+		*active = 1;
+	RLDBG(("log_every=%u since_log=%ld", rl->log_every,
+	    (long)(now - rl->last_log)));
+	if (rl->log_every > 0 && now >= rl->last_log + rl->log_every) {
+		RLDBG(("periodic: since_last=%u", rl->ratelimited_events));
+		rl->last_log = now;
+		if (events_dropped != NULL) {
+			*events_dropped = rl->ratelimited_events;
+			rl->ratelimited_events = 0;
+		}
+		return 0;
+	}
+
+	/* drop event */
+	rl->ratelimited_events++;
+	RLDBG(("drop: ratelimited_events=%u", rl->ratelimited_events));
+	return 1;
 }

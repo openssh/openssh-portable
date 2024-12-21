@@ -1,4 +1,4 @@
-/* 	$OpenBSD: common.c,v 1.3 2018/09/13 09:03:20 djm Exp $ */
+/* 	$OpenBSD: common.c,v 1.6 2024/08/15 00:52:23 djm Exp $ */
 /*
  * Helpers for key API tests
  *
@@ -8,7 +8,6 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/param.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -19,13 +18,15 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef WITH_OPENSSL
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include <openssl/objects.h>
 #ifdef OPENSSL_HAS_NISTP256
 # include <openssl/ec.h>
-#endif
+#endif /* OPENSSL_HAS_NISTP256 */
+#endif /* WITH_OPENSSL */
 
 #include "openbsd-compat/openssl-compat.h"
 
@@ -41,13 +42,10 @@
 struct sshbuf *
 load_file(const char *name)
 {
-	int fd;
-	struct sshbuf *ret;
+	struct sshbuf *ret = NULL;
 
-	ASSERT_PTR_NE(ret = sshbuf_new(), NULL);
-	ASSERT_INT_NE(fd = open(test_data_file(name), O_RDONLY), -1);
-	ASSERT_INT_EQ(sshkey_load_file(fd, ret), 0);
-	close(fd);
+	ASSERT_INT_EQ(sshbuf_load_file(test_data_file(name), &ret), 0);
+	ASSERT_PTR_NE(ret, NULL);
 	return ret;
 }
 
@@ -72,6 +70,7 @@ load_text_file(const char *name)
 	return ret;
 }
 
+#ifdef WITH_OPENSSL
 BIGNUM *
 load_bignum(const char *name)
 {
@@ -90,8 +89,8 @@ rsa_n(struct sshkey *k)
 	const BIGNUM *n = NULL;
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_key(k->rsa, &n, NULL, NULL);
+	ASSERT_PTR_NE(k->pkey, NULL);
+	RSA_get0_key(EVP_PKEY_get0_RSA(k->pkey), &n, NULL, NULL);
 	return n;
 }
 
@@ -101,8 +100,8 @@ rsa_e(struct sshkey *k)
 	const BIGNUM *e = NULL;
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_key(k->rsa, NULL, &e, NULL);
+	ASSERT_PTR_NE(k->pkey, NULL);
+	RSA_get0_key(EVP_PKEY_get0_RSA(k->pkey), NULL, &e, NULL);
 	return e;
 }
 
@@ -112,8 +111,8 @@ rsa_p(struct sshkey *k)
 	const BIGNUM *p = NULL;
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_factors(k->rsa, &p, NULL);
+	ASSERT_PTR_NE(EVP_PKEY_get0_RSA(k->pkey), NULL);
+	RSA_get0_factors(EVP_PKEY_get0_RSA(k->pkey), &p, NULL);
 	return p;
 }
 
@@ -123,8 +122,8 @@ rsa_q(struct sshkey *k)
 	const BIGNUM *q = NULL;
 
 	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_factors(k->rsa, NULL, &q);
+	ASSERT_PTR_NE(EVP_PKEY_get0_RSA(k->pkey), NULL);
+	RSA_get0_factors(EVP_PKEY_get0_RSA(k->pkey), NULL, &q);
 	return q;
 }
 
@@ -160,4 +159,5 @@ dsa_priv_key(struct sshkey *k)
 	DSA_get0_key(k->dsa, NULL, &priv_key);
 	return priv_key;
 }
+#endif /* WITH_OPENSSL */
 

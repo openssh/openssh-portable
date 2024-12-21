@@ -107,7 +107,7 @@ const char *strerror(int e)
 #endif
 
 #ifndef HAVE_UTIMES
-int utimes(char *filename, struct timeval *tvp)
+int utimes(const char *filename, struct timeval *tvp)
 {
 	struct utimbuf ub;
 
@@ -129,7 +129,9 @@ utimensat(int fd, const char *path, const struct timespec times[2],
     int flag)
 {
 	struct timeval tv[2];
+# ifdef HAVE_FUTIMES
 	int ret, oflags = O_WRONLY;
+# endif
 
 	tv[0].tv_sec = times[0].tv_sec;
 	tv[0].tv_usec = times[0].tv_nsec / 1000;
@@ -143,8 +145,10 @@ utimensat(int fd, const char *path, const struct timespec times[2],
 # ifndef HAVE_FUTIMES
 	return utimes(path, tv);
 # else
+#  ifdef O_NOFOLLOW
 	if (flag & AT_SYMLINK_NOFOLLOW)
 		oflags |= O_NOFOLLOW;
+#  endif /* O_NOFOLLOW */
 	if ((fd = open(path, oflags)) == -1)
 		return -1;
 	ret = futimes(fd, tv);
@@ -170,10 +174,12 @@ fchownat(int fd, const char *path, uid_t owner, gid_t group, int flag)
 		return -1;
 	}
 # ifndef HAVE_FCHOWN
-	return chown(pathname, owner, group);
+	return chown(path, owner, group);
 # else
+#  ifdef O_NOFOLLOW
 	if (flag & AT_SYMLINK_NOFOLLOW)
 		oflags |= O_NOFOLLOW;
+#  endif /* O_NOFOLLOW */
 	if ((fd = open(path, oflags)) == -1)
 		return -1;
 	ret = fchown(fd, owner, group);
@@ -199,10 +205,12 @@ fchmodat(int fd, const char *path, mode_t mode, int flag)
 		return -1;
 	}
 # ifndef HAVE_FCHMOD
-	return chown(pathname, owner, group);
+	return chmod(path, mode);
 # else
+#  ifdef O_NOFOLLOW
 	if (flag & AT_SYMLINK_NOFOLLOW)
 		oflags |= O_NOFOLLOW;
+#  endif /* O_NOFOLLOW */
 	if ((fd = open(path, oflags)) == -1)
 		return -1;
 	ret = fchmod(fd, mode);
@@ -404,6 +412,14 @@ getsid(pid_t pid)
 }
 #endif
 
+#ifndef HAVE_KILLPG
+int
+killpg(pid_t pgrp, int sig)
+{
+	return kill(pgrp, sig);
+}
+#endif
+
 #ifdef FFLUSH_NULL_BUG
 #undef fflush
 int _ssh_compat_fflush(FILE *f)
@@ -418,5 +434,27 @@ int _ssh_compat_fflush(FILE *f)
 		return 0;
 	}
 	return fflush(f);
+}
+#endif
+
+#ifndef HAVE_LOCALTIME_R
+struct tm *
+localtime_r(const time_t *timep, struct tm *result)
+{
+	struct tm *tm = localtime(timep);
+	*result = *tm;
+	return result;
+}
+#endif
+
+#ifdef ASAN_OPTIONS
+const char *__asan_default_options(void) {
+	return ASAN_OPTIONS;
+}
+#endif
+
+#ifdef MSAN_OPTIONS
+const char *__msan_default_options(void) {
+	return MSAN_OPTIONS;
 }
 #endif

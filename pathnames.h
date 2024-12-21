@@ -1,4 +1,4 @@
-/* $OpenBSD: pathnames.h,v 1.28 2018/02/23 15:58:37 markus Exp $ */
+/* $OpenBSD: pathnames.h,v 1.32 2024/05/17 00:30:24 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -47,6 +47,14 @@
 #define _PATH_SSH_PROGRAM		"/usr/bin/ssh"
 #endif
 
+/* Binary paths for the sshd components */
+#ifndef _PATH_SSHD_SESSION
+#define _PATH_SSHD_SESSION		"/usr/libexec/sshd-session"
+#endif
+#ifndef _PATH_SSHD_AUTH
+#define _PATH_SSHD_AUTH			"/usr/libexec/sshd-auth"
+#endif
+
 /*
  * The process id of the daemon listening for connections is saved here to
  * make it easier to kill the correct daemon when necessary.
@@ -77,6 +85,8 @@
 #define _PATH_SSH_CLIENT_ID_RSA		_PATH_SSH_USER_DIR "/id_rsa"
 #define _PATH_SSH_CLIENT_ID_ED25519	_PATH_SSH_USER_DIR "/id_ed25519"
 #define _PATH_SSH_CLIENT_ID_XMSS	_PATH_SSH_USER_DIR "/id_xmss"
+#define _PATH_SSH_CLIENT_ID_ECDSA_SK	_PATH_SSH_USER_DIR "/id_ecdsa_sk"
+#define _PATH_SSH_CLIENT_ID_ED25519_SK	_PATH_SSH_USER_DIR "/id_ed25519_sk"
 
 /*
  * Configuration file in user's home directory.  This file need not be
@@ -130,6 +140,11 @@
 /* Location of ssh-pkcs11-helper to support keys in tokens */
 #ifndef _PATH_SSH_PKCS11_HELPER
 #define _PATH_SSH_PKCS11_HELPER		"/usr/libexec/ssh-pkcs11-helper"
+#endif
+
+/* Location of ssh-sk-helper to support keys in security keys */
+#ifndef _PATH_SSH_SK_HELPER
+#define _PATH_SSH_SK_HELPER		"/usr/libexec/ssh-sk-helper"
 #endif
 
 /* xauth for X11 forwarding */

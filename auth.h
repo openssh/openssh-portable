@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.99 2019/01/19 21:43:56 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.108 2024/05/17 06:42:04 jsg Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -29,8 +29,7 @@
 #define AUTH_H
 
 #include <signal.h>
-
-#include <openssl/rsa.h>
+#include <stdio.h>
 
 #ifdef HAVE_LOGIN_CAP
 #include <login_cap.h>
@@ -46,6 +45,7 @@ struct passwd;
 struct ssh;
 struct sshbuf;
 struct sshkey;
+struct sshkey_cert;
 struct sshauthopt;
 
 typedef struct Authctxt Authctxt;
@@ -104,10 +104,15 @@ struct Authctxt {
  * the client.
  */
 
+struct authmethod_cfg {
+	const char *name;
+	const char *synonym;
+	int *enabled;
+};
+
 struct Authmethod {
-	char	*name;
-	int	(*userauth)(struct ssh *);
-	int	*enabled;
+	struct authmethod_cfg *cfg;
+	int	(*userauth)(struct ssh *, const char *);
 };
 
 /*
@@ -134,8 +139,8 @@ int      auth_password(struct ssh *, const char *);
 
 int	 hostbased_key_allowed(struct ssh *, struct passwd *,
 	    const char *, char *, struct sshkey *);
-int	 user_key_allowed(struct ssh *, struct passwd *, struct sshkey *, int,
-    struct sshauthopt **);
+int	 user_key_allowed(struct ssh *ssh, struct passwd *, struct sshkey *,
+    int, struct sshauthopt **);
 int	 auth2_key_already_used(Authctxt *, const struct sshkey *);
 
 /*
@@ -150,8 +155,6 @@ void	 auth2_record_info(Authctxt *authctxt, const char *, ...)
 void	 auth2_update_session_info(Authctxt *, const char *, const char *);
 
 #ifdef KRB5
-int	auth_krb5(Authctxt *authctxt, krb5_data *auth, char **client, krb5_data *);
-int	auth_krb5_tgt(Authctxt *authctxt, krb5_data *tgt);
 int	auth_krb5_password(Authctxt *authctxt, const char *password);
 void	krb5_cleanup_proc(Authctxt *authctxt);
 #endif /* KRB5 */
@@ -192,8 +195,6 @@ struct passwd * getpwnamallow(struct ssh *, const char *user);
 char	*expand_authorized_keys(const char *, struct passwd *pw);
 char	*authorized_principals_file(struct passwd *);
 
-FILE	*auth_openkeyfile(const char *, struct passwd *, int);
-FILE	*auth_openprincipals(const char *, struct passwd *, int);
 int	 auth_key_is_revoked(struct sshkey *);
 
 const char	*auth_get_canonical_hostname(struct ssh *, int);
@@ -212,11 +213,8 @@ int	 sshd_hostkey_sign(struct ssh *, struct sshkey *, struct sshkey *,
     u_char **, size_t *, const u_char *, size_t, const char *);
 
 /* Key / cert options linkage to auth layer */
-const struct sshauthopt *auth_options(struct ssh *);
 int	 auth_activate_options(struct ssh *, struct sshauthopt *);
 void	 auth_restrict_session(struct ssh *);
-int	 auth_authorise_keyopts(struct ssh *, struct passwd *pw,
-    struct sshauthopt *, int, const char *);
 void	 auth_log_authopts(const char *, const struct sshauthopt *, int);
 
 /* debug messages during authentication */
@@ -227,16 +225,24 @@ void	 auth_debug_reset(void);
 
 struct passwd *fakepw(void);
 
-#define	SSH_SUBPROCESS_STDOUT_DISCARD  (1)     /* Discard stdout */
-#define	SSH_SUBPROCESS_STDOUT_CAPTURE  (1<<1)  /* Redirect stdout */
-#define	SSH_SUBPROCESS_STDERR_DISCARD  (1<<2)  /* Discard stderr */
-pid_t	subprocess(const char *, struct passwd *,
-    const char *, int, char **, FILE **, u_int flags);
+/* auth2-pubkeyfile.c */
+int	 auth_authorise_keyopts(struct passwd *, struct sshauthopt *, int,
+    const char *, const char *, const char *);
+int	 auth_check_principals_line(char *, const struct sshkey_cert *,
+    const char *, struct sshauthopt **);
+int	 auth_process_principals(FILE *, const char *,
+    const struct sshkey_cert *, struct sshauthopt **);
+int	 auth_check_authkey_line(struct passwd *, struct sshkey *,
+    char *, const char *, const char *, const char *, struct sshauthopt **);
+int	 auth_check_authkeys_file(struct passwd *, FILE *, char *,
+    struct sshkey *, const char *, const char *, struct sshauthopt **);
+FILE	*auth_openkeyfile(const char *, struct passwd *, int);
+FILE	*auth_openprincipals(const char *, struct passwd *, int);
 
 int	 sys_auth_passwd(struct ssh *, const char *);
 
 #if defined(KRB5) && !defined(HEIMDAL)
-#include <krb5.h>
 krb5_error_code ssh_krb5_cc_gen(krb5_context, krb5_ccache *);
 #endif
-#endif
+
+#endif /* AUTH_H */
