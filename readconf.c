@@ -712,6 +712,7 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 {
 	char *arg, *oattrib, *attrib, *cmd, *host, *criteria;
 	const char *ruser;
+	u_int i;
 	int r, this_result, result = 1, attributes = 0, negate;
 
 	/*
@@ -814,9 +815,16 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 		} else if (strcasecmp(attrib, "tagged") == 0) {
-			criteria = xstrdup(options->tag == NULL ? "" :
-			    options->tag);
-			r = match_pattern_list(criteria, arg, 0) == 1;
+			criteria = xstrdup(arg);
+			r = 0;
+			for (i = 0; i < options->num_tag; i++) {
+				r = match_pattern_list(
+				    options->tag[i], arg, 0) == 1;
+				debug3("%.200s line %d: match test for tag "
+				    "\"%.100s\" in \"%.200s\": %d",
+				    filename, linenum, options->tag[i], arg, r);
+				if (r) break;
+			}
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 		} else if (strcasecmp(attrib, "exec") == 0) {
@@ -1432,8 +1440,14 @@ parse_char_array:
 		goto parse_string;
 
 	case oTag:
-		charptr = &options->tag;
-		goto parse_string;
+		while ((arg = argv_next(&ac, &av)) != NULL) {
+		    if (*activep) {
+			opt_array_append(filename, linenum,
+			    lookup_opcode_name(opcode),
+			    &options->tag, &options->num_tag, arg);
+		    }
+		}
+		break;
 
 	case oHostKeyAlias:
 		charptr = &options->host_key_alias;
@@ -2676,6 +2690,7 @@ initialize_options(Options * options)
 	options->enable_escape_commandline = -1;
 	options->obscure_keystroke_timing_interval = -1;
 	options->tag = NULL;
+	options->num_tag = 0;
 	options->channel_timeouts = NULL;
 	options->num_channel_timeouts = 0;
 }
@@ -3056,6 +3071,8 @@ free_options(Options *o)
 	free(o->jump_host);
 	free(o->jump_extra);
 	free(o->ignored_unknown);
+	FREE_ARRAY(u_int, o->num_tag, o->tag);
+	free(o->tag);
 	explicit_bzero(o, sizeof(*o));
 #undef FREE_ARRAY
 }
@@ -3628,7 +3645,6 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
 	dump_cfg_string(oXAuthLocation, o->xauth_location);
 	dump_cfg_string(oKnownHostsCommand, o->known_hosts_command);
-	dump_cfg_string(oTag, o->tag);
 
 	/* Forwards */
 	dump_cfg_forwards(oDynamicForward, o->num_local_forwards, o->local_forwards);
@@ -3647,6 +3663,7 @@ dump_client_config(Options *o, const char *host)
 	    o->num_log_verbose, o->log_verbose);
 	dump_cfg_strarray_oneline(oChannelTimeout,
 	    o->num_channel_timeouts, o->channel_timeouts);
+	dump_cfg_strarray(oTag, o->num_tag, o->tag);
 
 	/* Special cases */
 
