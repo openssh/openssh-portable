@@ -285,6 +285,10 @@ installkeys_sh() {
   #    the cat adds the keys we're getting via STDIN
   #    and if available restorecon is used to restore the SELinux context
   # OpenWrt has a special case for root only.
+  # Likewise, Haiku uses its own filesystem layout for many things, including
+  # home directories.  Even though the latter currently stands for the one home
+  # directory because Haiku is currently single-user, for forward compatibility
+  # use a relative path to authorized_keys.
   INSTALLKEYS_SH=$(tr '\t\n' ' ' <<-EOF
 	$SET_X
 	cd;
@@ -292,6 +296,8 @@ installkeys_sh() {
 	AUTH_KEY_FILE="${TARGET_PATH}";
 	[ -f /etc/openwrt_release ] && [ "\$LOGNAME" = "root" ] &&
 		AUTH_KEY_FILE=/etc/dropbear/authorized_keys;
+	[ "\`uname -o\`" = "Haiku" ] &&
+		AUTH_KEY_FILE=config/settings/ssh/authorized_keys;
 	AUTH_KEY_DIR=\`dirname "\${AUTH_KEY_FILE}"\`;
 	mkdir -p "\${AUTH_KEY_DIR}" &&
 		{ [ -z "\`tail -1c "\${AUTH_KEY_FILE}" 2>/dev/null\`" ] ||
