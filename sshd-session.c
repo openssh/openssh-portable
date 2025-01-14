@@ -1214,6 +1214,9 @@ main(int ac, char **av)
 	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) == -1)
 		error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 
+	if (options.tcp_nodelay && ssh_packet_connection_is_on_socket(ssh))
+		set_ssh_nodelay(ssh);
+
 	if ((remote_port = ssh_remote_port(ssh)) < 0) {
 		debug("ssh_remote_port failed");
 		cleanup_exit(255);
@@ -1331,6 +1334,7 @@ main(int ac, char **av)
 	 * In privilege separation, we fork another child and prepare
 	 * file descriptor passing.
 	 */
+	set_ssh_nodelay(ssh);
 	privsep_postauth(ssh, authctxt);
 	/* the monitor process [priv] will not return */
 

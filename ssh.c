@@ -1643,6 +1643,9 @@ main(int ac, char **av)
 	    &timeout_ms, options.tcp_keep_alive) != 0)
 		exit(255);
 
+	if (options.tcp_nodelay)
+		set_ssh_nodelay(ssh);
+
 	if (addrs != NULL)
 		freeaddrinfo(addrs);
 
@@ -1795,6 +1798,7 @@ main(int ac, char **av)
 #endif
 
  skip_connect:
+	set_ssh_nodelay(ssh);
 	exit_status = ssh_session2(ssh, cinfo);
 	ssh_conn_info_free(cinfo);
 	ssh_packet_close(ssh);

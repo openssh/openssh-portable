@@ -121,6 +121,7 @@ initialize_server_options(ServerOptions *options)
 	options->xauth_location = NULL;
 	options->strict_modes = -1;
 	options->tcp_keep_alive = -1;
+	options->tcp_nodelay = -1;
 	options->log_facility = SYSLOG_FACILITY_NOT_SET;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
 	options->num_log_verbose = 0;
@@ -357,6 +358,8 @@ fill_default_server_options(ServerOptions *options)
 		options->strict_modes = 1;
 	if (options->tcp_keep_alive == -1)
 		options->tcp_keep_alive = 1;
+	if (options->tcp_nodelay == -1)
+		options->tcp_nodelay = 0;
 	if (options->log_facility == SYSLOG_FACILITY_NOT_SET)
 		options->log_facility = SYSLOG_FACILITY_AUTH;
 	if (options->log_level == SYSLOG_LEVEL_NOT_SET)
@@ -555,7 +558,7 @@ typedef enum {
 	sKbdInteractiveAuthentication, sListenAddress, sAddressFamily,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
-	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
+	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive, sTCPNoDelay,
 	sPermitUserEnvironment, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sPidFile, sModuliFile,
@@ -685,6 +688,7 @@ static struct {
 	{ "rekeylimit", sRekeyLimit, SSHCFG_ALL },
 	{ "tcpkeepalive", sTCPKeepAlive, SSHCFG_GLOBAL },
 	{ "keepalive", sTCPKeepAlive, SSHCFG_GLOBAL },	/* obsolete alias */
+	{ "tcpnodelay", sTCPNoDelay, SSHCFG_GLOBAL },
 	{ "allowtcpforwarding", sAllowTcpForwarding, SSHCFG_ALL },
 	{ "allowagentforwarding", sAllowAgentForwarding, SSHCFG_ALL },
 	{ "allowusers", sAllowUsers, SSHCFG_ALL },
@@ -1697,6 +1701,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 
 	case sTCPKeepAlive:
 		intptr = &options->tcp_keep_alive;
+		goto parse_flag;
+
+	case sTCPNoDelay:
+		intptr = &options->tcp_nodelay;
 		goto parse_flag;
 
 	case sEmptyPasswd:
@@ -3253,6 +3261,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sPermitUserRC, o->permit_user_rc);
 	dump_cfg_fmtint(sStrictModes, o->strict_modes);
 	dump_cfg_fmtint(sTCPKeepAlive, o->tcp_keep_alive);
+	dump_cfg_fmtint(sTCPNoDelay, o->tcp_nodelay);
 	dump_cfg_fmtint(sEmptyPasswd, o->permit_empty_passwd);
 	dump_cfg_fmtint(sCompression, o->compression);
 	dump_cfg_fmtint(sGatewayPorts, o->fwd_opts.gateway_ports);
