@@ -238,7 +238,7 @@ user_specific_delay(const char *user)
 	/* 0-4.2 ms of delay */
 	delay = (double)PEEK_U32(hash) / 1000 / 1000 / 1000 / 1000;
 	freezero(hash, len);
-	debug3_f("user specific delay %0.3lfms", delay/1000);
+	debug3_f("user specific delay %0.3lfms", delay*1000);
 	return MIN_FAIL_DELAY_SECONDS + delay;
 }
 
