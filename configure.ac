@@ -3276,6 +3276,12 @@ fi
 # PKCS11/U2F depend on OpenSSL and dlopen().
 enable_pkcs11=yes
 enable_sk=yes
+
+AC_CHECK_DECL([OPENSSL_IS_AWSLC],
+	[enable_pkcs11="disabled; PKCS#11 not supported with AWS-LC"],
+	[],
+	[#include <openssl/base.h>]
+)
 if test "x$openssl" != "xyes" ; then
 	enable_pkcs11="disabled; missing libcrypto"
 fi
