@@ -144,7 +144,7 @@ for TARGET in $TARGETS; do
        ;;
     aws-lc)
         INSTALL_AWSLC=1
-        PACKAGES="${PACKAGES} cmake ninja-build golang"
+        PACKAGES="${PACKAGES} cmake ninja-build"
         ;;
     putty-*)
 	INSTALL_PUTTY=$(echo "${TARGET}" | cut -f2 -d-)
@@ -247,7 +247,7 @@ fi
 if [ ! -z "${INSTALL_AWSLC}" ]; then
     (cd ${HOME} && git clone --depth 1 --branch v1.42.0 https://github.com/aws/aws-lc.git &&
      cd ${HOME}/aws-lc && mkdir build && cd build &&
-     cmake -GNinja -DCMAKE_BUILD_TYPE=Release .. && ninja &&
+     cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF .. && ninja &&
      mkdir -p /opt/aws-lc/lib &&
      cp ${HOME}/aws-lc/build/crypto/libcrypto.a /opt/aws-lc/lib &&
      cp -r ${HOME}/aws-lc/include /opt/aws-lc)
