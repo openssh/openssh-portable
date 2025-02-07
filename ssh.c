@@ -670,7 +670,7 @@ main(int ac, char **av)
 	struct ssh *ssh = NULL;
 	int i, r, opt, exit_status, use_syslog, direct, timeout_ms;
 	int was_addr, config_test = 0, opt_terminated = 0, want_final_pass = 0;
-	char *p, *cp, *line, *argv0, *logfile;
+	char *p, *cp, *line, *argv0;
 	char cname[NI_MAXHOST], thishost[NI_MAXHOST];
 	struct stat st;
 	struct passwd *pw;
@@ -741,7 +741,6 @@ main(int ac, char **av)
 	/* Parse command-line arguments. */
 	host = NULL;
 	use_syslog = 0;
-	logfile = NULL;
 	argv0 = av[0];
 
  again:
@@ -777,7 +776,8 @@ main(int ac, char **av)
 			use_syslog = 1;
 			break;
 		case 'E':
-			logfile = optarg;
+			free(options.control_path);
+			options.log_path = xstrdup(optarg);
 			break;
 		case 'G':
 			config_test = 1;
@@ -1186,14 +1186,22 @@ main(int ac, char **av)
 
 	ssh_signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
 
+	/* Parse the configuration files */
+	process_config_files(options.host_arg, pw, 0, &want_final_pass);
+
 	/*
 	 * Initialize "log" output.  Since we are the client all output
 	 * goes to stderr unless otherwise specified by -y or -E.
 	 */
-	if (use_syslog && logfile != NULL)
+	if (use_syslog && options.log_path != NULL)
 		fatal("Can't specify both -y and -E");
-	if (logfile != NULL)
-		log_redirect_stderr_to(logfile);
+	if (options.log_path != NULL) {
+		p = tilde_expand_filename(options.log_path, getuid());
+		options.log_path = p;
+		logit("Debug logging to file: %s", options.log_path);
+		log_redirect_stderr_to(options.log_path);
+		free(p);
+	}
 	log_init(argv0,
 	    options.log_level == SYSLOG_LEVEL_NOT_SET ?
 	    SYSLOG_LEVEL_INFO : options.log_level,
@@ -1204,8 +1212,6 @@ main(int ac, char **av)
 	if (debug_flag)
 		logit("%s, %s", SSH_RELEASE, SSH_OPENSSL_VERSION);
 
-	/* Parse the configuration files */
-	process_config_files(options.host_arg, pw, 0, &want_final_pass);
 	if (want_final_pass)
 		debug("configuration requests final Match pass");
 
