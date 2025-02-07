@@ -48,6 +48,7 @@
 
 #ifdef ENABLE_SK
 extern char *__progname;
+int ssh_sk_timeout = -1; /* in seconds; -1 blocks indefinitely */
 
 static struct sshbuf *reply_error(int r, char *fmt, ...)
     __attribute__((__format__ (printf, 2, 3)));
@@ -279,6 +280,7 @@ main(int argc, char **argv)
 	int in, out, ch, r, vflag = 0;
 	u_int rtype, ll = 0;
 	uint8_t version, log_stderr = 0;
+	const char *timeout = NULL, *errstr = NULL;
 
 	sanitise_stdfd();
 	log_init(__progname, log_level, log_facility, log_stderr);
@@ -331,6 +333,17 @@ main(int argc, char **argv)
 
 	if (!vflag && log_level_name((LogLevel)ll) != NULL)
 		log_init(__progname, (LogLevel)ll, log_facility, log_stderr);
+
+
+	if ((timeout = getenv("SSH_SK_HELPER_TIMEOUT")) != NULL) {
+		ssh_sk_timeout = strtonum(timeout, 1, INT_MAX, &errstr);
+		if (errstr != NULL) {
+			debug_f("invalid timeout '%s', assuming -1", timeout);
+			ssh_sk_timeout = -1;
+		} else {
+			debug_f("timing out after %d seconds", ssh_sk_timeout);
+		}
+	}
 
 	switch (rtype) {
 	case SSH_SK_HELPER_SIGN:
