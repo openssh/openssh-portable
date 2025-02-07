@@ -247,7 +247,7 @@ fi
 if [ ! -z "${INSTALL_AWSLC}" ]; then
     (cd ${HOME} && git clone --depth 1 --branch v1.42.0 https://github.com/aws/aws-lc.git &&
      cd ${HOME}/aws-lc && mkdir build && cd build &&
-     cmake -GNinja -DCMAKE_INSTALL_PREFIX=/opt/aws-lc -DBUILD_TESTING=OFF .. && sudo ninja install)
+     cmake -GNinja -DCMAKE_INSTALL_PREFIX=/opt/aws-lc -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=1 .. && sudo ninja install)
 fi
 
 if [ ! -z "${INSTALL_ZLIB}" ]; then
