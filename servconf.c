@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.422 2025/02/10 23:00:29 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.423 2025/02/10 23:16:51 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1039,16 +1039,17 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 	int result = 1, attributes = 0, port;
 	char *arg, *attrib = NULL, *oattrib;
 
-	if (ci == NULL)
-		debug3("checking syntax for 'Match %s'", full_line);
-	else {
+	if (ci == NULL) {
+		debug3("checking syntax for 'Match %s' on line %d",
+		    full_line, line);
+	} else {
 		debug3("checking match for '%s' user %s%s host %s addr %s "
-		    "laddr %s lport %d", full_line,
+		    "laddr %s lport %d on line %d", full_line,
 		    ci->user ? ci->user : "(null)",
 		    ci->user_invalid ? " (invalid)" : "",
 		    ci->host ? ci->host : "(null)",
 		    ci->address ? ci->address : "(null)",
-		    ci->laddress ? ci->laddress : "(null)", ci->lport);
+		    ci->laddress ? ci->laddress : "(null)", ci->lport, line);
 	}
 
 	while ((oattrib = argv_next(acp, avp)) != NULL) {
@@ -1077,10 +1078,8 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 		}
 		/* Criterion "invalid-user" also has no argument */
 		if (strcasecmp(attrib, "invalid-user") == 0) {
-			if (ci == NULL) {
-				result = 0;
+			if (ci == NULL)
 				continue;
-			}
 			if (ci->user_invalid == 0)
 				result = 0;
 			else
@@ -1241,7 +1240,7 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 	}
  out:
 	if (ci != NULL && result != -1)
-		debug3("match %sfound", result ? "" : "not ");
+		debug3("match %sfound on line %d", result ? "" : "not ", line);
 	free(attrib);
 	return result;
 }
