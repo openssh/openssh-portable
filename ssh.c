@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.602 2024/12/06 16:21:48 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.603 2025/02/10 23:19:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -50,6 +50,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <sys/utsname.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -670,7 +671,7 @@ main(int ac, char **av)
 	struct ssh *ssh = NULL;
 	int i, r, opt, exit_status, use_syslog, direct, timeout_ms;
 	int was_addr, config_test = 0, opt_terminated = 0, want_final_pass = 0;
-	char *p, *cp, *line, *argv0, *logfile;
+	char *p, *cp, *line, *argv0, *logfile, *args;
 	char cname[NI_MAXHOST], thishost[NI_MAXHOST];
 	struct stat st;
 	struct passwd *pw;
@@ -680,6 +681,7 @@ main(int ac, char **av)
 	struct addrinfo *addrs = NULL;
 	size_t n, len;
 	u_int j;
+	struct utsname utsname;
 	struct ssh_conn_info *cinfo = NULL;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -738,7 +740,9 @@ main(int ac, char **av)
 		fatal("Couldn't allocate session state");
 	channel_init_channels(ssh);
 
+
 	/* Parse command-line arguments. */
+	args = argv_assemble(ac, av); /* logged later */
 	host = NULL;
 	use_syslog = 0;
 	logfile = NULL;
@@ -1201,8 +1205,15 @@ main(int ac, char **av)
 	    SYSLOG_FACILITY_USER : options.log_facility,
 	    !use_syslog);
 
-	if (debug_flag)
-		logit("%s, %s", SSH_RELEASE, SSH_OPENSSL_VERSION);
+	debug("%s, %s", SSH_RELEASE, SSH_OPENSSL_VERSION);
+	if (uname(&utsname) != 0) {
+		memset(&utsname, 0, sizeof(utsname));
+		strlcpy(utsname.sysname, "UNKNOWN", sizeof(utsname.sysname));
+	}
+	debug3("Running on %s %s %s %s", utsname.sysname, utsname.release,
+	    utsname.version, utsname.machine);
+	debug3("Started with: %s", args);
+	free(args);
 
 	/* Parse the configuration files */
 	process_config_files(options.host_arg, pw, 0, &want_final_pass);
