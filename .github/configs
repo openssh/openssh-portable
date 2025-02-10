@@ -162,8 +162,6 @@ case "$config" in
 	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/boringssl --with-rpath=-Wl,-rpath,"
 	;;
 	aws-lc)
-	CFLAGS="-I/opt/aws-lc/include"
-	LDFLAGS="-Wl,-rpath=/opt/aws-lc/lib"
 	LIBCRYPTOFLAGS="--with-ssl-dir=/opt/aws-lc --with-rpath=-Wl,-rpath,"
 	;;
     libressl-*)
