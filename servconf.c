@@ -1073,8 +1073,10 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 		}
 		/* Criterion "invalid-user" also has no argument */
 		if (strcasecmp(attrib, "invalid-user") == 0) {
-			if (ci == NULL)
+			if (ci == NULL) {
+				result = 0;
 				continue;
+			}
 			if (ci->user_invalid == 0)
 				result = 0;
 			else
