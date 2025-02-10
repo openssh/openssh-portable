@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.421 2025/01/15 22:23:13 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.422 2025/02/10 23:00:29 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1077,8 +1077,10 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 		}
 		/* Criterion "invalid-user" also has no argument */
 		if (strcasecmp(attrib, "invalid-user") == 0) {
-			if (ci == NULL)
+			if (ci == NULL) {
+				result = 0;
 				continue;
+			}
 			if (ci->user_invalid == 0)
 				result = 0;
 			else
