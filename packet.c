@@ -2227,6 +2227,13 @@ ssh_packet_set_interactive(struct ssh *ssh, int interactive, int qos_interactive
 	ssh_packet_set_tos(ssh, interactive ? qos_interactive : qos_bulk);
 }
 
+void
+set_ssh_nodelay(struct ssh *ssh)
+{
+	struct session_state *state = ssh->state;
+	set_nodelay(state->connection_in);
+}
+
 /* Returns true if the current connection is interactive. */
 
 int

@@ -155,7 +155,7 @@ typedef enum {
 	oUser, oEscapeChar, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
-	oTCPKeepAlive, oNumberOfPasswordPrompts,
+	oTCPKeepAlive, oTCPNoDelay, oNumberOfPasswordPrompts,
 	oLogFacility, oLogLevel, oLogVerbose, oCiphers, oMacs,
 	oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
@@ -269,6 +269,7 @@ static struct {
 	{ "compression", oCompression },
 	{ "tcpkeepalive", oTCPKeepAlive },
 	{ "keepalive", oTCPKeepAlive },				/* obsolete */
+	{ "tcpnodelay", oTCPNoDelay },
 	{ "numberofpasswordprompts", oNumberOfPasswordPrompts },
 	{ "syslogfacility", oLogFacility },
 	{ "loglevel", oLogLevel },
@@ -1305,6 +1306,10 @@ parse_time:
 
 	case oTCPKeepAlive:
 		intptr = &options->tcp_keep_alive;
+		goto parse_flag;
+
+	case oTCPNoDelay:
+		intptr = &options->tcp_nodelay;
 		goto parse_flag;
 
 	case oNoHostAuthenticationForLocalhost:
@@ -2628,6 +2633,7 @@ initialize_options(Options * options)
 	options->strict_host_key_checking = -1;
 	options->compression = -1;
 	options->tcp_keep_alive = -1;
+	options->tcp_nodelay = -1;
 	options->port = -1;
 	options->address_family = -1;
 	options->connection_attempts = -1;
@@ -2800,6 +2806,8 @@ fill_default_options(Options * options)
 		options->compression = 0;
 	if (options->tcp_keep_alive == -1)
 		options->tcp_keep_alive = 1;
+	if (options->tcp_nodelay == -1)
+		options->tcp_nodelay = 0;
 	if (options->port == -1)
 		options->port = 0;	/* Filled in ssh_connect. */
 	if (options->address_family == -1)
@@ -3630,6 +3638,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(oStrictHostKeyChecking, o->strict_host_key_checking);
 	dump_cfg_fmtint(oTCPKeepAlive, o->tcp_keep_alive);
+	dump_cfg_fmtint(oTCPNoDelay, o->tcp_nodelay);
 	dump_cfg_fmtint(oTunnel, o->tun_open);
 	dump_cfg_fmtint(oVerifyHostKeyDNS, o->verify_host_key_dns);
 	dump_cfg_fmtint(oVisualHostKey, o->visual_host_key);
