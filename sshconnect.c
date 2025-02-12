@@ -359,7 +359,9 @@ ssh_create_socket(struct addrinfo *ai)
 #endif
 	char ntop[NI_MAXHOST];
 
-	sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+	sock = socket(ai->ai_family, ai->ai_socktype,
+	    options.socket_protocol > 0 ? options.socket_protocol :
+	    ai->ai_protocol);
 	if (sock == -1) {
 		error("socket: %s", strerror(errno));
 		return -1;

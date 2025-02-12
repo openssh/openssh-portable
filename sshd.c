@@ -758,6 +758,7 @@ listen_on_addrs(struct listenaddr *la)
 		}
 		/* Create socket for listening. */
 		listen_sock = socket(ai->ai_family, ai->ai_socktype,
+		    options.socket_protocol > 0 ? options.socket_protocol :
 		    ai->ai_protocol);
 		if (listen_sock == -1) {
 			/* kernel may not support ipv6 */

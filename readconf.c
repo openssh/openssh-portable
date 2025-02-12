@@ -179,7 +179,7 @@ typedef enum {
 	oPubkeyAcceptedAlgorithms, oCASignatureAlgorithms, oProxyJump,
 	oSecurityKeyProvider, oKnownHostsCommand, oRequiredRSASize,
 	oEnableEscapeCommandline, oObscureKeystrokeTiming, oChannelTimeout,
-	oVersionAddendum,
+	oVersionAddendum, oSocketProtocol,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -331,6 +331,7 @@ static struct {
 	{ "obscurekeystroketiming", oObscureKeystrokeTiming },
 	{ "channeltimeout", oChannelTimeout },
 	{ "versionaddendum", oVersionAddendum },
+	{ "socketprotocol", oSocketProtocol },
 
 	{ NULL, oBadOption }
 };
@@ -2464,6 +2465,10 @@ parse_pubkey_algos:
 		argv_consume(&ac);
 		break;
 
+	case oSocketProtocol:
+		intptr = &options->socket_protocol;
+		goto parse_int;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -2721,6 +2726,7 @@ initialize_options(Options * options)
 	options->channel_timeouts = NULL;
 	options->num_channel_timeouts = 0;
 	options->version_addendum = NULL;
+	options->socket_protocol = -1;
 }
 
 /*
@@ -2927,6 +2933,8 @@ fill_default_options(Options * options)
 		options->obscure_keystroke_timing_interval =
 		    SSH_KEYSTROKE_DEFAULT_INTERVAL_MS;
 	}
+	if (options->socket_protocol == -1)
+		options->socket_protocol = 0;
 
 	/* Expand KEX name lists */
 	all_cipher = cipher_alg_list(',', 0);
@@ -3646,6 +3654,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_int(oRequiredRSASize, o->required_rsa_size);
 	dump_cfg_int(oObscureKeystrokeTiming,
 	    o->obscure_keystroke_timing_interval);
+	dump_cfg_int(oSocketProtocol, o->socket_protocol);
 
 	/* String options */
 	dump_cfg_string(oBindAddress, o->bind_address);
