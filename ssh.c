@@ -811,8 +811,11 @@ main(int ac, char **av)
 				fatal("Invalid multiplex command.");
 			break;
 		case 'P':
-			if (options.tag == NULL)
-				options.tag = xstrdup(optarg);
+			options.tag = xrecallocarray(options.tag,
+			    options.num_tag, options.num_tag + 1,
+			    sizeof(*options.tag));
+			options.tag[options.num_tag] = xstrdup(optarg);
+			options.num_tag++;
 			break;
 		case 'Q':
 			cp = NULL;
