@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.410 2025/02/15 01:52:07 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.411 2025/02/15 06:48:56 jmc Exp $
 .Dd $Mdocdate: February 15 2025 $
 .Dt SSH_CONFIG 5
 .Os
@@ -239,12 +239,12 @@ flag.
 The
 .Cm command
 keyword matches the remote command that has been requested, or the subsystem
-name that is being invoked (e.g.
-.Oq sftp
+name that is being invoked (e.g.\&
+.Qq sftp
 for an SFTP session).
 The empty string will match the case where a command or tag has not been
-specified, i.e.
-.Sq Match tag \&"\&"
+specified, i.e.\&
+.Sq Match tag \&"\&" .
 The
 .Cm version
 keyword matches against the version string of
