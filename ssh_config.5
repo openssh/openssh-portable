@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.408 2025/02/15 01:48:30 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.409 2025/02/15 01:50:47 djm Exp $
 .Dd $Mdocdate: February 15 2025 $
 .Dt SSH_CONFIG 5
 .Os
@@ -255,6 +255,24 @@ keyword matches against the name of the local user running
 (this keyword may be useful in system-wide
 .Nm
 files).
+.Pp
+Finally, the
+.Cm sessiontype
+keyword matches the requested session type, which may be one of
+.Cm shell
+for interactive sessions,
+.Cm exec
+for command execution sessions,
+.Cm subsystem
+for subsystem invocations such as
+.Xr sftp 1 ,
+or
+.Cm none
+for transport-only sessions, such as when
+.Xr ssh 1
+is started with the
+.Fl N
+flag.
 .It Cm AddKeysToAgent
 Specifies whether keys should be automatically added to a running
 .Xr ssh-agent 1 .
