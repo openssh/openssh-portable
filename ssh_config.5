@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.407 2024/12/06 16:21:48 djm Exp $
-.Dd $Mdocdate: December 6 2024 $
+.\" $OpenBSD: ssh_config.5,v 1.408 2025/02/15 01:48:30 djm Exp $
+.Dd $Mdocdate: February 15 2025 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -145,6 +145,7 @@ The available criteria keywords are:
 .Cm host ,
 .Cm originalhost ,
 .Cm tagged ,
+.Cm command ,
 .Cm user ,
 and
 .Cm localuser .
@@ -212,6 +213,7 @@ The other keywords' criteria must be single entries or comma-separated
 lists and may use the wildcard and negation operators described in the
 .Sx PATTERNS
 section.
+.Pp
 The criteria for the
 .Cm host
 keyword are matched against the target hostname, after any substitution
@@ -223,6 +225,7 @@ options.
 The
 .Cm originalhost
 keyword matches against the hostname as it was specified on the command-line.
+.Pp
 The
 .Cm tagged
 keyword matches a tag name specified by a prior
@@ -232,6 +235,16 @@ directive or on the
 command-line using the
 .Fl P
 flag.
+The
+.Cm command
+keyword matches the remote command that has been requested, or the subsystem
+name that is being invoked (e.g.
+.Oq sftp
+for an SFTP session).
+The empty string will match the case where a command or tag has not been
+specified, i.e.
+.Sq Match tag \&"\&"
+.Pp
 The
 .Cm user
 keyword matches against the target username on the remote host.

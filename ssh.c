@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.603 2025/02/10 23:19:26 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.604 2025/02/15 01:48:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -559,15 +559,18 @@ check_load(int r, struct sshkey **k, const char *path, const char *message)
  * file if the user specifies a config file on the command line.
  */
 static void
-process_config_files(const char *host_name, struct passwd *pw, int final_pass,
-    int *want_final_pass)
+process_config_files(const char *host_name, struct passwd *pw,
+    int final_pass, int *want_final_pass)
 {
-	char buf[PATH_MAX];
+	char *cmd, buf[PATH_MAX];
 	int r;
 
+	if ((cmd = sshbuf_dup_string(command)) == NULL)
+		fatal_f("sshbuf_dup_string failed");
 	if (config != NULL) {
 		if (strcasecmp(config, "none") != 0 &&
-		    !read_config_file(config, pw, host, host_name, &options,
+		    !read_config_file(config, pw, host, host_name, cmd,
+		    &options,
 		    SSHCONF_USERCONF | (final_pass ? SSHCONF_FINAL : 0),
 		    want_final_pass))
 			fatal("Can't open user config file %.100s: "
@@ -576,15 +579,16 @@ process_config_files(const char *host_name, struct passwd *pw, int final_pass,
 		r = snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir,
 		    _PATH_SSH_USER_CONFFILE);
 		if (r > 0 && (size_t)r < sizeof(buf))
-			(void)read_config_file(buf, pw, host, host_name,
+			(void)read_config_file(buf, pw, host, host_name, cmd,
 			    &options, SSHCONF_CHECKPERM | SSHCONF_USERCONF |
 			    (final_pass ? SSHCONF_FINAL : 0), want_final_pass);
 
 		/* Read systemwide configuration file after user config. */
 		(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw,
-		    host, host_name, &options,
+		    host, host_name, cmd, &options,
 		    final_pass ? SSHCONF_FINAL : 0, want_final_pass);
 	}
+	free(cmd);
 }
 
 /* Rewrite the port number in an addrinfo list of addresses */
@@ -1078,7 +1082,7 @@ main(int ac, char **av)
 		case 'o':
 			line = xstrdup(optarg);
 			if (process_config_line(&options, pw,
-			    host ? host : "", host ? host : "", line,
+			    host ? host : "", host ? host : "", "", line,
 			    "command-line", 0, NULL, SSHCONF_USERCONF) != 0)
 				exit(255);
 			free(line);
