@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.423 2025/02/10 23:16:51 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.424 2025/02/15 01:52:07 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -68,6 +68,7 @@
 #include "auth.h"
 #include "myproposal.h"
 #include "digest.h"
+#include "version.h"
 
 #if !defined(SSHD_PAM_SERVICE)
 # define SSHD_PAM_SERVICE		"sshd"
@@ -1094,7 +1095,8 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 		    strprefix(attrib, "address=", 1) != NULL ||
 		    strprefix(attrib, "localaddress=", 1) != NULL ||
 		    strprefix(attrib, "localport=", 1) != NULL ||
-		    strprefix(attrib, "rdomain=", 1) != NULL) {
+		    strprefix(attrib, "rdomain=", 1) != NULL ||
+		    strprefix(attrib, "version=", 1) != NULL) {
 			arg = strchr(attrib, '=');
 			*(arg++) = '\0';
 		} else {
@@ -1224,8 +1226,16 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 			if (match_pattern_list(ci->rdomain, arg, 0) != 1)
 				result = 0;
 			else
-				debug("user %.100s matched 'RDomain %.100s' at "
-				    "line %d", ci->rdomain, arg, line);
+				debug("connection RDomain %.100s matched "
+				    "'RDomain %.100s' at line %d",
+				    ci->rdomain, arg, line);
+		} else if (strcasecmp(attrib, "version") == 0) {
+			if (match_pattern_list(SSH_RELEASE, arg, 0) != 1)
+				result = 0;
+			else
+				debug("version %.100s matched "
+				    "'version %.100s' at line %d",
+				    SSH_RELEASE, arg, line);
 		} else {
 			error("Unsupported Match attribute %s", oattrib);
 			result = -1;

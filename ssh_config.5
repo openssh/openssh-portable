@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.409 2025/02/15 01:50:47 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.410 2025/02/15 01:52:07 djm Exp $
 .Dd $Mdocdate: February 15 2025 $
 .Dt SSH_CONFIG 5
 .Os
@@ -147,8 +147,9 @@ The available criteria keywords are:
 .Cm tagged ,
 .Cm command ,
 .Cm user ,
+.Cm localuser ,
 and
-.Cm localuser .
+.Cm version .
 The
 .Cm all
 criteria must appear alone or immediately after
@@ -244,6 +245,12 @@ for an SFTP session).
 The empty string will match the case where a command or tag has not been
 specified, i.e.
 .Sq Match tag \&"\&"
+The
+.Cm version
+keyword matches against the version string of
+.Xr ssh 1 ,
+for example
+.Dq OpenSSH_10.0 .
 .Pp
 The
 .Cm user
