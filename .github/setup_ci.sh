@@ -247,8 +247,10 @@ fi
 if [ ! -z "${INSTALL_AWSLC}" ]; then
     (cd ${HOME} && git clone --depth 1 --branch v1.46.1 https://github.com/aws/aws-lc.git &&
      cd ${HOME}/aws-lc && mkdir build && cd build &&
-     cmake -GNinja -DCMAKE_INSTALL_PREFIX="/opt/aws-lc" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF .. && 
-     ninja install)
+     cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF .. && ninja &&
+     mkdir -p /opt/aws-lc/lib &&
+     cp ${HOME}/aws-lc/build/crypto/libcrypto.a /opt/aws-lc/lib &&
+     cp -r ${HOME}/aws-lc/include /opt/aws-lc)
 fi
 
 if [ ! -z "${INSTALL_ZLIB}" ]; then
