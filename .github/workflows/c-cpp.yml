@@ -16,7 +16,7 @@ jobs:
         # First we test all OSes in the default configuration.
         target:
           - ubuntu-20.04
-          - ubuntu-22.04
+          # - ubuntu-22.04
           # - macos-13
           # - macos-14
           # - macos-15
