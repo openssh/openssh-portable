@@ -17,6 +17,8 @@ jobs:
         target:
           - ubuntu-20.04
           - ubuntu-22.04
+          - ubuntu-22.04-arm
+          - ubuntu-24.04-arm
           - macos-13
           - macos-14
           - macos-15
@@ -101,6 +103,8 @@ jobs:
           - { target: ubuntu-latest, config: putty-0.80 }
           - { target: ubuntu-latest, config: putty-snapshot }
           - { target: ubuntu-latest, config: zlib-develop }
+          - { target: ubuntu-22.04-arm, config: kitchensink }
+          - { target: ubuntu-24.04-arm, config: kitchensink }
           - { target: macos-13, config: pam }
           - { target: macos-14, config: pam }
           - { target: macos-15, config: pam }
