@@ -28,32 +28,38 @@ jobs:
         include:
           - { target: windows-2019, config: cygwin-release }
           - { target: windows-2022, config: cygwin-release }
-          - { target: ubuntu-20.04, config: valgrind-1 }
-          - { target: ubuntu-20.04, config: valgrind-2 }
-          - { target: ubuntu-20.04, config: valgrind-3 }
-          - { target: ubuntu-20.04, config: valgrind-4 }
-          - { target: ubuntu-20.04, config: valgrind-unit }
-          - { target: ubuntu-20.04, config: c89 }
-          - { target: ubuntu-20.04, config: clang-6.0 }
-          - { target: ubuntu-20.04, config: clang-8 }
-          - { target: ubuntu-20.04, config: clang-9 }
-          - { target: ubuntu-20.04, config: clang-10 }
-          - { target: ubuntu-20.04, config: clang-11 }
-          - { target: ubuntu-20.04, config: clang-12-Werror }
-          - { target: ubuntu-20.04, config: clang-sanitize-address }
-          - { target: ubuntu-20.04, config: clang-sanitize-undefined }
-          - { target: ubuntu-20.04, config: gcc-sanitize-address }
-          - { target: ubuntu-20.04, config: gcc-sanitize-undefined }
-          - { target: ubuntu-20.04, config: gcc-7 }
-          - { target: ubuntu-20.04, config: gcc-8 }
-          - { target: ubuntu-20.04, config: gcc-10 }
+          - { target: ubuntu-22.04, config: c89 }
+          - { target: ubuntu-22.04, config: clang-10 }
+          - { target: ubuntu-22.04, config: clang-11 }
+          - { target: ubuntu-22.04, config: clang-12-Werror }
+          - { target: ubuntu-22.04, config: clang-6.0 }
+          - { target: ubuntu-22.04, config: clang-8 }
+          - { target: ubuntu-22.04, config: clang-9 }
+          - { target: ubuntu-22.04, config: clang-sanitize-address }
+          - { target: ubuntu-22.04, config: clang-sanitize-undefined }
+          - { target: ubuntu-22.04, config: gcc-10 }
           - { target: ubuntu-22.04, config: gcc-11-Werror }
           - { target: ubuntu-22.04, config: gcc-12-Werror }
-          - { target: ubuntu-20.04, config: pam }
-          - { target: ubuntu-20.04, config: kitchensink }
+          - { target: ubuntu-22.04, config: gcc-7 }
+          - { target: ubuntu-22.04, config: gcc-8 }
+          - { target: ubuntu-22.04, config: gcc-sanitize-address }
+          - { target: ubuntu-22.04, config: gcc-sanitize-undefined }
           - { target: ubuntu-22.04, config: hardenedmalloc }
-          - { target: ubuntu-20.04, config: tcmalloc }
-          - { target: ubuntu-20.04, config: musl }
+          - { target: ubuntu-22.04, config: heimdal }
+          - { target: ubuntu-22.04, config: kitchensink }
+          - { target: ubuntu-22.04, config: krb5 }
+          - { target: ubuntu-22.04, config: libedit }
+          - { target: ubuntu-22.04, config: musl }
+          - { target: ubuntu-22.04, config: pam }
+          - { target: ubuntu-22.04, config: selinux }
+          - { target: ubuntu-22.04, config: sk }
+          - { target: ubuntu-22.04, config: tcmalloc }
+          - { target: ubuntu-22.04, config: valgrind-1 }
+          - { target: ubuntu-22.04, config: valgrind-2 }
+          - { target: ubuntu-22.04, config: valgrind-3 }
+          - { target: ubuntu-22.04, config: valgrind-4 }
+          - { target: ubuntu-22.04, config: valgrind-unit }
+          - { target: ubuntu-22.04, config: without-openssl }
           - { target: ubuntu-latest, config: boringssl }
           - { target: ubuntu-latest, config: aws-lc }
           - { target: ubuntu-latest, config: libressl-master }
@@ -95,14 +101,6 @@ jobs:
           - { target: ubuntu-latest, config: putty-0.80 }
           - { target: ubuntu-latest, config: putty-snapshot }
           - { target: ubuntu-latest, config: zlib-develop }
-          - { target: ubuntu-22.04, config: pam }
-          - { target: ubuntu-22.04, config: krb5 }
-          - { target: ubuntu-22.04, config: heimdal }
-          - { target: ubuntu-22.04, config: libedit }
-          - { target: ubuntu-22.04, config: sk }
-          - { target: ubuntu-22.04, config: selinux }
-          - { target: ubuntu-22.04, config: kitchensink }
-          - { target: ubuntu-22.04, config: without-openssl }
           - { target: macos-13, config: pam }
           - { target: macos-14, config: pam }
           - { target: macos-15, config: pam }
