@@ -136,6 +136,12 @@ case "$config" in
 	;;
     tcmalloc)
 	CONFIGFLAGS="--with-ldflags=-ltcmalloc"
+	# tcmalloc may, depending on the stacktrace generator it uses, create
+	# pipe(2) fds during shared library initialisation. These will later
+	# get clobbered by ssh/sshd calling closefrom() and chaos will ensue.
+	# Tell tcmalloc to use an unwinder that doesn't pull this stuff.
+	TCMALLOC_STACKTRACE_METHOD=generic_fp
+	export TCMALLOC_STACKTRACE_METHOD
 	;;
     krb5|heimdal)
 	CONFIGFLAGS="--with-kerberos5"
