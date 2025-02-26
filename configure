@@ -11325,6 +11325,65 @@ then :
 fi
 
 
+ac_fn_check_decl "$LINENO" "le32toh" "ac_cv_have_decl_le32toh" "
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+#ifdef HAVE_ENDIAN_H
+# include <endian.h>
+#endif
+
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_le32toh" = xyes
+then :
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
+fi
+printf "%s\n" "#define HAVE_DECL_LE32TOH $ac_have_decl" >>confdefs.h
+ac_fn_check_decl "$LINENO" "le64toh" "ac_cv_have_decl_le64toh" "
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+#ifdef HAVE_ENDIAN_H
+# include <endian.h>
+#endif
+
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_le64toh" = xyes
+then :
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
+fi
+printf "%s\n" "#define HAVE_DECL_LE64TOH $ac_have_decl" >>confdefs.h
+ac_fn_check_decl "$LINENO" "htole64" "ac_cv_have_decl_htole64" "
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+#ifdef HAVE_ENDIAN_H
+# include <endian.h>
+#endif
+
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_htole64" = xyes
+then :
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
+fi
+printf "%s\n" "#define HAVE_DECL_HTOLE64 $ac_have_decl" >>confdefs.h
+
+
 # On some platforms (eg SunOS4) sys/audit.h requires sys/[time|types|label.h]
 # to be included first.
 ac_fn_c_check_header_compile "$LINENO" "sys/audit.h" "ac_cv_header_sys_audit_h" "
@@ -27710,3 +27769,4 @@ if test "$AUDIT_MODULE" = "bsm" ; then
 	echo "WARNING: BSM audit support is currently considered EXPERIMENTAL."
 	echo "See the Solaris section in README.platform for details."
 fi
+

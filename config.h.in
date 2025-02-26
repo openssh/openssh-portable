@@ -363,9 +363,21 @@
    don't. */
 #undef HAVE_DECL_HOWMANY
 
+/* Define to 1 if you have the declaration of `htole64', and to 0 if you
+   don't. */
+#undef HAVE_DECL_HTOLE64
+
 /* Define to 1 if you have the declaration of `h_errno', and to 0 if you
    don't. */
 #undef HAVE_DECL_H_ERRNO
+
+/* Define to 1 if you have the declaration of `le32toh', and to 0 if you
+   don't. */
+#undef HAVE_DECL_LE32TOH
+
+/* Define to 1 if you have the declaration of `le64toh', and to 0 if you
+   don't. */
+#undef HAVE_DECL_LE64TOH
 
 /* Define to 1 if you have the declaration of `loginfailed', and to 0 if you
    don't. */
