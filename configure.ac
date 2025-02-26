@@ -531,6 +531,18 @@ AC_CHECK_HEADERS([ \
 	wchar.h \
 ])
 
+AC_CHECK_DECLS([le32toh, le64toh, htole64], [], [], [
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+#ifdef HAVE_ENDIAN_H
+# include <endian.h>
+#endif
+])
+
 # On some platforms (eg SunOS4) sys/audit.h requires sys/[time|types|label.h]
 # to be included first.
 AC_CHECK_HEADERS([sys/audit.h], [], [], [
