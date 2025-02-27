@@ -82,3 +82,6 @@ platform_post_fork_child(void)
 #endif
 }
 
+void platform_pre_session_start(void)
+{
+}
