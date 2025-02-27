@@ -928,6 +928,27 @@ int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE([_PATH_BTMP], ["/var/log/btmp"], [log for bad login attempts])
 	AC_DEFINE([USE_BTMP])
 	AC_DEFINE([LINUX_OOM_ADJUST], [1], [Adjust Linux out-of-memory killer])
+	AC_ARG_WITH([linux-memlock-onfault],
+		[  --with-linux-memlock-onfault Enables memory locking on Linux],
+		[
+			if test "x$withval" != "xno" ; then
+				AC_MSG_CHECKING([for MCL_ONFAULT])
+				AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+					[[ #include <sys/mman.h> ]],
+					[[ mlockall(MCL_FUTURE | MCL_ONFAULT); ]],
+				)],
+				[
+					AC_MSG_RESULT([supported])
+					AC_DEFINE([LINUX_MEMLOCK_ONFAULT], [1],
+					[Lock all memory to protect sshd against Linux kcompactd] )],
+				[
+					AC_MSG_RESULT([not supported])
+					AC_MSG_ERROR([MCL_ONFAULT is not available on your system])
+				])
+			fi
+		],
+	)
+
 	AC_DEFINE([SYSTEMD_NOTIFY], [1], [Have sshd notify systemd on start/reload])
 	inet6_default_4in6=yes
 	case `uname -r` in
