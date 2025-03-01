@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.605 2025/02/21 18:22:41 deraadt Exp $ */
+/* $OpenBSD: ssh.c,v 1.606 2025/03/01 06:11:26 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1163,8 +1163,6 @@ main(int ac, char **av)
 
 	if (!valid_hostname(host))
 		fatal("hostname contains invalid characters");
-	if (options.user != NULL && !valid_ruser(options.user))
-		fatal("remote username contains invalid characters");
 	options.host_arg = xstrdup(host);
 
 	/* Initialize the command to execute on remote host. */
@@ -1445,11 +1443,28 @@ main(int ac, char **av)
 	    options.host_key_alias : options.host_arg);
 	cinfo->host_arg = xstrdup(options.host_arg);
 	cinfo->remhost = xstrdup(host);
-	cinfo->remuser = xstrdup(options.user);
 	cinfo->homedir = xstrdup(pw->pw_dir);
 	cinfo->locuser = xstrdup(pw->pw_name);
 	cinfo->jmphost = xstrdup(options.jump_host == NULL ?
 	    "" : options.jump_host);
+
+	/*
+	 * Expand User. It cannot contain %r (itself) or %C since User is
+	 * a component of the hash.
+	 */
+	if (options.user != NULL) {
+		if ((p = percent_dollar_expand(options.user,
+		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS_NOUSER(cinfo),
+	 	    (char *)NULL)) == NULL)
+			fatal("invalid environment variable expansion");
+		free(options.user);
+		options.user = p;
+		if (!valid_ruser(options.user))
+			fatal("remote username contains invalid characters");
+	}
+
+	/* Now User is expanded, store it an calculate hash. */
+	cinfo->remuser = xstrdup(options.user);
 	cinfo->conn_hash_hex = ssh_connection_hash(cinfo->thishost,
 	    cinfo->remhost, cinfo->portstr, cinfo->remuser, cinfo->jmphost);
 
