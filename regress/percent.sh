@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.17 2023/03/27 03:56:50 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.18 2025/03/01 06:12:47 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -28,6 +28,15 @@ trial()
 		${SSH} -F $OBJ/ssh_proxy -o $opt="echo '$arg' >$OBJ/actual" \
 		    somehost true
 		got=`cat $OBJ/actual`
+		;;
+	user)
+		if [ "$arg" = '%r' ] || [ "$arg" = '%C' ]; then
+			# User does not support %r, ie itself or %C.  Skip test.
+			got="$expect"
+		else
+			got=`${SSH} -F $OBJ/ssh_proxy -o $opt="$arg" -G \
+			    remuser@somehost | awk '$1=="'$opt'"{print $2}'`
+		fi
 		;;
 	userknownhostsfile)
 		# Move the userknownhosts file to what the expansion says,
@@ -62,7 +71,7 @@ trial()
 
 for i in matchexec localcommand remotecommand controlpath identityagent \
     forwardagent localforward remoteforward revokedhostkeys \
-    userknownhostsfile; do
+    user userknownhostsfile; do
 	verbose $tid $i percent
 	case "$i" in
 	localcommand|userknownhostsfile)
@@ -77,7 +86,7 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	fi
 	# Matches implementation in readconf.c:ssh_connection_hash()
 	if [ ! -z "${OPENSSL_BIN}" ]; then
-		HASH=`printf "${HOSTNAME}127.0.0.1${PORT}$REMUSER" |
+		HASH=`printf "${HOSTNAME}127.0.0.1${PORT}${REMUSER}" |
 		    $OPENSSL_BIN sha1 | cut -f2 -d' '`
 		trial $i '%C' $HASH
 	fi
@@ -92,8 +101,8 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	trial $i '%r' $REMUSER
 	trial $i '%u' $USER
 	# We can't specify a full path outside the regress dir, so skip tests
-	# containing %d for UserKnownHostsFile
-	if [ "$i" != "userknownhostsfile" ]; then
+	# containing %d for UserKnownHostsFile, and %r can't refer to itself.
+	if [ "$i" != "userknownhostsfile" ] && [ "$i" != "user" ]; then
 		trial $i '%d' $HOME
 		in='%%/%i/%h/%d/%L/%l/%n/%p/%r/%u'
 		out="%/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
@@ -108,7 +117,7 @@ done
 # Subset of above since we don't expand shell-style variables on anything that
 # runs a command because the shell will expand those.
 for i in controlpath identityagent forwardagent localforward remoteforward \
-    userknownhostsfile; do
+    user userknownhostsfile; do
 	verbose $tid $i dollar
 	FOO=bar
 	export FOO
