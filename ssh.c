@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.607 2025/03/02 07:02:49 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.608 2025/03/02 11:03:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1455,7 +1455,7 @@ main(int ac, char **av)
 	if (options.user != NULL) {
 		if ((p = percent_dollar_expand(options.user,
 		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS_NOUSER(cinfo),
-	 	    (char *)NULL)) == NULL)
+		    (char *)NULL)) == NULL)
 			fatal("invalid environment variable expansion");
 		free(options.user);
 		options.user = p;
