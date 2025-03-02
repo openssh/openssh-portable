@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.606 2025/03/01 06:11:26 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.607 2025/03/02 07:02:49 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1025,7 +1025,7 @@ main(int ac, char **av)
 			break;
 		case 'l':
 			if (options.user == NULL)
-				options.user = optarg;
+				options.user = xstrdup(optarg);
 			break;
 
 		case 'L':
