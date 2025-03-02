@@ -2084,6 +2084,19 @@ AC_CHECK_FUNCS([ \
 	warn \
 ])
 
+AC_MSG_CHECKING([whether compiler supports __builtin_popcount])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+		#include <stdlib.h>
+	]],
+	[[ int x = 123, y;
+	   y = __builtin_popcount(123);
+	   exit(y == 6 ? 0 : -1); ]])],
+	[ AC_MSG_RESULT([yes]) ], [
+		AC_MSG_RESULT([no])
+		AC_DEFINE([MISSING_BUILTIN_POPCOUNT], [1], [Define if your compiler lacks __builtin_popcount])
+	]
+)
+
 AC_CHECK_DECLS([bzero, memmem])
 
 dnl Wide character support.
