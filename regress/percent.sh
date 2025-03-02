@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.18 2025/03/01 06:12:47 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.19 2025/03/02 07:41:06 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -29,13 +29,21 @@ trial()
 		    somehost true
 		got=`cat $OBJ/actual`
 		;;
-	user)
+	user|user-l|user-at)
 		if [ "$arg" = '%r' ] || [ "$arg" = '%C' ]; then
 			# User does not support %r, ie itself or %C.  Skip test.
 			got="$expect"
-		else
+		elif [ "$i" = "user" ]; then
 			got=`${SSH} -F $OBJ/ssh_proxy -o $opt="$arg" -G \
 			    remuser@somehost | awk '$1=="'$opt'"{print $2}'`
+		elif [ "$i" = "user-l" ]; then
+			# Also test ssh -l
+			got=`${SSH} -F $OBJ/ssh_proxy -l "$arg" -G \
+			    somehost | awk '$1=="'user'"{print $2}'`
+		elif [ "$i" = "user-at" ]; then
+			# Also test user@host
+			got=`${SSH} -F $OBJ/ssh_proxy -G "$arg@somehost" | \
+			    awk '$1=="'user'"{print $2}'`
 		fi
 		;;
 	userknownhostsfile)
@@ -71,7 +79,7 @@ trial()
 
 for i in matchexec localcommand remotecommand controlpath identityagent \
     forwardagent localforward remoteforward revokedhostkeys \
-    user userknownhostsfile; do
+    user user-l user-at userknownhostsfile; do
 	verbose $tid $i percent
 	case "$i" in
 	localcommand|userknownhostsfile)
@@ -102,7 +110,8 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	trial $i '%u' $USER
 	# We can't specify a full path outside the regress dir, so skip tests
 	# containing %d for UserKnownHostsFile, and %r can't refer to itself.
-	if [ "$i" != "userknownhostsfile" ] && [ "$i" != "user" ]; then
+	if [ "$i" != "userknownhostsfile" ] && [ "$i" != "user" ] && \
+	     [ "$i" != "user-l" ] && [ "$i" != "user-at" ]; then
 		trial $i '%d' $HOME
 		in='%%/%i/%h/%d/%L/%l/%n/%p/%r/%u'
 		out="%/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
@@ -117,7 +126,7 @@ done
 # Subset of above since we don't expand shell-style variables on anything that
 # runs a command because the shell will expand those.
 for i in controlpath identityagent forwardagent localforward remoteforward \
-    user userknownhostsfile; do
+    user user-l user-at userknownhostsfile; do
 	verbose $tid $i dollar
 	FOO=bar
 	export FOO
