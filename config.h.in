@@ -1748,6 +1748,9 @@
 /* Set this to your mail directory if you do not have _PATH_MAILDIR */
 #undef MAIL_DIRECTORY
 
+/* Define if your compiler lacks __builtin_popcount */
+#undef MISSING_BUILTIN_POPCOUNT
+
 /* Need setpgrp to for controlling tty */
 #undef NEED_SETPGRP
 
