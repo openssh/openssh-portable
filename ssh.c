@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.608 2025/03/02 11:03:13 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.609 2025/03/03 06:53:09 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1561,6 +1561,28 @@ main(int ac, char **av)
 		free(options.user_hostfiles[j]);
 		free(cp);
 		options.user_hostfiles[j] = p;
+	}
+
+	for (j = 0; j < options.num_setenv; j++) {
+		char *name = options.setenv[j], *value;
+
+		if (name == NULL)
+			continue;
+		/* Expand only the value portion, not the variable name. */
+		if ((value = strchr(name, '=')) == NULL) {
+			/* shouldn't happen; vars are checked in readconf.c */
+			fatal("Invalid config SetEnv: %s", name);
+		}
+		*value++ = '\0';
+		cp = default_client_percent_dollar_expand(value, cinfo);
+		xasprintf(&p, "%s=%s", name, cp);
+		if (strcmp(value, p) != 0) {
+			debug3("expanded SetEnv '%s' '%s' -> '%s'",
+			    name, value, cp);
+		}
+		free(options.setenv[j]);
+		free(cp);
+		options.setenv[j] = p;
 	}
 
 	for (i = 0; i < options.num_local_forwards; i++) {
