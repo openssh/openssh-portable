@@ -101,10 +101,6 @@ jobs:
           - { target: openwrt-mips, config: default, host: remote-openwrt-mips }
           - { target: openwrt-mipsel, config: default, host: remote-openwrt-mipsel }
     steps:
-    - name: unmount stale workspace
-      if: env.SSHFS == 'true'
-      run: fusermount -u ${GITHUB_WORKSPACE} || true
-      working-directory: ${{ runner.temp }}
     - name: shutdown VM if running
       if: env.VM == 'true'
       run: vmshutdown
@@ -195,9 +191,13 @@ jobs:
 
     - name: bigendian interop - unmount regress
       if: always() && env.SSHFS == 'true' && env.BIGENDIAN == 'true'
-      run: fusermount -u ${GITHUB_WORKSPACE}/regress || true
+      run: fusermount -z -u ${GITHUB_WORKSPACE}/regress || true
       working-directory: ${{ runner.temp }}
 
+    - name: lazily unmount workspace
+      if: always() && env.SSHFS == 'true'
+      run: fusermount -z -u ${GITHUB_WORKSPACE} || true
+      working-directory: ${{ runner.temp }}
     - name: shutdown VM
       if: always() && env.VM == 'true'
       run: vmshutdown
