@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-resume.sh,v 1.1 2025/03/11 07:50:20 dtucker Exp $
+#	$OpenBSD: sftp-resume.sh,v 1.2 2025/03/11 09:06:50 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="sftp resume"
@@ -23,6 +23,8 @@ for cmd in put get; do
 		dd if=${DATA} of=${COPY}.2 bs=1023 count=1 >/dev/null 2>&1
 		;;
 	same)	cp ${DATA} ${COPY}.2
+		;;
+	1m)	dd if=${COPY}.1 of=${COPY}.2 bs=1k count=1k >/dev/null 2<&1
 		;;
 	*)	dd if=${COPY}.1 of=${COPY}.2 bs=${size} count=1 >/dev/null 2>&1
 		;;
