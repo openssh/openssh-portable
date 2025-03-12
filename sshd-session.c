@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.11 2025/01/16 06:37:10 dtucker Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.12 2025/03/12 22:43:44 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -111,9 +111,8 @@
 
 /* Re-exec fds */
 #define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
-#define REEXEC_STARTUP_PIPE_FD		(STDERR_FILENO + 2)
-#define REEXEC_CONFIG_PASS_FD		(STDERR_FILENO + 3)
-#define REEXEC_MIN_FREE_FD		(STDERR_FILENO + 4)
+#define REEXEC_CONFIG_PASS_FD		(STDERR_FILENO + 2)
+#define REEXEC_MIN_FREE_FD		(STDERR_FILENO + 3)
 
 /* Privsep fds */
 #define PRIVSEP_MONITOR_FD		(STDERR_FILENO + 1)
@@ -704,6 +703,8 @@ recv_rexec_state(int fd, struct sshbuf *conf, uint64_t *timing_secretp)
 
 	if ((m = sshbuf_new()) == NULL || (inc = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
+
+	/* receive config */
 	if (ssh_msg_recv(fd, m) == -1)
 		fatal_f("ssh_msg_recv failed");
 	if ((r = sshbuf_get_u8(m, &ver)) != 0)
@@ -712,7 +713,6 @@ recv_rexec_state(int fd, struct sshbuf *conf, uint64_t *timing_secretp)
 		fatal_f("rexec version mismatch");
 	if ((r = sshbuf_get_string(m, &cp, &len)) != 0 || /* XXX _direct */
 	    (r = sshbuf_get_u64(m, timing_secretp)) != 0 ||
-	    (r = sshbuf_froms(m, &hostkeys)) != 0 ||
 	    (r = sshbuf_get_stringb(m, inc)) != 0)
 		fatal_fr(r, "parse config");
 
@@ -730,6 +730,13 @@ recv_rexec_state(int fd, struct sshbuf *conf, uint64_t *timing_secretp)
 		TAILQ_INSERT_TAIL(&includes, item, entry);
 	}
 
+	/* receive hostkeys */
+	sshbuf_reset(m);
+	if (ssh_msg_recv(fd, m) == -1)
+		fatal_f("ssh_msg_recv failed");
+	if ((r = sshbuf_get_u8(m, NULL)) != 0 ||
+	    (r = sshbuf_froms(m, &hostkeys)) != 0)
+		fatal_fr(r, "parse config");
 	parse_hostkeys(hostkeys);
 
 	free(cp);
@@ -1031,9 +1038,6 @@ main(int ac, char **av)
 		fatal("sshbuf_new config buf failed");
 	setproctitle("%s", "[rexeced]");
 	recv_rexec_state(REEXEC_CONFIG_PASS_FD, cfg, &timing_secret);
-	/* close the fd, but keep the slot reserved */
-	if (dup2(devnull, REEXEC_CONFIG_PASS_FD) == -1)
-		fatal("dup2 devnull->config fd: %s", strerror(errno));
 	parse_server_config(&options, "rexec", cfg, &includes, NULL, 1);
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);
@@ -1059,11 +1063,8 @@ main(int ac, char **av)
 	endpwent();
 
 	if (!debug_flag && !inetd_flag) {
-		if ((startup_pipe = dup(REEXEC_STARTUP_PIPE_FD)) == -1)
+		if ((startup_pipe = dup(REEXEC_CONFIG_PASS_FD)) == -1)
 			fatal("internal error: no startup pipe");
-		/* close the fd, but keep the slot reserved */
-		if (dup2(devnull, REEXEC_STARTUP_PIPE_FD) == -1)
-			fatal("dup2 devnull->startup fd: %s", strerror(errno));
 
 		/*
 		 * Signal parent that this child is at a point where
@@ -1071,6 +1072,9 @@ main(int ac, char **av)
 		 */
 		(void)atomicio(vwrite, startup_pipe, "\0", 1);
 	}
+	/* close the fd, but keep the slot reserved */
+	if (dup2(devnull, REEXEC_CONFIG_PASS_FD) == -1)
+		fatal("dup2 devnull->config fd: %s", strerror(errno));
 
 	/* Check that options are sensible */
 	if (options.authorized_keys_command_user == NULL &&
