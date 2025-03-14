@@ -65,7 +65,9 @@ jobs:
           /usr/obj/regress/usr.bin/ssh/obj/log/*
     - name: unmount workspace
       if: always()
-      run: fusermount -u ${GITHUB_WORKSPACE} || true
+      run: |
+        fusermount -u ${GITHUB_WORKSPACE} || true
+        fusermount -z -u ${GITHUB_WORKSPACE} || true
       working-directory: ${{ runner.temp }}
     - name: shutdown VM
       if: always()
