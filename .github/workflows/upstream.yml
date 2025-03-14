@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [ obsdsnap, obsdsnap-i386 ]
+        target: [ obsdsnap, obsdsnap-i386, obsdsnap-arm64 ]
         config: [ default, without-openssl, ubsan ]
     steps:
     - name: unmount stale workspace
