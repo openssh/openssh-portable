@@ -331,6 +331,13 @@ during download or upload.
 By default a 32KB buffer is used.
 .El
 .El
+.Pp
+Usage of SCP protocol can be blocked by creating a world-readable
+.Ar /etc/ssh/disable_scp
+file. If this file exists, when SCP protocol is in use (either remotely or 
+via the
+.Fl O
+option), the program will exit.
 .Sh EXIT STATUS
 .Ex -std scp
 .Sh SEE ALSO
