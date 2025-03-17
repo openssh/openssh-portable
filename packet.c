@@ -193,6 +193,9 @@ struct session_state {
 	u_int32_t rekey_interval;	/* how often in seconds */
 	time_t rekey_time;	/* time of last rekeying */
 
+	/* Start time of session */
+	time_t session_start_time;
+
 	/* roundup current message to extra_pad bytes */
 	u_char extra_pad;
 
@@ -249,6 +252,7 @@ ssh_alloc_session_state(void)
 	state->packet_timeout_ms = -1;
 	state->p_send.packets = state->p_read.packets = 0;
 	state->initialized = 1;
+	state->session_start_time = monotime();
 	/*
 	 * ssh_packet_send2() needs to queue packets until
 	 * we've done the initial key exchange.
@@ -2008,7 +2012,10 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 		    ssh->state->server_side ? "from" : "to", remote_id);
 	case SSH_ERR_DISCONNECTED:
 		ssh_packet_clear_keys(ssh);
-		logdie("Disconnected from %s", remote_id);
+		time_t session_end_time = monotime();
+		time_t session_length = session_end_time - ssh->state->session_start_time;
+		logdie("Disconnected from %s. Session length: %lu:%02lu:%02lu", remote_id,
+			session_length / 3600, (session_length % 3600) / 60, session_length % 60);
 	case SSH_ERR_SYSTEM_ERROR:
 		if (errno == ECONNRESET) {
 			ssh_packet_clear_keys(ssh);
