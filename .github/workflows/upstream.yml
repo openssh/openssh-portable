@@ -55,14 +55,17 @@ jobs:
       env:
         SUDO: sudo
       timeout-minutes: 300
+    - name: show logs
+      if: failure()
+      run: vmrun "cat /usr/src/regress/usr.bin/ssh/obj/*.log"
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@main
       with:
         name: ${{ matrix.target }}-${{ matrix.config }}-logs
         path: |
-          /usr/obj/regress/usr.bin/ssh/obj/*.log
-          /usr/obj/regress/usr.bin/ssh/obj/log/*
+          /usr/src/regress/usr.bin/ssh/obj/*.log
+          /usr/src/regress/usr.bin/ssh/obj/log/*
     - name: unmount workspace
       if: always()
       run: |
