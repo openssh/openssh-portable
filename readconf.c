@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.397 2025/02/15 01:52:07 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.398 2025/03/18 04:53:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -795,8 +795,11 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 		    strprefix(attrib, "exec=", 1) != NULL) {
 			arg = strchr(attrib, '=');
 			*(arg++) = '\0';
-		} else {
-			arg = argv_next(acp, avp);
+		} else if ((arg = argv_next(acp, avp)) == NULL) {
+			error("%.200s line %d: missing argument for Match '%s'",
+			    filename, linenum, oattrib);
+			result = -1;
+			goto out;
 		}
 
 		/*
