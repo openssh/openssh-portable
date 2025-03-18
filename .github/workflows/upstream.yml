@@ -57,7 +57,7 @@ jobs:
       timeout-minutes: 300
     - name: show logs
       if: failure()
-      run: vmrun "cat /usr/src/regress/usr.bin/ssh/obj/*.log"
+      run: vmrun 'for i in /usr/src/regress/usr.bin/ssh/obj/*.log; do printf "====\nlogfile: $i\n====\n"; done'
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@main
