@@ -999,6 +999,8 @@ main(int ac, char **av)
 
 	closefrom(REEXEC_MIN_FREE_FD);
 
+	platform_pre_session_start();
+
 	/* Reserve fds we'll need later for reexec things */
 	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1)
 		fatal("open %s: %s", _PATH_DEVNULL, strerror(errno));
