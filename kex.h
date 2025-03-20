@@ -198,7 +198,7 @@ void	 kex_proposal_populate_entries(struct ssh *, char *prop[PROPOSAL_MAX],
     const char *, const char *, const char *, const char *, const char *);
 void	 kex_proposal_free_entries(char *prop[PROPOSAL_MAX]);
 
-int	 kex_exchange_identification(struct ssh *, int, const char *);
+int	 kex_exchange_identification(struct ssh *, int, const char *, const char *);
 
 struct kex *kex_new(void);
 int	 kex_ready(struct ssh *, char *[PROPOSAL_MAX]);

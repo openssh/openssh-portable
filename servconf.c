@@ -217,6 +217,7 @@ initialize_server_options(ServerOptions *options)
 	options->sshd_session_path = NULL;
 	options->sshd_auth_path = NULL;
 	options->refuse_connection = -1;
+	options->banner_override = NULL;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -582,7 +583,7 @@ typedef enum {
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
 	sRequiredRSASize, sChannelTimeout, sUnusedConnectionTimeout,
 	sSshdSessionPath, sSshdAuthPath, sRefuseConnection,
-	sDeprecated, sIgnore, sUnsupported
+	sDeprecated, sIgnore, sUnsupported, sBannerOverride
 } ServerOpCodes;
 
 #define SSHCFG_GLOBAL		0x01	/* allowed in main section of config */
@@ -751,6 +752,7 @@ static struct {
 	{ "sshdsessionpath", sSshdSessionPath, SSHCFG_GLOBAL },
 	{ "sshdauthpath", sSshdAuthPath, SSHCFG_GLOBAL },
 	{ "refuseconnection", sRefuseConnection, SSHCFG_ALL },
+	{ "banneroverride", sBannerOverride, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2729,6 +2731,14 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		multistate_ptr = multistate_flag;
 		goto parse_multistate;
 
+	case sBannerOverride:
+		charptr = &options->banner_override;
+		len = strspn(str, WHITESPACE);
+		if (*activep && *charptr == NULL)
+			*charptr = xstrdup(str + len);
+		argv_consume(&ac);
+		break;
+
 	case sDeprecated:
 	case sIgnore:
 	case sUnsupported:
@@ -3313,6 +3323,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sSshdSessionPath, o->sshd_session_path);
 	dump_cfg_string(sSshdAuthPath, o->sshd_auth_path);
 	dump_cfg_string(sPerSourcePenaltyExemptList, o->per_source_penalty_exempt);
+	dump_cfg_string(sBannerOverride, o->banner_override);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));

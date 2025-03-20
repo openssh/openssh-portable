@@ -1269,7 +1269,7 @@ main(int ac, char **av)
 	}
 
 	if ((r = kex_exchange_identification(ssh, -1,
-	    options.version_addendum)) != 0)
+	    options.version_addendum, options.banner_override)) != 0)
 		sshpkt_fatal(ssh, r, "banner exchange");
 
 	ssh_packet_set_nonblocking(ssh);

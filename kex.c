@@ -1233,7 +1233,7 @@ send_error(struct ssh *ssh, char *msg)
  */
 int
 kex_exchange_identification(struct ssh *ssh, int timeout_ms,
-    const char *version_addendum)
+    const char *version_addendum, const char *banner_override)
 {
 	int remote_major, remote_minor, mismatch, oerrno = 0;
 	size_t len, n;
@@ -1250,10 +1250,10 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
 	sshbuf_reset(our_version);
 	if (version_addendum != NULL && *version_addendum == '\0')
 		version_addendum = NULL;
-	if ((r = sshbuf_putf(our_version, "SSH-%d.%d-%s%s%s\r\n",
+	if ((r = banner_override == NULL ? sshbuf_putf(our_version, "SSH-%d.%d-%s%s%s\r\n",
 	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION,
 	    version_addendum == NULL ? "" : " ",
-	    version_addendum == NULL ? "" : version_addendum)) != 0) {
+	    version_addendum == NULL ? "" : version_addendum) : sshbuf_putf(our_version, "SSH-%d.%d-%s\r\n", PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, banner_override)) != 0) {
 		oerrno = errno;
 		error_fr(r, "sshbuf_putf");
 		goto out;
