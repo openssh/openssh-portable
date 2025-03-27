@@ -97,6 +97,9 @@ jobs:
           - { target: ubuntu-latest, config: putty-0.78 }
           - { target: ubuntu-latest, config: putty-0.79 }
           - { target: ubuntu-latest, config: putty-0.80 }
+          - { target: ubuntu-latest, config: putty-0.81 }
+          - { target: ubuntu-latest, config: putty-0.82 }
+          - { target: ubuntu-latest, config: putty-0.83 }
           - { target: ubuntu-latest, config: putty-snapshot }
           - { target: ubuntu-latest, config: zlib-develop }
           - { target: ubuntu-latest, config: tcmalloc }
