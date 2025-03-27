@@ -33,6 +33,12 @@ output_failed_logs() {
 }
 trap output_failed_logs 0
 
+if [ ! -z "${TCMALLOC_STACKTRACE_METHOD}" ]; then
+    echo TCMALLOC_STACKTRACE_METHOD="${TCMALLOC_STACKTRACE_METHOD}"
+    echo export TCMALLOC_STACKTRACE_METHOD
+    export TCMALLOC_STACKTRACE_METHOD
+fi
+
 if [ -z "${LTESTS}" ]; then
     make ${TEST_TARGET} SKIP_LTESTS="${SKIP_LTESTS}"
 else
