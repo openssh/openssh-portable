@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.124 2025/03/11 07:46:02 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.125 2025/03/28 05:33:30 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -531,7 +531,7 @@ save_debug_log ()
 
 	for logfile in $TEST_SSH_LOGDIR $TEST_REGRESS_LOGFILE \
 	    $TEST_SSH_LOGFILE $TEST_SSHD_LOGFILE; do
-		if [ ! -z "$SUDO" ] && [ -f "$logfile" ]; then
+		if [ ! -z "$SUDO" ] && [ -e "$logfile" ]; then
 			$SUDO chown -R $USER $logfile
 		fi
 	done
