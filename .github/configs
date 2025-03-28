@@ -142,7 +142,8 @@ case "$config" in
 	# get clobbered by ssh/sshd calling closefrom() and chaos will ensue.
 	# Tell tcmalloc to use an unwinder that doesn't pull this stuff.
 	TCMALLOC_STACKTRACE_METHOD=generic_fp
-	export TCMALLOC_STACKTRACE_METHOD
+	TEST_SSH_SSHD_ENV="TCMALLOC_STACKTRACE_METHOD=generic_fp"
+	export TCMALLOC_STACKTRACE_METHOD TEST_SSH_SSHD_ENV
 	;;
     krb5|heimdal)
 	CONFIGFLAGS="--with-kerberos5"
