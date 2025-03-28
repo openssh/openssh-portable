@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.126 2025/03/28 05:36:24 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.127 2025/03/28 05:41:15 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -901,7 +901,8 @@ start_sshd ()
 	PIDFILE=$OBJ/pidfile
 	# start sshd
 	logfile="${TEST_SSH_LOGDIR}/sshd.`$OBJ/timestamp`.$$.log"
-	$SUDO ${SSHD} -f $OBJ/sshd_config "$@" -t || fatal "sshd_config broken"
+	$SUDO env SSH_SK_HELPER="$SSH_SK_HELPER" ${TEST_SSH_SSHD_ENV} \
+	    ${SSHD} -f $OBJ/sshd_config "$@" -t || fatal "sshd_config broken"
 	$SUDO env SSH_SK_HELPER="$SSH_SK_HELPER" ${TEST_SSH_SSHD_ENV} \
 	    ${SSHD} -f $OBJ/sshd_config "$@" -E$TEST_SSHD_LOGFILE
 
