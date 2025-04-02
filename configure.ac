@@ -5730,8 +5730,8 @@ CFLAGS="${CFLAGS} ${CFLAGS_AFTER}"
 LDFLAGS="${LDFLAGS} ${LDFLAGS_AFTER}"
 
 # Make a copy of CFLAGS/LDFLAGS without PIE options.
-LDFLAGS_NOPIE=`echo "$LDFLAGS" | sed 's/ -pie//'`
-CFLAGS_NOPIE=`echo "$CFLAGS" | sed 's/ -fPIE//'`
+LDFLAGS_NOPIE=`echo "$LDFLAGS" | sed 's/^-pie //;s/ -pie//g'`
+CFLAGS_NOPIE=`echo "$CFLAGS" | sed 's/^-fPIE //;s/ -fPIE//g'`
 AC_SUBST([LDFLAGS_NOPIE])
 AC_SUBST([CFLAGS_NOPIE])
 
