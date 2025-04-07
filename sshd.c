@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.616 2025/03/12 22:43:44 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.617 2025/04/07 08:12:22 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -53,6 +53,7 @@
 #include <pwd.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
