@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.20 2025/03/03 06:54:37 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.21 2025/04/08 23:10:46 djm Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -75,7 +75,7 @@ trial()
 		if [ "$got" != "$arg=TESTVAL" ]; then
 			fatal "incorrectly expanded setenv variable name"
 		fi
-		# Now check that the the value expands as expected.
+		# Now check that the value expands as expected.
 		got=`${SSH} -F $OBJ/ssh_proxy -o $opt=TESTVAL="$arg" -G \
 		    remuser@somehost | awk '$1=="'$opt'"{print $2}'`
 		got=`echo "$got" | sed 's/^TESTVAL=//'`
