@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.611 2025/04/09 01:23:47 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.612 2025/04/09 01:24:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1463,7 +1463,7 @@ main(int ac, char **av)
 			fatal("remote username contains invalid characters");
 	}
 
-	/* Now User is expanded, store it an calculate hash. */
+	/* Now User is expanded, store it and calculate hash. */
 	cinfo->remuser = xstrdup(options.user);
 	cinfo->conn_hash_hex = ssh_connection_hash(cinfo->thishost,
 	    cinfo->remhost, cinfo->portstr, cinfo->remuser, cinfo->jmphost);
