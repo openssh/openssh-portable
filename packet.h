@@ -112,6 +112,7 @@ void     ssh_packet_set_protocol_flags(struct ssh *, u_int);
 u_int	 ssh_packet_get_protocol_flags(struct ssh *);
 void	 ssh_packet_set_tos(struct ssh *, int);
 void     ssh_packet_set_interactive(struct ssh *, int, int, int);
+void     set_ssh_nodelay(struct ssh *);
 int      ssh_packet_is_interactive(struct ssh *);
 void     ssh_packet_set_server(struct ssh *);
 void     ssh_packet_set_authenticated(struct ssh *);
