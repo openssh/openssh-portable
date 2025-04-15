@@ -1449,6 +1449,11 @@ AC_CHECK_FUNC([getspnam], ,
 AC_SEARCH_LIBS([basename], [gen], [AC_DEFINE([HAVE_BASENAME], [1],
 	[Define if you have the basename function.])])
 
+dnl sqrt() only used in unit tests.
+AC_CHECK_FUNC([sqrt], ,
+	[AC_CHECK_LIB([m], [sqrt], [TESTLIBS="$TESTLIBS -lm"])])
+AC_SUBST([TESTLIBS])
+
 dnl zlib defaults to enabled
 zlib=yes
 AC_ARG_WITH([zlib],

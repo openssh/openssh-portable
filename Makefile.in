@@ -557,7 +557,7 @@ regress-prep:
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
 REGRESSLIBS=libssh.a $(LIBCOMPAT)
-TESTLIBS=$(LIBS) $(CHANNELLIBS)
+TESTLIBS=$(LIBS) $(CHANNELLIBS) @TESTLIBS@
 
 regress/modpipe$(EXEEXT): $(srcdir)/regress/modpipe.c $(REGRESSLIBS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(srcdir)/regress/modpipe.c \
