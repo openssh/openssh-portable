@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.16 2024/09/09 03:13:39 djm Exp $
+#	$OpenBSD: Makefile,v 1.17 2025/04/15 04:00:42 djm Exp $
 
 PROG=test_kex
 SRCS=tests.c test_kex.c test_proposal.c
@@ -35,7 +35,7 @@ SRCS+=digest-openssl.c
 REGRESS_TARGETS=run-regress-${PROG}
 
 run-regress-${PROG}: ${PROG}
-	env ${TEST_ENV} ./${PROG}
+	env ${TEST_ENV} ./${PROG} ${UNITTEST_ARGS}
 
 .include <bsd.regress.mk>
 

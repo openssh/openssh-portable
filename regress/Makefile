@@ -292,26 +292,33 @@ t-extra:	${EXTRA_TESTS:=.sh}
 interop: ${INTEROP_TARGETS}
 
 # Unit tests, built by top-level Makefile
-unit:
+unit unit-bench:
 	set -e ; if test -z "${SKIP_UNIT}" ; then \
 		V="" ; \
 		test "x${USE_VALGRIND}" = "x" || \
 		    V=${.CURDIR}/valgrind-unit.sh ; \
-		 $$V ${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
+		ARGS=""; \
+		test "x$@" = "xunit-bench" && ARGS="-b"; \
+		test "x${UNITTEST_FAST}" = "x" || ARGS="$$ARGS -f"; \
+		test "x${UNITTEST_SLOW}" = "x" || ARGS="$$ARGS -F"; \
+		test "x${UNITTEST_VERBOSE}" = "x" || ARGS="$$ARGS -v"; \
+		test "x${UNITTEST_BENCH_DETAIL}" = "x" || ARGS="$$ARGS -B"; \
+		test "x${UNITTEST_BENCH_ONLY}" = "x" || ARGS="$$ARGS -O ${UNITTEST_BENCH_ONLY}"; \
+		 $$V ${.OBJDIR}/unittests/sshbuf/test_sshbuf $${ARGS}; \
 		 $$V ${.OBJDIR}/unittests/sshkey/test_sshkey \
-			-d ${.CURDIR}/unittests/sshkey/testdata ; \
+			-d ${.CURDIR}/unittests/sshkey/testdata $${ARGS}; \
 		$$V ${.OBJDIR}/unittests/sshsig/test_sshsig \
-			-d ${.CURDIR}/unittests/sshsig/testdata ; \
+			-d ${.CURDIR}/unittests/sshsig/testdata $${ARGS}; \
 		$$V ${.OBJDIR}/unittests/authopt/test_authopt \
-			-d ${.CURDIR}/unittests/authopt/testdata ; \
-		$$V ${.OBJDIR}/unittests/bitmap/test_bitmap ; \
-		$$V ${.OBJDIR}/unittests/conversion/test_conversion ; \
-		$$V ${.OBJDIR}/unittests/kex/test_kex ; \
+			-d ${.CURDIR}/unittests/authopt/testdata $${ARGS}; \
+		$$V ${.OBJDIR}/unittests/bitmap/test_bitmap $${ARGS}; \
+		$$V ${.OBJDIR}/unittests/conversion/test_conversion $${ARGS}; \
+		$$V ${.OBJDIR}/unittests/kex/test_kex $${ARGS}; \
 		$$V ${.OBJDIR}/unittests/hostkeys/test_hostkeys \
-			-d ${.CURDIR}/unittests/hostkeys/testdata ; \
-		$$V ${.OBJDIR}/unittests/match/test_match ; \
-		$$V ${.OBJDIR}/unittests/misc/test_misc ; \
+			-d ${.CURDIR}/unittests/hostkeys/testdata $${ARGS}; \
+		$$V ${.OBJDIR}/unittests/match/test_match $${ARGS}; \
+		$$V ${.OBJDIR}/unittests/misc/test_misc $${ARGS}; \
 		if test "x${TEST_SSH_UTF8}" = "xyes"  ; then \
-			$$V ${.OBJDIR}/unittests/utf8/test_utf8 ; \
+			$$V ${.OBJDIR}/unittests/utf8/test_utf8 $${ARGS}; \
 		fi \
 	fi

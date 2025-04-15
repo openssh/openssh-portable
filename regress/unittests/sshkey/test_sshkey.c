@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.25 2024/08/15 00:52:23 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.26 2025/04/15 04:00:42 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -36,6 +36,7 @@
 #include "ssh2.h"
 
 void sshkey_tests(void);
+void sshkey_benchmarks(void);
 
 static void
 put_opt(struct sshbuf *b, const char *name, const char *value)
@@ -134,6 +135,55 @@ signature_test(struct sshkey *k, struct sshkey *bad, const char *sig_alg,
 }
 
 static void
+signature_bench(const char *name, int ktype, int bits, const char *sig_alg,
+    const u_char *d, size_t l)
+{
+	struct sshkey *k;
+	size_t len;
+	u_char *sig;
+	char testname[256];
+
+	snprintf(testname, sizeof(testname), "sign %s", name);
+	TEST_START(testname);
+	ASSERT_INT_EQ(sshkey_generate(ktype, bits, &k), 0);
+	ASSERT_PTR_NE(k, NULL);
+
+	BENCH_START(testname);
+	ASSERT_INT_EQ(sshkey_sign(k, &sig, &len, d, l, sig_alg,
+	    NULL, NULL, 0), 0);
+	free(sig);
+	BENCH_FINISH("sign");
+
+	sshkey_free(k);
+	TEST_DONE();
+}
+
+static void
+verify_bench(const char *name, int ktype, int bits, const char *sig_alg,
+    const u_char *d, size_t l)
+{
+	struct sshkey *k;
+	size_t len;
+	u_char *sig;
+	char testname[256];
+
+	snprintf(testname, sizeof(testname), "verify %s", name);
+	TEST_START(testname);
+	ASSERT_INT_EQ(sshkey_generate(ktype, bits, &k), 0);
+	ASSERT_PTR_NE(k, NULL);
+
+	ASSERT_INT_EQ(sshkey_sign(k, &sig, &len, d, l, sig_alg,
+	    NULL, NULL, 0), 0);
+	BENCH_START(testname);
+	ASSERT_INT_EQ(sshkey_verify(k, sig, len, d, l, NULL, 0, NULL), 0);
+	BENCH_FINISH("verify");
+
+	free(sig);
+	sshkey_free(k);
+	TEST_DONE();
+}
+
+static void
 banana(u_char *s, size_t l)
 {
 	size_t o;
@@ -163,6 +213,19 @@ signature_tests(struct sshkey *k, struct sshkey *bad, const char *sig_alg)
 		banana(buf, lens[i]);
 		signature_test(k, bad, sig_alg, buf, lens[i]);
 	}
+}
+
+static void
+signature_benchmark(const char *name, int ktype, int bits,
+    const char *sig_alg, int bench_verify)
+{
+	u_char buf[256];
+
+	banana(buf, sizeof(buf));
+	if (bench_verify)
+		verify_bench(name, ktype, bits, sig_alg, buf, sizeof(buf));
+	else
+		signature_bench(name, ktype, bits, sig_alg, buf, sizeof(buf));
 }
 
 static struct sshkey *
@@ -536,4 +599,102 @@ sshkey_tests(void)
 	sshbuf_free(b);
 	TEST_DONE();
 #endif /* WITH_OPENSSL */
+}
+
+void
+sshkey_benchmarks(void)
+{
+	struct sshkey *k = NULL;
+
+#ifdef WITH_OPENSSL
+	BENCH_START("generate RSA-1024");
+	TEST_START("generate KEY_RSA");
+	ASSERT_INT_EQ(sshkey_generate(KEY_RSA, 1024, &k), 0);
+	ASSERT_PTR_NE(k, NULL);
+	sshkey_free(k);
+	TEST_DONE();
+	BENCH_FINISH("keys");
+
+	BENCH_START("generate RSA-2048");
+	TEST_START("generate KEY_RSA");
+	ASSERT_INT_EQ(sshkey_generate(KEY_RSA, 2048, &k), 0);
+	ASSERT_PTR_NE(k, NULL);
+	sshkey_free(k);
+	TEST_DONE();
+	BENCH_FINISH("keys");
+
+#ifdef WITH_DSA
+	BENCH_START("generate DSA-1024");
+	TEST_START("generate KEY_DSA");
+	ASSERT_INT_EQ(sshkey_generate(KEY_DSA, 1024, &k), 0);
+	ASSERT_PTR_NE(k, NULL);
+	sshkey_free(k);
+	TEST_DONE();
+	BENCH_FINISH("keys");
+#endif
+
+	BENCH_START("generate ECDSA-256");
+	TEST_START("generate KEY_ECDSA");
+	ASSERT_INT_EQ(sshkey_generate(KEY_ECDSA, 256, &k), 0);
+	ASSERT_PTR_NE(k, NULL);
+	sshkey_free(k);
+	TEST_DONE();
+	BENCH_FINISH("keys");
+
+	BENCH_START("generate ECDSA-384");
+	TEST_START("generate KEY_ECDSA");
+	ASSERT_INT_EQ(sshkey_generate(KEY_ECDSA, 384, &k), 0);
+	ASSERT_PTR_NE(k, NULL);
+	sshkey_free(k);
+	TEST_DONE();
+	BENCH_FINISH("keys");
+
+	BENCH_START("generate ECDSA-521");
+	TEST_START("generate KEY_ECDSA");
+	ASSERT_INT_EQ(sshkey_generate(KEY_ECDSA, 521, &k), 0);
+	ASSERT_PTR_NE(k, NULL);
+	sshkey_free(k);
+	TEST_DONE();
+	BENCH_FINISH("keys");
+#endif /* WITH_OPENSSL */
+
+	BENCH_START("generate ED25519");
+	TEST_START("generate KEY_ED25519");
+	ASSERT_INT_EQ(sshkey_generate(KEY_ED25519, 256, &k), 0);
+	ASSERT_PTR_NE(k, NULL);
+	sshkey_free(k);
+	TEST_DONE();
+	BENCH_FINISH("keys");
+
+#ifdef WITH_OPENSSL
+	/* sign */
+	signature_benchmark("RSA-1024/SHA1", KEY_RSA, 1024, "ssh-rsa", 0);
+	signature_benchmark("RSA-1024/SHA256", KEY_RSA, 1024, "rsa-sha2-256", 0);
+	signature_benchmark("RSA-1024/SHA512", KEY_RSA, 1024, "rsa-sha2-512", 0);
+	signature_benchmark("RSA-2048/SHA1", KEY_RSA, 2048, "ssh-rsa", 0);
+	signature_benchmark("RSA-2048/SHA256", KEY_RSA, 2048, "rsa-sha2-256", 0);
+	signature_benchmark("RSA-2048/SHA512", KEY_RSA, 2048, "rsa-sha2-512", 0);
+#ifdef WITH_DSA
+	signature_benchmark("DSA-1024", KEY_DSA, 1024, NULL, 0);
+#endif
+	signature_benchmark("ECDSA-256", KEY_ECDSA, 256, NULL, 0);
+	signature_benchmark("ECDSA-384", KEY_ECDSA, 384, NULL, 0);
+	signature_benchmark("ECDSA-521", KEY_ECDSA, 521, NULL, 0);
+	signature_benchmark("ED25519", KEY_ED25519, 0, NULL, 0);
+
+	/* verify */
+	signature_benchmark("RSA-1024/SHA1", KEY_RSA, 1024, "ssh-rsa", 1);
+	signature_benchmark("RSA-1024/SHA256", KEY_RSA, 1024, "rsa-sha2-256", 1);
+	signature_benchmark("RSA-1024/SHA512", KEY_RSA, 1024, "rsa-sha2-512", 1);
+	signature_benchmark("RSA-2048/SHA1", KEY_RSA, 2048, "ssh-rsa", 1);
+	signature_benchmark("RSA-2048/SHA256", KEY_RSA, 2048, "rsa-sha2-256", 1);
+	signature_benchmark("RSA-2048/SHA512", KEY_RSA, 2048, "rsa-sha2-512", 1);
+#ifdef WITH_DSA
+	signature_benchmark("DSA-1024", KEY_DSA, 1024, NULL, 1);
+#endif
+	signature_benchmark("ECDSA-256", KEY_ECDSA, 256, NULL, 1);
+	signature_benchmark("ECDSA-384", KEY_ECDSA, 384, NULL, 1);
+	signature_benchmark("ECDSA-521", KEY_ECDSA, 521, NULL, 1);
+#endif /* WITH_OPENSSL */
+	signature_benchmark("ED25519", KEY_ED25519, 0, NULL, 1);
 }

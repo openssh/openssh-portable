@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.10 2023/01/15 23:35:10 djm Exp $
+#	$OpenBSD: Makefile,v 1.11 2025/04/15 04:00:42 djm Exp $
 
 PROG=test_hostkeys
 SRCS=tests.c test_iterate.c
@@ -20,6 +20,6 @@ SRCS+=utf8.c
 REGRESS_TARGETS=run-regress-${PROG}
 
 run-regress-${PROG}: ${PROG}
-	env ${TEST_ENV} ./${PROG} -d ${.CURDIR}/testdata
+	env ${TEST_ENV} ./${PROG} ${UNITTEST_ARGS} -d ${.CURDIR}/testdata
 
 .include <bsd.regress.mk>

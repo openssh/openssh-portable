@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.4 2024/01/11 01:45:59 djm Exp $ */
+/* 	$OpenBSD: tests.c,v 1.5 2025/04/15 04:00:42 djm Exp $ */
 /*
  * Regress test for sshbuf.h buffer API
  *
@@ -141,4 +141,10 @@ tests(void)
 
 	sshbuf_free(msg);
 	free(namespace);
+}
+
+void
+benchmarks(void)
+{
+	printf("no benchmarks\n");
 }

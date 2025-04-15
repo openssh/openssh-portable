@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_kex.c,v 1.9 2024/09/09 03:13:39 djm Exp $ */
+/* 	$OpenBSD: test_kex.c,v 1.10 2025/04/15 04:00:42 djm Exp $ */
 /*
  * Regress test KEX
  *
@@ -8,6 +8,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/time.h>
 #include <stdio.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -76,7 +77,8 @@ run_kex(struct ssh *client, struct ssh *server)
 }
 
 static void
-do_kex_with_key(char *kex, int keytype, int bits)
+do_kex_with_key(char *kex, char *cipher, char *mac,
+    struct sshkey *key, int keytype, int bits)
 {
 	struct ssh *client = NULL, *server = NULL, *server2 = NULL;
 	struct sshkey *private, *public;
@@ -85,9 +87,14 @@ do_kex_with_key(char *kex, int keytype, int bits)
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
 	char *keyname = NULL;
 
-	TEST_START("sshkey_generate");
-	ASSERT_INT_EQ(sshkey_generate(keytype, bits, &private), 0);
-	TEST_DONE();
+	if (key != NULL) {
+		private = key;
+		keytype = key->type;
+	} else {
+		TEST_START("sshkey_generate");
+		ASSERT_INT_EQ(sshkey_generate(keytype, bits, &private), 0);
+		TEST_DONE();
+	}
 
 	TEST_START("sshkey_from_private");
 	ASSERT_INT_EQ(sshkey_from_private(private, &public), 0);
@@ -97,6 +104,14 @@ do_kex_with_key(char *kex, int keytype, int bits)
 	memcpy(kex_params.proposal, myproposal, sizeof(myproposal));
 	if (kex != NULL)
 		kex_params.proposal[PROPOSAL_KEX_ALGS] = kex;
+	if (cipher != NULL) {
+		kex_params.proposal[PROPOSAL_ENC_ALGS_CTOS] = cipher;
+		kex_params.proposal[PROPOSAL_ENC_ALGS_STOC] = cipher;
+	}
+	if (mac != NULL) {
+		kex_params.proposal[PROPOSAL_MAC_ALGS_CTOS] = mac;
+		kex_params.proposal[PROPOSAL_MAC_ALGS_STOC] = mac;
+	}
 	keyname = strdup(sshkey_ssh_name(private));
 	ASSERT_PTR_NE(keyname, NULL);
 	kex_params.proposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = keyname;
@@ -167,7 +182,8 @@ do_kex_with_key(char *kex, int keytype, int bits)
 	TEST_DONE();
 
 	TEST_START("cleanup");
-	sshkey_free(private);
+	if (key == NULL)
+		sshkey_free(private);
 	sshkey_free(public);
 	ssh_free(client);
 	ssh_free(server);
@@ -179,19 +195,37 @@ do_kex_with_key(char *kex, int keytype, int bits)
 static void
 do_kex(char *kex)
 {
-#if 0
-	log_init("test_kex", SYSLOG_LEVEL_DEBUG3, SYSLOG_FACILITY_AUTH, 1);
-#endif
+	struct sshkey *key = NULL;
+	char name[256];
+
+	if (test_is_benchmark()) {
+		snprintf(name, sizeof(name), "generate %s", kex);
+		TEST_START(name);
+		ASSERT_INT_EQ(sshkey_generate(KEY_ED25519, 0, &key), 0);
+		TEST_DONE();
+		snprintf(name, sizeof(name), "KEX %s", kex);
+		BENCH_START(name);
+		/*
+		 * NB. use a cipher/MAC here that requires minimal bits from
+		 * the KEX to avoid DH-GEX taking forever.
+		 */
+		do_kex_with_key(kex, "aes128-ctr", "hmac-sha2-256", key,
+		    KEY_ED25519, 256);
+		BENCH_FINISH("kex");
+		sshkey_free(key);
+		return;
+	}
+
 #ifdef WITH_OPENSSL
-	do_kex_with_key(kex, KEY_RSA, 2048);
-#ifdef WITH_DSA
-	do_kex_with_key(kex, KEY_DSA, 1024);
-#endif
-#ifdef OPENSSL_HAS_ECC
-	do_kex_with_key(kex, KEY_ECDSA, 256);
-#endif /* OPENSSL_HAS_ECC */
+	do_kex_with_key(kex, NULL, NULL, NULL, KEY_RSA, 2048);
+# ifdef WITH_DSA
+	do_kex_with_key(kex, NULL, NULL, NULL, KEY_DSA, 1024);
+# endif /* WITH_DSA */
+# ifdef OPENSSL_HAS_ECC
+	do_kex_with_key(kex, NULL, NULL, NULL, KEY_ECDSA, 256);
+# endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
-	do_kex_with_key(kex, KEY_ED25519, 256);
+	do_kex_with_key(kex, NULL, NULL, NULL, KEY_ED25519, 256);
 }
 
 void

@@ -782,6 +782,13 @@ unit: regress-unit-binaries
 		OBJ="$(BUILDDIR)/regress" \
 		$@ && echo $@ tests passed
 
+unit-bench: regress-unit-binaries
+	cd $(srcdir)/regress || exit $$?; \
+	$(MAKE) \
+		.CURDIR="$(abs_top_srcdir)/regress" \
+		.OBJDIR="$(BUILDDIR)/regress" \
+		OBJ="$(BUILDDIR)/regress" $@
+
 TEST_SSH_SSHD="$(BUILDDIR)/sshd"
 
 interop-tests t-exec file-tests extra-tests: regress-prep regress-binaries $(TARGETS)

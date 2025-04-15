@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.3 2021/12/14 21:25:27 deraadt Exp $ */
+/* 	$OpenBSD: tests.c,v 1.4 2025/04/15 04:00:42 djm Exp $ */
 
 /*
  * Regress test for keys options functions.
@@ -575,4 +575,10 @@ tests(void)
 	test_authkeys_parse();
 	test_cert_parse();
 	test_merge();
+}
+
+void
+benchmarks(void)
+{
+	printf("no benchmarks\n");
 }
