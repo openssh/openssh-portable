@@ -2238,6 +2238,7 @@ main(int ac, char **av)
 	size_t npfd = 0;
 	u_int maxfds;
 	sigset_t nsigset, osigset;
+	int socket_activated = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -2389,6 +2390,7 @@ main(int ac, char **av)
 			fatal("bad LISTEN_PID: %d vs pid %d", pid, getpid());
 		debug("using socket activation on fd=3");
 		sock = 3;
+		socket_activated = 1;
 	}
 
 	/* Otherwise, create private directory for agent socket */
@@ -2522,7 +2524,7 @@ skip:
 		sigprocmask(SIG_BLOCK, &nsigset, &osigset);
 		if (signalled_exit != 0) {
 			logit("exiting on signal %d", (int)signalled_exit);
-			cleanup_exit(2);
+			cleanup_exit((signalled_exit == SIGTERM && socket_activated) ? 0 : 2);
 		}
 		if (signalled_keydrop) {
 			logit("signal %d received; removing all keys",
