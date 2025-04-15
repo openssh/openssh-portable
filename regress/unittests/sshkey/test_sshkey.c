@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.27 2025/04/15 05:00:13 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.28 2025/04/15 05:31:24 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
