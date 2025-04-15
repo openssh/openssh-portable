@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.310 2025/02/18 08:02:48 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.311 2025/04/15 09:22:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2526,7 +2526,7 @@ skip:
 		}
 		if (signalled_keydrop) {
 			logit("signal %d received; removing all keys",
-			    signalled_keydrop);
+			    (int)signalled_keydrop);
 			remove_all_identities();
 			signalled_keydrop = 0;
 		}
