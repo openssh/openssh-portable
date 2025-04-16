@@ -986,4 +986,11 @@ struct winsize {
 /* The ML-KEM768 implementation also uses C89 features */
 # define USE_MLKEM768X25519	1
 #endif
+
+#if defined(HAVE_DECL_INFINITY) && HAVE_DECL_INFINITY == 0
+# if defined(HAVE_DECL___BUILTIN_INFF) && HAVE_DECL___BUILTIN_INFF == 1
+#  define INFINITY __builtin_inff()
+# endif
+#endif
+
 #endif /* _DEFINES_H */

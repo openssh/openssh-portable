@@ -2280,6 +2280,11 @@ AC_CHECK_DECLS([offsetof], , , [
 #include <stddef.h>
 	])
 
+AC_CHECK_DECLS([INFINITY], ,
+    AC_CHECK_DECLS(__builtin_inff),
+    [#include <math.h>]
+)
+
 # extra bits for select(2)
 AC_CHECK_DECLS([howmany, NFDBITS], [], [], [[
 #include <sys/param.h>
