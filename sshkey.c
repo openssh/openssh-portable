@@ -3476,6 +3476,8 @@ translate_libcrypto_error(unsigned long pem_err)
 		}
 	case ERR_LIB_ASN1:
 		return SSH_ERR_INVALID_FORMAT;
+	case ERR_LIB_OSSL_DECODER:
+		return SSH_ERR_INVALID_FORMAT;
 	}
 	return SSH_ERR_LIBCRYPTO_ERROR;
 }
