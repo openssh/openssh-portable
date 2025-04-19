@@ -12,7 +12,15 @@ case "$host" in
 	echo Setting CYGWIN system environment variable.
 	setx CYGWIN "binmode"
 	echo Removing extended ACLs so umask works as expected.
+	set -x
 	setfacl -b . regress
+	icacls regress /c /t /q /Inheritance:d
+	icacls regress /c /t /q /Grant ${LOGNAME}:F
+	icacls regress /c /t /q /Remove:g "Authenticated Users" \
+	     BUILTIN\\Administrators BUILTIN Everyone System Users
+	takeown /F regress
+	icacls regress
+	set +x
 	PACKAGES="$PACKAGES,autoconf,automake,cygwin-devel,gcc-core"
 	PACKAGES="$PACKAGES,make,openssl,libssl-devel,zlib-devel"
 	;;
