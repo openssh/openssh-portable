@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.95 2023/02/21 06:48:18 dtucker Exp $ */
+/* $OpenBSD: hostfile.c,v 1.96 2025/04/30 05:23:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -810,6 +810,12 @@ hostkeys_foreach_file(const char *path, FILE *f, hostkeys_foreach_fn *callback,
 		/* Find the end of the host name portion. */
 		for (cp2 = cp; *cp2 && *cp2 != ' ' && *cp2 != '\t'; cp2++)
 			;
+		if (*cp2 == '\0') {
+			verbose_f("truncated line at %s:%lu", path, linenum);
+			if ((options & HKF_WANT_MATCH) == 0)
+				goto bad;
+			continue;
+		}
 		lineinfo.hosts = cp;
 		*cp2++ = '\0';
 
