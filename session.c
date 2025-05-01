@@ -149,6 +149,7 @@ extern void destroy_sensitive_data(void);
 extern struct sshbuf *loginmsg;
 extern struct sshauthopt *auth_opts;
 extern char *tun_fwd_ifnames; /* serverloop.c */
+extern int fwd_tcp_listen_port; /* channels.c */
 
 /* original command from peer. */
 const char *original_command = NULL;
@@ -1086,6 +1087,10 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME,
 		    auth_sock_name);
 
+	if (fwd_tcp_listen_port > 0) {
+		snprintf(buf, sizeof buf, "%d", fwd_tcp_listen_port);
+		child_set_env(&env, &envsize, "SSH_FWD_TCP_PORT", buf);
+	}
 
 	/* Set custom environment options from pubkey authentication. */
 	if (options.permit_user_env) {
