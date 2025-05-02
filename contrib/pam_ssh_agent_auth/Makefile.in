@@ -1,0 +1,19 @@
+CC=@CC@
+LD=@LD@
+CFLAGS=@CFLAGS@
+CFLAGS_NOPIE=@CFLAGS_NOPIE@
+CPPFLAGS=-I. -I../.. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
+PICFLAG=@PICFLAG@
+LIBS=@LIBS@
+K5LIBS=@K5LIBS@
+GSSLIBS=@GSSLIBS@
+LIBFIDO2=@LIBFIDO2@
+LDFLAGS=-L../../openbsd-compat/ -L../.. @LDFLAGS@
+LDFLAGS_NOPIE=-L../../openbsd-compat/ -L ../.. @LDFLAGS_NOPIE@
+
+pam_ssh_agent_auth.so: pam-ssh-agent-auth.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(PICFLAG) -shared -o $@ $< \
+	     -lssh -lopenbsd-compat $(LDFLAGS_NOPIE) $(LIBS) -lpam
+
+clean:
+	rm -f pam_ssh_agent_auth.so
