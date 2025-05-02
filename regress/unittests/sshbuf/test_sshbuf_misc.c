@@ -182,6 +182,7 @@ sshbuf_misc_tests(void)
 	ASSERT_INT_EQ(sshbuf_cmp(p1, 1000, "silence", 7),
 	    SSH_ERR_MESSAGE_INCOMPLETE);
 	ASSERT_INT_EQ(sshbuf_cmp(p1, 0, msg, sizeof(msg) - 1), 0);
+	sshbuf_free(p1);
 	TEST_DONE();
 
 	TEST_START("sshbuf_find");
@@ -212,6 +213,7 @@ sshbuf_misc_tests(void)
 	    SSH_ERR_MESSAGE_INCOMPLETE);
 	ASSERT_INT_EQ(sshbuf_find(p1, 0, msg + 1, sizeof(msg) - 2, &sz), 0);
 	ASSERT_SIZE_T_EQ(sz, 1);
+	sshbuf_free(p1);
 	TEST_DONE();
 }
 
