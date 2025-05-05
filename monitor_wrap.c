@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.138 2024/10/22 06:13:00 dtucker Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.139 2025/05/05 02:40:30 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -126,17 +126,17 @@ mm_reap(void)
 	}
 	if (WIFEXITED(status)) {
 		if (WEXITSTATUS(status) != 0) {
-			debug_f("preauth child exited with status %d",
+			debug_f("child exited with status %d",
 			    WEXITSTATUS(status));
 			cleanup_exit(255);
 		}
 	} else if (WIFSIGNALED(status)) {
-		error_f("preauth child terminated by signal %d",
+		error_f("child terminated by signal %d",
 		    WTERMSIG(status));
 		cleanup_exit(signal_is_crash(WTERMSIG(status)) ?
 		    EXIT_CHILD_CRASH : 255);
 	} else {
-		error_f("preauth child terminated abnormally (status=0x%x)",
+		error_f("child terminated abnormally (status=0x%x)",
 		    status);
 		cleanup_exit(EXIT_CHILD_CRASH);
 	}
