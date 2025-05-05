@@ -248,7 +248,7 @@ if [ ! -z "${INSTALL_BORINGSSL}" ]; then
      cd ${HOME}/boringssl && mkdir build && cd build &&
      cmake -GNinja  -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. && ninja &&
      mkdir -p /opt/boringssl/lib &&
-     cp ${HOME}/boringssl/build/crypto/libcrypto.a /opt/boringssl/lib &&
+     cp ${HOME}/boringssl/build/libcrypto.a /opt/boringssl/lib &&
      cp -r ${HOME}/boringssl/include /opt/boringssl)
 fi
 
