@@ -41,7 +41,7 @@ https://www.openssh.com/txt/draft-miller-secsh-compression-delayed-00.txt
 
 OpenSSH introduces new public key algorithms to support certificate
 authentication for users and host keys. These methods are documented
-in the file PROTOCOL.certkeys
+in at https://datatracker.ietf.org/doc/draft-miller-ssh-cert/
 
 1.4. transport: Elliptic Curve cryptography
 
@@ -792,4 +792,4 @@ master instance and later clients.
 OpenSSH extends the usual agent protocol. These changes are documented
 in the PROTOCOL.agent file.
 
-$OpenBSD: PROTOCOL,v 1.55 2024/01/08 05:05:15 djm Exp $
+$OpenBSD: PROTOCOL,v 1.56 2025/05/05 05:51:11 djm Exp $
