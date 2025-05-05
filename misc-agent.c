@@ -270,7 +270,7 @@ agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 	struct dirent *dp;
 	struct stat sb;
 	char *prefix = NULL, *dirpath, *path;
-	struct timespec now, sub;
+	struct timespec now, sub, *mtimp = NULL;
 
 	/* Only consider sockets last modified > 1 hour ago */
 	if (clock_gettime(CLOCK_REALTIME, &now) != 0) {
@@ -309,7 +309,14 @@ agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 		}
 		if (!S_ISSOCK(sb.st_mode))
 			continue;
-		if (timespeccmp(&sb.st_mtim, &now, >)) {
+#ifdef HAVE_STRUCT_STAT_ST_MTIM
+		mtimp = &sb.st_mtim;
+#else
+		sub.tv_sec = sb.st_mtime;
+		sub.tv_nsec = 0;
+		mtimp = &sub;
+#endif
+		if (timespeccmp(mtimp, &now, >)) {
 			debug3_f("Ignoring recent socket \"%s/%s\"",
 			    dirpath, dp->d_name);
 			continue;
