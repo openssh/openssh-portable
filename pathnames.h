@@ -1,4 +1,4 @@
-/* $OpenBSD: pathnames.h,v 1.32 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: pathnames.h,v 1.34 2025/05/05 02:48:06 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -66,6 +66,13 @@
  * directory should be world-readable (though not all files are).
  */
 #define _PATH_SSH_USER_DIR		".ssh"
+
+
+/*
+ * The directory in which ssh-agent sockets and agent sockets forwarded by
+ * sshd reside. This directory should not be world-readable.
+ */
+#define _PATH_SSH_AGENT_SOCKET_DIR _PATH_SSH_USER_DIR "/agent"
 
 /*
  * Per-user file containing host keys of known hosts.  This file need not be

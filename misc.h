@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.110 2024/09/25 01:24:04 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.111 2025/05/05 02:48:06 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -108,6 +108,7 @@ int	 parse_pattern_interval(const char *, char **, int *);
 int	 path_absolute(const char *);
 int	 stdfd_devnull(int, int, int);
 int	 lib_contains_symbol(const char *, const char *);
+char	*get_homedir(void);
 
 void	 sock_set_v6only(int);
 
@@ -230,6 +231,11 @@ void ptimeout_deadline_monotime(struct timespec *pt, time_t when);
 int ptimeout_get_ms(struct timespec *pt);
 struct timespec *ptimeout_get_tsp(struct timespec *pt);
 int ptimeout_isset(struct timespec *pt);
+
+/* misc-agent.c */
+char	*agent_hostname_hash(void);
+int	 agent_listener(const char *, const char *, int *, char **);
+void	 agent_cleanup_stale(const char *, int);
 
 /* readpass.c */
 

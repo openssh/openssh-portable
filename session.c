@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.341 2025/04/09 07:00:03 djm Exp $ */
+/* $OpenBSD: session.c,v 1.342 2025/05/05 02:48:06 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -175,7 +175,6 @@ static char *auth_info_file = NULL;
 
 /* Name and directory of socket for authentication agent forwarding. */
 static char *auth_sock_name = NULL;
-static char *auth_sock_dir = NULL;
 
 /* removes the agent forwarding socket */
 
@@ -185,7 +184,6 @@ auth_sock_cleanup_proc(struct passwd *pw)
 	if (auth_sock_name != NULL) {
 		temporarily_use_uid(pw);
 		unlink(auth_sock_name);
-		rmdir(auth_sock_dir);
 		auth_sock_name = NULL;
 		restore_uid();
 	}
@@ -205,31 +203,14 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 	/* Temporarily drop privileged uid for mkdir/bind. */
 	temporarily_use_uid(pw);
 
-	/* Allocate a buffer for the socket name, and format the name. */
-	auth_sock_dir = xstrdup("/tmp/ssh-XXXXXXXXXX");
-
-	/* Create private directory for socket */
-	if (mkdtemp(auth_sock_dir) == NULL) {
+	if (agent_listener(pw->pw_dir, "sshd", &sock, &auth_sock_name) != 0) {
+		/* a more detailed error is already logged */
 		ssh_packet_send_debug(ssh, "Agent forwarding disabled: "
-		    "mkdtemp() failed: %.100s", strerror(errno));
+		    "couldn't create listener socket");
 		restore_uid();
-		free(auth_sock_dir);
-		auth_sock_dir = NULL;
 		goto authsock_err;
 	}
-
-	xasprintf(&auth_sock_name, "%s/agent.%ld",
-	    auth_sock_dir, (long) getpid());
-
-	/* Start a Unix listener on auth_sock_name. */
-	sock = unix_listener(auth_sock_name, SSH_LISTEN_BACKLOG, 0);
-
-	/* Restore the privileged uid. */
 	restore_uid();
-
-	/* Check for socket/bind/listen failure. */
-	if (sock < 0)
-		goto authsock_err;
 
 	/* Allocate a channel for the authentication agent socket. */
 	nc = channel_new(ssh, "auth-listener",
@@ -241,16 +222,9 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 
  authsock_err:
 	free(auth_sock_name);
-	if (auth_sock_dir != NULL) {
-		temporarily_use_uid(pw);
-		rmdir(auth_sock_dir);
-		restore_uid();
-		free(auth_sock_dir);
-	}
 	if (sock != -1)
 		close(sock);
 	auth_sock_name = NULL;
-	auth_sock_dir = NULL;
 	return 0;
 }
 

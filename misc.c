@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.198 2024/10/24 03:14:37 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.199 2025/05/05 02:48:06 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -3137,4 +3137,19 @@ signal_is_crash(int sig)
 		return 1;
 	}
 	return 0;
+}
+
+char *
+get_homedir(void)
+{
+	char *cp;
+	struct passwd *pw;
+
+	if ((cp = getenv("HOME")) != NULL && *cp != '\0')
+		return xstrdup(cp);
+
+	if ((pw = getpwuid(getuid())) != NULL && *pw->pw_dir != '\0')
+		return xstrdup(pw->pw_dir);
+
+	return NULL;
 }
