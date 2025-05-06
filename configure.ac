@@ -2004,6 +2004,7 @@ AC_CHECK_FUNCS([ \
 	fnmatch \
 	freeaddrinfo \
 	freezero \
+	fstatat \
 	fstatfs \
 	fstatvfs \
 	futimes \
@@ -2099,6 +2100,7 @@ AC_CHECK_FUNCS([ \
 	timegm \
 	timingsafe_bcmp \
 	truncate \
+	unlinkat \
 	unsetenv \
 	updwtmpx \
 	utimensat \

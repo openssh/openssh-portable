@@ -220,6 +220,46 @@ fchmodat(int fd, const char *path, mode_t mode, int flag)
 }
 #endif
 
+#ifndef HAVE_FSTATAT
+/*
+ * A limited implementation of fstatat that just has what OpenSSH uses:
+ * cwd-relative and absolute paths, with or without following symlinks.
+ */
+int
+fstatat(int dirfd, const char *path, struct stat *sb, int flag)
+{
+	if (dirfd != AT_FDCWD && path && path[0] != '/') {
+		errno = ENOSYS;
+		return -1;
+	}
+	if (flag == 0)
+		return stat(path, sb);
+	else if (flag == AT_SYMLINK_NOFOLLOW)
+		return lstat(path, sb);
+	errno = ENOSYS;
+	return -1;
+}
+#endif
+
+#ifndef HAVE_UNLINKAT
+/*
+ * A limited implementation of unlinkat that just has what OpenSSH uses:
+ * cwd-relative and absolute paths.
+ */
+int
+unlinkat(int dirfd, const char *path, int flag)
+{
+	if (dirfd != AT_FDCWD && path && path[0] != '/') {
+		errno = ENOSYS;
+		return -1;
+	}
+	if (flag == 0)
+		return unlink(path);
+	errno = ENOSYS;
+	return -1;
+}
+#endif
+
 #ifndef HAVE_TRUNCATE
 int truncate(const char *path, off_t length)
 {
