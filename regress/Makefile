@@ -2,7 +2,7 @@
 
 tests:		prep file-tests t-exec unit
 
-REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12
+REGRESS_TARGETS=	t1 t2 t3 t4 t5 t7 t9 t10 t11 t12
 
 # File based tests
 file-tests: $(REGRESS_TARGETS)
@@ -130,9 +130,9 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		ed25519-agent.pub ed25519 ed25519.pub empty.in \
 		expect failed-regress.log failed-ssh.log failed-sshd.log \
 		hkr.* host.ecdsa-sha2-nistp256 host.ecdsa-sha2-nistp384 \
-		host.ecdsa-sha2-nistp521 host.ssh-dss host.ssh-ed25519 \
+		host.ecdsa-sha2-nistp521 host.ssh-ed25519 \
 		host.ssh-rsa host_ca_key* host_krl_* host_revoked_* key.* \
-		key.dsa-* key.ecdsa-* key.ed25519-512 \
+		key.ecdsa-* key.ed25519-512 \
 		key.ed25519-512.pub key.rsa-* keys-command-args kh.* askpass \
 		known_hosts known_hosts-cert known_hosts.* krl-* ls.copy \
 		modpipe netcat no_identity_config \
@@ -191,34 +191,16 @@ t5:
 		${TEST_SSH_SSHKEYGEN} -Bf ${.CURDIR}/rsa_openssh.pub |\
 			awk '{print $$2}' | diff - ${.CURDIR}/t5.ok ; \
 	fi
-t6:
-	set -xe ; if ${TEST_SSH_SSH} -Q key | grep -q "^ssh-dss" ; then \
-		${TEST_SSH_SSHKEYGEN} -if ${.CURDIR}/dsa_ssh2.prv > $(OBJ)/t6.out1 ; \
-		${TEST_SSH_SSHKEYGEN} -if ${.CURDIR}/dsa_ssh2.pub > $(OBJ)/t6.out2 ; \
-		chmod 600 $(OBJ)/t6.out1 ; \
-		${TEST_SSH_SSHKEYGEN} -yf $(OBJ)/t6.out1 | diff - $(OBJ)/t6.out2 ; \
-	fi
 
 $(OBJ)/t7.out:
-	set -xe ; if ${TEST_SSH_SSH} -Q key | grep -q "^ssh-dss" ; then \
+	set -xe ; if ${TEST_SSH_SSH} -Q key | grep -q "^ssh-rsa" ; then \
 		${TEST_SSH_SSHKEYGEN} -q -t rsa -N '' -f $@ ; \
 	fi
 
 t7: $(OBJ)/t7.out
-	set -xe ; if ${TEST_SSH_SSH} -Q key | grep -q "^ssh-dss" ; then \
+	set -xe ; if ${TEST_SSH_SSH} -Q key | grep -q "^ssh-rsa" ; then \
 		${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t7.out > /dev/null ; \
 		${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t7.out > /dev/null ; \
-	fi
-
-$(OBJ)/t8.out:
-	set -xe ; if ssh -Q key | grep -q "^ssh-dss" ; then \
-		${TEST_SSH_SSHKEYGEN} -q -t dsa -N '' -f $@ ; \
-	fi
-
-t8: $(OBJ)/t8.out
-	set -xe ; if ssh -Q key | grep -q "^ssh-dss" ; then \
-		${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t8.out > /dev/null ; \
-		${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t8.out > /dev/null ; \
 	fi
 
 $(OBJ)/t9.out:
@@ -240,7 +222,7 @@ t10: $(OBJ)/t10.out
 	${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t10.out > /dev/null
 
 t11:
-	set -xe ; if ${TEST_SSH_SSH} -Q key | grep -q "^ssh-dss" ; then \
+	set -xe ; if ${TEST_SSH_SSH} -Q key | grep -q "^ssh-rsa" ; then \
 		${TEST_SSH_SSHKEYGEN} -E sha256 -lf ${.CURDIR}/rsa_openssh.pub |\
 			awk '{print $$2}' | diff - ${.CURDIR}/t11.ok ; \
 	fi

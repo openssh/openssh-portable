@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile.inc,v 1.17 2025/04/15 04:00:42 djm Exp $
+#	$OpenBSD: Makefile.inc,v 1.18 2025/05/06 06:05:48 djm Exp $
 
 .include <bsd.own.mk>
 .include <bsd.obj.mk>
@@ -17,10 +17,6 @@ TEST_ENV?=		MALLOC_OPTIONS=${MALLOC_OPTIONS}
 # XXX detect from ssh binary?
 OPENSSL?=	yes
 DSAKEY?=	yes
-
-.if (${DSAKEY:L} == "yes")
-CFLAGS+=	-DWITH_DSA
-.endif
 
 .if (${OPENSSL:L} == "yes")
 CFLAGS+=	-DWITH_OPENSSL

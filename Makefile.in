@@ -194,7 +194,6 @@ PATHSUBS	= \
 	-e 's|/etc/shosts.equiv|$(sysconfdir)/shosts.equiv|g' \
 	-e 's|/etc/ssh/ssh_host_key|$(sysconfdir)/ssh_host_key|g' \
 	-e 's|/etc/ssh/ssh_host_ecdsa_key|$(sysconfdir)/ssh_host_ecdsa_key|g' \
-	-e 's|/etc/ssh/ssh_host_dsa_key|$(sysconfdir)/ssh_host_dsa_key|g' \
 	-e 's|/etc/ssh/ssh_host_rsa_key|$(sysconfdir)/ssh_host_rsa_key|g' \
 	-e 's|/etc/ssh/ssh_host_ed25519_key|$(sysconfdir)/ssh_host_ed25519_key|g' \
 	-e 's|/var/run/sshd.pid|$(piddir)/sshd.pid|g' \
@@ -494,7 +493,6 @@ host-key: ssh-keygen$(EXEEXT)
 	fi
 
 host-key-force: ssh-keygen$(EXEEXT) ssh$(EXEEXT)
-	./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
 	./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
 	./ssh-keygen -t ed25519 -f $(DESTDIR)$(sysconfdir)/ssh_host_ed25519_key -N ""
 	if ./ssh -Q key | grep ecdsa >/dev/null ; then \

@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.28 2025/04/15 05:31:24 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.29 2025/05/06 06:05:48 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -18,7 +18,6 @@
 #ifdef WITH_OPENSSL
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
-#include <openssl/dsa.h>
 #if defined(OPENSSL_HAS_ECC) && defined(OPENSSL_HAS_NISTP256)
 # include <openssl/ec.h>
 #endif
@@ -271,14 +270,6 @@ sshkey_tests(void)
 	sshkey_free(k1);
 	TEST_DONE();
 
-#ifdef WITH_DSA
-	TEST_START("new/free KEY_DSA");
-	k1 = sshkey_new(KEY_DSA);
-	ASSERT_PTR_NE(k1, NULL);
-	ASSERT_PTR_NE(k1->dsa, NULL);
-	sshkey_free(k1);
-	TEST_DONE();
-#endif
 
 #ifdef OPENSSL_HAS_ECC
 	TEST_START("new/free KEY_ECDSA");
@@ -310,14 +301,6 @@ sshkey_tests(void)
 	ASSERT_PTR_EQ(k1, NULL);
 	TEST_DONE();
 
-#ifdef WITH_DSA
-	TEST_START("generate KEY_DSA wrong bits");
-	ASSERT_INT_EQ(sshkey_generate(KEY_DSA, 2048, &k1),
-	    SSH_ERR_KEY_LENGTH);
-	ASSERT_PTR_EQ(k1, NULL);
-	sshkey_free(k1);
-	TEST_DONE();
-#endif
 
 #ifdef OPENSSL_HAS_ECC
 	TEST_START("generate KEY_ECDSA wrong bits");
@@ -340,15 +323,6 @@ sshkey_tests(void)
 	ASSERT_INT_EQ(BN_num_bits(rsa_n(kr)), 1024);
 	TEST_DONE();
 
-#ifdef WITH_DSA
-	TEST_START("generate KEY_DSA");
-	ASSERT_INT_EQ(sshkey_generate(KEY_DSA, 1024, &kd), 0);
-	ASSERT_PTR_NE(kd, NULL);
-	ASSERT_PTR_NE(kd->dsa, NULL);
-	ASSERT_PTR_NE(dsa_g(kd), NULL);
-	ASSERT_PTR_NE(dsa_priv_key(kd), NULL);
-	TEST_DONE();
-#endif
 
 #ifdef OPENSSL_HAS_ECC
 	TEST_START("generate KEY_ECDSA");
@@ -388,22 +362,6 @@ sshkey_tests(void)
 	sshkey_free(k1);
 	TEST_DONE();
 
-#ifdef WITH_DSA
-	TEST_START("demote KEY_DSA");
-	ASSERT_INT_EQ(sshkey_from_private(kd, &k1), 0);
-	ASSERT_PTR_NE(k1, NULL);
-	ASSERT_PTR_NE(kd, k1);
-	ASSERT_INT_EQ(k1->type, KEY_DSA);
-	ASSERT_PTR_NE(k1->dsa, NULL);
-	ASSERT_PTR_NE(dsa_g(k1), NULL);
-	ASSERT_PTR_EQ(dsa_priv_key(k1), NULL);
-	TEST_DONE();
-
-	TEST_START("equal KEY_DSA/demoted KEY_DSA");
-	ASSERT_INT_EQ(sshkey_equal(kd, k1), 1);
-	sshkey_free(k1);
-	TEST_DONE();
-#endif
 
 #ifdef OPENSSL_HAS_ECC
 	TEST_START("demote KEY_ECDSA");
@@ -551,16 +509,6 @@ sshkey_tests(void)
 	sshkey_free(k2);
 	TEST_DONE();
 
-#ifdef WITH_DSA
-	TEST_START("sign and verify DSA");
-	k1 = get_private("dsa_1");
-	ASSERT_INT_EQ(sshkey_load_public(test_data_file("dsa_2.pub"), &k2,
-	    NULL), 0);
-	signature_tests(k1, k2, NULL);
-	sshkey_free(k1);
-	sshkey_free(k2);
-	TEST_DONE();
-#endif
 
 #ifdef OPENSSL_HAS_ECC
 	TEST_START("sign and verify ECDSA");
@@ -623,15 +571,6 @@ sshkey_benchmarks(void)
 	TEST_DONE();
 	BENCH_FINISH("keys");
 
-#ifdef WITH_DSA
-	BENCH_START("generate DSA-1024");
-	TEST_START("generate KEY_DSA");
-	ASSERT_INT_EQ(sshkey_generate(KEY_DSA, 1024, &k), 0);
-	ASSERT_PTR_NE(k, NULL);
-	sshkey_free(k);
-	TEST_DONE();
-	BENCH_FINISH("keys");
-#endif
 
 	BENCH_START("generate ECDSA-256");
 	TEST_START("generate KEY_ECDSA");
@@ -674,9 +613,6 @@ sshkey_benchmarks(void)
 	signature_benchmark("RSA-2048/SHA1", KEY_RSA, 2048, "ssh-rsa", 0);
 	signature_benchmark("RSA-2048/SHA256", KEY_RSA, 2048, "rsa-sha2-256", 0);
 	signature_benchmark("RSA-2048/SHA512", KEY_RSA, 2048, "rsa-sha2-512", 0);
-#ifdef WITH_DSA
-	signature_benchmark("DSA-1024", KEY_DSA, 1024, NULL, 0);
-#endif
 	signature_benchmark("ECDSA-256", KEY_ECDSA, 256, NULL, 0);
 	signature_benchmark("ECDSA-384", KEY_ECDSA, 384, NULL, 0);
 	signature_benchmark("ECDSA-521", KEY_ECDSA, 521, NULL, 0);
@@ -689,9 +625,6 @@ sshkey_benchmarks(void)
 	signature_benchmark("RSA-2048/SHA1", KEY_RSA, 2048, "ssh-rsa", 1);
 	signature_benchmark("RSA-2048/SHA256", KEY_RSA, 2048, "rsa-sha2-256", 1);
 	signature_benchmark("RSA-2048/SHA512", KEY_RSA, 2048, "rsa-sha2-512", 1);
-#ifdef WITH_DSA
-	signature_benchmark("DSA-1024", KEY_DSA, 1024, NULL, 1);
-#endif
 	signature_benchmark("ECDSA-256", KEY_ECDSA, 256, NULL, 1);
 	signature_benchmark("ECDSA-384", KEY_ECDSA, 384, NULL, 1);
 	signature_benchmark("ECDSA-521", KEY_ECDSA, 521, NULL, 1);

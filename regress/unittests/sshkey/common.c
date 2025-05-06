@@ -1,4 +1,4 @@
-/* 	$OpenBSD: common.c,v 1.6 2024/08/15 00:52:23 djm Exp $ */
+/* 	$OpenBSD: common.c,v 1.7 2025/05/06 06:05:48 djm Exp $ */
 /*
  * Helpers for key API tests
  *
@@ -21,7 +21,6 @@
 #ifdef WITH_OPENSSL
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
-#include <openssl/dsa.h>
 #include <openssl/objects.h>
 #ifdef OPENSSL_HAS_NISTP256
 # include <openssl/ec.h>
@@ -126,38 +125,4 @@ rsa_q(struct sshkey *k)
 	RSA_get0_factors(EVP_PKEY_get0_RSA(k->pkey), NULL, &q);
 	return q;
 }
-
-const BIGNUM *
-dsa_g(struct sshkey *k)
-{
-	const BIGNUM *g = NULL;
-
-	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->dsa, NULL);
-	DSA_get0_pqg(k->dsa, NULL, NULL, &g);
-	return g;
-}
-
-const BIGNUM *
-dsa_pub_key(struct sshkey *k)
-{
-	const BIGNUM *pub_key = NULL;
-
-	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->dsa, NULL);
-	DSA_get0_key(k->dsa, &pub_key, NULL);
-	return pub_key;
-}
-
-const BIGNUM *
-dsa_priv_key(struct sshkey *k)
-{
-	const BIGNUM *priv_key = NULL;
-
-	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->dsa, NULL);
-	DSA_get0_key(k->dsa, NULL, &priv_key);
-	return priv_key;
-}
 #endif /* WITH_OPENSSL */
-

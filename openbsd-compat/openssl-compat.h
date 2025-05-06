@@ -24,7 +24,6 @@
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
-#include <openssl/dsa.h>
 #ifdef OPENSSL_HAS_ECC
 #include <openssl/ecdsa.h>
 #endif
