@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.3 2025/01/16 06:37:10 dtucker Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.4 2025/05/06 05:40:56 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -250,7 +250,6 @@ list_hostkey_types(void)
 			append_hostkey_type(b, "rsa-sha2-512");
 			append_hostkey_type(b, "rsa-sha2-256");
 			/* FALLTHROUGH */
-		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
 		case KEY_ECDSA_SK:
@@ -271,7 +270,6 @@ list_hostkey_types(void)
 			append_hostkey_type(b,
 			    "rsa-sha2-256-cert-v01@openssh.com");
 			/* FALLTHROUGH */
-		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
 		case KEY_ED25519_CERT:
 		case KEY_ECDSA_SK_CERT:
@@ -297,7 +295,6 @@ get_hostkey_public_by_type(int type, int nid, struct ssh *ssh)
 	for (i = 0; i < options.num_host_key_files; i++) {
 		switch (type) {
 		case KEY_RSA_CERT:
-		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
 		case KEY_ED25519_CERT:
 		case KEY_ECDSA_SK_CERT:

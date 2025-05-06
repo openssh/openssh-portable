@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.165 2024/12/06 15:17:15 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.166 2025/05/06 05:40:56 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -62,15 +62,14 @@ int IPv4or6 = AF_UNSPEC;
 
 int ssh_port = SSH_DEFAULT_PORT;
 
-#define KT_DSA		(1)
-#define KT_RSA		(1<<1)
-#define KT_ECDSA	(1<<2)
-#define KT_ED25519	(1<<3)
-#define KT_XMSS		(1<<4)
-#define KT_ECDSA_SK	(1<<5)
-#define KT_ED25519_SK	(1<<6)
+#define KT_RSA		(1)
+#define KT_ECDSA	(1<<1)
+#define KT_ED25519	(1<<2)
+#define KT_XMSS		(1<<3)
+#define KT_ECDSA_SK	(1<<4)
+#define KT_ED25519_SK	(1<<5)
 
-#define KT_MIN		KT_DSA
+#define KT_MIN		KT_RSA
 #define KT_MAX		KT_ED25519_SK
 
 int get_cert = 0;
@@ -240,10 +239,6 @@ keygrab_ssh2(con *c)
 	int r;
 
 	switch (c->c_keytype) {
-	case KT_DSA:
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = get_cert ?
-		    "ssh-dss-cert-v01@openssh.com" : "ssh-dss";
-		break;
 	case KT_RSA:
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = get_cert ?
 		    "rsa-sha2-512-cert-v01@openssh.com,"
@@ -743,11 +738,6 @@ main(int argc, char **argv)
 				int type = sshkey_type_from_shortname(tname);
 
 				switch (type) {
-#ifdef WITH_DSA
-				case KEY_DSA:
-					get_keytypes |= KT_DSA;
-					break;
-#endif
 				case KEY_ECDSA:
 					get_keytypes |= KT_ECDSA;
 					break;

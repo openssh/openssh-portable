@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.477 2024/12/04 14:24:20 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.478 2025/05/06 05:40:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -70,18 +70,14 @@
 #define DEFAULT_KEY_TYPE_NAME "ed25519"
 
 /*
- * Default number of bits in the RSA, DSA and ECDSA keys.  These value can be
+ * Default number of bits in the RSA and ECDSA keys.  These value can be
  * overridden on the command line.
  *
- * These values, with the exception of DSA, provide security equivalent to at
- * least 128 bits of security according to NIST Special Publication 800-57:
- * Recommendation for Key Management Part 1 rev 4 section 5.6.1.
- * For DSA it (and FIPS-186-4 section 4.2) specifies that the only size for
- * which a 160bit hash is acceptable is 1kbit, and since ssh-dss specifies only
- * SHA1 we limit the DSA key size 1k bits.
+ * These values provide security equivalent to at least 128 bits of security
+ * according to NIST Special Publication 800-57: Recommendation for Key
+ * Management Part 1 rev 4 section 5.6.1.
  */
 #define DEFAULT_BITS		3072
-#define DEFAULT_BITS_DSA	1024
 #define DEFAULT_BITS_ECDSA	256
 
 static int quiet = 0;
@@ -185,9 +181,6 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		int nid;
 
 		switch(type) {
-		case KEY_DSA:
-			*bitsp = DEFAULT_BITS_DSA;
-			break;
 		case KEY_ECDSA:
 			if (name != NULL &&
 			    (nid = sshkey_ecdsa_nid_from_name(name)) > 0)
@@ -203,10 +196,6 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 	}
 #ifdef WITH_OPENSSL
 	switch (type) {
-	case KEY_DSA:
-		if (*bitsp != 1024)
-			fatal("Invalid DSA key length: must be 1024 bits");
-		break;
 	case KEY_RSA:
 		if (*bitsp < SSH_RSA_MINIMUM_MODULUS_SIZE)
 			fatal("Invalid RSA key length: minimum is %d bits",
@@ -262,12 +251,6 @@ ask_filename(struct passwd *pw, const char *prompt)
 		name = _PATH_SSH_CLIENT_ID_ED25519;
 	else {
 		switch (sshkey_type_from_shortname(key_type_name)) {
-#ifdef WITH_DSA
-		case KEY_DSA_CERT:
-		case KEY_DSA:
-			name = _PATH_SSH_CLIENT_ID_DSA;
-			break;
-#endif
 #ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA_CERT:
 		case KEY_ECDSA:
@@ -382,12 +365,6 @@ do_convert_to_pkcs8(struct sshkey *k)
 		    EVP_PKEY_get0_RSA(k->pkey)))
 			fatal("PEM_write_RSA_PUBKEY failed");
 		break;
-#ifdef WITH_DSA
-	case KEY_DSA:
-		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
-			fatal("PEM_write_DSA_PUBKEY failed");
-		break;
-#endif
 #ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		if (!PEM_write_EC_PUBKEY(stdout,
@@ -410,12 +387,6 @@ do_convert_to_pem(struct sshkey *k)
 		    EVP_PKEY_get0_RSA(k->pkey)))
 			fatal("PEM_write_RSAPublicKey failed");
 		break;
-#ifdef WITH_DSA
-	case KEY_DSA:
-		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
-			fatal("PEM_write_DSA_PUBKEY failed");
-		break;
-#endif
 #ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		if (!PEM_write_EC_PUBKEY(stdout,
@@ -491,10 +462,6 @@ do_convert_private_ssh2(struct sshbuf *b)
 	u_int magic, i1, i2, i3, i4;
 	size_t slen;
 	u_long e;
-#ifdef WITH_DSA
-	BIGNUM *dsa_p = NULL, *dsa_q = NULL, *dsa_g = NULL;
-	BIGNUM *dsa_pub_key = NULL, *dsa_priv_key = NULL;
-#endif
 	BIGNUM *rsa_n = NULL, *rsa_e = NULL, *rsa_d = NULL;
 	BIGNUM *rsa_p = NULL, *rsa_q = NULL, *rsa_iqmp = NULL;
 	BIGNUM *rsa_dmp1 = NULL, *rsa_dmq1 = NULL;
@@ -526,10 +493,6 @@ do_convert_private_ssh2(struct sshbuf *b)
 
 	if (strstr(type, "rsa")) {
 		ktype = KEY_RSA;
-#ifdef WITH_DSA
-	} else if (strstr(type, "dsa")) {
-		ktype = KEY_DSA;
-#endif
 	} else {
 		free(type);
 		return NULL;
@@ -539,27 +502,6 @@ do_convert_private_ssh2(struct sshbuf *b)
 	free(type);
 
 	switch (key->type) {
-#ifdef WITH_DSA
-	case KEY_DSA:
-		if ((dsa_p = BN_new()) == NULL ||
-		    (dsa_q = BN_new()) == NULL ||
-		    (dsa_g = BN_new()) == NULL ||
-		    (dsa_pub_key = BN_new()) == NULL ||
-		    (dsa_priv_key = BN_new()) == NULL)
-			fatal_f("BN_new");
-		buffer_get_bignum_bits(b, dsa_p);
-		buffer_get_bignum_bits(b, dsa_g);
-		buffer_get_bignum_bits(b, dsa_q);
-		buffer_get_bignum_bits(b, dsa_pub_key);
-		buffer_get_bignum_bits(b, dsa_priv_key);
-		if (!DSA_set0_pqg(key->dsa, dsa_p, dsa_q, dsa_g))
-			fatal_f("DSA_set0_pqg failed");
-		dsa_p = dsa_q = dsa_g = NULL; /* transferred */
-		if (!DSA_set0_key(key->dsa, dsa_pub_key, dsa_priv_key))
-			fatal_f("DSA_set0_key failed");
-		dsa_pub_key = dsa_priv_key = NULL; /* transferred */
-		break;
-#endif
 	case KEY_RSA:
 		if ((r = sshbuf_get_u8(b, &e1)) != 0 ||
 		    (e1 < 30 && (r = sshbuf_get_u8(b, &e2)) != 0) ||
@@ -734,14 +676,6 @@ do_convert_from_pkcs8(struct sshkey **k, int *private)
 		(*k)->pkey = pubkey;
 		pubkey = NULL;
 		break;
-#ifdef WITH_DSA
-	case EVP_PKEY_DSA:
-		if ((*k = sshkey_new(KEY_UNSPEC)) == NULL)
-			fatal("sshkey_new failed");
-		(*k)->type = KEY_DSA;
-		(*k)->dsa = EVP_PKEY_get1_DSA(pubkey);
-		break;
-#endif
 #ifdef OPENSSL_HAS_ECC
 	case EVP_PKEY_EC:
 		if ((*k = sshkey_new(KEY_UNSPEC)) == NULL)
@@ -817,12 +751,6 @@ do_convert_from(struct passwd *pw)
 			fprintf(stdout, "\n");
 	} else {
 		switch (k->type) {
-#ifdef WITH_DSA
-		case KEY_DSA:
-			ok = PEM_write_DSAPrivateKey(stdout, k->dsa, NULL,
-			    NULL, 0, NULL, NULL);
-			break;
-#endif
 #ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA:
 			ok = PEM_write_ECPrivateKey(stdout,
@@ -3329,7 +3257,7 @@ usage(void)
 	fprintf(stderr,
 	    "usage: ssh-keygen [-q] [-a rounds] [-b bits] [-C comment] [-f output_keyfile]\n"
 	    "                  [-m format] [-N new_passphrase] [-O option]\n"
-	    "                  [-t dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
+	    "                  [-t ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
 	    "                  [-w provider] [-Z cipher]\n"
 	    "       ssh-keygen -p [-a rounds] [-f keyfile] [-m format] [-N new_passphrase]\n"
 	    "                   [-P old_passphrase] [-Z cipher]\n"
@@ -3805,11 +3733,6 @@ main(int argc, char **argv)
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_RSA_KEY_FILE, rr_hostname,
 			    print_generic, opts, nopts);
-#ifdef WITH_DSA
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_DSA_KEY_FILE, rr_hostname,
-			    print_generic, opts, nopts);
-#endif
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_ECDSA_KEY_FILE, rr_hostname,
 			    print_generic, opts, nopts);

@@ -1,4 +1,4 @@
-/* $OpenBSD: dns.c,v 1.44 2023/03/10 04:06:21 dtucker Exp $ */
+/* $OpenBSD: dns.c,v 1.45 2025/05/06 05:40:56 djm Exp $ */
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -87,9 +87,6 @@ dns_read_key(u_int8_t *algorithm, u_int8_t *digest_type,
 	switch (key->type) {
 	case KEY_RSA:
 		*algorithm = SSHFP_KEY_RSA;
-		break;
-	case KEY_DSA:
-		*algorithm = SSHFP_KEY_DSA;
 		break;
 	case KEY_ECDSA:
 		*algorithm = SSHFP_KEY_ECDSA;

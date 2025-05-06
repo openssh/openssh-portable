@@ -3078,7 +3078,6 @@ if test "x$openssl" = "xyes" ; then
 	AC_CHECK_FUNCS([ \
 		BN_is_prime_ex \
 		DES_crypt \
-		DSA_generate_parameters_ex \
 		EVP_DigestSign \
 		EVP_DigestVerify \
 		EVP_DigestFinal_ex \

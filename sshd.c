@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.617 2025/04/07 08:12:22 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.618 2025/05/06 05:40:56 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -1658,7 +1658,6 @@ main(int ac, char **av)
 
 		switch (keytype) {
 		case KEY_RSA:
-		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
 		case KEY_ECDSA_SK:

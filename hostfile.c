@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.98 2025/05/05 02:48:07 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.99 2025/05/06 05:40:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -150,8 +150,8 @@ host_hash(const char *host, const char *name_from_hostfile, u_int src_len)
 }
 
 /*
- * Parses an RSA (number of bits, e, n) or DSA key from a string.  Moves the
- * pointer over the key.  Skips any whitespace at the beginning and at end.
+ * Parses an RSA key from a string. Moves the pointer over the key.
+ * Skips any whitespace at the beginning and at end.
  */
 
 int

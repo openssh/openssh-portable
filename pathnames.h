@@ -1,4 +1,4 @@
-/* $OpenBSD: pathnames.h,v 1.34 2025/05/05 02:48:06 djm Exp $ */
+/* $OpenBSD: pathnames.h,v 1.35 2025/05/06 05:40:56 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,6 @@
  */
 #define _PATH_SERVER_CONFIG_FILE	SSHDIR "/sshd_config"
 #define _PATH_HOST_CONFIG_FILE		SSHDIR "/ssh_config"
-#define _PATH_HOST_DSA_KEY_FILE		SSHDIR "/ssh_host_dsa_key"
 #define _PATH_HOST_ECDSA_KEY_FILE	SSHDIR "/ssh_host_ecdsa_key"
 #define _PATH_HOST_ED25519_KEY_FILE	SSHDIR "/ssh_host_ed25519_key"
 #define _PATH_HOST_XMSS_KEY_FILE	SSHDIR "/ssh_host_xmss_key"
@@ -87,7 +86,6 @@
  * Name of the default file containing client-side authentication key. This
  * file should only be readable by the user him/herself.
  */
-#define _PATH_SSH_CLIENT_ID_DSA		_PATH_SSH_USER_DIR "/id_dsa"
 #define _PATH_SSH_CLIENT_ID_ECDSA	_PATH_SSH_USER_DIR "/id_ecdsa"
 #define _PATH_SSH_CLIENT_ID_RSA		_PATH_SSH_USER_DIR "/id_rsa"
 #define _PATH_SSH_CLIENT_ID_ED25519	_PATH_SSH_USER_DIR "/id_ed25519"
