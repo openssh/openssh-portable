@@ -298,8 +298,10 @@ agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 		goto out;
 	}
 	while ((dp = readdir(d)) != NULL) {
+#ifdef HAVE_DIRENT_D_TYPE
 		if (dp->d_type != DT_SOCK && dp->d_type != DT_UNKNOWN)
 			continue;
+#endif
 		if (fstatat(dirfd(d), dp->d_name,
 		    &sb, AT_SYMLINK_NOFOLLOW) != 0 && errno != ENOENT) {
 			error_f("stat \"%s/%s\": %s",
