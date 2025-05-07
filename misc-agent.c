@@ -266,10 +266,10 @@ socket_is_stale(const char *path)
 void
 agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 {
-	DIR *d;
+	DIR *d = NULL;
 	struct dirent *dp;
 	struct stat sb;
-	char *prefix = NULL, *dirpath, *path;
+	char *prefix = NULL, *dirpath = NULL, *path;
 	struct timespec now, sub, *mtimp = NULL;
 
 	/* Only consider sockets last modified > 1 hour ago */
@@ -295,8 +295,7 @@ agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 	if ((d = opendir(dirpath)) == NULL) {
 		if (errno != ENOENT)
 			error_f("opendir \"%s\": %s", dirpath, strerror(errno));
-		free(dirpath);
-		return;
+		goto out;
 	}
 	while ((dp = readdir(d)) != NULL) {
 		if (dp->d_type != DT_SOCK && dp->d_type != DT_UNKNOWN)
@@ -334,8 +333,9 @@ agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 		}
 		free(path);
 	}
-	closedir(d);
+ out:
+	if (d != NULL)
+		closedir(d);
 	free(dirpath);
 	free(prefix);
 }
-
