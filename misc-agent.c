@@ -226,14 +226,14 @@ static int
 socket_is_stale(const char *path)
 {
 	int fd, r;
-	struct sockaddr_un sun;
+	struct sockaddr_un sunaddr;
 	socklen_t l = sizeof(r);
 
 	/* attempt non-blocking connect on socket */
-	memset(&sun, '\0', sizeof(sun));
-	sun.sun_family = AF_UNIX;
-	if (strlcpy(sun.sun_path, path,
-	    sizeof(sun.sun_path)) >= sizeof(sun.sun_path)) {
+	memset(&sunaddr, '\0', sizeof(sunaddr));
+	sunaddr.sun_family = AF_UNIX;
+	if (strlcpy(sunaddr.sun_path, path,
+	    sizeof(sunaddr.sun_path)) >= sizeof(sunaddr.sun_path)) {
 		debug_f("path for \"%s\" too long for sockaddr_un", path);
 		return 0;
 	}
@@ -243,7 +243,7 @@ socket_is_stale(const char *path)
 	}
 	set_nonblock(fd);
 	/* a socket without a listener should yield an error immediately */
-	if (connect(fd, (struct sockaddr *)&sun, sizeof(sun)) == -1) {
+	if (connect(fd, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) == -1) {
 		debug_f("connect \"%s\": %s", path, strerror(errno));
 		close(fd);
 		return 1;
