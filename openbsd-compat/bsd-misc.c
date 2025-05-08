@@ -158,6 +158,15 @@ utimensat(int fd, const char *path, const struct timespec times[2],
 }
 #endif
 
+#ifndef HAVE_DIRFD
+int
+dirfd(DIR *dir)
+{
+	errno = ENOSYS;
+	return -1;
+}
+#endif
+
 #ifndef HAVE_FCHOWNAT
 /*
  * A limited implementation of fchownat() that only implements the
