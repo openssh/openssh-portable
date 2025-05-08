@@ -160,7 +160,7 @@ utimensat(int fd, const char *path, const struct timespec times[2],
 
 #ifndef HAVE_DIRFD
 int
-dirfd(DIR *dir)
+dirfd(void *dir)
 {
 	errno = ENOSYS;
 	return -1;

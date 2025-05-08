@@ -66,9 +66,7 @@ int utimes(const char *, struct timeval *);
 #endif /* HAVE_UTIMES */
 
 #ifndef HAVE_DIRFD
-#include <sys/types.h>
-#include <dirent.h>
-int dirfd(DIR *);
+int dirfd(void *);
 #endif
 
 #ifndef AT_FDCWD
