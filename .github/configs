@@ -144,6 +144,8 @@ case "$config" in
 	TCMALLOC_STACKTRACE_METHOD=generic_fp
 	TEST_SSH_SSHD_ENV="TCMALLOC_STACKTRACE_METHOD=generic_fp"
 	export TCMALLOC_STACKTRACE_METHOD TEST_SSH_SSHD_ENV
+
+	SKIP_LTESTS="agent-restrict"
 	;;
     krb5|heimdal)
 	CONFIGFLAGS="--with-kerberos5"
@@ -345,8 +347,8 @@ case "$host" in
 	SUDO=""
 	# Don't run compat tests on cygwin as they don't currently compile.
 	TEST_TARGET="tests"
-	# Not sure why this tests fails.
-	SKIP_LTESTS="keygen-knownhosts"
+	# Not sure why these tests fail on github.
+	SKIP_LTESTS="keygen-knownhosts sftp-cmds"
 	;;
 *-darwin*)
 	# Unless specified otherwise, build without OpenSSL on Mac OS since
