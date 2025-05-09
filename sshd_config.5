@@ -1367,11 +1367,11 @@ SSH daemon.
 Additional connections will be dropped until authentication succeeds or the
 .Cm LoginGraceTime
 expires for a connection.
-The default is 10:30:100.
 .Pp
 Alternatively, random early drop can be enabled by specifying
 the three colon separated values
 start:rate:full (e.g. "10:30:60").
+The default is 10:30:100.
 .Xr sshd 8
 will refuse connection attempts with a probability of rate/100 (30%)
 if there are currently start (10) unauthenticated connections.
