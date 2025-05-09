@@ -1,4 +1,4 @@
-/* $OpenBSD: progressmeter.c,v 1.54 2024/09/22 12:56:21 jsg Exp $ */
+/* $OpenBSD: progressmeter.c,v 1.55 2025/05/09 02:42:03 djm Exp $ */
 /*
  * Copyright (c) 2003 Nils Nordman.  All rights reserved.
  *
@@ -132,7 +132,8 @@ refresh_progress_meter(int force_update)
 	int hours, minutes, seconds;
 	int file_len, cols;
 
-	if ((!force_update && !alarm_fired && !win_resized) || !can_output())
+	if (file == NULL || (!force_update && !alarm_fired && !win_resized) ||
+	    !can_output())
 		return;
 	alarm_fired = 0;
 
@@ -276,6 +277,7 @@ stop_progress_meter(void)
 		refresh_progress_meter(1);
 
 	atomicio(vwrite, STDOUT_FILENO, "\n", 1);
+	file = NULL;
 }
 
 static void
