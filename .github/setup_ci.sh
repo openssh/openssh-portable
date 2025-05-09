@@ -192,7 +192,8 @@ while [ ! -z "$PACKAGES" ] && [ "$tries" -gt "0" ]; do
 	fi
 	;;
     setup)
-	if /cygdrive/d/cygwin/setup.exe -q -P `echo "$PACKAGES" | tr ' ' ,`; then
+	setup="/cygdrive/$(echo "${CYGWIN_SETUP}" | tr -d : | tr '\' '/')"
+	if "${setup}" -q -P `echo "$PACKAGES" | tr ' ' ,`; then
 		PACKAGES=""
 	fi
 	;;
