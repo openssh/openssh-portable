@@ -116,7 +116,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	kexgexc.o kexgexs.o \
 	kexsntrup761x25519.o kexmlkem768x25519.o sntrup761.o kexgen.o \
 	sftp-realpath.o platform-pledge.o platform-tracing.o platform-misc.o \
-	sshbuf-io.o
+	sshbuf-io.o misc-agent.o
 
 SKOBJS=	ssh-sk-client.o
 
@@ -140,7 +140,7 @@ SSHD_SESSION_OBJS=sshd-session.o auth-rhosts.o auth-passwd.o \
 	auth2-gss.o gss-serv.o gss-serv-krb5.o \
 	loginrec.o auth-pam.o auth-shadow.o auth-sia.o \
 	sftp-server.o sftp-common.o \
-	uidswap.o platform-listen.o misc-agent.o $(SKOBJS)
+	uidswap.o platform-listen.o $(SKOBJS)
 
 SSHD_AUTH_OBJS=sshd-auth.o \
 	auth2-methods.o \
@@ -155,7 +155,7 @@ SSHD_AUTH_OBJS=sshd-auth.o \
 	sandbox-null.o sandbox-rlimit.o sandbox-darwin.o \
 	sandbox-seccomp-filter.o sandbox-capsicum.o  sandbox-solaris.o \
 	sftp-server.o sftp-common.o \
-	uidswap.o misc-agent.o $(SKOBJS)
+	uidswap.o $(SKOBJS)
 
 SFTP_CLIENT_OBJS=sftp-common.o sftp-client.o sftp-glob.o
 
@@ -163,7 +163,7 @@ SCP_OBJS=	scp.o progressmeter.o $(SFTP_CLIENT_OBJS)
 
 SSHADD_OBJS=	ssh-add.o $(SKOBJS)
 
-SSHAGENT_OBJS=	ssh-agent.o ssh-pkcs11-client.o misc-agent.o $(SKOBJS)
+SSHAGENT_OBJS=	ssh-agent.o ssh-pkcs11-client.o $(SKOBJS)
 
 SSHKEYGEN_OBJS=	ssh-keygen.o sshsig.o $(SKOBJS)
 
