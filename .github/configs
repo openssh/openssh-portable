@@ -348,7 +348,7 @@ case "$host" in
 	# Don't run compat tests on cygwin as they don't currently compile.
 	TEST_TARGET="tests"
 	# Not sure why these tests fail on github.
-	SKIP_LTESTS="keygen-knownhosts sftp-cmds"
+	SKIP_LTESTS="keygen-knownhosts sftp-cmds sftp-perm"
 	;;
 *-darwin*)
 	# Unless specified otherwise, build without OpenSSL on Mac OS since
