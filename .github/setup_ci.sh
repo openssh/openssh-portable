@@ -10,7 +10,7 @@ case "$host" in
 *cygwin)
 	PACKAGER=setup
 	echo Setting CYGWIN system environment variable.
-	setx CYGWIN "binmode winsymlinks:native"
+	setx CYGWIN "winsymlinks:native"
 	echo Removing extended ACLs so umask works as expected.
 	set -x
 	setfacl -b . regress

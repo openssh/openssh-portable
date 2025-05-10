@@ -125,7 +125,7 @@ jobs:
       if: ${{ startsWith(matrix.target, 'windows') }}
       uses: cygwin/cygwin-install-action@master
       env:
-        CYGWIN: "binmode winsymlinks:native"
+        CYGWIN: "winsymlinks:native"
     - uses: actions/checkout@main
     - name: setup CI system
       run: sh ./.github/setup_ci.sh ${{ matrix.config }}
