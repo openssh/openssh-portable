@@ -129,6 +129,9 @@ jobs:
     - name: make tests
       run: vmrun ./.github/run_test.sh ${{ matrix.config }}
       timeout-minutes: 600
+    - name: show logs
+      if: failure()
+      run: vmrun 'for i in regress/failed*.log; do echo ====; echo logfile $i; echo =====; cat $i; done'
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@main

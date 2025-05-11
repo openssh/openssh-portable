@@ -21,18 +21,6 @@ if [ ! -z "$SUDO" ] && [ ! -z "$TEST_SSH_HOSTBASED_AUTH" ]; then
     done
 fi
 
-output_failed_logs() {
-    for i in regress/failed*.log; do
-        if [ -f "$i" ]; then
-            echo -------------------------------------------------------------------------
-            echo LOGFILE $i
-            cat $i
-            echo -------------------------------------------------------------------------
-        fi
-    done
-}
-trap output_failed_logs 0
-
 env=""
 if [ ! -z "${SUDO}" ]; then
     env="${env} SUDO=${SUDO}"
