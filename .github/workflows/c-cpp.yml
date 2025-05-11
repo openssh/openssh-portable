@@ -149,6 +149,9 @@ jobs:
       env:
         TEST_SSH_UNSAFE_PERMISSIONS: 1
         TEST_SSH_HOSTBASED_AUTH: yes
+    - name: show logs
+      if: failure()
+      run: for i in regress/failed*.log; do echo ====; echo logfile $i; echo =====; cat $i; done
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@main
