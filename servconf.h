@@ -120,6 +120,7 @@ typedef struct {
 	int	permit_user_rc;	/* If false, deny ~/.ssh/rc execution */
 	int     strict_modes;	/* If true, require string home dir modes. */
 	int     tcp_keep_alive;	/* If true, set SO_KEEPALIVE. */
+	int     tcp_nodelay;	/* If true, set TCP_NODELAY. */
 	int	ip_qos_interactive;	/* IP ToS/DSCP/class for interactive */
 	int	ip_qos_bulk;		/* IP ToS/DSCP/class for bulk traffic */
 	char   *ciphers;	/* Supported SSH2 ciphers. */
