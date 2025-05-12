@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.47 2024/12/03 08:31:49 djm Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.48 2025/05/12 05:41:20 tb Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -636,8 +636,8 @@ pack_public_key_ecdsa(const fido_cred_t *cred,
 		skdebug(__func__, "BN_bin2bn failed");
 		goto out;
 	}
-	if (EC_POINT_set_affine_coordinates_GFp(g, q, x, y, NULL) != 1) {
-		skdebug(__func__, "EC_POINT_set_affine_coordinates_GFp failed");
+	if (EC_POINT_set_affine_coordinates(g, q, x, y, NULL) != 1) {
+		skdebug(__func__, "EC_POINT_set_affine_coordinates failed");
 		goto out;
 	}
 	response->public_key_len = EC_POINT_point2oct(g, q,

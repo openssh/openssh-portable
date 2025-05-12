@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.149 2025/05/06 05:40:56 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.150 2025/05/12 05:41:20 tb Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2707,8 +2707,7 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 
 	/* log2(x) > log2(order)/2, log2(y) > log2(order)/2 */
 	if (EC_GROUP_get_order(group, order, NULL) != 1 ||
-	    EC_POINT_get_affine_coordinates_GFp(group, public,
-	    x, y, NULL) != 1) {
+	    EC_POINT_get_affine_coordinates(group, public, x, y, NULL) != 1) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
@@ -2792,9 +2791,8 @@ sshkey_dump_ec_point(const EC_GROUP *group, const EC_POINT *point)
 		fprintf(stderr, "%s: BN_new failed\n", __func__);
 		goto out;
 	}
-	if (EC_POINT_get_affine_coordinates_GFp(group, point,
-	    x, y, NULL) != 1) {
-		fprintf(stderr, "%s: EC_POINT_get_affine_coordinates_GFp\n",
+	if (EC_POINT_get_affine_coordinates(group, point, x, y, NULL) != 1) {
+		fprintf(stderr, "%s: EC_POINT_get_affine_coordinates\n",
 		    __func__);
 		goto out;
 	}
