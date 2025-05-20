@@ -60,6 +60,20 @@ void ssh_libcrypto_init(void);
 # define BN_set_flags(a, b)
 #endif
 
+/* LibreSSL <3.4 has the _GFp variants but not the equivalent modern ones. */
+#ifndef HAVE_EC_POINT_GET_AFFINE_COORDINATES
+# ifdef HAVE_EC_POINT_GET_AFFINE_COORDINATES_GFP
+#  define EC_POINT_get_affine_coordinates(a, b, c, d, e) \
+	(EC_POINT_get_affine_coordinates_GFp(a, b, c, d, e))
+# endif
+#endif
+#ifndef HAVE_EC_POINT_SET_AFFINE_COORDINATES
+# ifdef HAVE_EC_POINT_SET_AFFINE_COORDINATES_GFP
+#  define EC_POINT_set_affine_coordinates(a, b, c, d, e) \
+	(EC_POINT_set_affine_coordinates_GFp(a, b, c, d, e))
+# endif
+#endif
+
 #ifndef HAVE_EVP_CIPHER_CTX_GET_IV
 # ifdef HAVE_EVP_CIPHER_CTX_GET_UPDATED_IV
 #  define EVP_CIPHER_CTX_get_iv EVP_CIPHER_CTX_get_updated_iv

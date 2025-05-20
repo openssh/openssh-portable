@@ -3107,6 +3107,10 @@ if test "x$openssl" = "xyes" ; then
 
 	# LibreSSL/OpenSSL API differences
 	AC_CHECK_FUNCS([ \
+		EC_POINT_get_affine_coordinates \
+		EC_POINT_get_affine_coordinates_GFp \
+		EC_POINT_set_affine_coordinates \
+		EC_POINT_set_affine_coordinates_GFp \
 		EVP_CIPHER_CTX_iv \
 		EVP_CIPHER_CTX_iv_noconst \
 		EVP_CIPHER_CTX_get_iv \
