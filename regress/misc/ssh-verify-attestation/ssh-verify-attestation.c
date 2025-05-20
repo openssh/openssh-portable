@@ -70,6 +70,7 @@
 #include <openssl/bio.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>
+#include "openbsd-compat/openssl-compat.h"
 
 extern char *__progname;
 

@@ -49,6 +49,7 @@
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/evp.h>
+#include "openbsd-compat/openssl-compat.h"
 #endif /* WITH_OPENSSL */
 
 #include <fido.h>
