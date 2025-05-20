@@ -128,7 +128,7 @@ jobs:
         CYGWIN: "winsymlinks:native"
     - uses: actions/checkout@main
     - name: setup CI system
-      run: sh ./.github/setup_ci.sh ${{ matrix.config }}
+      run: sh ./.github/setup_ci.sh ${{ matrix.config }} ${{ matrix.target }}
       env:
         CYGWIN_SETUP: ${{ steps.cygwin_install.outputs.setup }}
     - name: autoreconf
