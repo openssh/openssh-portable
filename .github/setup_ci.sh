@@ -1,8 +1,11 @@
 #!/bin/sh
 
+config="$1"
+target="$2"
+
 PACKAGES=""
 
- . .github/configs $@
+ . .github/configs ${config}
 
 host=`./config.guess`
 echo "config.guess: $host"
@@ -32,7 +35,7 @@ case "$host" in
 	PACKAGER=apt
 esac
 
-TARGETS=$@
+TARGETS=${config}
 
 INSTALL_FIDO_PPA="no"
 export DEBIAN_FRONTEND=noninteractive
@@ -289,3 +292,13 @@ if [ ! -z "${INSTALL_PUTTY}" ]; then
     )
     /usr/local/bin/plink -V
 fi
+
+# This is the github "target" as specificed in the yml file.
+case "${target}" in
+ubuntu-latest)
+	echo ubuntu-latest target: setting random password string.
+	pw=$(openssl rand -base64 9)
+	sudo usermod --password "${pw}" runner
+	sudo usermod --unlock runner
+	;;
+esac
