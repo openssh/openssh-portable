@@ -5,6 +5,12 @@ target="$2"
 
 PACKAGES=""
 
+echo Running as:
+id
+
+echo Environment:
+set
+
  . .github/configs ${config}
 
 host=`./config.guess`
