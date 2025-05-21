@@ -1589,9 +1589,11 @@ socks_connect(const char *host, const char *port,
 			errx(1, "connection failed, unsupported address type");
 		}
 	} else if (socksv == 4 || socksv == 44) {
-		/* This will exit on lookup failure */
-		decode_addrport(host, port, (struct sockaddr *)&addr,
-		    sizeof(addr), 1, 0);
+		if (socksv == 4) {
+			/* This will exit on lookup failure */
+			decode_addrport(host, port, (struct sockaddr *)&addr,
+			    sizeof(addr), 1, 0);
+		}
 
 		/* Version 4 */
 		buf[0] = SOCKS_V4;
