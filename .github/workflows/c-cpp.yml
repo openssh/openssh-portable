@@ -115,11 +115,16 @@ jobs:
       if: ${{ startsWith(matrix.target, 'windows') }}
       run: git config --global core.autocrlf input
     - name: install cygwin
+      id: cygwin_install
       if: ${{ startsWith(matrix.target, 'windows') }}
       uses: cygwin/cygwin-install-action@master
+      env:
+        CYGWIN: "winsymlinks:native"
     - uses: actions/checkout@main
     - name: setup CI system
       run: sh ./.github/setup_ci.sh ${{ matrix.config }}
+      env:
+        CYGWIN_SETUP: ${{ steps.cygwin_install.outputs.setup }}
     - name: autoreconf
       run: sh -c autoreconf
     - name: configure
