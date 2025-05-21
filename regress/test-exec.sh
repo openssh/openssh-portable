@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.127 2025/03/28 05:41:15 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.128 2025/05/21 08:36:39 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -535,6 +535,7 @@ save_debug_log ()
 			$SUDO chown -R $USER $logfile
 		fi
 	done
+	test -z "$SUDO" || $SUDO chmod ug+rw $TEST_SSHD_LOGFILE
 	echo $@ >>$TEST_REGRESS_LOGFILE
 	echo $@ >>$TEST_SSH_LOGFILE
 	echo $@ >>$TEST_SSHD_LOGFILE
@@ -542,19 +543,6 @@ save_debug_log ()
 	(cat $TEST_REGRESS_LOGFILE; echo) >>$OBJ/failed-regress.log
 	(cat $TEST_SSH_LOGFILE; echo) >>$OBJ/failed-ssh.log
 	(cat $TEST_SSHD_LOGFILE; echo) >>$OBJ/failed-sshd.log
-
-	# Save all logfiles in a tarball.
-	(cd $OBJ &&
-	  logfiles=""
-	  for i in $TEST_REGRESS_LOGFILE $TEST_SSH_LOGFILE $TEST_SSHD_LOGFILE \
-	    $TEST_SSH_LOGDIR; do
-		if [ -e "`basename $i`" ]; then
-			logfiles="$logfiles `basename $i`"
-		else
-			logfiles="$logfiles $i"
-		fi
-	  done
-	  tar cf "$tarname" $logfiles)
 }
 
 trace ()
