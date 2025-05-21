@@ -185,6 +185,8 @@ main(int argc, char *argv[])
 				socksv = -1; /* HTTP proxy CONNECT */
 			else if (strcmp(optarg, "4") == 0)
 				socksv = 4; /* SOCKS v.4 */
+			else if (strcasecmp(optarg, "4A") == 0)
+				socksv = 44; /* SOCKS v.4A */
 			else if (strcmp(optarg, "5") == 0)
 				socksv = 5; /* SOCKS v.5 */
 			else
@@ -1586,7 +1588,7 @@ socks_connect(const char *host, const char *port,
 		default:
 			errx(1, "connection failed, unsupported address type");
 		}
-	} else if (socksv == 4) {
+	} else if (socksv == 4 || socksv == 44) {
 		/* This will exit on lookup failure */
 		decode_addrport(host, port, (struct sockaddr *)&addr,
 		    sizeof(addr), 1, 0);
@@ -1595,10 +1597,22 @@ socks_connect(const char *host, const char *port,
 		buf[0] = SOCKS_V4;
 		buf[1] = SOCKS_CONNECT;	/* connect */
 		memcpy(buf + 2, &in4->sin_port, sizeof in4->sin_port);
-		memcpy(buf + 4, &in4->sin_addr, sizeof in4->sin_addr);
+		if (socksv == 4) {
+			memcpy(buf + 4, &in4->sin_addr, sizeof in4->sin_addr);
+		} else {
+			/* SOCKS4A uses addr of 0.0.0.x, and hostname later */
+			buf[4] = buf[5] = buf[6] = 0;
+			buf[7] = 1;
+		}
 		buf[8] = 0;	/* empty username */
 		wlen = 9;
-
+		if (socksv == 44) {
+			/* SOCKS4A has nul-terminated hostname after user */
+			if (strlcpy(buf + 9, host,
+			    sizeof(buf) - 9) >= sizeof(buf) - 9)
+				errx(1, "hostname too big");
+			wlen = 9 + strlen(host) + 1;
+		}
 		cnt = atomicio(vwrite, proxyfd, buf, wlen);
 		if (cnt != wlen)
 			err(1, "write failed (%zu/%zu)", cnt, wlen);
