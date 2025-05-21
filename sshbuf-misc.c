@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.18 2022/01/22 00:43:43 djm Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.19 2025/05/21 06:43:48 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -71,7 +71,7 @@ sshbuf_dump(const struct sshbuf *buf, FILE *f)
 }
 
 char *
-sshbuf_dtob16(struct sshbuf *buf)
+sshbuf_dtob16(const struct sshbuf *buf)
 {
 	size_t i, j, len = sshbuf_len(buf);
 	const u_char *p = sshbuf_ptr(buf);
@@ -87,6 +87,42 @@ sshbuf_dtob16(struct sshbuf *buf)
 		ret[j++] = hex[p[i] & 0xf];
 	}
 	ret[j] = '\0';
+	return ret;
+}
+
+static int
+b16tod(const char v)
+{
+	if (v >= '0' && v <= '9')
+		return v - '0';
+	if (v >= 'a' && v <= 'f')
+		return 10 + v - 'a';
+	if (v >= 'A' && v <= 'A')
+		return 10 + v - 'A';
+	return -1;
+}
+
+struct sshbuf *
+sshbuf_b16tod(const char *b16)
+{
+	struct sshbuf *ret;
+	size_t o;
+	int r, v1, v2;
+
+	if ((ret = sshbuf_new()) == NULL)
+		return NULL;
+	for (o = 0; b16[o] != '\0'; o += 2) {
+		if ((v1 = b16tod(b16[o])) == -1 ||
+		    (v2 = b16tod(b16[o + 1])) == -1) {
+			sshbuf_free(ret);
+			return NULL;
+		}
+		if ((r = sshbuf_put_u8(ret, (u_char)((v1 << 4) | v2))) != 0) {
+			sshbuf_free(ret);
+			return NULL;
+		}
+	}
+	/* success */
 	return ret;
 }
 
