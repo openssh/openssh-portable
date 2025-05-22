@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.425 2025/02/25 06:25:30 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.426 2025/05/22 04:22:03 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1282,8 +1282,8 @@ static const struct multistate multistate_addressfamily[] = {
 	{ NULL, -1 }
 };
 static const struct multistate multistate_permitrootlogin[] = {
-	{ "without-password",		PERMIT_NO_PASSWD },
 	{ "prohibit-password",		PERMIT_NO_PASSWD },
+	{ "without-password",		PERMIT_NO_PASSWD },
 	{ "forced-commands-only",	PERMIT_FORCED_ONLY },
 	{ "yes",			PERMIT_YES },
 	{ "no",				PERMIT_NO },
