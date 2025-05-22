@@ -160,8 +160,4 @@ jobs:
         path: |
           config.h
           config.log
-          regress/*.log
-          regress/valgrind-out/
-          regress/asan.log.*
-          regress/msan.log.*
-          regress/log/*
+          regress/
