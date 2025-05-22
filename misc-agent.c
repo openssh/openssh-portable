@@ -1,3 +1,4 @@
+/* $OpenBSD: misc-agent.c,v 1.4 2025/05/22 03:41:10 dtucker Exp $ */
 /*
  * Copyright (c) 2025 Damien Miller <djm@mindrot.org>
  *
