@@ -43,7 +43,9 @@ jobs:
       run: sshfs_mount
       working-directory: ${{ runner.temp }}
     - name: update source
-      run: vmrun "cd /usr/src && cvs up -dPA usr.bin/ssh regress/usr.bin/ssh"
+      run: vmrun "cd /usr/src && cvs up -dPA {regress/,}usr.bin/{ssh,nc}"
+    - name: install netcat
+      run: vmrun "cd /usr/src/usr.bin/nc && make obj clean nc && sudo make install"
     - name: make clean
       run: vmrun "cd /usr/src/usr.bin/ssh && make obj && make clean && cd /usr/src/regress/usr.bin/ssh && make obj && make clean && sudo chmod -R g-w /usr/src /usr/obj"
     - name: make
