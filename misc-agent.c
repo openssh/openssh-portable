@@ -264,13 +264,20 @@ socket_is_stale(const char *path)
 	return 0;
 }
 
+#ifndef HAVE_FSTATAT
+# define fstatat(x, y, buf, z) lstat(path, buf)
+#endif
+#ifndef HAVE_UNLINKAT
+# define unlinkat(x, y, z) unlink(path)
+#endif
+
 void
 agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 {
 	DIR *d = NULL;
 	struct dirent *dp;
 	struct stat sb;
-	char *prefix = NULL, *dirpath = NULL, *path;
+	char *prefix = NULL, *dirpath = NULL, *path = NULL;
 	struct timespec now, sub, *mtimp = NULL;
 
 	/* Only consider sockets last modified > 1 hour ago */
@@ -290,6 +297,7 @@ agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 		}
 		xasprintf(&prefix, "s.%s.", path);
 		free(path);
+		path = NULL;
 	}
 
 	xasprintf(&dirpath, "%s/%s", homedir, _PATH_SSH_AGENT_SOCKET_DIR);
@@ -298,7 +306,11 @@ agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 			error_f("opendir \"%s\": %s", dirpath, strerror(errno));
 		goto out;
 	}
+
+	path = NULL;
 	while ((dp = readdir(d)) != NULL) {
+		free(path);
+		xasprintf(&path, "%s/%s", dirpath, dp->d_name);
 #ifdef HAVE_DIRENT_D_TYPE
 		if (dp->d_type != DT_SOCK && dp->d_type != DT_UNKNOWN)
 			continue;
@@ -329,16 +341,18 @@ agent_cleanup_stale(const char *homedir, int ignore_hosthash)
 			    "from different host", dirpath, dp->d_name);
 			continue;
 		}
-		xasprintf(&path, "%s/%s", dirpath, dp->d_name);
 		if (socket_is_stale(path)) {
 			debug_f("cleanup stale socket %s", path);
 			unlinkat(dirfd(d), dp->d_name, 0);
 		}
-		free(path);
 	}
  out:
 	if (d != NULL)
 		closedir(d);
+	free(path);
 	free(dirpath);
 	free(prefix);
 }
+
+#undef unlinkat
+#undef fstatat
