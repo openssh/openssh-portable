@@ -1,4 +1,4 @@
-/* $OpenBSD: misc-agent.c,v 1.4 2025/05/22 03:41:10 dtucker Exp $ */
+/* $OpenBSD: misc-agent.c,v 1.5 2025/05/22 12:14:19 dtucker Exp $ */
 /*
  * Copyright (c) 2025 Damien Miller <djm@mindrot.org>
  *
@@ -59,7 +59,7 @@ hostname_hash(size_t len)
 
 	l = ssh_digest_bytes(SSH_DIGEST_SHA512);
 	if (len > 64) {
-		error_f("bad length %zu > max %zd", len, l - 1);
+		error_f("bad length %zu >= max %zd", len, l);
 		return NULL;
 	}
 	if (gethostname(hostname, sizeof(hostname)) == -1) {
