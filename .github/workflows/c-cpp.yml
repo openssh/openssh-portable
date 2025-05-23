@@ -111,12 +111,12 @@ jobs:
           - { target: macos-15, config: pam }
     runs-on: ${{ matrix.target }}
     steps:
-    - name: check RUN_ONLY_TEST
-      # For testing, you can set the repo variable RUN_ONLY_TEST in your repo
-      # (Repo -> Settings -> Security -> Actions -> Variables) to run only
-      # that test config.
-      if: vars.RUN_ONLY_TEST != ''
-      run: sh -c 'if [ "${{ vars.RUN_ONLY_TEST }}" != "${{ matrix.target }} ${{matrix.config }}" ]; then exit 1; else exit 0; fi'
+    - name: check RUN_ONLY_TARGET_CONFIG
+      # For testing, you can set the repo variable RUN_ONLY_TARGET_CONFIG in
+      # your repo (Repo -> Settings -> Security -> Actions -> Variables) to
+      # run only that test config, eg "ubuntu-latest default".
+      if: vars.RUN_ONLY_TARGET_CONFIG != ''
+      run: sh -c 'if [ "${{ vars.RUN_ONLY_TARGET_CONFIG }}" != "${{ matrix.target }} ${{matrix.config }}" ]; then exit 1; else exit 0; fi'
     - name: set cygwin git params
       if: ${{ startsWith(matrix.target, 'windows') }}
       run: git config --global core.autocrlf input
