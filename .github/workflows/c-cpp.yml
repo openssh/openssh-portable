@@ -152,6 +152,9 @@ jobs:
     - name: show logs
       if: failure()
       run: for i in regress/failed*.log; do echo ====; echo logfile $i; echo =====; cat $i; done
+    - name: chown logs
+      if: failure()
+      run: test -x "$(which sudo 2>&1)" && sudo chown -R "${LOGNAME}" regress
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@main
