@@ -1,5 +1,15 @@
 name: C/C++ CI
 
+# For testing, you can set variables in your repo (Repo -> Settings ->
+# Security -> Actions -> Variables) to restrict the tests that are run.
+# The supported variables are:
+#
+# RUN_ONLY_TARGET_CONFIG: Run only the single matching target and config,
+#   separated by spaces, eg "ubuntu-latest default".  All other tests will
+#   fail immediately.
+#
+# LTESTS: Override the set of tests run.
+
 on:
   push:
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/workflows/c-cpp.yml' ]
@@ -112,9 +122,6 @@ jobs:
     runs-on: ${{ matrix.target }}
     steps:
     - name: check RUN_ONLY_TARGET_CONFIG
-      # For testing, you can set the repo variable RUN_ONLY_TARGET_CONFIG in
-      # your repo (Repo -> Settings -> Security -> Actions -> Variables) to
-      # run only that test config, eg "ubuntu-latest default".
       if: vars.RUN_ONLY_TARGET_CONFIG != ''
       run: sh -c 'if [ "${{ vars.RUN_ONLY_TARGET_CONFIG }}" != "${{ matrix.target }} ${{matrix.config }}" ]; then exit 1; else exit 0; fi'
     - name: set cygwin git params
@@ -149,6 +156,7 @@ jobs:
       env:
         TEST_SSH_UNSAFE_PERMISSIONS: 1
         TEST_SSH_HOSTBASED_AUTH: yes
+        LTESTS: ${{ vars.LTESTS }}
     - name: show logs
       if: failure()
       run: for i in regress/failed*.log; do echo ====; echo logfile $i; echo =====; cat $i; done

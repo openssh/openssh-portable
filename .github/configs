@@ -13,6 +13,10 @@ if [ "$config" = "" ]; then
 	config="default"
 fi
 
+if [ ! -z "${LTESTS}" ]; then
+	OVERRIDE_LTESTS="${LTESTS}"
+fi
+
 unset CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
 
 TEST_TARGET="tests compat-tests"
@@ -392,6 +396,11 @@ CONFIGFLAGS="${CONFIGFLAGS} ${LIBCRYPTOFLAGS}"
 if [ -x "$(which plink 2>/dev/null)" ]; then
 	REGRESS_INTEROP_PUTTY=yes
 	export REGRESS_INTEROP_PUTTY
+fi
+
+if [ ! -z "${OVERRIDE_LTESTS}" ]; then
+	echo >&2 "Overriding LTESTS, was '${LTESTS}', now '${OVERRIDE_LTESTS}'"
+	LTESTS="${OVERRIDE_LTESTS}"
 fi
 
 export CC CFLAGS CPPFLAGS LDFLAGS LTESTS SUDO
