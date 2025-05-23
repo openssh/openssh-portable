@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.478 2025/05/06 05:40:56 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.479 2025/05/23 12:52:45 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1454,13 +1454,14 @@ do_print_resource_record(struct passwd *pw, char *fname, char *hname,
 {
 	struct sshkey *public;
 	char *comment = NULL;
+	const char *p;
 	struct stat st;
 	int r, hash = -1;
 	size_t i;
 
 	for (i = 0; i < nopts; i++) {
-		if (strncasecmp(opts[i], "hashalg=", 8) == 0) {
-			if ((hash = ssh_digest_alg_by_name(opts[i] + 8)) == -1)
+		if ((p = strprefix(opts[i], "hashalg=", 1)) != NULL) {
+			if ((hash = ssh_digest_alg_by_name(p)) == -1)
 				fatal("Unsupported hash algorithm");
 		} else {
 			error("Invalid option \"%s\"", opts[i]);
@@ -1970,6 +1971,7 @@ static void
 add_cert_option(char *opt)
 {
 	char *val, *cp;
+	const char *p;
 	int iscrit = 0;
 
 	if (strcasecmp(opt, "clear") == 0)
@@ -2002,24 +2004,22 @@ add_cert_option(char *opt)
 		certflags_flags &= ~CERTOPT_REQUIRE_VERIFY;
 	else if (strcasecmp(opt, "verify-required") == 0)
 		certflags_flags |= CERTOPT_REQUIRE_VERIFY;
-	else if (strncasecmp(opt, "force-command=", 14) == 0) {
-		val = opt + 14;
-		if (*val == '\0')
+	else if ((p = strprefix(opt, "force-command=", 1)) != NULL) {
+		if (*p == '\0')
 			fatal("Empty force-command option");
 		if (certflags_command != NULL)
 			fatal("force-command already specified");
-		certflags_command = xstrdup(val);
-	} else if (strncasecmp(opt, "source-address=", 15) == 0) {
-		val = opt + 15;
-		if (*val == '\0')
+		certflags_command = xstrdup(p);
+	} else if ((p = strprefix(opt, "source-address=", 1)) != NULL) {
+		if (*p == '\0')
 			fatal("Empty source-address option");
 		if (certflags_src_addr != NULL)
 			fatal("source-address already specified");
-		if (addr_match_cidr_list(NULL, val) != 0)
+		if (addr_match_cidr_list(NULL, p) != 0)
 			fatal("Invalid source-address list");
-		certflags_src_addr = xstrdup(val);
-	} else if (strncasecmp(opt, "extension:", 10) == 0 ||
-		    (iscrit = (strncasecmp(opt, "critical:", 9) == 0))) {
+		certflags_src_addr = xstrdup(p);
+	} else if (strprefix(opt, "extension:", 1) != NULL ||
+		    (iscrit = (strprefix(opt, "critical:", 1) != NULL))) {
 		val = xstrdup(strchr(opt, ':') + 1);
 		if ((cp = strchr(val, '=')) != NULL)
 			*cp++ = '\0';
@@ -2206,9 +2206,8 @@ hash_to_blob(const char *cp, u_char **blobp, size_t *lenp,
 	struct sshbuf *b;
 	int r;
 
-	if (strncmp(cp, "SHA256:", 7) != 0)
+	if ((cp = strprefix(cp, "SHA256:", 0)) == NULL)
 		fatal("%s:%lu: unsupported hash algorithm", file, lnum);
-	cp += 7;
 
 	/*
 	 * OpenSSH base64 hashes omit trailing '='
@@ -2633,6 +2632,7 @@ sig_process_opts(char * const *opts, size_t nopts, char **hashalgp,
 {
 	size_t i;
 	time_t now;
+	const char *p;
 
 	if (verify_timep != NULL)
 		*verify_timep = 0;
@@ -2642,12 +2642,12 @@ sig_process_opts(char * const *opts, size_t nopts, char **hashalgp,
 		*hashalgp = NULL;
 	for (i = 0; i < nopts; i++) {
 		if (hashalgp != NULL &&
-		    strncasecmp(opts[i], "hashalg=", 8) == 0) {
-			*hashalgp = xstrdup(opts[i] + 8);
+		    (p = strprefix(opts[i], "hashalg=", 1)) != NULL) {
+			*hashalgp = xstrdup(p);
 		} else if (verify_timep &&
-		    strncasecmp(opts[i], "verify-time=", 12) == 0) {
-			if (parse_absolute_time(opts[i] + 12,
-			    verify_timep) != 0 || *verify_timep == 0) {
+		    (p = strprefix(opts[i], "verify-time=", 1)) != NULL) {
+			if (parse_absolute_time(p, verify_timep) != 0 ||
+			    *verify_timep == 0) {
 				error("Invalid \"verify-time\" option");
 				return SSH_ERR_INVALID_ARGUMENT;
 			}
@@ -2928,24 +2928,22 @@ do_moduli_gen(const char *out_file, char **opts, size_t nopts)
 	int moduli_bits = 0;
 	FILE *out;
 	size_t i;
-	const char *errstr;
+	const char *errstr, *p;
 
 	/* Parse options */
 	for (i = 0; i < nopts; i++) {
-		if (strncmp(opts[i], "memory=", 7) == 0) {
-			memory = (u_int32_t)strtonum(opts[i]+7, 1,
-			    UINT_MAX, &errstr);
+		if ((p = strprefix(opts[i], "memory=", 0)) != NULL) {
+			memory = (u_int32_t)strtonum(p, 1, UINT_MAX, &errstr);
 			if (errstr) {
 				fatal("Memory limit is %s: %s",
 				    errstr, opts[i]+7);
 			}
-		} else if (strncmp(opts[i], "start=", 6) == 0) {
+		} else if ((p = strprefix(opts[i], "start=", 0)) != NULL) {
 			/* XXX - also compare length against bits */
-			if (BN_hex2bn(&start, opts[i]+6) == 0)
+			if (BN_hex2bn(&start, p) == 0)
 				fatal("Invalid start point.");
-		} else if (strncmp(opts[i], "bits=", 5) == 0) {
-			moduli_bits = (int)strtonum(opts[i]+5, 1,
-			    INT_MAX, &errstr);
+		} else if ((p = strprefix(opts[i], "bits=", 0)) != NULL) {
+			moduli_bits = (int)strtonum(p, 1, INT_MAX, &errstr);
 			if (errstr) {
 				fatal("Invalid number: %s (%s)",
 					opts[i]+12, errstr);
@@ -2984,30 +2982,27 @@ do_moduli_screen(const char *out_file, char **opts, size_t nopts)
 	int prime_tests = 0;
 	FILE *out, *in = stdin;
 	size_t i;
-	const char *errstr;
+	const char *errstr, *p;
 
 	/* Parse options */
 	for (i = 0; i < nopts; i++) {
-		if (strncmp(opts[i], "lines=", 6) == 0) {
-			lines_to_process = strtoul(opts[i]+6, NULL, 10);
-		} else if (strncmp(opts[i], "start-line=", 11) == 0) {
-			start_lineno = strtoul(opts[i]+11, NULL, 10);
-		} else if (strncmp(opts[i], "checkpoint=", 11) == 0) {
+		if ((p = strprefix(opts[i], "lines=", 0)) != NULL) {
+			lines_to_process = strtoul(p, NULL, 10);
+		} else if ((p = strprefix(opts[i], "start-line=", 0)) != NULL) {
+			start_lineno = strtoul(p, NULL, 10);
+		} else if ((p = strprefix(opts[i], "checkpoint=", 0)) != NULL) {
 			free(checkpoint);
-			checkpoint = xstrdup(opts[i]+11);
-		} else if (strncmp(opts[i], "generator=", 10) == 0) {
-			generator_wanted = (u_int32_t)strtonum(
-			    opts[i]+10, 1, UINT_MAX, &errstr);
+			checkpoint = xstrdup(p);
+		} else if ((p = strprefix(opts[i], "generator=", 0)) != NULL) {
+			generator_wanted = (u_int32_t)strtonum(p, 1, UINT_MAX,
+			    &errstr);
 			if (errstr != NULL) {
-				fatal("Generator invalid: %s (%s)",
-				    opts[i]+10, errstr);
+				fatal("Generator invalid: %s (%s)", p, errstr);
 			}
-		} else if (strncmp(opts[i], "prime-tests=", 12) == 0) {
-			prime_tests = (int)strtonum(opts[i]+12, 1,
-			    INT_MAX, &errstr);
+		} else if ((p = strprefix(opts[i], "prime-tests=", 0)) != NULL) {
+			prime_tests = (int)strtonum(p, 1, INT_MAX, &errstr);
 			if (errstr) {
-				fatal("Invalid number: %s (%s)",
-					opts[i]+12, errstr);
+				fatal("Invalid number: %s (%s)", p, errstr);
 			}
 		} else {
 			fatal("Option \"%s\" is unsupported for moduli "
@@ -3090,13 +3085,14 @@ static char *
 sk_suffix(const char *application, const uint8_t *user, size_t userlen)
 {
 	char *ret, *cp;
+	const char *p;
 	size_t slen, i;
 
 	/* Trim off URL-like preamble */
-	if (strncmp(application, "ssh://", 6) == 0)
-		ret =  xstrdup(application + 6);
-	else if (strncmp(application, "ssh:", 4) == 0)
-		ret =  xstrdup(application + 4);
+	if ((p = strprefix(application, "ssh://", 0)) != NULL)
+		ret =  xstrdup(p);
+	else if ((p = strprefix(application, "ssh:", 0)) != NULL)
+		ret =  xstrdup(p);
 	else
 		ret = xstrdup(application);
 
@@ -3325,7 +3321,7 @@ main(int argc, char **argv)
 	size_t i, nopts = 0;
 	u_int32_t bits = 0;
 	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
-	const char *errstr;
+	const char *errstr, *p;
 	int log_level = SYSLOG_LEVEL_INFO;
 	char *sign_op = NULL;
 
@@ -3560,7 +3556,7 @@ main(int argc, char **argv)
 	argc -= optind;
 
 	if (sign_op != NULL) {
-		if (strncmp(sign_op, "find-principals", 15) == 0) {
+		if (strprefix(sign_op, "find-principals", 0) != NULL) {
 			if (ca_key_path == NULL) {
 				error("Too few arguments for find-principals:"
 				    "missing signature file");
@@ -3573,7 +3569,7 @@ main(int argc, char **argv)
 			}
 			return sig_find_principals(ca_key_path, identity_file,
 			    opts, nopts);
-		} else if (strncmp(sign_op, "match-principals", 16) == 0) {
+		} else if (strprefix(sign_op, "match-principals", 0) != NULL) {
 			if (!have_identity) {
 				error("Too few arguments for match-principals:"
 				    "missing allowed keys file");
@@ -3586,7 +3582,7 @@ main(int argc, char **argv)
 			}
 			return sig_match_principals(identity_file, cert_key_id,
 			    opts, nopts);
-		} else if (strncmp(sign_op, "sign", 4) == 0) {
+		} else if (strprefix(sign_op, "sign", 0) != NULL) {
 			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
 			    *cert_principals == '\0') {
@@ -3601,7 +3597,7 @@ main(int argc, char **argv)
 			}
 			return sig_sign(identity_file, cert_principals,
 			    prefer_agent, argc, argv, opts, nopts);
-		} else if (strncmp(sign_op, "check-novalidate", 16) == 0) {
+		} else if (strprefix(sign_op, "check-novalidate", 0) != NULL) {
 			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
 			    *cert_principals == '\0') {
@@ -3616,7 +3612,7 @@ main(int argc, char **argv)
 			}
 			return sig_verify(ca_key_path, cert_principals,
 			    NULL, NULL, NULL, opts, nopts);
-		} else if (strncmp(sign_op, "verify", 6) == 0) {
+		} else if (strprefix(sign_op, "verify", 0) != NULL) {
 			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
 			    *cert_principals == '\0') {
@@ -3693,8 +3689,8 @@ main(int argc, char **argv)
 		do_download(pw);
 	if (download_sk) {
 		for (i = 0; i < nopts; i++) {
-			if (strncasecmp(opts[i], "device=", 7) == 0) {
-				sk_device = xstrdup(opts[i] + 7);
+			if ((p = strprefix(opts[i], "device=", 1)) != NULL) {
+				sk_device = xstrdup(p);
 			} else {
 				fatal("Option \"%s\" is unsupported for "
 				    "FIDO authenticator download", opts[i]);
@@ -3787,16 +3783,18 @@ main(int argc, char **argv)
 				sk_flags |= SSH_SK_USER_VERIFICATION_REQD;
 			} else if (strcasecmp(opts[i], "resident") == 0) {
 				sk_flags |= SSH_SK_RESIDENT_KEY;
-			} else if (strncasecmp(opts[i], "device=", 7) == 0) {
-				sk_device = xstrdup(opts[i] + 7);
-			} else if (strncasecmp(opts[i], "user=", 5) == 0) {
-				sk_user = xstrdup(opts[i] + 5);
-			} else if (strncasecmp(opts[i], "challenge=", 10) == 0) {
-				if ((r = sshbuf_load_file(opts[i] + 10,
+			} else if ((p = strprefix(opts[i], "device=", 1))
+			    != NULL ) {
+				sk_device = xstrdup(p);
+			} else if ((p = strprefix(opts[i], "user=", 1))
+			    != NULL) {
+				sk_user = xstrdup(p);
+			} else if ((p = strprefix(opts[i], "challenge=", 1))
+			    != NULL) {
+				if ((r = sshbuf_load_file(p,
 				    &challenge)) != 0) {
 					fatal_r(r, "Unable to load FIDO "
-					    "enrollment challenge \"%s\"",
-					    opts[i] + 10);
+					    "enrollment challenge \"%s\"", p);
 				}
 			} else if (strncasecmp(opts[i],
 			    "write-attestation=", 18) == 0) {
