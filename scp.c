@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.263 2025/03/28 06:04:07 dtucker Exp $ */
+/* $OpenBSD: scp.c,v 1.264 2025/05/23 09:26:25 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1224,6 +1224,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 out:
 	if (mode == MODE_SFTP)
 		free(conn);
+	freeargs(&alist);
 	free(tuser);
 	free(thost);
 	free(targ);
@@ -1306,6 +1307,7 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 		(void) close(remin);
 		remin = remout = -1;
 	}
+	freeargs(&alist);
 	free(suser);
 	free(host);
 	free(src);
