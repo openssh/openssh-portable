@@ -40,6 +40,8 @@ fb39324748824cb0387e9d67c41d1bef945c54ea	Makefile change
 a959fc45ea3431b36f52eda04faefc58bcde00db	groupaccess.c changes
 6d07e4606997e36b860621a14dd41975f2902f8f	Makefile.inc
 c7246a6b519ac390ca550719f91acfdaef1fa0f0	Makefile relink change
+ef7ecdb6dd2542f42fa7236d17ac0b144851f0b5	ssh-keygen, fixup'ed into 21682417
+da414a364c25b187fc686da7aacec2c35d29238a	ssh-keygen, fixup'ed into 21682417
 
 Old upstream tree:
 
