@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.29 2025/05/06 06:05:48 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.30 2025/05/24 06:50:28 dtucker Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -560,6 +560,7 @@ sshkey_benchmarks(void)
 	ASSERT_INT_EQ(sshkey_generate(KEY_RSA, 1024, &k), 0);
 	ASSERT_PTR_NE(k, NULL);
 	sshkey_free(k);
+	k = NULL;
 	TEST_DONE();
 	BENCH_FINISH("keys");
 
@@ -568,15 +569,16 @@ sshkey_benchmarks(void)
 	ASSERT_INT_EQ(sshkey_generate(KEY_RSA, 2048, &k), 0);
 	ASSERT_PTR_NE(k, NULL);
 	sshkey_free(k);
+	k = NULL;
 	TEST_DONE();
 	BENCH_FINISH("keys");
-
 
 	BENCH_START("generate ECDSA-256");
 	TEST_START("generate KEY_ECDSA");
 	ASSERT_INT_EQ(sshkey_generate(KEY_ECDSA, 256, &k), 0);
 	ASSERT_PTR_NE(k, NULL);
 	sshkey_free(k);
+	k = NULL;
 	TEST_DONE();
 	BENCH_FINISH("keys");
 
@@ -585,6 +587,7 @@ sshkey_benchmarks(void)
 	ASSERT_INT_EQ(sshkey_generate(KEY_ECDSA, 384, &k), 0);
 	ASSERT_PTR_NE(k, NULL);
 	sshkey_free(k);
+	k = NULL;
 	TEST_DONE();
 	BENCH_FINISH("keys");
 
@@ -593,6 +596,7 @@ sshkey_benchmarks(void)
 	ASSERT_INT_EQ(sshkey_generate(KEY_ECDSA, 521, &k), 0);
 	ASSERT_PTR_NE(k, NULL);
 	sshkey_free(k);
+	k = NULL;
 	TEST_DONE();
 	BENCH_FINISH("keys");
 #endif /* WITH_OPENSSL */
@@ -602,6 +606,7 @@ sshkey_benchmarks(void)
 	ASSERT_INT_EQ(sshkey_generate(KEY_ED25519, 256, &k), 0);
 	ASSERT_PTR_NE(k, NULL);
 	sshkey_free(k);
+	k = NULL;
 	TEST_DONE();
 	BENCH_FINISH("keys");
 
