@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.443 2025/05/24 08:09:32 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.444 2025/05/24 11:41:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -4677,8 +4677,7 @@ connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
 		 * channel_connect_ctx_free() must check ai_family
 		 * and use free() not freeaddirinfo() for AF_UNIX.
 		 */
-		ai = xmalloc(sizeof(*ai) + sizeof(*sunaddr));
-		memset(ai, 0, sizeof(*ai) + sizeof(*sunaddr));
+		ai = xcalloc(1, sizeof(*ai) + sizeof(*sunaddr));
 		ai->ai_addr = (struct sockaddr *)(ai + 1);
 		ai->ai_addrlen = sizeof(*sunaddr);
 		ai->ai_family = AF_UNIX;
