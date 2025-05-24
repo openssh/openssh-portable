@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.479 2025/05/23 12:52:45 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.480 2025/05/24 02:01:28 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2935,8 +2935,7 @@ do_moduli_gen(const char *out_file, char **opts, size_t nopts)
 		if ((p = strprefix(opts[i], "memory=", 0)) != NULL) {
 			memory = (u_int32_t)strtonum(p, 1, UINT_MAX, &errstr);
 			if (errstr) {
-				fatal("Memory limit is %s: %s",
-				    errstr, opts[i]+7);
+				fatal("Memory limit is %s: %s", errstr, p);
 			}
 		} else if ((p = strprefix(opts[i], "start=", 0)) != NULL) {
 			/* XXX - also compare length against bits */
@@ -2945,8 +2944,7 @@ do_moduli_gen(const char *out_file, char **opts, size_t nopts)
 		} else if ((p = strprefix(opts[i], "bits=", 0)) != NULL) {
 			moduli_bits = (int)strtonum(p, 1, INT_MAX, &errstr);
 			if (errstr) {
-				fatal("Invalid number: %s (%s)",
-					opts[i]+12, errstr);
+				fatal("Invalid number: %s (%s)", p, errstr);
 			}
 		} else {
 			fatal("Option \"%s\" is unsupported for moduli "
