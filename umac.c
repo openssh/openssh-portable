@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.25 2025/05/23 11:54:50 dtucker Exp $ */
+/* $OpenBSD: umac.c,v 1.26 2025/05/24 02:33:33 dtucker Exp $ */
 /* -----------------------------------------------------------------------
  *
  * umac.c -- C Implementation UMAC Message Authentication
@@ -1092,7 +1092,7 @@ static int uhash_update(uhash_ctx_t ctx, const u_char *input, long len)
          }
 
          /* pass remaining < L1_KEY_LEN bytes of input data to NH */
-         if (len > 0 && len <= UINT32_MAX) {
+         if (len > 0 && (unsigned long)len <= UINT32_MAX) {
              nh_update(&ctx->hash, (const UINT8 *)input, len);
              ctx->msg_len += len;
          }
