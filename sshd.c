@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.618 2025/05/06 05:40:56 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.619 2025/05/24 06:43:37 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -1169,6 +1169,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 				send_rexec_state(config_s[0]);
 				close(config_s[0]);
 				free(pfd);
+				free(startup_pollfd);
 				return;
 			}
 
@@ -1201,6 +1202,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 				    log_stderr);
 				close(config_s[0]);
 				free(pfd);
+				free(startup_pollfd);
 				return;
 			}
 
