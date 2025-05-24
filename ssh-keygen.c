@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.480 2025/05/24 02:01:28 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.481 2025/05/24 03:37:40 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -166,7 +166,7 @@ static char hostname[NI_MAXHOST];
 
 #ifdef WITH_OPENSSL
 /* moduli.c */
-int gen_candidates(FILE *, u_int32_t, u_int32_t, BIGNUM *);
+int gen_candidates(FILE *, u_int32_t, BIGNUM *);
 int prime_test(FILE *, FILE *, u_int32_t, u_int32_t, char *, unsigned long,
     unsigned long);
 #endif
@@ -2923,7 +2923,6 @@ do_moduli_gen(const char *out_file, char **opts, size_t nopts)
 {
 #ifdef WITH_OPENSSL
 	/* Moduli generation/screening */
-	u_int32_t memory = 0;
 	BIGNUM *start = NULL;
 	int moduli_bits = 0;
 	FILE *out;
@@ -2932,12 +2931,7 @@ do_moduli_gen(const char *out_file, char **opts, size_t nopts)
 
 	/* Parse options */
 	for (i = 0; i < nopts; i++) {
-		if ((p = strprefix(opts[i], "memory=", 0)) != NULL) {
-			memory = (u_int32_t)strtonum(p, 1, UINT_MAX, &errstr);
-			if (errstr) {
-				fatal("Memory limit is %s: %s", errstr, p);
-			}
-		} else if ((p = strprefix(opts[i], "start=", 0)) != NULL) {
+		if ((p = strprefix(opts[i], "start=", 0)) != NULL) {
 			/* XXX - also compare length against bits */
 			if (BN_hex2bn(&start, p) == 0)
 				fatal("Invalid start point.");
@@ -2962,7 +2956,7 @@ do_moduli_gen(const char *out_file, char **opts, size_t nopts)
 
 	if (moduli_bits == 0)
 		moduli_bits = DEFAULT_BITS;
-	if (gen_candidates(out, memory, moduli_bits, start) != 0)
+	if (gen_candidates(out, moduli_bits, start) != 0)
 		fatal("modulus candidate generation failed");
 #else /* WITH_OPENSSL */
 	fatal("Moduli generation is not supported");
