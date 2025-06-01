@@ -3308,6 +3308,18 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 		goto out;
 
 	switch (key->type) {
+#ifdef OPENSSL_HAS_ED25519
+	case KEY_ED25519:
+		if (format == SSHKEY_PRIVATE_PEM) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		} else {
+			pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519,
+			    NULL, key->ed25519_sk, ED25519_SK_SZ - ED25519_PK_SZ);
+			success = pkey != NULL;
+		}
+		break;
+#endif
 #ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		if (format == SSHKEY_PRIVATE_PEM) {
@@ -3377,9 +3389,9 @@ sshkey_private_to_fileblob(struct sshkey *key, struct sshbuf *blob,
 #ifdef WITH_OPENSSL
 	case KEY_ECDSA:
 	case KEY_RSA:
+	case KEY_ED25519:
 		break; /* see below */
 #endif /* WITH_OPENSSL */
-	case KEY_ED25519:
 	case KEY_ED25519_SK:
 #ifdef WITH_XMSS
 	case KEY_XMSS:
