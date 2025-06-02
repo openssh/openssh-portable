@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.445 2025/05/29 13:27:27 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.446 2025/06/02 14:09:34 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -5356,5 +5356,5 @@ x11_channel_used_recently(struct ssh *ssh) {
 		if (c->lastused > lastused)
 			lastused = c->lastused;
 	}
-	return lastused != 0 && monotime() > lastused + 1;
+	return lastused != 0 && monotime() <= lastused + 1;
 }
