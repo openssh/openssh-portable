@@ -316,6 +316,9 @@ sshkey_match_keyname_to_sigalgs(const char *keyname, const char *sigalgs)
 		    sigalgs, 0) == 1 ||
 		    match_pattern_list("rsa-sha2-512-cert-v01@openssh.com",
 		    sigalgs, 0) == 1;
+	} else if (ktype == KEY_ECDSA_SK || ktype == KEY_ECDSA_SK_CERT) {
+		return match_pattern_list("sk-ecdsa-sha2-nistp256@openssh.com", sigalgs, 0) == 1 ||
+		    match_pattern_list("webauthn-sk-ecdsa-sha2-nistp256@openssh.com", sigalgs, 0) == 1;
 	} else
 		return match_pattern_list(keyname, sigalgs, 0) == 1;
 }
@@ -2172,7 +2175,7 @@ sshkey_sigalg_by_name(const char *name)
 
 /*
  * Verifies that the signature algorithm appearing inside the signature blob
- * matches that which was requested.
+ * matches the public key name which was requested.
  */
 int
 sshkey_check_sigtype(const u_char *sig, size_t siglen,
@@ -2188,7 +2191,7 @@ sshkey_check_sigtype(const u_char *sig, size_t siglen,
 		return SSH_ERR_INVALID_ARGUMENT;
 	if ((r = sshkey_get_sigtype(sig, siglen, &sigtype)) != 0)
 		return r;
-	r = strcmp(expected_alg, sigtype) == 0;
+	r = sshkey_match_keyname_to_sigalgs(expected_alg, sigtype);
 	free(sigtype);
 	return r ? 0 : SSH_ERR_SIGN_ALG_UNSUPPORTED;
 }
