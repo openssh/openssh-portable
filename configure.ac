@@ -2503,6 +2503,9 @@ fi
 # This is only useful for when BROKEN_SNPRINTF
 AC_MSG_CHECKING([whether snprintf can declare const char *fmt])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#ifdef _FORTIFY_SOURCE
+#undef _FORTIFY_SOURCE
+#endif
 #include <stdio.h>
 int snprintf(char *a, size_t b, const char *c, ...) { return 0; }
 		]], [[
