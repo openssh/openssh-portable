@@ -1,0 +1,47 @@
+name: OpenSSH Security Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Clone OpenSSH repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.1
+
+      - name: Scan OpenSSH source code
+        id: scan
+        run: |
+          mkdir -p scan-results
+          
+          echo "Начинаем сканирование форка OpenSSH..."
+          if trivy fs --security-checks vuln,secret \
+             --severity HIGH,CRITICAL \
+             --exit-code 1 \
+             --format table \
+             . > scan-results/scan-output.txt; then
+            echo "SCAN_STATUS=passed" >> $GITHUB_ENV
+            echo "Сканирование успешно - критических уязвимостей не найдено"
+          else
+            echo "SCAN_STATUS=failed" >> $GITHUB_ENV
+            echo "Обнаружены критические уязвимости!"
+            cat scan-results/scan-output.txt
+            exit 1
+          fi
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openssh-scan-results
+          path: scan-results/
+          retention-days: 5
