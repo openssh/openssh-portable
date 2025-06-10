@@ -32,14 +32,14 @@ jobs:
           - macos-13
           - macos-14
           - macos-15
-          - windows-2019
           - windows-2022
+          - windows-2025
         config: [default]
         # Then we include any extra configs we want to test for specific VMs.
         # Valgrind slows things down quite a bit, so start them first.
         include:
-          - { target: windows-2019, config: cygwin-release }
           - { target: windows-2022, config: cygwin-release }
+          - { target: windows-2025, config: cygwin-release }
           - { target: ubuntu-22.04, config: c89 }
           - { target: ubuntu-22.04, config: clang-11 }
           - { target: ubuntu-22.04, config: clang-12-Werror }
