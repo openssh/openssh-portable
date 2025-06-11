@@ -36,12 +36,18 @@
 
 struct chachapoly_ctx {
 	EVP_CIPHER_CTX *main_evp, *header_evp;
+#ifdef HAVE_EVP_MAC_INIT
+	EVP_MAC_CTX *mac_evp;
+#endif
 };
 
 struct chachapoly_ctx *
 chachapoly_new(const u_char *key, u_int keylen)
 {
 	struct chachapoly_ctx *ctx;
+#ifdef HAVE_EVP_MAC_INIT
+	EVP_MAC *mac;
+#endif /* HAVE_EVP_MAC_INIT */
 
 	if (keylen != (32 + 32)) /* 2 x 256 bit keys */
 		return NULL;
@@ -56,6 +62,15 @@ chachapoly_new(const u_char *key, u_int keylen)
 		goto fail;
 	if (EVP_CIPHER_CTX_iv_length(ctx->header_evp) != 16)
 		goto fail;
+
+#ifdef HAVE_EVP_MAC_INIT
+	mac = EVP_MAC_fetch(NULL, "POLY1305", "provider=default");
+	if (mac) {
+		ctx->mac_evp = EVP_MAC_CTX_new(mac);
+		EVP_MAC_free(mac);
+	}
+#endif /* HAVE_EVP_MAC_INIT */
+
 	return ctx;
  fail:
 	chachapoly_free(ctx);
@@ -69,7 +84,31 @@ chachapoly_free(struct chachapoly_ctx *cpctx)
 		return;
 	EVP_CIPHER_CTX_free(cpctx->main_evp);
 	EVP_CIPHER_CTX_free(cpctx->header_evp);
+#ifdef HAVE_EVP_MAC_INIT
+	EVP_MAC_CTX_free(cpctx->mac_evp);
+#endif /* HAVE_EVP_MAC_INIT */
 	freezero(cpctx, sizeof(*cpctx));
+}
+
+static int
+chachapoly_auth(struct chachapoly_ctx *ctx,
+		u_char tag[POLY1305_TAGLEN],
+		const u_char *src, u_int len,
+		const u_char key[POLY1305_KEYLEN])
+{
+#ifdef HAVE_EVP_MAC_INIT
+	if (ctx->mac_evp) {
+		size_t outl;
+		if (!EVP_MAC_init(ctx->mac_evp, key, POLY1305_KEYLEN, NULL) ||
+		    !EVP_MAC_update(ctx->mac_evp, src, len) ||
+		    !EVP_MAC_final(ctx->mac_evp, tag, &outl, POLY1305_TAGLEN)) {
+			return SSH_ERR_LIBCRYPTO_ERROR;
+		}
+		return 0;
+	}
+#endif  /* HAVE_EVP_MAC_INIT */
+	poly1305_auth(tag, src, len, key);
+	return 0;
 }
 
 /*
@@ -107,7 +146,12 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	if (!do_encrypt) {
 		const u_char *tag = src + aadlen + len;
 
-		poly1305_auth(expected_tag, src, aadlen + len, poly_key);
+		r = chachapoly_auth(ctx, expected_tag, src, aadlen + len,
+				    poly_key);
+		if (r != 0) {
+			goto out;
+		}
+
 		if (timingsafe_bcmp(expected_tag, tag, POLY1305_TAGLEN) != 0) {
 			r = SSH_ERR_MAC_INVALID;
 			goto out;
@@ -133,8 +177,11 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 
 	/* If encrypting, calculate and append tag */
 	if (do_encrypt) {
-		poly1305_auth(dest + aadlen + len, dest, aadlen + len,
-		    poly_key);
+		r = chachapoly_auth(ctx, dest + aadlen + len, dest,
+				    aadlen + len, poly_key);
+		if (r != 0) {
+			goto out;
+		}
 	}
 	r = 0;
  out:
