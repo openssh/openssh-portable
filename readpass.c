@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.71 2024/03/30 04:27:44 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.72 2025/06/11 13:24:05 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -91,7 +91,7 @@ ssh_askpass(char *askpass, const char *msg, const char *env_hint)
 		if (r <= 0)
 			break;
 		len += r;
-	} while (sizeof(buf) - 1 - len > 0);
+	} while (len < sizeof(buf) - 1);
 	buf[len] = '\0';
 
 	close(p[0]);
