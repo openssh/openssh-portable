@@ -2420,6 +2420,7 @@ client_global_hostkeys_prove_confirm(struct ssh *ssh, int type,
 	/* Make the edits to known_hosts */
 	update_known_hosts(ctx);
  out:
+ 	sshbuf_free(signdata);
 	hostkeys_update_ctx_free(ctx);
 	hostkeys_update_complete = 1;
 	client_repledge();
