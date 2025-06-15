@@ -254,7 +254,7 @@ sshbuf_dup_string(struct sshbuf *buf)
 	size_t l = sshbuf_len(buf);
 	char *r;
 
-	if (s == NULL || l > SIZE_MAX)
+	if (s == NULL || l >= SIZE_MAX)
 		return NULL;
 	/* accept a nul only as the last character in the buffer */
 	if (l > 0 && (p = memchr(s, '\0', l)) != NULL) {
