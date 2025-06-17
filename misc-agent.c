@@ -1,4 +1,4 @@
-/* $OpenBSD: misc-agent.c,v 1.5 2025/05/22 12:14:19 dtucker Exp $ */
+/* $OpenBSD: misc-agent.c,v 1.6 2025/06/17 01:19:27 djm Exp $ */
 /*
  * Copyright (c) 2025 Damien Miller <djm@mindrot.org>
  *
@@ -169,6 +169,7 @@ ensure_mkdir(const char *homedir, const char *subdir)
 		debug("created directory %s", path);
 	else if (errno != EEXIST) {
 		error_f("mkdir %s: %s", path, strerror(errno));
+		free(path);
 		return -1;
 	}
 	free(path);
