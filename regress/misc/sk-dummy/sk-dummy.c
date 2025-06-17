@@ -1,3 +1,4 @@
+/* $OpenBSD: sk-dummy.c,v 1.16 2025/06/17 01:24:32 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  *
