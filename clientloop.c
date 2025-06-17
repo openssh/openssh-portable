@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.411 2025/06/16 08:53:04 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.412 2025/06/17 01:20:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2420,7 +2420,7 @@ client_global_hostkeys_prove_confirm(struct ssh *ssh, int type,
 	/* Make the edits to known_hosts */
 	update_known_hosts(ctx);
  out:
- 	sshbuf_free(signdata);
+	sshbuf_free(signdata);
 	hostkeys_update_ctx_free(ctx);
 	hostkeys_update_complete = 1;
 	client_repledge();
