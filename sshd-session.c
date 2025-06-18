@@ -264,12 +264,20 @@ demote_sensitive_data(void)
 
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (sensitive_data.host_keys[i]) {
-			if ((r = sshkey_from_private(
-			    sensitive_data.host_keys[i], &tmp)) != 0)
-				fatal_r(r, "could not demote host %s key",
-				    sshkey_type(sensitive_data.host_keys[i]));
-			sshkey_free(sensitive_data.host_keys[i]);
-			sensitive_data.host_keys[i] = tmp;
+#ifdef __s390x__
+			/* Demotion not necessary for hardware protected keys
+			 * like IBM protected keys */
+			if (sensitive_data.host_keys[i]->wkvp == NULL) {
+#endif /* s390x Architecture */
+				if ((r = sshkey_from_private(
+					sensitive_data.host_keys[i], &tmp)) != 0)
+					fatal_r(r, "could not demote host %s key",
+						sshkey_type(sensitive_data.host_keys[i]));
+				sshkey_free(sensitive_data.host_keys[i]);
+				sensitive_data.host_keys[i] = tmp;
+#ifdef __s390x__
+			}
+#endif /* s390x Architecture */
 		}
 		/* Certs do not need demotion */
 	}
