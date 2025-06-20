@@ -931,7 +931,7 @@ mux_master_process_close_fwd(struct ssh *ssh, u_int rid,
 	} else {	/* local and dynamic forwards */
 		/* Ditto */
 		if (channel_cancel_lport_listener(ssh, &fwd, fwd.connect_port,
-		    &options.fwd_opts) == -1)
+		    &options.fwd_opts) != 1)
 			error_reason = "port not found";
 	}
 
