@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.136 2025/03/11 07:50:20 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.138 2025/06/24 12:28:23 dtucker Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -106,6 +106,7 @@ LTESTS= 	connect \
 		knownhosts-command \
 		agent-restrict \
 		hostbased \
+		password \
 		channel-timeout \
 		connection-timeout \
 		match-subsystem \
