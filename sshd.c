@@ -1628,6 +1628,11 @@ main(int ac, char **av)
 				pubkey = NULL;
 			}
 		}
+#ifdef __s390x__
+		if (key != NULL && key->wkvp != NULL && pubkey == NULL)
+			fatal_r(r, "Unable to load public key from \"%s\"",
+				    options.host_key_files[i]);
+#endif /* s390x Architecture */
 		if (pubkey == NULL && key != NULL) {
 			if ((r = sshkey_from_private(key, &pubkey)) != 0)
 				fatal_r(r, "Could not demote key: \"%s\"",
@@ -1665,6 +1670,10 @@ main(int ac, char **av)
 		case KEY_ECDSA_SK:
 		case KEY_ED25519_SK:
 		case KEY_XMSS:
+#ifdef __s390x__
+		case KEY_ECDSA_IBM_PROTK:
+		case KEY_ED25519_IBM_PROTK:
+#endif /* s390x Architecture */
 			if (have_agent || key != NULL)
 				sensitive_data.have_ssh2_key = 1;
 			break;
