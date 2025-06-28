@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.138 2025/06/24 12:28:23 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.139 2025/06/28 13:34:08 dtucker Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -116,7 +116,7 @@ LTESTS= 	connect \
 		penalty-expire
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
-INTEROP_TESTS+=	dropbear-ciphers dropbear-kex
+INTEROP_TESTS+=	dropbear-ciphers dropbear-kex dropbear-server
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
 
 EXTRA_TESTS=	agent-pkcs11

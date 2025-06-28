@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.129 2025/05/24 04:40:37 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.130 2025/06/28 13:34:08 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -101,7 +101,7 @@ SSH_REGRESS_TMP=
 PLINK=/usr/local/bin/plink
 PUTTYGEN=/usr/local/bin/puttygen
 CONCH=/usr/local/bin/conch
-DROPBEAR=/usr/local/bin/dropbear
+DROPBEAR=/usr/local/sbin/dropbear
 DBCLIENT=/usr/local/bin/dbclient
 DROPBEARKEY=/usr/local/bin/dropbearkey
 DROPBEARCONVERT=/usr/local/bin/dropbearconvert
