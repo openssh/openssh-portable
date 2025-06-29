@@ -1,4 +1,4 @@
-#	$OpenBSD: password.sh,v 1.1 2025/06/24 12:28:23 dtucker Exp $
+#	$OpenBSD: password.sh,v 1.2 2025/06/29 08:20:21 dtucker Exp $
 #	Placed in the Public Domain.
 #
 # This tests standard "password" authentication.  It does not run by default,
@@ -21,6 +21,7 @@ echo "PasswordAuthentication yes" >>sshd_proxy
 # Keep a counter of the number of times it has been called and
 # reply with the next line of the replypass file.
 cat >${OBJ}/replypass.sh <<EOD
+#!/bin/sh
 n=\`cat ${OBJ}/replypass.N\`
 awk "NR==\$n" ${OBJ}/replypass
 echo \$(( \$n + 1 )) >${OBJ}/replypass.N
