@@ -308,11 +308,11 @@ if [ ! -z "${EPHEMERAL_VM}" ]; then
     # value, so unless we reset it here most of the tests will fail.
     case "${target}" in
     ubuntu-*)
-	echo ${target} target: setting random password string.
-	pw=$(openssl rand -base64 9)
+	echo ${target} target: setting random password.
+	openssl rand -base64 9 >regress/password
+	pw=$(tr -d '\n' <regress/password | openssl passwd -6 -stdin)
 	sudo usermod --password "${pw}" runner
 	sudo usermod --unlock runner
-	echo "${pw}" > regress/password
 	;;
     esac
 fi
