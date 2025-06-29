@@ -20,6 +20,8 @@ jobs:
   ci:
     name: "${{ matrix.target }} ${{ matrix.config }}"
     if: github.repository != 'openssh/openssh-portable-selfhosted'
+    env:
+     - EPHEMERAL_VM: yes
     strategy:
       fail-fast: false
       matrix:
@@ -120,8 +122,6 @@ jobs:
           - { target: macos-14, config: pam }
           - { target: macos-15, config: pam }
     runs-on: ${{ matrix.target }}
-  - env:
-    EPHEMERAL_VM: yes
     steps:
     - name: check RUN_ONLY_TARGET_CONFIG
       if: vars.RUN_ONLY_TARGET_CONFIG != ''
