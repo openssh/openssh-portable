@@ -1,10 +1,24 @@
-#	$OpenBSD: dropbear-server.sh,v 1.1 2025/06/28 13:34:08 dtucker Exp $
+#	$OpenBSD: dropbear-server.sh,v 1.2 2025/06/29 05:35:00 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="dropbear server"
 
 if test "x$REGRESS_INTEROP_DROPBEAR" != "xyes" ; then
 	skip "dropbear interop tests not enabled"
+fi
+
+ver="`$DROPBEAR -V 2>&1 | sed 's/Dropbear v//'`"
+if [ -z "$ver" ]; then
+	skip "can't determine dropbear version"
+fi
+
+major=`echo $ver | cut -f1 -d.`
+minor=`echo $ver | cut -f2 -d.`
+
+if [ "$major" -lt "2025" ] || [ "$minor" -lt "87" ]; then
+	skip "dropbear version $ver (${major}.${minor}) does not support '-D'"
+else
+	trace "dropbear version $ver (${major}.${minor}) ok"
 fi
 
 if [ -z "$SUDO" -a ! -w /var/run ]; then
