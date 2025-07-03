@@ -453,6 +453,8 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 	int oerrno, sock = -1, attempt;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct addrinfo *ai;
+	struct sockaddr_storage local_addr;
+	socklen_t addr_len = sizeof(local_addr);
 
 	debug3_f("entering");
 	memset(ntop, 0, sizeof(ntop));
@@ -528,6 +530,30 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 	}
 
 	debug("Connection established.");
+
+	/*print Local Address and port once connection is established*/
+	if (getsockname(sock, (struct sockaddr *)&local_addr, &addr_len) == 0) {
+		char addr_str[INET6_ADDRSTRLEN];
+		int source_port = 0;
+		switch(local_addr.ss_family) {
+			case AF_INET:
+				struct sockaddr_in *local_addr_in = (struct sockaddr_in *)&local_addr;
+				inet_ntop(AF_INET, &(local_addr_in->sin_addr), addr_str, sizeof(addr_str));
+				source_port = ntohs(local_addr_in->sin_port);
+				break;
+			case AF_INET6:
+				struct sockaddr_in6 *local_addr_in6 = (struct sockaddr_in6 *)&local_addr;
+				inet_ntop(AF_INET6, &(local_addr_in6->sin6_addr), addr_str, sizeof(addr_str));
+				source_port = ntohs(local_addr_in6->sin6_port);
+				break;
+			default:
+				strncpy(addr_str, "unknown", sizeof(addr_str));
+		}
+
+		debug3("Connection from [%s] port %d", addr_str, source_port);
+	} else {
+		debug("Unable to retrieve source address and port: %s", strerror(errno));
+	}
 
 	/* Set SO_KEEPALIVE if requested. */
 	if (want_keepalive &&
