@@ -289,8 +289,10 @@ child_finish(struct early_child *child)
 {
 	if (children_active == 0)
 		fatal_f("internal error: children_active underflow");
-	if (child->pipefd != -1)
+	if (child->pipefd != -1) {
+		srclimit_done(child->pipefd);
 		close(child->pipefd);
+	}
 	sshbuf_free(child->config);
 	sshbuf_free(child->keys);
 	free(child->id);
@@ -311,6 +313,7 @@ child_close(struct early_child *child, int force_final, int quiet)
 	if (!quiet)
 		debug_f("enter%s", force_final ? " (forcing)" : "");
 	if (child->pipefd != -1) {
+		srclimit_done(child->pipefd);
 		close(child->pipefd);
 		child->pipefd = -1;
 	}
@@ -1039,7 +1042,6 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 			if (ret <= 0) {
 				if (children[i].early)
 					listening--;
-				srclimit_done(children[i].pipefd);
 				child_close(&(children[i]), 0, 0);
 				continue;
 			}
@@ -1078,23 +1080,19 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 				}
 				/* FALLTHROUGH */
 			case 0:
-				/* child exited preauth */
+				/* child closed pipe */
 				if (children[i].early)
 					listening--;
-				srclimit_done(children[i].pipefd);
+				debug3_f("child %lu for %s closed pipe",
+				    (long)children[i].pid, children[i].id);
 				child_close(&(children[i]), 0, 0);
 				break;
 			case 1:
 				if (children[i].config) {
 					error_f("startup pipe %d (fd=%d)"
-					    " early read", i, children[i].pipefd);
-					if (children[i].early)
-						listening--;
-					if (children[i].pid > 0)
-						kill(children[i].pid, SIGTERM);
-					srclimit_done(children[i].pipefd);
-					child_close(&(children[i]), 0, 0);
-					break;
+					    " early read",
+					    i, children[i].pipefd);
+					goto problem_child;
 				}
 				if (children[i].early && c == '\0') {
 					/* child has finished preliminaries */
@@ -1114,6 +1112,12 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 					    "child %ld for %s in state %d",
 					    (int)c, (long)children[i].pid,
 					    children[i].id, children[i].early);
+ problem_child:
+					if (children[i].early)
+						listening--;
+					if (children[i].pid > 0)
+						kill(children[i].pid, SIGTERM);
+					child_close(&(children[i]), 0, 0);
 				}
 				break;
 			}
