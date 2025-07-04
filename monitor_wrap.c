@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.139 2025/05/05 02:40:30 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.140 2025/07/04 07:47:35 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -150,7 +150,7 @@ mm_request_send(int sock, enum monitor_reqtype type, struct sshbuf *m)
 
 	debug3_f("entering, type %d", type);
 
-	if (mlen >= 0xffffffff)
+	if (mlen >= MONITOR_MAX_MSGLEN)
 		fatal_f("bad length %zu", mlen);
 	POKE_U32(buf, mlen + 1);
 	buf[4] = (u_char) type;		/* 1st byte of payload is mesg-type */
@@ -183,7 +183,7 @@ mm_request_receive(int sock, struct sshbuf *m)
 		fatal_f("read: %s", strerror(errno));
 	}
 	msg_len = PEEK_U32(buf);
-	if (msg_len > 256 * 1024)
+	if (msg_len > MONITOR_MAX_MSGLEN)
 		fatal_f("read: bad msg_len %d", msg_len);
 	sshbuf_reset(m);
 	if ((r = sshbuf_reserve(m, msg_len, &p)) != 0)

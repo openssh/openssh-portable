@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.619 2025/05/24 06:43:37 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.620 2025/07/04 07:47:35 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -94,6 +94,7 @@
 #include "addr.h"
 #include "srclimit.h"
 #include "atomicio.h"
+#include "monitor_wrap.h"
 
 /* Re-exec fds */
 #define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
@@ -1753,6 +1754,12 @@ main(int ac, char **av)
 	if (test_flag > 1)
 		print_config(&connection_info);
 
+	config = pack_config(cfg);
+	if (sshbuf_len(config) > MONITOR_MAX_CFGLEN) {
+		fatal("Configuration file is too large (have %zu, max %d)",
+		    sshbuf_len(config), MONITOR_MAX_CFGLEN);
+	}
+
 	/* Configuration looks good, so exit if in test mode. */
 	if (test_flag)
 		exit(0);
@@ -1829,8 +1836,6 @@ main(int ac, char **av)
 
 	/* ignore SIGPIPE */
 	ssh_signal(SIGPIPE, SIG_IGN);
-
-	config = pack_config(cfg);
 
 	/* Get a connection, either from inetd or a listening TCP socket */
 	if (inetd_flag) {
