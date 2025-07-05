@@ -949,8 +949,7 @@ main(int ac, char **av)
 			}
 			break;
 		case 'V':
-			fprintf(stderr, "%s, %s\n",
-			    SSH_RELEASE, SSH_OPENSSL_VERSION);
+			print_ssh_version();
 			exit(0);
 			break;
 		case 'w':

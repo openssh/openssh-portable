@@ -39,7 +39,6 @@
 #  define EC_GROUP	void
 #  define EC_POINT	void
 # endif /* OPENSSL_HAS_ECC */
-#define SSH_OPENSSL_VERSION OpenSSL_version(OPENSSL_VERSION)
 #else /* WITH_OPENSSL */
 # define BIGNUM		void
 # define RSA		void
@@ -47,7 +46,6 @@
 # define EC_GROUP	void
 # define EC_POINT	void
 # define EVP_PKEY	void
-#define SSH_OPENSSL_VERSION "without OpenSSL"
 #endif /* WITH_OPENSSL */
 
 #define SSH_RSA_MINIMUM_MODULUS_SIZE	1024

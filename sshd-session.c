@@ -624,7 +624,7 @@ notify_hostkeys(struct ssh *ssh)
 static void
 usage(void)
 {
-	fprintf(stderr, "%s, %s\n", SSH_RELEASE, SSH_OPENSSL_VERSION);
+	print_ssh_version();
 	fprintf(stderr,
 "usage: sshd [-46DdeGiqTtV] [-C connection_spec] [-c host_cert_file]\n"
 "            [-E log_file] [-f config_file] [-g login_grace_time]\n"
@@ -978,8 +978,7 @@ main(int ac, char **av)
 			free(line);
 			break;
 		case 'V':
-			fprintf(stderr, "%s, %s\n",
-			    SSH_RELEASE, SSH_OPENSSL_VERSION);
+			print_ssh_version();
 			exit(0);
 		default:
 			usage();
