@@ -94,6 +94,9 @@
 #include "addr.h"
 #include "srclimit.h"
 #include "atomicio.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 #include "monitor_wrap.h"
 
 /* Re-exec fds */
