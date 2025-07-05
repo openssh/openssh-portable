@@ -116,7 +116,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	kexgexc.o kexgexs.o \
 	kexsntrup761x25519.o kexmlkem768x25519.o sntrup761.o kexgen.o \
 	sftp-realpath.o platform-pledge.o platform-tracing.o platform-misc.o \
-	sshbuf-io.o misc-agent.o
+	sshbuf-io.o misc-agent.o version.o
 
 SKOBJS=	ssh-sk-client.o
 
