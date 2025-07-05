@@ -735,6 +735,7 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
     const char *pwd, int pflag, int rflag, int resume, int fflag)
 {
 	char *tmp_dst = NULL;
+	char *abs_src = NULL;
 	char *abs_dst = NULL;
 	char *tmp = NULL, *filename = NULL;
 	glob_t g;
@@ -782,6 +783,18 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 			goto out;
 		}
 
+		if (strcmp(filename, ".") == 0)
+		{
+			abs_src = getcwd(NULL, MAXPATHLEN);
+			filename = basename(abs_src);
+		}
+		if (strcmp(filename, "..") == 0)
+		{
+			abs_src = getcwd(NULL, MAXPATHLEN);
+			filename = dirname(abs_src);
+			filename = basename(filename);
+		}
+
 		free(abs_dst);
 		abs_dst = NULL;
 		if (g.gl_matchc == 1 && tmp_dst) {
@@ -820,6 +833,7 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 	}
 
 out:
+	free(abs_src);
 	free(abs_dst);
 	free(tmp_dst);
 	globfree(&g);
