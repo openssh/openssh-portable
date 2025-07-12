@@ -63,6 +63,14 @@ ga_init(const char *user, gid_t base)
 
 	groups_bygid = xcalloc(ngroups, sizeof(*groups_bygid));
 	while (getgrouplist(user, base, groups_bygid, &ngroups) == -1) {
+		if (ngroups <= ongroups) {
+			error("getgrouplist(\"%s\", %ld): failed",
+			    user, (long)base);
+			free(groups_bygid);
+			groups_bygid = NULL;
+			ngroups = 0;
+			return 0;
+		}
 		if (retry++ > 0) {
 			fatal("getgrouplist(\"%s\", %ld): groups list too big "
 			    "(have %ld, need %ld)", user, (long)base,
