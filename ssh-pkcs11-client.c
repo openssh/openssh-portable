@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-client.c,v 1.21 2025/07/24 05:44:55 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-client.c,v 1.22 2025/07/24 23:27:04 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
