@@ -613,7 +613,7 @@ UNITTESTS_TEST_SSHKEY_OBJS=\
 	regress/unittests/sshkey/common.o \
 	regress/unittests/sshkey/test_file.o \
 	regress/unittests/sshkey/test_sshkey.o \
-	$(SKOBJS)
+	$(P11OBJS) $(SKOBJS)
 
 regress/unittests/sshkey/test_sshkey$(EXEEXT): ${UNITTESTS_TEST_SSHKEY_OBJS} \
     regress/unittests/test_helper/libtest_helper.a libssh.a
@@ -624,7 +624,7 @@ regress/unittests/sshkey/test_sshkey$(EXEEXT): ${UNITTESTS_TEST_SSHKEY_OBJS} \
 UNITTESTS_TEST_SSHSIG_OBJS=\
 	sshsig.o \
 	regress/unittests/sshsig/tests.o \
-	$(SKOBJS)
+	$(P11OBJS) $(SKOBJS)
 
 regress/unittests/sshsig/test_sshsig$(EXEEXT): ${UNITTESTS_TEST_SSHSIG_OBJS} \
     regress/unittests/test_helper/libtest_helper.a libssh.a
@@ -644,7 +644,7 @@ regress/unittests/bitmap/test_bitmap$(EXEEXT): ${UNITTESTS_TEST_BITMAP_OBJS} \
 UNITTESTS_TEST_AUTHOPT_OBJS=\
 	regress/unittests/authopt/tests.o \
 	auth-options.o \
-	$(SKOBJS)
+	$(P11OBJS) $(SKOBJS)
 
 regress/unittests/authopt/test_authopt$(EXEEXT): \
     ${UNITTESTS_TEST_AUTHOPT_OBJS} \
@@ -667,7 +667,7 @@ UNITTESTS_TEST_KEX_OBJS=\
 	regress/unittests/kex/tests.o \
 	regress/unittests/kex/test_kex.o \
 	regress/unittests/kex/test_proposal.o \
-	$(SKOBJS)
+	$(P11OBJS) $(SKOBJS)
 
 regress/unittests/kex/test_kex$(EXEEXT): ${UNITTESTS_TEST_KEX_OBJS} \
     regress/unittests/test_helper/libtest_helper.a libssh.a
@@ -678,7 +678,7 @@ regress/unittests/kex/test_kex$(EXEEXT): ${UNITTESTS_TEST_KEX_OBJS} \
 UNITTESTS_TEST_HOSTKEYS_OBJS=\
 	regress/unittests/hostkeys/tests.o \
 	regress/unittests/hostkeys/test_iterate.o \
-	$(SKOBJS)
+	$(P11OBJS) $(SKOBJS)
 
 regress/unittests/hostkeys/test_hostkeys$(EXEEXT): \
     ${UNITTESTS_TEST_HOSTKEYS_OBJS} \
@@ -741,7 +741,7 @@ regress/misc/sk-dummy/sk-dummy.so: $(SK_DUMMY_OBJS)
 
 SSH_VERIFY_ATTESTATION_OBJS=\
 	regress/misc/ssh-verify-attestation/ssh-verify-attestation.o \
-	$(SKOBJS)
+	$(P11OBJS) $(SKOBJS)
 
 ssh-verify-attestation: regress/misc/ssh-verify-attestation/ssh-verify-attestation$(EXEEXT)
 
