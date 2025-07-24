@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.68 2025/07/24 05:44:55 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.69 2025/07/24 06:12:08 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -319,6 +319,8 @@ int	ssh_rsa_encode_store_sig(int, const u_char *, size_t,
 	    u_char **, size_t *);
 int	ssh_ecdsa_encode_store_sig(const struct sshkey *,
 	    const BIGNUM *, const BIGNUM *, u_char **, size_t *);
+int	ssh_ed25519_encode_store_sig(const u_char *, size_t,
+	    u_char **, size_t *);
 /* XXX should be internal, but used by ssh-keygen */
 int ssh_rsa_complete_crt_parameters(const BIGNUM *, const BIGNUM *,
     const BIGNUM *, const BIGNUM *, BIGNUM **, BIGNUM **);
