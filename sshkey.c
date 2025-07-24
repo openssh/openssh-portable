@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.150 2025/05/12 05:41:20 tb Exp $ */
+/* $OpenBSD: sshkey.c,v 1.151 2025/07/24 05:44:55 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -60,6 +60,7 @@
 #include "sshkey.h"
 #include "match.h"
 #include "ssh-sk.h"
+#include "ssh-pkcs11.h"
 
 #ifdef WITH_XMSS
 #include "sshkey-xmss.h"
@@ -778,6 +779,8 @@ sshkey_free_contents(struct sshkey *k)
 
 	if (k == NULL)
 		return;
+	if ((k->flags & SSHKEY_FLAG_EXT) != 0)
+		pkcs11_key_free(k);
 	if ((impl = sshkey_impl_from_type(k->type)) != NULL &&
 	    impl->funcs->cleanup != NULL)
 		impl->funcs->cleanup(k);
@@ -900,20 +903,27 @@ sshkey_putb(const struct sshkey *key, struct sshbuf *b)
 	return to_blob_buf(key, b, 0, SSHKEY_SERIALIZE_DEFAULT);
 }
 
-int
-sshkey_puts_opts(const struct sshkey *key, struct sshbuf *b,
-    enum sshkey_serialize_rep opts)
+static int
+sshkey_puts_opts_internal(const struct sshkey *key, struct sshbuf *b,
+    enum sshkey_serialize_rep opts, int force_plain)
 {
 	struct sshbuf *tmp;
 	int r;
 
 	if ((tmp = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	r = to_blob_buf(key, tmp, 0, opts);
+	r = to_blob_buf(key, tmp, force_plain, opts);
 	if (r == 0)
 		r = sshbuf_put_stringb(b, tmp);
 	sshbuf_free(tmp);
 	return r;
+}
+
+int
+sshkey_puts_opts(const struct sshkey *key, struct sshbuf *b,
+    enum sshkey_serialize_rep opts)
+{
+	return sshkey_puts_opts_internal(key, b, opts, 0);
 }
 
 int
@@ -926,6 +936,12 @@ int
 sshkey_putb_plain(const struct sshkey *key, struct sshbuf *b)
 {
 	return to_blob_buf(key, b, 1, SSHKEY_SERIALIZE_DEFAULT);
+}
+
+int
+sshkey_puts_plain(const struct sshkey *key, struct sshbuf *b)
+{
+	return sshkey_puts_opts_internal(key, b, SSHKEY_SERIALIZE_DEFAULT, 1);
 }
 
 static int
@@ -2200,6 +2216,9 @@ sshkey_sign(struct sshkey *key,
 	if (sshkey_is_sk(key)) {
 		r = sshsk_sign(sk_provider, key, sigp, lenp, data,
 		    datalen, compat, sk_pin);
+	} else if ((key->flags & SSHKEY_FLAG_EXT) != 0) {
+		r = pkcs11_sign(key, sigp, lenp, data, datalen,
+		    alg, sk_provider, sk_pin, compat);
 	} else {
 		if (impl->funcs->sign == NULL)
 			r = SSH_ERR_SIGN_ALG_UNSUPPORTED;

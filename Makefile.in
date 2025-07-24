@@ -108,7 +108,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	monitor_fdpass.o rijndael.o ssh-ecdsa.o ssh-ecdsa-sk.o \
 	ssh-ed25519-sk.o ssh-rsa.o dh.o \
 	msg.o dns.o entropy.o gss-genr.o umac.o umac128.o \
-	ssh-pkcs11.o smult_curve25519_ref.o \
+	smult_curve25519_ref.o \
 	poly1305.o chacha.o cipher-chachapoly.o cipher-chachapoly-libcrypto.o \
 	ssh-ed25519.o digest-openssl.o digest-libc.o \
 	hmac.o ed25519.o hash.o \
@@ -118,16 +118,18 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	sftp-realpath.o platform-pledge.o platform-tracing.o platform-misc.o \
 	sshbuf-io.o misc-agent.o
 
+P11OBJS= ssh-pkcs11-client.o
+
 SKOBJS=	ssh-sk-client.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
-	sshconnect.o sshconnect2.o mux.o $(SKOBJS)
+	sshconnect.o sshconnect2.o mux.o $(P11OBJS) $(SKOBJS)
 
 SSHDOBJS=sshd.o \
 	platform-listen.o \
 	servconf.o sshpty.o srclimit.o groupaccess.o auth2-methods.o \
 	dns.o fatal.o compat.o utf8.o authfd.o canohost.o \
-	$(SKOBJS)
+	$(P11OBJS) $(SKOBJS)
 
 SSHD_SESSION_OBJS=sshd-session.o auth-rhosts.o auth-passwd.o \
 	audit.o audit-bsm.o audit-linux.o platform.o \
@@ -140,7 +142,7 @@ SSHD_SESSION_OBJS=sshd-session.o auth-rhosts.o auth-passwd.o \
 	auth2-gss.o gss-serv.o gss-serv-krb5.o \
 	loginrec.o auth-pam.o auth-shadow.o auth-sia.o \
 	sftp-server.o sftp-common.o \
-	uidswap.o platform-listen.o $(SKOBJS)
+	uidswap.o platform-listen.o $(P11OBJS) $(SKOBJS)
 
 SSHD_AUTH_OBJS=sshd-auth.o \
 	auth2-methods.o \
@@ -155,25 +157,25 @@ SSHD_AUTH_OBJS=sshd-auth.o \
 	sandbox-null.o sandbox-rlimit.o sandbox-darwin.o \
 	sandbox-seccomp-filter.o sandbox-capsicum.o  sandbox-solaris.o \
 	sftp-server.o sftp-common.o \
-	uidswap.o $(SKOBJS)
+	uidswap.o $(P11OBJS) $(SKOBJS)
 
 SFTP_CLIENT_OBJS=sftp-common.o sftp-client.o sftp-glob.o
 
 SCP_OBJS=	scp.o progressmeter.o $(SFTP_CLIENT_OBJS)
 
-SSHADD_OBJS=	ssh-add.o $(SKOBJS)
+SSHADD_OBJS=	ssh-add.o $(P11OBJS) $(SKOBJS)
 
-SSHAGENT_OBJS=	ssh-agent.o ssh-pkcs11-client.o $(SKOBJS)
+SSHAGENT_OBJS=	ssh-agent.o $(P11OBJS) $(SKOBJS)
 
-SSHKEYGEN_OBJS=	ssh-keygen.o sshsig.o $(SKOBJS)
+SSHKEYGEN_OBJS=	ssh-keygen.o sshsig.o $(P11OBJS) $(SKOBJS)
 
-SSHKEYSIGN_OBJS=ssh-keysign.o readconf.o uidswap.o $(SKOBJS)
+SSHKEYSIGN_OBJS=ssh-keysign.o readconf.o uidswap.o $(P11OBJS) $(SKOBJS)
 
 P11HELPER_OBJS=	ssh-pkcs11-helper.o ssh-pkcs11.o $(SKOBJS)
 
 SKHELPER_OBJS=	ssh-sk-helper.o ssh-sk.o sk-usbhid.o
 
-SSHKEYSCAN_OBJS=ssh-keyscan.o $(SKOBJS)
+SSHKEYSCAN_OBJS=ssh-keyscan.o $(P11OBJS) $(SKOBJS)
 
 SFTPSERVER_OBJS=sftp-common.o sftp-server.o sftp-server-main.o
 

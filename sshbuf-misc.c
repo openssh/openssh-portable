@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.20 2025/06/16 09:02:19 dtucker Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.21 2025/07/24 05:44:55 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -281,6 +281,20 @@ sshbuf_cmp(const struct sshbuf *b, size_t offset,
 	if (offset + len > sshbuf_len(b))
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 	if (timingsafe_bcmp(sshbuf_ptr(b) + offset, s, len) != 0)
+		return SSH_ERR_INVALID_FORMAT;
+	return 0;
+}
+
+int
+sshbuf_equals(const struct sshbuf *a, const struct sshbuf *b)
+{
+	if (sshbuf_ptr(a) == NULL || sshbuf_ptr(b) == NULL)
+		return SSH_ERR_INTERNAL_ERROR;
+	if (sshbuf_len(a) != sshbuf_len(b))
+		return SSH_ERR_MESSAGE_INCOMPLETE;
+	if (sshbuf_len(a) == 0)
+		return 0;
+	if (memcmp(sshbuf_ptr(a), sshbuf_ptr(b), sshbuf_len(a)) != 0)
 		return SSH_ERR_INVALID_FORMAT;
 	return 0;
 }
