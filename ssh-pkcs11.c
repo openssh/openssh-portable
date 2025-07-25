@@ -1036,9 +1036,12 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	RSA			*rsa = NULL;
 	EC_KEY			*ec = NULL;
 	struct sshkey		*key = NULL;
-	int			 r, i, nid, success = -1;
+	int			 i, success = -1;
 	const u_char		*cp;
 	char			*subject = NULL;
+#ifdef OPENSSL_HAS_ECC
+	int			r, nid;
+#endif
 
 	*keyp = NULL;
 	*labelp = NULL;
@@ -1133,7 +1136,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 			goto out;
 		/* success */
 		success = 0;
-#if defined(OPENSSL_HAS_ECC)
+#ifdef OPENSSL_HAS_ECC
 	} else if (EVP_PKEY_base_id(evp) == EVP_PKEY_EC) {
 		if (EVP_PKEY_get0_EC_KEY(evp) == NULL) {
 			error("invalid x509; no ec key");
@@ -1182,7 +1185,9 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		free(cert_attr[i].pValue);
 	X509_free(x509);
 	RSA_free(rsa);
+#ifdef OPENSSL_HAS_ECC
 	EC_KEY_free(ec);
+#endif /* OPENSSL_HAS_ECC */
 	if (success != 0 || key == NULL) {
 		sshkey_free(key);
 		free(subject);
@@ -1396,7 +1401,7 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 		case CKK_RSA:
 			key = pkcs11_fetch_rsa_pubkey(p, slotidx, &obj);
 			break;
-#if defined(OPENSSL_HAS_ECC)
+#ifdef OPENSSL_HAS_ECC
 		case CKK_ECDSA:
 			key = pkcs11_fetch_ecdsa_pubkey(p, slotidx, &obj);
 			break;
@@ -1868,7 +1873,7 @@ pkcs11_sign(struct sshkey *key,
 	case KEY_RSA_CERT:
 		return pkcs11_sign_rsa(key, sigp, lenp, data, datalen,
 		    alg, sk_provider, sk_pin, compat);
-#if defined(OPENSSL_HAS_ECC)
+#ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 	case KEY_ECDSA_CERT:
 		return pkcs11_sign_ecdsa(key, sigp, lenp, data, datalen,
