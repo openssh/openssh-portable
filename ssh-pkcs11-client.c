@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-client.c,v 1.22 2025/07/24 23:27:04 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-client.c,v 1.23 2025/07/25 11:50:45 dtucker Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -450,7 +450,7 @@ pkcs11_del_provider(char *name)
 	 * ssh-agent deletes keys before calling this, so the helper entry
 	 * should be gone before we get here.
 	 */
-	debug3_f("delete %s", name);
+	debug3_f("delete %s", name ? name : "(null)");
 	if ((helper = helper_by_provider(name)) != NULL)
 		helper_terminate(helper);
 	return 0;
