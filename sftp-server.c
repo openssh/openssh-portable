@@ -1131,7 +1131,7 @@ process_readdir(u_int32_t id)
 	DIR *dirp;
 	struct dirent *dp;
 	char *path;
-	int r, handle;
+	int r, handle, status = SSH2_FX_EOF;
 
 	if ((r = get_handle(iqueue, &handle)) != 0)
 		fatal_fr(r, "parse");
@@ -1149,7 +1149,7 @@ process_readdir(u_int32_t id)
 		int nstats = 10, count = 0, i;
 
 		stats = xcalloc(nstats, sizeof(Stat));
-		while ((dp = readdir(dirp)) != NULL) {
+		while ((errno = 0, dp = readdir(dirp)) != NULL) {
 			if (count >= nstats) {
 				nstats *= 2;
 				stats = xreallocarray(stats, nstats, sizeof(Stat));
@@ -1169,6 +1169,9 @@ process_readdir(u_int32_t id)
 			if (count == 100)
 				break;
 		}
+		if (dp == NULL && errno != 0) {
+			status = errno_to_portable(errno);
+		}
 		if (count > 0) {
 			send_names(id, count, stats);
 			for (i = 0; i < count; i++) {
@@ -1176,7 +1179,7 @@ process_readdir(u_int32_t id)
 				free(stats[i].long_name);
 			}
 		} else {
-			send_status(id, SSH2_FX_EOF);
+			send_status(id, status);
 		}
 		free(stats);
 	}
