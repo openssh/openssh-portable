@@ -86,7 +86,7 @@ TAILQ_HEAD(, pkcs11_key) pkcs11_keys; /* XXX a tree would be better */
 
 int pkcs11_interactive = 0;
 
-#ifdef WITH_OPENSSL
+#ifdef OPENSSL_HAS_ECC
 static void
 ossl_error(const char *msg)
 {
@@ -1133,6 +1133,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 			goto out;
 		/* success */
 		success = 0;
+#if defined(OPENSSL_HAS_ECC)
 	} else if (EVP_PKEY_base_id(evp) == EVP_PKEY_EC) {
 		if (EVP_PKEY_get0_EC_KEY(evp) == NULL) {
 			error("invalid x509; no ec key");
@@ -1171,6 +1172,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 			goto out;
 		/* success */
 		success = 0;
+#endif /* OPENSSL_HAS_ECC */
 	} else {
 		error("unknown certificate key type");
 		goto out;
@@ -1866,10 +1868,12 @@ pkcs11_sign(struct sshkey *key,
 	case KEY_RSA_CERT:
 		return pkcs11_sign_rsa(key, sigp, lenp, data, datalen,
 		    alg, sk_provider, sk_pin, compat);
+#if defined(OPENSSL_HAS_ECC)
 	case KEY_ECDSA:
 	case KEY_ECDSA_CERT:
 		return pkcs11_sign_ecdsa(key, sigp, lenp, data, datalen,
 		    alg, sk_provider, sk_pin, compat);
+#endif /* OPENSSL_HAS_ECC */
 	default:
 		return SSH_ERR_KEY_TYPE_UNKNOWN;
 	}
