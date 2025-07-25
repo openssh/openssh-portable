@@ -1,8 +1,8 @@
 # NB. libssh and libopenbsd-compat should be built with the same sanitizer opts.
-CC=clang-16
-CXX=clang++-16
+CC=clang-19
+CXX=clang++-19
 FUZZ_FLAGS=-fsanitize=address,fuzzer -fno-omit-frame-pointer
-FUZZ_LIBS=-L/usr/lib/llvm-16/lib -lFuzzer
+FUZZ_LIBS=-L/usr/lib/llvm-19/lib -lFuzzer
 
 CFLAGS=-D_GNU_SOURCE=1 -O2 -g -Wall -Wextra -Wno-unused-parameter -Wno-exceptions -Wno-deprecated -I ../../..
 CXXFLAGS=$(CFLAGS) $(FUZZ_FLAGS)
