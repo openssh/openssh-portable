@@ -1212,7 +1212,9 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	int			 i, success = -1;
 	const u_char		*cp;
 	char			*subject = NULL;
+#ifdef OPENSSL_HAS_ED25519
 	size_t			len;
+#endif /* OPENSSL_HAS_ED25519 */
 #ifdef OPENSSL_HAS_ECC
 	int			r, nid;
 #endif
@@ -1350,6 +1352,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		/* success */
 		success = 0;
 #endif /* OPENSSL_HAS_ECC */
+#ifdef OPENSSL_HAS_ED25519
 	} else if (EVP_PKEY_base_id(evp) == EVP_PKEY_ED25519) {
 		if ((key = sshkey_new(KEY_UNSPEC)) == NULL ||
 		    (key->ed25519_pk = calloc(1, ED25519_PK_SZ)) == NULL)
@@ -1370,6 +1373,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 			goto out;
 		/* success */
 		success = 0;
+#endif /* OPENSSL_HAS_ED25519 */
 	} else {
 		error("unknown certificate key type");
 		goto out;
