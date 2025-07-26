@@ -87,7 +87,7 @@ TAILQ_HEAD(, pkcs11_key) pkcs11_keys; /* XXX a tree would be better */
 
 int pkcs11_interactive = 0;
 
-#ifdef OPENSSL_HAS_ECC
+#if defined(OPENSSL_HAS_ECC) || defined(OPENSSL_HAS_ED25519)
 static void
 ossl_error(const char *msg)
 {
@@ -1207,7 +1207,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	X509_NAME		*x509_name = NULL;
 	EVP_PKEY		*evp;
 	RSA			*rsa = NULL;
-	EC_KEY			*ec = NULL;
+
 	struct sshkey		*key = NULL;
 	int			 i, success = -1;
 	const u_char		*cp;
@@ -1216,6 +1216,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	size_t			len;
 #endif /* OPENSSL_HAS_ED25519 */
 #ifdef OPENSSL_HAS_ECC
+	EC_KEY			*ec = NULL;
 	int			r, nid;
 #endif
 
