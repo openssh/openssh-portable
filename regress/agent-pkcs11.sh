@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-pkcs11.sh,v 1.14 2025/05/24 04:41:03 djm Exp $
+#	$OpenBSD: agent-pkcs11.sh,v 1.15 2025/07/26 01:53:31 djm Exp $
 #	Placed in the Public Domain.
 
 tid="pkcs11 agent test"
@@ -21,7 +21,7 @@ if [ $r -ne 0 ]; then
 	fail "ssh-add -l failed: exit code $r"
 fi
 
-for k in $RSA $EC; do
+for k in $ED25519 $RSA $EC; do
 	trace "testing $k"
 	pub=$(cat $k.pub)
 	${SSHADD} -L | grep -q "$pub" || \

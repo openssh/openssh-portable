@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.130 2025/06/28 13:34:08 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.131 2025/07/26 01:53:31 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -979,6 +979,18 @@ EOF
 	    --import $ECP8 >/dev/null || fatal "softhsm import EC fail"
 	chmod 600 $EC
 	ssh-keygen -y -f $EC > ${EC}.pub
+	# Ed25519 key
+	ED25519=${SSH_SOFTHSM_DIR}/ED25519
+	ED25519P8=${SSH_SOFTHSM_DIR}/ED25519P8
+	$OPENSSL_BIN genpkey -algorithm ed25519 > $ED25519 || \
+	    fatal "genpkey Ed25519 fail"
+	$OPENSSL_BIN pkcs8 -nocrypt -in $ED25519 > $ED25519P8 || \
+		fatal "pkcs8 Ed25519 fail"
+	softhsm2-util --slot "$slot" --label 03 --id 03 --pin "$TEST_SSH_PIN" \
+	    --import $ED25519P8 >/dev/null || \
+		fatal "softhsm import ed25519 fail"
+	chmod 600 $ED25519
+	ssh-keygen -y -f $ED25519 > ${ED25519}.pub
 	# Prepare askpass script to load PIN.
 	PIN_SH=$SSH_SOFTHSM_DIR/pin.sh
 	cat > $PIN_SH << EOF

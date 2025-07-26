@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-pkcs11-restrict.sh,v 1.2 2025/05/24 04:41:12 djm Exp $
+#	$OpenBSD: agent-pkcs11-restrict.sh,v 1.3 2025/07/26 01:53:31 djm Exp $
 #	Placed in the Public Domain.
 
 tid="pkcs11 agent constraint test"
@@ -16,6 +16,7 @@ for h in a b x ca ; do
 done
 
 # XXX test CA hostcerts too.
+# XXX test ed25519 keys
 
 key_for() {
 	case $h in
