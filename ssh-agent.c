@@ -2466,8 +2466,6 @@ main(int ac, char **av)
 		umask(prev_mask);
 	}
 
-	closefrom(sock == -1 ? STDERR_FILENO + 1 : sock + 1);
-
 	/*
 	 * Create socket early so it will exist before command gets run from
 	 * the parent.
