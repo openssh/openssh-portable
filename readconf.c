@@ -150,6 +150,7 @@ typedef enum {
 	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication,
 	oXAuthLocation,
+	oLDNSAnchorFile,
 	oIdentityFile, oHostname, oPort, oRemoteForward, oLocalForward,
 	oPermitRemoteOpen,
 	oCertificateFile, oAddKeysToAgent, oIdentityAgent,
@@ -231,6 +232,7 @@ static struct {
 	{ "forwardx11timeout", oForwardX11Timeout },
 	{ "exitonforwardfailure", oExitOnForwardFailure },
 	{ "xauthlocation", oXAuthLocation },
+	{ "ldnsanchorfile", oLDNSAnchorFile },
 	{ "gatewayports", oGatewayPorts },
 	{ "passwordauthentication", oPasswordAuthentication },
 	{ "kbdinteractiveauthentication", oKbdInteractiveAuthentication },
@@ -1434,6 +1436,10 @@ parse_time:
 			    flags & SSHCONF_USERCONF);
 		}
 		break;
+
+	case oLDNSAnchorFile:
+		charptr=&options->ldns_anchor_file;
+		goto parse_string;
 
 	case oXAuthLocation:
 		charptr=&options->xauth_location;
@@ -2672,6 +2678,7 @@ initialize_options(Options * options)
 	options->clear_forwardings = -1;
 	options->exit_on_forward_failure = -1;
 	options->xauth_location = NULL;
+	options->ldns_anchor_file = NULL;
 	options->fwd_opts.gateway_ports = -1;
 	options->fwd_opts.streamlocal_bind_mask = (mode_t)-1;
 	options->fwd_opts.streamlocal_bind_unlink = -1;
@@ -3094,6 +3101,7 @@ free_options(Options *o)
 
 	free(o->forward_agent_sock_path);
 	free(o->xauth_location);
+	free(o->ldns_anchor_file);
 	FREE_ARRAY(u_int, o->num_log_verbose, o->log_verbose);
 	free(o->log_verbose);
 	free(o->ciphers);
@@ -3728,6 +3736,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oPubkeyAcceptedAlgorithms, o->pubkey_accepted_algos);
 	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
 	dump_cfg_string(oXAuthLocation, o->xauth_location);
+	dump_cfg_string(oLDNSAnchorFile, o->ldns_anchor_file);
 	dump_cfg_string(oKnownHostsCommand, o->known_hosts_command);
 	dump_cfg_string(oTag, o->tag);
 	dump_cfg_string(oVersionAddendum, o->version_addendum);
