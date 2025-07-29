@@ -11,7 +11,6 @@ jobs:
     runs-on: ${{ matrix.host }}
     timeout-minutes: 600
     env:
-      DEBUG_ACTIONS: false
       HOST: ${{ matrix.host }}
       TARGET_HOST: ${{ matrix.target }}
       TARGET_CONFIG: ${{ matrix.config }}
@@ -49,8 +48,9 @@ jobs:
           - obsd51
           - obsd67
           - obsd72
-          - obsd73
           - obsd74
+          - obsd76
+          - obsd77
           - obsdsnap
           - obsdsnap-i386
           - omnios

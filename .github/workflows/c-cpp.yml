@@ -1,5 +1,15 @@
 name: C/C++ CI
 
+# For testing, you can set variables in your repo (Repo -> Settings ->
+# Security -> Actions -> Variables) to restrict the tests that are run.
+# The supported variables are:
+#
+# RUN_ONLY_TARGET_CONFIG: Run only the single matching target and config,
+#   separated by spaces, eg "ubuntu-latest default".  All other tests will
+#   fail immediately.
+#
+# LTESTS: Override the set of tests run.
+
 on:
   push:
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/workflows/c-cpp.yml' ]
@@ -110,12 +120,9 @@ jobs:
           - { target: macos-15, config: pam }
     runs-on: ${{ matrix.target }}
     steps:
-    - name: check RUN_ONLY_TEST
-      # For testing, you can set the repo variable RUN_ONLY_TEST in your repo
-      # (Repo -> Settings -> Security -> Actions -> Variables) to run only
-      # that test config.
-      if: vars.RUN_ONLY_TEST != ''
-      run: sh -c 'if [ "${{ vars.RUN_ONLY_TEST }}" != "${{ matrix.target }} ${{matrix.config }}" ]; then exit 1; else exit 0; fi'
+    - name: check RUN_ONLY_TARGET_CONFIG
+      if: vars.RUN_ONLY_TARGET_CONFIG != ''
+      run: sh -c 'if [ "${{ vars.RUN_ONLY_TARGET_CONFIG }}" != "${{ matrix.target }} ${{matrix.config }}" ]; then exit 1; else exit 0; fi'
     - name: set cygwin git params
       if: ${{ startsWith(matrix.target, 'windows') }}
       run: git config --global core.autocrlf input
@@ -148,9 +155,13 @@ jobs:
       env:
         TEST_SSH_UNSAFE_PERMISSIONS: 1
         TEST_SSH_HOSTBASED_AUTH: yes
+        LTESTS: ${{ vars.LTESTS }}
     - name: show logs
       if: failure()
       run: for i in regress/failed*.log; do echo ====; echo logfile $i; echo =====; cat $i; done
+    - name: chown logs
+      if: failure()
+      run: test -x "$(which sudo 2>&1)" && sudo chown -R "${LOGNAME}" regress
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@main
@@ -159,8 +170,4 @@ jobs:
         path: |
           config.h
           config.log
-          regress/*.log
-          regress/valgrind-out/
-          regress/asan.log.*
-          regress/msan.log.*
-          regress/log/*
+          regress/
