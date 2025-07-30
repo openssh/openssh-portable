@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-client.c,v 1.23 2025/07/25 11:50:45 dtucker Exp $ */
+/* $OpenBSD: ssh-pkcs11-client.c,v 1.24 2025/07/30 10:17:13 dtucker Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -278,6 +278,7 @@ pkcs11_sign(struct sshkey *key,
 	ret = 0;
 
  fail:
+	free(signature);
 	sshbuf_free(msg);
 	return ret;
 }
