@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.67 2025/07/26 01:51:44 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.68 2025/07/30 04:19:17 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -1746,7 +1746,7 @@ pkcs11_decode_hex(const char *hex, unsigned char **dest, size_t *rlen)
 	*dest = xmalloc(len);
 
 	for (i = 0; i < len; i++) {
-		int hi, low;
+		int hi, lo;
 
 		hi = h2i(hex[2 * i]);
 		lo = h2i(hex[(2 * i) + 1]);
@@ -2251,7 +2251,7 @@ pkcs11_destroy_keypair(char *provider_id, char *pin, unsigned long slotidx,
 			break;
 		default:
 			debug_f("unsupported key type %lu", (u_long)key_type);
-			continue;
+			break;
 		}
 
 		if ((rv = f->C_DestroyObject(session, obj)) != CKR_OK) {
