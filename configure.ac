@@ -3322,9 +3322,6 @@ AC_CHECK_DECL([OPENSSL_IS_AWSLC],
 	[],
 	[#include <openssl/base.h>]
 )
-if test "x$openssl" != "xyes" ; then
-	enable_pkcs11="disabled; missing libcrypto"
-fi
 if test "x$ac_cv_func_dlopen" != "xyes" ; then
 	enable_pkcs11="disabled; missing dlopen(3)"
 	enable_sk="disabled; missing dlopen(3)"

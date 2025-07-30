@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.68 2025/07/30 04:19:17 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.69 2025/07/30 04:27:42 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -35,9 +35,11 @@
 #include "openbsd-compat/sys-queue.h"
 #include "openbsd-compat/openssl-compat.h"
 
+#ifdef WITH_OPENSSL
 #include <openssl/ecdsa.h>
 #include <openssl/x509.h>
 #include <openssl/err.h>
+#endif
 
 #define CRYPTOKI_COMPAT
 #include "pkcs11.h"
@@ -1085,6 +1087,7 @@ fail:
 	}
 	return key;
 }
+#endif /* WITH_OPENSSL */
 
 static struct sshkey *
 pkcs11_fetch_ed25519_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
@@ -1195,6 +1198,7 @@ pkcs11_fetch_ed25519_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	return key;
 }
 
+#ifdef WITH_OPENSSL
 static int
 pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
     CK_OBJECT_HANDLE *obj, struct sshkey **keyp, char **labelp)
@@ -1397,17 +1401,6 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	*labelp = subject;
 	return 0;
 }
-
-#if 0
-static int
-have_rsa_key(const RSA *rsa)
-{
-	const BIGNUM *rsa_n, *rsa_e;
-
-	RSA_get0_key(rsa, &rsa_n, &rsa_e, NULL);
-	return rsa_n != NULL && rsa_e != NULL;
-}
-#endif
 #endif /* WITH_OPENSSL */
 
 static void
@@ -1426,6 +1419,7 @@ note_key(struct pkcs11_provider *p, CK_ULONG slotidx, const char *context,
 	free(fp);
 }
 
+#ifdef WITH_OPENSSL /* libcrypto needed for certificate parsing */
 /*
  * lookup certificates for token in slot identified by slotidx,
  * add 'wrapped' public keys to the 'keysp' array and increment nkeys.
@@ -1530,6 +1524,7 @@ fail:
 
 	return (ret);
 }
+#endif /* WITH_OPENSSL */
 
 /*
  * lookup public keys for token in slot identified by slotidx,
@@ -1597,6 +1592,7 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 		label[key_attr[1].ulValueLen] = '\0';
 
 		switch (ck_key_type) {
+#ifdef WITH_OPENSSL
 		case CKK_RSA:
 			key = pkcs11_fetch_rsa_pubkey(p, slotidx, &obj);
 			break;
@@ -1605,6 +1601,7 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 			key = pkcs11_fetch_ecdsa_pubkey(p, slotidx, &obj);
 			break;
 #endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
 		case CKK_EC_EDWARDS:
 			key = pkcs11_fetch_ed25519_pubkey(p, slotidx, &obj);
 			break;
@@ -1967,7 +1964,9 @@ pkcs11_register_provider(char *provider_id, char *pin,
 		    keyp == NULL)
 			continue;
 		pkcs11_fetch_keys(p, i, keyp, labelsp, &nkeys);
+#ifdef WITH_OPENSSL
 		pkcs11_fetch_certs(p, i, keyp, labelsp, &nkeys);
+#endif
 		if (nkeys == 0 && !p->slotinfo[i].logged_in &&
 		    pkcs11_interactive) {
 			/*
@@ -1980,7 +1979,9 @@ pkcs11_register_provider(char *provider_id, char *pin,
 				continue;
 			}
 			pkcs11_fetch_keys(p, i, keyp, labelsp, &nkeys);
+#ifdef WITH_OPENSSL
 			pkcs11_fetch_certs(p, i, keyp, labelsp, &nkeys);
+#endif
 		}
 	}
 
@@ -2073,6 +2074,7 @@ pkcs11_sign(struct sshkey *key,
 	switch (key->type) {
 	case KEY_RSA:
 	case KEY_RSA_CERT:
+#ifdef WITH_OPENSSL
 		return pkcs11_sign_rsa(key, sigp, lenp, data, datalen,
 		    alg, sk_provider, sk_pin, compat);
 #ifdef OPENSSL_HAS_ECC
@@ -2081,6 +2083,7 @@ pkcs11_sign(struct sshkey *key,
 		return pkcs11_sign_ecdsa(key, sigp, lenp, data, datalen,
 		    alg, sk_provider, sk_pin, compat);
 #endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
 		return pkcs11_sign_ed25519(key, sigp, lenp, data, datalen,
@@ -2240,12 +2243,16 @@ pkcs11_destroy_keypair(char *provider_id, char *pin, unsigned long slotidx,
 			key_type = -1;
 		}
 		switch (key_type) {
+#ifdef WITH_OPENSSL
 		case CKK_RSA:
 			k = pkcs11_fetch_rsa_pubkey(p, slotidx, &obj);
 			break;
+#ifdef OPENSSL_HAS_ECC
 		case CKK_ECDSA:
 			k = pkcs11_fetch_ecdsa_pubkey(p, slotidx, &obj);
 			break;
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
 		case CKK_EC_EDWARDS:
 			k = pkcs11_fetch_ed25519_pubkey(p, slotidx, &obj);
 			break;
