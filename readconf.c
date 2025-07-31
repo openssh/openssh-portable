@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.401 2025/07/23 05:07:19 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.402 2025/07/31 09:38:41 job Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2947,7 +2947,7 @@ fill_default_options(Options * options)
 	if (options->visual_host_key == -1)
 		options->visual_host_key = 0;
 	if (options->ip_qos_interactive == -1)
-		options->ip_qos_interactive = IPTOS_DSCP_AF21;
+		options->ip_qos_interactive = IPTOS_DSCP_EF;
 	if (options->ip_qos_bulk == -1)
 		options->ip_qos_bulk = IPTOS_DSCP_CS1;
 	if (options->request_tty == -1)

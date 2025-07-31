@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.414 2025/07/23 05:07:19 djm Exp $
-.Dd $Mdocdate: July 23 2025 $
+.\" $OpenBSD: ssh_config.5,v 1.415 2025/07/31 09:38:41 job Exp $
+.Dd $Mdocdate: July 31 2025 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1277,8 +1277,8 @@ If one argument is specified, it is used as the packet class unconditionally.
 If two values are specified, the first is automatically selected for
 interactive sessions and the second for non-interactive sessions.
 The default is
-.Cm af21
-(Low-Latency Data)
+.Cm ef
+(Expedited Forwarding)
 for interactive sessions and
 .Cm cs1
 (Lower Effort)
