@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.382 2025/07/31 09:38:41 job Exp $
+.\" $OpenBSD: sshd_config.5,v 1.383 2025/07/31 11:23:39 job Exp $
 .Dd $Mdocdate: July 31 2025 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -923,7 +923,9 @@ directive may appear inside a
 block
 to perform conditional inclusion.
 .It Cm IPQoS
-Specifies the IPv4 type-of-service or DSCP class for the connection.
+Specifies the
+.Em Differentiated Services Field Codepoint Pq DSCP
+value for the connection.
 Accepted values are
 .Cm af11 ,
 .Cm af12 ,
@@ -947,9 +949,6 @@ Accepted values are
 .Cm cs7 ,
 .Cm ef ,
 .Cm le ,
-.Cm lowdelay ,
-.Cm throughput ,
-.Cm reliability ,
 a numeric value, or
 .Cm none
 to use the operating system default.
