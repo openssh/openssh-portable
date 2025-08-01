@@ -20,7 +20,7 @@ jobs:
       REMOTE: ${{ startsWith(matrix.host, 'remote') }}
       VM: ${{ startsWith(matrix.host, 'libvirt') || startsWith(matrix.host, 'persist') }}
       SSHFS: ${{ startsWith(matrix.host, 'libvirt') || startsWith(matrix.host, 'persist') || startsWith(matrix.host, 'remote') }}
-      BIGENDIAN: ${{ matrix.target == 'aix51' || matrix.target == 'fbsd14-ppc64' || matrix.target == 'openwrt-mips' }}
+      BIGENDIAN: ${{ matrix.target == 'aix51' || matrix.target == 'nbsd-arm64be' || matrix.target == 'openwrt-mips' }}
     strategy:
       fail-fast: false
       # We use a matrix in two parts: firstly all of the VMs are tested with the
@@ -63,7 +63,6 @@ jobs:
         include:
           # Long-running/slow tests have access to high priority runners.
           - { target: aix51, config: default, host: libvirt-hipri }
-          - { target: fbsd14-ppc64, config: default, host: libvirt-hipri }
           - { target: openindiana, config: pam, host: libvirt-hipri }
           - { target: sol10,  config: default, host: libvirt-hipri }
           - { target: sol10,  config: pam, host: libvirt-hipri }
@@ -100,6 +99,7 @@ jobs:
           - { target: debian-riscv64, config: default, host: remote-debian-riscv64 }
           - { target: openwrt-mips, config: default, host: remote-openwrt-mips }
           - { target: openwrt-mipsel, config: default, host: remote-openwrt-mipsel }
+          - { target: nbsd-arm64be, config: default, host: remote-nbsd-arm64be }
     steps:
     - name: shutdown VM if running
       if: env.VM == 'true'
