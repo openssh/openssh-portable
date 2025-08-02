@@ -283,7 +283,7 @@ case "${TARGET_HOST}" in
 	# Native linker is not great with PIC so OpenSSL is built w/out.
 	CONFIGFLAGS="${CONFIGFLAGS} --disable-security-key"
 	;;
-    fbsd14-ppc64)
+    fbsd14-ppc64|nbsd-arm64be)
 	# Disable security key tests for bigendian interop test.
 	CONFIGFLAGS="${CONFIGFLAGS} --disable-security-key"
 	;;
