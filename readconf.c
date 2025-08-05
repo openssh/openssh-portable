@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.403 2025/07/31 11:23:39 job Exp $ */
+/* $OpenBSD: readconf.c,v 1.404 2025/08/05 09:08:16 job Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2961,7 +2961,7 @@ fill_default_options(Options * options)
 	if (options->ip_qos_interactive == -1)
 		options->ip_qos_interactive = IPTOS_DSCP_EF;
 	if (options->ip_qos_bulk == -1)
-		options->ip_qos_bulk = IPTOS_DSCP_CS1;
+		options->ip_qos_bulk = IPTOS_DSCP_CS0;
 	if (options->request_tty == -1)
 		options->request_tty = REQUEST_TTY_AUTO;
 	if (options->session_type == -1)

@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.429 2025/07/31 11:23:39 job Exp $ */
+/* $OpenBSD: servconf.c,v 1.430 2025/08/05 09:08:16 job Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -474,7 +474,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->ip_qos_interactive == -1)
 		options->ip_qos_interactive = IPTOS_DSCP_EF;
 	if (options->ip_qos_bulk == -1)
-		options->ip_qos_bulk = IPTOS_DSCP_CS1;
+		options->ip_qos_bulk = IPTOS_DSCP_CS0;
 	if (options->version_addendum == NULL)
 		options->version_addendum = xstrdup("");
 	if (options->fwd_opts.streamlocal_bind_mask == (mode_t)-1)
