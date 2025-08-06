@@ -78,8 +78,8 @@ contains:
 1.6 transport: AES-GCM
 
 OpenSSH supports the AES-GCM algorithm as specified in RFC 5647.
-Because of problems with design of algorithm negotiation in this
-RFC, OpenSSH (and other SSH implementation) use different rules as
+Because of problems with the design of the algorithm negotiation in this
+RFC, OpenSSH (and other SSH implementations) use different rules as
 described in:
 
 https://datatracker.ietf.org/doc/draft-miller-sshm-aes-gcm/
@@ -718,4 +718,4 @@ master instance and later clients.
 OpenSSH extends the usual agent protocol. These changes are documented
 in the PROTOCOL.agent file.
 
-$OpenBSD: PROTOCOL,v 1.58 2025/08/05 04:00:15 djm Exp $
+$OpenBSD: PROTOCOL,v 1.59 2025/08/06 11:22:53 dtucker Exp $
