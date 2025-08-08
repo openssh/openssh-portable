@@ -338,6 +338,8 @@ clean:	regressclean
 	rm -f regress/misc/sk-dummy/*.lo
 	rm -f regress/misc/ssh-verify-attestation/ssh-verify-attestation$(EXEEXT)
 	rm -f regress/misc/ssh-verify-attestation/*.o
+	rm -f regress/misc/webauthn-dummy-agent/webauthn-dummy-agent$(EXEEXT)
+	rm -f regress/misc/webauthn-dummy-agent/*.o
 	(cd openbsd-compat && $(MAKE) clean)
 
 distclean:	regressclean
@@ -377,6 +379,8 @@ distclean:	regressclean
 	rm -f regress/misc/sk-dummy/sk-dummy.so
 	rm -f regress/misc/ssh-verify-attestation/ssh-verify-attestation$(EXEEXT)
 	rm -f regress/misc/ssh-verify-attestation/*.o
+	rm -f regress/misc/webauthn-dummy-agent/webauthn-dummy-agent$(EXEEXT)
+	rm -f regress/misc/webauthn-dummy-agent/*.o
 	(cd openbsd-compat && $(MAKE) distclean)
 	if test -d pkg ; then \
 		rm -fr pkg ; \
@@ -553,6 +557,8 @@ regress-prep:
 	$(MKDIR_P) `pwd`/regress/unittests/utf8
 	$(MKDIR_P) `pwd`/regress/misc/sk-dummy
 	$(MKDIR_P) `pwd`/regress/misc/ssh-verify-attestation
+	$(MKDIR_P) `pwd`/regress/misc/webauthn-dummy-agent
+
 	[ -f `pwd`/regress/Makefile ] || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
@@ -748,6 +754,15 @@ ssh-verify-attestation: regress/misc/ssh-verify-attestation/ssh-verify-attestati
 regress/misc/ssh-verify-attestation/ssh-verify-attestation$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSH_VERIFY_ATTESTATION_OBJS)
 	$(LD) -o $@ $(SSH_VERIFY_ATTESTATION_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) $(CHANNELLIBS) $(LIBFIDO2)
 
+WEBAUTHN_DUMMY_AGENT_OBJS=\
+	$(SKOBJS) \
+	ssh-pkcs11-client.o \
+	regress/misc/webauthn-dummy-agent/webauthn-dummy-agent.o
+
+webauthn-dummy-agent: regress/misc/webauthn-dummy-agent/webauthn-dummy-agent$(EXEEXT)
+
+regress/misc/webauthn-dummy-agent/webauthn-dummy-agent$(EXEEXT): $(LIBCOMPAT) libssh.a $(WEBAUTHN_DUMMY_AGENT_OBJS)
+	$(LD) -o $@ $(WEBAUTHN_DUMMY_AGENT_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) $(CHANNELLIBS)
 
 regress-binaries: regress-prep $(LIBCOMPAT) \
 	regress/modpipe$(EXEEXT) \
@@ -756,7 +771,8 @@ regress-binaries: regress-prep $(LIBCOMPAT) \
 	regress/netcat$(EXEEXT) \
 	regress/check-perm$(EXEEXT) \
 	regress/mkdtemp$(EXEEXT) \
-	$(SK_DUMMY_LIBRARY)
+	$(SK_DUMMY_LIBRARY) \
+	regress/misc/webauthn-dummy-agent/webauthn-dummy-agent$(EXEEXT)
 
 regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/authopt/test_authopt$(EXEEXT) \
