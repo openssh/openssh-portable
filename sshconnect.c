@@ -509,7 +509,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 				break;
 			} else {
 				oerrno = errno;
-				debug("connect to address %s port %s: %s",
+				logit("connect to address %s port %s: %s",
 				    ntop, strport, strerror(errno));
 				close(sock);
 				sock = -1;
