@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.371 2025/05/24 09:46:16 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.372 2025/08/11 10:55:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1580,6 +1580,14 @@ out:
 	return r;
 }
 
+static void
+warn_nonpq_kex(void)
+{
+	logit("** WARNING: connection is not using a post-quantum kex exchange algorithm.");
+	logit("** This session may be vulnerable to \"store now, decrypt later\" attacks.");
+	logit("** The server may need to be upgraded. See https://openssh.com/pq.html");
+}
+
 /*
  * Starts a dialog with the server, and authenticates the current user on the
  * server.  This does not need any extra privileges.  The basic connection
@@ -1615,6 +1623,10 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 	/* authenticate user */
 	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
 	ssh_kex2(ssh, host, hostaddr, port, cinfo);
+	if (!options.kex_algorithms_set && ssh->kex != NULL &&
+	    ssh->kex->name != NULL && options.warn_weak_crypto &&
+	    !kex_is_pq_from_name(ssh->kex->name))
+		warn_nonpq_kex();
 	ssh_userauth2(ssh, local_user, server_user, host, sensitive);
 	free(local_user);
 	free(host);

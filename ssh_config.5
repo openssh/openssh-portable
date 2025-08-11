@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.417 2025/08/05 09:08:16 job Exp $
-.Dd $Mdocdate: August 5 2025 $
+.\" $OpenBSD: ssh_config.5,v 1.418 2025/08/11 10:55:38 djm Exp $
+.Dd $Mdocdate: August 11 2025 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -2229,6 +2229,20 @@ If this flag is set to
 (the default),
 no fingerprint strings are printed at login and
 only the fingerprint string will be printed for unknown host keys.
+.It Cm WarnWeakCrypto
+controls whether the user is warned when the cryptographic algorithms
+negotiated for the connection are weak or otherwise recommended against.
+Warnings may be disabled by turning off a specific warning or by disabling
+all warnings.
+Warnings that the connection is using a non-post quantum safe key exchange
+may be disabled using the
+.Cm no-pq-kex
+flag.
+.Cm no
+will disable all warnings.
+The default, equivalent to
+.Cm yes ,
+is to enable all warnings.
 .It Cm XAuthLocation
 Specifies the full pathname of the
 .Xr xauth 1

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.404 2025/08/05 09:08:16 job Exp $ */
+/* $OpenBSD: readconf.c,v 1.405 2025/08/11 10:55:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -180,7 +180,7 @@ typedef enum {
 	oPubkeyAcceptedAlgorithms, oCASignatureAlgorithms, oProxyJump,
 	oSecurityKeyProvider, oKnownHostsCommand, oRequiredRSASize,
 	oEnableEscapeCommandline, oObscureKeystrokeTiming, oChannelTimeout,
-	oVersionAddendum, oRefuseConnection,
+	oVersionAddendum, oRefuseConnection, oWarnWeakCrypto,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -333,6 +333,7 @@ static struct {
 	{ "channeltimeout", oChannelTimeout },
 	{ "versionaddendum", oVersionAddendum },
 	{ "refuseconnection", oRefuseConnection },
+	{ "warnweakcrypto", oWarnWeakCrypto },
 
 	{ NULL, oBadOption }
 };
@@ -1099,6 +1100,15 @@ static const struct multistate multistate_compression[] = {
 	{ "yes",			COMP_DELAYED },
 #endif
 	{ "no",				COMP_NONE },
+	{ NULL, -1 }
+};
+/* XXX this will need to be replaced with a bitmask if we add more flags */
+static const struct multistate multistate_warnweakcrypto[] = {
+	{ "true",			1 },
+	{ "false",			0 },
+	{ "yes",			1 },
+	{ "no",				0 },
+	{ "no-pq-kex",			0 },
 	{ NULL, -1 }
 };
 
@@ -2427,6 +2437,11 @@ parse_pubkey_algos:
 		intptr = &options->required_rsa_size;
 		goto parse_int;
 
+	case oWarnWeakCrypto:
+		intptr = &options->warn_weak_crypto;
+		multistate_ptr = multistate_warnweakcrypto;
+		goto parse_multistate;
+
 	case oObscureKeystrokeTiming:
 		value = -1;
 		while ((arg = argv_next(&ac, &av)) != NULL) {
@@ -2786,6 +2801,7 @@ initialize_options(Options * options)
 	options->pubkey_accepted_algos = NULL;
 	options->known_hosts_command = NULL;
 	options->required_rsa_size = -1;
+	options->warn_weak_crypto = -1;
 	options->enable_escape_commandline = -1;
 	options->obscure_keystroke_timing_interval = -1;
 	options->tag = NULL;
@@ -2989,6 +3005,8 @@ fill_default_options(Options * options)
 #endif
 	if (options->required_rsa_size == -1)
 		options->required_rsa_size = SSH_RSA_MINIMUM_MODULUS_SIZE;
+	if (options->warn_weak_crypto == -1)
+		options->warn_weak_crypto = 1;
 	if (options->enable_escape_commandline == -1)
 		options->enable_escape_commandline = 0;
 	if (options->obscure_keystroke_timing_interval == -1) {
@@ -3016,6 +3034,7 @@ fill_default_options(Options * options)
 			goto fail; \
 		} \
 	} while (0)
+	options->kex_algorithms_set = options->kex_algorithms != NULL;
 	ASSEMBLE(ciphers, def_cipher, all_cipher);
 	ASSEMBLE(macs, def_mac, all_mac);
 	ASSEMBLE(kex_algorithms, def_kex, all_kex);
@@ -3703,6 +3722,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oVisualHostKey, o->visual_host_key);
 	dump_cfg_fmtint(oUpdateHostkeys, o->update_hostkeys);
 	dump_cfg_fmtint(oEnableEscapeCommandline, o->enable_escape_commandline);
+	dump_cfg_fmtint(oWarnWeakCrypto, o->warn_weak_crypto);
 
 	/* Integer options */
 	dump_cfg_int(oCanonicalizeMaxDots, o->canonicalize_max_dots);

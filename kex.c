@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.187 2024/08/23 04:51:00 deraadt Exp $ */
+/* $OpenBSD: kex.c,v 1.188 2025/08/11 10:55:38 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -563,8 +563,6 @@ kex_input_newkeys(int type, u_int32_t seq, struct ssh *ssh)
 	kex->flags &= ~KEX_INITIAL;
 	sshbuf_reset(kex->peer);
 	kex->flags &= ~KEX_INIT_SENT;
-	free(kex->name);
-	kex->name = NULL;
 	return 0;
 }
 
@@ -620,6 +618,8 @@ kex_input_kexinit(int type, u_int32_t seq, struct ssh *ssh)
 		error_f("no kex");
 		return SSH_ERR_INTERNAL_ERROR;
 	}
+	free(kex->name);
+	kex->name = NULL;
 	ssh_dispatch_set(ssh, SSH2_MSG_KEXINIT, &kex_protocol_error);
 	ptr = sshpkt_ptr(ssh, &dlen);
 	if ((r = sshbuf_put(kex->peer, ptr, dlen)) != 0)
