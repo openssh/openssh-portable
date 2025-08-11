@@ -824,6 +824,9 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 		file = expand_authorized_keys(
 		    options.authorized_keys_files[i], pw);
 		temporarily_use_uid(pw);
+#ifdef WINDOWS
+		convertToForwardslash(file);
+#endif // WINDOWS
 		r = glob(file, 0, NULL, &gl);
 		restore_uid();
 		if (r != 0) {
