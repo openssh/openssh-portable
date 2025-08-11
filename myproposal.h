@@ -30,6 +30,7 @@
 	"ecdh-sha2-nistp256," \
 	"ecdh-sha2-nistp384," \
 	"ecdh-sha2-nistp521," \
+	"sntrup761x25519-sha512," \
 	"sntrup761x25519-sha512@openssh.com," \
 	"diffie-hellman-group-exchange-sha256," \
 	"diffie-hellman-group16-sha512," \
