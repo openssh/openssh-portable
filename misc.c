@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.201 2025/07/31 11:23:39 job Exp $ */
+/* $OpenBSD: misc.c,v 1.202 2025/08/11 14:37:43 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2540,8 +2540,10 @@ format_absolute_time(uint64_t t, char *buf, size_t len)
 	time_t tt = t > SSH_TIME_T_MAX ? SSH_TIME_T_MAX : t;
 	struct tm tm;
 
-	localtime_r(&tt, &tm);
-	strftime(buf, len, "%Y-%m-%dT%H:%M:%S", &tm);
+	if (localtime_r(&tt, &tm) == NULL)
+		strlcpy(buf, "UNKNOWN-TIME", len);
+	else
+		strftime(buf, len, "%Y-%m-%dT%H:%M:%S", &tm);
 }
 
 /*
