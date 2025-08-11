@@ -950,8 +950,8 @@ DESCRIPTION
              accumulated.
 
              Penalties are enabled by default with the default settings listed
-             below but may disabled using the off keyword.  The defaults may
-             be overridden by specifying one or more of the keywords below,
+             below but may disabled using the no keyword.  The defaults may be
+             overridden by specifying one or more of the keywords below,
              separated by whitespace.  All keywords accept arguments, e.g.
              "crash:2m".
 
@@ -1390,4 +1390,4 @@ AUTHORS
      versions 1.5 and 2.0.  Niels Provos and Markus Friedl contributed support
      for privilege separation.
 
-OpenBSD 7.5                      June 24, 2024                     OpenBSD 7.5
+OpenBSD 7.7                      June 24, 2024                     OpenBSD 7.7
