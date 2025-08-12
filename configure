@@ -13317,9 +13317,6 @@ EOD
 printf "%s\n" "#define BROKEN_SETVBUF 1" >>confdefs.h
 
 	;;
-*-*-gnu*)
-					CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_GNU_SOURCE"
-	;;
 esac
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking compiler and flags for sanity" >&5
