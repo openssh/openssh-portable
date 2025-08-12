@@ -956,6 +956,8 @@ ecdh-sha2-nistp384
 .It
 ecdh-sha2-nistp521
 .It
+sntrup761x25519-sha512
+.It
 sntrup761x25519-sha512@openssh.com
 .El
 .Pp
@@ -963,6 +965,7 @@ The default is:
 .Bd -literal -offset indent
 curve25519-sha256,curve25519-sha256@libssh.org,
 ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,
+sntrup761x25519-sha512,
 sntrup761x25519-sha512@openssh.com,
 diffie-hellman-group-exchange-sha256,
 diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,
