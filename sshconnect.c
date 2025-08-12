@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.372 2025/08/11 10:55:38 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.373 2025/08/12 11:09:48 sthen Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1583,7 +1583,7 @@ out:
 static void
 warn_nonpq_kex(void)
 {
-	logit("** WARNING: connection is not using a post-quantum kex exchange algorithm.");
+	logit("** WARNING: connection is not using a post-quantum key exchange algorithm.");
 	logit("** This session may be vulnerable to \"store now, decrypt later\" attacks.");
 	logit("** The server may need to be upgraded. See https://openssh.com/pq.html");
 }
