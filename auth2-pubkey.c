@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.123 2025/08/06 04:53:04 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.124 2025/08/14 09:44:39 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -592,7 +592,7 @@ user_cert_trusted_ca(struct passwd *pw, struct sshkey *key,
  fail_reason:
 			error("Refusing certificate ID \"%s\" serial=%llu "
 			    "signed by %s CA %s: %s", key->cert->key_id,
-			    key->cert->serial,
+			    (unsigned long long)key->cert->serial,
 			    sshkey_type(key->cert->signature_key), ca_fp,
 			    reason);
 			auth_debug_add("Refused Certificate ID \"%s\" "
