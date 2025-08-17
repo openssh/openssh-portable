@@ -1876,6 +1876,7 @@ complete_ambiguous(const char *word, char **list, size_t count)
 
 	if (count > 0) {
 		u_int y, matchlen = strlen(list[0]);
+		u_int itemlen = matchlen, wordlen = strlen(word);
 
 		/* Find length of common stem */
 		for (y = 1; list[y]; y++) {
@@ -1887,6 +1888,10 @@ complete_ambiguous(const char *word, char **list, size_t count)
 
 			matchlen = x;
 		}
+
+		for (; matchlen > wordlen; matchlen--)
+			if (mblen(list[0] + matchlen, itemlen - matchlen) >= 0)
+				break;
 
 		if (matchlen > strlen(word)) {
 			char *tmp = xstrdup(list[0]);
