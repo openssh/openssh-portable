@@ -49,6 +49,8 @@
 #include <sys/mman.h>
 #include <sys/syscall.h>
 
+#include <netinet/ip.h>
+
 #include <linux/futex.h>
 #include <linux/net.h>
 #include <linux/audit.h>
@@ -199,6 +201,32 @@
 	SC_DENY_UNLESS_ARG_MASK(_nr, 3, SC_MMAP_FLAGS, EINVAL), \
 	SC_ALLOW_ARG_MASK(_nr, 2, PROT_READ|PROT_WRITE|PROT_NONE)
 #endif /* __NR_mmap || __NR_mmap2 */
+
+/* Special handling for setsockopt(2) */
+#define SC_ALLOW_SETSOCKOPT(_level, _optname) \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_setsockopt, 0, 10), \
+	/* load and test level, low word */ \
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
+	    offsetof(struct seccomp_data, args[1]) + ARG_LO_OFFSET), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, \
+	    ((_level) & 0xFFFFFFFF), 0, 7), \
+	/* load and test level high word is zero */ \
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
+	    offsetof(struct seccomp_data, args[1]) + ARG_HI_OFFSET), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, 0, 0, 5), \
+	/* load and test optname, low word */ \
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
+	    offsetof(struct seccomp_data, args[2]) + ARG_LO_OFFSET), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, \
+	    ((_optname) & 0xFFFFFFFF), 0, 3), \
+	/* load and test level high word is zero */ \
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
+	    offsetof(struct seccomp_data, args[2]) + ARG_HI_OFFSET), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, 0, 0, 1), \
+	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW), \
+	/* reload syscall number; all rules expect it in accumulator */ \
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
+		offsetof(struct seccomp_data, nr))
 
 /* Syscall filtering set for preauth. */
 static const struct sock_filter preauth_insns[] = {
@@ -398,7 +426,23 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_writev
 	SC_ALLOW(__NR_writev),
 #endif
+#ifdef __NR_getsockopt
+	SC_ALLOW(__NR_getsockopt),
+#endif
+#ifdef __NR_getsockname
+	SC_ALLOW(__NR_getsockname),
+#endif
+#ifdef __NR_getpeername
+	SC_ALLOW(__NR_getpeername),
+#endif
+#ifdef __NR_setsockopt
+	SC_ALLOW_SETSOCKOPT(IPPROTO_IPV6, IPV6_TCLASS),
+	SC_ALLOW_SETSOCKOPT(IPPROTO_IP, IP_TOS),
+#endif
 #ifdef __NR_socketcall
+	SC_ALLOW_ARG(__NR_socketcall, 0, SYS_GETPEERNAME),
+	SC_ALLOW_ARG(__NR_socketcall, 0, SYS_GETSOCKNAME),
+	SC_ALLOW_ARG(__NR_socketcall, 0, SYS_GETSOCKOPT),
 	SC_ALLOW_ARG(__NR_socketcall, 0, SYS_SHUTDOWN),
 	SC_DENY(__NR_socketcall, EACCES),
 #endif
