@@ -1128,6 +1128,35 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([SYSLOG_R_SAFE_IN_SIGHAND], [1],
 	    [syslog_r function is safe to use in in a signal handler])
 	TEST_MALLOC_OPTIONS="SJRU"
+	AC_MSG_CHECKING([whether pledge(2) allows IP_TOS])
+	need_pledge_inet=""
+	AC_RUN_IFELSE(
+	    [AC_LANG_PROGRAM([[
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <err.h>
+	    ]], [[
+int s, one = 1;
+if ((s = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+	err(1, "socket");
+if (pledge("stdio", NULL) == -1)
+	err(1, "pledge");
+if (setsockopt(s, IPPROTO_IP, IP_TOS, &one, sizeof(one)) == -1)
+	err(1, "setsockopt");
+	    ]])],
+	    [ AC_MSG_RESULT([yes]) ], [
+		AC_MSG_RESULT([no])
+		need_pledge_inet=1
+	    ],
+	    [ AC_MSG_WARN([cross compiling: cannot test]) ])
+	if test -z "$need_pledge_inet" ; then
+		AC_DEFINE_UNQUOTED([PLEDGE_EXTRA_INET], [])
+	else
+		AC_DEFINE_UNQUOTED([PLEDGE_EXTRA_INET], ["inet "],
+			[need inet in pledge for setsockopt IP_TOS])
+	fi
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then

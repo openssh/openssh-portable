@@ -975,11 +975,11 @@ client_repledge(void)
 	} else if (options.forward_agent != 0) {
 		/* agent forwarding needs to open $SSH_AUTH_SOCK at will */
 		debug("pledge: agent");
-		if (pledge("stdio unix proc tty", NULL) == -1)
+		if (pledge(PLEDGE_EXTRA_INET "stdio unix proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 	} else {
 		debug("pledge: fork");
-		if (pledge("stdio proc tty", NULL) == -1)
+		if (pledge(PLEDGE_EXTRA_INET "stdio proc tty", NULL) == -1)
 			fatal_f("pledge(): %s", strerror(errno));
 	}
 	/* XXX further things to do:
