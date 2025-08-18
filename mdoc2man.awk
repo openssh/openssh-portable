@@ -281,6 +281,12 @@ function add(str) {
 	  add("[")
 	  words[nwords]=words[nwords] "]"
 	}
+	if(match(words[w],"^Ns$")) {
+	  w++
+	  if(!nospace)
+	    nospace=1
+	  sub(" $","",line)
+	}
 	if(match(words[w],"^Ar$")) {
 	  add("\\fI" words[++w] "\\fP")
 	} else if(match(words[w],"^[\\.,]")) {
