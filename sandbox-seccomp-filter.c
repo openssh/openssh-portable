@@ -180,12 +180,12 @@
 
 /* Use this for both __NR_futex and __NR_futex_time64 */
 # define SC_FUTEX(_nr) \
-	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_WAIT), \
-	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_WAIT_BITSET), \
-	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_WAKE), \
-	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_WAKE_BITSET), \
-	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_REQUEUE), \
-	SC_ALLOW_FUTEX_OP(__NR_futex, FUTEX_CMP_REQUEUE)
+	SC_ALLOW_FUTEX_OP(_nr, FUTEX_WAIT), \
+	SC_ALLOW_FUTEX_OP(_nr, FUTEX_WAIT_BITSET), \
+	SC_ALLOW_FUTEX_OP(_nr, FUTEX_WAKE), \
+	SC_ALLOW_FUTEX_OP(_nr, FUTEX_WAKE_BITSET), \
+	SC_ALLOW_FUTEX_OP(_nr, FUTEX_REQUEUE), \
+	SC_ALLOW_FUTEX_OP(_nr, FUTEX_CMP_REQUEUE)
 #endif /* __NR_futex || __NR_futex_time64 */
 
 #if defined(__NR_mmap) || defined(__NR_mmap2)
