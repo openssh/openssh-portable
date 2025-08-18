@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.320 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.321 2025/08/18 04:50:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2613,7 +2613,7 @@ ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 	    (r = sshbuf_get_u32(m, &qos_interactive)) != 0 ||
 	    (r = sshbuf_get_u32(m, &qos_other)) != 0)
 		return r;
-#define DECODE_INT(v) ((v) > INT_MAX ? -1 : (v))
+#define DECODE_INT(v) ((v) > INT_MAX ? -1 : (int)(v))
 	state->interactive_mode = DECODE_INT(interactive);
 	state->qos_interactive = DECODE_INT(qos_interactive);
 	state->qos_other = DECODE_INT(qos_other);
