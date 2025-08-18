@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.6 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.7 2025/08/18 04:38:21 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -657,6 +657,7 @@ main(int ac, char **av)
 
 	/* Reinit logging in case config set Level, Facility or Verbose. */
 	log_init(__progname, options.log_level, options.log_facility, 1);
+	set_log_handler(mm_log_handler, pmonitor);
 
 	debug("sshd-auth version %s, %s", SSH_VERSION, SSH_OPENSSL_VERSION);
 
