@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.412 2025/06/17 01:20:17 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.413 2025/08/18 03:28:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -147,7 +147,8 @@ extern char *forward_agent_sock_path;
  * because this is updated in a signal handler.
  */
 static volatile sig_atomic_t received_window_change_signal = 0;
-static volatile sig_atomic_t received_signal = 0;
+static volatile sig_atomic_t siginfo_received = 0;
+static volatile sig_atomic_t received_signal = 0; /* exit signals */
 
 /* Time when backgrounded control master using ControlPersist should exit */
 static time_t control_persist_exit_time = 0;
@@ -222,6 +223,13 @@ static void
 window_change_handler(int sig)
 {
 	received_window_change_signal = 1;
+}
+
+/* Signal handler for SIGINFO */
+static void
+siginfo_handler(int sig)
+{
+	siginfo_received = 1;
 }
 
 /*
@@ -1514,6 +1522,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	if (ssh_signal(SIGTERM, SIG_IGN) != SIG_IGN)
 		ssh_signal(SIGTERM, signal_handler);
 	ssh_signal(SIGWINCH, window_change_handler);
+	ssh_signal(SIGINFO, siginfo_handler);
 
 	if (have_pty)
 		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
@@ -1536,7 +1545,8 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	    sigaddset(&bsigset, SIGHUP) == -1 ||
 	    sigaddset(&bsigset, SIGINT) == -1 ||
 	    sigaddset(&bsigset, SIGQUIT) == -1 ||
-	    sigaddset(&bsigset, SIGTERM) == -1)
+	    sigaddset(&bsigset, SIGTERM) == -1 ||
+	    sigaddset(&bsigset, SIGINFO) == -1)
 		error_f("bsigset setup: %s", strerror(errno));
 
 	/* Main loop of the client for the interactive session mode. */
@@ -1577,6 +1587,10 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		 */
 		if (sigprocmask(SIG_BLOCK, &bsigset, &osigset) == -1)
 			error_f("bsigset sigprocmask: %s", strerror(errno));
+		if (siginfo_received) {
+			siginfo_received = 0;
+			channel_report_open(ssh, SYSLOG_LEVEL_INFO);
+		}
 		if (quit_pending)
 			break;
 		client_wait_until_can_do_something(ssh, &pfd, &npfd_alloc,
