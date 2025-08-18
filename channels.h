@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.158 2024/10/13 22:20:06 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.159 2025/08/18 03:28:02 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -344,6 +344,7 @@ int      channel_still_open(struct ssh *);
 int	 channel_tty_open(struct ssh *);
 const char *channel_format_extended_usage(const Channel *);
 char	*channel_open_message(struct ssh *);
+void	 channel_report_open(struct ssh *, int);
 int	 channel_find_open(struct ssh *);
 
 /* tcp forwarding */

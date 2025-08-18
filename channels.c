@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.446 2025/06/02 14:09:34 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.447 2025/08/18 03:28:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1094,6 +1094,21 @@ channel_open_message(struct ssh *ssh)
 		fatal_f("sshbuf_dup_string");
 	sshbuf_free(buf);
 	return ret;
+}
+
+void
+channel_report_open(struct ssh *ssh, int level)
+{
+	char *open, *oopen, *cp, ident[256];
+
+	sshpkt_fmt_connection_id(ssh, ident, sizeof(ident));
+	do_log2(level, "Connection: %s (pid %ld)", ident, (long)getpid());
+	open = oopen = channel_open_message(ssh);
+	while ((cp = strsep(&open, "\r\n")) != NULL) {
+		if (*cp != '\0')
+			do_log2(level, "%s", cp);
+	}
+	free(oopen);
 }
 
 static void
