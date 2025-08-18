@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.241 2024/11/26 22:01:37 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.242 2025/08/18 03:29:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -89,7 +89,8 @@ extern struct sshauthopt *auth_opts;
 
 static int no_more_sessions = 0; /* Disallow further sessions. */
 
-static volatile sig_atomic_t child_terminated = 0;	/* The child has terminated. */
+static volatile sig_atomic_t child_terminated = 0; /* set on SIGCHLD */
+static volatile sig_atomic_t siginfo_received = 0;
 
 /* prototypes */
 static void server_init_dispatch(struct ssh *);
@@ -101,6 +102,12 @@ static void
 sigchld_handler(int sig)
 {
 	child_terminated = 1;
+}
+
+static void
+siginfo_handler(int sig)
+{
+	siginfo_received = 1;
 }
 
 static void
@@ -326,9 +333,12 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 
 	debug("Entering interactive session for SSH2.");
 
-	if (sigemptyset(&bsigset) == -1 || sigaddset(&bsigset, SIGCHLD) == -1)
+	if (sigemptyset(&bsigset) == -1 ||
+	    sigaddset(&bsigset, SIGCHLD) == -1 ||
+	    sigaddset(&bsigset, SIGINFO) == -1)
 		error_f("bsigset setup: %s", strerror(errno));
 	ssh_signal(SIGCHLD, sigchld_handler);
+	ssh_signal(SIGINFO, siginfo_handler);
 	child_terminated = 0;
 	connection_in = ssh_packet_get_connection_in(ssh);
 	connection_out = ssh_packet_get_connection_out(ssh);
@@ -350,6 +360,10 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		if (sigprocmask(SIG_BLOCK, &bsigset, &osigset) == -1)
 			error_f("bsigset sigprocmask: %s", strerror(errno));
 		collect_children(ssh);
+		if (siginfo_received) {
+			siginfo_received = 0;
+			channel_report_open(ssh, SYSLOG_LEVEL_INFO);
+		}
 		wait_until_can_do_something(ssh, connection_in, connection_out,
 		    &pfd, &npfd_alloc, &npfd_active, &osigset,
 		    &conn_in_ready, &conn_out_ready);
