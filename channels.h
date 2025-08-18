@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.159 2025/08/18 03:28:02 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.160 2025/08/18 03:43:01 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -81,6 +81,10 @@
 
 #define FORWARD_ADM		0x100
 #define FORWARD_USER		0x101
+
+/* default pattern-lists used to classify channel types as bulk */
+#define CHANNEL_BULK_TTY	""
+#define CHANNEL_BULK_NOTTY	"direct-*,forwarded-*,tun-*,x11-*,session*"
 
 struct ssh;
 struct Channel;
@@ -180,6 +184,7 @@ struct Channel {
 
 	char   *ctype;		/* const type - NB. not freed on channel_free */
 	char   *xctype;		/* extended type */
+	int	bulk;		/* channel is non-interactive */
 
 	/* callback */
 	channel_open_fn		*open_confirm;
@@ -289,6 +294,7 @@ Channel *channel_new(struct ssh *, char *, int, int, int, int,
 	    u_int, u_int, int, const char *, int);
 void	 channel_set_fds(struct ssh *, int, int, int, int, int,
 	    int, int, u_int);
+void	 channel_set_tty(struct ssh *, Channel *);
 void	 channel_free(struct ssh *, Channel *);
 void	 channel_free_all(struct ssh *);
 void	 channel_stop_listening(struct ssh *);
@@ -308,6 +314,7 @@ void	 channel_register_status_confirm(struct ssh *, int,
 void	 channel_cancel_cleanup(struct ssh *, int);
 int	 channel_close_fd(struct ssh *, Channel *, int *);
 void	 channel_send_window_changes(struct ssh *);
+int	 channel_has_bulk(struct ssh *);
 
 /* channel inactivity timeouts */
 void channel_add_timeout(struct ssh *, const char *, int);

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.447 2025/08/18 03:28:02 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.448 2025/08/18 03:43:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -212,6 +212,10 @@ struct ssh_channels {
 	/* Global timeout for all OPEN channels */
 	int global_deadline;
 	time_t lastused;
+	/* pattern-lists used to classify channels as bulk */
+	char *bulk_classifier_tty, *bulk_classifier_notty;
+	/* Number of active bulk channels (set by channel_handler) */
+	u_int nbulk;
 };
 
 /* helper */
@@ -239,6 +243,8 @@ channel_init_channels(struct ssh *ssh)
 	sc->channels_alloc = 10;
 	sc->channels = xcalloc(sc->channels_alloc, sizeof(*sc->channels));
 	sc->IPv4or6 = AF_UNSPEC;
+	sc->bulk_classifier_tty = xstrdup(CHANNEL_BULK_TTY);
+	sc->bulk_classifier_notty = xstrdup(CHANNEL_BULK_NOTTY);
 	channel_handler_init(sc);
 
 	ssh->chanctxt = sc;
@@ -357,6 +363,17 @@ lookup_timeout(struct ssh *ssh, const char *type)
 	return 0;
 }
 
+static void
+channel_classify(struct ssh *ssh, Channel *c)
+{
+	struct ssh_channels *sc = ssh->chanctxt;
+	const char *type = c->xctype == NULL ? c->ctype : c->xctype;
+	const char *classifier = c->isatty ?
+	    sc->bulk_classifier_tty : sc->bulk_classifier_notty;
+
+	c->bulk = type != NULL && match_pattern_list(type, classifier, 0) == 1;
+}
+
 /*
  * Sets "extended type" of a channel; used by session layer to add additional
  * information about channel types (e.g. shell, login, subsystem) that can then
@@ -375,6 +392,7 @@ channel_set_xtype(struct ssh *ssh, int id, const char *xctype)
 	c->xctype = xstrdup(xctype);
 	/* Type has changed, so look up inactivity deadline again */
 	c->inactive_deadline = lookup_timeout(ssh, c->xctype);
+	channel_classify(ssh, c);
 	debug2_f("labeled channel %d as %s (inactive timeout %u)", id, xctype,
 	    c->inactive_deadline);
 }
@@ -409,6 +427,13 @@ channel_get_expiry(struct ssh *ssh, Channel *c)
 			expiry = channel_expiry;
 	}
 	return expiry;
+}
+
+/* Returns non-zero if there is an open, non-interactive channel */
+int
+channel_has_bulk(struct ssh *ssh)
+{
+	return ssh->chanctxt != NULL && ssh->chanctxt->nbulk != 0;
 }
 
 /*
@@ -478,6 +503,7 @@ channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
 	}
 	/* channel might be entering a larval state, so reset global timeout */
 	channel_set_used_time(ssh, NULL);
+	channel_classify(ssh, c);
 }
 
 /*
@@ -537,9 +563,17 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	c->delayed = 1;		/* prevent call to channel_post handler */
 	c->inactive_deadline = lookup_timeout(ssh, c->ctype);
 	TAILQ_INIT(&c->status_confirms);
+	channel_classify(ssh, c);
 	debug("channel %d: new %s [%s] (inactive timeout: %u)",
 	    found, c->ctype, remote_name, c->inactive_deadline);
 	return c;
+}
+
+void
+channel_set_tty(struct ssh *ssh, Channel *c)
+{
+	c->isatty = 1;
+	channel_classify(ssh, c);
 }
 
 int
@@ -1019,7 +1053,7 @@ channel_format_status(const Channel *c)
 	char *ret = NULL;
 
 	xasprintf(&ret, "t%d [%s] %s%u %s%u i%u/%zu o%u/%zu e[%s]/%zu "
-	    "fd %d/%d/%d sock %d cc %d %s%u io 0x%02x/0x%02x",
+	    "fd %d/%d/%d sock %d cc %d %s%u io 0x%02x/0x%02x %s%s",
 	    c->type, c->xctype != NULL ? c->xctype : c->ctype,
 	    c->have_remote_id ? "r" : "nr", c->remote_id,
 	    c->mux_ctx != NULL ? "m" : "nm", c->mux_downstream_id,
@@ -1028,7 +1062,8 @@ channel_format_status(const Channel *c)
 	    channel_format_extended_usage(c), sshbuf_len(c->extended),
 	    c->rfd, c->wfd, c->efd, c->sock, c->ctl_chan,
 	    c->have_ctl_child_id ? "c" : "nc", c->ctl_child_id,
-	    c->io_want, c->io_ready);
+	    c->io_want, c->io_ready,
+	    c->isatty ? "T" : "", c->bulk ? "B" : "I");
 	return ret;
 }
 
@@ -2621,10 +2656,13 @@ channel_handler(struct ssh *ssh, int table, struct timespec *timeout)
 	time_t now;
 
 	now = monotime();
-	for (i = 0, oalloc = sc->channels_alloc; i < oalloc; i++) {
+	for (sc->nbulk = i = 0, oalloc = sc->channels_alloc; i < oalloc; i++) {
 		c = sc->channels[i];
 		if (c == NULL)
 			continue;
+		/* Count open channels in bulk state */
+		if (c->type == SSH_CHANNEL_OPEN && c->bulk)
+			sc->nbulk++;
 		/* Try to keep IO going while rekeying */
 		if (ssh_packet_is_rekeying(ssh) && c->type != SSH_CHANNEL_OPEN)
 			continue;

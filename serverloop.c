@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.242 2025/08/18 03:29:11 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.243 2025/08/18 03:43:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -292,8 +292,15 @@ static void
 process_output(struct ssh *ssh, int connection_out)
 {
 	int r;
+	static int interactive = -1;
 
 	/* Send any buffered packet data to the client. */
+	if (interactive != !channel_has_bulk(ssh)) {
+		interactive = !channel_has_bulk(ssh);
+		debug2_f("session QoS is now %s", interactive ?
+		    "interactive" : "non-interactive");
+		ssh_packet_set_interactive(ssh, interactive);
+	}
 	if ((r = ssh_packet_write_poll(ssh)) != 0) {
 		sshpkt_fatal(ssh, r, "%s: ssh_packet_write_poll",
 		    __func__);

@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.342 2025/05/05 02:48:06 djm Exp $ */
+/* $OpenBSD: session.c,v 1.343 2025/08/18 03:43:01 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -498,9 +498,6 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 #endif
 
 	s->pid = pid;
-	/* Set interactive/non-interactive mode. */
-	ssh_packet_set_interactive(ssh, s->display != NULL,
-	    options.ip_qos_interactive, options.ip_qos_bulk);
 
 	/*
 	 * Clear loginmsg, since it's the child's responsibility to display
@@ -628,8 +625,6 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 
 	/* Enter interactive session. */
 	s->ptymaster = ptymaster;
-	ssh_packet_set_interactive(ssh, 1,
-	    options.ip_qos_interactive, options.ip_qos_bulk);
 	session_set_fds(ssh, s, ptyfd, fdout, -1, 1, 1);
 	return 0;
 }

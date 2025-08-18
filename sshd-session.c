@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.13 2025/05/06 05:40:56 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.14 2025/08/18 03:43:01 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -1207,6 +1207,8 @@ main(int ac, char **av)
 		fatal("Unable to create connection");
 	the_active_state = ssh;
 	ssh_packet_set_server(ssh);
+	ssh_packet_set_qos(ssh, options.ip_qos_interactive,
+	    options.ip_qos_bulk);
 
 	check_ip_options(ssh);
 

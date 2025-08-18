@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.202 2025/08/11 14:37:43 deraadt Exp $ */
+/* $OpenBSD: misc.c,v 1.203 2025/08/18 03:43:01 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -297,6 +297,10 @@ set_sock_tos(int fd, int tos)
 #ifndef IP_TOS_IS_BROKEN
 	int af;
 
+	if (tos < 0 || tos == INT_MAX) {
+		debug_f("invalid TOS %d", tos);
+		return;
+	}
 	switch ((af = get_sock_af(fd))) {
 	case -1:
 		/* assume not a socket */

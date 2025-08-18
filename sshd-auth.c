@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.5 2025/08/18 01:59:53 djm Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.6 2025/08/18 03:43:01 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -652,6 +652,8 @@ main(int ac, char **av)
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);
 	options.timing_secret = timing_secret; /* XXX eliminate from unpriv */
+	ssh_packet_set_qos(ssh, options.ip_qos_interactive,
+	    options.ip_qos_bulk);
 
 	/* Reinit logging in case config set Level, Facility or Verbose. */
 	log_init(__progname, options.log_level, options.log_facility, 1);

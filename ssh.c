@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.614 2025/06/19 05:49:05 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.615 2025/08/18 03:43:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -758,7 +758,6 @@ main(int ac, char **av)
 		fatal("Couldn't allocate session state");
 	channel_init_channels(ssh);
 
-
 	/* Parse command-line arguments. */
 	args = argv_assemble(ac, av); /* logged later */
 	host = NULL;
@@ -1376,6 +1375,8 @@ main(int ac, char **av)
 	if (options.port == 0)
 		options.port = default_ssh_port();
 	channel_set_af(ssh, options.address_family);
+	ssh_packet_set_qos(ssh, options.ip_qos_interactive,
+	    options.ip_qos_bulk);
 
 	/* Tidy and check options */
 	if (options.host_key_alias != NULL)
@@ -2182,7 +2183,7 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 {
 	extern char **environ;
 	const char *display, *term;
-	int r, interactive = tty_flag;
+	int r;
 	char *proto = NULL, *data = NULL;
 
 	if (!success)
@@ -2201,7 +2202,6 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 		    data, 1);
 		client_expect_confirm(ssh, id, "X11 forwarding", CONFIRM_WARN);
 		/* XXX exit_on_forward_failure */
-		interactive = 1;
 	}
 
 	check_agent_present();
@@ -2211,10 +2211,6 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 		if ((r = sshpkt_send(ssh)) != 0)
 			fatal_fr(r, "send packet");
 	}
-
-	/* Tell the packet module whether this is an interactive session. */
-	ssh_packet_set_interactive(ssh, interactive,
-	    options.ip_qos_interactive, options.ip_qos_bulk);
 
 	if ((term = lookup_env_in_list("TERM", options.setenv,
 	    options.num_setenv)) == NULL || *term == '\0')
@@ -2252,8 +2248,9 @@ ssh_session2_open(struct ssh *ssh)
 	    "session", SSH_CHANNEL_OPENING, in, out, err,
 	    window, packetmax, CHAN_EXTENDED_WRITE,
 	    "client-session", CHANNEL_NONBLOCK_STDIO);
-
-	debug3_f("channel_new: %d", c->self);
+	if (tty_flag)
+		channel_set_tty(ssh, c);
+	debug3_f("channel_new: %d%s", c->self, tty_flag ? " (tty)" : "");
 
 	channel_send_open(ssh, c->self);
 	if (options.session_type != SESSION_TYPE_NONE)
@@ -2266,7 +2263,7 @@ ssh_session2_open(struct ssh *ssh)
 static int
 ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 {
-	int r, interactive, id = -1;
+	int r, id = -1;
 	char *cp, *tun_fwd_ifname = NULL;
 
 	/* XXX should be pre-session */
@@ -2322,14 +2319,6 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 
 	if (options.session_type != SESSION_TYPE_NONE)
 		id = ssh_session2_open(ssh);
-	else {
-		interactive = options.control_master == SSHCTL_MASTER_NO;
-		/* ControlPersist may have clobbered ControlMaster, so check */
-		if (need_controlpersist_detach)
-			interactive = otty_flag != 0;
-		ssh_packet_set_interactive(ssh, interactive,
-		    options.ip_qos_interactive, options.ip_qos_bulk);
-	}
 
 	/* If we don't expect to open a new session, then disallow it */
 	if (options.control_master == SSHCTL_MASTER_NO &&

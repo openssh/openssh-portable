@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.413 2025/08/18 03:28:36 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.414 2025/08/18 03:43:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1455,7 +1455,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	struct pollfd *pfd = NULL;
 	u_int npfd_alloc = 0, npfd_active = 0;
 	double start_time, total_time;
-	int channel_did_enqueue = 0, r;
+	int interactive = -1, channel_did_enqueue = 0, r;
 	u_int64_t ibytes, obytes;
 	int conn_in_ready, conn_out_ready;
 	sigset_t bsigset, osigset;
@@ -1621,6 +1621,12 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		 * sender.
 		 */
 		if (conn_out_ready) {
+			if (interactive != !channel_has_bulk(ssh)) {
+				interactive = !channel_has_bulk(ssh);
+				debug2_f("session QoS is now %s", interactive ?
+				    "interactive" : "non-interactive");
+				ssh_packet_set_interactive(ssh, interactive);
+			}
 			if ((r = ssh_packet_write_poll(ssh)) != 0) {
 				sshpkt_fatal(ssh, r,
 				    "%s: ssh_packet_write_poll", __func__);
@@ -2705,9 +2711,6 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 
 	if ((c = channel_lookup(ssh, id)) == NULL)
 		fatal_f("channel %d: unknown channel", id);
-
-	ssh_packet_set_interactive(ssh, want_tty,
-	    options.ip_qos_interactive, options.ip_qos_bulk);
 
 	if (want_tty) {
 		struct winsize ws;
