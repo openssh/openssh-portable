@@ -80,6 +80,27 @@
 #define DEFAULT_CIPHERNAME	"aes256-ctr"
 #define	DEFAULT_ROUNDS		24
 
+/* openssh protected private key file format */
+#ifdef __s390x__
+#define IBM_PROTK_MARK		"IBM PROTECTED KEY"
+#define IBM_PROTK_MARK_LEN	(sizeof(IBM_PROTK_MARK) - 1)
+
+#define IBM_PROTK_HEADER_PREFIX	"kind: "
+#define IBM_PROTK_HEADER_PREFIX_LEN	(sizeof(IBM_PROTK_HEADER_PREFIX) - 1)
+
+#define IBM_PROTK_P256_MARK	"EC-SECP256R1-PRIVATE-KEY"
+#define IBM_PROTK_P256_MARK_LEN	(sizeof(IBM_PROTK_P256_MARK) - 1)
+
+#define IBM_PROTK_P384_MARK	"EC-SECP384R1-PRIVATE-KEY"
+#define IBM_PROTK_P384_MARK_LEN	(sizeof(IBM_PROTK_P384_MARK) - 1)
+
+#define IBM_PROTK_P521_MARK	"EC-SECP521R1-PRIVATE-KEY"
+#define IBM_PROTK_P521_MARK_LEN	(sizeof(IBM_PROTK_P521_MARK) - 1)
+
+#define IBM_PROTK_ED25519_MARK	"EC-ED25519-PRIVATE-KEY"
+#define IBM_PROTK_ED25519_MARK_LEN	(sizeof(IBM_PROTK_ED25519_MARK) - 1)
+#endif /* s390x Architecture */
+
 /*
  * Constants relating to "shielding" support; protection of keys expected
  * to remain in memory for long durations
@@ -98,6 +119,9 @@ extern const struct sshkey_impl sshkey_ed25519_impl;
 extern const struct sshkey_impl sshkey_ed25519_cert_impl;
 extern const struct sshkey_impl sshkey_ed25519_sk_impl;
 extern const struct sshkey_impl sshkey_ed25519_sk_cert_impl;
+#ifdef __s390x__
+extern const struct sshkey_impl sshkey_ibm_protk_ed25519_impl;
+#endif /* s390x Architecture */
 #ifdef WITH_OPENSSL
 # ifdef OPENSSL_HAS_ECC
 #  ifdef ENABLE_SK
@@ -107,11 +131,20 @@ extern const struct sshkey_impl sshkey_ecdsa_sk_webauthn_impl;
 #  endif /* ENABLE_SK */
 extern const struct sshkey_impl sshkey_ecdsa_nistp256_impl;
 extern const struct sshkey_impl sshkey_ecdsa_nistp256_cert_impl;
+#  ifdef __s390x__
+extern const struct sshkey_impl sshkey_ibm_protk_ecdsa_nistp256_impl;
+#  endif /* s390x Architecture */
 extern const struct sshkey_impl sshkey_ecdsa_nistp384_impl;
 extern const struct sshkey_impl sshkey_ecdsa_nistp384_cert_impl;
+#  ifdef __s390x__
+extern const struct sshkey_impl sshkey_ibm_protk_ecdsa_nistp384_impl;
+#  endif /* s390x Architecture */
 #  ifdef OPENSSL_HAS_NISTP521
 extern const struct sshkey_impl sshkey_ecdsa_nistp521_impl;
 extern const struct sshkey_impl sshkey_ecdsa_nistp521_cert_impl;
+#   ifdef __s390x__
+extern const struct sshkey_impl sshkey_ibm_protk_ecdsa_nistp521_impl;
+#   endif /* s390x Architecture */
 #  endif /* OPENSSL_HAS_NISTP521 */
 # endif /* OPENSSL_HAS_ECC */
 extern const struct sshkey_impl sshkey_rsa_impl;
@@ -137,12 +170,26 @@ const struct sshkey_impl * const keyimpls[] = {
 # ifdef OPENSSL_HAS_ECC
 	&sshkey_ecdsa_nistp256_impl,
 	&sshkey_ecdsa_nistp256_cert_impl,
+#  ifdef __s390x__
+	&sshkey_ibm_protk_ecdsa_nistp256_impl,
+#  endif /* s390x Architecture */
 	&sshkey_ecdsa_nistp384_impl,
 	&sshkey_ecdsa_nistp384_cert_impl,
+#  ifdef __s390x__
+	&sshkey_ibm_protk_ecdsa_nistp384_impl,
+#  endif /* s390x Architecture */
 #  ifdef OPENSSL_HAS_NISTP521
 	&sshkey_ecdsa_nistp521_impl,
 	&sshkey_ecdsa_nistp521_cert_impl,
+#   ifdef __s390x__
+	&sshkey_ibm_protk_ecdsa_nistp521_impl,
+#   endif /* s390x Architecture */
 #  endif /* OPENSSL_HAS_NISTP521 */
+#  ifdef OPENSSL_HAS_ED25519
+#   ifdef __s390x__
+	&sshkey_ibm_protk_ed25519_impl,
+#   endif /* s390x Architecture */
+#  endif /* OPENSSL_HAS_ED25519 */
 #  ifdef ENABLE_SK
 	&sshkey_ecdsa_sk_impl,
 	&sshkey_ecdsa_sk_cert_impl,
@@ -333,7 +380,12 @@ sshkey_alg_list(int certs_only, int plain_only, int include_sigonly, char sep)
 			continue;
 		if (!include_sigonly && impl->sigonly)
 			continue;
+#ifdef __s390x__
+		if ((certs_only && !impl->cert) || (plain_only && impl->cert) ||
+		    (plain_only && is_ibm_key(impl->type)))
+#else
 		if ((certs_only && !impl->cert) || (plain_only && impl->cert))
+#endif /* s390x Architecture */
 			continue;
 		if (ret != NULL)
 			ret[rlen++] = sep;
@@ -445,10 +497,16 @@ sshkey_type_plain(int type)
 	case KEY_RSA_CERT:
 		return KEY_RSA;
 	case KEY_ECDSA_CERT:
+#ifdef __s390x__
+	case KEY_ECDSA_IBM_PROTK:
+#endif /* s390x Architecture */
 		return KEY_ECDSA;
 	case KEY_ECDSA_SK_CERT:
 		return KEY_ECDSA_SK;
 	case KEY_ED25519_CERT:
+#ifdef __s390x__
+	case KEY_ED25519_IBM_PROTK:
+#endif /* s390x Architecture */
 		return KEY_ED25519;
 	case KEY_ED25519_SK_CERT:
 		return KEY_ED25519_SK;
@@ -458,6 +516,21 @@ sshkey_type_plain(int type)
 		return type;
 	}
 }
+
+#ifdef __s390x__
+/* Return 1 if key type is ibm key type, 0 otherwise */
+int
+is_ibm_key(int type)
+{
+	switch (type) {
+	case KEY_ECDSA_IBM_PROTK:
+	case KEY_ED25519_IBM_PROTK:
+		return 1;
+	default:
+		return 0;
+	}
+}
+#endif /* s390x Architecture */
 
 /* Return the cert equivalent to a plain key type */
 static int
@@ -831,11 +904,32 @@ int
 sshkey_equal_public(const struct sshkey *a, const struct sshkey *b)
 {
 	const struct sshkey_impl *impl;
+	const struct sshkey *prv;
 
 	if (a == NULL || b == NULL ||
 	    sshkey_type_plain(a->type) != sshkey_type_plain(b->type))
 		return 0;
-	if ((impl = sshkey_impl_from_type(a->type)) == NULL)
+
+#ifdef __s390x__
+	if (!is_ibm_key(b->type))
+		prv = a;
+	else
+		prv = b;
+	/* if (a->type != b->type) {
+		if (a->wkvp != NULL)
+			prv = a;
+		else if (b->wkvp != NULL)
+			prv = b;
+	} else {
+	    For non s390x specific keys a.type equals b.type
+        prv = a;
+    } */
+#else
+	/* For non s390x specific keys a.type equals b.type */
+	prv = a;
+#endif /* s390x Architecture */
+
+	if ((impl = sshkey_impl_from_type_nid(prv->type, prv->ecdsa_nid)) == NULL)
 		return 0;
 	return impl->funcs->equal(a, b);
 }
@@ -843,7 +937,21 @@ sshkey_equal_public(const struct sshkey *a, const struct sshkey *b)
 int
 sshkey_equal(const struct sshkey *a, const struct sshkey *b)
 {
-	if (a == NULL || b == NULL || a->type != b->type)
+    int a_type;
+    int b_type;
+
+    if (a == NULL || b == NULL)
+        return 0;
+
+#ifdef __s390x__
+    a_type = is_ibm_key(a->type) ? sshkey_type_plain(a->type) : a->type;
+    b_type = is_ibm_key(b->type) ? sshkey_type_plain(b->type) : b->type;
+#else
+    a_type = a->type;
+    b_type = b->type;
+#endif /* s390x Architecture */
+
+    if (a_type != b_type)
 		return 0;
 	if (sshkey_is_cert(a)) {
 		if (!cert_compare(a->cert, b->cert))
@@ -1653,6 +1761,13 @@ sshkey_shield_private(struct sshkey *k)
 	size_t i, enclen = 0;
 	struct sshkey *kswap = NULL, tmp;
 	int r = SSH_ERR_INTERNAL_ERROR;
+
+#ifdef __s390x__
+	if (k->wkvp != NULL) {
+		/* IBM protected key is already shielded */
+		return 0;
+	}
+#endif /* s390x Architecture */
 
 #ifdef DEBUG_PK
 	fprintf(stderr, "%s: entering for %s\n", __func__, sshkey_ssh_name(k));
@@ -3508,6 +3623,182 @@ pem_passphrase_cb(char *buf, int size, int rwflag, void *u)
 	return (int)len;
 }
 
+#ifdef __s390x__
+static int
+sshkey_parse_private_pem_fileblob_2_ibm_protk(struct sshbuf *blob, int type,
+    const char *passphrase, struct sshkey **keyp)
+{
+	struct sshkey *prv = NULL;
+	BIO *bio = NULL;
+	int r;
+	char *name = NULL;
+	char *header = NULL;
+	unsigned char *data = NULL;
+	long dlen = 0;
+
+	if (keyp != NULL)
+		*keyp = NULL;
+
+	if ((bio = BIO_new(BIO_s_mem())) == NULL || sshbuf_len(blob) > INT_MAX) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (BIO_write(bio, sshbuf_ptr(blob), sshbuf_len(blob)) !=
+	    (int)sshbuf_len(blob)) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+
+	clear_libcrypto_errors();
+	if (PEM_read_bio(bio, &name, &header, &data, &dlen) != 1) {
+		/*
+		 * libcrypto may return various ASN.1 errors when attempting
+		 * to parse a key with an incorrect passphrase.
+		 * Treat all format errors as "incorrect passphrase" if a
+		 * passphrase was supplied.
+		 */
+		if (passphrase != NULL && *passphrase != '\0')
+			r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+		else
+			r = convert_libcrypto_error();
+		goto out;
+	}
+
+	/* check PEM name */
+	if (strncmp(name, IBM_PROTK_MARK, IBM_PROTK_MARK_LEN) != 0) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	/* check PEM header */
+	if (strncmp(header, IBM_PROTK_HEADER_PREFIX, IBM_PROTK_HEADER_PREFIX_LEN) != 0) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+
+	/* instead of looking at pk for key type I will have to look at header from PEM_read_bio() */
+	#ifdef OPENSSL_HAS_ECC
+	if (strlen(header + IBM_PROTK_HEADER_PREFIX_LEN) == IBM_PROTK_P256_MARK_LEN + 1 &&
+		strncmp(header + IBM_PROTK_HEADER_PREFIX_LEN, IBM_PROTK_P256_MARK,
+				IBM_PROTK_P256_MARK_LEN) == 0) {
+		if ((prv = sshkey_new(KEY_UNSPEC)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+
+		prv->ecdsa_nid = NID_X9_62_prime256v1;
+		prv->type = KEY_ECDSA_IBM_PROTK;
+
+		prv->protk = malloc(dlen - IBM_PROTK_WKVP_LEN);
+		if (prv->protk == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		memcpy(prv->protk, data, dlen - IBM_PROTK_WKVP_LEN);
+
+		prv->wkvp = malloc(IBM_PROTK_WKVP_LEN);
+		if (prv->wkvp == NULL) {
+			free(prv->protk);
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		memcpy(prv->wkvp, data + dlen - IBM_PROTK_WKVP_LEN, IBM_PROTK_WKVP_LEN);
+	} else if (strlen(header + IBM_PROTK_HEADER_PREFIX_LEN) == IBM_PROTK_P384_MARK_LEN + 1 &&
+		strncmp(header + IBM_PROTK_HEADER_PREFIX_LEN, IBM_PROTK_P384_MARK,
+				IBM_PROTK_P384_MARK_LEN) == 0) {
+		if ((prv = sshkey_new(KEY_UNSPEC)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+
+		prv->ecdsa_nid = NID_secp384r1;
+		prv->type = KEY_ECDSA_IBM_PROTK;
+
+		prv->protk = malloc(dlen - IBM_PROTK_WKVP_LEN);
+		if (prv->protk == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		memcpy(prv->protk, data, dlen - IBM_PROTK_WKVP_LEN);
+
+		prv->wkvp = malloc(IBM_PROTK_WKVP_LEN);
+		if (prv->wkvp == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		memcpy(prv->wkvp, data + dlen - IBM_PROTK_WKVP_LEN, IBM_PROTK_WKVP_LEN);
+#ifdef OPENSSL_HAS_NISTP521
+	} else if (strlen(header + IBM_PROTK_HEADER_PREFIX_LEN) == IBM_PROTK_P521_MARK_LEN + 1 &&
+		strncmp(header + IBM_PROTK_HEADER_PREFIX_LEN, IBM_PROTK_P521_MARK,
+				IBM_PROTK_P521_MARK_LEN) == 0) {
+		if ((prv = sshkey_new(KEY_UNSPEC)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+
+		prv->ecdsa_nid = NID_secp521r1;
+		prv->type = KEY_ECDSA_IBM_PROTK;
+
+		prv->protk = malloc(dlen - IBM_PROTK_WKVP_LEN);
+		if (prv->protk == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		memcpy(prv->protk, data, dlen - IBM_PROTK_WKVP_LEN);
+
+		prv->wkvp = malloc(IBM_PROTK_WKVP_LEN);
+		if (prv->wkvp == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		memcpy(prv->wkvp, data + dlen - IBM_PROTK_WKVP_LEN, IBM_PROTK_WKVP_LEN);
+#endif /* OPENSSL_HAS_NISTP521 */
+#ifdef OPENSSL_HAS_ED25519
+	} else if (strlen(header + IBM_PROTK_HEADER_PREFIX_LEN) == IBM_PROTK_ED25519_MARK_LEN + 1 &&
+		strncmp(header + IBM_PROTK_HEADER_PREFIX_LEN, IBM_PROTK_ED25519_MARK,
+			IBM_PROTK_ED25519_MARK_LEN) == 0) {
+		if ((prv = sshkey_new(KEY_UNSPEC)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+
+		prv->ecdsa_nid = 0;
+		prv->type = KEY_ED25519_IBM_PROTK;
+
+		prv->protk = malloc(dlen - IBM_PROTK_WKVP_LEN);
+		if (prv->protk == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		memcpy(prv->protk, data, dlen - IBM_PROTK_WKVP_LEN);
+
+		prv->wkvp = malloc(IBM_PROTK_WKVP_LEN);
+		if (prv->wkvp == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		memcpy(prv->wkvp, data + dlen - IBM_PROTK_WKVP_LEN, IBM_PROTK_WKVP_LEN);
+#endif /* OPENSSL_HAS_ED25519 */
+#endif /* OPENSSL_HAS_ECC */
+	} else {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+
+	r = 0;
+	if (keyp != NULL) {
+		*keyp = prv;
+		prv = NULL;
+	}
+ out:
+	BIO_free(bio);
+	OPENSSL_free(name);
+	OPENSSL_free(header);
+	OPENSSL_free(data);
+	sshkey_free(prv);
+	return r;
+}
+#endif /* s390x Architecture */
+
 static int
 sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp)
@@ -3676,8 +3967,20 @@ sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 		if (r != SSH_ERR_INVALID_FORMAT)
 			return r;
 #ifdef WITH_OPENSSL
-		return sshkey_parse_private_pem_fileblob(blob, type,
+		r = sshkey_parse_private_pem_fileblob(blob, type,
 		    passphrase, keyp);
+# ifdef __s390x__
+		if (r != SSH_ERR_INVALID_FORMAT)
+			return r;
+
+		/* Only fallback to IBM protected key PEM parser if a format
+		 * error occurred. */
+		return sshkey_parse_private_pem_fileblob_2_ibm_protk(blob, type,
+		    passphrase, keyp);
+# else
+		/* Default path for non s390x archs with OpenSSL */
+		return r;
+# endif /* s390x Architecture */
 #else
 		return SSH_ERR_INVALID_FORMAT;
 #endif /* WITH_OPENSSL */

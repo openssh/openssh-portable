@@ -69,6 +69,10 @@ enum sshkey_types {
 	KEY_ECDSA_SK_CERT,
 	KEY_ED25519_SK,
 	KEY_ED25519_SK_CERT,
+#ifdef __s390x__
+	KEY_ECDSA_IBM_PROTK,
+	KEY_ED25519_IBM_PROTK,
+#endif /* s390x Architecture */
 	KEY_UNSPEC
 };
 
@@ -148,7 +152,17 @@ struct sshkey {
 	size_t	shielded_len;
 	u_char	*shield_prekey;
 	size_t	shield_prekey_len;
+#ifdef __s390x__
+
+	/* IBM protected key support */
+	uint8_t *protk;
+	uint8_t *wkvp;
+#endif /* s390x Architecture */
 };
+
+#ifdef __s390x__
+#define IBM_PROTK_WKVP_LEN 32
+#endif /* s390x Architecture */
 
 #define	ED25519_SK_SZ	crypto_sign_ed25519_SECRETKEYBYTES
 #define	ED25519_PK_SZ	crypto_sign_ed25519_PUBLICKEYBYTES
@@ -223,6 +237,9 @@ int	 sshkey_is_cert(const struct sshkey *);
 int	 sshkey_is_sk(const struct sshkey *);
 int	 sshkey_type_is_cert(int);
 int	 sshkey_type_plain(int);
+#ifdef __s390x__
+int is_ibm_key(int type);
+#endif /* s390x Architecture */
 
 /* Returns non-zero if key name match sigalgs pattern list. (handles RSA) */
 int	 sshkey_match_keyname_to_sigalgs(const char *, const char *);
