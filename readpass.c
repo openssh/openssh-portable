@@ -123,7 +123,8 @@ char *
 read_passphrase(const char *prompt, int flags)
 {
 	char cr = '\r', *askpass = NULL, *ret, buf[1024];
-	int rppflags, ttyfd, use_askpass = 0, allow_askpass = 0;
+	int rppflags, ttyfd, use_askpass = 0, allow_askpass = 0,
+        askpass_fallback_tty = 0;
 	const char *askpass_hint = NULL;
 	const char *s;
 
@@ -134,9 +135,10 @@ read_passphrase(const char *prompt, int flags)
 		if (strcasecmp(s, "force") == 0) {
 			use_askpass = 1;
 			allow_askpass = 1;
-		} else if (strcasecmp(s, "prefer") == 0)
+		} else if (strcasecmp(s, "prefer") == 0) {
 			use_askpass = allow_askpass;
-		else if (strcasecmp(s, "never") == 0)
+			askpass_fallback_tty = 1;
+		} else if (strcasecmp(s, "never") == 0)
 			allow_askpass = 0;
 	}
 
@@ -149,6 +151,7 @@ read_passphrase(const char *prompt, int flags)
 		if (!isatty(STDIN_FILENO)) {
 			debug_f("stdin is not a tty");
 			use_askpass = 1;
+			askpass_fallback_tty = 1;
 		}
 	} else {
 		rppflags |= RPP_REQUIRE_TTY;
@@ -175,8 +178,14 @@ read_passphrase(const char *prompt, int flags)
 	if (use_askpass && allow_askpass) {
 		if (getenv(SSH_ASKPASS_ENV))
 			askpass = getenv(SSH_ASKPASS_ENV);
-		else
+		else {
 			askpass = _PATH_SSH_ASKPASS_DEFAULT;
+			if (access(askpass, X_OK) != 0) {
+				debug_f("%s: %s", askpass, strerror(errno));
+				if (askpass_fallback_tty)
+					goto ask_tty;
+			}
+		}
 		if ((flags & RP_ASK_PERMISSION) != 0)
 			askpass_hint = "confirm";
 		if ((ret = ssh_askpass(askpass, prompt, askpass_hint)) == NULL)
@@ -185,6 +194,7 @@ read_passphrase(const char *prompt, int flags)
 		return ret;
 	}
 
+ ask_tty:
 	if (readpassphrase(prompt, buf, sizeof buf, rppflags) == NULL) {
 		if (flags & RP_ALLOW_EOF)
 			return NULL;
