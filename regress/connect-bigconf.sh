@@ -4,7 +4,7 @@
 tid="simple connect"
 
 for x in `jot 10000 1` ; do
-	echo "Match group NONEXIST" >> $OBJ/sshd_config
+	echo "Match version NONEXIST" >> $OBJ/sshd_config
 	echo "ChrootDirectory /some/path/for/group/NONEXIST" >> $OBJ/sshd_config
 done
 #cat $OBJ/sshd_config
