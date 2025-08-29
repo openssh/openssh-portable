@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.76 2025/05/06 05:40:56 djm Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.77 2025/08/29 03:50:38 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -202,7 +202,6 @@ main(int argc, char **argv)
 	/* XXX This really needs to read sshd_config for the paths */
 	key_fd[i++] = open(_PATH_HOST_ECDSA_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_ED25519_KEY_FILE, O_RDONLY);
-	key_fd[i++] = open(_PATH_HOST_XMSS_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_RSA_KEY_FILE, O_RDONLY);
 
 	if ((pw = getpwuid(getuid())) == NULL)

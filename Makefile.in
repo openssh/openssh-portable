@@ -76,15 +76,6 @@ MKDIR_P=@MKDIR_P@
 
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) sshd-session$(EXEEXT) sshd-auth$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-pkcs11-helper$(EXEEXT) ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT) sftp$(EXEEXT) ssh-sk-helper$(EXEEXT) $(SK_STANDALONE)
 
-XMSS_OBJS=\
-	ssh-xmss.o \
-	sshkey-xmss.o \
-	xmss_commons.o \
-	xmss_fast.o \
-	xmss_hash.o \
-	xmss_hash_address.o \
-	xmss_wots.o
-
 LIBOPENSSH_OBJS=\
 	ssh_api.o \
 	ssherr.o \
@@ -94,8 +85,7 @@ LIBOPENSSH_OBJS=\
 	sshbuf-misc.o \
 	sshbuf-getput-crypto.o \
 	krl.o \
-	bitmap.o \
-	${XMSS_OBJS}
+	bitmap.o
 
 LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	authfd.o authfile.o \

@@ -1,4 +1,4 @@
-/* $OpenBSD: dns.c,v 1.45 2025/05/06 05:40:56 djm Exp $ */
+/* $OpenBSD: dns.c,v 1.46 2025/08/29 03:50:38 djm Exp $ */
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -93,9 +93,6 @@ dns_read_key(u_int8_t *algorithm, u_int8_t *digest_type,
 		break;
 	case KEY_ED25519:
 		*algorithm = SSHFP_KEY_ED25519;
-		break;
-	case KEY_XMSS:
-		*algorithm = SSHFP_KEY_XMSS;
 		break;
 	default:
 		*algorithm = SSHFP_KEY_RESERVED; /* 0 */

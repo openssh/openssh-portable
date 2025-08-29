@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.174 2025/05/06 05:40:56 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.175 2025/08/29 03:50:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -84,7 +84,6 @@ static char *default_files[] = {
 #endif /* WITH_OPENSSL */
 	_PATH_SSH_CLIENT_ID_ED25519,
 	_PATH_SSH_CLIENT_ID_ED25519_SK,
-	_PATH_SSH_CLIENT_ID_XMSS,
 	NULL
 };
 
@@ -95,10 +94,6 @@ static int lifetime = 0;
 
 /* User has to confirm key use */
 static int confirm = 0;
-
-/* Maximum number of signatures (XMSS) */
-static u_int maxsign = 0;
-static u_int minleft = 0;
 
 /* we keep a cache of one passphrase */
 static char *pass = NULL;
@@ -249,10 +244,7 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 	char *comment = NULL;
 	char msg[1024], *certpath = NULL;
 	int r, fd, ret = -1;
-	size_t i;
-	u_int32_t left;
 	struct sshbuf *keyblob;
-	struct ssh_identitylist *idlist;
 
 	if (strcmp(filename, "-") == 0) {
 		fd = STDIN_FILENO;
@@ -328,38 +320,6 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 		comment = xstrdup(filename);
 	sshbuf_free(keyblob);
 
-	/* For XMSS */
-	if ((r = sshkey_set_filename(private, filename)) != 0) {
-		fprintf(stderr, "Could not add filename to private key: %s (%s)\n",
-		    filename, comment);
-		goto out;
-	}
-	if (maxsign && minleft &&
-	    (r = ssh_fetch_identitylist(agent_fd, &idlist)) == 0) {
-		for (i = 0; i < idlist->nkeys; i++) {
-			if (!sshkey_equal_public(idlist->keys[i], private))
-				continue;
-			left = sshkey_signatures_left(idlist->keys[i]);
-			if (left < minleft) {
-				fprintf(stderr,
-				    "Only %d signatures left.\n", left);
-				break;
-			}
-			fprintf(stderr, "Skipping update: ");
-			if (left == minleft) {
-				fprintf(stderr,
-				    "required signatures left (%d).\n", left);
-			} else {
-				fprintf(stderr,
-				    "more signatures left (%d) than"
-				    " required (%d).\n", left, minleft);
-			}
-			ssh_free_identitylist(idlist);
-			goto out;
-		}
-		ssh_free_identitylist(idlist);
-	}
-
 	if (sshkey_is_sk(private)) {
 		if (skprovider == NULL) {
 			fprintf(stderr, "Cannot load FIDO key %s "
@@ -373,7 +333,7 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 
 	if (!cert_only &&
 	    (r = ssh_add_identity_constrained(agent_fd, private, comment,
-	    lifetime, confirm, maxsign, skprovider,
+	    lifetime, confirm, skprovider,
 	    dest_constraints, ndest_constraints)) == 0) {
 		ret = 0;
 		if (!qflag) {
@@ -427,7 +387,7 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 	sshkey_free(cert);
 
 	if ((r = ssh_add_identity_constrained(agent_fd, private, comment,
-	    lifetime, confirm, maxsign, skprovider,
+	    lifetime, confirm, skprovider,
 	    dest_constraints, ndest_constraints)) != 0) {
 		error_r(r, "Certificate %s (%s) add failed", certpath,
 		    private->cert->key_id);
@@ -531,7 +491,6 @@ list_identities(int agent_fd, int do_fp)
 	char *fp;
 	int r;
 	struct ssh_identitylist *idlist;
-	u_int32_t left;
 	size_t i;
 
 	if ((r = ssh_fetch_identitylist(agent_fd, &idlist)) != 0) {
@@ -556,12 +515,7 @@ list_identities(int agent_fd, int do_fp)
 				    ssh_err(r));
 				continue;
 			}
-			fprintf(stdout, " %s", idlist->comments[i]);
-			left = sshkey_signatures_left(idlist->keys[i]);
-			if (left > 0)
-				fprintf(stdout,
-				    " [signatures left %d]", left);
-			fprintf(stdout, "\n");
+			fprintf(stdout, " %s\n", idlist->comments[i]);
 		}
 	}
 	ssh_free_identitylist(idlist);
@@ -620,7 +574,7 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag,
 		    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
 			fatal_f("sshkey_fingerprint failed");
 		if ((r = ssh_add_identity_constrained(agent_fd, key, "",
-		    lifetime, confirm, maxsign, skprovider,
+		    lifetime, confirm, skprovider,
 		    dest_constraints, ndest_constraints)) != 0) {
 			error("Unable to add key %s %s",
 			    sshkey_type(key), fp);
@@ -791,9 +745,6 @@ usage(void)
 	fprintf(stderr,
 "usage: ssh-add [-CcDdKkLlqvXx] [-E fingerprint_hash] [-H hostkey_file]\n"
 "               [-h destination_constraint] [-S provider] [-t life]\n"
-#ifdef WITH_XMSS
-"               [-M maxsign] [-m minleft]\n"
-#endif
 "               [file ...]\n"
 "       ssh-add -s pkcs11 [-Cv] [certificate ...]\n"
 "       ssh-add -e pkcs11\n"
@@ -887,20 +838,8 @@ main(int argc, char **argv)
 			confirm = 1;
 			break;
 		case 'm':
-			minleft = (u_int)strtonum(optarg, 1, UINT_MAX, NULL);
-			if (minleft == 0) {
-				usage();
-				ret = 1;
-				goto done;
-			}
-			break;
 		case 'M':
-			maxsign = (u_int)strtonum(optarg, 1, UINT_MAX, NULL);
-			if (maxsign == 0) {
-				usage();
-				ret = 1;
-				goto done;
-			}
+			/* deprecated */
 			break;
 		case 'd':
 			deleting = 1;

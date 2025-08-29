@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.14 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.15 2025/08/29 03:50:38 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -489,7 +489,6 @@ get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 		case KEY_ED25519_CERT:
 		case KEY_ECDSA_SK_CERT:
 		case KEY_ED25519_SK_CERT:
-		case KEY_XMSS_CERT:
 			key = sensitive_data.host_certificates[i];
 			break;
 		default:

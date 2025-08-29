@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.481 2025/05/24 03:37:40 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.482 2025/08/29 03:50:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -272,10 +272,6 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_ED25519_SK:
 		case KEY_ED25519_SK_CERT:
 			name = _PATH_SSH_CLIENT_ID_ED25519_SK;
-			break;
-		case KEY_XMSS:
-		case KEY_XMSS_CERT:
-			name = _PATH_SSH_CLIENT_ID_XMSS;
 			break;
 		default:
 			fatal("bad key type");
@@ -1024,9 +1020,6 @@ do_gen_all_hostkeys(struct passwd *pw)
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 		{ "ed25519", "ED25519",_PATH_HOST_ED25519_KEY_FILE },
-#ifdef WITH_XMSS
-		{ "xmss", "XMSS",_PATH_HOST_XMSS_KEY_FILE },
-#endif /* WITH_XMSS */
 		{ NULL, NULL, NULL }
 	};
 
@@ -1521,7 +1514,7 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 		}
 	}
 
-	if (private->type != KEY_ED25519 && private->type != KEY_XMSS &&
+	if (private->type != KEY_ED25519 &&
 	    private_key_format != SSHKEY_PRIVATE_OPENSSH) {
 		error("Comments are only supported for keys stored in "
 		    "the new format (-o).");
@@ -3726,9 +3719,6 @@ main(int argc, char **argv)
 			    print_generic, opts, nopts);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_ED25519_KEY_FILE, rr_hostname,
-			    print_generic, opts, nopts);
-			n += do_print_resource_record(pw,
-			    _PATH_HOST_XMSS_KEY_FILE, rr_hostname,
 			    print_generic, opts, nopts);
 			if (n == 0)
 				fatal("no keys found.");

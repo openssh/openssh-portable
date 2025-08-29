@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.430 2025/08/05 09:08:16 job Exp $ */
+/* $OpenBSD: servconf.c,v 1.431 2025/08/29 03:50:38 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -314,10 +314,6 @@ fill_default_server_options(ServerOptions *options)
 #endif
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ED25519_KEY_FILE, 0);
-#ifdef WITH_XMSS
-		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_XMSS_KEY_FILE, 0);
-#endif /* WITH_XMSS */
 	}
 	/* No certificates by default */
 	if (options->num_ports == 0)

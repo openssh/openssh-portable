@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.621 2025/07/04 09:51:01 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.622 2025/08/29 03:50:38 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -1672,7 +1672,6 @@ main(int ac, char **av)
 		case KEY_ED25519:
 		case KEY_ECDSA_SK:
 		case KEY_ED25519_SK:
-		case KEY_XMSS:
 			if (have_agent || key != NULL)
 				sensitive_data.have_ssh2_key = 1;
 			break;

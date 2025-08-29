@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.312 2025/05/05 02:48:06 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.313 2025/08/29 03:50:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -644,8 +644,7 @@ process_request_identities(SocketEntry *e)
 		/* identity not visible, don't include in response */
 		if (identity_permitted(id, e, NULL, NULL, NULL) != 0)
 			continue;
-		if ((r = sshkey_puts_opts(id->key, keys,
-		    SSHKEY_SERIALIZE_INFO)) != 0 ||
+		if ((r = sshkey_puts(id->key, keys)) != 0 ||
 		    (r = sshbuf_put_cstring(keys, id->comment)) != 0) {
 			error_fr(r, "compose key/comment");
 			continue;
@@ -1292,7 +1291,7 @@ parse_key_constraints(struct sshbuf *m, struct sshkey *k, time_t *deathp,
 {
 	u_char ctype;
 	int r;
-	u_int seconds, maxsign = 0;
+	u_int seconds;
 
 	while (sshbuf_len(m)) {
 		if ((r = sshbuf_get_u8(m, &ctype)) != 0) {
@@ -1320,26 +1319,6 @@ parse_key_constraints(struct sshbuf *m, struct sshkey *k, time_t *deathp,
 				goto out;
 			}
 			*confirmp = 1;
-			break;
-		case SSH_AGENT_CONSTRAIN_MAXSIGN:
-			if (k == NULL) {
-				error_f("maxsign not valid here");
-				r = SSH_ERR_INVALID_FORMAT;
-				goto out;
-			}
-			if (maxsign != 0) {
-				error_f("maxsign already set");
-				r = SSH_ERR_INVALID_FORMAT;
-				goto out;
-			}
-			if ((r = sshbuf_get_u32(m, &maxsign)) != 0) {
-				error_fr(r, "parse maxsign constraint");
-				goto out;
-			}
-			if ((r = sshkey_enable_maxsign(k, maxsign)) != 0) {
-				error_fr(r, "enable maxsign");
-				goto out;
-			}
 			break;
 		case SSH_AGENT_CONSTRAIN_EXTENSION:
 			if ((r = parse_key_constraint_extension(m,

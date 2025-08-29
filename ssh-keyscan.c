@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.166 2025/05/06 05:40:56 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.167 2025/08/29 03:50:38 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -65,7 +65,6 @@ int ssh_port = SSH_DEFAULT_PORT;
 #define KT_RSA		(1)
 #define KT_ECDSA	(1<<1)
 #define KT_ED25519	(1<<2)
-#define KT_XMSS		(1<<3)
 #define KT_ECDSA_SK	(1<<4)
 #define KT_ED25519_SK	(1<<5)
 
@@ -251,10 +250,6 @@ keygrab_ssh2(con *c)
 	case KT_ED25519:
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = get_cert ?
 		    "ssh-ed25519-cert-v01@openssh.com" : "ssh-ed25519";
-		break;
-	case KT_XMSS:
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = get_cert ?
-		    "ssh-xmss-cert-v01@openssh.com" : "ssh-xmss@openssh.com";
 		break;
 	case KT_ECDSA:
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = get_cert ?
@@ -746,9 +741,6 @@ main(int argc, char **argv)
 					break;
 				case KEY_ED25519:
 					get_keytypes |= KT_ED25519;
-					break;
-				case KEY_XMSS:
-					get_keytypes |= KT_XMSS;
 					break;
 				case KEY_ED25519_SK:
 					get_keytypes |= KT_ED25519_SK;

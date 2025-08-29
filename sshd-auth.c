@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.7 2025/08/18 04:38:21 djm Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.8 2025/08/29 03:50:38 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -254,7 +254,6 @@ list_hostkey_types(void)
 		case KEY_ED25519:
 		case KEY_ECDSA_SK:
 		case KEY_ED25519_SK:
-		case KEY_XMSS:
 			append_hostkey_type(b, sshkey_ssh_name(key));
 			break;
 		}
@@ -274,7 +273,6 @@ list_hostkey_types(void)
 		case KEY_ED25519_CERT:
 		case KEY_ECDSA_SK_CERT:
 		case KEY_ED25519_SK_CERT:
-		case KEY_XMSS_CERT:
 			append_hostkey_type(b, sshkey_ssh_name(key));
 			break;
 		}
@@ -299,7 +297,6 @@ get_hostkey_public_by_type(int type, int nid, struct ssh *ssh)
 		case KEY_ED25519_CERT:
 		case KEY_ECDSA_SK_CERT:
 		case KEY_ED25519_SK_CERT:
-		case KEY_XMSS_CERT:
 			key = host_certificates[i];
 			break;
 		default:
