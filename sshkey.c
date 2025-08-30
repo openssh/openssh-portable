@@ -35,6 +35,8 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>
+/* Returns the OpenSSL EVP_MD for a digest identifier */
+const EVP_MD *ssh_digest_alg_evpmd(int alg);
 #endif
 
 #include "crypto_api.h"
@@ -485,17 +487,11 @@ sshkey_type_certified(int type)
 static const EVP_MD *
 ssh_digest_to_md(int hash_alg)
 {
-	switch (hash_alg) {
-	case SSH_DIGEST_SHA1:
-		return EVP_sha1();
-	case SSH_DIGEST_SHA256:
-		return EVP_sha256();
-	case SSH_DIGEST_SHA384:
-		return EVP_sha384();
-	case SSH_DIGEST_SHA512:
-		return EVP_sha512();
-	}
-	return NULL;
+	/* Block MD5 for signatures */
+	if (hash_alg < SSH_DIGEST_SHA1)
+		return NULL;
+
+	return ssh_digest_alg_evpmd(hash_alg);
 }
 
 int

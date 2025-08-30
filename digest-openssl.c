@@ -51,27 +51,60 @@ struct ssh_digest {
 	int id;
 	const char *name;
 	size_t digest_len;
-	const EVP_MD *(*mdfunc)(void);
+	const EVP_MD *evpmd;
 };
 
 /* NB. Indexed directly by algorithm number */
-const struct ssh_digest digests[] = {
-	{ SSH_DIGEST_MD5,	"MD5",		16,	EVP_md5 },
-	{ SSH_DIGEST_SHA1,	"SHA1",		20,	EVP_sha1 },
-	{ SSH_DIGEST_SHA256,	"SHA256",	32,	EVP_sha256 },
-	{ SSH_DIGEST_SHA384,	"SHA384",	48,	EVP_sha384 },
-	{ SSH_DIGEST_SHA512,	"SHA512",	64,	EVP_sha512 },
+struct ssh_digest digests[] = {
+	{ SSH_DIGEST_MD5,	"MD5",		16,	NULL },
+	{ SSH_DIGEST_SHA1,	"SHA1",		20,	NULL },
+	{ SSH_DIGEST_SHA256,	"SHA256",	32,	NULL },
+	{ SSH_DIGEST_SHA384,	"SHA384",	48,	NULL },
+	{ SSH_DIGEST_SHA512,	"SHA512",	64,	NULL },
 	{ -1,			NULL,		0,	NULL },
 };
+
+static int ssh_digests_cached = 0;
+
+void
+ssh_cache_digests(void)
+{
+#ifdef HAVE_EVP_MD_FETCH
+	int alg;
+#endif
+	if (ssh_digests_cached)
+		return;
+#ifdef HAVE_EVP_MD_FETCH
+	for (alg = 0; digests[alg].id != -1; alg++) {
+		switch (alg) {
+		case SSH_DIGEST_MD5:
+		case SSH_DIGEST_SHA1:
+			/* prefer, but do not require fips implementations */
+			digests[alg].evpmd = EVP_MD_fetch(NULL, digests[alg].name, "?fips=yes");
+			break;
+		default:
+			digests[alg].evpmd = EVP_MD_fetch(NULL, digests[alg].name, NULL);
+		}
+	}
+#else
+        digests[SSH_DIGEST_MD5].evpmd = EVP_md5();
+        digests[SSH_DIGEST_SHA1].evpmd = EVP_sha1();
+        digests[SSH_DIGEST_SHA256].evpmd = EVP_sha256();
+        digests[SSH_DIGEST_SHA384].evpmd = EVP_sha384();
+        digests[SSH_DIGEST_SHA512].evpmd = EVP_sha512();
+#endif
+	ssh_digests_cached = 1;
+}
 
 static const struct ssh_digest *
 ssh_digest_by_alg(int alg)
 {
+	ssh_cache_digests();
 	if (alg < 0 || alg >= SSH_DIGEST_MAX)
 		return NULL;
 	if (digests[alg].id != alg) /* sanity */
 		return NULL;
-	if (digests[alg].mdfunc == NULL)
+	if (digests[alg].evpmd == NULL)
 		return NULL;
 	return &(digests[alg]);
 }
@@ -81,11 +114,20 @@ ssh_digest_alg_by_name(const char *name)
 {
 	int alg;
 
+	ssh_cache_digests();
 	for (alg = 0; digests[alg].id != -1; alg++) {
 		if (strcasecmp(name, digests[alg].name) == 0)
 			return digests[alg].id;
 	}
 	return -1;
+}
+
+const EVP_MD *
+ssh_digest_alg_evpmd(int alg)
+{
+	const struct ssh_digest *digest = ssh_digest_by_alg(alg);
+
+	return digest == NULL ? NULL : digest->evpmd;
 }
 
 const char *
@@ -123,7 +165,7 @@ ssh_digest_start(int alg)
 		free(ret);
 		return NULL;
 	}
-	if (EVP_DigestInit_ex(ret->mdctx, digest->mdfunc(), NULL) != 1) {
+	if (EVP_DigestInit_ex(ret->mdctx, digest->evpmd, NULL) != 1) {
 		ssh_digest_free(ret);
 		return NULL;
 	}
@@ -194,7 +236,7 @@ ssh_digest_memory(int alg, const void *m, size_t mlen, u_char *d, size_t dlen)
 	if (dlen < digest->digest_len)
 		return SSH_ERR_INVALID_ARGUMENT;
 	mdlen = dlen;
-	if (!EVP_Digest(m, mlen, d, &mdlen, digest->mdfunc(), NULL))
+	if (!EVP_Digest(m, mlen, d, &mdlen, digest->evpmd, NULL))
 		return SSH_ERR_LIBCRYPTO_ERROR;
 	return 0;
 }
