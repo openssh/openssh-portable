@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.431 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.432 2025/09/01 23:53:16 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1315,7 +1315,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
     struct include_list *includes)
 {
 	char *str, ***chararrayptr, **charptr, *arg, *arg2, *p, *keyword;
-	int cmdline = 0, *intptr, value, value2, n, port, oactive, r;
+	int cmdline = 0, *intptr, value, value2, value3, n, port, oactive, r;
 	int ca_only = 0, found = 0;
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
@@ -2003,25 +2003,27 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: %s missing argument.",
 			    filename, linenum, keyword);
+		/* begin:rate:max */
 		if ((n = sscanf(arg, "%d:%d:%d",
-		    &options->max_startups_begin,
-		    &options->max_startups_rate,
-		    &options->max_startups)) == 3) {
-			if (options->max_startups_begin >
-			    options->max_startups ||
-			    options->max_startups_rate > 100 ||
-			    options->max_startups_rate < 1)
+		    &value, &value2, &value3)) == 3) {
+			if (value > value3 || value2 > 100 || value2 < 1)
 				fatal("%s line %d: Invalid %s spec.",
 				    filename, linenum, keyword);
-		} else if (n != 1)
+		} else if (n == 1) {
+			value3 = value;
+			value = value2 = -1;
+		} else {
 			fatal("%s line %d: Invalid %s spec.",
 			    filename, linenum, keyword);
-		else
-			options->max_startups = options->max_startups_begin;
-		if (options->max_startups <= 0 ||
-		    options->max_startups_begin <= 0)
+		}
+		if (value3 <= 0 || value <= 0)
 			fatal("%s line %d: Invalid %s spec.",
 			    filename, linenum, keyword);
+		if (*activep && options->max_startups == -1) {
+			options->max_startups_begin = value;
+			options->max_startups_rate = value2;
+			options->max_startups = value3;
+		}
 		break;
 
 	case sPerSourceNetBlockSize:
@@ -2041,7 +2043,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		if (n != 1 && n != 2)
 			fatal("%s line %d: Invalid %s spec.",
 			    filename, linenum, keyword);
-		if (*activep) {
+		if (*activep && options->per_source_masklen_ipv4 == -1) {
 			options->per_source_masklen_ipv4 = value;
 			options->per_source_masklen_ipv6 = value2;
 		}
