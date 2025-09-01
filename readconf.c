@@ -51,6 +51,7 @@
 
 #include "xmalloc.h"
 #include "ssh.h"
+#include "sshbuf.h"
 #include "ssherr.h"
 #include "cipher.h"
 #include "pathnames.h"
@@ -355,17 +356,25 @@ ssh_connection_hash(const char *thishost, const char *host, const char *portstr,
 {
 	struct ssh_digest_ctx *md;
 	u_char conn_hash[SSH_DIGEST_MAX_LENGTH];
+	struct sshbuf *hashbuffer;
+	struct sshbuf *urlb64buffer;
+	char *ret;
 
-	if ((md = ssh_digest_start(SSH_DIGEST_SHA1)) == NULL ||
+	if ((md = ssh_digest_start(SSH_DIGEST_SHA256)) == NULL ||
 	    ssh_digest_update(md, thishost, strlen(thishost)) < 0 ||
 	    ssh_digest_update(md, host, strlen(host)) < 0 ||
 	    ssh_digest_update(md, portstr, strlen(portstr)) < 0 ||
 	    ssh_digest_update(md, user, strlen(user)) < 0 ||
 	    ssh_digest_update(md, jumphost, strlen(jumphost)) < 0 ||
-	    ssh_digest_final(md, conn_hash, sizeof(conn_hash)) < 0)
+	    ssh_digest_final(md, conn_hash, sizeof(conn_hash)) < 0 ||
+	    (urlb64buffer = sshbuf_new()) == NULL ||
+	    (hashbuffer = sshbuf_from(conn_hash, ssh_digest_bytes(SSH_DIGEST_SHA256))) == NULL ||
+	    sshbuf_dtourlb64(hashbuffer, urlb64buffer, 0) < 0 ||
+	    (ret = sshbuf_dup_string(urlb64buffer)) == NULL)
 		fatal_f("mux digest failed");
 	ssh_digest_free(md);
-	return tohex(conn_hash, ssh_digest_bytes(SSH_DIGEST_SHA1));
+	sshbuf_free(urlb64buffer);
+	return ret;
 }
 
 /*
@@ -654,7 +663,7 @@ expand_match_exec_or_include_path(const char *path, Options *options,
     int final_pass, int is_include_path)
 {
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
-	char uidstr[32], *conn_hash_hex, *keyalias, *jmphost, *ruser;
+	char uidstr[32], *conn_hash_urlb64, *keyalias, *jmphost, *ruser;
 	char *host, *ret;
 	int port;
 
@@ -678,12 +687,12 @@ expand_match_exec_or_include_path(const char *path, Options *options,
 	snprintf(portstr, sizeof(portstr), "%d", port);
 	snprintf(uidstr, sizeof(uidstr), "%llu",
 	    (unsigned long long)pw->pw_uid);
-	conn_hash_hex = ssh_connection_hash(thishost, host,
+	conn_hash_urlb64 = ssh_connection_hash(thishost, host,
 	    portstr, ruser, jmphost);
 	keyalias = options->host_key_alias ?  options->host_key_alias : host;
 
 	ret = (is_include_path ? percent_dollar_expand : percent_expand)(path,
-	    "C", conn_hash_hex,
+	    "C", conn_hash_urlb64,
 	    "L", shorthost,
 	    "d", pw->pw_dir,
 	    "h", host,
@@ -697,7 +706,7 @@ expand_match_exec_or_include_path(const char *path, Options *options,
 	    "j", jmphost,
 	    (char *)NULL);
 	free(host);
-	free(conn_hash_hex);
+	free(conn_hash_urlb64);
 	return ret;
 }
 
