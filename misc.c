@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.203 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.204 2025/09/02 09:34:48 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -487,7 +487,7 @@ strdelim_internal(char **s, int split_equals)
 }
 
 /*
- * Return next token in configuration line; splts on whitespace or a
+ * Return next token in configuration line; splits on whitespace or a
  * single '=' character.
  */
 char *

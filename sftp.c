@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.240 2025/03/28 06:04:07 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.241 2025/09/02 09:34:48 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1865,7 +1865,7 @@ complete_display(char **list, u_int len)
 
 /*
  * Given a "list" of words that begin with a common prefix of "word",
- * attempt to find an autocompletion to extends "word" by the next
+ * attempt to find an autocompletion that extends "word" by the next
  * characters common to all entries in "list".
  */
 static char *

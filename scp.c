@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.264 2025/05/23 09:26:25 dtucker Exp $ */
+/* $OpenBSD: scp.c,v 1.265 2025/09/02 09:34:48 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -172,7 +172,7 @@ int throughlocal = 1;
 /* Non-standard port to use for the ssh connection or -1. */
 int sshport = -1;
 
-/* This is the program to execute for the secured connection. ("ssh" or -S) */
+/* This is the program to execute for the secure connection. ("ssh" or -S) */
 char *ssh_program = _PATH_SSH_PROGRAM;
 
 /* This is used to store the pid of ssh_program */
