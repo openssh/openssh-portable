@@ -5185,7 +5185,7 @@ is_path_to_xsocket(const char *display, char *path, size_t pathlen)
 	struct stat sbuf;
 
 	if (strlcpy(path, display, pathlen) >= pathlen) {
-		error("%s: display path too long", __func__);
+		error_f("display path too long");
 		return 0;
 	}
 	if (display[0] != '/')

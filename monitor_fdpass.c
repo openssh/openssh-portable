@@ -103,7 +103,7 @@ mm_send_fd(int sock, int fd)
 	}
 	return 0;
 #else
-	error("%s: file descriptor passing not supported", __func__);
+	error_f("file descriptor passing not supported");
 	return -1;
 #endif
 }

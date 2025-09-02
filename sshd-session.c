@@ -290,7 +290,7 @@ reseed_prngs(void)
 	RAND_seed(rnd, sizeof(rnd));
 	/* give libcrypto a chance to notice the PID change */
 	if ((RAND_bytes((u_char *)rnd, 1)) != 1)
-		fatal("%s: RAND_bytes failed", __func__);
+		fatal_f("RAND_bytes failed");
 #endif
 
 	explicit_bzero(rnd, sizeof(rnd));

@@ -2291,7 +2291,7 @@ out:
 int
 pkcs11_init(int interactive)
 {
-	error("%s: dlopen() not supported", __func__);
+	error_f("dlopen() not supported");
 	return (-1);
 }
 
@@ -2299,13 +2299,13 @@ int
 pkcs11_add_provider(char *provider_id, char *pin, struct sshkey ***keyp,
     char ***labelsp)
 {
-	error("%s: dlopen() not supported", __func__);
+	error_f("dlopen() not supported");
 	return (-1);
 }
 
 void
 pkcs11_terminate(void)
 {
-	error("%s: dlopen() not supported", __func__);
+	error_f("dlopen() not supported");
 }
 #endif /* ENABLE_PKCS11 */

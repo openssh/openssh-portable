@@ -1233,7 +1233,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 #ifdef WITH_OPENSSL
 			RAND_seed(rnd, sizeof(rnd));
 			if ((RAND_bytes((u_char *)rnd, 1)) != 1)
-				fatal("%s: RAND_bytes failed", __func__);
+				fatal_f("RAND_bytes failed");
 #endif
 			explicit_bzero(rnd, sizeof(rnd));
 		}

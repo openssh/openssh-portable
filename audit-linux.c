@@ -117,7 +117,7 @@ audit_event(struct ssh *ssh, ssh_audit_event_t event)
 		    ssh_remote_ipaddr(ssh), "sshd", 0);
 		break;
 	default:
-		debug("%s: unhandled event %d", __func__, event);
+		debug_f("unhandled event %d", event);
 		break;
 	}
 }
