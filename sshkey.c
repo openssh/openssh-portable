@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.152 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.153 2025/09/02 11:08:34 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -308,9 +308,10 @@ sshkey_match_keyname_to_sigalgs(const char *keyname, const char *sigalgs)
 char *
 sshkey_alg_list(int certs_only, int plain_only, int include_sigonly, char sep)
 {
-	char *tmp, *ret = NULL;
-	size_t i, nlen, rlen = 0;
+	char *ret = NULL;
+	size_t i;
 	const struct sshkey_impl *impl;
+	char sep_str[2] = {sep, '\0'};
 
 	for (i = 0; keyimpls[i] != NULL; i++) {
 		impl = keyimpls[i];
@@ -320,16 +321,7 @@ sshkey_alg_list(int certs_only, int plain_only, int include_sigonly, char sep)
 			continue;
 		if ((certs_only && !impl->cert) || (plain_only && impl->cert))
 			continue;
-		if (ret != NULL)
-			ret[rlen++] = sep;
-		nlen = strlen(impl->name);
-		if ((tmp = realloc(ret, rlen + nlen + 2)) == NULL) {
-			free(ret);
-			return NULL;
-		}
-		ret = tmp;
-		memcpy(ret + rlen, impl->name, nlen + 1);
-		rlen += nlen;
+		xextendf(&ret, sep_str, "%s", impl->name);
 	}
 	return ret;
 }

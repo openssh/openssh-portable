@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.35 2019/09/06 04:53:27 djm Exp $ */
+/* $OpenBSD: mac.c,v 1.36 2025/09/02 11:08:34 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -83,22 +83,13 @@ static const struct macalg macs[] = {
 char *
 mac_alg_list(char sep)
 {
-	char *ret = NULL, *tmp;
-	size_t nlen, rlen = 0;
+	char *ret = NULL;
 	const struct macalg *m;
+	char sep_str[2] = {sep, '\0'};
 
-	for (m = macs; m->name != NULL; m++) {
-		if (ret != NULL)
-			ret[rlen++] = sep;
-		nlen = strlen(m->name);
-		if ((tmp = realloc(ret, rlen + nlen + 2)) == NULL) {
-			free(ret);
-			return NULL;
-		}
-		ret = tmp;
-		memcpy(ret + rlen, m->name, nlen + 1);
-		rlen += nlen;
-	}
+	for (m = macs; m->name != NULL; m++)
+		xextendf(&ret, sep_str, "%s", m->name);
+
 	return ret;
 }
 

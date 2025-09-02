@@ -1,4 +1,4 @@
-/* $OpenBSD: kex-names.c,v 1.5 2025/08/11 10:55:38 djm Exp $ */
+/* $OpenBSD: kex-names.c,v 1.6 2025/09/02 11:08:34 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -94,22 +94,13 @@ static const struct kexalg kexalgs[] = {
 char *
 kex_alg_list(char sep)
 {
-	char *ret = NULL, *tmp;
-	size_t nlen, rlen = 0;
+	char *ret = NULL;
 	const struct kexalg *k;
+	char sep_str[2] = {sep, '\0'};
 
-	for (k = kexalgs; k->name != NULL; k++) {
-		if (ret != NULL)
-			ret[rlen++] = sep;
-		nlen = strlen(k->name);
-		if ((tmp = realloc(ret, rlen + nlen + 2)) == NULL) {
-			free(ret);
-			return NULL;
-		}
-		ret = tmp;
-		memcpy(ret + rlen, k->name, nlen + 1);
-		rlen += nlen;
-	}
+	for (k = kexalgs; k->name != NULL; k++)
+		xextendf(&ret, sep_str, "%s", k->name);
+
 	return ret;
 }
 
