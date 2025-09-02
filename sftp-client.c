@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.177 2025/03/11 07:48:51 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.178 2025/09/02 09:26:21 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1138,7 +1138,7 @@ sftp_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 	attr.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 
 	if ((msg = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+		fatal_f("sshbuf_new failed");
 
 	attrib_clear(&junk); /* Send empty attributes */
 
@@ -1149,7 +1149,7 @@ sftp_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 	    (r = sshbuf_put_cstring(msg, oldpath)) != 0 ||
 	    (r = sshbuf_put_u32(msg, SSH2_FXF_READ)) != 0 ||
 	    (r = encode_attrib(msg, &junk)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
 	send_msg(conn, msg);
 	debug3("Sent message SSH2_FXP_OPEN I:%u P:%s", id, oldpath);
 
@@ -1170,7 +1170,7 @@ sftp_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 	    (r = sshbuf_put_u32(msg, SSH2_FXF_WRITE|SSH2_FXF_CREAT|
 	    SSH2_FXF_TRUNC)) != 0 ||
 	    (r = encode_attrib(msg, &attr)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
 	send_msg(conn, msg);
 	debug3("Sent message SSH2_FXP_OPEN I:%u P:%s", id, newpath);
 
@@ -1194,7 +1194,7 @@ sftp_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 	    (r = sshbuf_put_u64(msg, 0)) != 0 ||
 	    (r = sshbuf_put_string(msg, new_handle, new_handle_len)) != 0 ||
 	    (r = sshbuf_put_u64(msg, 0)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
 	send_msg(conn, msg);
 	debug3("Sent message copy-data \"%s\" 0 0 -> \"%s\" 0",
 	       oldpath, newpath);
