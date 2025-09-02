@@ -378,7 +378,7 @@ import_environments(struct sshbuf *b)
 		/*
 		 * XXX this possibly leaks env because it is not documented
 		 * what pam_putenv() does with it. Does it copy it? Does it
-		 * take ownweship? We don't know, so it's safest just to leak.
+		 * take ownership? We don't know, so it's safest just to leak.
 		 */
 	}
 #endif

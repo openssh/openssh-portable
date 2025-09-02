@@ -1704,7 +1704,7 @@ utmpx_get_entry(struct logininfo *li)
 /*
  * Logs failed login attempts in _PATH_BTMP if that exists.
  * The most common login failure is to give password instead of username.
- * So the _PATH_BTMP file checked for the correct permission, so that only
+ * So the _PATH_BTMP file is checked for the correct permission, so that only
  * root can read it.
  */
 void
