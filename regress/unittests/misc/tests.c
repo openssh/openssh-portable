@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.11 2025/04/15 04:00:42 djm Exp $ */
+/* 	$OpenBSD: tests.c,v 1.12 2025/09/02 11:04:58 djm Exp $ */
 /*
  * Regress test for misc helper functions.
  *
@@ -27,6 +27,7 @@ void test_argv(void);
 void test_strdelim(void);
 void test_hpdelim(void);
 void test_ptimeout(void);
+void test_xextendf(void);
 
 void
 tests(void)
@@ -38,6 +39,7 @@ tests(void)
 	test_strdelim();
 	test_hpdelim();
 	test_ptimeout();
+	test_xextendf();
 }
 
 void
