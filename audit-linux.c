@@ -51,6 +51,8 @@ linux_audit_record_event(int uid, const char *username, const char *hostname,
 		else
 			return 0; /* Must prevent login */
 	}
+        if (hostname != NULL && strcmp(hostname, "UNKNOWN") == 0)
+                hostname = NULL;
 	rc = audit_log_acct_message(audit_fd, AUDIT_USER_LOGIN,
 	    NULL, "login", username ? username : "(unknown)",
 	    username == NULL ? uid : -1, hostname, ip, ttyn, success);
