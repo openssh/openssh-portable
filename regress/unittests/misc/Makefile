@@ -1,7 +1,8 @@
-#	$OpenBSD: Makefile,v 1.11 2025/09/02 11:04:58 djm Exp $
+#	$OpenBSD: Makefile,v 1.12 2025/09/04 00:34:17 djm Exp $
 
 PROG=test_misc
 SRCS=tests.c
+SRCS+=	test_misc.c
 SRCS+=	test_convtime.c
 SRCS+=	test_expand.c
 SRCS+=	test_parse.c
