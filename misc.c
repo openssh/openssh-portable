@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.205 2025/09/04 00:30:06 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.206 2025/09/04 00:31:49 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -101,10 +101,13 @@ rtrim(char *s)
 
 	if ((i = strlen(s)) == 0)
 		return;
-	for (i--; i > 0; i--) {
+	do {
+		i--;
 		if (isspace((unsigned char)s[i]))
 			s[i] = '\0';
-	}
+		else
+			break;
+	} while (i > 0);
 }
 
 /*
