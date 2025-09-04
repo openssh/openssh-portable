@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.21 2025/07/24 05:44:55 djm Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.22 2025/09/04 00:32:31 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -211,6 +211,9 @@ sshbuf_dtourlb64(const struct sshbuf *d, struct sshbuf *b64, int wrap)
 	u_char *p;
 	struct sshbuf *b = NULL;
 	size_t i, l;
+
+	if (sshbuf_len(d) == 0)
+		return 0;
 
 	if ((b = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
