@@ -477,7 +477,6 @@ AC_CHECK_HEADERS([ \
 	ndir.h \
 	net/if_tun.h \
 	netdb.h \
-	netgroup.h \
 	pam/pam_appl.h \
 	pty.h \
 	readpassphrase.h \
@@ -533,6 +532,7 @@ AC_CHECK_HEADERS([ \
     ifaddrs.h \
     libgen.h \
     paths.h \
+    netgroup.h \
     poll.h \
     stdint.h \
     sys/stat.h \
