@@ -72,7 +72,9 @@
 /* ---------------------------------------------------------------------- */
 
 #include "includes.h"
+
 #include <sys/types.h>
+#include <endian.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
