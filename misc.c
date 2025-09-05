@@ -30,9 +30,7 @@
 #include <sys/un.h>
 
 #include <limits.h>
-#ifdef HAVE_LIBGEN_H
-# include <libgen.h>
-#endif
+#include <libgen.h>
 #include <poll.h>
 #ifdef HAVE_NLIST_H
 #include <nlist.h>

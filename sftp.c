@@ -30,9 +30,7 @@
 #include <errno.h>
 
 #include <paths.h>
-#ifdef HAVE_LIBGEN_H
 #include <libgen.h>
-#endif
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
 #endif

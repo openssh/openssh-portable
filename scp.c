@@ -92,9 +92,7 @@
 #else
 # include "openbsd-compat/glob.h"
 #endif
-#ifdef HAVE_LIBGEN_H
 #include <libgen.h>
-#endif
 #include <limits.h>
 #include <util.h>
 #include <locale.h>

@@ -531,6 +531,7 @@ AC_CHECK_HEADERS([ \
 compatincludes=no
 AC_CHECK_HEADERS([ \
     ifaddrs.h \
+    libgen.h \
     paths.h \
     poll.h \
     stdint.h \
