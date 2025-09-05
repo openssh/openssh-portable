@@ -42,9 +42,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#ifdef HAVE_SYS_UN_H
-# include <sys/un.h>
-#endif
+#include <sys/un.h>
 #include "openbsd-compat/sys-queue.h"
 
 #ifdef WITH_OPENSSL

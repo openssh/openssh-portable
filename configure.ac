@@ -536,6 +536,7 @@ AC_CHECK_HEADERS([ \
     stdint.h \
     sys/stat.h \
     sys/time.h \
+    sys/un.h \
     time.h \
     util.h], [], [
 	compatincludes="`pwd`/openbsd-compat/include"

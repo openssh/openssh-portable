@@ -29,9 +29,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
-#ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
-#endif
 
 #include <errno.h>
 #include <string.h>
