@@ -31,9 +31,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
+#include <paths.h>
 #ifdef HAVE_LIBGEN_H
 #include <libgen.h>
 #endif

@@ -34,9 +34,7 @@
 #endif
 #include <limits.h>
 #include <netdb.h>
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
+#include <paths.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdio.h>

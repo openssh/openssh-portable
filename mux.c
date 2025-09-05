@@ -34,9 +34,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_PATHS_H
 #include <paths.h>
-#endif
 
 #include <poll.h>
 
