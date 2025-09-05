@@ -41,9 +41,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_IFADDRS_H
-# include <ifaddrs.h>
-#endif
+#include <ifaddrs.h>
 
 #include "xmalloc.h"
 #include "hostfile.h"

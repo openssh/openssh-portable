@@ -29,9 +29,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
-#ifdef HAVE_IFADDRS_H
-# include <ifaddrs.h>
-#endif
+#include <ifaddrs.h>
 #include <limits.h>
 #include <netdb.h>
 #include <paths.h>

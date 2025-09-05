@@ -468,7 +468,6 @@ AC_CHECK_HEADERS([ \
 	glob.h \
 	ia.h \
 	iaf.h \
-	ifaddrs.h \
 	inttypes.h \
 	langinfo.h \
 	limits.h \
@@ -532,7 +531,7 @@ AC_CHECK_HEADERS([ \
 # the equivalent file.  This avoids having to wrap those includes in
 # '#ifdef HAVE_FOO_H'.  If we create any such headers, add the path to includes.
 compatincludes=no
-AC_CHECK_HEADERS([paths.h poll.h stdint.h util.h], [], [
+AC_CHECK_HEADERS([ifaddrs.h paths.h poll.h stdint.h util.h], [], [
     compatincludes="`pwd`/openbsd-compat/include"
     mkdir -p "$compatincludes"
     case "$ac_header" in
