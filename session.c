@@ -36,9 +36,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/wait.h>

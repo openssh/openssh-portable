@@ -27,9 +27,7 @@
 #include <sys/statvfs.h>
 #endif
 #include "openbsd-compat/sys-queue.h"
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/uio.h>
 

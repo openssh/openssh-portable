@@ -39,9 +39,7 @@
 
 #include <stdlib.h>
 
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
+#include <sys/stat.h>
 #ifdef HAVE_SYS_IOCTL_H
 # include <sys/ioctl.h>
 #endif
