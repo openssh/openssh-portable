@@ -510,7 +510,6 @@ AC_CHECK_HEADERS([ \
 	sys/strtio.h \
 	sys/statvfs.h \
 	sys/sysmacros.h \
-	sys/time.h \
 	sys/timers.h \
 	sys/vfs.h \
 	time.h \
@@ -531,15 +530,17 @@ AC_CHECK_HEADERS([ \
 # the equivalent file.  This avoids having to wrap those includes in
 # '#ifdef HAVE_FOO_H'.  If we create any such headers, add the path to includes.
 compatincludes=no
-AC_CHECK_HEADERS([ifaddrs.h paths.h poll.h stdint.h util.h], [], [
+AC_CHECK_HEADERS([ifaddrs.h paths.h poll.h stdint.h sys/time.h util.h], [], [
     compatincludes="`pwd`/openbsd-compat/include"
-    mkdir -p "$compatincludes"
+    header="$compatincludes/$ac_header"
+    dir=`dirname "$header"`
+    mkdir -p "$dir"
     case "$ac_header" in
     poll.h) echo '#ifdef HAVE_SYS_POLL_H'
             echo '#include <sys/poll.h>'
             echo '#endif' ;;
     *)      ;;
-    esac >"$compatincludes/$ac_header"
+    esac >"$header"
 ])
 if test "$compatincludes" != "no"; then
     CPPFLAGS="$CPPFLAGS -I$compatincludes"

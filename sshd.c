@@ -32,9 +32,7 @@
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
+#include <sys/time.h>
 #include "openbsd-compat/sys-tree.h"
 #include "openbsd-compat/sys-queue.h"
 #include <sys/wait.h>

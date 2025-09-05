@@ -20,9 +20,7 @@
 
 #ifdef ENABLE_PKCS11
 
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
+#include <sys/time.h>
 
 #include <sys/types.h>
 #include <stdarg.h>

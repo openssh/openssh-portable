@@ -41,9 +41,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
+#include <sys/time.h>
 #ifdef HAVE_SYS_UN_H
 # include <sys/un.h>
 #endif
