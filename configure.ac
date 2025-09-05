@@ -2104,6 +2104,7 @@ AC_CHECK_FUNCS([ \
 	memset_s \
 	mkdtemp \
 	ngetaddrinfo \
+	nlist \
 	nsleep \
 	ogetaddrinfo \
 	openlog_r \

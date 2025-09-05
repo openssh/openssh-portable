@@ -3063,7 +3063,7 @@ ptimeout_isset(struct timespec *pt)
 int
 lib_contains_symbol(const char *path, const char *s)
 {
-#ifdef HAVE_NLIST_H
+#ifdef HAVE_NLIST
 	struct nlist nl[2];
 	int ret = -1, r;
 
@@ -3083,7 +3083,7 @@ lib_contains_symbol(const char *path, const char *s)
  out:
 	free(nl[0].n_name);
 	return ret;
-#else /* HAVE_NLIST_H */
+#else /* HAVE_NLIST */
 	int fd, ret = -1;
 	struct stat st;
 	void *m = NULL;
@@ -3125,7 +3125,7 @@ lib_contains_symbol(const char *path, const char *s)
 		munmap(m, sz);
 	close(fd);
 	return ret;
-#endif /* HAVE_NLIST_H */
+#endif /* HAVE_NLIST */
 }
 
 int
