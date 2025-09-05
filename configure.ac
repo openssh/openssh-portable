@@ -533,6 +533,7 @@ AC_CHECK_HEADERS([ \
     libgen.h \
     paths.h \
     netgroup.h \
+    nlist.h \
     poll.h \
     stdint.h \
     sys/stat.h \
