@@ -33,9 +33,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#endif
 #include <pwd.h>
 #include <grp.h>
 #include <stdlib.h>

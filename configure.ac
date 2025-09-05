@@ -481,7 +481,6 @@ AC_CHECK_HEADERS([ \
 	netgroup.h \
 	pam/pam_appl.h \
 	paths.h \
-	poll.h \
 	pty.h \
 	readpassphrase.h \
 	rpc/types.h \
@@ -535,10 +534,13 @@ AC_CHECK_HEADERS([ \
 # the equivalent file.  This avoids having to wrap those includes in
 # '#ifdef HAVE_FOO_H'.  If we create any such headers, add the path to includes.
 compatincludes=no
-AC_CHECK_HEADERS([stdint.h], [], [
+AC_CHECK_HEADERS([poll.h stdint.h], [], [
     compatincludes="`pwd`/openbsd-compat/include"
     mkdir -p "$compatincludes"
     case "$ac_header" in
+    poll.h) echo '#ifdef HAVE_SYS_POLL_H'
+            echo '#include <sys/poll.h>'
+            echo '#endif' ;;
     *)      ;;
     esac >"$compatincludes/$ac_header"
 ])

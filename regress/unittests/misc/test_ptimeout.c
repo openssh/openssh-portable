@@ -12,9 +12,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef HAVE_POLL_H
-# include <poll.h>
-#endif
+#include <poll.h>
 #include <time.h>
 
 #include "../test_helper/test_helper.h"

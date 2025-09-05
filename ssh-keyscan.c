@@ -26,9 +26,7 @@
 #include <limits.h>
 #include <netdb.h>
 #include <errno.h>
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

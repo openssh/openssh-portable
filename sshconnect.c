@@ -36,9 +36,7 @@
 #include <paths.h>
 #endif
 #include <pwd.h>
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#endif
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>

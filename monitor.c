@@ -45,13 +45,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <unistd.h>
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#else
-# ifdef HAVE_SYS_POLL_H
-#  include <sys/poll.h>
-# endif
-#endif
 
 #ifdef WITH_OPENSSL
 #include <openssl/dh.h>

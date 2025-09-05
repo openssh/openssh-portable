@@ -33,9 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#endif
 
 #ifdef WITH_OPENSSL
 #include <openssl/crypto.h>

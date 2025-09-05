@@ -33,9 +33,7 @@
 #ifdef HAVE_LIBGEN_H
 # include <libgen.h>
 #endif
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#endif
 #ifdef HAVE_NLIST_H
 #include <nlist.h>
 #endif

@@ -24,9 +24,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#endif
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>

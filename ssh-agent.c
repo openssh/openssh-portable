@@ -60,9 +60,7 @@
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif
-#ifdef HAVE_POLL_H
-# include <poll.h>
-#endif
+#include <poll.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
