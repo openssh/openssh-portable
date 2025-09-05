@@ -28,8 +28,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <termios.h>
-#include <util.h>
 #include <unistd.h>
+#include <util.h>
 
 #include "sshpty.h"
 #include "log.h"
