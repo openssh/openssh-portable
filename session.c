@@ -71,9 +71,7 @@
 #include "channels.h"
 #include "sshkey.h"
 #include "cipher.h"
-#ifdef GSSAPI
-#include "ssh-gss.h"
-#endif
+#include "kex.h"
 #include "hostfile.h"
 #include "auth.h"
 #include "auth-options.h"
@@ -86,7 +84,9 @@
 #include "serverloop.h"
 #include "canohost.h"
 #include "session.h"
-#include "kex.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 #include "monitor_wrap.h"
 #include "sftp.h"
 #include "atomicio.h"
