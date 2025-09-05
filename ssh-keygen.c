@@ -52,7 +52,6 @@
 #include "ssh.h"
 #include "ssh2.h"
 #include "ssherr.h"
-#include "ssh-pkcs11.h"
 #include "atomicio.h"
 #include "krl.h"
 #include "digest.h"
@@ -62,6 +61,10 @@
 #include "ssh-sk.h"
 #include "sk-api.h" /* XXX for SSH_SK_USER_PRESENCE_REQD; remove */
 #include "cipher.h"
+
+#ifdef ENABLE_PKCS11
+#include "ssh-pkcs11.h"
+#endif
 
 #define DEFAULT_KEY_TYPE_NAME "ed25519"
 
