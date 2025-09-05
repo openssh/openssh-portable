@@ -512,7 +512,6 @@ AC_CHECK_HEADERS([ \
 	sys/sysmacros.h \
 	sys/timers.h \
 	sys/vfs.h \
-	time.h \
 	tmpdir.h \
 	ttyent.h \
 	ucred.h \
@@ -530,7 +529,7 @@ AC_CHECK_HEADERS([ \
 # the equivalent file.  This avoids having to wrap those includes in
 # '#ifdef HAVE_FOO_H'.  If we create any such headers, add the path to includes.
 compatincludes=no
-AC_CHECK_HEADERS([ifaddrs.h paths.h poll.h stdint.h sys/stat.h sys/time.h util.h], [], [
+AC_CHECK_HEADERS([ifaddrs.h paths.h poll.h stdint.h sys/stat.h sys/time.h time.h util.h], [], [
     compatincludes="`pwd`/openbsd-compat/include"
     header="$compatincludes/$ac_header"
     dir=`dirname "$header"`
