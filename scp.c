@@ -100,9 +100,7 @@
 #include <libgen.h>
 #endif
 #include <limits.h>
-#ifdef HAVE_UTIL_H
-# include <util.h>
-#endif
+#include <util.h>
 #include <locale.h>
 #include <pwd.h>
 #include <signal.h>

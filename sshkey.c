@@ -46,9 +46,7 @@
 #include <string.h>
 #include <resolv.h>
 #include <time.h>
-#ifdef HAVE_UTIL_H
 #include <util.h>
-#endif /* HAVE_UTIL_H */
 
 #include "ssh2.h"
 #include "ssherr.h"

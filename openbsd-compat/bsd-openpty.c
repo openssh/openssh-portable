@@ -50,9 +50,7 @@
 # include <fcntl.h>
 #endif
 
-#ifdef HAVE_UTIL_H
-# include <util.h>
-#endif /* HAVE_UTIL_H */
+#include <util.h>
 
 #ifdef HAVE_PTY_H
 # include <pty.h>

@@ -28,9 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <termios.h>
-#ifdef HAVE_UTIL_H
-# include <util.h>
-#endif
+#include <util.h>
 #include <unistd.h>
 
 #include "sshpty.h"
