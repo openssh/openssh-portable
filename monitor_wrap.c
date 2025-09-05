@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.140 2025/07/04 07:47:35 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.141 2025/09/05 10:17:21 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
