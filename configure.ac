@@ -489,7 +489,6 @@ AC_CHECK_HEADERS([ \
 	sha2.h \
 	shadow.h \
 	stddef.h \
-	stdint.h \
 	string.h \
 	strings.h \
 	sys/bitypes.h \
@@ -530,6 +529,22 @@ AC_CHECK_HEADERS([ \
 	vis.h \
 	wchar.h \
 ])
+
+# Create replacement header files for common headers that are missing on this
+# platform.  Usually these are just empty, but in some cases they'll include
+# the equivalent file.  This avoids having to wrap those includes in
+# '#ifdef HAVE_FOO_H'.  If we create any such headers, add the path to includes.
+compatincludes=no
+AC_CHECK_HEADERS([stdint.h], [], [
+    compatincludes="`pwd`/openbsd-compat/include"
+    mkdir -p "$compatincludes"
+    case "$ac_header" in
+    *)      ;;
+    esac >"$compatincludes/$ac_header"
+])
+if test "$compatincludes" != "no"; then
+    CPPFLAGS="$CPPFLAGS -I$compatincludes"
+fi
 
 AC_CHECK_DECLS([le32toh, le64toh, htole64], [], [], [
 #ifdef HAVE_SYS_TYPES_H

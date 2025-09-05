@@ -22,9 +22,7 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <stdlib.h>
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
+#include <stdint.h>
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>

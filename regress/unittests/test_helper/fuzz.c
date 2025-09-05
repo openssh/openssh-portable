@@ -25,9 +25,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
