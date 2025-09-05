@@ -457,7 +457,6 @@ AC_CHECK_HEADERS([ \
 	crypt.h \
 	crypto/sha2.h \
 	dirent.h \
-	endian.h \
 	elf.h \
 	err.h \
 	features.h \
@@ -529,6 +528,7 @@ AC_CHECK_HEADERS([ \
 # '#ifdef HAVE_FOO_H'.  If we create any such headers, add the path to includes.
 compatincludes=no
 AC_CHECK_HEADERS([ \
+    endian.h \
     ifaddrs.h \
     libgen.h \
     paths.h \
