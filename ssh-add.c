@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.175 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.176 2025/09/11 02:54:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -69,6 +69,8 @@
 #include "ssh-sk.h"
 #include "sk-api.h"
 #include "hostfile.h"
+
+#define CERT_EXPIRY_GRACE	(5*60)
 
 /* argv0 */
 extern char *__progname;
@@ -235,15 +237,35 @@ delete_all(int agent_fd, int qflag)
 }
 
 static int
+check_cert_lifetime(const struct sshkey *cert, int cert_lifetime)
+{
+	time_t now;
+	uint64_t n;
+
+	if (cert == NULL || cert->cert == NULL || !sshkey_is_cert(cert) ||
+	    cert->cert->valid_before == 0xFFFFFFFFFFFFFFFFULL)
+		return cert_lifetime;
+	if ((now = time(NULL)) <= 0)
+		fatal_f("system time is at/before epoch");
+	if ((uint64_t)now > (cert->cert->valid_before + CERT_EXPIRY_GRACE))
+		return -1; /* certificate already expired */
+	n = (CERT_EXPIRY_GRACE + cert->cert->valid_before) - (uint64_t)now;
+	n = MINIMUM(n, INT_MAX);
+	if (cert_lifetime <= 0)
+		return (int)n;
+	return MINIMUM(cert_lifetime, (int)n);
+}
+
+static int
 add_file(int agent_fd, const char *filename, int key_only, int cert_only,
-    int qflag, const char *skprovider,
+    int qflag, int Nflag, const char *skprovider,
     struct dest_constraint **dest_constraints,
     size_t ndest_constraints)
 {
-	struct sshkey *private, *cert;
+	struct sshkey *private = NULL, *cert = NULL;
 	char *comment = NULL;
 	char msg[1024], *certpath = NULL;
-	int r, fd, ret = -1;
+	int cert_lifetime, r, fd, ret = -1;
 	struct sshbuf *keyblob;
 
 	if (strcmp(filename, "-") == 0) {
@@ -340,8 +362,8 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 			fprintf(stderr, "Identity added: %s (%s)\n",
 			    filename, comment);
 			if (lifetime != 0) {
-				fprintf(stderr,
-				    "Lifetime set to %d seconds\n", lifetime);
+				fprintf(stderr, "Lifetime set to %s\n",
+				    fmt_timeframe((time_t)lifetime));
 			}
 			if (confirm != 0) {
 				fprintf(stderr, "The user must confirm "
@@ -369,25 +391,28 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 	if (!sshkey_equal_public(cert, private)) {
 		error("Certificate %s does not match private key %s",
 		    certpath, filename);
-		sshkey_free(cert);
+		goto out;
+	}
+
+	cert_lifetime = lifetime;
+	if (!Nflag &&
+	    (cert_lifetime = check_cert_lifetime(cert, cert_lifetime)) == -1) {
+		logit("Certificate %s has already expired; ignored", certpath);
 		goto out;
 	}
 
 	/* Graft with private bits */
 	if ((r = sshkey_to_certified(private)) != 0) {
 		error_fr(r, "sshkey_to_certified");
-		sshkey_free(cert);
 		goto out;
 	}
 	if ((r = sshkey_cert_copy(cert, private)) != 0) {
 		error_fr(r, "sshkey_cert_copy");
-		sshkey_free(cert);
 		goto out;
 	}
-	sshkey_free(cert);
-
+	/* send to agent */
 	if ((r = ssh_add_identity_constrained(agent_fd, private, comment,
-	    lifetime, confirm, skprovider,
+	    cert_lifetime, confirm, skprovider,
 	    dest_constraints, ndest_constraints)) != 0) {
 		error_r(r, "Certificate %s (%s) add failed", certpath,
 		    private->cert->key_id);
@@ -397,9 +422,9 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 	if (!qflag) {
 		fprintf(stderr, "Certificate added: %s (%s)\n", certpath,
 		    private->cert->key_id);
-		if (lifetime != 0) {
-			fprintf(stderr, "Lifetime set to %d seconds\n",
-			    lifetime);
+		if (cert_lifetime != 0) {
+			fprintf(stderr, "Lifetime set to %s\n",
+			    fmt_timeframe((time_t)cert_lifetime));
 		}
 		if (confirm != 0) {
 			fprintf(stderr, "The user must confirm each use "
@@ -410,6 +435,7 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
  out:
 	free(certpath);
 	free(comment);
+	sshkey_free(cert);
 	sshkey_free(private);
 
 	return ret;
@@ -606,7 +632,7 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag,
 
 static int
 do_file(int agent_fd, int deleting, int key_only, int cert_only,
-    char *file, int qflag, const char *skprovider,
+    char *file, int qflag, int Nflag, const char *skprovider,
     struct dest_constraint **dest_constraints, size_t ndest_constraints)
 {
 	if (deleting) {
@@ -614,7 +640,7 @@ do_file(int agent_fd, int deleting, int key_only, int cert_only,
 		    cert_only, qflag) == -1)
 			return -1;
 	} else {
-		if (add_file(agent_fd, file, key_only, cert_only, qflag,
+		if (add_file(agent_fd, file, key_only, cert_only, qflag, Nflag,
 		    skprovider, dest_constraints, ndest_constraints) == -1)
 			return -1;
 	}
@@ -762,7 +788,7 @@ main(int argc, char **argv)
 	char **dest_constraint_strings = NULL, **hostkey_files = NULL;
 	int r, i, ch, deleting = 0, ret = 0, key_only = 0, cert_only = 0;
 	int do_download = 0, xflag = 0, lflag = 0, Dflag = 0;
-	int qflag = 0, Tflag = 0;
+	int qflag = 0, Tflag = 0, Nflag = 0;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_INFO;
 	struct sshkey *k, **certs = NULL;
@@ -794,13 +820,16 @@ main(int argc, char **argv)
 
 	skprovider = getenv("SSH_SK_PROVIDER");
 
-	while ((ch = getopt(argc, argv, "vkKlLCcdDTxXE:e:h:H:M:m:qs:S:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "vVkKlLCcdDTxXE:e:h:H:M:m:qs:S:t:")) != -1) {
 		switch (ch) {
 		case 'v':
 			if (log_level == SYSLOG_LEVEL_INFO)
 				log_level = SYSLOG_LEVEL_DEBUG1;
 			else if (log_level < SYSLOG_LEVEL_DEBUG3)
 				log_level++;
+			break;
+		case 'V':
+			Nflag = 1;
 			break;
 		case 'E':
 			fingerprint_hash = ssh_digest_alg_by_name(optarg);
@@ -968,7 +997,7 @@ main(int argc, char **argv)
 			if (stat(buf, &st) == -1)
 				continue;
 			if (do_file(agent_fd, deleting, key_only, cert_only,
-			    buf, qflag, skprovider,
+			    buf, qflag, Nflag, skprovider,
 			    dest_constraints, ndest_constraints) == -1)
 				ret = 1;
 			else
@@ -979,7 +1008,7 @@ main(int argc, char **argv)
 	} else {
 		for (i = 0; i < argc; i++) {
 			if (do_file(agent_fd, deleting, key_only, cert_only,
-			    argv[i], qflag, skprovider,
+			    argv[i], qflag, Nflag, skprovider,
 			    dest_constraints, ndest_constraints) == -1)
 				ret = 1;
 		}
