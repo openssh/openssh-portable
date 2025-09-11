@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.176 2025/09/11 02:54:42 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.177 2025/09/11 03:29:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -54,6 +54,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <time.h>
 
 #include "xmalloc.h"
 #include "ssh.h"
