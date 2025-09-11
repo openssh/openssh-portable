@@ -114,7 +114,8 @@ LTESTS= 	connect \
 		agent-pkcs11-cert \
 		penalty \
 		penalty-expire \
-		connect-bigconf
+		connect-bigconf \
+		webauthn-in-agent 
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 INTEROP_TESTS+=	dropbear-ciphers dropbear-kex dropbear-server
