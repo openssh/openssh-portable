@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.177 2025/09/11 03:29:58 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.178 2025/09/11 07:22:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -821,7 +821,7 @@ main(int argc, char **argv)
 
 	skprovider = getenv("SSH_SK_PROVIDER");
 
-	while ((ch = getopt(argc, argv, "vVkKlLCcdDTxXE:e:h:H:M:m:qs:S:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "vkKlLNCcdDTxXE:e:h:H:M:m:qs:S:t:")) != -1) {
 		switch (ch) {
 		case 'v':
 			if (log_level == SYSLOG_LEVEL_INFO)
@@ -829,7 +829,7 @@ main(int argc, char **argv)
 			else if (log_level < SYSLOG_LEVEL_DEBUG3)
 				log_level++;
 			break;
-		case 'V':
+		case 'N':
 			Nflag = 1;
 			break;
 		case 'E':
