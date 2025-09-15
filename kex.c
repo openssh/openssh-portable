@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.188 2025/08/11 10:55:38 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.189 2025/09/15 04:40:34 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -740,6 +740,7 @@ kex_free(struct kex *kex)
 	free(kex->failed_choice);
 	free(kex->hostkey_alg);
 	free(kex->name);
+	free(kex->server_sig_algs);
 	free(kex);
 }
 
