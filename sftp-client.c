@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.178 2025/09/02 09:26:21 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.179 2025/09/15 05:17:37 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -599,6 +599,14 @@ sftp_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 	}
 
 	return ret;
+}
+
+void
+sftp_free(struct sftp_conn *conn)
+{
+	if (conn == NULL)
+		return;
+	freezero(conn, sizeof(*conn));
 }
 
 u_int

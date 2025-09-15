@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.265 2025/09/02 09:34:48 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.266 2025/09/15 05:17:37 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1072,6 +1072,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			if (mode == MODE_SFTP) {
 				if (remin == -1 || conn == NULL) {
 					/* Connect to dest now */
+					sftp_free(conn);
 					conn = do_sftp_connect(thost, tuser,
 					    tport, sftp_direct,
 					    &remin, &remout, &do_cmd_pid);
@@ -1089,6 +1090,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				 * scp -3 hosta:/foo hosta:/bar hostb:
 				 */
 				/* Connect to origin now */
+				sftp_free(conn2);
 				conn2 = do_sftp_connect(host, suser,
 				    sport, sftp_direct,
 				    &remin2, &remout2, &do_cmd_pid2);
@@ -1178,6 +1180,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				}
 				if (remin == -1) {
 					/* Connect to remote now */
+					sftp_free(conn);
 					conn = do_sftp_connect(thost, tuser,
 					    tport, sftp_direct,
 					    &remin, &remout, &do_cmd_pid);
@@ -1206,8 +1209,6 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 		}
 	}
 out:
-	if (mode == MODE_SFTP)
-		free(conn);
 	freeargs(&alist);
 	free(tuser);
 	free(thost);
@@ -1215,6 +1216,8 @@ out:
 	free(suser);
 	free(host);
 	free(src);
+	sftp_free(conn);
+	sftp_free(conn2);
 }
 
 void
@@ -1260,6 +1263,7 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 		}
 		/* Remote to local. */
 		if (mode == MODE_SFTP) {
+			sftp_free(conn);
 			conn = do_sftp_connect(host, suser, sport,
 			    sftp_direct, &remin, &remout, &do_cmd_pid);
 			if (conn == NULL) {
@@ -1271,7 +1275,6 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			/* The protocol */
 			sink_sftp(1, argv[argc - 1], src, conn);
 
-			free(conn);
 			(void) close(remin);
 			(void) close(remout);
 			remin = remout = -1;
@@ -1295,6 +1298,7 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	free(suser);
 	free(host);
 	free(src);
+	sftp_free(conn);
 }
 
 /* Prepare remote path, handling ~ by assuming cwd is the homedir */
