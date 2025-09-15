@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.8 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.9 2025/09/15 04:52:12 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -773,6 +773,7 @@ main(int ac, char **av)
 	 * The unprivileged child now transfers the current keystate and exits.
 	 */
 	mm_send_keystate(ssh, pmonitor);
+	sshauthopt_free(auth_opts);
 	ssh_packet_clear_keys(ssh);
 	exit(0);
 }
