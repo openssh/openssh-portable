@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.374 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.375 2025/09/15 04:49:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1426,6 +1426,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		options.update_hostkeys = 0;
 	}
 
+	sshkey_free(raw_key);
 	free(ip);
 	free(host);
 	if (host_hostkeys != NULL)
