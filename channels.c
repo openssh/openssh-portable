@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.448 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.449 2025/09/15 04:39:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -4588,10 +4588,13 @@ void
 channel_clear_permission(struct ssh *ssh, int who, int where)
 {
 	struct permission **permp;
-	u_int *npermp;
+	u_int i, *npermp;
 
 	permission_set_get_array(ssh, who, where, &permp, &npermp);
-	*permp = xrecallocarray(*permp, *npermp, 0, sizeof(**permp));
+	for (i = 0; i < *npermp; i++)
+		fwd_perm_clear((*permp) + i);
+	free(*permp);
+	*permp = NULL;
 	*npermp = 0;
 }
 
