@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.105 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.106 2025/09/15 04:48:29 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -668,6 +668,7 @@ mux_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 	if (c->mux_pause <= 0)
 		fatal_f("mux_pause %d", c->mux_pause);
 	c->mux_pause = 0; /* start processing messages again */
+	free(fctx);
 }
 
 static int
