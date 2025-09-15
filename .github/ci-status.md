@@ -1,5 +1,11 @@
 master :
 [![C/C++ CI](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml?query=branch:master)
+[![VM DragonFlyBSD](https://github.com/openssh/openssh-portable/actions/workflows/vm-dragonflybsd.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/vm-dragonflybsd.yml?query=branch:master)
+[![VM FreeBSD](https://github.com/openssh/openssh-portable/actions/workflows/vm-freebsd.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/vm-freebsd.yml?query=branch:master)
+[![VM OmniOS](https://github.com/openssh/openssh-portable/actions/workflows/vm-omnios.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/vm-omnios.yml?query=branch:master)
+[![VM OpenBSD](https://github.com/openssh/openssh-portable/actions/workflows/vm-openbsd.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/vm-openbsd.yml?query=branch:master)
+[![VM NetBSD](https://github.com/openssh/openssh-portable/actions/workflows/vm-netbsd.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/vm-netbsd.yml?query=branch:master)
+[![VM Solaris](https://github.com/openssh/openssh-portable/actions/workflows/vm-solaris.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/vm-solaris.yml?query=branch:master)
 [![C/C++ CI self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml/badge.svg)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml?query=branch:master)
 [![Upstream self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/upstream.yml/badge.svg)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/upstream.yml?query=branch:master)
 [![CIFuzz](https://github.com/openssh/openssh-portable/actions/workflows/cifuzz.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/cifuzz.yml)
