@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshbuf_misc.c,v 1.6 2025/09/04 00:37:10 djm Exp $ */
+/* 	$OpenBSD: test_sshbuf_misc.c,v 1.7 2025/09/15 03:00:22 djm Exp $ */
 /*
  * Regress test for sshbuf.h buffer API
  *
@@ -214,6 +214,7 @@ test_sshbuf_cmp(void)
 	ASSERT_INT_EQ(sshbuf_cmp(p1, 1000, "silence", 7),
 	    SSH_ERR_MESSAGE_INCOMPLETE);
 	ASSERT_INT_EQ(sshbuf_cmp(p1, 0, msg, sizeof(msg) - 1), 0);
+	sshbuf_free(p1);
 	TEST_DONE();
 }
 
@@ -252,6 +253,7 @@ test_sshbuf_find(void)
 	    SSH_ERR_MESSAGE_INCOMPLETE);
 	ASSERT_INT_EQ(sshbuf_find(p1, 0, msg + 1, sizeof(msg) - 2, &sz), 0);
 	ASSERT_SIZE_T_EQ(sz, 1);
+	sshbuf_free(p1);
 	TEST_DONE();
 }
 
