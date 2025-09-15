@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.38 2025/02/18 08:02:48 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.39 2025/09/15 04:52:41 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -1123,6 +1123,7 @@ sshsig_match_principals(const char *path, const char *principal,
 		linesize = 0;
 	}
 	fclose(f);
+	free(line);
 
 	if (ret == 0) {
 		if (nprincipals == 0)
