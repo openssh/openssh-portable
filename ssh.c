@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.617 2025/09/04 00:29:09 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.618 2025/09/15 04:50:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2468,6 +2468,7 @@ load_public_identity_files(const struct ssh_conn_info *cinfo)
 			free(cp);
 			continue;
 		}
+		free(cp);
 		/* NB. leave filename pointing to private key */
 		identity_files[n_ids] = xstrdup(filename);
 		identity_keys[n_ids] = public;
