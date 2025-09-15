@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.247 2024/12/03 22:30:03 jsg Exp $ */
+/* $OpenBSD: monitor.c,v 1.248 2025/09/15 04:47:49 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -567,15 +567,13 @@ monitor_reset_key_state(void)
 }
 
 int
-mm_answer_state(struct ssh *ssh, int sock, struct sshbuf *m)
+mm_answer_state(struct ssh *ssh, int sock, struct sshbuf *unused)
 {
-	struct sshbuf *inc = NULL, *hostkeys = NULL;
+	struct sshbuf *m = NULL, *inc = NULL, *hostkeys = NULL;
 	struct sshbuf *opts = NULL, *confdata = NULL;
 	struct include_item *item = NULL;
 	int postauth;
 	int r;
-
-	sshbuf_reset(m);
 
 	debug_f("config len %zu", sshbuf_len(cfg));
 
@@ -634,9 +632,10 @@ mm_answer_state(struct ssh *ssh, int sock, struct sshbuf *m)
 	sshbuf_free(inc);
 	sshbuf_free(opts);
 	sshbuf_free(confdata);
+	sshbuf_free(hostkeys);
 
 	mm_request_send(sock, MONITOR_ANS_STATE, m);
-
+	sshbuf_free(m);
 	debug3_f("done");
 
 	return (0);
