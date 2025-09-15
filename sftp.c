@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.241 2025/09/02 09:34:48 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.242 2025/09/15 04:49:00 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2343,6 +2343,8 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 	free(conn);
 
 #ifdef USE_LIBEDIT
+	if (hl != NULL)
+		history_end(hl);
 	if (el != NULL)
 		el_end(el);
 #endif /* USE_LIBEDIT */
