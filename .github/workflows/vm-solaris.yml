@@ -1,6 +1,6 @@
 # For testing, you can set variables in your repo (Repo -> Settings ->
 # Security -> Actions -> Variables) to restrict the tests that are run.
-# The supported variables are: 
+# The supported variables are:
 #
 # RUN_ONLY_TARGET_CONFIG: Run only the single matching target and config,
 #   separated by spaces, eg "ubuntu-latest default".  All other tests will
