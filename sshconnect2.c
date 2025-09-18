@@ -1078,6 +1078,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, struct ssh *ssh)
 	char *info = NULL, *lang = NULL, *password = NULL, *retype = NULL;
 	char prompt[256];
 	const char *host;
+	size_t info_len;
 	int r;
 
 	debug2("input_userauth_passwd_changereq");
@@ -1087,11 +1088,15 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, struct ssh *ssh)
 		    "no authentication context");
 	host = options.host_key_alias ? options.host_key_alias : authctxt->host;
 
-	if ((r = sshpkt_get_cstring(ssh, &info, NULL)) != 0 ||
+	if ((r = sshpkt_get_cstring(ssh, &info, &info_len)) != 0 ||
 	    (r = sshpkt_get_cstring(ssh, &lang, NULL)) != 0)
 		goto out;
-	if (strlen(info) > 0)
-		logit("%s", info);
+	if (info_len > 0) {
+		struct notifier_ctx *notifier = NULL;
+		debug_f("input_userauth_passwd_changereq info: %s", info);
+		notifier = notify_start(0, "%s", info);
+		notify_complete(notifier, NULL);
+	}
 	if ((r = sshpkt_start(ssh, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
 	    (r = sshpkt_put_cstring(ssh, authctxt->server_user)) != 0 ||
 	    (r = sshpkt_put_cstring(ssh, authctxt->service)) != 0 ||
@@ -1943,8 +1948,10 @@ input_userauth_info_req(int type, u_int32_t seq, struct ssh *ssh)
 	Authctxt *authctxt = ssh->authctxt;
 	char *name = NULL, *inst = NULL, *lang = NULL, *prompt = NULL;
 	char *display_prompt = NULL, *response = NULL;
+	struct notifier_ctx *notifier = NULL;
 	u_char echo = 0;
 	u_int num_prompts, i;
+	size_t name_len, inst_len;
 	int r;
 
 	debug2_f("entering");
@@ -1954,14 +1961,22 @@ input_userauth_info_req(int type, u_int32_t seq, struct ssh *ssh)
 
 	authctxt->info_req_seen = 1;
 
-	if ((r = sshpkt_get_cstring(ssh, &name, NULL)) != 0 ||
-	    (r = sshpkt_get_cstring(ssh, &inst, NULL)) != 0 ||
+	if ((r = sshpkt_get_cstring(ssh, &name, &name_len)) != 0 ||
+	    (r = sshpkt_get_cstring(ssh, &inst, &inst_len)) != 0 ||
 	    (r = sshpkt_get_cstring(ssh, &lang, NULL)) != 0)
 		goto out;
-	if (strlen(name) > 0)
-		logit("%s", name);
-	if (strlen(inst) > 0)
-		logit("%s", inst);
+	if (name_len > 0) {
+		debug_f("kbd int name: %s", name);
+		notifier = notify_start(0, "%s", name);
+		notify_complete(notifier, NULL);
+		notifier = NULL;
+	}
+	if (inst_len > 0) {
+		debug_f("kbd int inst: %s", inst);
+		notifier = notify_start(0, "%s", inst);
+		notify_complete(notifier, NULL);
+		notifier = NULL;
+	}
 
 	if ((r = sshpkt_get_u32(ssh, &num_prompts)) != 0)
 		goto out;
