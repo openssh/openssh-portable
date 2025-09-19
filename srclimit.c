@@ -427,7 +427,9 @@ srclimit_penalise(struct xaddr *addr, int penalty_type)
 			penalty->active = 1;
 		if (RB_INSERT(penalties_by_expiry, by_expiry, penalty) != NULL)
 			fatal_f("internal error: %s penalty tables corrupt", t);
-		verbose_f("%s: new %s %s penalty of %d seconds for %s", t,
+		do_log2_f(penalty->active ?
+		    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_VERBOSE,
+		    "%s: new %s %s penalty of %d seconds for %s", t,
 		    addrnetmask, penalty->active ? "active" : "deferred",
 		    penalty_secs, reason);
 		if (++(*npenaltiesp) > (size_t)max_sources)
@@ -446,7 +448,7 @@ srclimit_penalise(struct xaddr *addr, int penalty_type)
 		existing->expiry = now + penalty_cfg.penalty_max;
 	if (existing->expiry - now > penalty_cfg.penalty_min &&
 	    !existing->active) {
-		verbose_f("%s: activating %s penalty of %lld seconds for %s",
+		logit_f("%s: activating %s penalty of %lld seconds for %s",
 		    addrnetmask, t, (long long)(existing->expiry - now),
 		    reason);
 		existing->active = 1;
