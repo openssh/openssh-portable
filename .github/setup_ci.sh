@@ -231,7 +231,7 @@ if [ ! -z "${INSTALL_OPENSSL}" ]; then
      git checkout ${INSTALL_OPENSSL} &&
      ./config no-threads shared ${SSLCONFOPTS} \
          --prefix=/opt/openssl &&
-     make && sudo make install_sw)
+     make -j4 && sudo make install_sw)
 fi
 
 if [ ! -z "${INSTALL_LIBRESSL}" ]; then
