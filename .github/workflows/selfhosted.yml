@@ -2,7 +2,7 @@ name: C/C++ CI self-hosted
 
 on:
   push:
-    paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/workflows/selfhosted.yml' ]
+    paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', '.github/configs', '.github/run_tests.sh', '.github/workflows/selfhosted.yml' ]
 
 jobs:
   selfhosted:
