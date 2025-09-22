@@ -225,13 +225,8 @@ if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
 fi
 
 if [ ! -z "${INSTALL_OPENSSL}" ]; then
-    (cd ${HOME} &&
-     git clone https://github.com/openssl/openssl.git &&
-     cd ${HOME}/openssl &&
-     git checkout ${INSTALL_OPENSSL} &&
-     ./config no-threads shared ${SSLCONFOPTS} \
-         --prefix=/opt/openssl &&
-     make -j4 && sudo make install_sw)
+	.github/install_libcrypto.sh \
+	    "${INSTALL_OPENSSL}" /opt/openssl "${SSLCONFOPTS}"
 fi
 
 if [ ! -z "${INSTALL_LIBRESSL}" ]; then

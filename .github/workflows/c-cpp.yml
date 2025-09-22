@@ -164,6 +164,11 @@ jobs:
         TEST_SSH_UNSAFE_PERMISSIONS: 1
         TEST_SSH_HOSTBASED_AUTH: yes
         LTESTS: ${{ vars.LTESTS }}
+    - name: test OpenSSL3 ABI compatibility
+      if: ${{ startsWith(matrix.config, 'openssl-3') }}
+      run: |
+       sh .github/install_libcrypto.sh -a ${{ matrix.config }} /opt/openssl
+       sh .github/run_test.sh ${{ matrix.config }}
     - name: show logs
       if: failure()
       run: for i in regress/failed*.log; do echo ====; echo logfile $i; echo =====; cat $i; done

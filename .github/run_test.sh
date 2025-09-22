@@ -41,17 +41,6 @@ else
     ${env} make ${TEST_TARGET} SKIP_LTESTS="${SKIP_LTESTS}" LTESTS="${LTESTS}"
 fi
 
-# Replace our self-built with the distro-provided one before running the tests
-# again.
-case "$1" in
-    openssl-3.*)
-	${SUDO} cp /lib/x86_64-linux-gnu/libcrypto.so.3 /opt/openssl/lib64/libcrypto.so.3
-	if [ -z "${TEST_SSH_SSHD_CONFOPTS}" ]; then
-		SSHD_CONFOPTS=AcceptEnv=OpenSSL3_ABI_Test
-	fi
-	;;
-esac
-
 if [ ! -z "${SSHD_CONFOPTS}" ]; then
     echo "rerunning t-exec with TEST_SSH_SSHD_CONFOPTS='${SSHD_CONFOPTS}'"
     if [ -z "${LTESTS}" ]; then
