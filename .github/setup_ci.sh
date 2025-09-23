@@ -164,7 +164,7 @@ for TARGET in $TARGETS; do
         PACKAGES="${PACKAGES} cmake ninja-build"
         ;;
     putty-*)
-	INSTALL_PUTTY=$(echo "${TARGET}" | cut -f2 -d-)
+	INSTALL_PUTTY=0.83
 	PACKAGES="${PACKAGES} cmake"
 	;;
     valgrind*)
@@ -273,25 +273,7 @@ if [ ! -z "${INSTALL_ZLIB}" ]; then
 fi
 
 if [ ! -z "${INSTALL_PUTTY}" ]; then
-    ver="${INSTALL_PUTTY}"
-    case "${INSTALL_PUTTY}" in
-    snapshot)
-	tarball=putty.tar.gz
-	(cd /tmp && wget https://tartarus.org/~simon/putty-snapshots/${tarball})
-	;;
-    *)
-	tarball=putty-${ver}.tar.gz
-	(cd /tmp && wget https://the.earth.li/~sgtatham/putty/${ver}/${tarball})
-	;;
-    esac
-    (cd ${HOME} && tar xfz /tmp/${tarball} && cd putty-*
-     if [ -f CMakeLists.txt ]; then
-	cmake . && cmake --build . && sudo cmake --build . --target install
-     else
-	./configure && make && sudo make install
-     fi
-    )
-    /usr/local/bin/plink -V
+	.github/install_putty.sh "${INSTALL_PUTTY}"
 fi
 
 # If we're running on an ephemeral VM, set a random password and set
