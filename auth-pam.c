@@ -132,11 +132,17 @@ typedef pid_t sp_pthread_t;
 #define pthread_join	fake_pthread_join
 #endif
 
+typedef int SshPamDone;
+#define SshPamError -1
+#define SshPamNone 0
+#define SshPamAuthenticated 1
+#define SshPamAgain 2
+
 struct pam_ctxt {
 	sp_pthread_t	 pam_thread;
 	int		 pam_psock;
 	int		 pam_csock;
-	int		 pam_done;
+	SshPamDone	 pam_done;
 };
 
 static void sshpam_free_ctx(void *);
@@ -441,6 +447,9 @@ sshpam_thread_conv(int n, sshpam_const struct pam_message **msg,
 			break;
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
+			debug3("PAM: Got message of type %d: %s",
+			       PAM_MSG_MEMBER(msg, i, msg_style),
+			       PAM_MSG_MEMBER(msg, i, msg));
 			if ((r = sshbuf_put_cstring(buffer,
 			    PAM_MSG_MEMBER(msg, i, msg))) != 0)
 				fatal("%s: buffer error: %s",
@@ -883,6 +892,8 @@ sshpam_query(void *ctx, char **name, char **info,
 	**prompts = NULL;
 	plen = 0;
 	*echo_on = xmalloc(sizeof(u_int));
+	ctxt->pam_done = SshPamNone;
+
 	while (ssh_msg_recv(ctxt->pam_psock, buffer) == 0) {
 		if (++nmesg > PAM_MAX_NUM_MSG)
 			fatal_f("too many query messages");
@@ -903,15 +914,13 @@ sshpam_query(void *ctx, char **name, char **info,
 			return (0);
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
-			/* accumulate messages */
-			len = plen + mlen + 2;
-			**prompts = xreallocarray(**prompts, 1, len);
-			strlcpy(**prompts + plen, msg, len - plen);
-			plen += mlen;
-			strlcat(**prompts + plen, "\n", len - plen);
-			plen++;
-			free(msg);
-			break;
+			*num = 0;
+			free(*info);
+			*info = msg; /* Steal the message */
+			msg = NULL;
+			ctxt->pam_done = SshPamAgain;
+			sshbuf_free(buffer);
+			return (0);
 		case PAM_ACCT_EXPIRED:
 		case PAM_MAXTRIES:
 			if (type == PAM_ACCT_EXPIRED)
@@ -927,7 +936,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				**prompts = NULL;
 				*num = 0;
 				**echo_on = 0;
-				ctxt->pam_done = -1;
+				ctxt->pam_done = SshPamError;
 				free(msg);
 				sshbuf_free(buffer);
 				return 0;
@@ -954,7 +963,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				import_environments(buffer);
 				*num = 0;
 				**echo_on = 0;
-				ctxt->pam_done = 1;
+				ctxt->pam_done = SshPamAuthenticated;
 				free(msg);
 				sshbuf_free(buffer);
 				return (0);
@@ -967,7 +976,7 @@ sshpam_query(void *ctx, char **name, char **info,
 			*num = 0;
 			**echo_on = 0;
 			free(msg);
-			ctxt->pam_done = -1;
+			ctxt->pam_done = SshPamError;
 			sshbuf_free(buffer);
 			return (-1);
 		}
@@ -1011,17 +1020,19 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 
 	debug2_f("PAM: entering, %u responses", num);
 	switch (ctxt->pam_done) {
-	case 1:
+	case SshPamAuthenticated:
 		sshpam_authenticated = 1;
-		return (0);
-	case 0:
+		return KbdintResultSuccess;
+	case SshPamNone:
 		break;
+	case SshPamAgain:
+		return KbdintResultAgain;
 	default:
-		return (-1);
+		return KbdintResultFailure;
 	}
 	if (num != 1) {
 		error("PAM: expected one response, got %u", num);
-		return (-1);
+		return KbdintResultFailure;
 	}
 	if ((buffer = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
@@ -1038,10 +1049,10 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 	}
 	if (ssh_msg_send(ctxt->pam_psock, PAM_AUTHTOK, buffer) == -1) {
 		sshbuf_free(buffer);
-		return (-1);
+		return KbdintResultFailure;
 	}
 	sshbuf_free(buffer);
-	return (1);
+	return KbdintResultAgain;
 }
 
 static void

@@ -111,7 +111,7 @@ bsdauth_respond(void *ctx, u_int numresponses, char **responses)
 	authctxt->as = NULL;
 	debug3("bsdauth_respond: <%s> = <%d>", responses[0], authok);
 
-	return (authok == 0) ? -1 : 0;
+	return (authok == 0) ? KbdintResultFailure : KbdintResultSuccess;
 }
 
 static void

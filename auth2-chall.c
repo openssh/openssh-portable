@@ -170,7 +170,7 @@ kbdint_next_device(Authctxt *authctxt, KbdintAuthctxt *kbdintctxt)
 			    "keyboard-interactive", devices[i]->name))
 				continue;
 			if (strncmp(kbdintctxt->devices, devices[i]->name,
-			    len) == 0) {
+			    len) == 0 && strlen(devices[i]->name) == len) {
 				kbdintctxt->device = devices[i];
 				kbdintctxt->devices_done |= 1 << i;
 			}
@@ -331,11 +331,11 @@ input_userauth_info_response(int type, u_int32_t seq, struct ssh *ssh)
 	free(response);
 
 	switch (res) {
-	case 0:
+	case KbdintResultSuccess:
 		/* Success! */
 		authenticated = authctxt->valid ? 1 : 0;
 		break;
-	case 1:
+	case KbdintResultAgain:
 		/* Authentication needs further interaction */
 		if (send_userauth_info_request(ssh) == 1)
 			authctxt->postponed = 1;
