@@ -95,7 +95,6 @@ jobs:
           - { target: ubuntu-latest, config: openssl-3.4.2 }
           - { target: ubuntu-latest, config: openssl-3.5.0 }
           - { target: ubuntu-latest, config: openssl-3.5.3 }
-          - { target: ubuntu-latest, config: openssl-3.6.0-beta1 }
           - { target: ubuntu-latest, config: openssl-1.1.1_stable }
           - { target: ubuntu-latest, config: openssl-3.0 }  # stable branch
           - { target: ubuntu-latest, config: openssl-3.1 }  # stable branch
@@ -103,6 +102,7 @@ jobs:
           - { target: ubuntu-latest, config: openssl-3.3 }  # stable branch
           - { target: ubuntu-latest, config: openssl-3.4 }  # stable branch
           - { target: ubuntu-latest, config: openssl-3.5 }  # stable branch
+          - { target: ubuntu-latest, config: openssl-3.6 }  # stable branch
           - { target: ubuntu-latest, config: putty-0.71 }
           - { target: ubuntu-latest, config: putty-0.72 }
           - { target: ubuntu-latest, config: putty-0.73 }
