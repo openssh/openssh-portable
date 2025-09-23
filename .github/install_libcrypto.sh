@@ -30,10 +30,13 @@ fi
 
 set -x
 
-cd ${HOME}
-[ -d ${HOME}/openssl ] || git clone https://github.com/openssl/openssl.git
+if [ ! -d ${HOME}/openssl ]; then
+	cd ${HOME}
+	git clone https://github.com/openssl/openssl.git
+	cd ${HOME}/openssl
+	git fetch --all
+fi
 cd ${HOME}/openssl
-git fetch --all
 
 if [ "${abi_compat_test}" = "y" ]; then
 	echo selecting ABI test release/branch for ${ver}
@@ -66,6 +69,7 @@ fi
 
 git checkout ${ver}
 make clean >/dev/null 2>&1 || true
-${dryrun} ./config no-threads shared ${opts} --prefix=${destdir}
+${dryrun} ./config no-threads shared ${opts} --prefix=${destdir} \
+    -Wl,-rpath,${destdir}/lib64
 ${dryrun} make -j4
 ${dryrun} sudo make install_sw
