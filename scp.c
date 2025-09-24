@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.266 2025/09/15 05:17:37 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.267 2025/09/24 00:51:28 jsg Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1880,7 +1880,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 		/*
 		 * NB. do not use run_err() unless immediately followed by
 		 * exit() below as it may send a spurious reply that might
-		 * desyncronise us from the peer. Use note_err() instead.
+		 * desynchronise us from the peer. Use note_err() instead.
 		 */
 		statbytes = 0;
 		if (showprogress)

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.69 2025/07/30 04:27:42 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.70 2025/09/24 00:51:28 jsg Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -1067,7 +1067,7 @@ pkcs11_fetch_rsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	key->type = KEY_RSA;
 	key->flags |= SSHKEY_FLAG_EXT;
 	if (EVP_PKEY_bits(key->pkey) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
-		error_f("RSA key too small %d < minumum %d",
+		error_f("RSA key too small %d < minimum %d",
 		    EVP_PKEY_bits(key->pkey), SSH_RSA_MINIMUM_MODULUS_SIZE);
 		goto fail;
 	}
@@ -1306,7 +1306,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		key->type = KEY_RSA;
 		key->flags |= SSHKEY_FLAG_EXT;
 		if (EVP_PKEY_bits(key->pkey) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
-			error_f("RSA key too small %d < minumum %d",
+			error_f("RSA key too small %d < minimum %d",
 			    EVP_PKEY_bits(key->pkey),
 			    SSH_RSA_MINIMUM_MODULUS_SIZE);
 			goto out;
