@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.39 2025/09/15 04:52:41 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.40 2025/09/25 06:23:19 jsg Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -1128,7 +1128,7 @@ sshsig_match_principals(const char *path, const char *principal,
 	if (ret == 0) {
 		if (nprincipals == 0)
 			ret = SSH_ERR_KEY_NOT_FOUND;
-		if (nprincipalsp != 0)
+		if (nprincipalsp != NULL)
 			*nprincipalsp = nprincipals;
 		if (principalsp != NULL) {
 			*principalsp = principals;

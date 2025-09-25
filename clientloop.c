@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.414 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.415 2025/09/25 06:23:19 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1868,7 +1868,7 @@ client_request_tun_fwd(struct ssh *ssh, int tun_mode,
 	char *ifname = NULL;
 
 	if (tun_mode == SSH_TUNMODE_NO)
-		return 0;
+		return NULL;
 
 	debug("Requesting tun unit %d in mode %d", local_tun, tun_mode);
 

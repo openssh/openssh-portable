@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.449 2025/09/15 04:39:58 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.450 2025/09/25 06:23:19 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -4565,7 +4565,7 @@ channel_add_permission(struct ssh *ssh, int who, int where,
 	 * host/port_to_connect.
 	 */
 	permission_set_add(ssh, who, where,
-	    local ? host : 0, local ? port : 0,
+	    local ? host : NULL, local ? port : 0,
 	    local ? NULL : host, NULL, local ? 0 : port, NULL);
 	pset->all_permitted = 0;
 }

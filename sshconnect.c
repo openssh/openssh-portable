@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.375 2025/09/15 04:49:41 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.376 2025/09/25 06:23:19 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -789,7 +789,7 @@ hostkeys_find_by_key(const char *host, const char *ip, const struct sshkey *key,
     char **system_hostfiles, u_int num_system_hostfiles,
     char ***names, u_int *nnames)
 {
-	struct find_by_key_ctx ctx = {0, 0, 0, 0, 0};
+	struct find_by_key_ctx ctx = {NULL, NULL, NULL, NULL, 0};
 	u_int i;
 
 	*names = NULL;

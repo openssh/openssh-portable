@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.70 2025/09/24 00:51:28 jsg Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.71 2025/09/25 06:23:19 jsg Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -552,7 +552,7 @@ pkcs11_sign_rsa(struct sshkey *key,
 	const u_char		*oid;
 
 	if (sigp != NULL)
-		*sigp = 0;
+		*sigp = NULL;
 	if (lenp != NULL)
 		*lenp = 0;
 
@@ -642,7 +642,7 @@ pkcs11_sign_ecdsa(struct sshkey *key,
 	int			hashalg, ret = -1, r, siglen;
 
 	if (sigp != NULL)
-		*sigp = 0;
+		*sigp = NULL;
 	if (lenp != NULL)
 		*lenp = 0;
 
@@ -727,7 +727,7 @@ pkcs11_sign_ed25519(struct sshkey *key,
 	int			ret = -1;
 
 	if (sigp != NULL)
-		*sigp = 0;
+		*sigp = NULL;
 	if (lenp != NULL)
 		*lenp = 0;
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.243 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.244 2025/09/25 06:23:19 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -672,7 +672,7 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 	int r, ndx, success = 0;
 	const u_char *blob;
 	const char *sigalg, *kex_rsa_sigalg = NULL;
-	u_char *sig = 0;
+	u_char *sig = NULL;
 	size_t blen, slen;
 
 	if ((resp = sshbuf_new()) == NULL || (sigbuf = sshbuf_new()) == NULL)
