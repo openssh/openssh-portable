@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.483 2025/09/25 07:04:38 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.484 2025/09/25 12:52:21 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2321,6 +2321,8 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 			    blob, blen)) != 0)
 				fatal_fr(r, "revoke key failed");
 			free(blob);
+			blob = NULL;
+			blen = 0;
 		} else {
 			if (strncasecmp(cp, "key:", 4) == 0) {
 				cp += 4;
