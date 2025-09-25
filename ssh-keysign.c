@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.77 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.78 2025/09/25 06:25:38 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -129,8 +129,10 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret, char **pkalgp,
 	/* client host name, handle trailing dot */
 	if ((r = sshbuf_get_cstring(b, &p, &len)) != 0)
 		fatal_fr(r, "parse hostname");
-	debug2_f("check expect chost %s got %s", host, p);
-	if (strlen(host) != len - 1)
+	debug2_f("check expect chost \"%s\" got \"%s\"", host, p);
+	if (len == 0)
+		fail++;
+	else if (strlen(host) != len - 1)
 		fail++;
 	else if (p[len - 1] != '.')
 		fail++;
