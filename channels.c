@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.450 2025/09/25 06:23:19 jsg Exp $ */
+/* $OpenBSD: channels.c,v 1.451 2025/09/25 06:33:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -853,6 +853,27 @@ channel_free_all(struct ssh *ssh)
 	free(sc->x11_fake_data);
 	sc->x11_fake_data = NULL;
 	sc->x11_fake_data_len = 0;
+}
+
+void
+channel_free_channels(struct ssh *ssh)
+{
+	struct ssh_channels *sc;
+
+	if (ssh == NULL || ssh->chanctxt == NULL)
+		return;
+	channel_free_all(ssh);
+	channel_clear_permission(ssh, FORWARD_USER, FORWARD_LOCAL);
+	channel_clear_permission(ssh, FORWARD_USER, FORWARD_REMOTE);
+	channel_clear_permission(ssh, FORWARD_ADM, FORWARD_LOCAL);
+	channel_clear_permission(ssh, FORWARD_ADM, FORWARD_REMOTE);
+	sc = ssh->chanctxt;
+	free(sc->bulk_classifier_tty);
+	free(sc->bulk_classifier_notty);
+	free(sc->channel_pre);
+	free(sc->channel_post);
+	freezero(sc, sizeof(*sc));
+	ssh->chanctxt = NULL;
 }
 
 /*

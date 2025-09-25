@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.160 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.161 2025/09/25 06:33:19 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -282,8 +282,9 @@ struct Channel {
 	c->efd != -1 && (!(c->flags & (CHAN_EOF_RCVD|CHAN_CLOSE_RCVD)) || \
 	sshbuf_len(c->extended) > 0))
 
-/* Add channel management structures to SSH transport instance */
+/* Add/remove channel management structures to/from SSH transport instance */
 void channel_init_channels(struct ssh *ssh);
+void channel_free_channels(struct ssh *ssh);
 
 /* channel management */
 

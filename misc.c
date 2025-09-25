@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.207 2025/09/24 00:51:28 jsg Exp $ */
+/* $OpenBSD: misc.c,v 1.208 2025/09/25 06:33:19 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -522,6 +522,21 @@ pwcopy(struct passwd *pw)
 	copy->pw_dir = xstrdup(pw->pw_dir);
 	copy->pw_shell = xstrdup(pw->pw_shell);
 	return copy;
+}
+
+void
+pwfree(struct passwd *pw)
+{
+	if (pw == NULL)
+		return;
+	free(pw->pw_name);
+	freezero(pw->pw_passwd,
+	    pw->pw_passwd == NULL ? 0 : strlen(pw->pw_passwd));
+	free(pw->pw_gecos);
+	free(pw->pw_class);
+	free(pw->pw_dir);
+	free(pw->pw_shell);
+	freezero(pw, sizeof(*pw));
 }
 
 /*
