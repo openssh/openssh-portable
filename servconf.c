@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.434 2025/09/02 09:40:19 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.435 2025/09/25 06:31:42 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2966,7 +2966,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 #define M_CP_STROPT(n) do {\
 	if (src->n != NULL && dst->n != src->n) { \
 		free(dst->n); \
-		dst->n = src->n; \
+		dst->n = xstrdup(src->n); \
 	} \
 } while(0)
 #define M_CP_STRARRAYOPT(s, num_s) do {\
