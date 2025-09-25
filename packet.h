@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.101 2025/08/18 09:16:36 job Exp $ */
+/* $OpenBSD: packet.h,v 1.102 2025/09/25 02:12:16 jsg Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -110,7 +110,6 @@ int	 ssh_packet_is_rekeying(struct ssh *);
 int	 ssh_packet_check_rekey(struct ssh *);
 void     ssh_packet_set_protocol_flags(struct ssh *, u_int);
 u_int	 ssh_packet_get_protocol_flags(struct ssh *);
-void	 ssh_packet_set_tos(struct ssh *, int);
 void	 ssh_packet_set_interactive(struct ssh *, int);
 void	 ssh_packet_set_qos(struct ssh *, int, int);
 void     ssh_packet_set_server(struct ssh *);
