@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.343 2025/08/18 03:43:01 djm Exp $ */
+/* $OpenBSD: session.c,v 1.344 2025/09/25 02:15:39 jsg Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -139,9 +139,6 @@ static int session_pty_req(struct ssh *, Session *);
 extern ServerOptions options;
 extern char *__progname;
 extern int debug_flag;
-extern u_int utmp_len;
-extern int startup_pipe;
-extern void destroy_sensitive_data(void);
 extern struct sshbuf *loginmsg;
 extern struct sshauthopt *auth_opts;
 extern char *tun_fwd_ifnames; /* serverloop.c */
