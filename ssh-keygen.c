@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.482 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.483 2025/09/25 07:04:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -348,7 +348,6 @@ do_convert_to_ssh2(struct passwd *pw, struct sshkey *k)
 	fprintf(stdout, "Comment: \"%s\"\n%s", comment, b64);
 	fprintf(stdout, "%s\n", SSH_COM_PUBLIC_END);
 	free(b64);
-	exit(0);
 }
 
 static void
@@ -370,7 +369,6 @@ do_convert_to_pkcs8(struct sshkey *k)
 	default:
 		fatal_f("unsupported key type %s", sshkey_type(k));
 	}
-	exit(0);
 }
 
 static void
@@ -392,7 +390,6 @@ do_convert_to_pem(struct sshkey *k)
 	default:
 		fatal_f("unsupported key type %s", sshkey_type(k));
 	}
-	exit(0);
 }
 
 static void
@@ -421,7 +418,6 @@ do_convert_to(struct passwd *pw)
 	default:
 		fatal_f("unknown key format %d", convert_format);
 	}
-	exit(0);
 }
 
 /*
@@ -533,6 +529,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 		if ((r = ssh_rsa_complete_crt_parameters(rsa_d, rsa_p, rsa_q,
 		    rsa_iqmp, &rsa_dmp1, &rsa_dmq1)) != 0)
 			fatal_fr(r, "generate RSA CRT parameters");
+		EVP_PKEY_free(key->pkey);
 		if ((key->pkey = EVP_PKEY_new()) == NULL)
 			fatal_f("EVP_PKEY_new failed");
 		if ((rsa = RSA_new()) == NULL)
@@ -687,7 +684,6 @@ do_convert_from_pkcs8(struct sshkey **k, int *private)
 		    EVP_PKEY_base_id(pubkey));
 	}
 	EVP_PKEY_free(pubkey);
-	return;
 }
 
 static void
@@ -766,7 +762,6 @@ do_convert_from(struct passwd *pw)
 	if (!ok)
 		fatal("key write failed");
 	sshkey_free(k);
-	exit(0);
 }
 #endif
 
@@ -1864,16 +1859,17 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 
 		sshkey_free(public);
 		free(out);
+		free(comment);
 		if (cert_serial_autoinc)
 			cert_serial++;
 	}
 	if (pin != NULL)
 		freezero(pin, strlen(pin));
+	sshkey_free(ca);
 	free(ca_fp);
 #ifdef ENABLE_PKCS11
 	pkcs11_terminate();
 #endif
-	exit(0);
 }
 
 static u_int64_t
@@ -2321,9 +2317,10 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 			cp += 5;
 			cp = cp + strspn(cp, " \t");
 			hash_to_blob(cp, &blob, &blen, file, lnum);
-			r = ssh_krl_revoke_key_sha256(krl, blob, blen);
-			if (r != 0)
+			if ((r = ssh_krl_revoke_key_sha256(krl,
+			    blob, blen)) != 0)
 				fatal_fr(r, "revoke key failed");
+			free(blob);
 		} else {
 			if (strncasecmp(cp, "key:", 4) == 0) {
 				cp += 4;
@@ -3288,9 +3285,9 @@ main(int argc, char **argv)
 {
 	char comment[1024], *passphrase = NULL;
 	char *rr_hostname = NULL, *ep, *fp, *ra;
-	struct sshkey *private, *public;
+	struct sshkey *private = NULL, *public = NULL;
 	struct passwd *pw;
-	int r, opt, type;
+	int ret = 0, r, opt, type;
 	int change_passphrase = 0, change_comment = 0, show_cert = 0;
 	int find_host = 0, delete_host = 0, hash_hosts = 0;
 	int gen_all_hostkeys = 0, gen_krl = 0, update_krl = 0, check_krl = 0;
@@ -3551,8 +3548,9 @@ main(int argc, char **argv)
 				    "missing allowed keys file");
 				exit(1);
 			}
-			return sig_find_principals(ca_key_path, identity_file,
+			ret = sig_find_principals(ca_key_path, identity_file,
 			    opts, nopts);
+			goto done;
 		} else if (strprefix(sign_op, "match-principals", 0) != NULL) {
 			if (!have_identity) {
 				error("Too few arguments for match-principals:"
@@ -3564,8 +3562,9 @@ main(int argc, char **argv)
 				    "missing principal ID");
 				exit(1);
 			}
-			return sig_match_principals(identity_file, cert_key_id,
+			ret = sig_match_principals(identity_file, cert_key_id,
 			    opts, nopts);
+			goto done;
 		} else if (strprefix(sign_op, "sign", 0) != NULL) {
 			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
@@ -3579,8 +3578,9 @@ main(int argc, char **argv)
 				    "missing key");
 				exit(1);
 			}
-			return sig_sign(identity_file, cert_principals,
+			ret = sig_sign(identity_file, cert_principals,
 			    prefer_agent, argc, argv, opts, nopts);
+			goto done;
 		} else if (strprefix(sign_op, "check-novalidate", 0) != NULL) {
 			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
@@ -3594,8 +3594,9 @@ main(int argc, char **argv)
 				    "missing signature file");
 				exit(1);
 			}
-			return sig_verify(ca_key_path, cert_principals,
+			ret = sig_verify(ca_key_path, cert_principals,
 			    NULL, NULL, NULL, opts, nopts);
+			goto done;
 		} else if (strprefix(sign_op, "verify", 0) != NULL) {
 			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
@@ -3619,9 +3620,10 @@ main(int argc, char **argv)
 				    "missing principal identity");
 				exit(1);
 			}
-			return sig_verify(ca_key_path, cert_principals,
+			ret = sig_verify(ca_key_path, cert_principals,
 			    cert_key_id, identity_file, rr_hostname,
 			    opts, nopts);
+			goto done;
 		}
 		error("Unsupported operation for -Y: \"%s\"", sign_op);
 		usage();
@@ -3649,11 +3651,11 @@ main(int argc, char **argv)
 	if (gen_krl) {
 		do_gen_krl(pw, update_krl, ca_key_path,
 		    cert_serial, identity_comment, argc, argv);
-		return (0);
+		goto done;
 	}
 	if (check_krl) {
 		do_check_krl(pw, print_fingerprint, argc, argv);
-		return (0);
+		goto done;
 	}
 	if (ca_key_path != NULL) {
 		if (cert_key_id == NULL)
@@ -3662,6 +3664,7 @@ main(int argc, char **argv)
 			add_cert_option(opts[i]);
 		do_ca_sign(pw, ca_key_path, prefer_agent,
 		    cert_serial, cert_serial_autoinc, argc, argv);
+		goto done;
 	}
 	if (show_cert)
 		do_show_cert(pw);
@@ -3680,7 +3683,8 @@ main(int argc, char **argv)
 				    "FIDO authenticator download", opts[i]);
 			}
 		}
-		return do_download_sk(sk_provider, sk_device);
+		ret = do_download_sk(sk_provider, sk_device);
+		goto done;
 	}
 	if (print_fingerprint || print_bubblebabble)
 		do_fingerprint(pw);
@@ -3689,10 +3693,14 @@ main(int argc, char **argv)
 	if (change_comment)
 		do_change_comment(pw, identity_comment);
 #ifdef WITH_OPENSSL
-	if (convert_to)
+	if (convert_to) {
 		do_convert_to(pw);
-	if (convert_from)
+		goto done;
+	}
+	if (convert_from) {
 		do_convert_from(pw);
+		goto done;
+	}
 #else /* WITH_OPENSSL */
 	if (convert_to || convert_from)
 		fatal("key conversion disabled at compile time");
@@ -3733,16 +3741,16 @@ main(int argc, char **argv)
 	}
 	if (do_gen_candidates) {
 		do_moduli_gen(argv[0], opts, nopts);
-		return 0;
+		goto done;
 	}
 	if (do_screen_candidates) {
 		do_moduli_screen(argv[0], opts, nopts);
-		return 0;
+		goto done;
 	}
 
 	if (gen_all_hostkeys) {
 		do_gen_all_hostkeys(pw);
-		return (0);
+		goto done;
 	}
 
 	if (key_type_name == NULL)
@@ -3899,8 +3907,9 @@ main(int argc, char **argv)
 	if (sk_attestation_path != NULL)
 		save_attestation(attest, sk_attestation_path);
 
+ done:
 	sshbuf_free(attest);
 	sshkey_free(public);
-
-	exit(0);
+	pwfree(pw);
+	exit(ret);
 }
