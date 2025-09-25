@@ -532,8 +532,12 @@ pwfree(struct passwd *pw)
 	free(pw->pw_name);
 	freezero(pw->pw_passwd,
 	    pw->pw_passwd == NULL ? 0 : strlen(pw->pw_passwd));
+#ifdef HAVE_STRUCT_PASSWD_PW_GECOS
 	free(pw->pw_gecos);
+#endif
+#ifdef HAVE_STRUCT_PASSWD_PW_CLASS
 	free(pw->pw_class);
+#endif
 	free(pw->pw_dir);
 	free(pw->pw_shell);
 	freezero(pw, sizeof(*pw));
