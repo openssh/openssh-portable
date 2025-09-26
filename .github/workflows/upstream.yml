@@ -1,4 +1,4 @@
-name: Upstream self-hosted
+name: OpenBSD
 
 on:
   push:

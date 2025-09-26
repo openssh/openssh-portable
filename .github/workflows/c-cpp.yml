@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: CI
 
 # For testing, you can set variables in your repo (Repo -> Settings ->
 # Security -> Actions -> Variables) to restrict the tests that are run.
