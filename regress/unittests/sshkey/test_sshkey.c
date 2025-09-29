@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.30 2025/05/24 06:50:28 dtucker Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.31 2025/09/29 07:40:55 dtucker Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -258,6 +258,7 @@ sshkey_tests(void)
 	k1 = sshkey_new(KEY_UNSPEC);
 	ASSERT_PTR_NE(k1, NULL);
 	sshkey_free(k1);
+	k1 = NULL;
 	TEST_DONE();
 
 #ifdef WITH_OPENSSL
@@ -266,6 +267,7 @@ sshkey_tests(void)
 	ASSERT_PTR_NE(k1, NULL);
 	ASSERT_PTR_NE(k1->pkey, NULL);
 	sshkey_free(k1);
+	k1 = NULL;
 	TEST_DONE();
 
 
@@ -275,6 +277,7 @@ sshkey_tests(void)
 	ASSERT_PTR_NE(k1, NULL);
 	ASSERT_PTR_EQ(k1->pkey, NULL);  /* Can't allocate without NID */
 	sshkey_free(k1);
+	k1 = NULL;
 	TEST_DONE();
 #endif
 
@@ -285,6 +288,7 @@ sshkey_tests(void)
 	ASSERT_PTR_EQ(k1->ed25519_sk, NULL);
 	ASSERT_PTR_EQ(k1->ed25519_pk, NULL);
 	sshkey_free(k1);
+	k1 = NULL;
 	TEST_DONE();
 
 	TEST_START("generate KEY_RSA too small modulus");
@@ -306,6 +310,7 @@ sshkey_tests(void)
 	    SSH_ERR_KEY_LENGTH);
 	ASSERT_PTR_EQ(k1, NULL);
 	sshkey_free(k1);
+	k1 = NULL;
 	TEST_DONE();
 #endif
 
