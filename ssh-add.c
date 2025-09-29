@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.180 2025/09/25 07:00:43 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.181 2025/09/29 03:17:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -354,26 +354,27 @@ add_file(int agent_fd, const char *filename, int key_only, int cert_only,
 		skprovider = NULL;
 	}
 
-	if (!cert_only &&
-	    (r = ssh_add_identity_constrained(agent_fd, private, comment,
-	    lifetime, confirm, skprovider,
-	    dest_constraints, ndest_constraints)) == 0) {
-		ret = 0;
-		if (!qflag) {
-			fprintf(stderr, "Identity added: %s (%s)\n",
-			    filename, comment);
-			if (lifetime != 0) {
-				fprintf(stderr, "Lifetime set to %s\n",
-				    fmt_timeframe((time_t)lifetime));
+	if (!cert_only) {
+		if ((r = ssh_add_identity_constrained(agent_fd, private,
+		    comment, lifetime, confirm, skprovider,
+		    dest_constraints, ndest_constraints)) == 0) {
+			ret = 0;
+			if (!qflag) {
+				fprintf(stderr, "Identity added: %s (%s)\n",
+				    filename, comment);
+				if (lifetime != 0) {
+					fprintf(stderr, "Lifetime set to %s\n",
+					    fmt_timeframe((time_t)lifetime));
+				}
+				if (confirm != 0) {
+					fprintf(stderr, "The user must confirm "
+					    "each use of the key\n");
+				}
 			}
-			if (confirm != 0) {
-				fprintf(stderr, "The user must confirm "
-				    "each use of the key\n");
-			}
+		} else {
+			fprintf(stderr, "Could not add identity \"%s\": %s\n",
+			    filename, ssh_err(r));
 		}
-	} else {
-		fprintf(stderr, "Could not add identity \"%s\": %s\n",
-		    filename, ssh_err(r));
 	}
 
 	/* Skip trying to load the cert if requested */
