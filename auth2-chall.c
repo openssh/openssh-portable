@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.55 2025/09/29 02:32:15 djm Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.56 2025/09/29 21:37:52 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -165,7 +165,8 @@ kbdint_next_device(Authctxt *authctxt, KbdintAuthctxt *kbdintctxt)
 		if (len == 0)
 			break;
 		for (i = 0; devices[i]; i++) {
-			if (i >= sizeof(kbdintctxt->devices_done) * 8)
+			if (i >= sizeof(kbdintctxt->devices_done) * 8 ||
+			    i >= sizeof(devices) / sizeof(devices[0]) - 1)
 				fatal_f("internal error: too may devices");
 			if ((kbdintctxt->devices_done & (1 << i)) != 0 ||
 			    !auth2_method_allowed(authctxt,
