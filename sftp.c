@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.243 2025/09/25 06:23:19 jsg Exp $ */
+/* $OpenBSD: sftp.c,v 1.244 2025/09/30 00:06:06 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1868,6 +1868,7 @@ complete_ambiguous(const char *word, char **list, size_t count)
 
 	if (count > 0) {
 		u_int y, matchlen = strlen(list[0]);
+		u_int itemlen = matchlen, wordlen = strlen(word);
 
 		/* Find length of common stem */
 		for (y = 1; list[y]; y++) {
@@ -1879,6 +1880,10 @@ complete_ambiguous(const char *word, char **list, size_t count)
 
 			matchlen = x;
 		}
+
+		for (; matchlen > wordlen; matchlen--)
+			if (mblen(list[0] + matchlen, itemlen - matchlen) >= 0)
+				break;
 
 		if (matchlen > strlen(word)) {
 			char *tmp = xstrdup(list[0]);
