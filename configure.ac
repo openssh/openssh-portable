@@ -526,7 +526,7 @@ AC_CHECK_HEADERS([ \
 # platform.  Usually these are just empty, but in some cases they'll include
 # the equivalent file.  This avoids having to wrap those includes in
 # '#ifdef HAVE_FOO_H'.  If we create any such headers, add the path to includes.
-compatincludes=no
+COMPATINCLUDES=""
 AC_CHECK_HEADERS([ \
     endian.h \
     ifaddrs.h \
@@ -541,8 +541,8 @@ AC_CHECK_HEADERS([ \
     sys/un.h \
     time.h \
     util.h], [], [
-	compatincludes="`pwd`/openbsd-compat/include"
-	header="$compatincludes/$ac_header"
+	COMPATINCLUDES="openbsd-compat/include"
+	header="$COMPATINCLUDES/$ac_header"
 	dir=`dirname "$header"`
 	mkdir -p "$dir"
 	case "$ac_header" in
@@ -552,9 +552,7 @@ AC_CHECK_HEADERS([ \
 	*)      ;;
 	esac >"$header"
 ])
-if test "$compatincludes" != "no"; then
-    CPPFLAGS="$CPPFLAGS -I$compatincludes"
-fi
+AC_SUBST([COMPATINCLUDES])
 
 AC_CHECK_DECLS([le32toh, le64toh, htole64], [], [], [
 #ifdef HAVE_SYS_TYPES_H
