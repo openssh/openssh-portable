@@ -120,3 +120,4 @@ clean:
 
 distclean: clean
 	rm -f Makefile *~
+	rm -rf include
