@@ -1889,9 +1889,10 @@ complete_ambiguous(const char *word, char **list, size_t count)
 			matchlen = x;
 		}
 
-		for (; matchlen > wordlen; matchlen--)
-			if (mblen(list[0] + matchlen, itemlen - matchlen) >= 0)
-				break;
+		if (matchlen < itemlen)
+			for (; matchlen > wordlen; matchlen--)
+				if (mblen(list[0] + matchlen, itemlen - matchlen) >= 0)
+					break;
 
 		if (matchlen > strlen(word)) {
 			char *tmp = xstrdup(list[0]);
