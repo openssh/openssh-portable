@@ -45,6 +45,7 @@
 #define SHA512_BLOCK_LENGTH SHA512_HMAC_BLOCK_SIZE
 #endif
 
+#include "sm3.h"
 #include "ssherr.h"
 #include "sshbuf.h"
 #include "digest.h"
@@ -120,6 +121,16 @@ const struct ssh_digest digests[SSH_DIGEST_MAX] = {
 		(md_init_fn *) SHA512Init,
 		(md_update_fn *) SHA512Update,
 		(md_final_fn *) SHA512Final
+	},
+	{
+		SSH_DIGEST_SM3,
+		"SM3",
+		SM3_BLOCK_LENGTH,
+		SM3_DIGEST_LENGTH,
+		sizeof(SM3_CTX),
+		(md_init_fn *) SM3Init,
+		(md_update_fn *) SM3Update,
+		(md_final_fn *) SM3Final
 	}
 };
 
