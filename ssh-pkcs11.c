@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.71 2025/09/25 06:23:19 jsg Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.72 2025/10/03 00:08:02 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -34,6 +34,8 @@
 #include "openbsd-compat/openssl-compat.h"
 
 #ifdef WITH_OPENSSL
+#include "openbsd-compat/openssl-compat.h"
+#include <openssl/bn.h>
 #include <openssl/ecdsa.h>
 #include <openssl/x509.h>
 #include <openssl/err.h>

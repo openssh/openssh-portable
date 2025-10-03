@@ -23,6 +23,7 @@
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
+#include <openssl/bn.h>
 #include <openssl/rsa.h>
 #ifdef OPENSSL_HAS_ECC
 #include <openssl/ecdsa.h>
