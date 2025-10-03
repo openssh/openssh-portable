@@ -45,7 +45,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <resolv.h>
 #include <time.h>
 #include <util.h>
 
