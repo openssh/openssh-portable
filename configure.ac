@@ -2455,6 +2455,8 @@ AC_CHECK_FUNCS([endutxent getutxent getutxid getutxline getutxuser pututxline])
 AC_CHECK_FUNCS([setutxdb setutxent utmpxname])
 dnl    Checks for lastlog functions
 AC_CHECK_FUNCS([getlastlogxbyname])
+dnl    Various system functions
+AC_CHECK_FUNCS([mmap])
 
 AC_CHECK_FUNC([daemon],
 	[AC_DEFINE([HAVE_DAEMON], [1], [Define if your libraries define daemon()])],

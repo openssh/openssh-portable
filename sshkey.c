@@ -28,7 +28,9 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
+#endif
 #include <netinet/in.h>
 
 #ifdef WITH_OPENSSL
@@ -723,6 +725,7 @@ sshkey_sk_cleanup(struct sshkey *k)
 static int
 sshkey_prekey_alloc(u_char **prekeyp, size_t len)
 {
+#ifdef HAVE_MMAP
 	u_char *prekey;
 
 	*prekeyp = NULL;
@@ -733,15 +736,22 @@ sshkey_prekey_alloc(u_char **prekeyp, size_t len)
 	(void)madvise(prekey, len, MADV_DONTDUMP);
 #endif
 	*prekeyp = prekey;
+#else
+	*prekeyp = malloc(len);
+#endif
 	return 0;
 }
 
 static void
 sshkey_prekey_free(void *prekey, size_t len)
 {
+#ifdef HAVE_MMAP
 	if (prekey == NULL)
 		return;
 	munmap(prekey, len);
+#else
+	free(prekey);
+#endif
 }
 
 static void
