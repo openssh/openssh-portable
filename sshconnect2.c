@@ -1215,6 +1215,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 
 	/* The agent supports this key. */
 	if (id->key != NULL && id->agent_fd != -1) {
+		id->key->type = sshkey_type_plain(id->key->type);
 		return ssh_agent_sign(id->agent_fd, id->key, sigp, lenp,
 		    data, datalen, alg, compat);
 	}
@@ -1315,7 +1316,7 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 	Identity *private_id, *sign_id = NULL;
 	u_char *signature = NULL;
 	size_t slen = 0, skip = 0;
-	int r, fallback_sigtype, sent = 0;
+	int r, fallback_sigtype, sent = 0, old_type;
 	char *alg = NULL, *fp = NULL;
 	const char *loc = "", *method = "publickey";
 	int hostbound = 0;
@@ -1346,6 +1347,19 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 			if (sshkey_equal_public(id->key, private_id->key) &&
 			    id->key->type != private_id->key->type) {
 				sign_id = private_id;
+				/*
+				* Try to add the certificate to the private key so the agent will keep it
+				*/
+				if ((r = sshkey_to_certified(sign_id->key)) != 0) {
+					error_fr(r, "sshkey_to_certified");
+					sshkey_free(sign_id->key);
+					goto out;
+				}
+				if ((r = sshkey_cert_copy(id->key, sign_id->key)) != 0) {
+					error_fr(r, "sshkey_cert_copy");
+					sshkey_free(sign_id->key);
+					goto out;
+				}
 				break;
 			}
 		}
@@ -1426,8 +1440,11 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 				fatal_fr(r, "assemble %s hostkey", method);
 		}
 		/* generate signature */
+		old_type = sign_id->key->type;
+		sign_id->key->type = id->key->type;
 		r = identity_sign(sign_id, &signature, &slen,
 		    sshbuf_ptr(b), sshbuf_len(b), ssh->compat, alg);
+		sign_id->key->type = old_type;
 		if (r == 0)
 			break;
 		else if (r == SSH_ERR_KEY_NOT_FOUND)
@@ -1523,7 +1540,7 @@ load_identity_file(Identity *id)
 {
 	struct sshkey *private = NULL;
 	char prompt[300], *passphrase, *comment;
-	int r, quit = 0, i;
+	int r, quit = 0, i, old_type;
 	struct stat st;
 
 	if (stat(id->filename, &st) == -1) {
@@ -1585,9 +1602,31 @@ load_identity_file(Identity *id)
 			quit = 1;
 		}
 		if (!quit && private != NULL && id->agent_fd == -1 &&
-		    !(id->key && id->isprivate))
+		    !(id->key && id->isprivate)){
+			/*
+			 * Try to add the certificate to the private key so the agent will keep it
+			 */
+			if(sshkey_type_is_cert(id->key->type) > 0){
+				if ((r = sshkey_to_certified(private)) != 0) {
+					error_fr(r, "sshkey_to_certified");
+					sshkey_free(private);
+					goto out;
+				}
+				if ((r = sshkey_cert_copy(id->key, private)) != 0) {
+					error_fr(r, "sshkey_cert_copy");
+					sshkey_free(private);
+					goto out;
+				}
+
+				old_type = private->type;
+				private->type = id->key->type;
+				maybe_add_key_to_agent(id->filename, private, comment,
+					"");
+				private->type = sshkey_type_plain(old_type);
+			}
 			maybe_add_key_to_agent(id->filename, private, comment,
-			    passphrase);
+				passphrase);
+			}
 		if (i > 0)
 			freezero(passphrase, strlen(passphrase));
 		free(comment);
@@ -1595,6 +1634,8 @@ load_identity_file(Identity *id)
 			break;
 	}
 	return private;
+out:
+	return NULL;
 }
 
 static int
