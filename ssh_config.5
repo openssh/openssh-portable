@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.419 2025/08/18 18:39:33 caspar Exp $
-.Dd $Mdocdate: August 18 2025 $
+.\" $OpenBSD: ssh_config.5,v 1.420 2025/10/04 21:41:35 naddy Exp $
+.Dd $Mdocdate: October 4 2025 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -532,7 +532,7 @@ Open connections to
 .Xr ssh-agent 1 .
 .It Cm direct-tcpip , Cm direct-streamlocal@openssh.com
 Open TCP or Unix socket (respectively) connections that have
-been established from a
+been established from an
 .Xr ssh 1
 local forwarding, i.e.\&
 .Cm LocalForward
@@ -540,9 +540,9 @@ or
 .Cm DynamicForward .
 .It Cm forwarded-tcpip , Cm forwarded-streamlocal@openssh.com
 Open TCP or Unix socket (respectively) connections that have been
-established to a
+established to an
 .Xr sshd 8
-listening on behalf of a
+listening on behalf of an
 .Xr ssh 1
 remote forwarding, i.e.\&
 .Cm RemoteForward .
@@ -1638,7 +1638,7 @@ Multiple proxies may be separated by comma characters and will be visited
 sequentially.
 Setting this option will cause
 .Xr ssh 1
-to connect to the target host by first making a
+to connect to the target host by first making an
 .Xr ssh 1
 connection to the specified
 .Cm ProxyJump
