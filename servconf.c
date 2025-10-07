@@ -2043,7 +2043,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			    filename, linenum, keyword);
 		if (*activep && options->per_source_masklen_ipv4 == -1) {
 			options->per_source_masklen_ipv4 = value;
-			options->per_source_masklen_ipv6 = value2;
+			if (n == 2)
+				options->per_source_masklen_ipv6 = value2;
 		}
 		break;
 
