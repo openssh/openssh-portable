@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.72 2025/10/03 00:08:02 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.73 2025/10/08 21:02:16 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -2029,8 +2029,10 @@ pkcs11_terminate(void)
 
 	debug3_f("called");
 
-	while ((k11 = TAILQ_FIRST(&pkcs11_keys)) != NULL)
+	while ((k11 = TAILQ_FIRST(&pkcs11_keys)) != NULL) {
+		TAILQ_REMOVE(&pkcs11_keys, k11, next);
 		pkcs11_k11_free(k11);
+	}
 	while ((p = TAILQ_FIRST(&pkcs11_providers)) != NULL) {
 		TAILQ_REMOVE(&pkcs11_providers, p, next);
 		pkcs11_provider_finalize(p);
