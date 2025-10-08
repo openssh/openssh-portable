@@ -734,10 +734,10 @@ sshkey_prekey_alloc(u_char **prekeyp, size_t len)
 	(void)madvise(prekey, len, MADV_DONTDUMP);
 #endif
 	*prekeyp = prekey;
-	return 0;
 #else
 	*prekeyp = calloc(1, len);
 #endif /* HAVE_MMAP et al */
+	return 0;
 }
 
 static void
