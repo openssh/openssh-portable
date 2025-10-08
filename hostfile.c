@@ -44,7 +44,6 @@
 #include <netinet/in.h>
 
 #include <errno.h>
-#include <resolv.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
