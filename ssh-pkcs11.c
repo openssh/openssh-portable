@@ -2289,11 +2289,13 @@ out:
 
 #include "log.h"
 #include "sshkey.h"
+#include "ssherr.h"
+#include "ssh-pkcs11.h"
 
 int
 pkcs11_init(int interactive)
 {
-	error_f("dlopen() not supported");
+	error_f("PKCS#11 not supported");
 	return (-1);
 }
 
@@ -2301,13 +2303,30 @@ int
 pkcs11_add_provider(char *provider_id, char *pin, struct sshkey ***keyp,
     char ***labelsp)
 {
-	error_f("dlopen() not supported");
+	error_f("PKCS#11 not supported");
 	return (-1);
+}
+
+void
+pkcs11_key_free(struct sshkey *key)
+{
+	error_f("PKCS#11 not supported");
+}
+
+int
+pkcs11_sign(struct sshkey *key,
+    u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen,
+    const char *alg, const char *sk_provider,
+    const char *sk_pin, u_int compat)
+{
+	error_f("PKCS#11 not supported");
+	return SSH_ERR_FEATURE_UNSUPPORTED;
 }
 
 void
 pkcs11_terminate(void)
 {
-	error_f("dlopen() not supported");
+	error_f("PKCS#11 not supported");
 }
 #endif /* ENABLE_PKCS11 */
