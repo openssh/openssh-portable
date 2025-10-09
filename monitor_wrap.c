@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.142 2025/09/25 06:31:42 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.143 2025/10/09 03:23:33 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -106,8 +106,13 @@ mm_log_handler(LogLevel level, int forced, const char *msg, void *ctx)
 		fatal_f("bad length %zu", len);
 	POKE_U32(sshbuf_mutable_ptr(log_msg), len - 4);
 	if (atomicio(vwrite, mon->m_log_sendfd,
-	    sshbuf_mutable_ptr(log_msg), len) != len)
+	    sshbuf_mutable_ptr(log_msg), len) != len) {
+		if (errno == EPIPE) {
+			debug_f("write: %s", strerror(errno));
+			cleanup_exit(255);
+		}
 		fatal_f("write: %s", strerror(errno));
+	}
 	sshbuf_free(log_msg);
 }
 
