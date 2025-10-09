@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.485 2025/10/03 00:08:02 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.486 2025/10/09 23:26:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1713,7 +1713,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
     unsigned long long cert_serial, int cert_serial_autoinc,
     int argc, char **argv)
 {
-	int r, i, found, agent_fd = -1;
+	int r, i, key_in_agent = 0, agent_fd = -1;
 	u_int n;
 	struct sshkey *ca, *public;
 	char valid[64], *otmp, *tmp, *cp, *out, *comment;
@@ -1742,17 +1742,19 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 			fatal_r(r, "Cannot use public key for CA signature");
 		if ((r = ssh_fetch_identitylist(agent_fd, &agent_ids)) != 0)
 			fatal_r(r, "Retrieve agent key list");
-		found = 0;
 		for (j = 0; j < agent_ids->nkeys; j++) {
 			if (sshkey_equal(ca, agent_ids->keys[j])) {
-				found = 1;
+				key_in_agent = 1;
+				/* Replace the CA key with the agent one */
+				sshkey_free(ca);
+				ca = agent_ids->keys[j];
+				agent_ids->keys[j] = NULL;
 				break;
 			}
 		}
-		if (!found)
+		if (!key_in_agent)
 			fatal("CA key %s not found in agent", tmp);
 		ssh_free_identitylist(agent_ids);
-		ca->flags |= SSHKEY_FLAG_EXT;
 	} else {
 		/* CA key is assumed to be a private key on the filesystem */
 		ca = load_identity(tmp, NULL);
@@ -1817,7 +1819,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		    &public->cert->signature_key)) != 0)
 			fatal_r(r, "sshkey_from_private (ca key)");
 
-		if (agent_fd != -1 && (ca->flags & SSHKEY_FLAG_EXT) != 0) {
+		if (key_in_agent) {
 			if ((r = sshkey_certify_custom(public, ca,
 			    key_type_name, sk_provider, NULL, agent_signer,
 			    &agent_fd)) != 0)
