@@ -38,9 +38,3 @@ sshd-auth
 !regress/unittests/**/Makefile
 tags
 
-# Ignored on main branch
-config.h.in
-configure
-aclocal.m4
-ChangeLog
-**/*.0
