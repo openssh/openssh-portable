@@ -8,6 +8,11 @@ DIR=${COPY}.dd
 DIR2=${COPY}.dd2
 DIFFOPT="-rN"
 
+# Figure out if diff does not understand "-N"
+if ! diff -N ${SRC}/scp.sh ${SRC}/scp.sh 2>/dev/null; then
+	DIFFOPT="-r"
+fi
+
 maybe_add_scp_path_to_sshd
 
 SRC=`dirname ${SCRIPT}`
