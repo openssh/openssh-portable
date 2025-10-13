@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.22 2025/10/10 00:31:53 djm Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.23 2025/10/13 00:55:45 djm Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -137,6 +137,30 @@ for x in $GLOBFILES; do
         cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after get"
 done
 
+forest
+verbose "$tid: get recursive absolute"
+echo "get -R ${COPY}.dd ${COPY}.dd2" | sftpserver || fail "get failed"
+diff ${DIFFOPT} ${COPY}.dd ${COPY}.dd2 || fail "corrupted copy"
+
+forest
+verbose "$tid: get recursive relative src"
+printf "cd ${COPY}.dd\n get -R . ${COPY}.dd2\n" | sftpserver || \
+	fail "get failed"
+diff ${DIFFOPT} ${COPY}.dd ${COPY}.dd2 || fail "corrupted copy"
+
+forest
+verbose "$tid: get relative .."
+printf "cd ${COPY}.dd/b\n get -R .. ${COPY}.dd2\n" | sftpserver || \
+	fail "get failed"
+diff ${DIFFOPT} ${COPY}.dd ${COPY}.dd2 || fail "corrupted copy"
+
+forest
+mkdir ${COPY}.dd2
+verbose "$tid: get recursive relative .."
+printf "cd ${COPY}.dd/b\n lcd ${COPY}.dd2\n get -R ..\n" | sftpserver || \
+	fail "get failed"
+diff ${DIFFOPT} ${COPY}.dd ${COPY}.dd2 || fail "corrupted copy"
+
 rm -f ${COPY}
 verbose "$tid: put"
 echo "put $DATA $COPY" | sftpserver || fail "put failed"
@@ -176,12 +200,37 @@ for x in $GLOBFILES; do
         cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after put"
 done
 
+forest
+verbose "$tid: put recursive absolute"
+echo "put -R ${COPY}.dd ${COPY}.dd2" | sftpserver || fail "put failed"
+diff ${DIFFOPT} ${COPY}.dd ${COPY}.dd2 || fail "corrupted copy"
+
+forest
+verbose "$tid: put recursive relative src"
+printf "lcd ${COPY}.dd\n put -R . ${COPY}.dd2\n" | sftpserver || \
+	fail "put failed"
+diff ${DIFFOPT} ${COPY}.dd ${COPY}.dd2 || fail "corrupted copy"
+
+forest
+verbose "$tid: put recursive .."
+printf "lcd ${COPY}.dd/b\n put -R .. ${COPY}.dd2\n" | sftpserver || \
+	fail "put failed"
+diff ${DIFFOPT} ${COPY}.dd ${COPY}.dd2 || fail "corrupted copy"
+
+forest
+mkdir ${COPY}.dd2
+verbose "$tid: put recursive .. relative"
+printf "lcd ${COPY}.dd/b\n cd ${COPY}.dd2\n put -R ..\n" | sftpserver || \
+	fail "put failed"
+diff ${DIFFOPT} ${COPY}.dd ${COPY}.dd2 || fail "corrupted copy"
+
 verbose "$tid: rename"
 echo "rename $COPY ${COPY}.1" | sftpserver || fail "rename failed"
 test -f ${COPY}.1 || fail "missing file after rename"
 cmp $DATA ${COPY}.1 >/dev/null 2>&1 || fail "corrupted copy after rename"
 
 verbose "$tid: rename directory"
+rm -rf ${COPY}.dd2
 echo "rename ${COPY}.dd ${COPY}.dd2" | sftpserver || \
 	fail "rename directory failed"
 test -d ${COPY}.dd && fail "oldname exists after rename directory"
