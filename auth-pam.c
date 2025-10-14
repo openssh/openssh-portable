@@ -735,6 +735,7 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 		/* We already have a PAM context; check if the user matches */
 		if ((sshpam_err = check_pam_user(authctxt)) != PAM_SUCCESS)
 			fatal("PAM user mismatch");
+		return 0;
 	}
 	debug("PAM: initializing for \"%s\" with service \"%s\"", user,
 	    options.pam_service_name);
