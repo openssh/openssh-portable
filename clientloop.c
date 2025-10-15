@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.415 2025/09/25 06:23:19 jsg Exp $ */
+/* $OpenBSD: clientloop.c,v 1.416 2025/10/15 23:55:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -942,7 +942,7 @@ client_repledge(void)
 	/* Might be able to tighten pledge now that session is established */
 	if (options.control_master || options.control_path != NULL ||
 	    options.forward_x11 || options.fork_after_authentication ||
-	    can_update_hostkeys() ||
+	    options.pkcs11_provider != NULL || can_update_hostkeys() ||
 	    (session_ident != -1 && !session_setup_complete)) {
 		/* Can't tighten */
 		return;
