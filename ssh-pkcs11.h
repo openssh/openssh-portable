@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.h,v 1.9 2025/07/30 04:27:42 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.h,v 1.10 2025/10/15 23:54:20 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -14,6 +14,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* API for ssh-pkcs11.c and ssh-pkcs11-client.c */
 
 /* Errors for pkcs11_add_provider() */
 #define	SSH_PKCS11_ERR_GENERIC			1
