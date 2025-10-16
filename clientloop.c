@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.416 2025/10/15 23:55:01 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.417 2025/10/16 00:00:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1457,7 +1457,9 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	debug("Entering interactive session.");
 	session_ident = ssh2_chan_id;
 
-	if (options.control_master &&
+	if (options.pkcs11_provider != NULL)
+		debug("pledge: disabled (PKCS11Provider active)");
+	else if (options.control_master &&
 	    !option_clear_or_none(options.control_path)) {
 		debug("pledge: id");
 		if (pledge("stdio rpath wpath cpath unix inet dns recvfd sendfd proc exec id tty",
