@@ -3,7 +3,7 @@
 config="$1"
 target="$2"
 
-PACKAGES=""
+PACKAGES="tmux"
 
 echo Running as:
 id
