@@ -19,6 +19,7 @@ clean:
 	for F in $(CLEANFILES); do rm -f $(OBJ)$$F; done
 	rm -rf $(OBJ).putty
 	rm -rf $(OBJ).dropbear
+	rm -rf $(OBJ).fakehome
 
 distclean:	clean
 
@@ -115,7 +116,8 @@ LTESTS= 	connect \
 		penalty \
 		penalty-expire \
 		connect-bigconf \
-		ssh-pkcs11
+		ssh-pkcs11 \
+		ssh-tty
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 INTEROP_TESTS+=	dropbear-ciphers dropbear-kex dropbear-server
@@ -153,7 +155,7 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub \
 		t8.out t8.out.pub t9.out t9.out.pub \
 		timestamp testdata user_*key* user_ca* user_key* \
-		pin.sh nopin.sh wrongpin.sh key.pub
+		pin.sh nopin.sh wrongpin.sh key.pub test.sh ctl-sock
 
 # Enable all malloc(3) randomisations and checks
 TEST_ENV=      "MALLOC_OPTIONS=CFGJRSUX"
