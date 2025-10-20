@@ -818,6 +818,7 @@ interop-tests t-exec file-tests extra-tests: regress-prep regress-binaries $(TAR
 		TEST_SSH_DROPBEARKEY="@DROPBEARKEY@" \
 		TEST_SSH_DROPBEARCONVERT="@DROPBEARCONVERT@" \
 		TEST_SSH_DBCLIENT="@DBCLIENT@" \
+		TEST_SSH_TMUX="@TMUX@" \
 		TEST_SSH_IPV6="@TEST_SSH_IPV6@" \
 		TEST_SSH_UTF8="@TEST_SSH_UTF8@" \
 		TEST_SHELL="$(TEST_SHELL)" \

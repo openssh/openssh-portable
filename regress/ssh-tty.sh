@@ -11,7 +11,7 @@ rm -rf "$FAKEHOME"
 mkdir -m 0700 -p "$FAKEHOME"
 
 # tmux stuff
-TMUX=tmux
+TMUX=${TMUX:-tmux}
 test -x $TMUX || skip "tmux not found"
 CLEANENV="env -i HOME=$HOME LOGNAME=$USER USER=$USER PATH=$PATH SHELL=$SHELL"
 TMUX_TEST="$CLEANENV $TMUX -f/dev/null -Lopenssh-regress-ssh-tty"

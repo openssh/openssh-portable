@@ -168,6 +168,9 @@ fi
 if [ "x$TEST_SSH_DROPBEARCONVERT" != "x" ]; then
 	DROPBEARCONVERT="${TEST_SSH_DROPBEARCONVERT}"
 fi
+if [ "x$TEST_SSH_TMUX" != "x" ]; then
+	TMUX="${TEST_SSH_TMUX}"
+fi
 if [ "x$TEST_SSH_PKCS11_HELPER" != "x" ]; then
 	SSH_PKCS11_HELPER="${TEST_SSH_PKCS11_HELPER}"
 fi
