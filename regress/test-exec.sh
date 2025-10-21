@@ -1023,6 +1023,9 @@ p11_ssh_add() {
 
 start_ssh_agent() {
 	EXTRA_AGENT_ARGS="$1"
+	if [ "$PKCS11_OK" = "yes" ]; then
+		EXTRA_AGENT_ARGS="${EXTRA_AGENT_ARGS} -P${TEST_SSH_PKCS11}"
+	fi
 	SSH_AUTH_SOCK="$OBJ/agent.sock"
 	export SSH_AUTH_SOCK
 	rm -f $SSH_AUTH_SOCK $OBJ/agent.log
