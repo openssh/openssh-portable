@@ -1,4 +1,4 @@
-#	$OpenBSD: ssh-tty.sh,v 1.3 2025/10/21 08:35:22 djm Exp $
+#	$OpenBSD: ssh-tty.sh,v 1.4 2025/10/21 22:13:27 djm Exp $
 #	Placed in the Public Domain.
 
 # Basic TTY smoke test
@@ -13,7 +13,7 @@ mkdir -m 0700 -p "$FAKEHOME"
 # tmux stuff
 TMUX=${TMUX:-tmux}
 type $TMUX >/dev/null || skip "tmux not found"
-CLEANENV="env -i HOME=$HOME LOGNAME=$USER USER=$USER PATH=$PATH SHELL=$SHELL"
+CLEANENV="env -i HOME='$HOME' LOGNAME='$USER' USER='$USER' PATH='$PATH' SHELL='$SHELL'"
 TMUX_TEST="$CLEANENV $TMUX -f/dev/null -Lopenssh-regress-ssh-tty"
 sess="regress-ssh-tty$$"
 
