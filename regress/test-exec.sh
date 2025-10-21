@@ -1034,7 +1034,7 @@ start_ssh_agent() {
 	    > $OBJ/agent.log 2>&1 &
 	AGENT_PID=$!
 	trap "kill $AGENT_PID" EXIT
-	for x in 0 1 2 3 4 ; do
+	for x in $(seq 15); do
 		# Give it a chance to start
 		${SSHADD} -l > /dev/null 2>&1
 		r=$?
