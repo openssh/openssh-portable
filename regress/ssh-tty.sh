@@ -10,10 +10,14 @@ FAKEHOME="$OBJ/.fakehome"
 rm -rf "$FAKEHOME"
 mkdir -m 0700 -p "$FAKEHOME"
 
+case "${PATH}${HOME}" in
+*\ *|*\t*) skip "\$PATH or \$HOME has whitespace, not supported in this test";;
+esac
+
 # tmux stuff
 TMUX=${TMUX:-tmux}
 type $TMUX >/dev/null || skip "tmux not found"
-CLEANENV="env -i HOME='$HOME' LOGNAME='$USER' USER='$USER' PATH='$PATH' SHELL='$SHELL'"
+CLEANENV="env -i HOME=$HOME LOGNAME=$USER USER=$USER PATH=$PATH SHELL=$SHELL"
 TMUX_TEST="$CLEANENV $TMUX -f/dev/null -Lopenssh-regress-ssh-tty"
 sess="regress-ssh-tty$$"
 
@@ -59,6 +63,7 @@ wait_for_regex() {
 	string="$1"
 	errors_are_fatal="$2"
 	for x in 1 2 3 4 5 6 7 8 9 10 ; do
+set -x
 		$TMUX_TEST capture-pane -pt $sess | grep "$string" >/dev/null
 		[ $? -eq 0 ] && return
 		sleep 1
