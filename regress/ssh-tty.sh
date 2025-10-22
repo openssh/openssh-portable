@@ -1,4 +1,4 @@
-#	$OpenBSD: ssh-tty.sh,v 1.4 2025/10/21 22:13:27 djm Exp $
+#	$OpenBSD: ssh-tty.sh,v 1.6 2025/10/22 05:22:31 djm Exp $
 #	Placed in the Public Domain.
 
 # Basic TTY smoke test
@@ -63,7 +63,6 @@ wait_for_regex() {
 	string="$1"
 	errors_are_fatal="$2"
 	for x in 1 2 3 4 5 6 7 8 9 10 ; do
-set -x
 		$TMUX_TEST capture-pane -pt $sess | grep "$string" >/dev/null
 		[ $? -eq 0 ] && return
 		sleep 1
