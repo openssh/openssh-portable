@@ -1,4 +1,4 @@
-#	$OpenBSD: ssh-tty.sh,v 1.6 2025/10/22 05:22:31 djm Exp $
+#	$OpenBSD: ssh-tty.sh,v 1.7 2025/10/22 06:22:58 djm Exp $
 #	Placed in the Public Domain.
 
 # Basic TTY smoke test
@@ -88,13 +88,23 @@ not_in_term() {
 	fatal "$error"
 }
 
+# Shut down tmux session and Wait for it to terminate.
+kill_tmux() {
+	$TMUX_TEST kill-session -t $sess 2>/dev/null
+	for x in 1 2 3 4 5 6 7 8 9 10; do
+		$TMUX_TEST has-session -t $sess >/dev/null 2>&1 || return
+		sleep 1
+	done
+	fatal "tmux session didn't terminate"
+}
+
 trap "$TMUX_TEST kill-session -t $sess 2>/dev/null" EXIT
 
 run_test() {
 	tag="$1"
 	ssh_args="$2"
 	# Prepare a tmux session.
-	$TMUX_TEST kill-session -t $sess 2>/dev/null
+	kill_tmux
 	$TMUX_TEST new-session -d -s $sess
 	# echo XXXXXXXXXX $TMUX_TEST attach -t $sess; sleep 10
 
@@ -143,7 +153,7 @@ run_test() {
 }
 
 # Make sure tmux is working as expected before we start.
-$TMUX_TEST kill-session -t $sess 2>/dev/null
+kill_tmux
 $TMUX_TEST new-session -d -s $sess
 # Make sure the session doesn't contain the magic strings we will use
 # for signalling or any #? output.
@@ -155,7 +165,7 @@ not_in_term "$MAGIC5" "terminal already contains magic5 string" fatal
 not_in_term "^Supported escape" "terminal already contains escape help" fatal
 $TMUX_TEST send-keys -t $sess "printf '$MAGIC1_OCTAL\n'" ENTER
 wait_for_regex "$MAGIC1" fatal
-$TMUX_TEST kill-session -t $sess 2>/dev/null
+kill_tmux
 
 run_test "basic" "-oControlMaster=yes"
 run_test "ControlPersist" "-oControlMaster=auto -oControlPersist=1s"
