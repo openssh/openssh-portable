@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.3 2023/01/15 23:35:10 djm Exp $
+#	$OpenBSD: Makefile,v 1.4 2025/10/23 19:06:10 miod Exp $
 
 .include <bsd.own.mk>
 .include <bsd.obj.mk>
@@ -36,6 +36,7 @@ CDIAGFLAGS+=	-Wimplicit
 CDIAGFLAGS+=	-Winline
 CDIAGFLAGS+=	-Wmissing-declarations
 CDIAGFLAGS+=	-Wmissing-prototypes
+CDIAGFLAGS+=	-Wold-style-definition
 CDIAGFLAGS+=	-Wparentheses
 CDIAGFLAGS+=	-Wpointer-arith
 CDIAGFLAGS+=	-Wreturn-type
@@ -48,9 +49,6 @@ CDIAGFLAGS+=	-Wtrigraphs
 CDIAGFLAGS+=	-Wuninitialized
 CDIAGFLAGS+=	-Wunused
 CDIAGFLAGS+=	-Wno-unused-parameter
-.if ${COMPILER_VERSION:L} != "gcc3"
-CDIAGFLAGS+=	-Wold-style-definition
-.endif
 
 CFLAGS+=-I${.CURDIR}/${SSHREL}
 
