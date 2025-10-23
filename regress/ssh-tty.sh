@@ -1,4 +1,4 @@
-#	$OpenBSD: ssh-tty.sh,v 1.7 2025/10/22 06:22:58 djm Exp $
+#	$OpenBSD: ssh-tty.sh,v 1.8 2025/10/23 06:15:26 dtucker Exp $
 #	Placed in the Public Domain.
 
 # Basic TTY smoke test
@@ -17,6 +17,14 @@ esac
 # tmux stuff
 TMUX=${TMUX:-tmux}
 type $TMUX >/dev/null || skip "tmux not found"
+
+if $TMUX -V >/dev/null 2>&1; then
+	tver="`$TMUX -V 2>&1`"
+	echo "tmux version $tver"
+else
+	skip "tmux version not reported"
+fi
+
 CLEANENV="env -i HOME=$HOME LOGNAME=$USER USER=$USER PATH=$PATH SHELL=$SHELL"
 TMUX_TEST="$CLEANENV $TMUX -f/dev/null -Lopenssh-regress-ssh-tty"
 sess="regress-ssh-tty$$"
