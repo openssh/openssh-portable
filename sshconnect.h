@@ -33,7 +33,7 @@ struct Sensitive {
 };
 
 struct ssh_conn_info {
-	char *conn_hash_hex;
+	char *conn_hash_urlb64;
 	char *shorthost;
 	char *uidstr;
 	char *keyalias;
@@ -68,7 +68,7 @@ struct ssh_conn_info;
 /* same plus remote user and hash which has user as a component */
 #define DEFAULT_CLIENT_PERCENT_EXPAND_ARGS(conn_info) \
 	DEFAULT_CLIENT_PERCENT_EXPAND_ARGS_NOUSER(conn_info), \
-	"C", conn_info->conn_hash_hex, \
+	"C", conn_info->conn_hash_urlb64, \
 	"r", conn_info->remuser
 
 int	 ssh_connect(struct ssh *, const char *, const char *,
