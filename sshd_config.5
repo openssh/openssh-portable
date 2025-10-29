@@ -1331,6 +1331,7 @@ Available keywords are
 .Cm PubkeyAuthentication ,
 .Cm PubkeyAuthOptions ,
 .Cm RefuseConnection ,
+.Cm CanonicalMatchUser ,
 .Cm RekeyLimit ,
 .Cm RevokedKeys ,
 .Cm RDomain ,
@@ -1785,6 +1786,13 @@ are enabled.
 This option is only really useful in a
 .Cm Match
 block.
+.It Cm CanonicalMatchUser
+Some password databases allow users to define aliases for their username.
+This directive indicates that
+.Xr sshd 8
+should attempt to first obtain a canonical username from a password database before evaluating a
+.Cm Match User
+conditional block.
 .It Cm RekeyLimit
 Specifies the maximum amount of data that may be transmitted or received
 before the session key is renegotiated, optionally followed by a maximum
