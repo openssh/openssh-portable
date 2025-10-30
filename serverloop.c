@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.244 2025/09/25 06:23:19 jsg Exp $ */
+/* $OpenBSD: serverloop.c,v 1.245 2025/10/30 03:19:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -178,12 +178,15 @@ wait_until_can_do_something(struct ssh *ssh,
 	 * start the clock to terminate the connection.
 	 */
 	if (options.unused_connection_timeout != 0) {
-		if (channel_still_open(ssh) || unused_connection_expiry == 0) {
+		if (channel_still_open(ssh))
+			unused_connection_expiry = 0;
+		else if (unused_connection_expiry == 0) {
 			unused_connection_expiry = now +
 			    options.unused_connection_timeout;
 		}
-		ptimeout_deadline_monotime(&timeout, unused_connection_expiry);
 	}
+	if (unused_connection_expiry != 0)
+		ptimeout_deadline_monotime(&timeout, unused_connection_expiry);
 
 	/*
 	 * if using client_alive, set the max timeout accordingly,
