@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.29 2025/07/30 04:27:42 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.30 2025/10/31 01:50:43 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -222,6 +222,8 @@ main(int argc, char **argv)
 	__progname = ssh_get_progname(argv[0]);
 	seed_rng();
 
+	sanitise_stdfd();
+	closefrom(STDERR_FILENO + 1);
 	log_init(__progname, log_level, log_facility, log_stderr);
 
 	while ((ch = getopt(argc, argv, "v")) != -1) {
