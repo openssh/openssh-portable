@@ -926,6 +926,9 @@ p11_find_lib() {
 PKCS11_OK=
 export PKCS11_OK
 p11_setup() {
+	# XXX we could potentially test ed25519 only in the absence of
+	# RSA and ECDSA support.
+	$SSH -Q key | grep ssh-rsa >/dev/null || return 1
 	p11_find_lib \
 		/usr/local/lib/softhsm/libsofthsm2.so \
 		/usr/lib64/pkcs11/libsofthsm2.so \
