@@ -215,6 +215,7 @@ initialize_server_options(ServerOptions *options)
 	options->sshd_session_path = NULL;
 	options->sshd_auth_path = NULL;
 	options->refuse_connection = -1;
+	options->canonical_match_user = -1;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -493,6 +494,8 @@ fill_default_server_options(ServerOptions *options)
 		options->sshd_auth_path = xstrdup(_PATH_SSHD_AUTH);
 	if (options->refuse_connection == -1)
 		options->refuse_connection = 0;
+	if (options->canonical_match_user == -1)
+		options->canonical_match_user = 0;
 
 	assemble_algorithms(options);
 
@@ -575,7 +578,7 @@ typedef enum {
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
 	sRequiredRSASize, sChannelTimeout, sUnusedConnectionTimeout,
-	sSshdSessionPath, sSshdAuthPath, sRefuseConnection,
+	sSshdSessionPath, sSshdAuthPath, sRefuseConnection, sCanonicalMatchUser,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -745,6 +748,7 @@ static struct {
 	{ "sshdsessionpath", sSshdSessionPath, SSHCFG_GLOBAL },
 	{ "sshdauthpath", sSshdAuthPath, SSHCFG_GLOBAL },
 	{ "refuseconnection", sRefuseConnection, SSHCFG_ALL },
+	{ "canonicalmatchuser", sCanonicalMatchUser, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2731,6 +2735,11 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		multistate_ptr = multistate_flag;
 		goto parse_multistate;
 
+	case sCanonicalMatchUser:
+		intptr = &options->canonical_match_user;
+		multistate_ptr = multistate_flag;
+		goto parse_multistate;
+
 	case sDeprecated:
 	case sIgnore:
 	case sUnsupported:
@@ -2951,6 +2960,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(required_rsa_size);
 	M_CP_INTOPT(unused_connection_timeout);
 	M_CP_INTOPT(refuse_connection);
+	M_CP_INTOPT(canonical_match_user);
 
 	/*
 	 * The bind_mask is a mode_t that may be unsigned, so we can't use
@@ -3283,6 +3293,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sFingerprintHash, o->fingerprint_hash);
 	dump_cfg_fmtint(sExposeAuthInfo, o->expose_userauth_info);
 	dump_cfg_fmtint(sRefuseConnection, o->refuse_connection);
+	dump_cfg_fmtint(sCanonicalMatchUser, o->canonical_match_user);
 
 	/* string arguments */
 	dump_cfg_string(sPidFile, o->pid_file);
