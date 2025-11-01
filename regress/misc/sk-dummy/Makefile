@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.4 2025/10/23 19:06:10 miod Exp $
+#	$OpenBSD: Makefile,v 1.5 2025/11/01 05:39:25 anton Exp $
 
 .include <bsd.own.mk>
 .include <bsd.obj.mk>
@@ -11,7 +11,7 @@ SSHREL=../../../../../usr.bin/ssh
 
 SRCS=sk-dummy.c
 # From usr.bin/ssh
-SRCS+=ed25519.c hash.c
+SRCS+=ed25519.c
 OPENSSL?=	yes
 
 CFLAGS+=	-fPIC
