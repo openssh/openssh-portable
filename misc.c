@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.208 2025/09/25 06:33:19 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.209 2025/11/06 01:31:11 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -119,6 +119,34 @@ strprefix(const char *s, const char *prefix, int ignorecase)
 			return NULL;
 	}
 	return s + prefixlen;
+}
+
+/* Append string 's' to a NULL-terminated array of strings */
+void
+stringlist_append(char ***listp, const char *s)
+{
+	size_t i = 0;
+
+	if (*listp == NULL)
+		*listp = xcalloc(2, sizeof(**listp));
+	else {
+		for (i = 0; (*listp)[i] != NULL; i++)
+			; /* count */
+		*listp = xrecallocarray(*listp, i + 1, i + 2, sizeof(**listp));
+	}
+	(*listp)[i] = xstrdup(s);
+}
+
+void
+stringlist_free(char **list)
+{
+	size_t i = 0;
+
+	if (list == NULL)
+		return;
+	for (i = 0; list[i] != NULL; i++)
+		free(list[i]);
+	free(list);
 }
 
 /* set/unset filedescriptor to non-blocking */

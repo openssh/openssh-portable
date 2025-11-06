@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.181 2025/09/29 03:17:54 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.182 2025/11/06 01:31:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -647,34 +647,6 @@ do_file(int agent_fd, int deleting, int key_only, int cert_only,
 			return -1;
 	}
 	return 0;
-}
-
-/* Append string 's' to a NULL-terminated array of strings */
-static void
-stringlist_append(char ***listp, const char *s)
-{
-	size_t i = 0;
-
-	if (*listp == NULL)
-		*listp = xcalloc(2, sizeof(**listp));
-	else {
-		for (i = 0; (*listp)[i] != NULL; i++)
-			; /* count */
-		*listp = xrecallocarray(*listp, i + 1, i + 2, sizeof(**listp));
-	}
-	(*listp)[i] = xstrdup(s);
-}
-
-static void
-stringlist_free(char **list)
-{
-	size_t i = 0;
-
-	if (list == NULL)
-		return;
-	for (i = 0; list[i] != NULL; i++)
-		free(list[i]);
-	free(list);
 }
 
 static void

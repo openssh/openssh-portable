@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.112 2025/09/25 06:33:19 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.113 2025/11/06 01:31:11 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -59,6 +59,8 @@ void	skip_space(char **);
 const char *strprefix(const char *, const char *, int);
 char	*strdelim(char **);
 char	*strdelimw(char **);
+void	 stringlist_append(char ***listp, const char *s);
+void	 stringlist_free(char **list);
 int	 set_nonblock(int);
 int	 unset_nonblock(int);
 void	 set_nodelay(int);
