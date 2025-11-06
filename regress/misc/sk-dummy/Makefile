@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.6 2025/11/06 01:33:03 djm Exp $
+#	$OpenBSD: Makefile,v 1.7 2025/11/06 17:24:28 djm Exp $
 
 .include <bsd.own.mk>
 .include <bsd.obj.mk>
@@ -9,7 +9,7 @@ NOMAN=
 SSHREL=../../../../../usr.bin/ssh
 .PATH: ${.CURDIR}/${SSHREL}
 
-SRCS=sk-dummy.c
+SRCS=sk-dummy.c fatal.c
 # From usr.bin/ssh
 SRCS+=ed25519-openssl.c
 #SRCS+=ed25519.c
