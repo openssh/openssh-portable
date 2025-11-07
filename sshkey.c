@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.156 2025/11/07 04:11:59 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.157 2025/11/07 06:29:45 tb Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2696,7 +2696,7 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 	/*
 	 * Verify nQ == infinity (n == order of subgroup)
 	 * This check may be skipped for curves with cofactor 1, as per
-	 * NIST SP 800-56A, 5.6.2.3. 
+	 * NIST SP 800-56A, 5.6.2.3.
 	 */
 	if (!BN_is_one(cofactor)) {
 		if ((order = BN_new()) == NULL) {
