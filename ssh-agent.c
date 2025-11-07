@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.313 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.314 2025/11/07 04:33:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -162,8 +162,8 @@ static sig_atomic_t signalled_keydrop;
 pid_t cleanup_pid = 0;
 
 /* pathname and directory for AUTH_SOCKET */
-char socket_name[PATH_MAX];
-char socket_dir[PATH_MAX];
+static char *socket_name;
+static char socket_dir[PATH_MAX];
 
 /* Pattern-list of allowed PKCS#11/Security key paths */
 static char *allowed_providers;
@@ -2131,8 +2131,11 @@ cleanup_socket(void)
 	if (cleanup_pid != 0 && getpid() != cleanup_pid)
 		return;
 	debug_f("cleanup");
-	if (socket_name[0])
+	if (socket_name != NULL) {
 		unlink(socket_name);
+		free(socket_name);
+		socket_name = NULL;
+	}
 	if (socket_dir[0])
 		rmdir(socket_dir);
 }
@@ -2192,7 +2195,9 @@ main(int ac, char **av)
 	int c_flag = 0, d_flag = 0, D_flag = 0, k_flag = 0;
 	int s_flag = 0, T_flag = 0, u_flag = 0, U_flag = 0;
 	int sock = -1, ch, result, saved_errno;
-	char *homedir = NULL, *shell, *format, *pidstr, *agentsocket = NULL;
+	pid_t pid;
+ 	char *homedir = NULL, *shell, *format, *pidstr, *agentsocket = NULL;
+	char *cp, pidstrbuf[1 + 3 * sizeof pid];
 	char *fdstr;
 	const char *errstr = NULL;
 	const char *ccp;
@@ -2201,8 +2206,6 @@ main(int ac, char **av)
 #endif
 	extern int optind;
 	extern char *optarg;
-	pid_t pid;
-	char pidstrbuf[1 + 3 * sizeof pid];
 	size_t len;
 	mode_t prev_mask;
 	struct timespec timeout;
@@ -2393,16 +2396,9 @@ main(int ac, char **av)
 			fatal("Couldn't determine home directory");
 		if (!U_flag)
 			agent_cleanup_stale(homedir, 0);
-		if (agent_listener(homedir, "agent", &sock, &agentsocket) != 0)
+		if (agent_listener(homedir, "agent", &sock, &socket_name) != 0)
 			fatal_f("Couldn't prepare agent socket");
-		if (strlcpy(socket_name, agentsocket,
-		    sizeof(socket_name)) >= sizeof(socket_name)) {
-			fatal_f("Socket path \"%s\" too long",
-			    agentsocket);
-		}
 		free(homedir);
-		free(agentsocket);
-		agentsocket = NULL;
 	} else if (sock == -1) {
 		if (T_flag) {
 			/*
@@ -2414,16 +2410,12 @@ main(int ac, char **av)
 				perror("mkdtemp: private socket dir");
 				exit(1);
 			}
-			snprintf(socket_name, sizeof(socket_name),
-			    "%s/agent.%ld", socket_dir, (long)parent_pid);
+			xasprintf(&socket_name, "%s/agent.%ld",
+			    socket_dir, (long)parent_pid);
 		} else {
 			/* Try to use specified agent socket */
 			socket_dir[0] = '\0';
-			if (strlcpy(socket_name, agentsocket,
-			   sizeof(socket_name)) >= sizeof(socket_name)) {
-				fatal_f("Socket path \"%s\" too long",
-				    agentsocket);
-			}
+			socket_name = xstrdup(agentsocket);
 		}
 		/* Listen on socket */
 		prev_mask = umask(0177);
@@ -2460,11 +2452,13 @@ main(int ac, char **av)
 		log_init(__progname,
 		    d_flag ? SYSLOG_LEVEL_DEBUG3 : SYSLOG_LEVEL_INFO,
 		    SYSLOG_FACILITY_AUTH, 1);
-		if (socket_name[0] != '\0') {
+		if (socket_name != NULL) {
+			cp = argv_assemble(1, &socket_name);
 			format = c_flag ?
 			    "setenv %s %s;\n" : "%s=%s; export %s;\n";
-			printf(format, SSH_AUTHSOCKET_ENV_NAME, socket_name,
+			printf(format, SSH_AUTHSOCKET_ENV_NAME, cp,
 			    SSH_AUTHSOCKET_ENV_NAME);
+			free(cp);
 			printf("echo Agent pid %ld;\n", (long)parent_pid);
 			fflush(stdout);
 		}
@@ -2480,10 +2474,12 @@ main(int ac, char **av)
 		snprintf(pidstrbuf, sizeof pidstrbuf, "%ld", (long)pid);
 		if (ac == 0) {
 			format = c_flag ? "setenv %s %s;\n" : "%s=%s; export %s;\n";
-			printf(format, SSH_AUTHSOCKET_ENV_NAME, socket_name,
+			cp = argv_assemble(1, &socket_name);
+			printf(format, SSH_AUTHSOCKET_ENV_NAME, cp,
 			    SSH_AUTHSOCKET_ENV_NAME);
 			printf(format, SSH_AGENTPID_ENV_NAME, pidstrbuf,
 			    SSH_AGENTPID_ENV_NAME);
+			free(cp);
 			printf("echo Agent pid %ld;\n", (long)pid);
 			exit(0);
 		}
