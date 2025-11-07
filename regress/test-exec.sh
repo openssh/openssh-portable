@@ -1026,6 +1026,9 @@ p11_ssh_add() {
 
 start_ssh_agent() {
 	EXTRA_AGENT_ARGS="$1"
+	if [ "$PKCS11_OK" = "yes" ]; then
+		EXTRA_AGENT_ARGS="${EXTRA_AGENT_ARGS} -P${TEST_SSH_PKCS11}"
+	fi
 	SSH_AUTH_SOCK="$OBJ/agent.sock"
 	export SSH_AUTH_SOCK
 	rm -f $SSH_AUTH_SOCK $OBJ/agent.log
@@ -1034,7 +1037,7 @@ start_ssh_agent() {
 	    > $OBJ/agent.log 2>&1 &
 	AGENT_PID=$!
 	trap "kill $AGENT_PID" EXIT
-	for x in 0 1 2 3 4 ; do
+	for x in $(seq 15); do
 		# Give it a chance to start
 		${SSHADD} -l > /dev/null 2>&1
 		r=$?
