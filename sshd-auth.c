@@ -588,7 +588,7 @@ main(int ac, char **av)
 	if (!rexeced_flag)
 		fatal("sshd-auth should not be executed directly");
 
-#ifdef WITH_OPENSSL
+#if defined(WITH_OPENSSL) && defined(HAVE_OPENSSL_ADD_ALL_ALGORITHMS)
 	OpenSSL_add_all_algorithms();
 #endif
 
