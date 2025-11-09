@@ -147,7 +147,8 @@ kex_kem_mlkem768x25519_enc(struct kex *kex,
 		goto out;
 	/* append ECDH shared key */
 	client_pub += crypto_kem_mlkem768_PUBLICKEYBYTES;
-	if ((r = kexc25519_shared_key_ext(server_key, client_pub, buf, 1)) < 0)
+	/* ___keylog file need to pass kex struct to kexc25519_shared_key_ext */
+	if ((r = kexc25519_shared_key_ext(kex, server_key, client_pub, buf, 1)) < 0)
 		goto out;
 	if ((r = ssh_digest_buffer(kex->hash_alg, buf, hash, sizeof(hash))) != 0)
 		goto out;
@@ -225,12 +226,15 @@ kex_kem_mlkem768x25519_dec(struct kex *kex,
 	    &mlkem_ciphertext, mlkem_key);
 	if ((r = sshbuf_put(buf, mlkem_key, sizeof(mlkem_key))) != 0)
 		goto out;
-	if ((r = kexc25519_shared_key_ext(kex->c25519_client_key, server_pub,
+	/* ___keylog file hash to pass kex struct to kexc25519_shared_key_ext */
+	if ((r = kexc25519_shared_key_ext(kex, kex->c25519_client_key, server_pub,
 	    buf, 1)) < 0)
 		goto out;
 	if ((r = ssh_digest_buffer(kex->hash_alg, buf,
 	    hash, sizeof(hash))) != 0)
 		goto out;
+	/* ___add logging hash to keylog file befre zeroing it */
+        sshlog_keylog_file(kex, hash, ssh_digest_bytes(kex->hash_alg));
 #ifdef DEBUG_KEXECDH
 	dump_digest("client kem key:", mlkem_key, sizeof(mlkem_key));
 	dump_digest("concatenation of KEM key and ECDH shared key:",
