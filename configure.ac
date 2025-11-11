@@ -2958,6 +2958,12 @@ nocrypto_saved_LIBS="$LIBS"
 if test "x$openssl" = "xyes" ; then
 	LIBS="-lcrypto $LIBS"
 	CHANNELLIBS="-lcrypto $CHANNELLIBS"
+	case "$host" in
+	*-*-cygwin*)
+		CHANNELLIBS="$CHANNELLIBS -lcrypt32"
+		LIBS="$LIBS -lcrypt32"
+		;;
+	esac
 	AC_TRY_LINK_FUNC([RAND_add], ,
 	    [AC_MSG_ERROR([*** working libcrypto not found, check config.log])])
 	AC_CHECK_HEADER([openssl/opensslv.h], ,
