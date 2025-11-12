@@ -3357,6 +3357,10 @@ if test "x$openssl" = "xyes" ; then
 		[AC_LANG_PROGRAM([[
 	#include <string.h>
 	#include <openssl/evp.h>
+	#include <openssl/opensslconf.h>
+	#ifdef OPENSSL_NO_EC
+	# error "OpenSSL has no EC support."
+	#endif
 		]], [[
 		unsigned char buf[64];
 		memset(buf, 0, sizeof(buf));
