@@ -69,7 +69,7 @@ ssh_compatible_openssl(long headerver, long libver)
 	return 0;
 }
 
-void
+int
 ssh_libcrypto_init(void)
 {
 	uint64_t opts = OPENSSL_INIT_ADD_ALL_CIPHERS |
@@ -84,8 +84,7 @@ ssh_libcrypto_init(void)
 	opts |= OPENSSL_INIT_LOAD_CONFIG;
 #endif /* USE_OPENSSL_ENGINE */
 
-	if (OPENSSL_init_crypto(opts, NULL) != 1)
-		fatal("OPENSSL_init_crypto failed");
+	return OPENSSL_init_crypto(opts, NULL);
 }
 
 #ifndef HAVE_EVP_DIGESTSIGN

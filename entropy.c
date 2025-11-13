@@ -64,7 +64,8 @@ seed_rng(void)
 	unsigned char buf[RANDOM_SEED_SIZE];
 
 	/* Initialise libcrypto */
-	ssh_libcrypto_init();
+	if (ssh_libcrypto_init() != 1)
+		fatal("libcrypto failed to initialize.");
 
 	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER,
 	    OpenSSL_version_num()))
