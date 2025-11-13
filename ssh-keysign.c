@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.78 2025/09/25 06:25:38 djm Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.79 2025/11/13 10:35:14 dtucker Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *

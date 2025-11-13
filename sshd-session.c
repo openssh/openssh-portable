@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.16 2025/09/25 06:45:50 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.17 2025/11/13 10:35:14 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.9 2025/09/15 04:52:12 djm Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.10 2025/11/13 10:35:14 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -587,10 +587,6 @@ main(int ac, char **av)
 
 	if (!rexeced_flag)
 		fatal("sshd-auth should not be executed directly");
-
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-#endif
 
 	log_init(__progname,
 	    options.log_level == SYSLOG_LEVEL_NOT_SET ?
