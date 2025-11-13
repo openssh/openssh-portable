@@ -3160,15 +3160,6 @@ if test "x$openssl" = "xyes" ; then
 		RSA_get_default_method \
 	])
 
-	# OpenSSL_add_all_algorithms may be a macro.
-	AC_CHECK_FUNC(OpenSSL_add_all_algorithms,
-	    AC_DEFINE(HAVE_OPENSSL_ADD_ALL_ALGORITHMS, 1, [as a function]),
-	    AC_CHECK_DECL(OpenSSL_add_all_algorithms,
-		AC_DEFINE(HAVE_OPENSSL_ADD_ALL_ALGORITHMS, 1, [as a macro]), ,
-		[[#include <openssl/evp.h>]]
-	    )
-	)
-
 	# LibreSSL/OpenSSL API differences
 	AC_CHECK_FUNCS([ \
 		EC_POINT_get_affine_coordinates \

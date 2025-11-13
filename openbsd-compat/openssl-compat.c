@@ -72,28 +72,20 @@ ssh_compatible_openssl(long headerver, long libver)
 void
 ssh_libcrypto_init(void)
 {
-#if defined(HAVE_OPENSSL_INIT_CRYPTO) && \
-      defined(OPENSSL_INIT_ADD_ALL_CIPHERS) && \
-      defined(OPENSSL_INIT_ADD_ALL_DIGESTS)
-	OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS |
-	    OPENSSL_INIT_ADD_ALL_DIGESTS, NULL);
-#elif defined(HAVE_OPENSSL_ADD_ALL_ALGORITHMS)
-	OpenSSL_add_all_algorithms();
-#endif
+	uint64_t opts = OPENSSL_INIT_ADD_ALL_CIPHERS |
+	    OPENSSL_INIT_ADD_ALL_DIGESTS;
 
 #ifdef	USE_OPENSSL_ENGINE
 	/* Enable use of crypto hardware */
 	ENGINE_load_builtin_engines();
 	ENGINE_register_all_complete();
 
-	/* Load the libcrypto config file to pick up engines defined there */
-# if defined(HAVE_OPENSSL_INIT_CRYPTO) && defined(OPENSSL_INIT_LOAD_CONFIG)
-	OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS |
-	    OPENSSL_INIT_ADD_ALL_DIGESTS | OPENSSL_INIT_LOAD_CONFIG, NULL);
-# else
-	OPENSSL_config(NULL);
-# endif
+	/* Tell libcrypto config file to pick up engines defined there */
+	opts |= OPENSSL_INIT_LOAD_CONFIG;
 #endif /* USE_OPENSSL_ENGINE */
+
+	if (OPENSSL_init_crypto(opts, NULL) != 1)
+		fatal("OPENSSL_init_crypto failed");
 }
 
 #ifndef HAVE_EVP_DIGESTSIGN
