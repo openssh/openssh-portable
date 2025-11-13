@@ -1,4 +1,4 @@
-/*  $OpenBSD$ */
+/*  $OpenBSD: libcrux_mlkem768_sha3.h,v 1.4 2025/11/13 05:13:06 djm Exp $ */
 
 /* Extracted from libcrux revision 026a87ab6d88ad3626b9fbbf3710d1e0483c1849 */
 
@@ -95,6 +95,7 @@ __builtin_popcount(unsigned int num)
   return v[num & 0xf] + v[(num >> 4) & 0xf];
 }
 #endif
+
 /* from libcrux/libcrux-ml-kem/extracts/c_header_only/generated/eurydice_glue.h */
 #pragma once
 

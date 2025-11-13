@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: mlkem768.sh,v 1.4 2025/11/13 04:56:23 djm Exp $
+#       $OpenBSD: mlkem768.sh,v 1.5 2025/11/13 05:13:06 djm Exp $
 #       Placed in the Public Domain.
 #
 
@@ -113,6 +113,7 @@ __builtin_popcount(unsigned int num)
   return v[num & 0xf] + v[(num >> 4) & 0xf];
 }
 #endif
+
 _EOF
 
 for i in $FILES; do
