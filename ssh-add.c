@@ -601,7 +601,7 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag,
 		if ((fp = sshkey_fingerprint(key,
 		    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
 			fatal_f("sshkey_fingerprint failed");
-		if ((r = ssh_add_identity_constrained(agent_fd, key, "",
+		if ((r = ssh_add_identity_constrained(agent_fd, key, key->sk_application,
 		    lifetime, confirm, skprovider,
 		    dest_constraints, ndest_constraints)) != 0) {
 			error("Unable to add key %s %s",
