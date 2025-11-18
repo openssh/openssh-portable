@@ -651,6 +651,9 @@ construct_utmp(struct logininfo *li,
 # ifdef HAVE_TYPE_IN_UTMP
 	/* This is done here to keep utmp constants out of struct logininfo */
 	switch (li->type) {
+	case LTYPE_FAILED:
+		ut->ut_type = LOGIN_PROCESS;
+		break;
 	case LTYPE_LOGIN:
 		ut->ut_type = USER_PROCESS;
 		break;
@@ -1732,7 +1735,7 @@ record_failed_login(struct ssh *ssh, const char *username, const char *hostname,
 
 	/* Construct a logininfo and turn it into a utmp */
 	memset(&li, 0, sizeof(li));
-	li.type = LTYPE_LOGIN;
+	li.type = LTYPE_FAILED;
 	li.pid = getpid();
 	strlcpy(li.line, "ssh:notty", sizeof(li.line));
 	strlcpy(li.username, username, sizeof(li.username));
