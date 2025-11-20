@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.406 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.407 2025/11/20 05:10:11 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -732,12 +732,12 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 	debug2("checking match for '%s' host %s originally %s",
 	    full_line, host, original_host);
 	while ((attrib = argv_next(acp, avp)) != NULL) {
-		attrib = oattrib = xstrdup(attrib);
 		/* Terminate on comment */
 		if (*attrib == '#') {
 			argv_consume(acp);
 			break;
 		}
+		attrib = oattrib = xstrdup(attrib);
 		arg = criteria = NULL;
 		this_result = 1;
 		if ((negate = (attrib[0] == '!')))
@@ -777,7 +777,7 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 			debug3("%.200s line %d: %smatched '%s'",
 			    filename, linenum,
 			    this_result ? "" : "not ", oattrib);
-			continue;
+			goto next;
 		}
 
 		/* Keep this list in sync with below */
@@ -888,7 +888,7 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 				debug3("%.200s line %d: skipped exec "
 				    "\"%.100s\"", filename, linenum, cmd);
 				free(cmd);
-				continue;
+				goto next;
 			}
 			r = execute_in_shell(cmd);
 			if (r == -1) {
@@ -912,6 +912,7 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 		    criteria == NULL ? "" : " \"",
 		    criteria == NULL ? "" : criteria,
 		    criteria == NULL ? "" : "\"");
+ next:
 		free(criteria);
 		free(oattrib);
 		oattrib = attrib = NULL;
