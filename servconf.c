@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.435 2025/09/25 06:31:42 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.436 2025/11/20 05:10:56 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1048,12 +1048,12 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 	}
 
 	while ((oattrib = argv_next(acp, avp)) != NULL) {
-		attrib = xstrdup(oattrib);
 		/* Terminate on comment */
-		if (*attrib == '#') {
+		if (*oattrib == '#') {
 			argv_consume(acp); /* mark all arguments consumed */
 			break;
 		}
+		attrib = xstrdup(oattrib);
 		arg = NULL;
 		attributes++;
 		/* Criterion "all" has no argument and must appear alone */
@@ -1075,13 +1075,13 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 		if (strcasecmp(attrib, "invalid-user") == 0) {
 			if (ci == NULL) {
 				result = 0;
-				continue;
+				goto next;
 			}
 			if (ci->user_invalid == 0)
 				result = 0;
 			else
 				debug("matched invalid-user at line %d", line);
-			continue;
+			goto next;
 		}
 
 		/* Keep this list in sync with below */
@@ -1108,7 +1108,7 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 		if (strcasecmp(attrib, "user") == 0) {
 			if (ci == NULL || (ci->test && ci->user == NULL)) {
 				result = 0;
-				continue;
+				goto next;
 			}
 			if (ci->user == NULL)
 				match_test_missing_fatal("User", "user");
@@ -1120,7 +1120,7 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 		} else if (strcasecmp(attrib, "group") == 0) {
 			if (ci == NULL || (ci->test && ci->user == NULL)) {
 				result = 0;
-				continue;
+				goto next;
 			}
 			if (ci->user == NULL)
 				match_test_missing_fatal("Group", "user");
@@ -1134,7 +1134,7 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 		} else if (strcasecmp(attrib, "host") == 0) {
 			if (ci == NULL || (ci->test && ci->host == NULL)) {
 				result = 0;
-				continue;
+				goto next;
 			}
 			if (ci->host == NULL)
 				match_test_missing_fatal("Host", "host");
@@ -1149,7 +1149,7 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 					fatal("Invalid Match address argument "
 					    "'%s' at line %d", arg, line);
 				result = 0;
-				continue;
+				goto next;
 			}
 			if (ci->address == NULL)
 				match_test_missing_fatal("Address", "addr");
@@ -1173,7 +1173,7 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 					    "argument '%s' at line %d", arg,
 					    line);
 				result = 0;
-				continue;
+				goto next;
 			}
 			if (ci->laddress == NULL)
 				match_test_missing_fatal("LocalAddress",
@@ -1201,7 +1201,7 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 			}
 			if (ci == NULL || (ci->test && ci->lport == -1)) {
 				result = 0;
-				continue;
+				goto next;
 			}
 			if (ci->lport == 0)
 				match_test_missing_fatal("LocalPort", "lport");
@@ -1215,7 +1215,7 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 		} else if (strcasecmp(attrib, "rdomain") == 0) {
 			if (ci == NULL || (ci->test && ci->rdomain == NULL)) {
 				result = 0;
-				continue;
+				goto next;
 			}
 			if (ci->rdomain == NULL)
 				match_test_missing_fatal("RDomain", "rdomain");
@@ -1237,6 +1237,7 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 			result = -1;
 			goto out;
 		}
+ next:
 		free(attrib);
 		attrib = NULL;
 	}
