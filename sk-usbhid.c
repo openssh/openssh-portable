@@ -698,8 +698,6 @@ pack_public_key_ed25519(const fido_cred_t *cred,
 	memcpy(response->public_key, ptr, len);
 	ret = 0;
  out:
-	if (ret != 0)
-		free(response->public_key);
 	return ret;
 }
 
