@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.32 2025/09/02 09:41:23 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.33 2025/11/21 01:29:06 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -228,6 +228,10 @@ int	sshbuf_put_eckey(struct sshbuf *buf, const EC_KEY *v);
 int	sshbuf_put_ec_pkey(struct sshbuf *buf, EVP_PKEY *pkey);
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
+
+/* Functions to extract or store various non-SSH wire encoded values */
+int	sshbuf_get_nulterminated_string(struct sshbuf *buf, size_t maxlen,
+	    char **valp, size_t *lenp);
 
 /* Dump the contents of the buffer in a human-readable format */
 void	sshbuf_dump(const struct sshbuf *buf, FILE *f);

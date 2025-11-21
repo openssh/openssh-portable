@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-getput-basic.c,v 1.13 2022/05/25 06:03:44 djm Exp $	*/
+/*	$OpenBSD: sshbuf-getput-basic.c,v 1.14 2025/11/21 01:29:06 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -628,4 +628,42 @@ sshbuf_get_bignum2_bytes_direct(struct sshbuf *buf,
 		return SSH_ERR_INTERNAL_ERROR;
 	}
 	return 0;
+}
+
+int
+sshbuf_get_nulterminated_string(struct sshbuf *buf, size_t maxlen,
+    char **valp, size_t *lenp)
+{
+	const u_char zero = 0;
+	char *val = NULL;
+	size_t len = 0;
+	int r;
+
+	if (valp != NULL)
+		*valp = NULL;
+	if (lenp != NULL)
+		*lenp = 0;
+	if ((r = sshbuf_find(buf, 0, &zero, sizeof(zero), &len)) != 0) {
+		if (r == SSH_ERR_INVALID_FORMAT && sshbuf_len(buf) < maxlen)
+			return SSH_ERR_MESSAGE_INCOMPLETE;
+		return r;
+	}
+	if (len > maxlen)
+		return SSH_ERR_INVALID_FORMAT;
+	/* can strdup() because it's definitely nul-terminated */
+	if ((val = strdup(sshbuf_ptr(buf))) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_consume(buf, len + 1)) != 0)
+		goto out;
+	/* success */
+	r = 0;
+	if (valp != NULL) {
+		*valp = val;
+		val = NULL;
+	}
+	if (lenp != NULL)
+		*lenp = len;
+ out:
+	free(val);
+	return r;
 }
