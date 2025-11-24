@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.133 2025/10/21 07:18:27 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.134 2025/11/24 23:54:15 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -1026,6 +1026,9 @@ p11_ssh_add() {
 
 start_ssh_agent() {
 	EXTRA_AGENT_ARGS="$1"
+	if [ "$PKCS11_OK" = "yes" ]; then
+		EXTRA_AGENT_ARGS="${EXTRA_AGENT_ARGS} -P${TEST_SSH_PKCS11}"
+	fi
 	SSH_AUTH_SOCK="$OBJ/agent.sock"
 	export SSH_AUTH_SOCK
 	rm -f $SSH_AUTH_SOCK $OBJ/agent.log
