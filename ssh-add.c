@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.183 2025/11/13 10:35:14 dtucker Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.184 2025/11/24 23:43:10 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -601,8 +601,8 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag,
 		if ((fp = sshkey_fingerprint(key,
 		    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
 			fatal_f("sshkey_fingerprint failed");
-		if ((r = ssh_add_identity_constrained(agent_fd, key, "",
-		    lifetime, confirm, skprovider,
+		if ((r = ssh_add_identity_constrained(agent_fd, key,
+		    key->sk_application, lifetime, confirm, skprovider,
 		    dest_constraints, ndest_constraints)) != 0) {
 			error("Unable to add key %s %s",
 			    sshkey_type(key), fp);
