@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.436 2025/11/20 05:10:56 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.437 2025/11/25 00:52:00 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2044,7 +2044,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			    filename, linenum, keyword);
 		if (*activep && options->per_source_masklen_ipv4 == -1) {
 			options->per_source_masklen_ipv4 = value;
-			options->per_source_masklen_ipv6 = value2;
+			if (n == 2)
+				options->per_source_masklen_ipv6 = value2;
 		}
 		break;
 
