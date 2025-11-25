@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.157 2025/11/07 06:29:45 tb Exp $ */
+/* $OpenBSD: sshkey.c,v 1.158 2025/11/25 01:08:35 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3311,6 +3311,19 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
 			success = 1;
 		}
 		break;
+#ifdef OPENSSL_HAS_ED25519
+	case KEY_ED25519:
+		if (format == SSHKEY_PRIVATE_PEM) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		} else {
+			pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519,
+			    NULL, key->ed25519_sk,
+			    ED25519_SK_SZ - ED25519_PK_SZ);
+			success = pkey != NULL;
+		}
+		break;
+#endif
 	default:
 		success = 0;
 		break;
@@ -3356,9 +3369,11 @@ sshkey_private_to_fileblob(struct sshkey *key, struct sshbuf *blob,
 #ifdef WITH_OPENSSL
 	case KEY_ECDSA:
 	case KEY_RSA:
-		break; /* see below */
-#endif /* WITH_OPENSSL */
 	case KEY_ED25519:
+		break; /* see below */
+#else /* WITH_OPENSSL */
+	case KEY_ED25519:
+#endif /* WITH_OPENSSL */
 	case KEY_ED25519_SK:
 #ifdef WITH_OPENSSL
 	case KEY_ECDSA_SK:
