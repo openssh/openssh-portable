@@ -3205,6 +3205,9 @@ parse_fwd_field(char **p, struct fwdarg *fwd)
 	if (*cp == '\0') {
 		*p = NULL;
 		return -1;	/* end of string */
+	} else if (*cp == '@') {
+		/* UNIX domain socket with abstract name */
+		ispath = 1;
 	}
 
 	/*
@@ -3212,6 +3215,11 @@ parse_fwd_field(char **p, struct fwdarg *fwd)
 	 * XXX - allow ']' to be escaped via backslash?
 	 */
 	if (*cp == '[') {
+		if (cp[1] == '@') {
+			/* UNIX domain socket with abstract name */
+			ispath = 1;
+		}
+
 		/* find matching ']' */
 		for (ep = cp + 1; *ep != ']' && *ep != '\0'; ep++) {
 			if (*ep == '/')

@@ -73,11 +73,6 @@
 #define WONT	252
 #define WILL	251
 
-#ifndef SUN_LEN
-#define SUN_LEN(su) \
-	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
-#endif
-
 #define PORT_MAX	65535
 #define PORT_MAX_LEN	6
 #define UNIX_DG_TMP_SOCKET_SIZE	19
@@ -523,6 +518,7 @@ unix_bind(char *path)
 {
 	struct sockaddr_un sun_sa;
 	int s;
+	size_t path_length;
 
 	/* Create UNIX domain socket. */
 	if ((s = socket(AF_UNIX, uflag ? SOCK_DGRAM : SOCK_STREAM,
@@ -532,14 +528,20 @@ unix_bind(char *path)
 	memset(&sun_sa, 0, sizeof(struct sockaddr_un));
 	sun_sa.sun_family = AF_UNIX;
 
-	if (strlcpy(sun_sa.sun_path, path, sizeof(sun_sa.sun_path)) >=
-	    sizeof(sun_sa.sun_path)) {
+	path_length = strlen(path);
+	if (path_length < sizeof(sun_sa.sun_path)) {
+		memcpy(sun_sa.sun_path, path, path_length);
+		if (sun_sa.sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			sun_sa.sun_path[0] = '\0';
+		}
+	} else {
 		close(s);
 		errno = ENAMETOOLONG;
 		return (-1);
 	}
 
-	if (bind(s, (struct sockaddr *)&sun_sa, SUN_LEN(&sun_sa)) < 0) {
+	if (bind(s, (struct sockaddr *)&sun_sa, sizeof(struct sockaddr_un)) < 0) {
 		close(s);
 		return (-1);
 	}
@@ -555,6 +557,7 @@ unix_connect(char *path)
 {
 	struct sockaddr_un sun_sa;
 	int s;
+	size_t path_length;
 
 	if (uflag) {
 		if ((s = unix_bind(unix_dg_tmp_socket)) < 0)
@@ -568,13 +571,20 @@ unix_connect(char *path)
 	memset(&sun_sa, 0, sizeof(struct sockaddr_un));
 	sun_sa.sun_family = AF_UNIX;
 
-	if (strlcpy(sun_sa.sun_path, path, sizeof(sun_sa.sun_path)) >=
-	    sizeof(sun_sa.sun_path)) {
+	path_length = strlen(path);
+	if (path_length < sizeof(sun_sa.sun_path)) {
+		memcpy(sun_sa.sun_path, path, path_length);
+		if (sun_sa.sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			sun_sa.sun_path[0] = '\0';
+		}
+	} else {
 		close(s);
 		errno = ENAMETOOLONG;
 		return (-1);
 	}
-	if (connect(s, (struct sockaddr *)&sun_sa, SUN_LEN(&sun_sa)) < 0) {
+
+	if (connect(s, (struct sockaddr *)&sun_sa, sizeof(struct sockaddr_un)) < 0) {
 		close(s);
 		return (-1);
 	}

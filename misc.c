@@ -1982,12 +1982,21 @@ unix_listener(const char *path, int backlog, int unlink_first)
 {
 	struct sockaddr_un sunaddr;
 	int saved_errno, sock;
+	size_t path_length;
 
 	memset(&sunaddr, 0, sizeof(sunaddr));
 	sunaddr.sun_family = AF_UNIX;
-	if (strlcpy(sunaddr.sun_path, path,
-	    sizeof(sunaddr.sun_path)) >= sizeof(sunaddr.sun_path)) {
-		error_f("path \"%s\" too long for UNIX domain socket", path);
+
+	path_length = strlen(path);
+	if (path_length < sizeof(sunaddr.sun_path)) {
+		memcpy(sunaddr.sun_path, path, path_length);
+		if (sunaddr.sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			sunaddr.sun_path[0] = '\0';
+		}
+	} else {
+		error_f("path '%s' too long (>= %zu bytes) for UNIX domain socket",
+		        path, sizeof(sunaddr.sun_path));
 		errno = ENAMETOOLONG;
 		return -1;
 	}

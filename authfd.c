@@ -90,11 +90,24 @@ ssh_get_authentication_socket_path(const char *authsocket, int *fdp)
 {
 	int sock, oerrno;
 	struct sockaddr_un sunaddr;
+	size_t authsocket_length;
 
 	debug3_f("path '%s'", authsocket);
 	memset(&sunaddr, 0, sizeof(sunaddr));
 	sunaddr.sun_family = AF_UNIX;
-	strlcpy(sunaddr.sun_path, authsocket, sizeof(sunaddr.sun_path));
+
+	authsocket_length = strlen(authsocket);
+	if (authsocket_length < sizeof(sunaddr.sun_path)) {
+		memcpy(sunaddr.sun_path, authsocket, authsocket_length);
+		if (sunaddr.sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			sunaddr.sun_path[0] = '\0';
+		}
+	} else {
+		error_f("path '%s' too long (>= %zu bytes) for UNIX domain socket",
+		        authsocket, sizeof(sunaddr.sun_path));
+		return SSH_ERR_STRING_TOO_LARGE;
+	}
 
 	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
 		return SSH_ERR_SYSTEM_ERROR;

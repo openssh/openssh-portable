@@ -2261,6 +2261,7 @@ muxclient(const char *path)
 	struct sockaddr_un addr;
 	int sock, timeout = options.connection_timeout, timeout_ms = -1;
 	u_int pid;
+	size_t path_length;
 
 	if (muxclient_command == 0) {
 		if (options.stdio_forward_host != NULL)
@@ -2283,10 +2284,17 @@ muxclient(const char *path)
 	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;
 
-	if (strlcpy(addr.sun_path, path,
-	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path))
-		fatal("ControlPath too long ('%s' >= %u bytes)", path,
-		    (unsigned int)sizeof(addr.sun_path));
+	path_length = strlen(path);
+	if (path_length < sizeof(addr.sun_path)) {
+		memcpy(addr.sun_path, path, path_length);
+		if (addr.sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			addr.sun_path[0] = '\0';
+		}
+	} else {
+		fatal("ControlPath '%s' too long (>= %zu bytes) for UNIX domain socket",
+		      path, sizeof(addr.sun_path));
+	}
 
 	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) == -1)
 		fatal_f("socket(): %s", strerror(errno));

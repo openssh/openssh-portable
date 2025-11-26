@@ -4062,7 +4062,7 @@ channel_setup_fwd_listener_streamlocal(struct ssh *ssh, int type,
 		error("No forward path name.");
 		return 0;
 	}
-	if (strlen(fwd->listen_path) > sizeof(sunaddr.sun_path)) {
+	if (strlen(fwd->listen_path) >= sizeof(sunaddr.sun_path)) {
 		error("Local listening path too long: %s", fwd->listen_path);
 		return 0;
 	}
@@ -4655,7 +4655,11 @@ connect_next(struct channel_connect *cctx)
 	int sock, saved_errno;
 	struct sockaddr_un *sunaddr;
 	char ntop[NI_MAXHOST];
-	char strport[MAXIMUM(NI_MAXSERV, sizeof(sunaddr->sun_path))];
+	/*
+	 * Neither pathnames nor abstract names in arbitrary `sun_path`s are
+	 * guaranteed to be NUL terminated, but they must be in C-strings.
+	 */
+	char strport[MAXIMUM(NI_MAXSERV, sizeof(sunaddr->sun_path) + 1)];
 
 	for (; cctx->ai; cctx->ai = cctx->ai->ai_next) {
 		switch (cctx->ai->ai_family) {
@@ -4663,7 +4667,30 @@ connect_next(struct channel_connect *cctx)
 			/* unix:pathname instead of host:port */
 			sunaddr = (struct sockaddr_un *)cctx->ai->ai_addr;
 			strlcpy(ntop, "unix", sizeof(ntop));
-			strlcpy(strport, sunaddr->sun_path, sizeof(strport));
+
+			/*
+			 * Skipping the first octet works for abstract names, which start
+			 * with a NUL byte, as well as pathnames and unnamed addresses.
+			 * Technically, valid abstract names may contain NUL bytes, thus
+			 * `foobar` and `foobar\0` are different valid abstract names,
+			 * but strings with NUL bytes are difficult to work with in C.
+			 * Substitution with `@` is not possible either, because both
+			 * `foo@bar` and `foo\0bar` are different valid abstract names.
+			 * TODO: Check whether the remaining octets are NUL?
+			 */
+			strport[0] = sunaddr->sun_path[0];
+			strlcpy(strport + 1, sunaddr->sun_path + 1, sizeof(strport) - 1);
+			/*
+			 * Technically, only all-NUL values of `sun_path` are unnamed while
+			 * abstract names may contain a NUL byte as second octet, but let’s
+			 * assume that only the first octet of abstract names may be NUL.
+			 * Abstract names are cursed enough, even worse are arbitrary NUL
+			 * bytes in those names we rather don’t want to deal with.
+			 */
+			if (strport[0] == '\0' && strport[1] != '\0') {
+				/* UNIX domain socket with abstract name */
+				strport[0] = '@';
+			}
 			break;
 		case AF_INET:
 		case AF_INET6:
@@ -4738,26 +4765,56 @@ connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
 	if (port == PORT_STREAMLOCAL) {
 		struct sockaddr_un *sunaddr;
 		struct addrinfo *ai;
+		size_t name_length = strlen(name);
 
-		if (strlen(name) > sizeof(sunaddr->sun_path)) {
+		if (name_length < sizeof(sunaddr->sun_path)) {
+			/*
+			 * For [`connect`], `offsetof(...) + strlen(...)` would be enough:
+			 * `sun_path` isn’t required to be NUL terminated.
+			 * However, it is recommended to always terminated [pathnames]
+			 * with a NUL byte and to include it in `addrlen`.
+			 * While `sizeof(struct sockaddr_un)` is another option, this will
+			 * not work with abstract names (see below).
+			 *
+			 * [`connect`]: https://man7.org/linux/man-pages/man2/connect.2.html
+			 * [pathnames]: https://man7.org/linux/man-pages/man7/unix.7.html#DESCRIPTION
+			 */
+			size_t addrlen = offsetof(struct sockaddr_un, sun_path) + name_length + 1;
+
+			/*
+			 * Fake up a struct addrinfo for AF_UNIX connections.
+			 * channel_connect_ctx_free() must check ai_family
+			 * and use free() not freeaddirinfo() for AF_UNIX.
+			 * This will allocate enough space to hold the name as well as
+			 * a terminating NUL byte, even though it is not necessary for
+			 * abstract names (see below).
+			 */
+			ai = xcalloc(1, sizeof(*ai) + addrlen);
+			ai->ai_family = AF_UNIX;
+			ai->ai_socktype = socktype;
+			ai->ai_protocol = PF_UNSPEC;
+			ai->ai_addrlen = addrlen;
+			ai->ai_addr = (struct sockaddr *)(ai + 1);
+
+			sunaddr = (struct sockaddr_un *)ai->ai_addr;
+			sunaddr->sun_family = AF_UNIX;
+			memcpy(sunaddr->sun_path, name, name_length);
+			if (sunaddr->sun_path[0] == '@') {
+				/* UNIX domain socket with abstract name */
+				sunaddr->sun_path[0] = '\0';
+				/*
+				 * NUL bytes are allowed everywhere within an abstract name,
+				 * including at the end of the name:
+				 * `foobar` and `foobar\0` are different valid abstract names,
+				 * thus `ai_addrlen` MUST NOT include a terminal NUL.
+				 */
+				ai->ai_addrlen -= 1;
+			}
+		} else {
 			error("%.100s: %.100s", name, strerror(ENAMETOOLONG));
 			return -1;
 		}
 
-		/*
-		 * Fake up a struct addrinfo for AF_UNIX connections.
-		 * channel_connect_ctx_free() must check ai_family
-		 * and use free() not freeaddirinfo() for AF_UNIX.
-		 */
-		ai = xcalloc(1, sizeof(*ai) + sizeof(*sunaddr));
-		ai->ai_addr = (struct sockaddr *)(ai + 1);
-		ai->ai_addrlen = sizeof(*sunaddr);
-		ai->ai_family = AF_UNIX;
-		ai->ai_socktype = socktype;
-		ai->ai_protocol = PF_UNSPEC;
-		sunaddr = (struct sockaddr_un *)ai->ai_addr;
-		sunaddr->sun_family = AF_UNIX;
-		strlcpy(sunaddr->sun_path, name, sizeof(sunaddr->sun_path));
 		cctx->aitop = ai;
 	} else {
 		memset(&hints, 0, sizeof(hints));
@@ -5173,6 +5230,7 @@ connect_local_xsocket_path(const char *pathname)
 {
 	int sock;
 	struct sockaddr_un addr;
+	size_t pathname_length;
 
 	sock = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (sock == -1) {
@@ -5181,11 +5239,26 @@ connect_local_xsocket_path(const char *pathname)
 	}
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	strlcpy(addr.sun_path, pathname, sizeof addr.sun_path);
+
+	pathname_length = strlen(pathname);
+	if (pathname_length < sizeof(addr.sun_path)) {
+		memcpy(addr.sun_path, pathname, pathname_length);
+		if (addr.sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			addr.sun_path[0] = '\0';
+		}
+	} else {
+		error("Pathname '%s' too long (>= %zu bytes) for UNIX domain socket",
+		      pathname, sizeof(addr.sun_path));
+		return -1;
+	}
+
 	if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0)
 		return sock;
 	close(sock);
-	error("connect %.100s: %.100s", addr.sun_path, strerror(errno));
+
+	/* Don’t use `addr.sun_path`, because abstract names start with NUL */
+	error("connect %.100s: %.100s", pathname, strerror(errno));
 	return -1;
 }
 
