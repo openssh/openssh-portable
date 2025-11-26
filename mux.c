@@ -1259,7 +1259,7 @@ mux_tty_alloc_failed(struct ssh *ssh, Channel *c)
 	sshbuf_free(m);
 }
 
-/* Prepare a mux master to listen on a Unix domain socket. */
+/* Prepare a mux master to listen on a UNIX domain socket. */
 void
 muxserver_listen(struct ssh *ssh)
 {

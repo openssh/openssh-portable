@@ -47,7 +47,7 @@
  * EGD/PRNGD interface.
  *
  * Collect 'len' bytes of entropy into 'buf' from PRNGD/EGD daemon
- * listening either on 'tcp_port', or via Unix domain socket at *
+ * listening either on 'tcp_port', or via UNIX domain socket at *
  * 'socket_path'.
  * Either a non-zero tcp_port or a non-null socket_path must be
  * supplied.

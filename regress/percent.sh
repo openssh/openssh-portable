@@ -63,7 +63,7 @@ trial()
 		;;
 	*forward)
 		# LocalForward and RemoteForward take two args and only
-		# operate on Unix domain socket paths
+		# operate on UNIX domain socket paths
 		got=`${SSH} -F $OBJ/ssh_proxy -o $opt="/$arg /$arg" -G \
 		    remuser@somehost | awk '$1=="'$opt'"{print $2" "$3}'`
 		expect="/$expect /$expect"
@@ -180,4 +180,3 @@ trial user "$FOO" "$FOO"
 # Control characters expanded from config aren't.
 ${SSH} -F $OBJ/ssh_proxy -G '-oUser=${FOO}' somehost && \
     fail "user expanded ctrl"
-

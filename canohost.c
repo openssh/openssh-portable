@@ -105,10 +105,10 @@ get_socket_address(int sock, int remote, int flags)
 		}
 		return xstrdup(ntop);
 	case AF_UNIX:
-		/* Get the Unix domain socket path. */
+		/* Get the UNIX domain socket path. */
 		return xstrdup(((struct sockaddr_un *)&addr)->sun_path);
 	default:
-		/* We can't look up remote Unix domain sockets. */
+		/* We can't look up remote UNIX domain sockets. */
 		return NULL;
 	}
 }

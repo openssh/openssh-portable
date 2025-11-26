@@ -1987,7 +1987,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 	sunaddr.sun_family = AF_UNIX;
 	if (strlcpy(sunaddr.sun_path, path,
 	    sizeof(sunaddr.sun_path)) >= sizeof(sunaddr.sun_path)) {
-		error_f("path \"%s\" too long for Unix domain socket", path);
+		error_f("path \"%s\" too long for UNIX domain socket", path);
 		errno = ENAMETOOLONG;
 		return -1;
 	}

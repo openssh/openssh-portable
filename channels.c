@@ -4505,7 +4505,7 @@ channel_request_rforward_cancel_tcpip(struct ssh *ssh,
 }
 
 /*
- * Request cancellation of remote forwarding of Unix domain socket
+ * Request cancellation of remote forwarding of UNIX domain socket
  * path from local side.
  */
 static int
@@ -5104,7 +5104,7 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 				if ((errno != EINVAL) && (errno != EAFNOSUPPORT)
 #ifdef EPFNOSUPPORT
 				    && (errno != EPFNOSUPPORT)
-#endif 
+#endif
 				    ) {
 					error("socket: %.100s", strerror(errno));
 					freeaddrinfo(aitop);
@@ -5264,12 +5264,12 @@ x11_connect_display(struct ssh *ssh)
 	}
 #endif
 	/*
-	 * Check if it is a unix domain socket.  Unix domain displays are in
+	 * Check if it is a UNIX domain socket.  Unix domain displays are in
 	 * one of the following formats: unix:d[.s], :d[.s], ::d[.s]
 	 */
 	if (strncmp(display, "unix:", 5) == 0 ||
 	    display[0] == ':') {
-		/* Connect to the unix domain socket. */
+		/* Connect to the UNIX domain socket. */
 		if (sscanf(strrchr(display, ':') + 1, "%u",
 		    &display_number) != 1) {
 			error("Could not parse display number from DISPLAY: "

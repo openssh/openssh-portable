@@ -115,7 +115,7 @@ unix_listener_tmp(char *path, int backlog)
 
 		if (strlcpy(sunaddr.sun_path, path,
 		    sizeof(sunaddr.sun_path)) >= sizeof(sunaddr.sun_path)) {
-			error_f("path \"%s\" too long for Unix domain socket",
+			error_f("path \"%s\" too long for UNIX domain socket",
 			    path);
 			break;
 		}
@@ -144,7 +144,7 @@ unix_listener_tmp(char *path, int backlog)
 	}
 	umask(prev_mask);
 	if (good) {
-		debug3_f("listening on unix socket \"%s\" as fd=%d",
+		debug3_f("listening on UNIX domain socket \"%s\" as fd=%d",
 		    path, sock);
 	} else if (sock != -1) {
 		close(sock);
