@@ -134,6 +134,7 @@ initialize_server_options(ServerOptions *options)
 	options->gss_cleanup_creds = -1;
 	options->gss_deleg_creds = -1;
 	options->gss_strict_acceptor = -1;
+	options->gss_indicators = NULL;
 	options->password_authentication = -1;
 	options->kbd_interactive_authentication = -1;
 	options->permit_empty_passwd = -1;
@@ -526,6 +527,7 @@ fill_default_server_options(ServerOptions *options)
 	CLEAR_ON_NONE(options->routing_domain);
 	CLEAR_ON_NONE(options->host_key_agent);
 	CLEAR_ON_NONE(options->per_source_penalty_exempt);
+	CLEAR_ON_NONE(options->gss_indicators);
 
 	for (i = 0; i < options->num_host_key_files; i++)
 		CLEAR_ON_NONE(options->host_key_files[i]);
@@ -563,6 +565,7 @@ typedef enum {
 	sPerSourcePenalties, sPerSourcePenaltyExemptList,
 	sClientAliveInterval, sClientAliveCountMax, sAuthorizedKeysFile,
 	sGssAuthentication, sGssCleanupCreds, sGssDelegateCreds, sGssStrictAcceptor,
+	sGssIndicators,
 	sAcceptEnv, sSetEnv, sPermitTunnel,
 	sMatch, sPermitOpen, sPermitListen, sForceCommand, sChrootDirectory,
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
@@ -650,11 +653,13 @@ static struct {
 	{ "gssapicleanupcredentials", sGssCleanupCreds, SSHCFG_GLOBAL },
 	{ "gssapidelegatecredentials", sGssDelegateCreds, SSHCFG_GLOBAL },
 	{ "gssapistrictacceptorcheck", sGssStrictAcceptor, SSHCFG_GLOBAL },
+	{ "gssapiindicators", sGssIndicators, SSHCFG_ALL },
 #else
 	{ "gssapiauthentication", sUnsupported, SSHCFG_ALL },
 	{ "gssapicleanupcredentials", sUnsupported, SSHCFG_GLOBAL },
 	{ "gssapidelegatecredentials", sUnsupported, SSHCFG_GLOBAL },
 	{ "gssapistrictacceptorcheck", sUnsupported, SSHCFG_GLOBAL },
+	{ "gssapiindicators", sUnsupported, SSHCFG_ALL },
 #endif
 	{ "passwordauthentication", sPasswordAuthentication, SSHCFG_ALL },
 	{ "kbdinteractiveauthentication", sKbdInteractiveAuthentication, SSHCFG_ALL },
@@ -1659,6 +1664,15 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 	case sGssStrictAcceptor:
 		intptr = &options->gss_strict_acceptor;
 		goto parse_flag;
+
+	case sGssIndicators:
+		arg = argv_next(&ac, &av);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: %s missing argument.",
+			    filename, linenum, keyword);
+		if (options->gss_indicators == NULL)
+			options->gss_indicators = xstrdup(arg);
+		break;
 
 	case sPasswordAuthentication:
 		intptr = &options->password_authentication;
@@ -3277,6 +3291,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sGssCleanupCreds, o->gss_cleanup_creds);
 	dump_cfg_fmtint(sGssDelegateCreds, o->gss_deleg_creds);
 	dump_cfg_fmtint(sGssStrictAcceptor, o->gss_strict_acceptor);
+	dump_cfg_string(sGssIndicators, o->gss_indicators);
 #endif
 	dump_cfg_fmtint(sPasswordAuthentication, o->password_authentication);
 	dump_cfg_fmtint(sKbdInteractiveAuthentication,
