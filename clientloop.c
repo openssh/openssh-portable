@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.417 2025/10/16 00:00:36 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.418 2025/11/27 02:18:48 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1125,6 +1125,7 @@ static struct escape_help_text esc_txt[] = {
 	SUPPRESS_MUXCLIENT},
     {"B",  "send a BREAK to the remote system", SUPPRESS_NEVER},
     {"C",  "open a command line", SUPPRESS_MUXCLIENT|SUPPRESS_NOCMDLINE},
+    {"I",  "show connection information", SUPPRESS_NEVER},
     {"R",  "request rekey", SUPPRESS_NEVER},
     {"V/v",  "decrease/increase verbosity (LogLevel)", SUPPRESS_MUXCLIENT},
     {"^Z", "suspend ssh", SUPPRESS_MUXCLIENT},
@@ -1245,6 +1246,16 @@ process_escapes(struct ssh *ssh, Channel *c,
 				if ((r = sshpkt_put_u32(ssh, 1000)) != 0 ||
 				    (r = sshpkt_send(ssh)) != 0)
 					fatal_fr(r, "send packet");
+				continue;
+
+			case 'I':
+				if ((r = sshbuf_putf(berr, "%cI\r\n",
+				    efc->escape_char)) != 0)
+					fatal_fr(r, "sshbuf_putf");
+				s = connection_info_message(ssh);
+				if ((r = sshbuf_put(berr, s, strlen(s))) != 0)
+					fatal_fr(r, "sshbuf_put");
+				free(s);
 				continue;
 
 			case 'R':

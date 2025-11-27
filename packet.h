@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.103 2025/09/25 06:33:19 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.104 2025/11/27 02:18:48 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -210,6 +210,7 @@ int	sshpkt_get_bignum2(struct ssh *ssh, BIGNUM **valp);
 int	sshpkt_get_end(struct ssh *ssh);
 void	sshpkt_fmt_connection_id(struct ssh *ssh, char *s, size_t l);
 const u_char	*sshpkt_ptr(struct ssh *, size_t *lenp);
+char	*connection_info_message(struct ssh *ssh);
 
 #if !defined(WITH_OPENSSL)
 # undef BIGNUM
