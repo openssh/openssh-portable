@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.325 2025/11/29 05:00:50 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.326 2025/11/29 06:49:56 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2978,6 +2978,7 @@ connection_info_message(struct ssh *ssh)
 {
 	char *ret = NULL, *cipher = NULL, *mac = NULL, *comp = NULL;
 	char *rekey_volume = NULL, *rekey_time = NULL, *comp_info = NULL;
+	char thishost[NI_MAXHOST] = "unknown", *tcp_info = NULL;
 	struct kex *kex;
 	struct session_state *state;
 	struct newkeys *nk_in, *nk_out;
@@ -2988,6 +2989,17 @@ connection_info_message(struct ssh *ssh)
 		return NULL;
 	state = ssh->state;
 	kex = ssh->kex;
+
+	(void)gethostname(thishost, sizeof(thishost));
+
+	if (ssh_local_port(ssh) != 65535 ||
+	     strcmp(ssh_local_ipaddr(ssh), "UNKNOWN") != 0) {
+		xasprintf(&tcp_info, "  tcp %s:%d -> %s:%d\r\n",
+		    ssh_local_ipaddr(ssh), ssh_local_port(ssh),
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
+	} else {
+		tcp_info = xstrdup("");
+	}
 
 	nk_in = ssh->state->newkeys[MODE_IN];
 	nk_out = ssh->state->newkeys[MODE_OUT];
@@ -3026,19 +3038,22 @@ connection_info_message(struct ssh *ssh)
 	}
 	comp_info = comp_status_message(ssh);
 
-	xasprintf(&ret, "Connection information for peer %s port %d:\r\n"
+	xasprintf(&ret, "Connection information for %s pid %lld:\r\n"
+	    "%s"
 	    "  kexalgorithm %s\r\n  hostkeyalgorithm %s\r\n"
 	    "  cipher %s\r\n  mac %s\r\n  compression %s\r\n"
 	    "  rekey %s %s\r\n"
 	    "  traffic %s in, %s out\r\n"
 	    "%s",
-	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+	    thishost, (long long)getpid(),
+	    tcp_info,
 	    kex->name, kex->hostkey_alg,
 	    cipher, mac, comp,
 	    rekey_volume, rekey_time,
 	    stats_in, stats_out,
 	    comp_info
 	);
+	free(tcp_info);
 	free(cipher);
 	free(mac);
 	free(comp);
