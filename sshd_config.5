@@ -439,7 +439,7 @@ The available channel type names include:
 Open connections to
 .Xr ssh-agent 1 .
 .It Cm direct-tcpip , Cm direct-streamlocal@openssh.com
-Open TCP or Unix socket (respectively) connections that have
+Open TCP or UNIX domain socket (respectively) connections that have
 been established from an
 .Xr ssh 1
 local forwarding, i.e.\&
@@ -447,7 +447,7 @@ local forwarding, i.e.\&
 or
 .Cm DynamicForward .
 .It Cm forwarded-tcpip , Cm forwarded-streamlocal@openssh.com
-Open TCP or Unix socket (respectively) connections that have been
+Open TCP or UNIX domain socket (respectively) connections that have been
 established to an
 .Xr sshd 8
 listening on behalf of an

@@ -369,21 +369,21 @@ Disables forwarding (delegation) of GSSAPI credentials to the server.
 .Ar local_socket : remote_socket
 .Sm on
 .Xc
-Specifies that connections to the given TCP port or Unix socket on the local
-(client) host are to be forwarded to the given host and port, or Unix socket,
-on the remote side.
+Specifies that connections to the given TCP port or UNIX domain socket on the
+local (client) host are to be forwarded to the given host and port, or UNIX
+domain socket, on the remote side.
 This works by allocating a socket to listen to either a TCP
 .Ar port
 on the local side, optionally bound to the specified
 .Ar bind_address ,
-or to a Unix socket.
+or to a UNIX domain socket.
 Whenever a connection is made to the local port or socket, the
 connection is forwarded over the secure channel, and a connection is
 made to either
 .Ar host
 port
 .Ar hostport ,
-or the Unix socket
+or the UNIX domain socket
 .Ar remote_socket ,
 from the remote machine.
 .Pp
@@ -689,13 +689,13 @@ Causes most warning and diagnostic messages to be suppressed.
 .Ar port
 .Sm on
 .Xc
-Specifies that connections to the given TCP port or Unix socket on the remote
-(server) host are to be forwarded to the local side.
+Specifies that connections to the given TCP port or UNIX domain socket on the
+remote (server) host are to be forwarded to the local side.
 .Pp
 This works by allocating a socket to listen to either a TCP
 .Ar port
-or to a Unix socket on the remote side.
-Whenever a connection is made to this port or Unix socket, the
+or to a UNIX domain socket on the remote side.
+Whenever a connection is made to this port or UNIX domain socket, the
 connection is forwarded over the secure channel, and a connection
 is made from the local machine to either an explicit destination specified by
 .Ar host

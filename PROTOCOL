@@ -282,14 +282,14 @@ The contents of the "data" field for layer 2 packets is:
 The "frame" field contains an IEEE 802.3 Ethernet frame, including
 header.
 
-2.4. connection: Unix domain socket forwarding
+2.4. connection: UNIX domain socket forwarding
 
-OpenSSH supports local and remote Unix domain socket forwarding
+OpenSSH supports local and remote UNIX domain socket forwarding
 using the "streamlocal" extension.  Forwarding is initiated as per
 TCP sockets but with a single path instead of a host and port.
 
 Similar to direct-tcpip, direct-streamlocal is sent by the client
-to request that the server make a connection to a Unix domain socket.
+to request that the server make a connection to a UNIX domain socket.
 
 	byte		SSH_MSG_CHANNEL_OPEN
 	string		"direct-streamlocal@openssh.com"
@@ -318,7 +318,7 @@ information about the socket file, such as ownership and mode.
 The client currently sends the empty string for this field.
 
 Similar to tcpip-forward, streamlocal-forward is sent by the client
-to request remote forwarding of a Unix domain socket.
+to request remote forwarding of a UNIX domain socket.
 
 	byte		SSH2_MSG_GLOBAL_REQUEST
 	string		"streamlocal-forward@openssh.com"
@@ -326,7 +326,7 @@ to request remote forwarding of a Unix domain socket.
 	string		socket path
 
 Similar to cancel-tcpip-forward, cancel-streamlocal-forward is sent
-by the client cancel the forwarding of a Unix domain socket.
+by the client cancel the forwarding of a UNIX domain socket.
 
 	byte		SSH2_MSG_GLOBAL_REQUEST
 	string		"cancel-streamlocal-forward@openssh.com"
@@ -710,7 +710,7 @@ format is described in the PROTOCOL.krl file.
 5.4 Connection multiplexing
 
 OpenSSH's connection multiplexing uses messages as described in
-PROTOCOL.mux over a Unix domain socket for communications between a
+PROTOCOL.mux over a UNIX domain socket for communications between a
 master instance and later clients.
 
 5.5. Agent protocol extensions

@@ -292,7 +292,7 @@ case "${TARGET_HOST}" in
 	;;
     minix3)
 	CONFIGFLAGS="${CONFIGFLAGS} --disable-security-key"
-	# Unix domain sockets don't work quite like we expect, so also
+	# UNIX domain sockets don't work quite like we expect, so also
 	# disable FD passing (and thus multiplexing).
 	CONFIGFLAGS="${CONFIGFLAGS} --disable-fd-passing"
 	LIBCRYPTOFLAGS="--without-openssl"

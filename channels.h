@@ -167,7 +167,7 @@ struct Channel {
 	struct sshbuf *extended;
 
 	char    *path;
-		/* path for unix domain sockets, or host name for forwards */
+		/* path for UNIX domain sockets, or host name for forwards */
 	int     listening_port;	/* port being listened for forwards */
 	char   *listening_addr;	/* addr being listened for forwards */
 	int     host_port;	/* remote port to connect for forwards */

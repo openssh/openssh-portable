@@ -73,11 +73,6 @@
 #define WONT	252
 #define WILL	251
 
-#ifndef SUN_LEN
-#define SUN_LEN(su) \
-	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
-#endif
-
 #define PORT_MAX	65535
 #define PORT_MAX_LEN	6
 #define UNIX_DG_TMP_SOCKET_SIZE	19
@@ -349,7 +344,7 @@ main(int argc, char *argv[])
 			errx(1, "no proxy support for listen");
 
 		if (family == AF_UNIX)
-			errx(1, "no proxy support for unix sockets");
+			errx(1, "no proxy support for UNIX domain sockets");
 
 		/* XXX IPv6 transport to proxy would probably work */
 		if (family == AF_INET6)
@@ -516,15 +511,16 @@ main(int argc, char *argv[])
 
 /*
  * unix_bind()
- * Returns a unix socket bound to the given path
+ * Returns a UNIX domain socket bound to the given path
  */
 int
 unix_bind(char *path)
 {
 	struct sockaddr_un sun_sa;
 	int s;
+	size_t path_length;
 
-	/* Create unix domain socket. */
+	/* Create UNIX domain socket. */
 	if ((s = socket(AF_UNIX, uflag ? SOCK_DGRAM : SOCK_STREAM,
 	     0)) < 0)
 		return (-1);
@@ -532,14 +528,20 @@ unix_bind(char *path)
 	memset(&sun_sa, 0, sizeof(struct sockaddr_un));
 	sun_sa.sun_family = AF_UNIX;
 
-	if (strlcpy(sun_sa.sun_path, path, sizeof(sun_sa.sun_path)) >=
-	    sizeof(sun_sa.sun_path)) {
+	path_length = strlen(path);
+	if (path_length < sizeof(sun_sa.sun_path)) {
+		memcpy(sun_sa.sun_path, path, path_length);
+		if (sun_sa.sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			sun_sa.sun_path[0] = '\0';
+		}
+	} else {
 		close(s);
 		errno = ENAMETOOLONG;
 		return (-1);
 	}
 
-	if (bind(s, (struct sockaddr *)&sun_sa, SUN_LEN(&sun_sa)) < 0) {
+	if (bind(s, (struct sockaddr *)&sun_sa, sizeof(struct sockaddr_un)) < 0) {
 		close(s);
 		return (-1);
 	}
@@ -548,13 +550,14 @@ unix_bind(char *path)
 
 /*
  * unix_connect()
- * Returns a socket connected to a local unix socket. Returns -1 on failure.
+ * Returns a socket connected to a local UNIX domain socket. Returns -1 on failure.
  */
 int
 unix_connect(char *path)
 {
 	struct sockaddr_un sun_sa;
 	int s;
+	size_t path_length;
 
 	if (uflag) {
 		if ((s = unix_bind(unix_dg_tmp_socket)) < 0)
@@ -568,13 +571,20 @@ unix_connect(char *path)
 	memset(&sun_sa, 0, sizeof(struct sockaddr_un));
 	sun_sa.sun_family = AF_UNIX;
 
-	if (strlcpy(sun_sa.sun_path, path, sizeof(sun_sa.sun_path)) >=
-	    sizeof(sun_sa.sun_path)) {
+	path_length = strlen(path);
+	if (path_length < sizeof(sun_sa.sun_path)) {
+		memcpy(sun_sa.sun_path, path, path_length);
+		if (sun_sa.sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			sun_sa.sun_path[0] = '\0';
+		}
+	} else {
 		close(s);
 		errno = ENAMETOOLONG;
 		return (-1);
 	}
-	if (connect(s, (struct sockaddr *)&sun_sa, SUN_LEN(&sun_sa)) < 0) {
+
+	if (connect(s, (struct sockaddr *)&sun_sa, sizeof(struct sockaddr_un)) < 0) {
 		close(s);
 		return (-1);
 	}
@@ -584,7 +594,7 @@ unix_connect(char *path)
 
 /*
  * unix_listen()
- * Create a unix domain socket, and listen on it.
+ * Create a UNIX domain socket, and listen on it.
  */
 int
 unix_listen(char *path)
@@ -1271,10 +1281,10 @@ report_connect(const struct sockaddr *sa, socklen_t salen)
 	char remote_port[NI_MAXSERV];
 	int herr;
 	int flags = NI_NUMERICSERV;
-	
+
 	if (nflag)
 		flags |= NI_NUMERICHOST;
-	
+
 	if ((herr = getnameinfo(sa, salen,
 	    remote_host, sizeof(remote_host),
 	    remote_port, sizeof(remote_port),
@@ -1284,7 +1294,7 @@ report_connect(const struct sockaddr *sa, socklen_t salen)
 		else
 			errx(1, "getnameinfo: %s", gai_strerror(herr));
 	}
-	
+
 	fprintf(stderr,
 	    "Connection from %s %s "
 	    "received!\n", remote_host, remote_port);
@@ -1530,7 +1540,7 @@ socks_connect(const char *host, const char *port,
 			buf[2] = 0;
 			buf[3] = SOCKS_DOMAIN;
 			buf[4] = hlen;
-			memcpy(buf + 5, host, hlen);			
+			memcpy(buf + 5, host, hlen);
 			memcpy(buf + 5 + hlen, &serverport, sizeof serverport);
 			wlen = 7 + hlen;
 			break;
@@ -1693,4 +1703,3 @@ socks_connect(const char *host, const char *port,
 
 	return (proxyfd);
 }
-

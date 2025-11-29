@@ -531,7 +531,7 @@ The available channel type names include:
 Open connections to
 .Xr ssh-agent 1 .
 .It Cm direct-tcpip , Cm direct-streamlocal@openssh.com
-Open TCP or Unix socket (respectively) connections that have
+Open TCP or UNIX domain socket (respectively) connections that have
 been established from an
 .Xr ssh 1
 local forwarding, i.e.\&
@@ -539,7 +539,7 @@ local forwarding, i.e.\&
 or
 .Cm DynamicForward .
 .It Cm forwarded-tcpip , Cm forwarded-streamlocal@openssh.com
-Open TCP or Unix socket (respectively) connections that have been
+Open TCP or UNIX domain socket (respectively) connections that have been
 established to an
 .Xr sshd 8
 listening on behalf of an
@@ -1389,10 +1389,10 @@ For a TCP port, the first argument must be
 .Sm off
 .Oo Ar bind_address : Oc Ar port
 .Sm on
-or a Unix domain socket path.
+or a UNIX domain socket path.
 The second argument is the destination and may be
 .Ar host : Ns Ar hostport
-or a Unix domain socket path if the remote host supports it.
+or a UNIX domain socket path if the remote host supports it.
 .Pp
 IPv6 addresses can be specified by enclosing addresses in square brackets.
 .Pp
@@ -1417,7 +1417,7 @@ indicates that the listening port be bound for local use only, while an
 empty address or
 .Sq *
 indicates that the port should be available from all interfaces.
-Unix domain socket paths may use the tokens described in the
+UNIX domain socket paths may use the tokens described in the
 .Sx TOKENS
 section and environment variables as described in the
 .Sx ENVIRONMENT VARIABLES
@@ -1768,10 +1768,10 @@ The first argument is the listening specification and may be
 .Sm off
 .Oo Ar bind_address : Oc Ar port
 .Sm on
-or, if the remote host supports it, a Unix domain socket path.
+or, if the remote host supports it, a UNIX domain socket path.
 If forwarding to a specific destination then the second argument must be
 .Ar host : Ns Ar hostport
-or a Unix domain socket path,
+or a UNIX domain socket path,
 otherwise if no destination argument is specified then the remote forwarding
 will be established as a SOCKS proxy.
 When acting as a SOCKS proxy, the destination of the connection can be
@@ -1788,7 +1788,7 @@ Multiple forwardings may be specified, and additional
 forwardings can be given on the command line.
 Privileged ports can be forwarded only when
 logging in as root on the remote machine.
-Unix domain socket paths may use the tokens described in the
+UNIX domain socket paths may use the tokens described in the
 .Sx TOKENS
 section and environment variables as described in the
 .Sx ENVIRONMENT VARIABLES
@@ -2429,7 +2429,7 @@ The keywords
 .Cm LocalForward
 and
 .Cm RemoteForward
-support environment variables only for Unix domain socket paths.
+support environment variables only for UNIX domain socket paths.
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa ~/.ssh/config
