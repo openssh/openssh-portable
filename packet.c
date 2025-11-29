@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.324 2025/11/27 02:18:48 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.325 2025/11/29 05:00:50 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2935,11 +2935,49 @@ dedupe_alg_names(const char *in, const char *out)
 	return names;
 }
 
+static char *
+comp_status_message(struct ssh *ssh)
+{
+#ifdef WITH_ZLIB
+	char *ret = NULL;
+	struct session_state *state = ssh->state;
+	unsigned long long iraw = 0, icmp = 0, oraw = 0, ocmp = 0;
+	char iraw_f[FMT_SCALED_STRSIZE] = "", oraw_f[FMT_SCALED_STRSIZE] = "";
+	char icmp_f[FMT_SCALED_STRSIZE] = "", ocmp_f[FMT_SCALED_STRSIZE] = "";
+
+	if (state->compression_buffer) {
+		if (state->compression_in_started) {
+			iraw = state->compression_in_stream.total_out;
+			icmp = state->compression_in_stream.total_in;
+			if (fmt_scaled(iraw, iraw_f) != 0)
+				strlcpy(iraw_f, "OVERFLOW", sizeof(iraw_f));
+			if (fmt_scaled(icmp, icmp_f) != 0)
+				strlcpy(icmp_f, "OVERFLOW", sizeof(icmp_f));
+		}
+		if (state->compression_out_started) {
+			oraw = state->compression_out_stream.total_in;
+			ocmp = state->compression_out_stream.total_out;
+			if (fmt_scaled(oraw, oraw_f) != 0)
+				strlcpy(oraw_f, "OVERFLOW", sizeof(oraw_f));
+			if (fmt_scaled(ocmp, ocmp_f) != 0)
+				strlcpy(ocmp_f, "OVERFLOW", sizeof(ocmp_f));
+		}
+		xasprintf(&ret,
+		    "    compressed %s/%s (*%.3f) in,"
+		    " %s/%s (*%.3f) out\r\n",
+		    icmp_f, iraw_f, iraw == 0 ? 0.0 : (double)icmp / iraw,
+		    ocmp_f, oraw_f, oraw == 0 ? 0.0 : (double)ocmp / oraw);
+		return ret;
+	}
+#endif	/* WITH_ZLIB */
+	return xstrdup("");
+}
+
 char *
 connection_info_message(struct ssh *ssh)
 {
 	char *ret = NULL, *cipher = NULL, *mac = NULL, *comp = NULL;
-	char *rekey_volume = NULL, *rekey_time = NULL;
+	char *rekey_volume = NULL, *rekey_time = NULL, *comp_info = NULL;
 	struct kex *kex;
 	struct session_state *state;
 	struct newkeys *nk_in, *nk_out;
@@ -2986,17 +3024,20 @@ connection_info_message(struct ssh *ssh)
 		xasprintf(&rekey_time, "interval %s, next %s",
 		    fmt_timeframe(state->rekey_interval), rekey_next);
 	}
+	comp_info = comp_status_message(ssh);
 
 	xasprintf(&ret, "Connection information for peer %s port %d:\r\n"
 	    "  kexalgorithm %s\r\n  hostkeyalgorithm %s\r\n"
 	    "  cipher %s\r\n  mac %s\r\n  compression %s\r\n"
 	    "  rekey %s %s\r\n"
-	    "  traffic %s in, %s out\r\n",
+	    "  traffic %s in, %s out\r\n"
+	    "%s",
 	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 	    kex->name, kex->hostkey_alg,
 	    cipher, mac, comp,
 	    rekey_volume, rekey_time,
-	    stats_in, stats_out
+	    stats_in, stats_out,
+	    comp_info
 	);
 	free(cipher);
 	free(mac);
@@ -3005,6 +3046,7 @@ connection_info_message(struct ssh *ssh)
 	free(stats_out);
 	free(rekey_volume);
 	free(rekey_time);
+	free(comp_info);
 	return ret;
 }
 
