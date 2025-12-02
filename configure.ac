@@ -676,6 +676,8 @@ case "$host" in
 	      CC="`echo $CC | sed 's/-qlanglvl\=ansi//g'`"
 	      CFLAGS="`echo $CFLAGS | sed 's/-qlanglvl\=ansi//g'`"
 	      CPPFLAGS="`echo $CPPFLAGS | sed 's/-qlanglvl\=ansi//g'`"
+		  # Enable ASLR support for AIX
+          LDFLAGS="${LDFLAGS} -Wl,-baslr"
 	    ]
 	)
 
