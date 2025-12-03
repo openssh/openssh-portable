@@ -2,7 +2,7 @@ This document describes the multiplexing protocol used by ssh(1)'s
 ControlMaster connection-sharing.
 
 Multiplexing starts with a ssh(1) configured to act as a multiplexing
-master. This will cause ssh(1) to listen on a Unix domain socket for
+master. This will cause ssh(1) to listen on a UNIX domain socket for
 requests from clients. Clients communicate over this socket using a
 simple packetised protocol, where each message is proceeded with
 a length and message type in SSH uint32 wire format:
@@ -83,7 +83,7 @@ to 0xffffffff. "terminal type" is generally set to the value of
 $TERM. zero or more environment strings may follow the command.
 
 The client then sends its standard input, output and error file
-descriptors (in that order) using Unix domain socket control messages.
+descriptors (in that order) using UNIX domain socket control messages.
 
 The contents of "reserved" are currently ignored.
 
@@ -128,7 +128,7 @@ A client may request the master to establish a stdio forwarding:
 	string	connect port
 
 The client then sends its standard input and output file descriptors
-(in that order) using Unix domain socket control messages.
+(in that order) using UNIX domain socket control messages.
 
 The contents of "reserved" are currently ignored.
 
@@ -172,10 +172,10 @@ A client may request the master to establish a port forward:
 forwarding type may be MUX_FWD_LOCAL, MUX_FWD_REMOTE, MUX_FWD_DYNAMIC.
 
 If listen port is (unsigned int) -2, then the listen host is treated as
-a unix socket path name.
+a UNIX domain socket path name.
 
 If connect port is (unsigned int) -2, then the connect host is treated
-as a unix socket path name.
+as a UNIX domain socket path name.
 
 A server may reply with a MUX_S_OK, a MUX_S_REMOTE_PORT, a
 MUX_S_PERMISSION_DENIED or a MUX_S_FAILURE.

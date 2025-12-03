@@ -117,7 +117,7 @@ cmp ${DATA} ${COPY}	|| fail "corrupted copy of ${DATA}"
 
 ${SSH} -F $OBJ/ssh_config -S $CTL -O exit somehost 2>/dev/null
 
-trace "transfer over chained unix domain socket forwards and check result"
+trace "transfer over chained UNIX domain socket forwards and check result"
 rm -f $OBJ/unix-[123].fwd
 rm -f $CTL $CTL.[123]
 ${SSH} -S $CTL -N -M -f -F $OBJ/ssh_config -R${base}01:[$OBJ/unix-1.fwd] somehost
@@ -133,4 +133,3 @@ ${SSH} -F $OBJ/ssh_config -S $CTL -O exit somehost 2>/dev/null
 ${SSH} -F $OBJ/ssh_config -S $CTL.1 -O exit somehost 2>/dev/null
 ${SSH} -F $OBJ/ssh_config -S $CTL.2 -O exit somehost 2>/dev/null
 ${SSH} -F $OBJ/ssh_config -S $CTL.3 -O exit somehost 2>/dev/null
-

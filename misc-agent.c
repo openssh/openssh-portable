@@ -93,7 +93,7 @@ unix_listener_tmp(char *path, int backlog)
 {
 	struct sockaddr_un sunaddr;
 	int good, sock = -1;
-	size_t i, xstart;
+	size_t i, xstart, path_length;
 	mode_t prev_mask;
 
 	/* Find first 'X' template character back from end of string */
@@ -113,10 +113,16 @@ unix_listener_tmp(char *path, int backlog)
 		}
 		debug_f("trying path \"%s\"", path);
 
-		if (strlcpy(sunaddr.sun_path, path,
-		    sizeof(sunaddr.sun_path)) >= sizeof(sunaddr.sun_path)) {
-			error_f("path \"%s\" too long for Unix domain socket",
-			    path);
+		path_length = strlen(path);
+		if (path_length < sizeof(sunaddr.sun_path)) {
+			memcpy(sunaddr.sun_path, path, path_length);
+			if (sunaddr.sun_path[0] == '@') {
+				/* UNIX domain socket with abstract name */
+				sunaddr.sun_path[0] = '\0';
+			}
+		} else {
+			error_f("path \"%s\" too long (>= %zu bytes) for UNIX domain socket",
+			        path, sizeof(sunaddr.sun_path));
 			break;
 		}
 
@@ -144,7 +150,7 @@ unix_listener_tmp(char *path, int backlog)
 	}
 	umask(prev_mask);
 	if (good) {
-		debug3_f("listening on unix socket \"%s\" as fd=%d",
+		debug3_f("listening on UNIX domain socket \"%s\" as fd=%d",
 		    path, sock);
 	} else if (sock != -1) {
 		close(sock);
@@ -228,15 +234,25 @@ socket_is_stale(const char *path)
 	int fd, r;
 	struct sockaddr_un sunaddr;
 	socklen_t l = sizeof(r);
+	size_t path_length;
 
 	/* attempt non-blocking connect on socket */
 	memset(&sunaddr, '\0', sizeof(sunaddr));
 	sunaddr.sun_family = AF_UNIX;
-	if (strlcpy(sunaddr.sun_path, path,
-	    sizeof(sunaddr.sun_path)) >= sizeof(sunaddr.sun_path)) {
-		debug_f("path for \"%s\" too long for sockaddr_un", path);
+
+	path_length = strlen(path);
+	if (path_length < sizeof(sunaddr.sun_path)) {
+		memcpy(sunaddr.sun_path, path, path_length);
+		if (sunaddr.sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			sunaddr.sun_path[0] = '\0';
+		}
+	} else {
+		debug_f("path \"%s\" too long (>= %zu bytes) for UNIX domain socket",
+		        path, sizeof(sunaddr.sun_path));
 		return 0;
 	}
+
 	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
 		error_f("socket: %s", strerror(errno));
 		return 0;

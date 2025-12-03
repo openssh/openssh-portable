@@ -71,6 +71,8 @@ get_socket_address(int sock, int remote, int flags)
 	socklen_t addrlen;
 	char ntop[NI_MAXHOST];
 	int r;
+	char *sun_path, *sun_path2;
+	size_t sun_path_length;
 
 	if (sock < 0)
 		return NULL;
@@ -105,10 +107,39 @@ get_socket_address(int sock, int remote, int flags)
 		}
 		return xstrdup(ntop);
 	case AF_UNIX:
-		/* Get the Unix domain socket path. */
-		return xstrdup(((struct sockaddr_un *)&addr)->sun_path);
+		/* Get the UNIX domain socket path. */
+		sun_path = ((struct sockaddr_un *)&addr)->sun_path;
+
+		/*
+     * Determine the length of the path without terminating NUL.
+     * Technically, only all-NUL values of `sun_path` are unnamed while
+     * abstract names may contain a NUL byte as second octet, but let’s
+     * assume that only the first octet of abstract names may be NUL.
+     * Abstract names are cursed enough, even worse are arbitrary NUL
+     * bytes in those names we rather don’t want to deal with.
+     */
+		if (sun_path[0] == '\0' && sun_path[1] != '\0') {
+			/* UNIX domain socket with abstract name */
+			sun_path_length = strnlen(sun_path + 1, sizeof(sun_path) - 1) + 1;
+		} else {
+			sun_path_length = strnlen(sun_path, sizeof(sun_path));
+		}
+
+		/*
+		 * Allocate (including NUL) and
+		 * copy path (excluding terminating NUL)
+		 */
+		sun_path2 = xmalloc(sun_path_length + 1);
+		memcpy(sun_path2, sun_path, sun_path_length);
+
+		/* Fix abstract name */
+		if (sun_path[0] == '\0' && sun_path[1] != '\0') {
+			sun_path2[0] = '@';
+		}
+
+		return sun_path2;
 	default:
-		/* We can't look up remote Unix domain sockets. */
+		/* We can't look up remote UNIX domain sockets. */
 		return NULL;
 	}
 }

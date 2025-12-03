@@ -47,7 +47,7 @@
  * EGD/PRNGD interface.
  *
  * Collect 'len' bytes of entropy into 'buf' from PRNGD/EGD daemon
- * listening either on 'tcp_port', or via Unix domain socket at *
+ * listening either on 'tcp_port', or via UNIX domain socket at *
  * 'socket_path'.
  * Either a non-zero tcp_port or a non-null socket_path must be
  * supplied.
@@ -63,13 +63,18 @@ get_random_bytes_prngd(unsigned char *buf, int len,
 	struct sockaddr_in *addr_in = (struct sockaddr_in *)&addr;
 	struct sockaddr_un *addr_un = (struct sockaddr_un *)&addr;
 	sshsig_t old_sigpipe;
+	size_t socket_path_length = 0;
 
 	/* Sanity checks */
-	if (socket_path == NULL && tcp_port == 0)
+	if (socket_path == NULL && tcp_port == 0) {
 		fatal("You must specify a port or a socket");
-	if (socket_path != NULL &&
-	    strlen(socket_path) >= sizeof(addr_un->sun_path))
-		fatal("Random pool path is too long");
+	} else if (socket_path != NULL) {
+		socket_path_length = strlen(socket_path);
+		if (socket_path_length >= sizeof(addr_un->sun_path)) {
+			fatal("Random pool path is too long");
+		}
+	}
+
 	if (len <= 0 || len > 255)
 		fatal("Too many bytes (%d) to read from PRNGD", len);
 
@@ -82,10 +87,12 @@ get_random_bytes_prngd(unsigned char *buf, int len,
 		addr_len = sizeof(*addr_in);
 	} else {
 		addr_un->sun_family = AF_UNIX;
-		strlcpy(addr_un->sun_path, socket_path,
-		    sizeof(addr_un->sun_path));
-		addr_len = offsetof(struct sockaddr_un, sun_path) +
-		    strlen(socket_path) + 1;
+		memcpy(addr_un->sun_path, socket_path, socket_path_length);
+		if (addr_un->sun_path[0] == '@') {
+			/* UNIX domain socket with abstract name */
+			addr_un->sun_path[0] = '\0';
+		}
+		addr_len = sizeof(*addr_un);
 	}
 
 	old_sigpipe = ssh_signal(SIGPIPE, SIG_IGN);

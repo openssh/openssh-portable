@@ -766,7 +766,7 @@ case "$host" in
 	AC_DEFINE([DISABLE_SHADOW], [1],
 		[Define if you want to disable shadow passwords])
 	AC_DEFINE([NO_X11_UNIX_SOCKETS], [1],
-		[Define if X11 doesn't support AF_UNIX sockets on that system])
+		[Define if X11 doesn't support AF_UNIX domain sockets on that system])
 	AC_DEFINE([DISABLE_FD_PASSING], [1],
 		[Define if your platform needs to skip post auth
 		file descriptor passing])
@@ -3536,7 +3536,7 @@ AC_ARG_WITH([prngd-port],
 	]
 )
 
-# PRNGD Unix domain socket
+# PRNGD UNIX domain socket
 AC_ARG_WITH([prngd-socket],
 	[  --with-prngd-socket=FILE read entropy from PRNGD/EGD socket FILE (default=/var/run/egd-pool)],
 	[
