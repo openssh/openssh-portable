@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.135 2025/11/24 23:56:58 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.136 2025/12/05 06:55:22 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -908,6 +908,12 @@ start_sshd ()
 	ln -f -s ${logfile} $TEST_SSHD_LOGFILE
 
 	test -f $PIDFILE || fatal "no sshd running on port $PORT"
+}
+
+enable_all_kexes_in_sshd ()
+{
+       kexs=`$SSH -Q KexAlgorithms | tr '\n' , | sed 's/,$//'`
+       echo KexAlgorithms $kexs >>$OBJ/sshd_config
 }
 
 # Find a PKCS#11 library.
