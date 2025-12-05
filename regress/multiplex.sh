@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.38 2025/12/05 06:55:22 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.39 2025/12/05 08:09:34 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=${SSH_REGRESS_TMP}/ctl-sock
@@ -184,7 +184,7 @@ rm -f $OBJ/unix-1.fwd
 verbose "test $tid: cmd conninfo"
 conninfo=`${SSH} -F $OBJ/ssh_config -S $CTL -Oconninfo otherhost` \
      || fail "request remote forward failed"
-if echo "$conninfo" | ! egrep -- "-> 127.0.0.1:$port" >/dev/null; then
+if ! echo "$conninfo" | egrep -- "-> 127.0.0.1:$port" >/dev/null; then
        fail "conninfo"
 fi
 
