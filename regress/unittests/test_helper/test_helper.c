@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.c,v 1.14 2025/04/15 04:00:42 djm Exp $	*/
+/*	$OpenBSD: test_helper.c,v 1.15 2025/12/05 11:13:35 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -601,6 +601,47 @@ assert_u64(const char *file, int line, const char *a1, const char *a2,
 	    (unsigned long long)aa1, (unsigned long long)aa1);
 	fprintf(stderr, "%12s = 0x%016llx %llu\n", a2,
 	    (unsigned long long)aa2, (unsigned long long)aa2);
+	test_die();
+}
+
+void
+assert_double(const char *file, int line, const char *a1, const char *a2,
+    double aa1, double aa2, enum test_predicate pred)
+{
+	const double epsilon = 0.000000001;
+
+	switch (pred) {
+	case TEST_EQ:
+		if (fabs(aa1 - aa2) < epsilon)
+			return;
+		break;
+	case TEST_NE:
+		if (fabs(aa1 - aa2) >= epsilon)
+			return;
+		break;
+	case TEST_LT:
+		if (aa1 < aa2)
+			return;
+		break;
+	case TEST_LE:
+		if (aa1 <= aa2)
+			return;
+		break;
+	case TEST_GT:
+		if (aa1 > aa2)
+			return;
+		break;
+	case TEST_GE:
+		if (aa1 >= aa2)
+			return;
+		break;
+	default:
+		abort();
+	}
+
+	test_header(file, line, a1, a2, "DOUBLE", pred);
+	fprintf(stderr, "%12s = %f\n", a1, aa1);
+	fprintf(stderr, "%12s = %f\n", a2, aa2);
 	test_die();
 }
 
