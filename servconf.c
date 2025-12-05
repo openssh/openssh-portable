@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.437 2025/11/25 00:52:00 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.438 2025/12/05 07:49:45 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -173,13 +173,13 @@ initialize_server_options(ServerOptions *options)
 	options->per_source_penalty.max_sources6 = -1;
 	options->per_source_penalty.overflow_mode = -1;
 	options->per_source_penalty.overflow_mode6 = -1;
-	options->per_source_penalty.penalty_crash = -1;
-	options->per_source_penalty.penalty_authfail = -1;
-	options->per_source_penalty.penalty_noauth = -1;
-	options->per_source_penalty.penalty_grace = -1;
-	options->per_source_penalty.penalty_refuseconnection = -1;
-	options->per_source_penalty.penalty_max = -1;
-	options->per_source_penalty.penalty_min = -1;
+	options->per_source_penalty.penalty_crash = -1.0;
+	options->per_source_penalty.penalty_authfail = -1.0;
+	options->per_source_penalty.penalty_noauth = -1.0;
+	options->per_source_penalty.penalty_grace = -1.0;
+	options->per_source_penalty.penalty_refuseconnection = -1.0;
+	options->per_source_penalty.penalty_max = -1.0;
+	options->per_source_penalty.penalty_min = -1.0;
 	options->max_authtries = -1;
 	options->max_sessions = -1;
 	options->banner = NULL;
@@ -429,20 +429,20 @@ fill_default_server_options(ServerOptions *options)
 		options->per_source_penalty.overflow_mode = PER_SOURCE_PENALTY_OVERFLOW_PERMISSIVE;
 	if (options->per_source_penalty.overflow_mode6 == -1)
 		options->per_source_penalty.overflow_mode6 = options->per_source_penalty.overflow_mode;
-	if (options->per_source_penalty.penalty_crash == -1)
-		options->per_source_penalty.penalty_crash = 90;
-	if (options->per_source_penalty.penalty_grace == -1)
-		options->per_source_penalty.penalty_grace = 10;
-	if (options->per_source_penalty.penalty_authfail == -1)
-		options->per_source_penalty.penalty_authfail = 5;
-	if (options->per_source_penalty.penalty_noauth == -1)
-		options->per_source_penalty.penalty_noauth = 1;
-	if (options->per_source_penalty.penalty_refuseconnection == -1)
-		options->per_source_penalty.penalty_refuseconnection = 10;
-	if (options->per_source_penalty.penalty_min == -1)
-		options->per_source_penalty.penalty_min = 15;
-	if (options->per_source_penalty.penalty_max == -1)
-		options->per_source_penalty.penalty_max = 600;
+	if (options->per_source_penalty.penalty_crash < 0.0)
+		options->per_source_penalty.penalty_crash = 90.0;
+	if (options->per_source_penalty.penalty_grace < 0.0)
+		options->per_source_penalty.penalty_grace = 10.0;
+	if (options->per_source_penalty.penalty_authfail < 0.0)
+		options->per_source_penalty.penalty_authfail = 5.0;
+	if (options->per_source_penalty.penalty_noauth < 0.0)
+		options->per_source_penalty.penalty_noauth = 1.0;
+	if (options->per_source_penalty.penalty_refuseconnection < 0.0)
+		options->per_source_penalty.penalty_refuseconnection = 10.0;
+	if (options->per_source_penalty.penalty_min < 0.0)
+		options->per_source_penalty.penalty_min = 15.0;
+	if (options->per_source_penalty.penalty_max < 0.0)
+		options->per_source_penalty.penalty_max = 600.0;
 	if (options->max_authtries == -1)
 		options->max_authtries = DEFAULT_AUTH_FAIL_MAX;
 	if (options->max_sessions == -1)
@@ -1315,6 +1315,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 {
 	char *str, ***chararrayptr, **charptr, *arg, *arg2, *p, *keyword;
 	int cmdline = 0, *intptr, value, value2, value3, n, port, oactive, r;
+	double dvalue, *doubleptr = NULL;
 	int ca_only = 0, found = 0;
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
@@ -2085,6 +2086,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			const char *q = NULL;
 
 			found = 1;
+			intptr = NULL;
+			doubleptr = NULL;
 			value = -1;
 			value2 = 0;
 			/* Allow no/yes only in first position */
@@ -2100,19 +2103,19 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 					options->per_source_penalty.enabled = value2;
 				continue;
 			} else if ((q = strprefix(arg, "crash:", 0)) != NULL) {
-				intptr = &options->per_source_penalty.penalty_crash;
+				doubleptr = &options->per_source_penalty.penalty_crash;
 			} else if ((q = strprefix(arg, "authfail:", 0)) != NULL) {
-				intptr = &options->per_source_penalty.penalty_authfail;
+				doubleptr = &options->per_source_penalty.penalty_authfail;
 			} else if ((q = strprefix(arg, "noauth:", 0)) != NULL) {
-				intptr = &options->per_source_penalty.penalty_noauth;
+				doubleptr = &options->per_source_penalty.penalty_noauth;
 			} else if ((q = strprefix(arg, "grace-exceeded:", 0)) != NULL) {
-				intptr = &options->per_source_penalty.penalty_grace;
+				doubleptr = &options->per_source_penalty.penalty_grace;
 			} else if ((q = strprefix(arg, "refuseconnection:", 0)) != NULL) {
-				intptr = &options->per_source_penalty.penalty_refuseconnection;
+				doubleptr = &options->per_source_penalty.penalty_refuseconnection;
 			} else if ((q = strprefix(arg, "max:", 0)) != NULL) {
-				intptr = &options->per_source_penalty.penalty_max;
+				doubleptr = &options->per_source_penalty.penalty_max;
 			} else if ((q = strprefix(arg, "min:", 0)) != NULL) {
-				intptr = &options->per_source_penalty.penalty_min;
+				doubleptr = &options->per_source_penalty.penalty_min;
 			} else if ((q = strprefix(arg, "max-sources4:", 0)) != NULL) {
 				intptr = &options->per_source_penalty.max_sources4;
 				if ((errstr = atoi_err(q, &value)) != NULL)
@@ -2139,15 +2142,24 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				fatal("%s line %d: unsupported %s keyword %s",
 				    filename, linenum, keyword, arg);
 			}
-			/* If no value was parsed above, assume it's a time */
-			if (value == -1 && (value = convtime(q)) == -1) {
-				fatal("%s line %d: invalid %s time value.",
-				    filename, linenum, keyword);
-			}
-			if (*activep && *intptr == -1) {
-				*intptr = value;
-				/* any option implicitly enables penalties */
-				options->per_source_penalty.enabled = 1;
+
+			if (doubleptr != NULL) {
+				if ((dvalue = convtime_double(q)) < 0) {
+					fatal("%s line %d: invalid %s time value.",
+					    filename, linenum, keyword);
+				}
+				if (*activep && *doubleptr < 0.0) {
+					*doubleptr = dvalue;
+					options->per_source_penalty.enabled = 1;
+				}
+			} else if (intptr != NULL) {
+				if (*activep && *intptr == -1) {
+					*intptr = value;
+					options->per_source_penalty.enabled = 1;
+				}
+			} else {
+				fatal_f("%s line %d: internal error",
+				    filename, linenum);
 			}
 		}
 		if (!found) {
@@ -3407,8 +3419,8 @@ dump_config(ServerOptions *o)
 	printf("\n");
 
 	if (o->per_source_penalty.enabled) {
-		printf("persourcepenalties crash:%d authfail:%d noauth:%d "
-		    "grace-exceeded:%d refuseconnection:%d max:%d min:%d "
+		printf("persourcepenalties crash:%f authfail:%f noauth:%f "
+		    "grace-exceeded:%f refuseconnection:%f max:%f min:%f "
 		    "max-sources4:%d max-sources6:%d "
 		    "overflow:%s overflow6:%s\n",
 		    o->per_source_penalty.penalty_crash,
