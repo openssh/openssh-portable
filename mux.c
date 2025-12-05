@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.107 2025/09/30 00:03:09 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.108 2025/12/05 06:16:27 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -122,6 +122,7 @@ struct mux_master_state {
 #define MUX_C_NEW_STDIO_FWD	0x10000008
 #define MUX_C_STOP_LISTENING	0x10000009
 #define MUX_C_PROXY		0x1000000f
+#define MUX_C_EXT_INFO		0x20000001
 #define MUX_S_OK		0x80000001
 #define MUX_S_PERMISSION_DENIED	0x80000002
 #define MUX_S_FAILURE		0x80000003
@@ -131,11 +132,17 @@ struct mux_master_state {
 #define MUX_S_REMOTE_PORT	0x80000007
 #define MUX_S_TTY_ALLOC_FAIL	0x80000008
 #define MUX_S_PROXY		0x8000000f
+#define MUX_S_EXT_INFO		0x90000001
 
 /* type codes for MUX_C_OPEN_FWD and MUX_C_CLOSE_FWD */
 #define MUX_FWD_LOCAL   1
 #define MUX_FWD_REMOTE  2
 #define MUX_FWD_DYNAMIC 3
+
+#define MUX_EXT_INFO		0x00000001
+
+/* Bitmask of supported extensions */
+static u_int extensions = 0;
 
 static void mux_session_confirm(struct ssh *, int, int, void *);
 static void mux_stdio_confirm(struct ssh *, int, int, void *);
@@ -158,6 +165,8 @@ static int mux_master_process_stop_listening(struct ssh *, u_int,
 	    Channel *, struct sshbuf *, struct sshbuf *);
 static int mux_master_process_proxy(struct ssh *, u_int,
 	    Channel *, struct sshbuf *, struct sshbuf *);
+static int mux_master_process_ext_info(struct ssh *, u_int,
+	    Channel *, struct sshbuf *, struct sshbuf *);
 
 static const struct {
 	u_int type;
@@ -173,6 +182,7 @@ static const struct {
 	{ MUX_C_NEW_STDIO_FWD, mux_master_process_stdio_fwd },
 	{ MUX_C_STOP_LISTENING, mux_master_process_stop_listening },
 	{ MUX_C_PROXY, mux_master_process_proxy },
+	{ MUX_C_EXT_INFO, mux_master_process_ext_info },
 	{ 0, NULL }
 };
 
@@ -287,8 +297,13 @@ mux_master_process_hello(struct ssh *ssh, u_int rid,
 			error_fr(r, "parse extension");
 			return -1;
 		}
-		debug2_f("Unrecognised extension \"%s\" length %zu",
-		    name, value_len);
+		if (strcmp(name, "info") == 0) {
+			debug_f("Received 'info' extension");
+			extensions |= MUX_EXT_INFO;
+		} else {
+			debug2_f("Unrecognised extension \"%s\" length %zu",
+			    name, value_len);
+		}
 		free(name);
 	}
 	state->hello_rcvd = 1;
@@ -490,6 +505,39 @@ mux_master_process_alive_check(struct ssh *ssh, u_int rid,
 	    (r = sshbuf_put_u32(reply, rid)) != 0 ||
 	    (r = sshbuf_put_u32(reply, (u_int)getpid())) != 0)
 		fatal_fr(r, "reply");
+
+	return 0;
+}
+
+/* The "info" extension. */
+static int
+mux_master_process_ext_info(struct ssh *ssh, u_int rid,
+    Channel *c, struct sshbuf *m, struct sshbuf *reply)
+{
+	int r;
+	u_int status = 0;
+	char *name = NULL, *msg = NULL;
+
+	debug2_f("channel %d: info request", c->self);
+
+	if ((r = sshbuf_get_cstring(m, &name, NULL)) != 0)
+		fatal_fr(r, "parse");
+
+	if (strcmp(name, "connection") == 0) {
+		if ((msg = connection_info_message(ssh)) == NULL)
+			fatal_f("connection_info_message");
+		status = 1;
+	} else {
+		msg = xstrdup("info request type not supported");
+	}
+
+	/* prepare reply */
+	if ((r = sshbuf_put_u32(reply, MUX_S_EXT_INFO)) != 0 ||
+	    (r = sshbuf_put_u32(reply, rid)) != 0 ||
+	    (r = sshbuf_put_u32(reply, status)) != 0 ||
+	    (r = sshbuf_put_cstring(reply, msg)) != 0)
+		fatal_fr(r, "reply");
+	free(msg);
 
 	return 0;
 }
@@ -1160,7 +1208,10 @@ mux_master_read_cb(struct ssh *ssh, Channel *c)
 		if ((r = sshbuf_put_u32(out, MUX_MSG_HELLO)) != 0 ||
 		    (r = sshbuf_put_u32(out, SSHMUX_VER)) != 0)
 			fatal_fr(r, "reply");
-		/* no extensions */
+		/* "info" extension */
+		if ((r = sshbuf_put_cstring(out, "info")) != 0 ||
+		    (r = sshbuf_put_cstring(out, "0")) != 0)
+			fatal_fr(r, "put info extension");
 		if ((r = sshbuf_put_stringb(c->output, out)) != 0)
 			fatal_fr(r, "enqueue");
 		debug3_f("channel %d: hello sent", c->self);
@@ -1635,7 +1686,13 @@ mux_client_hello_exchange(int fd, int timeout_ms)
 			error_fr(r, "parse extension");
 			goto out;
 		}
-		debug2("Unrecognised master extension \"%s\"", name);
+		/* Process extensions. */
+		if (strcmp(name, "info") == 0) {
+			debug("Received 'info' extension");
+			extensions |= MUX_EXT_INFO;
+		} else {
+			debug2("Unrecognised master extension \"%s\"", name);
+		}
 		free(name);
 	}
 	/* success */
@@ -1694,6 +1751,57 @@ mux_client_request_alive(int fd)
 	muxclient_request_id++;
 
 	return pid;
+}
+
+static char *
+mux_client_request_info(int fd, const char *name)
+{
+	struct sshbuf *m;
+	char *e, *msg;
+	u_int type, rid, status;
+	int r;
+
+	debug3_f("entering");
+
+	if ((m = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new");
+	if ((r = sshbuf_put_u32(m, MUX_C_EXT_INFO)) != 0 ||
+	    (r = sshbuf_put_u32(m, muxclient_request_id)) != 0 ||
+	    (r = sshbuf_put_cstring(m, name)) != 0)
+		fatal_fr(r, "assemble");
+
+	if (mux_client_write_packet(fd, m) != 0)
+		fatal_f("write packet: %s", strerror(errno));
+
+	sshbuf_reset(m);
+
+	/* Read their reply */
+	if (mux_client_read_packet(fd, m) != 0) {
+		sshbuf_free(m);
+		return 0;
+	}
+
+	if ((r = sshbuf_get_u32(m, &type)) != 0)
+		fatal_fr(r, "parse type");
+	if (type != MUX_S_EXT_INFO) {
+		if ((r = sshbuf_get_cstring(m, &e, NULL)) != 0)
+			fatal_fr(r, "parse error message");
+		fatal_f("master returned error: %s", e);
+	}
+
+	if ((r = sshbuf_get_u32(m, &rid)) != 0)
+		fatal_fr(r, "parse remote ID");
+	if (rid != muxclient_request_id)
+		fatal_f("out of sequence reply: my id %u theirs %u",
+		    muxclient_request_id, rid);
+	if ((r = sshbuf_get_u32(m, &status)) != 0 ||
+	    (r = sshbuf_get_cstring(m, &msg, NULL)) != 0)
+		fatal_fr(r, "parse connection info");
+	sshbuf_free(m);
+
+	muxclient_request_id++;
+
+	return msg;
 }
 
 static void
@@ -2261,6 +2369,7 @@ muxclient(const char *path)
 	struct sockaddr_un addr;
 	int sock, timeout = options.connection_timeout, timeout_ms = -1;
 	u_int pid;
+	char *conninfo = NULL;
 
 	if (muxclient_command == 0) {
 		if (options.stdio_forward_host != NULL)
@@ -2330,6 +2439,14 @@ muxclient(const char *path)
 		if ((pid = mux_client_request_alive(sock)) == 0)
 			fatal_f("master alive check failed");
 		fprintf(stderr, "Master running (pid=%u)\r\n", pid);
+		exit(0);
+	case SSHMUX_COMMAND_CONNINFO:
+		if (!(extensions & MUX_EXT_INFO))
+			fatal("mux server does not support conninfo");
+		conninfo = mux_client_request_info(sock, "connection");
+		if (conninfo == NULL)
+			fatal_f("connection info request failed");
+		printf("%s", conninfo);
 		exit(0);
 	case SSHMUX_COMMAND_TERMINATE:
 		mux_client_request_terminate(sock);

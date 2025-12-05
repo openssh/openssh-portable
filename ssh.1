@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.445 2025/11/27 02:18:48 dtucker Exp $
-.Dd $Mdocdate: November 27 2025 $
+.\" $OpenBSD: ssh.1,v 1.446 2025/12/05 06:16:27 dtucker Exp $
+.Dd $Mdocdate: December 5 2025 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -486,6 +486,8 @@ argument is interpreted and passed to the master process.
 Valid commands are:
 .Dq check
 (check that the master process is running),
+.Dq conninfo
+(report information about the master connection),
 .Dq forward
 (request forwardings without command execution),
 .Dq cancel

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.326 2025/11/29 06:49:56 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.327 2025/12/05 06:16:27 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3038,7 +3038,7 @@ connection_info_message(struct ssh *ssh)
 	}
 	comp_info = comp_status_message(ssh);
 
-	xasprintf(&ret, "Connection information for %s pid %lld:\r\n"
+	xasprintf(&ret, "Connection information for %s pid %lld\r\n"
 	    "%s"
 	    "  kexalgorithm %s\r\n  hostkeyalgorithm %s\r\n"
 	    "  cipher %s\r\n  mac %s\r\n  compression %s\r\n"
