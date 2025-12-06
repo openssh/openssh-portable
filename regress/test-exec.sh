@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.136 2025/12/05 06:55:22 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.137 2025/12/06 07:10:24 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -912,7 +912,7 @@ start_sshd ()
 
 enable_all_kexes_in_sshd ()
 {
-       kexs=`$SSH -Q KexAlgorithms | tr '\n' , | sed 's/,$//'`
+       kexs=`$SSH -Q KexAlgorithms | (tr '\n' ,; echo) | sed 's/,$//'`
        echo KexAlgorithms $kexs >>$OBJ/sshd_config
 }
 
