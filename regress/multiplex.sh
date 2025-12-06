@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.39 2025/12/05 08:09:34 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.40 2025/12/06 03:23:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="connection multiplexing"
@@ -198,31 +198,39 @@ kill -0 $SSH_PID >/dev/null 2>&1 && fail "exit command failed"
 
 # Enable compression and alternative kex for next conninfo test.
 if $SSH -Q compression | grep zlib@openssh.com >/dev/null; then
-       echo compression yes >>$OBJ/ssh_config
-       echo kexalgorithms curve25519-sha256 >>$OBJ/ssh_config
-       echo ciphers aes128-ctr >>$OBJ/ssh_config
+	compression=yes
+else
+	compression=no
 fi
+echo compression $compression >>$OBJ/ssh_config
+echo kexalgorithms curve25519-sha256 >>$OBJ/ssh_config
+echo ciphers aes128-ctr >>$OBJ/ssh_config
 
 # Restart master and test -O stop command with master using -N
 verbose "test $tid: cmd stop"
 trace "restart master, fork to background"
 start_mux_master
 
-verbose "test $tid: cmd conninfo compression"
+verbose "test $tid: cmd conninfo algos"
 conninfo=`${SSH} -F $OBJ/ssh_config -S $CTL -Oconninfo otherhost` \
      || fail "request remote forward failed"
-if ! echo "$conninfo" | grep "compression zlib" >/dev/null ||
-    ! echo "$conninfo" | grep "compressed" >/dev/null ||
-    ! echo "$conninfo" | grep "kexalgorithm curve25519-sha256" >/dev/null ||
+if ! echo "$conninfo" | grep "kexalgorithm curve25519-sha256" >/dev/null ||
     ! echo "$conninfo" | grep "cipher aes128-ctr" >/dev/null; then
-       fail "conninfo compression"
+	fail "conninfo algos"
+fi
+if [ "$compression" = "yes" ]; then
+	verbose "test $tid: cmd conninfo compression"
+	if ! echo "$conninfo" | grep "compression zlib" >/dev/null ||
+	    ! echo "$conninfo" | grep "compressed" >/dev/null; then
+		fail "conninfo compression"
+	fi
 fi
 
 # start a long-running command then immediately request a stop
 ${SSH} -F $OBJ/ssh_config -S $CTL otherhost "sleep 10; exit 0" \
      >>$TEST_REGRESS_LOGFILE 2>&1 &
 SLEEP_PID=$!
-${SSH} -F $OBJ/ssh_config -S $CTL -Ostop otherhost >>$TEST_REGRESS_LOGFILE 2>&1 \
+${SSH} -F$OBJ/ssh_config -S$CTL -Ostop otherhost >>$TEST_REGRESS_LOGFILE 2>&1 \
     || fail "send stop command failed"
 
 # wait until both long-running command and master have exited.
