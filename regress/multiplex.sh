@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.40 2025/12/06 03:23:27 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.41 2025/12/07 02:59:53 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="connection multiplexing"
@@ -214,14 +214,18 @@ start_mux_master
 verbose "test $tid: cmd conninfo algos"
 conninfo=`${SSH} -F $OBJ/ssh_config -S $CTL -Oconninfo otherhost` \
      || fail "request remote forward failed"
-if ! echo "$conninfo" | grep "kexalgorithm curve25519-sha256" >/dev/null ||
-    ! echo "$conninfo" | grep "cipher aes128-ctr" >/dev/null; then
+if echo "$conninfo" | grep "kexalgorithm curve25519-sha256" >/dev/null &&
+    echo "$conninfo" | grep "cipher aes128-ctr" >/dev/null; then
+	trace "ok conninfo algos"
+else
 	fail "conninfo algos"
 fi
 if [ "$compression" = "yes" ]; then
 	verbose "test $tid: cmd conninfo compression"
-	if ! echo "$conninfo" | grep "compression zlib" >/dev/null ||
-	    ! echo "$conninfo" | grep "compressed" >/dev/null; then
+	if echo "$conninfo" | grep "compression zlib" >/dev/null &&
+	    echo "$conninfo" | grep "compressed" >/dev/null; then
+		trace "ok conninfo compression"
+	else
 		fail "conninfo compression"
 	fi
 fi
