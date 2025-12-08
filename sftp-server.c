@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.149 2025/09/02 09:26:21 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.150 2025/12/08 00:41:46 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1754,7 +1754,7 @@ process_extended_get_users_groups_by_id(u_int32_t id)
 		debug3_f("gid %u => \"%s\"", n, name);
 		if ((r = sshbuf_put_cstring(groupnames, name)) != 0)
 			fatal_fr(r, "assemble gid reply");
-		nusers++;
+		ngroups++;
 	}
 	verbose("users-groups-by-id: %u users, %u groups", nusers, ngroups);
 
