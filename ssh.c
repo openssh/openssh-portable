@@ -105,6 +105,7 @@
 #include "ssherr.h"
 #include "myproposal.h"
 #include "utf8.h"
+#include "hostfile.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
@@ -1408,6 +1409,7 @@ main(int ac, char **av)
 			options.update_hostkeys = 0;
 		}
 	}
+	hostfile_set_minimum_rsa_size(options.required_rsa_size);
 	if (options.connection_attempts <= 0)
 		fatal("Invalid number of ConnectionAttempts");
 
