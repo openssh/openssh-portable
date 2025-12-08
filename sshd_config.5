@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.386 2025/11/25 01:14:33 djm Exp $
-.Dd $Mdocdate: November 25 2025 $
+.\" $OpenBSD: sshd_config.5,v 1.387 2025/12/08 00:44:16 djm Exp $
+.Dd $Mdocdate: December 8 2025 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -710,6 +710,15 @@ files when used with
 .Cm ChrootDirectory .
 The default is
 .Cm none .
+.Pp
+This directive does not limit other kinds of access that a
+client may request via their connection, such as TCP, agent, socket or
+X11 forwarding.
+If these are not desired, then they must be explicitly disabled, either
+individually via their respective options or all together using the
+.Cm DisableForwarding
+option.
+.Cm 
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to ports
 forwarded for the client.
