@@ -334,7 +334,7 @@ ssh_gssapi_storecreds(void)
 {
 	if (options.gss_deleg_creds == 0) {
 		debug_f("delegate credential is disabled, doing nothing");
-		return 0;
+		return;
 	}
 
 	if (gssapi_client.mech && gssapi_client.mech->storecreds) {
