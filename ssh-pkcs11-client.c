@@ -380,6 +380,19 @@ pkcs11_start_helper(const char *path)
 }
 
 int
+pkcs11_add_provider_by_uri(struct pkcs11_uri *uri, char *pin, struct sshkey ***keyp, char ***labelsp)
+{
+	int nkeys = 0;
+	char *provider_uri = pkcs11_uri_get(uri);
+
+	debug_f("called, provider_uri = %s", provider_uri);
+
+	nkeys = pkcs11_add_provider(provider_uri, pin, keyp, labelsp);
+
+	return nkeys;
+}
+
+int
 pkcs11_add_provider(char *name, char *pin, struct sshkey ***keysp,
     char ***labelsp)
 {
@@ -389,6 +402,8 @@ pkcs11_add_provider(char *name, char *pin, struct sshkey ***keysp,
 	u_int ret = -1, nkeys, i;
 	struct sshbuf *msg;
 	struct helper *helper;
+
+	debug_f("called, name = %s", name);
 
 	if ((helper = helper_by_provider(name)) == NULL &&
 	    (helper = pkcs11_start_helper(name)) == NULL)
@@ -414,6 +429,7 @@ pkcs11_add_provider(char *name, char *pin, struct sshkey ***keysp,
 		*keysp = xcalloc(nkeys, sizeof(struct sshkey *));
 		if (labelsp)
 			*labelsp = xcalloc(nkeys, sizeof(char *));
+		debug_f("nkeys = %u", nkeys);
 		for (i = 0; i < nkeys; i++) {
 			/* XXX clean up properly instead of fatal() */
 			if ((r = sshkey_froms(msg, &k)) != 0 ||

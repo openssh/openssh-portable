@@ -902,6 +902,14 @@ main(int ac, char **av)
 			options.gss_deleg_creds = 1;
 			break;
 		case 'i':
+#ifdef ENABLE_PKCS11
+			if (strlen(optarg) >= strlen(PKCS11_URI_SCHEME) &&
+			    strncmp(optarg, PKCS11_URI_SCHEME,
+			    strlen(PKCS11_URI_SCHEME)) == 0) {
+				add_identity_file(&options, NULL, optarg, 1);
+				break;
+			}
+#endif
 			p = tilde_expand_filename(optarg, getuid());
 			if (stat(p, &st) == -1)
 				fprintf(stderr, "Warning: Identity file %s "
@@ -1865,6 +1873,7 @@ main(int ac, char **av)
 #ifdef ENABLE_PKCS11
 	(void)pkcs11_del_provider(options.pkcs11_provider);
 #endif
+	pkcs11_terminate();
 
  skip_connect:
 	if (addrs != NULL)
@@ -2380,6 +2389,45 @@ ssh_session2(struct ssh *ssh, const struct ssh_conn_info *cinfo)
 	    options.escape_char : SSH_ESCAPECHAR_NONE, id);
 }
 
+#ifdef ENABLE_PKCS11
+static void
+load_pkcs11_identity(char *pkcs11_uri, char *identity_files[],
+    struct sshkey *identity_keys[], int *n_ids)
+{
+	int nkeys, i;
+	struct sshkey **keys;
+	struct pkcs11_uri *uri;
+
+	debug("identity file '%s' from pkcs#11", pkcs11_uri);
+	uri = pkcs11_uri_init();
+	if (uri == NULL)
+		fatal("Failed to init PKCS#11 URI");
+
+	if (pkcs11_uri_parse(pkcs11_uri, uri) != 0)
+	fatal("Failed to parse PKCS#11 URI %s", pkcs11_uri);
+
+	/* we need to merge URI and provider together */
+	if (options.pkcs11_provider != NULL && uri->module_path == NULL)
+		uri->module_path = strdup(options.pkcs11_provider);
+
+	if (options.num_identity_files < SSH_MAX_IDENTITY_FILES &&
+	    (nkeys = pkcs11_add_provider_by_uri(uri, NULL, &keys, NULL)) > 0) {
+		for (i = 0; i < nkeys; i++) {
+			if (*n_ids >= SSH_MAX_IDENTITY_FILES) {
+				sshkey_free(keys[i]);
+				continue;
+			}
+			identity_keys[*n_ids] = keys[i];
+			identity_files[*n_ids] = pkcs11_uri_get(uri);
+			(*n_ids)++;
+		}
+		free(keys);
+	}
+
+	pkcs11_uri_cleanup(uri);
+}
+#endif /* ENABLE_PKCS11 */
+
 /* Loads all IdentityFile and CertificateFile keys */
 static void
 load_public_identity_files(const struct ssh_conn_info *cinfo)
@@ -2394,11 +2442,6 @@ load_public_identity_files(const struct ssh_conn_info *cinfo)
 	char *certificate_files[SSH_MAX_CERTIFICATE_FILES];
 	struct sshkey *certificates[SSH_MAX_CERTIFICATE_FILES];
 	int certificate_file_userprovided[SSH_MAX_CERTIFICATE_FILES];
-#ifdef ENABLE_PKCS11
-	struct sshkey **keys = NULL;
-	char **comments = NULL;
-	int nkeys;
-#endif /* PKCS11 */
 
 	n_ids = n_certs = 0;
 	memset(identity_files, 0, sizeof(identity_files));
@@ -2411,33 +2454,46 @@ load_public_identity_files(const struct ssh_conn_info *cinfo)
 	    sizeof(certificate_file_userprovided));
 
 #ifdef ENABLE_PKCS11
-	if (options.pkcs11_provider != NULL &&
-	    options.num_identity_files < SSH_MAX_IDENTITY_FILES &&
-	    (pkcs11_init(!options.batch_mode) == 0) &&
-	    (nkeys = pkcs11_add_provider(options.pkcs11_provider, NULL,
-	    &keys, &comments)) > 0) {
-		for (i = 0; i < nkeys; i++) {
-			if (n_ids >= SSH_MAX_IDENTITY_FILES) {
-				sshkey_free(keys[i]);
-				free(comments[i]);
-				continue;
-			}
-			identity_keys[n_ids] = keys[i];
-			identity_files[n_ids] = comments[i]; /* transferred */
-			n_ids++;
-		}
-		free(keys);
-		free(comments);
+	/* handle fallback from PKCS11Provider option */
+	pkcs11_init(!options.batch_mode);
+
+	if (options.pkcs11_provider != NULL) {
+		struct pkcs11_uri *uri;
+
+		uri = pkcs11_uri_init();
+		if (uri == NULL)
+			fatal("Failed to init PKCS#11 URI");
+
+		/* Construct simple PKCS#11 URI to simplify access */
+		uri->module_path = strdup(options.pkcs11_provider);
+
+		/* Add it as any other IdentityFile */
+		cp = pkcs11_uri_get(uri);
+		add_identity_file(&options, NULL, cp, 1);
+		free(cp);
+
+		pkcs11_uri_cleanup(uri);
 	}
 #endif /* ENABLE_PKCS11 */
 	for (i = 0; i < options.num_identity_files; i++) {
+		char *name = options.identity_files[i];
 		if (n_ids >= SSH_MAX_IDENTITY_FILES ||
-		    strcasecmp(options.identity_files[i], "none") == 0) {
+		    strcasecmp(name, "none") == 0) {
 			free(options.identity_files[i]);
 			options.identity_files[i] = NULL;
 			continue;
 		}
-		cp = tilde_expand_filename(options.identity_files[i], getuid());
+#ifdef ENABLE_PKCS11
+		if (strlen(name) >= strlen(PKCS11_URI_SCHEME) &&
+		    strncmp(name, PKCS11_URI_SCHEME,
+		    strlen(PKCS11_URI_SCHEME)) == 0) {
+			load_pkcs11_identity(name, identity_files,
+			    identity_keys, &n_ids);
+			free(options.identity_files[i]);
+			continue;
+		}
+#endif /* ENABLE_PKCS11 */
+		cp = tilde_expand_filename(name, getuid());
 		filename = default_client_percent_dollar_expand(cp, cinfo);
 		free(cp);
 		check_load(sshkey_load_public(filename, &public, NULL),
