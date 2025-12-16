@@ -1,4 +1,4 @@
-/* $OpenBSD: digest-libc.c,v 1.8 2025/09/05 09:31:31 dtucker Exp $ */
+/* $OpenBSD: digest-libc.c,v 1.9 2025/12/16 08:36:43 dtucker Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  * Copyright (c) 2014 Markus Friedl.  All rights reserved.
@@ -248,14 +248,15 @@ int
 ssh_digest_memory(int alg, const void *m, size_t mlen, u_char *d, size_t dlen)
 {
 	struct ssh_digest_ctx *ctx = ssh_digest_start(alg);
+	int ret = 0;
 
 	if (ctx == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
 	if (ssh_digest_update(ctx, m, mlen) != 0 ||
 	    ssh_digest_final(ctx, d, dlen) != 0)
-		return SSH_ERR_INVALID_ARGUMENT;
+		ret = SSH_ERR_INVALID_ARGUMENT;
 	ssh_digest_free(ctx);
-	return 0;
+	return ret;
 }
 
 int
