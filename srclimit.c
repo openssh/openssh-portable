@@ -382,6 +382,10 @@ srclimit_penalise(struct xaddr *addr, int penalty_type)
 		penalty_secs = penalty_cfg.penalty_noauth;
 		reason = "penalty: connections without attempting authentication";
 		break;
+	case SRCLIMIT_PENALTY_INVALIDUSER:
+		penalty_secs = penalty_cfg.penalty_invaliduser;
+		reason = "penalty: attempted authentication by invalid user";
+		break;
 	case SRCLIMIT_PENALTY_REFUSECONNECTION:
 		penalty_secs = penalty_cfg.penalty_refuseconnection;
 		reason = "penalty: connection prohibited by RefuseConnection";
@@ -434,7 +438,7 @@ srclimit_penalise(struct xaddr *addr, int penalty_type)
 			fatal_f("internal error: %s penalty tables corrupt", t);
 		do_log2_f(penalty->active ?
 		    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_VERBOSE,
-		    "%s: new %s %s penalty of %f seconds for %s", t,
+		    "%s: new %s %s penalty of %.3f seconds for %s", t,
 		    addrnetmask, penalty->active ? "active" : "deferred",
 		    penalty_secs, reason);
 		if (++(*npenaltiesp) > (size_t)max_sources)

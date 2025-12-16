@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.h,v 1.24 2024/05/17 00:30:24 djm Exp $ */
+/* $OpenBSD: monitor.h,v 1.26 2025/12/16 08:32:50 dtucker Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -87,6 +87,9 @@ void monitor_child_postauth(struct ssh *, struct monitor *);
 
 void monitor_clear_keystate(struct ssh *, struct monitor *);
 void monitor_apply_keystate(struct ssh *, struct monitor *);
+
+int  monitor_auth_attempted(void);
+int  monitor_invalid_user(void);
 
 /* Prototypes for request sending and receiving */
 void mm_request_send(int, enum monitor_reqtype, struct sshbuf *);

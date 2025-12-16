@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.17 2025/11/13 10:35:14 dtucker Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.18 2025/12/16 08:32:50 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -1375,8 +1375,6 @@ sshd_hostkey_sign(struct ssh *ssh, struct sshkey *privkey,
 void
 cleanup_exit(int i)
 {
-	extern int auth_attempted; /* monitor.c */
-
 	if (the_active_state != NULL && the_authctxt != NULL) {
 		do_cleanup(the_active_state, the_authctxt);
 		if (privsep_is_preauth &&
@@ -1395,7 +1393,9 @@ cleanup_exit(int i)
 		audit_event(the_active_state, SSH_CONNECTION_ABANDON);
 #endif
 	/* Override default fatal exit value when auth was attempted */
-	if (i == 255 && auth_attempted)
+	if (i == 255 && monitor_auth_attempted())
 		_exit(EXIT_AUTH_ATTEMPTED);
+	if (i == 255 && monitor_invalid_user())
+		_exit(EXIT_INVALID_USER);
 	_exit(i);
 }

@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.171 2025/12/08 03:55:22 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.172 2025/12/16 08:32:50 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -76,6 +76,7 @@ struct per_source_penalty {
 	double	penalty_crash;
 	double	penalty_grace;
 	double	penalty_authfail;
+	double	penalty_invaliduser;
 	double	penalty_noauth;
 	double	penalty_refuseconnection;
 	double	penalty_max;

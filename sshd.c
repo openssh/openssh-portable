@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.623 2025/11/13 10:35:14 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.624 2025/12/16 08:32:50 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -397,6 +397,12 @@ child_reap(struct early_child *child)
 			penalty_type = SRCLIMIT_PENALTY_AUTHFAIL;
 			debug_f("preauth child %ld for %s exited "
 			    "after unsuccessful auth attempt%s",
+			    (long)child->pid, child->id, child_status);
+			break;
+		case EXIT_INVALID_USER:
+			penalty_type = SRCLIMIT_PENALTY_INVALIDUSER;
+			debug_f("preauth child %ld for %s exited "
+			    "after auth attempt by invalid user%s",
 			    (long)child->pid, child->id, child_status);
 			break;
 		case EXIT_CONFIG_REFUSED:

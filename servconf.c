@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.439 2025/12/08 03:55:22 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.440 2025/12/16 08:32:50 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -176,6 +176,7 @@ initialize_server_options(ServerOptions *options)
 	options->per_source_penalty.overflow_mode6 = -1;
 	options->per_source_penalty.penalty_crash = -1.0;
 	options->per_source_penalty.penalty_authfail = -1.0;
+	options->per_source_penalty.penalty_invaliduser = -1.0;
 	options->per_source_penalty.penalty_noauth = -1.0;
 	options->per_source_penalty.penalty_grace = -1.0;
 	options->per_source_penalty.penalty_refuseconnection = -1.0;
@@ -438,6 +439,8 @@ fill_default_server_options(ServerOptions *options)
 		options->per_source_penalty.penalty_grace = 10.0;
 	if (options->per_source_penalty.penalty_authfail < 0.0)
 		options->per_source_penalty.penalty_authfail = 5.0;
+	if (options->per_source_penalty.penalty_invaliduser < 0.0)
+		options->per_source_penalty.penalty_invaliduser = 5.0;
 	if (options->per_source_penalty.penalty_noauth < 0.0)
 		options->per_source_penalty.penalty_noauth = 1.0;
 	if (options->per_source_penalty.penalty_refuseconnection < 0.0)
@@ -2115,6 +2118,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				doubleptr = &options->per_source_penalty.penalty_crash;
 			} else if ((q = strprefix(arg, "authfail:", 0)) != NULL) {
 				doubleptr = &options->per_source_penalty.penalty_authfail;
+			} else if ((q = strprefix(arg, "invaliduser:", 0)) != NULL) {
+				doubleptr = &options->per_source_penalty.penalty_invaliduser;
 			} else if ((q = strprefix(arg, "noauth:", 0)) != NULL) {
 				doubleptr = &options->per_source_penalty.penalty_noauth;
 			} else if ((q = strprefix(arg, "grace-exceeded:", 0)) != NULL) {
@@ -3430,12 +3435,14 @@ dump_config(ServerOptions *o)
 
 	if (o->per_source_penalty.enabled) {
 		printf("persourcepenalties crash:%f authfail:%f noauth:%f "
+		    "invaliduser:%f "
 		    "grace-exceeded:%f refuseconnection:%f max:%f min:%f "
 		    "max-sources4:%d max-sources6:%d "
 		    "overflow:%s overflow6:%s\n",
 		    o->per_source_penalty.penalty_crash,
 		    o->per_source_penalty.penalty_authfail,
 		    o->per_source_penalty.penalty_noauth,
+		    o->per_source_penalty.penalty_invaliduser,
 		    o->per_source_penalty.penalty_grace,
 		    o->per_source_penalty.penalty_refuseconnection,
 		    o->per_source_penalty.penalty_max,
