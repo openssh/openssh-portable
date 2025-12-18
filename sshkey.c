@@ -759,8 +759,10 @@ sshkey_free_contents(struct sshkey *k)
 
 	if (k == NULL)
 		return;
+#ifdef ENABLE_PKCS11
 	if ((k->flags & SSHKEY_FLAG_EXT) != 0)
 		pkcs11_key_free(k);
+#endif
 	if ((impl = sshkey_impl_from_type(k->type)) != NULL &&
 	    impl->funcs->cleanup != NULL)
 		impl->funcs->cleanup(k);
@@ -2188,9 +2190,11 @@ sshkey_sign(struct sshkey *key,
 	if (sshkey_is_sk(key)) {
 		r = sshsk_sign(sk_provider, key, sigp, lenp, data,
 		    datalen, compat, sk_pin);
+#ifdef ENABLE_PKCS11
 	} else if ((key->flags & SSHKEY_FLAG_EXT) != 0) {
 		r = pkcs11_sign(key, sigp, lenp, data, datalen,
 		    alg, sk_provider, sk_pin, compat);
+#endif
 	} else {
 		if (impl->funcs->sign == NULL)
 			r = SSH_ERR_SIGN_ALG_UNSUPPORTED;

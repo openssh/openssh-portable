@@ -18,6 +18,7 @@
 
 #include "includes.h"
 
+#ifdef ENABLE_PKCS11
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -508,3 +509,4 @@ pkcs11_key_free(struct sshkey *key)
 	if (helper->nkeyblobs == 0)
 		helper_terminate(helper);
 }
+#endif
