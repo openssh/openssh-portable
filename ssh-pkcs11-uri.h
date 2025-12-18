@@ -16,6 +16,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifndef _SSH_PKCS11_URI_H
+#define _SSH_PKCS11_URI_H
+
 #define PKCS11_URI_SCHEME "pkcs11:"
 #define PKCS11_URI_WHITELIST	"abcdefghijklmnopqrstuvwxyz" \
 				"ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
@@ -40,4 +43,4 @@ void	 pkcs11_uri_cleanup(struct pkcs11_uri *);
 int	 pkcs11_uri_parse(const char *, struct pkcs11_uri *);
 struct	 pkcs11_uri *pkcs11_uri_init();
 char	*pkcs11_uri_get(struct pkcs11_uri *uri);
-
+#endif /* _SSH_PKCS11_URI_H */
