@@ -1687,6 +1687,13 @@ fail:
 
 	return (ret);
 }
+#else
+static int
+pkcs11_fetch_certs(struct pkcs11_provider *p, CK_ULONG slotidx,
+    struct sshkey ***keysp, char ***labelsp, int *nkeys, struct pkcs11_uri *uri)
+{
+	return 0;
+}
 #endif /* WITH_OPENSSL */
 
 /*
@@ -2328,6 +2335,7 @@ pkcs11_register_provider_by_uri(struct pkcs11_uri *uri, char *pin,
 	return (ret);
 }
 
+#ifdef WITH_PKCS11_KEYGEN
 static int
 pkcs11_register_provider(char *provider_id, char *pin, struct sshkey ***keyp,
     char ***labelsp, struct pkcs11_provider **providerp, CK_ULONG user)
@@ -2354,6 +2362,7 @@ pkcs11_register_provider(char *provider_id, char *pin, struct sshkey ***keyp,
 
 	return r;
 }
+#endif
 
 int
 pkcs11_add_provider_by_uri(struct pkcs11_uri *uri, char *pin,

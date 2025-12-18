@@ -38,6 +38,7 @@
 #include "authfd.h"
 #include "atomicio.h"
 #include "ssh-pkcs11.h"
+#include "ssh-pkcs11-uri.h"
 #include "ssherr.h"
 
 /* borrows code from sftp-server and ssh-agent */

@@ -1872,8 +1872,8 @@ main(int ac, char **av)
 
 #ifdef ENABLE_PKCS11
 	(void)pkcs11_del_provider(options.pkcs11_provider);
-#endif
 	pkcs11_terminate();
+#endif
 
  skip_connect:
 	if (addrs != NULL)
