@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.391 2025/12/18 23:51:56 jsg Exp $
+.\" $OpenBSD: sshd_config.5,v 1.392 2025/12/18 23:54:10 jsg Exp $
 .Dd $Mdocdate: December 18 2025 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -748,7 +748,8 @@ on logout.
 The default is
 .Cm yes .
 .It Cm GSSAPIDelegateCredentials
-Accept delegated credentials on the server side.  The default is
+Accept delegated credentials on the server side.
+The default is
 .Cm yes .
 .It Cm GSSAPIStrictAcceptorCheck
 Determines whether to be strict about the identity of the GSSAPI acceptor
