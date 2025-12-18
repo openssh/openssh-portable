@@ -341,56 +341,52 @@ static void
 ssh_systemd_notify(const char *fmt, ...)
 {
 	char *s = NULL;
-	const char *path;
-	struct stat sb;
-	struct sockaddr_un addr;
 	int fd = -1;
+	struct sockaddr_un addr = {};
+	const char *path;
+	int slen;
+	socklen_t alen;
 	va_list ap;
 
-	if ((path = getenv("NOTIFY_SOCKET")) == NULL || strlen(path) == 0)
+	if (!(path = getenv("NOTIFY_SOCKET")) || path[0] == '\0')
 		return;
 
-	va_start(ap, fmt);
-	xvasprintf(&s, fmt, ap);
-	va_end(ap);
-
-	/* Only AF_UNIX is supported, with path or abstract sockets */
-	if (path[0] != '/' && path[0] != '@') {
-		error_f("socket \"%s\" is not compatible with AF_UNIX", path);
+	/* Only AF_UNIX is supported, with absolute path */
+	if (path[0] != '/') {
+		error_f("socket \"%s\" not supported", path);
 		goto out;
 	}
 
-	if (path[0] == '/' && stat(path, &sb) != 0) {
-		error_f("socket \"%s\" stat: %s", path, strerror(errno));
-		goto out;
-	}
-
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	if (strlcpy(addr.sun_path, path,
-	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path)) {
-		error_f("socket path \"%s\" too long", path);
-		goto out;
-	}
-	/* Support for abstract socket */
-	if (addr.sun_path[0] == '@')
-		addr.sun_path[0] = 0;
 	if ((fd = socket(PF_UNIX, SOCK_DGRAM, 0)) == -1) {
 		error_f("socket \"%s\": %s", path, strerror(errno));
 		goto out;
 	}
-	if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
-		error_f("socket \"%s\" connect: %s", path, strerror(errno));
+
+	addr.sun_family = AF_UNIX;
+	alen = strlcpy(addr.sun_path, path, sizeof(addr.sun_path));
+	if (alen >= sizeof(addr.sun_path)) {
+		error_f("socket path \"%s\" too long", path);
 		goto out;
 	}
-	if (write(fd, s, strlen(s)) != (ssize_t)strlen(s)) {
+	alen += offsetof(struct sockaddr_un, sun_path);
+
+	va_start(ap, fmt);
+	slen = xvasprintf(&s, fmt, ap);
+	va_end(ap);
+
+	/* sendto() on a datagram socket will fail with -1 / EMSGSIZE
+	   if the string is too long to be sent at once; no need to
+	   check for any 'short write' condition.
+	   nb: this also applies to a simple write(2) to a datagram socket
+	 */
+	if (sendto(fd, s, slen, 0, (struct sockaddr *)&addr, alen) == -1) {
 		error_f("socket \"%s\" write: %s", path, strerror(errno));
 		goto out;
 	}
+
 	debug_f("socket \"%s\" notified %s", path, s);
  out:
-	if (fd != -1)
-		close(fd);
+	close(fd);
 	free(s);
 }
 
