@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.442 2025/12/19 00:56:34 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.443 2025/12/19 01:26:39 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1959,7 +1959,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 
 	case sSubsystem:
 		if ((arg = argv_next(&ac, &av)) == NULL || *arg == '\0' ||
-		   ((arg2 = argv_next(&ac, &av)) == NULL || *arg == '\0'))
+		   ((arg2 = argv_next(&ac, &av)) == NULL || *arg2 == '\0'))
 			fatal("%s line %d: %s missing argument.",
 			    filename, linenum, keyword);
 		if (!*activep) {
