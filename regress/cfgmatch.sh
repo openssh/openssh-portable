@@ -1,4 +1,4 @@
-#	$OpenBSD: cfgmatch.sh,v 1.15 2025/07/11 23:26:59 djm Exp $
+#	$OpenBSD: cfgmatch.sh,v 1.16 2025/12/19 00:48:47 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshd_config match"
@@ -160,3 +160,13 @@ EOD
 		fi
 	done
 done
+
+# Ensure that invalid subsystems are detected at startup
+cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
+cat >> $OBJ/sshd_proxy << _EOF
+Match host blah
+	Subsystem invalid
+_EOF
+$SSHD -tf $OBJ/sshd_proxy 2>/dev/null && \
+	fail "sshd_config accepted invalid subsystem"
+
