@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.441 2025/12/19 00:48:04 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.442 2025/12/19 00:56:34 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2992,7 +2992,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		dst->n = xstrdup(src->n); \
 	} \
 } while(0)
-#define M_CP_STRARRAYOPT(s, num_s) do {\
+#define M_CP_STRARRAYOPT(s, num_s, clobber) do {\
 	u_int i; \
 	if (src->num_s != 0) { \
 		for (i = 0; i < dst->num_s; i++) \
@@ -3001,7 +3001,8 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		dst->s = xcalloc(src->num_s, sizeof(*dst->s)); \
 		for (i = 0; i < src->num_s; i++) \
 			dst->s[i] = xstrdup(src->s[i]); \
-		dst->num_s = src->num_s; \
+		if (clobber) \
+			dst->num_s = src->num_s; \
 	} \
 } while(0)
 
