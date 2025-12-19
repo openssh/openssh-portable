@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.173 2025/12/19 00:56:34 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.174 2025/12/19 01:27:19 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -315,7 +315,7 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens, 1); \
 		M_CP_STRARRAYOPT(channel_timeouts, num_channel_timeouts, 1); \
 		M_CP_STRARRAYOPT(log_verbose, num_log_verbose, 1); \
-		/* Note: don't clobber num_subsystems until all copies */ \
+		/* Note: don't clobber num_subsystems until all copied */ \
 		M_CP_STRARRAYOPT(subsystem_name, num_subsystems, 0); \
 		M_CP_STRARRAYOPT(subsystem_command, num_subsystems, 0); \
 		M_CP_STRARRAYOPT(subsystem_args, num_subsystems, 1); \
