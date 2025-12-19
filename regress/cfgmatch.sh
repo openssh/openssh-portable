@@ -1,4 +1,4 @@
-#	$OpenBSD: cfgmatch.sh,v 1.16 2025/12/19 00:48:47 djm Exp $
+#	$OpenBSD: cfgmatch.sh,v 1.17 2025/12/19 00:57:42 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshd_config match"
@@ -9,6 +9,8 @@ fwd="-L $fwdport:127.0.0.1:$PORT"
 
 echo "ExitOnForwardFailure=yes" >> $OBJ/ssh_config
 echo "ExitOnForwardFailure=yes" >> $OBJ/ssh_proxy
+cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
+cp $OBJ/sshd_config $OBJ/sshd_config_bak
 
 start_client()
 {
@@ -38,7 +40,6 @@ stop_client()
 	wait
 }
 
-cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 echo "PermitOpen 127.0.0.1:1 # comment" >>$OBJ/sshd_config
 echo "Match Address 127.0.0.1" >>$OBJ/sshd_config
 echo "PermitOpen 127.0.0.1:2 127.0.0.1:3 127.0.0.1:$PORT" >>$OBJ/sshd_config
@@ -169,4 +170,12 @@ Match host blah
 _EOF
 $SSHD -tf $OBJ/sshd_proxy 2>/dev/null && \
 	fail "sshd_config accepted invalid subsystem"
+
+# A single subsystem inside a match block doesn't cause a crash (bz3906)
+stop_sshd
+grep -vi subsystem $OBJ/sshd_config_bak > $OBJ/sshd_config
+echo "Match host *" >> $OBJ/sshd_config
+grep -i subsystem $OBJ/sshd_config_bak >> $OBJ/sshd_config
+start_sshd
+${SSH} -q -F $OBJ/ssh_config somehost true || fatal "ssh failed"
 
