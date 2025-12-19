@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.440 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.441 2025/12/19 00:48:04 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1958,8 +1958,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		break;
 
 	case sSubsystem:
-		arg = argv_next(&ac, &av);
-		if (!arg || *arg == '\0')
+		if ((arg = argv_next(&ac, &av)) == NULL || *arg == '\0' ||
+		   ((arg2 = argv_next(&ac, &av)) == NULL || *arg == '\0'))
 			fatal("%s line %d: %s missing argument.",
 			    filename, linenum, keyword);
 		if (!*activep) {
@@ -1992,15 +1992,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		    options->num_subsystems + 1,
 		    sizeof(*options->subsystem_args));
 		options->subsystem_name[options->num_subsystems] = xstrdup(arg);
-		arg = argv_next(&ac, &av);
-		if (!arg || *arg == '\0') {
-			fatal("%s line %d: Missing subsystem command.",
-			    filename, linenum);
-		}
 		options->subsystem_command[options->num_subsystems] =
-		    xstrdup(arg);
+		    xstrdup(arg2);
 		/* Collect arguments (separate to executable) */
-		arg = argv_assemble(1, &arg); /* quote command correctly */
+		arg = argv_assemble(1, &arg2); /* quote command correctly */
 		arg2 = argv_assemble(ac, av); /* rest of command */
 		xasprintf(&options->subsystem_args[options->num_subsystems],
 		    "%s%s%s", arg, *arg2 == '\0' ? "" : " ", arg2);
