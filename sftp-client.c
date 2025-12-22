@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.180 2025/09/30 00:10:42 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.181 2025/12/22 01:20:39 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -570,17 +570,6 @@ sftp_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 			    (unsigned long long)limits.write_length,
 			    (unsigned long long)limits.read_length,
 			    ret->upload_buflen, ret->download_buflen);
-		}
-
-		/* Use the server limit to scale down our value only */
-		if (num_requests == 0 && limits.open_handles) {
-			ret->num_requests =
-			    MINIMUM(DEFAULT_NUM_REQUESTS, limits.open_handles);
-			if (ret->num_requests == 0)
-				ret->num_requests = 1;
-			debug3("server handle limit %llu; using %u",
-			    (unsigned long long)limits.open_handles,
-			    ret->num_requests);
 		}
 	}
 
