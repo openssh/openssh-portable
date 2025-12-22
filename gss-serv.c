@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-serv.c,v 1.34 2025/12/08 03:55:22 djm Exp $ */
+/* $OpenBSD: gss-serv.c,v 1.35 2025/12/22 03:12:05 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -334,7 +334,7 @@ ssh_gssapi_storecreds(void)
 {
 	if (options.gss_deleg_creds == 0) {
 		debug_f("delegate credential is disabled, doing nothing");
-		return 0;
+		return;
 	}
 
 	if (gssapi_client.mech && gssapi_client.mech->storecreds) {
