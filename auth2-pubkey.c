@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.124 2025/08/14 09:44:39 dtucker Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.125 2025/12/22 01:49:03 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -562,7 +562,7 @@ user_cert_trusted_ca(struct passwd *pw, struct sshkey *key,
 	}
 	if (use_authorized_principals && principals_opts == NULL)
 		fatal_f("internal error: missing principals_opts");
-	if (sshkey_cert_check_authority_now(key, 0, 1, 0,
+	if (sshkey_cert_check_authority_now(key, 0, 0,
 	    use_authorized_principals ? NULL : pw->pw_name, &reason) != 0)
 		goto fail_reason;
 

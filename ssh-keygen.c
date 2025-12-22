@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.487 2025/11/13 10:35:14 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.488 2025/12/22 01:49:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3665,6 +3665,15 @@ main(int argc, char **argv)
 	if (ca_key_path != NULL) {
 		if (cert_key_id == NULL)
 			fatal("Must specify key id (-I) when certifying");
+		if (cert_principals == NULL) {
+			/*
+			 * Ideally this would be a fatal(), but we need to
+			 * be able to generate such certificates for testing
+			 * even though they will be rejected.
+			 */
+			error("Warning: certificate will contain no "
+			    "principals (-n)");
+		}
 		for (i = 0; i < nopts; i++)
 			add_cert_option(opts[i]);
 		do_ca_sign(pw, ca_key_path, prefer_agent,

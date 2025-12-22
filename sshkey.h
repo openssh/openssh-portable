@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.70 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.71 2025/12/22 01:49:03 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -218,12 +218,12 @@ int	 sshkey_match_keyname_to_sigalgs(const char *, const char *);
 int	 sshkey_to_certified(struct sshkey *);
 int	 sshkey_drop_cert(struct sshkey *);
 int	 sshkey_cert_copy(const struct sshkey *, struct sshkey *);
-int	 sshkey_cert_check_authority(const struct sshkey *, int, int, int,
+int	 sshkey_cert_check_authority(const struct sshkey *, int, int,
     uint64_t, const char *, const char **);
-int	 sshkey_cert_check_authority_now(const struct sshkey *, int, int, int,
+int	 sshkey_cert_check_authority_now(const struct sshkey *, int, int,
     const char *, const char **);
 int	 sshkey_cert_check_host(const struct sshkey *, const char *,
-    int , const char *, const char **);
+    const char *, const char **);
 size_t	 sshkey_format_cert_validity(const struct sshkey_cert *,
     char *, size_t) __attribute__((__bounded__(__string__, 2, 3)));
 int	 sshkey_check_cert_sigtype(const struct sshkey *, const char *);

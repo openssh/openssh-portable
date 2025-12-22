@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.376 2025/09/25 06:23:19 jsg Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.377 2025/12/22 01:49:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1084,7 +1084,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		if (want_cert) {
 			if (sshkey_cert_check_host(host_key,
 			    options.host_key_alias == NULL ?
-			    hostname : options.host_key_alias, 0,
+			    hostname : options.host_key_alias,
 			    options.ca_sign_algorithms, &fail_reason) != 0) {
 				error("%s", fail_reason);
 				goto fail;

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.315 2025/11/13 10:35:14 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.316 2025/12/22 01:49:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -392,7 +392,7 @@ match_key_hop(const char *tag, const struct sshkey *key,
 			return -1; /* shouldn't happen */
 		if (!sshkey_equal(key->cert->signature_key, dch->keys[i]))
 			continue;
-		if (sshkey_cert_check_host(key, hostname, 1,
+		if (sshkey_cert_check_host(key, hostname,
 		    SSH_ALLOWED_CA_SIGALGS, &reason) != 0) {
 			debug_f("cert %s / hostname %s rejected: %s",
 			    key->cert->key_id, hostname, reason);
