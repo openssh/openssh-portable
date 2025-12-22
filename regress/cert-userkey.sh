@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.30 2025/05/06 06:05:48 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.31 2025/12/22 01:50:46 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -340,16 +340,15 @@ test_one() {
 }
 
 test_one "correct principal"	success "-n ${USER}"
+test_one "correct principal"	success "-n ${USER},*"
 test_one "host-certificate"	failure "-n ${USER} -h"
-test_one "wrong principals"	failure "-n foo"
+test_one "wrong principals"	failure "-n foo,*"
 test_one "cert not yet valid"	failure "-n ${USER} -V20300101:20320101"
 test_one "cert expired"		failure "-n ${USER} -V19800101:19900101"
 test_one "cert valid interval"	success "-n ${USER} -V-1w:+2w"
 test_one "wrong source-address"	failure "-n ${USER} -Osource-address=10.0.0.0/8"
 test_one "force-command"	failure "-n ${USER} -Oforce-command=false"
-
-# Behaviour is different here: TrustedUserCAKeys doesn't allow empty principals
-test_one "empty principals"	success "" authorized_keys
+test_one "empty principals"	failure "" authorized_keys
 test_one "empty principals"	failure "" TrustedUserCAKeys
 
 # Check explicitly-specified principals: an empty principals list in the cert

@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.28 2025/05/06 06:05:48 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.29 2025/12/22 01:50:46 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -208,9 +208,12 @@ kh_ca host_ca_key.pub host_ca_key2.pub > $OBJ/known_hosts-cert.orig
 cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 
 test_one() {
-	ident=$1
-	result=$2
-	sign_opts=$3
+	ident="$1"
+	result="$2"
+	hosts="$3"
+	sign_opts="$4"
+
+	test -z "$hosts" || sign_opts="$sign_opts -n $hosts"
 
 	for kt in $PLAIN_TYPES; do
 		case $ktype in
@@ -243,13 +246,16 @@ test_one() {
 	done
 }
 
-test_one "user-certificate"	failure "-n $HOSTS"
-test_one "empty principals"	success "-h"
-test_one "wrong principals"	failure "-h -n foo"
-test_one "cert not yet valid"	failure "-h -V20300101:20320101"
-test_one "cert expired"		failure "-h -V19800101:19900101"
-test_one "cert valid interval"	success "-h -V-1w:+2w"
-test_one "cert has constraints"	failure "-h -Oforce-command=false"
+test_one "simple"		success $HOSTS	"-h"
+test_one "wildcard"		success "loc*"	"-h"
+test_one "user-certificate"	failure $HOSTS
+test_one "wildcard user"	failure "local*"
+test_one "empty principals"	failure ""	"-h"
+test_one "wrong principals"	failure foo	"-h"
+test_one "cert not yet valid"	failure $HOSTS	"-h -V20300101:20320101"
+test_one "cert expired"		failure $HOSTS	"-h -V19800101:19900101"
+test_one "cert valid interval"	success $HOSTS	"-h -V-1w:+2w"
+test_one "cert has constraints"	failure $HOSTS	"-h -Oforce-command=false"
 
 # Check downgrade of cert to raw key when no CA found
 for ktype in $PLAIN_TYPES ; do
