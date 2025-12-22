@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.29 2025/12/22 01:50:46 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.30 2025/12/22 03:36:43 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -220,9 +220,20 @@ test_one() {
 		rsa-sha2-*)	tflag="-t $ktype"; ca="$OBJ/host_ca_key2" ;;
 		*)		tflag=""; ca="$OBJ/host_ca_key" ;;
 		esac
-		${SSHKEYGEN} -q -s $ca $tflag -I "regress host key for $USER" \
-		    $sign_opts $OBJ/cert_host_key_${kt} ||
-			fatal "couldn't sign cert_host_key_${kt}"
+		if test -z "$hosts" ; then
+			# Empty principals section.
+			${SSHKEYGEN} -q -s $ca $tflag $sign_opts \
+			    -I "regress host key for $USER" \
+			    $OBJ/cert_host_key_${kt} 2>/dev/null ||
+				fatal "couldn't sign cert_host_key_${kt}"
+		else
+			# Be careful with quoting principals, which may contain
+			# wilcards.
+			${SSHKEYGEN} -q -s $ca $tflag $sign_opts \
+			    -I "regress host key for $USER" -n "$hosts" \
+			    $OBJ/cert_host_key_${kt} ||
+				fatal "couldn't sign cert_host_key_${kt}"
+		fi
 		(
 			cat $OBJ/sshd_proxy_bak
 			echo HostKey $OBJ/cert_host_key_${kt}
