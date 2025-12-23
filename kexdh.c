@@ -102,6 +102,9 @@ kex_dh_compute_key(struct kex *kex, BIGNUM *dh_pub, struct sshbuf *out)
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
+        /* ___keylog logging for DH */
+        sshlog_keylog_file(kex, kbuf, kout);
+
 #ifdef DEBUG_KEXDH
 	dump_digest("shared secret", kbuf, kout);
 #endif
