@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.377 2025/12/22 01:49:03 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.378 2025/12/30 00:35:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -44,6 +44,7 @@
 #include "xmalloc.h"
 #include "hostfile.h"
 #include "ssh.h"
+#include "compat.h"
 #include "sshbuf.h"
 #include "packet.h"
 #include "sshkey.h"
@@ -1608,6 +1609,11 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 	if ((r = kex_exchange_identification(ssh, timeout_ms,
 	    options.version_addendum)) != 0)
 		sshpkt_fatal(ssh, r, "banner exchange");
+
+	if ((ssh->compat & SSH_BUG_NOREKEY)) {
+		logit("Warning: this server does not support rekeying.");
+		logit("This session will eventually fail");
+	}
 
 	/* Put the connection into non-blocking mode. */
 	ssh_packet_set_nonblocking(ssh);

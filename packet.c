@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.328 2025/12/30 00:22:58 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.329 2025/12/30 00:35:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1118,10 +1118,6 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	if (ssh_packet_is_rekeying(ssh))
 		return 0;
 
-	/* Peer can't rekey */
-	if (ssh->compat & SSH_BUG_NOREKEY)
-		return 0;
-
 	/*
 	 * Permit one packet in or out per rekey - this allows us to
 	 * make progress when rekey limits are very small.
@@ -1368,8 +1364,7 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 		logit("outgoing seqnr wraps around");
 	}
 	if (++state->p_send.packets == 0)
-		if (!(ssh->compat & SSH_BUG_NOREKEY))
-			return SSH_ERR_NEED_REKEY;
+		return SSH_ERR_NEED_REKEY;
 	state->p_send.blocks += len / block_size;
 	state->p_send.bytes += len;
 	sshbuf_reset(state->outgoing_packet);
@@ -1784,8 +1779,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		logit("incoming seqnr wraps around");
 	}
 	if (++state->p_read.packets == 0)
-		if (!(ssh->compat & SSH_BUG_NOREKEY))
-			return SSH_ERR_NEED_REKEY;
+		return SSH_ERR_NEED_REKEY;
 	state->p_read.blocks += (state->packlen + 4) / block_size;
 	state->p_read.bytes += state->packlen + 4;
 
