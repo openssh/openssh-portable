@@ -22,7 +22,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "6.4.2"
         config: [default]
@@ -83,7 +82,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "13.5"
           - "14.3"
@@ -147,7 +145,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "9.0"
           - "9.4"
@@ -212,7 +209,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "r151054"
           - "r151046"
@@ -264,7 +260,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "202510"
         config: [default]
@@ -314,7 +309,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "7.3"
           - "7.5"
@@ -368,7 +362,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "11.4-gcc"
         config: [default]
