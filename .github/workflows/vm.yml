@@ -215,6 +215,7 @@ jobs:
         # First we test all OSes in the default configuration.
         target:
           - "r151054"
+          - "r151046"
         config: [default]
     runs-on: ubuntu-latest
     steps:
