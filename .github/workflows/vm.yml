@@ -276,7 +276,8 @@ jobs:
         usesh: true
         prepare: |
           set -x
-          pfexec pkg install build-essential sudo
+          pfexec pkg install build-essential
+          pfexec pkg install sudo
           useradd -m builder
           sed -e "s/^root.*ALL$/root ALL=(ALL) NOPASSWD: ALL/" /etc/sudoers >>/tmp/sudoers
           mv /tmp/sudoers /etc/sudoers
