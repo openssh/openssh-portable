@@ -72,7 +72,8 @@ machines using
 .Xr ssh 1 .
 .Pp
 .Nm
-may be used to store non-ssh authentication tokens (or other private information) that may be required on other machines, such as Kerberos tickets, X509 tokens, and AFS tokens.
+may be used to store non-ssh authentication tokens (or other private information) that may be required on other machines,
+such as Kerberos tickets, X509 certificates, and AFS tokens.
 Note that the tokens will be available to any process that can access the authentication agent's socket, which usually means the same user or root.
 This is similar in scope to token storage in a user-restricted file.
 .Pp
@@ -174,7 +175,6 @@ Note that
 and
 .Xr scp 1
 do not currently forward the agent socket, so the token cannot be used to access storage from the remote machine.
-.El
 .Sh ENVIRONMENT
 .Bl -tag -width Ds
 .It Ev SSH_AUTH_SOCK
