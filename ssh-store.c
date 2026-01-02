@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-store.c,v 1.89 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: ssh-store.c,v 1.1 2026/01/02 17:10:00 timadye Exp $ */
 /*
  * ssh-store.c by Tim Adye <T.J.Adye@rl.ac.uk>, based on ssh-add.c.
  *
