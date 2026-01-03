@@ -40,30 +40,17 @@
 
 #include "includes.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#include <openssl/evp.h>
-
-#include <fcntl.h>
-#include <pwd.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "xmalloc.h"
-#include "ssh.h"
-#include "log.h"
-#include "sshkey.h"
 #include "sshbuf.h"
 #include "authfd.h"
-#include "authfile.h"
 #include "pathnames.h"
 #include "misc.h"
 #include "ssherr.h"
-#include "digest.h"
 
 /* argv0 */
 extern char *__progname;

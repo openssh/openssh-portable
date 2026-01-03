@@ -2020,8 +2020,8 @@ process_set_variable(SocketEntry *e)
 			ret = SSH_AGENT_VARIABLE_REPLACED;
 		} else {
 			debug("set '%.*s' = '%.*s'", (int)lvar, var, (int)lval, val);
-			if ((v = xmalloc(sizeof(Variable))) == NULL)
-				fatal_f("xmalloc failed");
+			if ((v = malloc(sizeof(Variable))) == NULL)
+				fatal_f("malloc failed");
 			v->var = var;
 			v->lvar = lvar;
 			TAILQ_INSERT_TAIL(&vartable.varlist, v, next);
