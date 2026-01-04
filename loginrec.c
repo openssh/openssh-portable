@@ -66,7 +66,7 @@
  *  code should suffice.
  *
  *  Retrieving the time of last login ('lastlog') is in some ways even
- *  more problemmatic than login recording. Some systems provide a
+ *  more problematic than login recording. Some systems provide a
  *  simple table of all users which we seek based on uid and retrieve a
  *  relatively standard structure. Others record the same information in
  *  a directory with a separate file, and others don't record the
@@ -975,7 +975,7 @@ utmp_write_entry(struct logininfo *li)
 /* not much point if we don't want utmpx entries */
 #ifdef USE_UTMPX
 
-/* if we have the wherewithall, use pututxline etc. */
+/* if we have the wherewithal, use pututxline etc. */
 # if !defined(DISABLE_PUTUTXLINE) && defined(HAVE_SETUTXENT) && \
 	defined(HAVE_PUTUTXLINE)
 #  define UTMPX_USE_LIBRARY
