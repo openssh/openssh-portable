@@ -158,7 +158,7 @@ sshpam_sigchld_handler(int sig)
 		return;	/* handler called after PAM cleanup, shouldn't happen */
 	if (waitpid(cleanup_ctxt->pam_thread, &sshpam_thread_status, WNOHANG)
 	    <= 0) {
-		/* PAM thread has not exitted, privsep slave must have */
+		/* PAM thread has not exited, privsep slave must have */
 		kill(cleanup_ctxt->pam_thread, SIGTERM);
 		while (waitpid(cleanup_ctxt->pam_thread,
 		    &sshpam_thread_status, 0) == -1) {

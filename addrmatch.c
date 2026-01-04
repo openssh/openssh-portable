@@ -128,7 +128,7 @@ addr_match_cidr_list(const char *addr, const char *_list)
 
 		/*
 		 * NB. This function is called in pre-auth with untrusted data,
-		 * so be extra paranoid about junk reaching getaddrino (via
+		 * so be extra paranoid about junk reaching getaddrinfo (via
 		 * addr_pton_cidr).
 		 */
 

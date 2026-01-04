@@ -969,7 +969,7 @@ brace_expand(const char *pattern, char ***patternsp, size_t *npatternsp)
 			continue;
 		}
 		/*
-		 * Pattern did not expand; append the finename component to
+		 * Pattern did not expand; append the filename component to
 		 * the completed list
 		 */
 		if ((cp2 = strrchr(cp, '/')) != NULL)
@@ -1555,7 +1555,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	memset(&g, 0, sizeof(g));
 
 	/*
-	 * Here, we need remote glob as SFTP can not depend on remote shell
+	 * Here, we need remote glob as SFTP cannot depend on remote shell
 	 * expansions
 	 */
 	if ((abs_src = prepare_remote_path(conn, src)) == NULL) {

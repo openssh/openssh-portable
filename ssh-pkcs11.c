@@ -1890,7 +1890,7 @@ pkcs11_register_provider(char *provider_id, char *pin,
 	p = xcalloc(1, sizeof(*p));
 	p->name = xstrdup(provider_id);
 	p->handle = handle;
-	/* setup the pkcs11 callbacks */
+	/* set up the pkcs11 callbacks */
 	if ((rv = (*getfunctionlist)(&f)) != CKR_OK) {
 		error("C_GetFunctionList for provider %s failed: %lu",
 		    provider_id, rv);

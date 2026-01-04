@@ -98,7 +98,7 @@ enum sshkey_private_format {
 #define SSHKEY_FLAG_EXT		0x0001
 
 #define SSHKEY_CERT_MAX_PRINCIPALS	256
-/* XXX opaquify? */
+/* XXX opacify? */
 struct sshkey_cert {
 	struct sshbuf	*certblob; /* Kept around for use on wire */
 	u_int		 type; /* SSH2_CERT_TYPE_USER or SSH2_CERT_TYPE_HOST */
@@ -113,7 +113,7 @@ struct sshkey_cert {
 	char		*signature_type;
 };
 
-/* XXX opaquify? */
+/* XXX opacify? */
 struct sshkey {
 	int	 type;
 	int	 flags;

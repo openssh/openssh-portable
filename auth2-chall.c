@@ -167,7 +167,7 @@ kbdint_next_device(Authctxt *authctxt, KbdintAuthctxt *kbdintctxt)
 		for (i = 0; devices[i]; i++) {
 			if (i >= sizeof(kbdintctxt->devices_done) * 8 ||
 			    i >= sizeof(devices) / sizeof(devices[0]))
-				fatal_f("internal error: too may devices");
+				fatal_f("internal error: too many devices");
 			if ((kbdintctxt->devices_done & (1 << i)) != 0 ||
 			    !auth2_method_allowed(authctxt,
 			    "keyboard-interactive", devices[i]->name))

@@ -2205,7 +2205,7 @@ sshkey_sign(struct sshkey *key,
 }
 
 /*
- * ssh_key_verify returns 0 for a correct signature  and < 0 on error.
+ * ssh_key_verify returns 0 for a correct signature and < 0 on error.
  * If "alg" specified, then the signature must use that algorithm.
  */
 int
