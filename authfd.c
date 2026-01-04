@@ -765,3 +765,161 @@ ssh_agent_bind_hostkey(int sock, const struct sshkey *key,
 	sshbuf_free(msg);
 	return r;
 }
+
+int
+ssh_set_variable(int sock, const char *var, size_t lvar, const char *val, size_t lval)
+{
+	struct sshbuf *msg;
+	int r;
+	u_char type;
+
+	if ((msg = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_put_u8(msg, SSH_AGENTC_SET_VARIABLE)) == 0 &&
+	    (r = sshbuf_put_string(msg, var, lvar)) == 0 &&
+	    (r = sshbuf_put_string(msg, val, lval)) == 0 &&
+	    (r = ssh_request_reply(sock, msg, msg)) == 0 &&
+	    (r = sshbuf_get_u8(msg, &type)) == 0) {
+		r = (type == SSH_AGENT_VARIABLE_REPLACED) ? 1 : decode_reply(type);
+	}
+	sshbuf_free(msg);
+	return r;
+}
+
+
+int
+ssh_get_variable(int sock, const char *var, size_t lvar, char **valp, size_t *lvalp)
+{
+	struct sshbuf *msg;
+	int r;
+	u_char type;
+
+	*valp= NULL;
+	if (lvalp) *lvalp= 0;
+	if ((msg = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_put_u8(msg, SSH_AGENTC_GET_VARIABLE)) == 0 &&
+	    (r = sshbuf_put_string(msg, var, lvar)) == 0 &&
+	    (r = ssh_request_reply(sock, msg, msg)) == 0 &&
+	    (r = sshbuf_get_u8(msg, &type)) == 0) {
+		if (type == SSH_AGENT_GET_VARIABLE_ANSWER) {
+			r = sshbuf_get_string(msg, (u_char**)valp, lvalp);
+		} else if (type == SSH_AGENT_NO_VARIABLE) {
+			r = 1;
+		} else if ((r = decode_reply(type)) == 0) {
+			r = SSH_ERR_INVALID_FORMAT;
+		}
+	}
+	sshbuf_free(msg);
+	return r;
+}
+
+
+/*
+ * Returns the first variable held by the agent.
+ */
+
+static int
+ssh_get_num_variables(int sock, const char *prefix, size_t lprefix, char full, struct sshbuf **buf, u_int32_t *howmany)
+{
+	struct sshbuf *request = NULL;
+	int r;
+	u_char type;
+
+	*howmany = 0;
+	*buf = NULL;
+	if (!prefix) {
+		prefix = "";
+		lprefix = 0;
+	}
+	if ((request = sshbuf_new()) == NULL) {
+		return SSH_ERR_ALLOC_FAIL;
+	} else if ((r = sshbuf_put_u8(request, full ? SSH_AGENTC_LIST_VARIABLES : SSH_AGENTC_LIST_VARIABLE_NAMES)) == 0 &&
+	           (r = sshbuf_put_string(request, prefix, lprefix)) == 0) {
+		if ((*buf = sshbuf_new()) == NULL)
+			r = SSH_ERR_ALLOC_FAIL;
+		else if ((r = ssh_request_reply(sock, request, *buf)) == 0 &&
+		         (r = sshbuf_get_u8(*buf, &type)) == 0) {
+			/* Get message type, and verify that we got a proper answer. */
+			if (type != (full ? SSH_AGENT_VARIABLES_ANSWER : SSH_AGENT_VARIABLE_NAMES_ANSWER)) {
+				if ((r = decode_reply(type)) == 0)
+					r = SSH_ERR_INVALID_FORMAT;
+			/* Get the number of entries in the response and check it for sanity. */
+			} else if ((r = sshbuf_get_u32(*buf, howmany)) == 0) {
+				if (*howmany > 1024)
+					r = SSH_ERR_INVALID_FORMAT;
+			}
+		}
+	}
+
+	if (r!=0 && *buf) sshbuf_free(*buf);
+	sshbuf_free(request);
+	return r;
+}
+
+int
+ssh_get_first_variable(int sock, const char *prefix, size_t lprefix, char full,
+                       char **varp, size_t *lvarp, char **valp, size_t *lvalp,
+                       struct sshbuf **buf, u_int32_t *howmany)
+{
+	int r;
+	/* get number of variables and return the first entry (if any). */
+	if ((r = ssh_get_num_variables(sock, prefix, lprefix, full, buf, howmany)) != 0) return r;
+	return ssh_get_next_variable(sock, full, varp, lvarp, valp, lvalp, buf, howmany);
+}
+
+int
+ssh_get_next_variable(int sock, char full,
+                      char **varp, size_t *lvarp, char **valp, size_t *lvalp,
+                      struct sshbuf **buf, u_int32_t *howmany)
+{
+	int r;
+
+	*varp = NULL;
+	if (valp) *valp = NULL;
+	*lvarp = 0;
+	if (lvalp) *lvalp = 0;
+	/* Return failure if no more entries. */
+	if (*howmany <= 0) {
+		if (*buf) sshbuf_free(*buf);
+		*buf = NULL;
+		return SSH_AGENT_NO_VARIABLE;
+	}
+
+	/*
+	 * Get the next entry from the packet.
+	 */
+	if ((r = sshbuf_get_string(*buf, (u_char**)varp, lvarp)) == 0 &&
+	    (r = full ? sshbuf_get_string(*buf, (u_char**)valp, lvalp) : 0) == 0) {
+		/* Decrement the number of remaining entries. */
+		(*howmany)--;
+		return 0;
+	} else {
+		if (*buf) sshbuf_free(*buf);
+		*buf = NULL;
+		return r;
+	}
+}
+
+int
+ssh_delete_variable(int sock, const char *var, size_t lvar, char all)
+{
+	struct sshbuf *msg;
+	int r;
+	u_char type;
+	if (all && !var) {
+		var = "";
+		lvar = 0;
+	}
+
+	if ((msg = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_put_u8(msg, all ? SSH_AGENTC_REMOVE_ALL_VARIABLES : SSH_AGENTC_REMOVE_VARIABLE)) == 0 &&
+	    (r = sshbuf_put_string(msg, var, lvar)) == 0 &&
+	    (r = ssh_request_reply(sock, msg, msg)) == 0 &&
+	    (r = sshbuf_get_u8(msg, &type)) == 0) {
+		r = (type == SSH_AGENT_NO_VARIABLE) ? 1 : decode_reply(type);
+	}
+	sshbuf_free(msg);
+	return r;
+}

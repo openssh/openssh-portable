@@ -1,0 +1,201 @@
+.\"	$OpenBSD: ssh-store.1,v 1.1 2026/01/02 17:10:00 timadye Exp $
+.\"
+.\" ssh-store.1 by Tim Adye <T.J.Adye@rl.ac.uk>, based on ssh-add.1.
+.\"
+.\" ssh-add.1:-
+.\" Author: Tatu Ylonen <ylo@cs.hut.fi>
+.\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+.\"                    All rights reserved
+.\"
+.\" As far as I am concerned, the code I have written for this software
+.\" can be used freely for any purpose.  Any derived versions of this
+.\" software must be clearly marked as such, and if the derived work is
+.\" incompatible with the protocol description in the RFC file, it must be
+.\" called by a name other than "ssh" or "Secure Shell".
+.\"
+.\"
+.\" Copyright (c) 1999,2000 Markus Friedl.  All rights reserved.
+.\" Copyright (c) 1999 Aaron Campbell.  All rights reserved.
+.\" Copyright (c) 1999 Theo de Raadt.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd $Mdocdate: January 2 2026 $
+.Dt SSH-STORE 1
+.Os
+.Sh NAME
+.Nm ssh-store
+.Nd access user-defined authentication token variables on the OpenSSH authentication agent
+.Sh SYNOPSIS
+.Nm ssh-store
+.Op Fl s
+.Ar variable value
+.Nm ssh-store
+.Op Fl g
+.Ar variable
+.Nm ssh-store
+.Fl f
+.Ar variable
+.Op Ar file
+.Nm ssh-store
+.Fl d
+.Ar variable
+.Nm ssh-store
+.Op Fl DLl
+.Op Ar variable_prefix
+.Sh DESCRIPTION
+.Nm
+stores user-defined authentication token variables to the authentication agent,
+.Xr ssh-agent 1 ,
+and allows the values to be retrieved with
+.Nm
+run by the user when logging in to other
+machines using
+.Xr ssh 1 .
+.Pp
+.Nm
+may be used to store non-ssh authentication tokens (or other private information) that may be required on other machines,
+such as Kerberos tickets, X509 certificates, and AFS tokens.
+Note that the tokens will be available to any process that can access the authentication agent's socket, which usually means the same user or root.
+This is similar in scope to token storage in a user-restricted file.
+.Pp
+.Nm
+can be run on a remote machine to update or access the value, or used in the remote machine's
+.Pa ~/.ssh/rc
+to automatically register the token for use on that machine.
+.Pp
+.Nm
+shares the
+.Xr ssh-agent 1
+with
+.Xr ssh-add 1
+and communicates over the same socket.
+The authentication agent must be running and the
+.Ev SSH_AUTH_SOCK
+environment variable must contain the name of its socket for
+.Nm
+to work.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl D Op Ar variable_prefix
+Deletes all variables from the agent. If
+.Ar variable_prefix
+is specified, then the deletion will be restricted to variable names that start with the specified string.
+.It Fl d Ar variable
+Removes a variable from the agent.
+.It Fl f Ar variable Op Ar file
+Set the variable's value from a file. If
+.Ar file
+is not specified, uses stdin.
+.It Fl g Ar variable
+Get variable value and print on stdout. The
+.Fl g
+flag is default if just the
+.Ar variable
+argument is specified.
+.It Fl L Op Ar variable_prefix
+Lists all variable names and their values. If
+.Ar variable_prefix
+is specified, then the list will be restricted to variable names that start with the specified string.
+Note that the printed value may be binary or contain multiple lines.
+.It Fl l Op Ar variable_prefix
+Lists all variable names. If
+.Ar variable_prefix
+is specified, then the list will be restricted to variable names that start with the specified string.
+.It Fl s Ar variable Ar value
+Sets the variable's value. The
+.Fl s
+flag is default if both
+.Ar variable
+and
+.Ar value
+argument are specified.
+.El
+.Pp
+.Sh EXAMPLE
+This example stores the user's default ssh identities with
+.Xr ssh-add 1
+and the user's Kerberos ticket with
+.Nm
+and retrieves them when logged into the remote machine.
+.Pp
+This use case is a bit different from the functionality provided by OpenSSH's Kerberos authentication support (
+.Cm KerberosAuthentication
+in
+.Xr sshd_config 5 ),
+which provides authentication for logging into the remote system.
+.Nm
+provides (perhaps multiple) Kerberos ticket(s) for use once logged into that system.
+.Pp
+On the client:
+.Bd -literal -offset 4n
+eval `ssh-agent`
+ssh-add
+ssh-store -f krb5cc $KRB5CCNAME
+.Ed
+.Pp
+and in 
+.Pa ~/.ssh/rc
+on the remote server:
+.Bd -literal -offset 4n
+if [ -n "$SSH_AUTH_SOCK" ]; then
+    [ -z "$KRB5CCNAME" ] && KRB5CCNAME=/tmp/krb5cc_$UID
+    export KRB5CCNAME
+    (
+        umask 077
+        rm -f "$KRB5CCNAME"
+        [ -f "$KRB5CCNAME" ] || ssh-store krb5cc > "$KRB5CCNAME"
+    )
+fi
+.Ed
+.Pp
+Similar mechanisms can be set up to store other types of authentication token.
+.Pp
+Note that
+.Xr sftp 1
+and
+.Xr scp 1
+do not currently forward the agent socket, so the token cannot be used to access storage from the remote machine.
+.Sh ENVIRONMENT
+.Bl -tag -width Ds
+.It Ev SSH_AUTH_SOCK
+Identifies the path of a
+.Ux Ns -domain
+socket used to communicate with the agent.
+.El
+.Sh EXIT STATUS
+Exit status is 0 on success, 1 if the specified retrieved variable doesn't exist, or no variables are listed, or a previous value was replaced,
+and 2 if
+.Nm
+is unable to contact the authentication agent.
+.Sh SEE ALSO
+.Xr ssh 1 ,
+.Xr ssh-agent 1 ,
+.Sh AUTHORS
+OpenSSH is a derivative of the original and free
+ssh 1.2.12 release by Tatu Ylonen.
+Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos,
+Theo de Raadt and Dug Song
+removed many bugs, re-added newer features and
+created OpenSSH.
+Markus Friedl contributed the support for SSH
+protocol versions 1.5 and 2.0.
