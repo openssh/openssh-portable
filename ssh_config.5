@@ -1205,6 +1205,21 @@ may also be used in conjunction with
 .Cm CertificateFile
 in order to provide any certificate also needed for authentication with
 the identity.
+.Pp
+The authentication identity can be also specified in a form of PKCS#11 URI
+starting with a string
+.Cm pkcs11: .
+There is supported a subset of the PKCS#11 URI as defined
+in RFC 7512 (implemented path arguments
+.Cm id ,
+.Cm manufacturer ,
+.Cm object ,
+.Cm token
+and query arguments
+.Cm module-path
+and
+.Cm pin-value
+). The URI can not be in quotes.
 .It Cm IgnoreUnknown
 Specifies a pattern-list of unknown options to be ignored if they are
 encountered in configuration parsing.
