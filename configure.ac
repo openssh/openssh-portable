@@ -724,13 +724,6 @@ case "$host" in
     	dnl Check whether the linker accepts -baslr
     	OSSH_CHECK_LDFLAG_LINK([-baslr])
 
-    	AC_MSG_CHECKING([whether linker supports -baslr])
-    	if echo "x $LDFLAGS" | grep ' -baslr' >/dev/null 2>&1 ; then
-        	AC_MSG_RESULT([yes])
-    	else
-        	AC_MSG_RESULT([no])
-        	LDFLAGS="$SAVED_LDFLAGS"
-    	fi
 	fi
 
 	dnl Check for authenticate.  Might be in libs.a on older AIXes
