@@ -783,11 +783,14 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 		/* check permissions */
 		if (port > INT_MAX ||
 		    (options.allow_tcp_forwarding & FORWARD_REMOTE) == 0 ||
-		    !auth_opts->permit_port_forwarding_flag ||
 		    options.disable_forwarding ||
 		    (!want_reply && fwd.listen_port == 0)) {
 			success = 0;
 			ssh_packet_send_debug(ssh, "Server has disabled port forwarding.");
+		} else if (!auth_opts->permit_port_forwarding_flag) {
+			success = 0;
+			ssh_packet_send_debug(ssh, 
+			    "Authentication options do not permit port forwarding.");
 		} else {
 			/* Start listening on the port */
 			success = channel_setup_remote_fwd_listener(ssh, &fwd,
@@ -816,12 +819,15 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 		    fwd.listen_path);
 
 		/* check permissions */
-		if ((options.allow_streamlocal_forwarding & FORWARD_REMOTE) == 0
-		    || !auth_opts->permit_port_forwarding_flag ||
+		if ((options.allow_streamlocal_forwarding & FORWARD_REMOTE) == 0 ||
 		    options.disable_forwarding) {
 			success = 0;
 			ssh_packet_send_debug(ssh, "Server has disabled "
 			    "streamlocal forwarding.");
+		} else if (!auth_opts->permit_port_forwarding_flag) {
+			success = 0;
+			ssh_packet_send_debug(ssh, 
+			    "Authentication options do not permit streamlocal forwarding.");
 		} else {
 			/* Start listening on the socket */
 			success = channel_setup_remote_fwd_listener(ssh,
