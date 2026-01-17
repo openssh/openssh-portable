@@ -866,6 +866,95 @@ cleanhostname(char *host)
 		return host;
 }
 
+static int
+valid_ipv6(const char *address)
+{
+	int leading_colon, trailing_colon;
+	int seen_double_colon = 0;
+	size_t seen_colons = 0, xdigits = 0;
+	size_t len, max_colons, i;
+	const char *percent = strchr(address, '%');
+
+	if (percent != NULL) {
+		if (percent[1] != '2' || percent[2] != '5')
+			return 0;
+		len = (size_t)(percent - address);
+		percent += 3;
+	} else {
+		len = strlen(address);
+	}
+
+	if (len < 2)
+		return 0;
+
+	leading_colon = address[0] == ':';
+	trailing_colon = address[len - 1] == ':';
+
+	if ((leading_colon && address[1] != ':') ||
+	    (trailing_colon && address[len - 2] != ':'))
+		return 0;
+
+	/*
+	 * Loop counts the number of colons.
+	 * There can be 8 colons if the first or last character is a colon.
+	 */
+	max_colons = 7 + leading_colon + trailing_colon;
+
+	/*
+	 * Count the number of colons.  Check if there is a "::".
+	 * Ensure that everything that is not a colon is a hex digit.
+	 * Ensure there are no more than 4 hex digits in a row.
+	 * address[len] is '\0' or '%' and in-bounds.
+	 */
+	for (i = 0; i < len; i++) {
+		if (address[i] == ':') {
+			xdigits = 0;
+			if (address[i + 1] == ':') {
+				/* Only one :: is allowed. */
+				if (seen_double_colon)
+					return 0;
+				seen_double_colon = 1;
+			}
+			seen_colons++;
+			continue;
+		}
+		if (isxdigit((unsigned char)address[i])) {
+			xdigits++;
+			if (xdigits > 4)
+				return 0;
+			continue;
+		}
+		return 0;
+	}
+
+	/*
+	 * Check that there are the exact number of components if there
+	 * is no ::, or not too many components if there is a ::.
+	 */
+	if (seen_double_colon ? max_colons < seen_colons : seen_colons != 7)
+		return 0;
+
+	/* See if there is a zone ID to check. */
+	if (percent == NULL)
+		return 1;
+
+	/*
+	 * RFC6874 says that non-unreserved characters MUST be percent-encoded.
+	 * Validate that here.  urldecode() will check for bad characters after
+	 * the '%', as well as for %00.
+	 */
+	for (; *percent != '\0'; percent++) {
+		if (!(isalnum((unsigned char)*percent) ||
+		      *percent == '-' ||
+		      *percent == '.' ||
+		      *percent == '_' ||
+		      *percent == '~' ||
+		      *percent == '%'))
+			return 0;
+	}
+	return 1;
+}
+
 char *
 colon(char *cp)
 {
@@ -1098,7 +1187,7 @@ int
 parse_uri(const char *scheme, const char *uri, char **userp, char **hostp,
     int *portp, char **pathp)
 {
-	char *uridup, *cp, *tmp, ch;
+	char *uridup, *cp, *tmp_host, *tmp, ch;
 	char *user = NULL, *host = NULL, *path = NULL;
 	int port = -1, ret = -1;
 	size_t len;
@@ -1141,9 +1230,18 @@ parse_uri(const char *scheme, const char *uri, char **userp, char **hostp,
 	/* Extract mandatory hostname */
 	if ((cp = hpdelim2(&tmp, &ch)) == NULL || *cp == '\0')
 		goto out;
-	host = xstrdup(cleanhostname(cp));
-	if (!valid_domain(host, 0, NULL))
-		goto out;
+	tmp_host = cleanhostname(cp);
+	if (strchr(tmp_host, ':') != NULL) {
+		if (!valid_ipv6(tmp_host))
+			goto out;
+		/* Must URL-decode the zone ID */
+		if ((host = urldecode(tmp_host)) == NULL)
+			goto out;
+	} else {
+		if (!valid_domain(tmp_host, 0, NULL))
+			goto out;
+		host = xstrdup(tmp_host);
+	}
 
 	if (tmp != NULL && *tmp != '\0') {
 		if (ch == ':') {
