@@ -626,7 +626,7 @@ ssh_conn_info_free(struct ssh_conn_info *cinfo)
 {
 	if (cinfo == NULL)
 		return;
-	free(cinfo->conn_hash_hex);
+	free(cinfo->conn_hash_urlb64);
 	free(cinfo->shorthost);
 	free(cinfo->uidstr);
 	free(cinfo->keyalias);
@@ -1499,7 +1499,7 @@ main(int ac, char **av)
 
 	/* Now User is expanded, store it and calculate hash. */
 	cinfo->remuser = xstrdup(options.user);
-	cinfo->conn_hash_hex = ssh_connection_hash(cinfo->thishost,
+	cinfo->conn_hash_urlb64 = ssh_connection_hash(cinfo->thishost,
 	    cinfo->remhost, cinfo->portstr, cinfo->remuser, cinfo->jmphost);
 
 	/*
