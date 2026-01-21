@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.247 2025/10/13 00:54:29 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.248 2026/01/21 15:44:51 sthen Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2228,6 +2228,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 	int err, interactive;
 	EditLine *el = NULL;
 #ifdef USE_LIBEDIT
+	const char *editor;
 	History *hl = NULL;
 	HistEvent hev;
 	extern char *__progname;
@@ -2261,6 +2262,10 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		el_set(el, EL_BIND, "\\e\\e[D", "ed-prev-word", NULL);
 		/* make ^w match ksh behaviour */
 		el_set(el, EL_BIND, "^w", "ed-delete-prev-word", NULL);
+
+		/* el_source() may have changed EL_EDITOR to vi */
+		if (el_get(el, EL_EDITOR, &editor) == 0 && editor[0] == 'v')
+			el_set(el, EL_BIND, "^[", "vi-command-mode", NULL);
 	}
 #endif /* USE_LIBEDIT */
 
