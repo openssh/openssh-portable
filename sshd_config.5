@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.392 2025/12/18 23:54:10 jsg Exp $
-.Dd $Mdocdate: December 18 2025 $
+.\" $OpenBSD: sshd_config.5,v 1.393 2026/01/22 15:30:07 millert Exp $
+.Dd $Mdocdate: January 22 2026 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -113,9 +113,9 @@ If specified, login is allowed only for users whose primary
 group or supplementary group list matches one of the patterns.
 Only group names are valid; a numerical group ID is not recognized.
 By default, login is allowed for all groups.
-The allow/deny groups directives are processed in the following order:
-.Cm DenyGroups ,
-.Cm AllowGroups .
+.Cm AllowGroups
+is not consulted for groups matched by
+.Cm DenyGroups .
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
@@ -173,9 +173,9 @@ are separately checked, restricting logins to particular
 users from particular hosts.
 HOST criteria may additionally contain addresses to match in CIDR
 address/masklen format.
-The allow/deny users directives are processed in the following order:
-.Cm DenyUsers ,
-.Cm AllowUsers .
+.Cm AllowUsers
+is not consulted for users matched by
+.Cm DenyUsers .
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
@@ -636,9 +636,9 @@ Login is disallowed for users whose primary group or supplementary
 group list matches one of the patterns.
 Only group names are valid; a numerical group ID is not recognized.
 By default, login is allowed for all groups.
-The allow/deny groups directives are processed in the following order:
-.Cm DenyGroups ,
-.Cm AllowGroups .
+.Cm AllowGroups
+is not consulted for groups matched by
+.Cm DenyGroups .
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
@@ -657,9 +657,9 @@ are separately checked, restricting logins to particular
 users from particular hosts.
 HOST criteria may additionally contain addresses to match in CIDR
 address/masklen format.
-The allow/deny users directives are processed in the following order:
-.Cm DenyUsers ,
-.Cm AllowUsers .
+.Cm AllowUsers
+is not consulted for users matched by
+.Cm DenyUsers .
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
