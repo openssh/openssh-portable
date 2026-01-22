@@ -438,7 +438,7 @@ ssh_agent_sign(int sock, const struct sshkey *key,
 	if ((r = sshbuf_get_string(msg, &sig, &len)) != 0)
 		goto out;
 	/* Check what we actually got back from the agent. */
-	if ((r = sshkey_check_sigtype(sig, len, alg)) != 0)
+	if (!sshkey_is_sk(key) && (r = sshkey_check_sigtype(sig, len, alg)) != 0)
 		goto out;
 	/* success */
 	*sigp = sig;
