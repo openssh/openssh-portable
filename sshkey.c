@@ -96,6 +96,7 @@ extern const struct sshkey_impl sshkey_ed25519_sk_cert_impl;
 extern const struct sshkey_impl sshkey_ecdsa_sk_impl;
 extern const struct sshkey_impl sshkey_ecdsa_sk_cert_impl;
 extern const struct sshkey_impl sshkey_ecdsa_sk_webauthn_impl;
+extern const struct sshkey_impl sshkey_ecdsa_sk_webauthn_cert_impl;
 #  endif /* ENABLE_SK */
 extern const struct sshkey_impl sshkey_ecdsa_nistp256_impl;
 extern const struct sshkey_impl sshkey_ecdsa_nistp256_cert_impl;
@@ -135,6 +136,7 @@ const struct sshkey_impl * const keyimpls[] = {
 	&sshkey_ecdsa_sk_impl,
 	&sshkey_ecdsa_sk_cert_impl,
 	&sshkey_ecdsa_sk_webauthn_impl,
+	&sshkey_ecdsa_sk_webauthn_cert_impl,
 #  endif /* ENABLE_SK */
 # endif /* OPENSSL_HAS_ECC */
 	&sshkey_rsa_impl,
@@ -299,6 +301,17 @@ sshkey_match_keyname_to_sigalgs(const char *keyname, const char *sigalgs)
 		    match_pattern_list("rsa-sha2-256-cert-v01@openssh.com",
 		    sigalgs, 0) == 1 ||
 		    match_pattern_list("rsa-sha2-512-cert-v01@openssh.com",
+		    sigalgs, 0) == 1;
+	} else if (ktype == KEY_ECDSA_SK) {
+		return match_pattern_list("sk-ecdsa-sha2-nistp256@openssh.com",
+		    sigalgs, 0) == 1 || match_pattern_list(
+		    "webauthn-sk-ecdsa-sha2-nistp256@openssh.com",
+		    sigalgs, 0) == 1;
+	} else if (ktype == KEY_ECDSA_SK_CERT) {
+		return match_pattern_list(
+		    "sk-ecdsa-sha2-nistp256-cert-v01@openssh.com",
+		    sigalgs, 0) == 1 || match_pattern_list(
+		    "webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com",
 		    sigalgs, 0) == 1;
 	} else
 		return match_pattern_list(keyname, sigalgs, 0) == 1;
