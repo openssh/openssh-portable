@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.376 2025/09/25 06:23:19 jsg Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.378 2025/12/30 00:35:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -44,6 +44,7 @@
 #include "xmalloc.h"
 #include "hostfile.h"
 #include "ssh.h"
+#include "compat.h"
 #include "sshbuf.h"
 #include "packet.h"
 #include "sshkey.h"
@@ -1084,7 +1085,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		if (want_cert) {
 			if (sshkey_cert_check_host(host_key,
 			    options.host_key_alias == NULL ?
-			    hostname : options.host_key_alias, 0,
+			    hostname : options.host_key_alias,
 			    options.ca_sign_algorithms, &fail_reason) != 0) {
 				error("%s", fail_reason);
 				goto fail;
@@ -1608,6 +1609,11 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 	if ((r = kex_exchange_identification(ssh, timeout_ms,
 	    options.version_addendum)) != 0)
 		sshpkt_fatal(ssh, r, "banner exchange");
+
+	if ((ssh->compat & SSH_BUG_NOREKEY)) {
+		logit("Warning: this server does not support rekeying.");
+		logit("This session will eventually fail");
+	}
 
 	/* Put the connection into non-blocking mode. */
 	ssh_packet_set_nonblocking(ssh);

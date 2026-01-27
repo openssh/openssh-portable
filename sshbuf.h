@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.33 2025/11/21 01:29:06 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.34 2025/12/29 23:52:09 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -142,6 +142,24 @@ int	sshbuf_consume(struct sshbuf *buf, size_t len);
  * Returns 0 on success, or a negative SSH_ERR_* error code on failure.
  */
 int	sshbuf_consume_end(struct sshbuf *buf, size_t len);
+
+/*
+ * Consume data from a parent buffer up to that of a child buffer (i.e.
+ * one created by sshbuf_fromb()).
+ *
+ * Intended to be used in a pattern like:
+ *
+ *     b = sshbuf_fromb(parent);
+ *     sshbuf_get_string(b, &foo, &foostr);
+ *     sshbuf_get_u32(b, &bar);
+ *     sshbuf_consume_upto_child(parent, b);
+ *
+ * After which, both "b" and "parent" will point to the same data.
+ *
+ * "child" must be a direct child of "buf" (i.e. neither an unrelated buffer
+ * nor a grandchild) which has consumed data past that of "buf".
+ */
+int	sshbuf_consume_upto_child(struct sshbuf *buf, const struct sshbuf *child);
 
 /* Extract or deposit some bytes */
 int	sshbuf_get(struct sshbuf *buf, void *v, size_t len);

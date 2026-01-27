@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.143 2025/10/09 03:23:33 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.144 2025/12/19 00:56:34 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -305,7 +305,7 @@ mm_decode_activate_server_options(struct ssh *ssh, struct sshbuf *m)
 		    (r = sshbuf_get_cstring(m, &newopts->x, NULL)) != 0) \
 			fatal_fr(r, "parse %s", #x); \
 	} while (0)
-#define M_CP_STRARRAYOPT(x, nx) do { \
+#define M_CP_STRARRAYOPT(x, nx, clobber) do { \
 		newopts->x = newopts->nx == 0 ? \
 		    NULL : xcalloc(newopts->nx, sizeof(*newopts->x)); \
 		for (i = 0; i < newopts->nx; i++) { \
@@ -327,7 +327,7 @@ mm_decode_activate_server_options(struct ssh *ssh, struct sshbuf *m)
 
 	/* use the macro hell to clean up too */
 #define M_CP_STROPT(x) free(newopts->x)
-#define M_CP_STRARRAYOPT(x, nx) do { \
+#define M_CP_STRARRAYOPT(x, nx, clobber) do { \
 		for (i = 0; i < newopts->nx; i++) \
 			free(newopts->x[i]); \
 		free(newopts->x); \

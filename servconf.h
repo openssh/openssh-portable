@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.172 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.174 2025/12/19 01:27:19 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -303,21 +303,22 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STROPT(routing_domain); \
 		M_CP_STROPT(permit_user_env_allowlist); \
 		M_CP_STROPT(pam_service_name); \
-		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
-		M_CP_STRARRAYOPT(allow_users, num_allow_users); \
-		M_CP_STRARRAYOPT(deny_users, num_deny_users); \
-		M_CP_STRARRAYOPT(allow_groups, num_allow_groups); \
-		M_CP_STRARRAYOPT(deny_groups, num_deny_groups); \
-		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
-		M_CP_STRARRAYOPT(setenv, num_setenv); \
-		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
-		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens); \
-		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens); \
-		M_CP_STRARRAYOPT(channel_timeouts, num_channel_timeouts); \
-		M_CP_STRARRAYOPT(log_verbose, num_log_verbose); \
-		M_CP_STRARRAYOPT(subsystem_name, num_subsystems); \
-		M_CP_STRARRAYOPT(subsystem_command, num_subsystems); \
-		M_CP_STRARRAYOPT(subsystem_args, num_subsystems); \
+		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files, 1);\
+		M_CP_STRARRAYOPT(allow_users, num_allow_users, 1); \
+		M_CP_STRARRAYOPT(deny_users, num_deny_users, 1); \
+		M_CP_STRARRAYOPT(allow_groups, num_allow_groups, 1); \
+		M_CP_STRARRAYOPT(deny_groups, num_deny_groups, 1); \
+		M_CP_STRARRAYOPT(accept_env, num_accept_env, 1); \
+		M_CP_STRARRAYOPT(setenv, num_setenv, 1); \
+		M_CP_STRARRAYOPT(auth_methods, num_auth_methods, 1); \
+		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens, 1); \
+		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens, 1); \
+		M_CP_STRARRAYOPT(channel_timeouts, num_channel_timeouts, 1); \
+		M_CP_STRARRAYOPT(log_verbose, num_log_verbose, 1); \
+		/* Note: don't clobber num_subsystems until all copied */ \
+		M_CP_STRARRAYOPT(subsystem_name, num_subsystems, 0); \
+		M_CP_STRARRAYOPT(subsystem_command, num_subsystems, 0); \
+		M_CP_STRARRAYOPT(subsystem_args, num_subsystems, 1); \
 	} while (0)
 
 void	 initialize_server_options(ServerOptions *);

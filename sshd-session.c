@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.18 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.19 2025/12/30 00:35:37 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -1251,6 +1251,9 @@ main(int ac, char **av)
 	if ((r = kex_exchange_identification(ssh, -1,
 	    options.version_addendum)) != 0)
 		sshpkt_fatal(ssh, r, "banner exchange");
+
+	if ((ssh->compat & SSH_BUG_NOREKEY))
+		debug("client does not support rekeying");
 
 	ssh_packet_set_nonblocking(ssh);
 

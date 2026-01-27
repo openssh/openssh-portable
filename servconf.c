@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.440 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.443 2025/12/19 01:26:39 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1958,8 +1958,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		break;
 
 	case sSubsystem:
-		arg = argv_next(&ac, &av);
-		if (!arg || *arg == '\0')
+		if ((arg = argv_next(&ac, &av)) == NULL || *arg == '\0' ||
+		   ((arg2 = argv_next(&ac, &av)) == NULL || *arg2 == '\0'))
 			fatal("%s line %d: %s missing argument.",
 			    filename, linenum, keyword);
 		if (!*activep) {
@@ -1992,15 +1992,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		    options->num_subsystems + 1,
 		    sizeof(*options->subsystem_args));
 		options->subsystem_name[options->num_subsystems] = xstrdup(arg);
-		arg = argv_next(&ac, &av);
-		if (!arg || *arg == '\0') {
-			fatal("%s line %d: Missing subsystem command.",
-			    filename, linenum);
-		}
 		options->subsystem_command[options->num_subsystems] =
-		    xstrdup(arg);
+		    xstrdup(arg2);
 		/* Collect arguments (separate to executable) */
-		arg = argv_assemble(1, &arg); /* quote command correctly */
+		arg = argv_assemble(1, &arg2); /* quote command correctly */
 		arg2 = argv_assemble(ac, av); /* rest of command */
 		xasprintf(&options->subsystem_args[options->num_subsystems],
 		    "%s%s%s", arg, *arg2 == '\0' ? "" : " ", arg2);
@@ -2997,7 +2992,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		dst->n = xstrdup(src->n); \
 	} \
 } while(0)
-#define M_CP_STRARRAYOPT(s, num_s) do {\
+#define M_CP_STRARRAYOPT(s, num_s, clobber) do {\
 	u_int i; \
 	if (src->num_s != 0) { \
 		for (i = 0; i < dst->num_s; i++) \
@@ -3006,7 +3001,8 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		dst->s = xcalloc(src->num_s, sizeof(*dst->s)); \
 		for (i = 0; i < src->num_s; i++) \
 			dst->s[i] = xstrdup(src->s[i]); \
-		dst->num_s = src->num_s; \
+		if (clobber) \
+			dst->num_s = src->num_s; \
 	} \
 } while(0)
 
