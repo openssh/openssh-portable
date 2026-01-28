@@ -109,12 +109,12 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	sftp-realpath.o platform-pledge.o platform-tracing.o platform-misc.o \
 	sshbuf-io.o misc-agent.o
 
-P11OBJS= ssh-pkcs11-client.o
+P11OBJS= ssh-pkcs11-client.o ssh-pkcs11-uri.o
 
 SKOBJS=	ssh-sk-client.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
-	sshconnect.o sshconnect2.o mux.o ssh-pkcs11.o $(SKOBJS)
+	sshconnect.o sshconnect2.o mux.o ssh-pkcs11.o ssh-pkcs11-uri.o $(SKOBJS)
 
 SSHDOBJS=sshd.o \
 	platform-listen.o \
@@ -158,11 +158,11 @@ SSHADD_OBJS=	ssh-add.o $(P11OBJS) $(SKOBJS)
 
 SSHAGENT_OBJS=	ssh-agent.o $(P11OBJS) $(SKOBJS)
 
-SSHKEYGEN_OBJS=	ssh-keygen.o sshsig.o ssh-pkcs11.o $(SKOBJS)
+SSHKEYGEN_OBJS=	ssh-keygen.o sshsig.o ssh-pkcs11.o ssh-pkcs11-uri.o $(SKOBJS)
 
 SSHKEYSIGN_OBJS=ssh-keysign.o readconf.o uidswap.o $(P11OBJS) $(SKOBJS)
 
-P11HELPER_OBJS=	ssh-pkcs11-helper.o ssh-pkcs11.o $(SKOBJS)
+P11HELPER_OBJS=	ssh-pkcs11-helper.o ssh-pkcs11.o ssh-pkcs11-uri.o $(SKOBJS)
 
 SKHELPER_OBJS=	ssh-sk-helper.o ssh-sk.o sk-usbhid.o
 
@@ -325,6 +325,8 @@ clean:	regressclean
 	rm -f regress/unittests/sshsig/test_sshsig$(EXEEXT)
 	rm -f regress/unittests/utf8/*.o
 	rm -f regress/unittests/utf8/test_utf8$(EXEEXT)
+	rm -f regress/unittests/pkcs11/*.o
+	rm -f regress/unittests/pkcs11/test_pkcs11$(EXEEXT)
 	rm -f regress/misc/sk-dummy/*.o
 	rm -f regress/misc/sk-dummy/*.lo
 	rm -f regress/misc/ssh-verify-attestation/ssh-verify-attestation$(EXEEXT)
@@ -364,6 +366,8 @@ distclean:	regressclean
 	rm -f regress/unittests/sshsig/test_sshsig
 	rm -f regress/unittests/utf8/*.o
 	rm -f regress/unittests/utf8/test_utf8
+	rm -f regress/unittests/pkcs11/*.o
+	rm -f regress/unittests/pkcs11/test_pkcs11
 	rm -f regress/misc/sk-dummy/*.o
 	rm -f regress/misc/sk-dummy/*.lo
 	rm -f regress/misc/sk-dummy/sk-dummy.so
@@ -543,6 +547,7 @@ regress-prep:
 	$(MKDIR_P) `pwd`/regress/unittests/sshkey
 	$(MKDIR_P) `pwd`/regress/unittests/sshsig
 	$(MKDIR_P) `pwd`/regress/unittests/utf8
+	$(MKDIR_P) `pwd`/regress/unittests/pkcs11
 	$(MKDIR_P) `pwd`/regress/misc/sk-dummy
 	$(MKDIR_P) `pwd`/regress/misc/ssh-verify-attestation
 	[ -f `pwd`/regress/Makefile ] || \
@@ -718,6 +723,16 @@ regress/unittests/utf8/test_utf8$(EXEEXT): \
 	    regress/unittests/test_helper/libtest_helper.a \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(TESTLIBS)
 
+UNITTESTS_TEST_PKCS11_OBJS=\
+	regress/unittests/pkcs11/tests.o
+
+regress/unittests/pkcs11/test_pkcs11$(EXEEXT): \
+    ${UNITTESTS_TEST_PKCS11_OBJS} ssh-pkcs11-uri.o \
+    regress/unittests/test_helper/libtest_helper.a libssh.a
+	$(LD) -o $@ $(LDFLAGS) $(UNITTESTS_TEST_PKCS11_OBJS) \
+	    regress/unittests/test_helper/libtest_helper.a \
+	    ssh-pkcs11-uri.o -lssh -lopenbsd-compat -lcrypto $(LIBS) -lm
+
 # These all need to be compiled -fPIC, so they are treated differently.
 SK_DUMMY_OBJS=\
 	regress/misc/sk-dummy/sk-dummy.lo \
@@ -763,7 +778,8 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
 	regress/unittests/sshkey/test_sshkey$(EXEEXT) \
 	regress/unittests/sshsig/test_sshsig$(EXEEXT) \
-	regress/unittests/utf8/test_utf8$(EXEEXT)
+	regress/unittests/utf8/test_utf8$(EXEEXT) \
+	regress/unittests/pkcs11/test_pkcs11$(EXEEXT) \
 
 tests:	file-tests t-exec interop-tests extra-tests unit
 	echo all tests passed

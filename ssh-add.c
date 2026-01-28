@@ -70,6 +70,7 @@
 #include "ssh-sk.h"
 #include "sk-api.h"
 #include "hostfile.h"
+#include "ssh-pkcs11-uri.h"
 
 #define CERT_EXPIRY_GRACE	(5*60)
 
@@ -256,6 +257,38 @@ check_cert_lifetime(const struct sshkey *cert, int cert_lifetime)
 		return (int)n;
 	return MINIMUM(cert_lifetime, (int)n);
 }
+
+#ifdef ENABLE_PKCS11
+static int
+update_card(int agent_fd, int add, const char *id, int qflag,
+    int key_only, int cert_only,
+    struct dest_constraint **dest_constraints, size_t ndest_constraints,
+    struct sshkey **certs, size_t ncerts, char *pin);
+
+int
+update_pkcs11_uri(int agent_fd, int adding, const char *pkcs11_uri, int qflag,
+    struct dest_constraint **dest_constraints, size_t ndest_constraints)
+{
+	char *pin = NULL;
+	struct pkcs11_uri *uri;
+
+	/* dry-run parse to make sure the URI is valid and to report errors */
+	uri = pkcs11_uri_init();
+	if (pkcs11_uri_parse((char *) pkcs11_uri, uri) != 0)
+		fatal("Failed to parse PKCS#11 URI");
+	if (uri->pin != NULL) {
+		pin = strdup(uri->pin);
+		if (pin == NULL) {
+			fatal("Failed to dupplicate string");
+		}
+		/* pin is freed in the update_card() */
+	}
+	pkcs11_uri_cleanup(uri);
+
+	return update_card(agent_fd, adding, pkcs11_uri, qflag, 1, 0,
+	           dest_constraints, ndest_constraints, NULL, 0, pin);
+}
+#endif
 
 static int
 add_file(int agent_fd, const char *filename, int key_only, int cert_only,
@@ -447,15 +480,14 @@ static int
 update_card(int agent_fd, int add, const char *id, int qflag,
     int key_only, int cert_only,
     struct dest_constraint **dest_constraints, size_t ndest_constraints,
-    struct sshkey **certs, size_t ncerts)
+    struct sshkey **certs, size_t ncerts, char *pin)
 {
-	char *pin = NULL;
 	int r, ret = -1;
 
 	if (key_only)
 		ncerts = 0;
 
-	if (add) {
+	if (add && pin == NULL) {
 		if ((pin = read_passphrase("Enter passphrase for PKCS#11: ",
 		    RP_ALLOW_STDIN)) == NULL)
 			return -1;
@@ -637,6 +669,14 @@ do_file(int agent_fd, int deleting, int key_only, int cert_only,
     char *file, int qflag, int Nflag, const char *skprovider,
     struct dest_constraint **dest_constraints, size_t ndest_constraints)
 {
+#ifdef ENABLE_PKCS11
+	if (strlen(file) >= strlen(PKCS11_URI_SCHEME) &&
+	    strncmp(file, PKCS11_URI_SCHEME,
+	    strlen(PKCS11_URI_SCHEME)) == 0) {
+		return update_pkcs11_uri(agent_fd, !deleting, file, qflag,
+                   dest_constraints, ndest_constraints);
+	}
+#endif
 	if (deleting) {
 		if (delete_file(agent_fd, file, key_only,
 		    cert_only, qflag) == -1)
@@ -981,7 +1021,7 @@ main(int argc, char **argv)
 		if (update_card(agent_fd, !deleting, pkcs11provider,
 		    qflag, key_only, cert_only,
 		    dest_constraints, ndest_constraints,
-		    certs, ncerts) == -1)
+		    certs, ncerts, NULL) == -1)
 			ret = 1;
 		for (n = 0; n < ncerts; n++)
 			sshkey_free(certs[n]);

@@ -825,8 +825,11 @@ do_download(struct passwd *pw)
 			free(fp);
 		} else {
 			(void) sshkey_write(keys[i], stdout); /* XXX check */
-			fprintf(stdout, "%s%s\n",
-			    *(comments[i]) == '\0' ? "" : " ", comments[i]);
+			if (*(comments[i]) != '\0') {
+				fprintf(stdout, " %s", comments[i]);
+			}
+			(void) pkcs11_uri_write(keys[i], stdout);
+			fprintf(stdout, "\n");
 		}
 		free(comments[i]);
 		sshkey_free(keys[i]);
