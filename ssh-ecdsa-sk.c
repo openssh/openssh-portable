@@ -273,7 +273,9 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 		ret = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if (strcmp(ktype, "webauthn-sk-ecdsa-sha2-nistp256@openssh.com") == 0)
+	if (strcmp(ktype, "webauthn-sk-ecdsa-sha2-nistp256@openssh.com") == 0 ||
+	    strcmp(ktype, "webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com")
+	      == 0)
 		is_webauthn = 1;
 	else if (strcmp(ktype, "sk-ecdsa-sha2-nistp256@openssh.com") != 0) {
 		ret = SSH_ERR_INVALID_FORMAT;
@@ -482,6 +484,18 @@ const struct sshkey_impl sshkey_ecdsa_sk_webauthn_impl = {
 	/* .shortname = */	"ECDSA-SK",
 	/* .sigalg = */		NULL,
 	/* .type = */		KEY_ECDSA_SK,
+	/* .nid = */		NID_X9_62_prime256v1,
+	/* .cert = */		0,
+	/* .sigonly = */	1,
+	/* .keybits = */	256,
+	/* .funcs = */		&sshkey_ecdsa_sk_funcs,
+};
+
+const struct sshkey_impl sshkey_ecdsa_sk_webauthn_cert_impl = {
+	/* .name = */		"webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com",
+	/* .shortname = */	"ECDSA-SK-CERT",
+	/* .sigalg = */		NULL,
+	/* .type = */		KEY_ECDSA_SK_CERT,
 	/* .nid = */		NID_X9_62_prime256v1,
 	/* .cert = */		0,
 	/* .sigonly = */	1,

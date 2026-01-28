@@ -47,6 +47,7 @@
 	"ecdsa-sha2-nistp521-cert-v01@openssh.com," \
 	"sk-ssh-ed25519-cert-v01@openssh.com," \
 	"sk-ecdsa-sha2-nistp256-cert-v01@openssh.com," \
+	"webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com," \
 	"rsa-sha2-512-cert-v01@openssh.com," \
 	"rsa-sha2-256-cert-v01@openssh.com," \
 	"ssh-ed25519," \
@@ -55,6 +56,7 @@
 	"ecdsa-sha2-nistp521," \
 	"sk-ssh-ed25519@openssh.com," \
 	"sk-ecdsa-sha2-nistp256@openssh.com," \
+	"webauthn-sk-ecdsa-sha2-nistp256@openssh.com," \
 	"rsa-sha2-512," \
 	"rsa-sha2-256"
 
@@ -87,6 +89,7 @@
 	"ecdsa-sha2-nistp521," \
 	"sk-ssh-ed25519@openssh.com," \
 	"sk-ecdsa-sha2-nistp256@openssh.com," \
+	"webauthn-sk-ecdsa-sha2-nistp256@openssh.com," \
 	"rsa-sha2-512," \
 	"rsa-sha2-256"
 
