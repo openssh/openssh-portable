@@ -1273,7 +1273,8 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	 * PKCS#11 tokens may not support all signature algorithms,
 	 * so check what we get back.
 	 */
-	if ((r = sshkey_check_sigtype(*sigp, *lenp, alg)) != 0) {
+	if (!sshkey_is_sk(sign_key) &&
+		(r = sshkey_check_sigtype(*sigp, *lenp, alg)) != 0) {
 		debug_fr(r, "sshkey_check_sigtype");
 		goto out;
 	}
