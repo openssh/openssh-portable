@@ -102,10 +102,10 @@ for TARGET in $TARGETS; do
         PACKAGES="$PACKAGES $compiler"
         ;;
     krb5)
-        PACKAGES="$PACKAGES libkrb5-dev"
+        PACKAGES="$PACKAGES libkrb5-dev libnss-wrapper krb5-admin-server"
 	;;
     heimdal)
-        PACKAGES="$PACKAGES heimdal-dev"
+        PACKAGES="$PACKAGES heimdal-dev libnss-wrapper krb5-admin-server"
         ;;
     libedit)
 	case "$PACKAGER" in
