@@ -117,7 +117,8 @@ LTESTS= 	connect \
 		penalty-expire \
 		connect-bigconf \
 		ssh-pkcs11 \
-		ssh-tty
+		ssh-tty \
+		gss-auth
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 INTEROP_TESTS+=	dropbear-ciphers dropbear-kex dropbear-server
