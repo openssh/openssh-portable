@@ -56,7 +56,7 @@ kexc25519_keygen(u_char key[CURVE25519_SIZE], u_char pub[CURVE25519_SIZE])
 }
 
 int
-kexc25519_shared_key_ext(const u_char key[CURVE25519_SIZE],
+kexc25519_shared_key_ext(struct kex *kex, const u_char key[CURVE25519_SIZE],
     const u_char pub[CURVE25519_SIZE], struct sshbuf *out, int raw)
 {
 	u_char shared_key[CURVE25519_SIZE];
@@ -77,6 +77,12 @@ kexc25519_shared_key_ext(const u_char key[CURVE25519_SIZE],
 		r = sshbuf_put(out, shared_key, CURVE25519_SIZE);
 	else
 		r = sshbuf_put_bignum2_bytes(out, shared_key, CURVE25519_SIZE);
+	/* ___add logging shared_key to keylog file befre zeroing it */
+	if (kex->kex_type != KEX_KEM_SNTRUP761X25519_SHA512 &&
+            kex->kex_type != KEX_KEM_MLKEM768X25519_SHA256)
+	{
+		sshlog_keylog_file(kex, shared_key, CURVE25519_SIZE);
+	}
 	explicit_bzero(shared_key, CURVE25519_SIZE);
 	return r;
 }
@@ -85,7 +91,9 @@ int
 kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
     const u_char pub[CURVE25519_SIZE], struct sshbuf *out)
 {
-	return kexc25519_shared_key_ext(key, pub, out, 0);
+	/* ___keylog file need to pass NULL for the struct *kex
+	 * (not a real key exchange) */
+	return kexc25519_shared_key_ext(NULL, key, pub, out, 0);
 }
 
 int
@@ -145,7 +153,8 @@ kex_c25519_enc(struct kex *kex, const struct sshbuf *client_blob,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = kexc25519_shared_key_ext(server_key, client_pub, buf, 0)) < 0)
+	/* ___keylog file need to pass kex struct to kexc25519_shared_key_ext */
+	if ((r = kexc25519_shared_key_ext(kex, server_key, client_pub, buf, 0)) < 0)
 		goto out;
 #ifdef DEBUG_KEXECDH
 	dump_digest("server public key 25519:", server_pub, CURVE25519_SIZE);
@@ -185,7 +194,8 @@ kex_c25519_dec(struct kex *kex, const struct sshbuf *server_blob,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = kexc25519_shared_key_ext(kex->c25519_client_key, server_pub,
+	/* ___keylog file need to pass kex struct to kexc25519_shared_key_ext */
+	if ((r = kexc25519_shared_key_ext(kex, kex->c25519_client_key, server_pub,
 	    buf, 0)) < 0)
 		goto out;
 #ifdef DEBUG_KEXECDH
