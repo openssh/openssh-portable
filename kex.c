@@ -564,12 +564,65 @@ kex_input_newkeys(int type, u_int32_t seq, struct ssh *ssh)
 	return 0;
 }
 
+/* ___add helper for KEYLOG FILE support */
+void
+sshlog_keylog_file(const struct kex *kex, const u_char *shared_key, size_t shared_key_len)
+{
+    /* ___add logging cookie + shared_key to keylog file in Wireshark dissector format */
+    char *keylog_path;
+    FILE *keylog = NULL;
+    size_t i;
+    char *ext_keylog_path;
+    FILE *ext_keylog = NULL;
+
+    if ((keylog_path = getenv("SSHKEYLOGFILE")) != NULL)
+    {
+        keylog = fopen(keylog_path, "a");
+        if (keylog != NULL)
+        {
+            for (i = 0; i < 16; i++)
+                fprintf(keylog, "%02x", kex->cookie[i]);
+            fprintf(keylog, " SHARED_SECRET ");
+            for (i = 0; i < shared_key_len; i++)
+                fprintf(keylog, "%02x", shared_key[i]);
+            fprintf(keylog, "\n");
+            fclose(keylog);
+        }
+    }
+
+    /* ___add extended logging to optionnal extended keylog file */
+
+    if ((ext_keylog_path = getenv("SSHEXTKEYLOGFILE")) != NULL)
+    {
+        ext_keylog = fopen(ext_keylog_path, "a");
+        if (ext_keylog != NULL)
+	{
+            /* Write cookie */
+            for (i = 0; i < 16; i++)
+                fprintf(ext_keylog, "%02x", kex->cookie[i]);
+            /* Add optional metadata */
+	    if (!(kex->flags & KEX_INITIAL))
+                fprintf(ext_keylog, " REKEY");
+            if (kex->name)
+                fprintf(ext_keylog, " KEX_ALG %s", kex->name);
+            fprintf(ext_keylog, " SHARED_SECRET ");
+            for (i = 0; i < shared_key_len; i++)
+                fprintf(ext_keylog, "%02x", shared_key[i]);
+            fprintf(ext_keylog, "\n");
+            fclose(ext_keylog);
+        }
+    }
+}
+
 int
 kex_send_kexinit(struct ssh *ssh)
 {
 	u_char *cookie;
 	struct kex *kex = ssh->kex;
 	int r;
+#ifdef DEBUG_KEX_COOKIE
+	int i;
+#endif
 
 	if (kex == NULL) {
 		error_f("no kex");
@@ -590,6 +643,17 @@ kex_send_kexinit(struct ssh *ssh)
 		return SSH_ERR_INTERNAL_ERROR;
 	}
 	arc4random_buf(cookie, KEX_COOKIE_LEN);
+#ifdef DEBUG_KEX_COOKIE
+	/* ___output cookie on stderr to compare with cookie in keylog file */
+        for (i = 0; i < 16; i++)
+	{
+                fprintf(stderr, "%02x", cookie[i]);
+        }
+        fprintf(stderr, "\n");
+#endif
+	/* ___keylog file need to store cookie in kex structure */
+	memcpy(kex->cookie, cookie, 16);
+	memcpy(kex->client_cookie, kex->my, 16);
 
 	if ((r = sshpkt_start(ssh, SSH2_MSG_KEXINIT)) != 0 ||
 	    (r = sshpkt_putb(ssh, kex->my)) != 0 ||
@@ -630,6 +694,9 @@ kex_input_kexinit(int type, u_int32_t seq, struct ssh *ssh)
 			return r;
 		}
 	}
+	/* ___keylog file need to store cookie in kex structure */
+        memcpy(kex->server_cookie, kex->peer, 16);
+
 	for (i = 0; i < PROPOSAL_MAX; i++) {
 		if ((r = sshpkt_get_string(ssh, NULL, NULL)) != 0) {
 			error_fr(r, "discard proposal");
