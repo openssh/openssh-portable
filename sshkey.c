@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.159 2025/12/22 01:49:03 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.160 2026/02/05 22:05:49 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -96,6 +96,7 @@ extern const struct sshkey_impl sshkey_ed25519_sk_cert_impl;
 extern const struct sshkey_impl sshkey_ecdsa_sk_impl;
 extern const struct sshkey_impl sshkey_ecdsa_sk_cert_impl;
 extern const struct sshkey_impl sshkey_ecdsa_sk_webauthn_impl;
+extern const struct sshkey_impl sshkey_ecdsa_sk_webauthn_cert_impl;
 #  endif /* ENABLE_SK */
 extern const struct sshkey_impl sshkey_ecdsa_nistp256_impl;
 extern const struct sshkey_impl sshkey_ecdsa_nistp256_cert_impl;
@@ -135,6 +136,7 @@ const struct sshkey_impl * const keyimpls[] = {
 	&sshkey_ecdsa_sk_impl,
 	&sshkey_ecdsa_sk_cert_impl,
 	&sshkey_ecdsa_sk_webauthn_impl,
+	&sshkey_ecdsa_sk_webauthn_cert_impl,
 #  endif /* ENABLE_SK */
 # endif /* OPENSSL_HAS_ECC */
 	&sshkey_rsa_impl,
@@ -299,6 +301,17 @@ sshkey_match_keyname_to_sigalgs(const char *keyname, const char *sigalgs)
 		    match_pattern_list("rsa-sha2-256-cert-v01@openssh.com",
 		    sigalgs, 0) == 1 ||
 		    match_pattern_list("rsa-sha2-512-cert-v01@openssh.com",
+		    sigalgs, 0) == 1;
+	} else if (ktype == KEY_ECDSA_SK) {
+		return match_pattern_list("sk-ecdsa-sha2-nistp256@openssh.com",
+		    sigalgs, 0) == 1 || match_pattern_list(
+		    "webauthn-sk-ecdsa-sha2-nistp256@openssh.com",
+		    sigalgs, 0) == 1;
+	} else if (ktype == KEY_ECDSA_SK_CERT) {
+		return match_pattern_list(
+		    "sk-ecdsa-sha2-nistp256-cert-v01@openssh.com",
+		    sigalgs, 0) == 1 || match_pattern_list(
+		    "webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com",
 		    sigalgs, 0) == 1;
 	} else
 		return match_pattern_list(keyname, sigalgs, 0) == 1;
