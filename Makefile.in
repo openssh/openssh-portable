@@ -97,7 +97,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	readpass.o ttymodes.o xmalloc.o addr.o addrmatch.o \
 	atomicio.o dispatch.o mac.o misc.o utf8.o \
 	monitor_fdpass.o rijndael.o ssh-ecdsa.o ssh-ecdsa-sk.o \
-	ssh-ed25519-sk.o ssh-rsa.o dh.o \
+	ssh-ed25519-sk.o ssh-rsa.o dh.o audit-stub.o \
 	msg.o dns.o entropy.o gss-genr.o umac.o umac128.o \
 	smult_curve25519_ref.o \
 	poly1305.o chacha.o cipher-chachapoly.o cipher-chachapoly-libcrypto.o \
@@ -119,11 +119,11 @@ SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
 SSHDOBJS=sshd.o \
 	platform-listen.o \
 	servconf.o sshpty.o srclimit.o groupaccess.o auth2-methods.o \
-	dns.o fatal.o compat.o utf8.o authfd.o canohost.o \
+	dns.o fatal.o compat.o utf8.o authfd.o canohost.o packet.o\
 	$(P11OBJS) $(SKOBJS)
 
 SSHD_SESSION_OBJS=sshd-session.o auth-rhosts.o auth-passwd.o \
-	audit.o audit-bsm.o audit-linux.o platform.o \
+	audit.o audit-bsm.o audit-linux.o platform.o packet.o\
 	sshpty.o sshlogin.o servconf.o serverloop.o \
 	auth.o auth2.o auth2-methods.o auth-options.o session.o \
 	auth2-chall.o groupaccess.o \

@@ -1957,6 +1957,13 @@ AC_ARG_WITH([audit],
 		SSHDLIBS="$SSHDLIBS -laudit"
 		AC_DEFINE([USE_LINUX_AUDIT], [1], [Use Linux audit module])
 		;;
+	  aix)
+	  	AUDIT_MODULE=aix
+	   	dnl    Checks for headers, libs and functions
+	   	AC_CHECK_HEADERS([sys/audit.h])
+	   	AC_MSG_RESULT([aix])
+	   	AC_DEFINE([SSH_AUDIT_EVENTS], [1], [Use audit aix module])
+	   ;;
 	  debug)
 		AUDIT_MODULE=debug
 		AC_MSG_RESULT([debug])
