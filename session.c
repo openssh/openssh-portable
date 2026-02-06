@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.345 2025/11/17 12:59:29 jca Exp $ */
+/* $OpenBSD: session.c,v 1.346 2026/02/06 22:59:18 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -314,7 +314,7 @@ do_authenticated(struct ssh *ssh, Authctxt *authctxt)
 
 	auth_log_authopts("active", auth_opts, 0);
 
-	/* setup the channel layer */
+	/* set up the channel layer */
 	/* XXX - streamlocal? */
 	set_fwdpermit_from_authopts(ssh, auth_opts);
 

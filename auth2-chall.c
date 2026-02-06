@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.58 2026/02/06 01:24:36 djm Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.59 2026/02/06 22:59:18 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -167,7 +167,7 @@ kbdint_next_device(Authctxt *authctxt, KbdintAuthctxt *kbdintctxt)
 		for (i = 0; devices[i]; i++) {
 			if (i >= sizeof(kbdintctxt->devices_done) * 8 ||
 			    i >= sizeof(devices) / sizeof(devices[0]))
-				fatal_f("internal error: too may devices");
+				fatal_f("internal error: too many devices");
 			if ((kbdintctxt->devices_done & (1 << i)) != 0 ||
 			    !auth2_method_allowed(authctxt,
 			    "keyboard-interactive", devices[i]->name))

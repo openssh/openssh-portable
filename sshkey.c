@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.160 2026/02/05 22:05:49 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.161 2026/02/06 22:59:18 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2218,7 +2218,7 @@ sshkey_sign(struct sshkey *key,
 }
 
 /*
- * ssh_key_verify returns 0 for a correct signature  and < 0 on error.
+ * ssh_key_verify returns 0 for a correct signature and < 0 on error.
  * If "alg" specified, then the signature must use that algorithm.
  */
 int

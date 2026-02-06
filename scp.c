@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.270 2025/12/03 06:29:50 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.271 2026/02/06 22:59:18 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -969,7 +969,7 @@ brace_expand(const char *pattern, char ***patternsp, size_t *npatternsp)
 			continue;
 		}
 		/*
-		 * Pattern did not expand; append the finename component to
+		 * Pattern did not expand; append the filename component to
 		 * the completed list
 		 */
 		if ((cp2 = strrchr(cp, '/')) != NULL)

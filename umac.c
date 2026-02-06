@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.27 2025/09/05 10:34:35 dtucker Exp $ */
+/* $OpenBSD: umac.c,v 1.28 2026/02/06 22:59:18 dtucker Exp $ */
 /* -----------------------------------------------------------------------
  *
  * umac.c -- C Implementation UMAC Message Authentication
@@ -40,7 +40,7 @@
   * "Barreto"). The only two files needed are rijndael-alg-fst.c and
   * rijndael-alg-fst.h. Brian Gladman's version is distributed with the GNU
   * Public license at http://fp.gladman.plus.com/AES/index.htm. It
-  * includes a fast IA-32 assembly version. The OpenSSL crypo library is
+  * includes a fast IA-32 assembly version. The OpenSSL crypto library is
   * the third.
   *
   * 5) With FORCE_C_ONLY flags set to 0, incorrect results are sometimes
@@ -53,7 +53,7 @@
 /* ---------------------------------------------------------------------- */
 
 #ifndef UMAC_OUTPUT_LEN
-#define UMAC_OUTPUT_LEN     8  /* Alowable: 4, 8, 12, 16                  */
+#define UMAC_OUTPUT_LEN     8  /* Allowable: 4, 8, 12, 16                  */
 #endif
 
 #if UMAC_OUTPUT_LEN != 4 && UMAC_OUTPUT_LEN != 8 && \

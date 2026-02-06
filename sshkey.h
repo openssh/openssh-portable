@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.71 2025/12/22 01:49:03 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.72 2026/02/06 22:59:18 dtucker Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -98,7 +98,7 @@ enum sshkey_private_format {
 #define SSHKEY_FLAG_EXT		0x0001
 
 #define SSHKEY_CERT_MAX_PRINCIPALS	256
-/* XXX opaquify? */
+/* XXX opacify? */
 struct sshkey_cert {
 	struct sshbuf	*certblob; /* Kept around for use on wire */
 	u_int		 type; /* SSH2_CERT_TYPE_USER or SSH2_CERT_TYPE_HOST */
@@ -113,7 +113,7 @@ struct sshkey_cert {
 	char		*signature_type;
 };
 
-/* XXX opaquify? */
+/* XXX opacify? */
 struct sshkey {
 	int	 type;
 	int	 flags;

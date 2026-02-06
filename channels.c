@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.453 2026/01/04 09:52:58 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.454 2026/02/06 22:59:18 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -4754,7 +4754,7 @@ connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
 		/*
 		 * Fake up a struct addrinfo for AF_UNIX connections.
 		 * channel_connect_ctx_free() must check ai_family
-		 * and use free() not freeaddirinfo() for AF_UNIX.
+		 * and use free() not freeaddrinfo() for AF_UNIX.
 		 */
 		ai = xcalloc(1, sizeof(*ai) + sizeof(*sunaddr));
 		ai->ai_addr = (struct sockaddr *)(ai + 1);

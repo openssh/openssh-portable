@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.20 2026/02/05 22:05:49 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.21 2026/02/06 22:59:18 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -210,7 +210,7 @@ webauthn_check_prepare_hash(const u_char *data, size_t datalen,
 	fprintf(stderr, "%s: received origin: %s\n", __func__, origin);
 	fprintf(stderr, "%s: received clientData:\n", __func__);
 	sshbuf_dump(wrapper, stderr);
-	fprintf(stderr, "%s: expected clientData premable:\n", __func__);
+	fprintf(stderr, "%s: expected clientData preamble:\n", __func__);
 	sshbuf_dump(m, stderr);
 #endif
 	/* Check that the supplied clientData has the preamble we expect */

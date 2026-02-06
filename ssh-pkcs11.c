@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.75 2025/11/23 07:04:18 tb Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.76 2026/02/06 22:59:18 dtucker Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -1890,7 +1890,7 @@ pkcs11_register_provider(char *provider_id, char *pin,
 	p = xcalloc(1, sizeof(*p));
 	p->name = xstrdup(provider_id);
 	p->handle = handle;
-	/* setup the pkcs11 callbacks */
+	/* set up the pkcs11 callbacks */
 	if ((rv = (*getfunctionlist)(&f)) != CKR_OK) {
 		error("C_GetFunctionList for provider %s failed: %lu",
 		    provider_id, rv);
