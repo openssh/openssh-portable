@@ -441,7 +441,8 @@ format_host_entry(struct sshbuf *entry, const char *host, const char *ip,
 	char *hashed_host = NULL, *lhost;
 
 	lhost = xstrdup(host);
-	lowercase(lhost);
+	if (host[0] != '/')
+		lowercase(lhost);
 
 	if (store_hash) {
 		if ((hashed_host = host_hash(lhost, NULL, 0)) == NULL) {

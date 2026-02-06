@@ -992,7 +992,11 @@ and
 but they do not visually reveal identifying information if the
 file's contents are disclosed.
 The default is
-.Cm no .
+.Cm no
+unless the host is a UNIX-domain socket, in which case it is
+.Cm yes
+and cannot be set to
+.Cm no.
 Note that existing names and addresses in known hosts files
 will not be converted automatically,
 but may be manually hashed using
