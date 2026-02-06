@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.57 2025/10/02 08:38:43 dtucker Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.58 2026/02/06 01:24:36 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -54,19 +54,19 @@ static int send_userauth_info_request(struct ssh *);
 static int input_userauth_info_response(int, u_int32_t, struct ssh *);
 
 #ifdef BSD_AUTH
-extern KbdintDevice bsdauth_device;
+extern KbdintDevice mm_bsdauth_device;
 #else
 #ifdef USE_PAM
-extern KbdintDevice sshpam_device;
+extern KbdintDevice mm_sshpam_device;
 #endif
 #endif
 
 KbdintDevice *devices[] = {
 #ifdef BSD_AUTH
-	&bsdauth_device,
+	&mm_bsdauth_device,
 #else
 #ifdef USE_PAM
-	&sshpam_device,
+	&mm_sshpam_device,
 #endif
 #endif
 	NULL
@@ -361,26 +361,4 @@ input_userauth_info_response(int type, u_int32_t seq, struct ssh *ssh)
 	userauth_finish(ssh, authenticated, "keyboard-interactive",
 	    devicename);
 	return 0;
-}
-
-void
-privsep_challenge_enable(void)
-{
-#if defined(BSD_AUTH) || defined(USE_PAM)
-	int n = 0;
-#endif
-#ifdef BSD_AUTH
-	extern KbdintDevice mm_bsdauth_device;
-#endif
-#ifdef USE_PAM
-	extern KbdintDevice mm_sshpam_device;
-#endif
-
-#ifdef BSD_AUTH
-	devices[n++] = &mm_bsdauth_device;
-#else
-#ifdef USE_PAM
-	devices[n++] = &mm_sshpam_device;
-#endif
-#endif
 }
