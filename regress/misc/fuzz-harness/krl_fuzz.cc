@@ -16,9 +16,21 @@ extern "C" {
 #include "authfile.h"
 }
 
+static int initialised = 0;
+static FILE *null_file;
+static struct sshkey *key = NULL;
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-    // Slient logs
-    log_init("krl_fuzz", SYSLOG_LEVEL_ERROR, SYSLOG_FACILITY_AUTH, 0);
+    // single initialisation
+    if (!initialised) {
+        log_init("krl_fuzz", SYSLOG_LEVEL_ERROR, SYSLOG_FACILITY_AUTH, 0);
+
+        if ((null_file = fopen("/dev/null", "w")) == NULL) return 0;
+
+        if (sshkey_generate(KEY_ED25519, 0, &key) != 0) return 0;
+
+        initialised = 1;
+    }
 
     // Reject empty corpus
     if (size < 4) return 0;
@@ -42,15 +54,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     sshbuf_free(output);
 
     // Fuzz krl_dump
-    FILE *null_file = fopen("/dev/null", "w");
     krl_dump(krl, null_file);
-    fclose(null_file);
 
     // Fuzz ssh_krl_check_key
-    struct sshkey *key = NULL;
-    sshkey_generate(KEY_RSA, 2048, &key);
     ssh_krl_check_key(krl, key);
-    sshkey_free(key);
 
     ssh_krl_free(krl);
     return 0;
