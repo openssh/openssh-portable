@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.136 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.137 2026/02/07 02:02:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -437,8 +437,15 @@ ssh_agent_sign(int sock, const struct sshkey *key,
 	}
 	if ((r = sshbuf_get_string(msg, &sig, &len)) != 0)
 		goto out;
-	/* Check what we actually got back from the agent. */
-	if ((r = sshkey_check_sigtype(sig, len, alg)) != 0)
+	/*
+	 * Check what we actually got back from the agent, in case it returned
+	 * an incorrect RSA signature algorithm (e.g. "ssh-rsa" (RSA/SHA1) vs.
+	 * "rsa-sha2-256").
+	 * We don't do this for FIDO signatures as webauthn vs plain are just
+	 * different signature formats and not entirely different algorithms.
+	 */
+	if (!sshkey_is_sk(key) &&
+	    (r = sshkey_check_sigtype(sig, len, alg)) != 0)
 		goto out;
 	/* success */
 	*sigp = sig;
