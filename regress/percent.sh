@@ -107,7 +107,8 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	# Matches implementation in readconf.c:ssh_connection_hash()
 	if [ ! -z "${OPENSSL_BIN}" ]; then
 		HASH=`printf "${HOSTNAME}127.0.0.1${PORT}${REMUSER}" |
-		    $OPENSSL_BIN sha1 | cut -f2 -d' '`
+		    $OPENSSL_BIN sha256 -binary |
+		    $OPENSSL_BIN base64 | tr '+/' '-_' | tr -d =`
 		trial $i '%C' $HASH
 	fi
 	trial $i '%%' '%'
