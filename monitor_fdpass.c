@@ -32,10 +32,9 @@
 #include <sys/un.h>
 
 #include <errno.h>
+#include <poll.h>
 #include <string.h>
 #include <stdarg.h>
-
-#include <poll.h>
 
 #include "log.h"
 #include "monitor_fdpass.h"
