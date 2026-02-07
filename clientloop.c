@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.418 2025/11/27 02:18:48 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.419 2026/02/07 17:10:34 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
