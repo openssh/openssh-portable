@@ -41,7 +41,6 @@
 #include "dispatch.h"
 #include "sshbuf.h"
 #include "ssherr.h"
-#include "misc.h"
 #include "servconf.h"
 #include "packet.h"
 #include "kex.h"
@@ -328,5 +327,4 @@ Authmethod method_gssapi = {
 	&methodcfg_gssapi,
 	userauth_gssapi,
 };
-
-#endif /* GSSAPI */
+#endif
