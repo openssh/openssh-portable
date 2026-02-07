@@ -26,6 +26,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -34,13 +35,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <util.h>
 #include <paths.h>
 
-#include <poll.h>
-
-#include <util.h>
-
 #include "openbsd-compat/sys-queue.h"
+
+#include "atomicio.h"
 #include "xmalloc.h"
 #include "log.h"
 #include "ssh.h"
