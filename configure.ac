@@ -2108,7 +2108,6 @@ AC_CHECK_FUNCS([ \
 	getline \
 	getnameinfo \
 	getopt \
-	getpagesize \
 	getpeereid \
 	getpeerucred \
 	getpgid \
