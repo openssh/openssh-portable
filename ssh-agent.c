@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.317 2026/01/27 06:48:29 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.318 2026/02/08 17:51:43 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -52,15 +52,15 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <paths.h>
 #include <poll.h>
 #include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
+#include <limits.h>
+#include <time.h>
 #include <unistd.h>
 #include <util.h>
 
