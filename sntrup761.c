@@ -1689,7 +1689,7 @@ static void crypto_sort_uint32(void *array,long long n)
 }
 
 /* from supercop-20240808/crypto_kem/sntrup761/compact/kem.c */
-// 20240806 djb: some automated conversion to cryptoint
+/* 20240806 djb: some automated conversion to cryptoint */
 
 #define p 761
 #define q 4591
