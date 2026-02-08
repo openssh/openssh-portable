@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.624 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.625 2026/02/08 15:28:01 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.

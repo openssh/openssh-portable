@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.346 2026/02/06 22:59:18 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.347 2026/02/08 15:28:01 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
