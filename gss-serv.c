@@ -30,7 +30,9 @@
 
 #include <sys/types.h>
 #include <sys/param.h>
+#include <sys/queue.h>
 
+#include <netdb.h>
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
