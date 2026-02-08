@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.147 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.148 2026/02/08 19:54:31 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *

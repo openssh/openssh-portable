@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.331 2025/12/30 04:28:42 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.332 2026/02/08 19:54:31 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.150 2025/12/08 00:41:46 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.151 2026/02/08 19:54:31 dtucker Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -18,8 +18,8 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/resource.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #ifdef HAVE_SYS_MOUNT_H
 #include <sys/mount.h>

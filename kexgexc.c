@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexc.c,v 1.39 2025/10/03 00:08:02 djm Exp $ */
+/* $OpenBSD: kexgexc.c,v 1.40 2026/02/08 19:54:31 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -27,10 +27,10 @@
 #include "includes.h"
 
 #ifdef WITH_OPENSSL
+#include "openbsd-compat/openssl-compat.h"
 
 #include <sys/types.h>
 
-#include "openbsd-compat/openssl-compat.h"
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.189 2025/09/15 04:40:34 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.190 2026/02/08 19:54:31 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *

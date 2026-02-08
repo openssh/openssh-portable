@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgen.c,v 1.10 2024/09/09 02:39:57 djm Exp $ */
+/* $OpenBSD: kexgen.c,v 1.11 2026/02/08 19:54:31 dtucker Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *

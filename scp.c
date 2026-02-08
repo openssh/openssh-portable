@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.271 2026/02/06 22:59:18 dtucker Exp $ */
+/* $OpenBSD: scp.c,v 1.272 2026/02/08 19:54:31 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -88,8 +88,6 @@
 #endif
 #include <glob.h>
 #include <libgen.h>
-#include <limits.h>
-#include <util.h>
 #include <locale.h>
 #include <poll.h>
 #include <pwd.h>
@@ -101,6 +99,8 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <limits.h>
+#include <util.h>
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 #include <vis.h>
 #endif
