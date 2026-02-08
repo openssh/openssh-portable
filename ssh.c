@@ -1413,9 +1413,6 @@ main(int ac, char **av)
 	if (options.connection_attempts <= 0)
 		fatal("Invalid number of ConnectionAttempts");
 
-	if (sshbuf_len(command) != 0 && options.remote_command != NULL)
-		fatal("Cannot execute command-line and remote command.");
-
 	/* Cannot fork to background if no command. */
 	if (options.fork_after_authentication && sshbuf_len(command) == 0 &&
 	    options.remote_command == NULL &&
@@ -1507,7 +1504,10 @@ main(int ac, char **av)
 	 * after port-forwarding is set up, so it may pick up any local
 	 * tunnel interface name allocated.
 	 */
-	if (options.remote_command != NULL) {
+	if (sshbuf_len(command) != 0 && options.remote_command != NULL)
+		debug("Ignoring configured remote command.");
+
+	if (options.remote_command != NULL && sshbuf_len(command) == 0) {
 		debug3("expanding RemoteCommand: %s", options.remote_command);
 		cp = options.remote_command;
 		options.remote_command = default_client_percent_expand(cp,
