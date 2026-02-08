@@ -979,13 +979,6 @@ struct winsize {
 # endif /* gcc version */
 #endif /* __predict_true */
 
-#if defined(HAVE_GLOB_H) && defined(GLOB_HAS_ALTDIRFUNC) && \
-    defined(GLOB_HAS_GL_MATCHC) && defined(GLOB_HAS_GL_STATV) && \
-    defined(HAVE_DECL_GLOB_NOMATCH) &&  HAVE_DECL_GLOB_NOMATCH != 0 && \
-    !defined(BROKEN_GLOB)
-# define USE_SYSTEM_GLOB
-#endif
-
 /*
  * sntrup761 uses variable length arrays and c99-style declarations after code,
  * so only enable if the compiler supports them.

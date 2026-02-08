@@ -26,6 +26,7 @@
 #endif
 
 #include <ctype.h>
+#include <glob.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <stdio.h>
@@ -37,11 +38,6 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <util.h>
-#ifdef USE_SYSTEM_GLOB
-# include <glob.h>
-#else
-# include "openbsd-compat/glob.h"
-#endif
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"

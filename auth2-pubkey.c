@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <paths.h>
 #include <pwd.h>
+#include <glob.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -39,11 +40,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <limits.h>
-#ifdef USE_SYSTEM_GLOB
-# include <glob.h>
-#else
-# include "openbsd-compat/glob.h"
-#endif
 
 #include "xmalloc.h"
 #include "ssh.h"

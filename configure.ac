@@ -464,7 +464,6 @@ AC_CHECK_HEADERS([ \
 	floatingpoint.h \
 	fnmatch.h \
 	getopt.h \
-	glob.h \
 	ia.h \
 	iaf.h \
 	inttypes.h \
@@ -553,7 +552,6 @@ AC_CHECK_HEADERS([ \
 	*)      ;;
 	esac >"$header"
 ])
-AC_SUBST([COMPATINCLUDES])
 
 AC_CHECK_DECLS([le32toh, le64toh, htole64], [], [], [
 #ifdef HAVE_SYS_TYPES_H
@@ -805,7 +803,7 @@ int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE([SETEUID_BREAKS_SETUID])
 	AC_DEFINE([BROKEN_SETREUID])
 	AC_DEFINE([BROKEN_SETREGID])
-	AC_DEFINE([BROKEN_GLOB], [1], [OS X glob does not do what we expect])
+	broken_glob=yes  # OS X glob does not do what we expect
 	AC_DEFINE_UNQUOTED([BIND_8_COMPAT], [1],
 		[Define if your resolver libs need this for getrrsetbyname])
 	AC_DEFINE([SSH_TUN_FREEBSD], [1], [Open tunnel devices the FreeBSD way])
@@ -1123,7 +1121,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	    [Use tunnel device compatibility to OpenBSD])
 	AC_CHECK_HEADER([net/if_tap.h], ,
 	    AC_DEFINE([SSH_TUN_NO_L2], [1], [No layer 2 tunnel support]))
-	AC_DEFINE([BROKEN_GLOB], [1], [FreeBSD glob does not do what we need])
+	broken_glob=yes # FreeBSD glob does not do what we need
 	TEST_MALLOC_OPTIONS="AJRX"
 	# Preauth crypto occasionally uses file descriptors for crypto offload
 	# and will crash if they cannot be opened.
@@ -1678,6 +1676,15 @@ else
 	    [Define to rpl_calloc if the replacement function should be used.])
 fi
 
+dnl Figure out if we have a system glob, and if so if we can use it.
+AC_CHECK_FUNCS([glob],
+	[ AC_CHECK_HEADERS([glob.h],
+	  [use_system_glob=yes],
+	  [use_system_glob=no])
+	],
+	use_system_glob=no
+)
+
 # Check for ALTDIRFUNC glob() extension
 AC_MSG_CHECKING([for GLOB_ALTDIRFUNC support])
 AC_EGREP_CPP([FOUNDIT],
@@ -1695,6 +1702,7 @@ AC_EGREP_CPP([FOUNDIT],
 	],
 	[
 		AC_MSG_RESULT([no])
+		use_system_glob=no
 	]
 )
 
@@ -1709,7 +1717,9 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <glob.h> ]],
 		AC_MSG_RESULT([yes])
 	], [
 		AC_MSG_RESULT([no])
-])
+		use_system_glob=no
+	]
+)
 
 # Check for g.gl_statv glob() extension
 AC_MSG_CHECKING([for gl_statv and GLOB_KEEPSTAT extensions for glob])
@@ -1727,10 +1737,28 @@ g.gl_statv = NULL;
 		AC_MSG_RESULT([yes])
 	], [
 		AC_MSG_RESULT([no])
+		use_system_glob=no
+	]
+)
 
-])
+AC_CHECK_DECLS([GLOB_NOMATCH], , [use_system_glob=no], [#include <glob.h>])
 
-AC_CHECK_DECLS([GLOB_NOMATCH], , , [#include <glob.h>])
+if test "x$broken_glob" = "xyes"; then
+	AC_DEFINE([BROKEN_GLOB], [1], [Do not use system glob])
+	use_system_glob=no
+fi
+
+dnl If we don't have a system glob, or we do but we're not using it, then
+dnl create a glob.h shim so we don't have to sprinkle ifdefs everywhere.
+AC_MSG_CHECKING([if we can use the system glob])
+if test "x$use_system_glob" = "xyes" ; then
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+	COMPATINCLUDES="openbsd-compat/include"
+	mkdir -p "$COMPATINCLUDES"
+	echo '# include "openbsd-compat/glob.h"' >$COMPATINCLUDES/glob.h
+fi
 
 AC_CHECK_DECL([VIS_ALL], ,
     AC_DEFINE(BROKEN_STRNVIS, 1, [missing VIS_ALL]), [#include <vis.h>])
@@ -2089,7 +2117,6 @@ AC_CHECK_FUNCS([ \
 	getrandom \
 	getsid \
 	getttyent \
-	glob \
 	group_from_gid \
 	inet_aton \
 	inet_ntoa \
@@ -5830,6 +5857,7 @@ LDFLAGS_NOPIE=`echo "$LDFLAGS" | sed 's/^-pie //;s/ -pie//g'`
 CFLAGS_NOPIE=`echo "$CFLAGS" | sed 's/^-fPIE //;s/ -fPIE//g'`
 AC_SUBST([LDFLAGS_NOPIE])
 AC_SUBST([CFLAGS_NOPIE])
+AC_SUBST([COMPATINCLUDES])
 
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \

@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <glob.h>
 #include <ifaddrs.h>
 #include <limits.h>
 #include <netdb.h>
@@ -38,11 +39,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
-#ifdef USE_SYSTEM_GLOB
-# include <glob.h>
-#else
-# include "openbsd-compat/glob.h"
-#endif
 #include <util.h>
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>

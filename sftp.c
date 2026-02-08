@@ -28,7 +28,7 @@
 
 #include <ctype.h>
 #include <errno.h>
-
+#include <glob.h>
 #include <paths.h>
 #include <libgen.h>
 #ifdef HAVE_LOCALE_H

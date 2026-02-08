@@ -87,11 +87,7 @@
 #ifdef HAVE_FNMATCH_H
 #include <fnmatch.h>
 #endif
-#ifdef USE_SYSTEM_GLOB
-# include <glob.h>
-#else
-# include "openbsd-compat/glob.h"
-#endif
+#include <glob.h>
 #include <libgen.h>
 #include <limits.h>
 #include <util.h>
