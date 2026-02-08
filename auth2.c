@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.171 2026/02/07 17:04:22 dtucker Exp $ */
+/* $OpenBSD: auth2.c,v 1.172 2026/02/08 00:16:34 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -293,6 +293,8 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 		/* setup auth context */
 		authctxt->pw = mm_getpwnamallow(ssh, user);
 		authctxt->user = xstrdup(user);
+		authctxt->service = xstrdup(service);
+		authctxt->style = style ? xstrdup(style) : NULL;
 		if (authctxt->pw && strcmp(service, "ssh-connection")==0) {
 			authctxt->valid = 1;
 			debug2_f("setting up authctxt for %s", user);
@@ -311,8 +313,6 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 		ssh_packet_set_log_preamble(ssh, "%suser %s",
 		    authctxt->valid ? "authenticating " : "invalid ", user);
 		setproctitle("%s [net]", authctxt->valid ? user : "unknown");
-		authctxt->service = xstrdup(service);
-		authctxt->style = style ? xstrdup(style) : NULL;
 		mm_inform_authserv(service, style);
 		userauth_banner(ssh);
 		if ((r = kex_server_update_ext_info(ssh)) != 0)
