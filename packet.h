@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.104 2025/11/27 02:18:48 dtucker Exp $ */
+/* $OpenBSD: packet.h,v 1.105 2026/02/08 17:50:49 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
