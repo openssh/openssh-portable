@@ -75,7 +75,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <poll.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/uio.h>
@@ -92,6 +91,7 @@
 #include <limits.h>
 #include <util.h>
 #include <locale.h>
+#include <poll.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdarg.h>
