@@ -20,6 +20,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/queue.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -37,8 +38,6 @@
 #include <unistd.h>
 #include <util.h>
 #include <paths.h>
-
-#include "openbsd-compat/sys-queue.h"
 
 #include "atomicio.h"
 #include "xmalloc.h"

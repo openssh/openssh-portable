@@ -41,6 +41,7 @@
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <sys/queue.h>
 
 #include <netinet/in.h>
 
@@ -55,7 +56,6 @@
 #include <unistd.h>
 #include <stdarg.h>
 
-#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "packet.h"
 #include "sshbuf.h"

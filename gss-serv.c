@@ -37,7 +37,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "sshkey.h"
 #include "hostfile.h"

@@ -29,6 +29,7 @@
 
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <sys/queue.h>
 #include <sys/wait.h>
 
 #include <errno.h>
@@ -45,7 +46,6 @@
 #include <openssl/evp.h>
 #endif
 
-#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
 #ifdef WITH_OPENSSL

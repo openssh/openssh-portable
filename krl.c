@@ -18,8 +18,8 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <openbsd-compat/sys-tree.h>
-#include <openbsd-compat/sys-queue.h>
+#include <sys/tree.h>
+#include <sys/queue.h>
 
 #include <errno.h>
 #include <fcntl.h>

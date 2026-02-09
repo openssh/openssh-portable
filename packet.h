@@ -16,6 +16,9 @@
 #ifndef PACKET_H
 #define PACKET_H
 
+#include <sys/queue.h>
+
+#include <signal.h>
 #include <termios.h>
 
 #ifdef WITH_OPENSSL
@@ -35,9 +38,6 @@
 # define EC_POINT	void
 # define EVP_PKEY	void
 #endif /* WITH_OPENSSL */
-
-#include <signal.h>
-#include "openbsd-compat/sys-queue.h"
 
 struct kex;
 struct sshkey;

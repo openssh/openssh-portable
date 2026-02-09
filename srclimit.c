@@ -19,7 +19,7 @@
 
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <openbsd-compat/sys-tree.h>
+#include <sys/tree.h>
 
 #include <limits.h>
 #include <netdb.h>

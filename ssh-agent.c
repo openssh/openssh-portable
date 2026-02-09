@@ -37,13 +37,14 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/time.h>
+#include <sys/queue.h>
 #include <sys/resource.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
-#include <sys/time.h>
-#include <sys/un.h>
-#include "openbsd-compat/sys-queue.h"
 
 #ifdef WITH_OPENSSL
 #include <openssl/evp.h>

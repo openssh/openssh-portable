@@ -553,6 +553,22 @@ AC_CHECK_HEADERS([ \
 	esac >"$header"
 ])
 
+dnl Now create replacement headers for those that we always want to shim.
+for include in sys/queue.h sys/tree.h; do
+	COMPATINCLUDES="openbsd-compat/include"
+	header="$COMPATINCLUDES/$include"
+	dir=`dirname "$header"`
+	mkdir -p "$dir"
+	case "$include" in
+	sys/queue.h)
+		echo '#include "openbsd-compat/sys-queue.h"'
+		;;
+	sys/tree.h)
+		echo '#include "openbsd-compat/sys-tree.h"'
+		;;
+	esac >"$header"
+done
+
 AC_CHECK_DECLS([le32toh, le64toh, htole64], [], [], [
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>

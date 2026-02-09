@@ -43,10 +43,12 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/resource.h>
 #include <sys/ioctl.h>
+#include <sys/queue.h>
+#include <sys/resource.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/utsname.h>
 
@@ -75,7 +77,6 @@
 #include <openssl/err.h>
 #endif
 #include "openbsd-compat/openssl-compat.h"
-#include "openbsd-compat/sys-queue.h"
 
 #include "xmalloc.h"
 #include "ssh.h"

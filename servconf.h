@@ -16,7 +16,7 @@
 #ifndef SERVCONF_H
 #define SERVCONF_H
 
-#include <openbsd-compat/sys-queue.h>
+#include <sys/queue.h>
 
 #define MAX_PORTS		256	/* Max # ports. */
 

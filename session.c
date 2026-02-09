@@ -36,10 +36,11 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/un.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/wait.h>
+#include <sys/queue.h>
 
 #include <arpa/inet.h>
 
@@ -58,7 +59,6 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh2.h"

@@ -23,15 +23,13 @@
 #include <sys/time.h>
 
 #include <sys/types.h>
+#include <sys/queue.h>
 #include <stdarg.h>
 #include <stdio.h>
 
 #include <ctype.h>
 #include <string.h>
 #include <dlfcn.h>
-
-#include "openbsd-compat/sys-queue.h"
-#include "openbsd-compat/openssl-compat.h"
 
 #ifdef WITH_OPENSSL
 #include "openbsd-compat/openssl-compat.h"

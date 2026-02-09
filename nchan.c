@@ -27,12 +27,12 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/queue.h>
 
 #include <errno.h>
 #include <string.h>
 #include <stdarg.h>
 
-#include "openbsd-compat/sys-queue.h"
 #include "ssh2.h"
 #include "sshbuf.h"
 #include "ssherr.h"
