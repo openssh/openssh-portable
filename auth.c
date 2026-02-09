@@ -98,8 +98,8 @@ allowed_user(struct ssh *ssh, struct passwd * pw)
 {
 	struct stat st;
 	const char *hostname = NULL, *ipaddr = NULL;
-	u_int i;
 	int r;
+	u_int i;
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
 	if (!pw || !pw->pw_name)
