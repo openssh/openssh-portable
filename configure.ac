@@ -536,7 +536,9 @@ AC_CHECK_HEADERS([ \
     poll.h \
     stdint.h \
     sys/mman.h \
+    sys/mount.h \
     sys/stat.h \
+    sys/statvfs.h \
     sys/time.h \
     sys/un.h \
     time.h \
@@ -568,6 +570,16 @@ for include in sys/queue.h sys/tree.h; do
 		;;
 	esac >"$header"
 done
+
+# DragonFly uses STAILQ_* in its sys/mount.h, so we explicitly
+# need to include the system one first, not our shim.
+case "$host" in
+*-*-dragonfly*)
+	mkdir -p openbsd-compat/include/sys
+	echo '#include "/usr/include/sys/queue.h"'
+	echo '#include "/usr/include/sys/mount.h"'
+	;;
+esac > "openbsd-compat/include/sys/mount.h"
 
 AC_CHECK_DECLS([le32toh, le64toh, htole64], [], [], [
 #ifdef HAVE_SYS_TYPES_H

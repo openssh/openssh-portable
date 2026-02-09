@@ -24,11 +24,9 @@
 
 #include <sys/types.h>
 #include <sys/queue.h>
-#ifdef HAVE_SYS_STATVFS_H
-#include <sys/statvfs.h>
-#endif
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/statvfs.h>
 #include <sys/uio.h>
 
 #include <dirent.h>

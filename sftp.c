@@ -21,10 +21,8 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-#include <sys/wait.h>
-#ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
-#endif
+#include <sys/wait.h>
 
 #include <ctype.h>
 #include <errno.h>
