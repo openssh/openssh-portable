@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.19 2025/12/30 00:35:37 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.20 2026/02/09 21:38:14 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -51,13 +51,6 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <limits.h>
-
-#ifdef WITH_OPENSSL
-#include <openssl/bn.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#include "openbsd-compat/openssl-compat.h"
-#endif
 
 #ifdef HAVE_SECUREWARE
 #include <sys/security.h>
