@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.31 2025/12/22 01:50:46 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.32 2026/02/11 22:58:23 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -226,7 +226,8 @@ basic_tests() {
 		verbose "$tid: ${_prefix} revoked key"
 		(
 			cat $OBJ/sshd_proxy_bak
-			echo "RevokedKeys $OBJ/cert_user_key_revoked"
+			# Also test multiple RevokedKeys files.
+			echo "RevokedKeys /dev/null $OBJ/cert_user_key_revoked"
 			echo "PubkeyAcceptedAlgorithms ${t}"
 			echo "$extra_sshd"
 		) > $OBJ/sshd_proxy

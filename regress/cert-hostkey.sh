@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.30 2025/12/22 03:36:43 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.31 2026/02/11 22:58:23 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -143,6 +143,8 @@ for ktype in $PLAIN_TYPES ; do
 	attempt_connect "$ktype basic connect"			"yes"
 	attempt_connect "$ktype empty KRL"			"yes" \
 	    -oRevokedHostKeys=$OBJ/host_krl_empty
+	attempt_connect "$ktype multiple KRL files"		"no" \
+	    -oRevokedHostKeys="/dev/null $OBJ/host_krl_plain"
 	attempt_connect "$ktype KRL w/ plain key revoked"	"no" \
 	    -oRevokedHostKeys=$OBJ/host_krl_plain
 	attempt_connect "$ktype KRL w/ cert revoked"		"no" \
