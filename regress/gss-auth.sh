@@ -44,12 +44,16 @@ kdc_pidfile="$gssdir/pid"
 
 # Configure Kerberos
 cat<<EOF > "$KRB5_KDC_PROFILE"
+[kdcdefaults]
+ spake_preauth_kdc_challenge = edwards25519
+
 [realms]
     EXAMPLE.ORG = {
         database_name = $gssdir/principal
         key_stash_file = $gssdir/stash
         kdc_listen = $kdc_hostname:$kdc_port
         kdc_tcp_listen = $kdc_hostname:$kdc_port
+        spake_preauth_indicator = hardened
     }
 [logging]
     kdc = FILE:$gssdir/kdc.log
@@ -59,6 +63,7 @@ EOF
 cat<<EOF > "$KRB5_CONFIG"
 [libdefaults]
     default_realm = EXAMPLE.ORG
+    spake_preauth_groups = edwards25519
 [realms]
     EXAMPLE.ORG = {
         kdc = $kdc_hostname:$kdc_port
@@ -71,6 +76,7 @@ cp "$OBJ/sshd_config" "$OBJ/sshd_config.orig"
 setup_sshd() {
     mock_hostname="$1"
     strict_acceptor="$2"
+    gssapi_indicators="$3"
 
     cp "$OBJ/sshd_config.orig" "$OBJ/sshd_config"
 
@@ -82,6 +88,10 @@ EOF
 
     if ! $strict_acceptor; then
         echo "GSSAPIStrictAcceptorCheck No" >> "$OBJ/sshd_config"
+    fi
+
+    if -n "$gssapi_indicators"; then
+        echo "GSSAPIIndicators $gssapi_indicators" >> "$OBJ/sshd_config"
     fi
 
     test_ssh_sshd_env_backup="$TEST_SSH_SSHD_ENV"
@@ -156,8 +166,9 @@ test_gss_auth() {
     auth_client="$4"        # whether the client will be authenticated via kinit
     strict_acceptor="$5"    # whether to be strict about the identity of the sshd server
     expect="$6"             # the expected return value of the sshd command
+    gssapi_indicators="$7"  # optional GSSAPI indicators to use
 
-    setup_sshd "$sshd_mock_hostname" "$strict_acceptor"
+    setup_sshd "$sshd_mock_hostname" "$strict_acceptor" "$gssapi_indicators"
     setup_nss_emulation
     setup_kdc
 
@@ -174,7 +185,7 @@ test_gss_auth() {
     [ $status -eq $expect ]
 }
 
-#              sshd_mock_hostname  sshd_principal  auth_sshd  auth_client  strict_acceptor  expect
+#              sshd_mock_hostname  sshd_principal  auth_sshd  auth_client  strict_acceptor  expect gssapi-indicators
 test_gss_auth  $sshd_hostname      $sshd_hostname  true       true         true             0      \
                || fail "valid authentication attempt failed"
 test_gss_auth  $sshd_hostname      $sshd_hostname  false      true         true             255    \
@@ -187,6 +198,12 @@ test_gss_auth  $bad_hostname       $sshd_hostname  true       true         false
                || fail "valid authentication without strict acceptor check failed"
 test_gss_auth  $bad_hostname       $bad_hostname   true       true         true             255    \
                || fail "authentication succeeded with a hostname/principal mismatch on client side"
+
+test_gss_auth  $sshd_hostname      $sshd_hostname  true       true         true             0      hardened \
+               || fail "accepting only SPAKE pre-authentication attempt failed"
+
+test_gss_auth  $sshd_hostname      $sshd_hostname  true       true         true             255    "!hardened" \
+               || fail "rejecting SPAKE pre-authentication attempt failed"
 
 unset KRB5CCNAME
 unset KRB5_CONFIG
