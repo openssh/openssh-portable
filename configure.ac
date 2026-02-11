@@ -775,8 +775,6 @@ case "$host" in
 	AC_DEFINE([SPT_TYPE], [SPT_REUSEARGV],
 		[Define to a Set Process Title type if your system is
 		supported by bsd-setproctitle.c])
-	AC_DEFINE([SSHPAM_CHAUTHTOK_NEEDS_RUID], [1],
-	    [AIX 5.2 and 5.3 (and presumably newer) require this])
 	AC_DEFINE([PTY_ZEROREAD], [1], [read(1) can return 0 for a non-closed fd])
 	AC_DEFINE([PLATFORM_SYS_DIR_UID], 2, [System dirs owned by bin (uid 2)])
 	AC_DEFINE([BROKEN_STRNDUP], 1, [strndup broken, see APAR IY61211])
@@ -1216,9 +1214,6 @@ if (setsockopt(s, IPPROTO_IP, IP_TOS, &one, sizeof(one)) == -1)
 	AC_DEFINE([PAM_SUN_CODEBASE])
 	AC_DEFINE([LOGIN_NEEDS_UTMPX])
 	AC_DEFINE([PAM_TTY_KLUDGE])
-	AC_DEFINE([SSHPAM_CHAUTHTOK_NEEDS_RUID], [1],
-		[Define if pam_chauthtok wants real uid set
-		to the unpriv'ed user])
 	AC_DEFINE([LOCKED_PASSWD_STRING], ["*LK*"])
 	# Pushing STREAMS modules will cause sshd to acquire a controlling tty.
 	AC_DEFINE([SSHD_ACQUIRES_CTTY], [1],

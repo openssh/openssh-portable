@@ -272,31 +272,6 @@ pam_putenv(pam_handle_t *pamh, const char *name_value)
 }
 #endif /* HAVE_PAM_PUTENV */
 
-/*
- * Some platforms, notably Solaris, do not enforce password complexity
- * rules during pam_chauthtok() if the real uid of the calling process
- * is 0, on the assumption that it's being called by "passwd" run by root.
- * This wraps pam_chauthtok and sets/restore the real uid so PAM will do
- * the right thing.
- */
-#ifdef SSHPAM_CHAUTHTOK_NEEDS_RUID
-static int
-sshpam_chauthtok_ruid(pam_handle_t *pamh, int flags)
-{
-	int result;
-
-	if (sshpam_authctxt == NULL)
-		fatal("PAM: sshpam_authctxt not initialized");
-	if (setreuid(sshpam_authctxt->pw->pw_uid, -1) == -1)
-		fatal_f("setreuid failed: %s", strerror(errno));
-	result = pam_chauthtok(pamh, flags);
-	if (setreuid(0, -1) == -1)
-		fatal_f("setreuid failed: %s", strerror(errno));
-	return result;
-}
-# define pam_chauthtok(a,b)	(sshpam_chauthtok_ruid((a), (b)))
-#endif
-
 static void
 sshpam_password_change_required(int reqd)
 {
@@ -1145,86 +1120,6 @@ do_pam_setcred(void)
 	else
 		debug("PAM: pam_setcred(): %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
-}
-
-#if 0
-static int
-sshpam_tty_conv(int n, sshpam_const struct pam_message **msg,
-    struct pam_response **resp, void *data)
-{
-	char input[PAM_MAX_MSG_SIZE];
-	struct pam_response *reply;
-	int i;
-
-	debug3_f("PAM: called with %d messages", n);
-
-	*resp = NULL;
-
-	if (n <= 0 || n > PAM_MAX_NUM_MSG || !isatty(STDIN_FILENO))
-		return (PAM_CONV_ERR);
-
-	if ((reply = calloc(n, sizeof(*reply))) == NULL)
-		return (PAM_CONV_ERR);
-
-	for (i = 0; i < n; ++i) {
-		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
-		case PAM_PROMPT_ECHO_OFF:
-			reply[i].resp =
-			    read_passphrase(PAM_MSG_MEMBER(msg, i, msg),
-			    RP_ALLOW_STDIN);
-			reply[i].resp_retcode = PAM_SUCCESS;
-			break;
-		case PAM_PROMPT_ECHO_ON:
-			fprintf(stderr, "%s\n", PAM_MSG_MEMBER(msg, i, msg));
-			if (fgets(input, sizeof input, stdin) == NULL)
-				input[0] = '\0';
-			if ((reply[i].resp = strdup(input)) == NULL)
-				goto fail;
-			reply[i].resp_retcode = PAM_SUCCESS;
-			break;
-		case PAM_ERROR_MSG:
-		case PAM_TEXT_INFO:
-			fprintf(stderr, "%s\n", PAM_MSG_MEMBER(msg, i, msg));
-			reply[i].resp_retcode = PAM_SUCCESS;
-			break;
-		default:
-			goto fail;
-		}
-	}
-	*resp = reply;
-	return (PAM_SUCCESS);
-
- fail:
-	for(i = 0; i < n; i++) {
-		free(reply[i].resp);
-	}
-	free(reply);
-	return (PAM_CONV_ERR);
-}
-
-static struct pam_conv tty_conv = { sshpam_tty_conv, NULL };
-#endif
-
-/*
- * XXX this should be done in the authentication phase, but ssh1 doesn't
- * support that
- */
-void
-do_pam_chauthtok(void)
-{
-	fatal("Password expired");
-#if 0
-	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
-	    (const void *)&tty_conv);
-	if (sshpam_err != PAM_SUCCESS)
-		fatal("PAM: failed to set PAM_CONV: %s",
-		    pam_strerror(sshpam_handle, sshpam_err));
-	debug("PAM: changing password");
-	sshpam_err = pam_chauthtok(sshpam_handle, PAM_CHANGE_EXPIRED_AUTHTOK);
-	if (sshpam_err != PAM_SUCCESS)
-		fatal("PAM: pam_chauthtok(): %s",
-		    pam_strerror(sshpam_handle, sshpam_err));
-#endif
 }
 
 void
