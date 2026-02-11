@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.622 2025/12/22 01:17:31 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.623 2026/02/11 17:05:32 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland

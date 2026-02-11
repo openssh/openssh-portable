@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.11 2026/02/06 01:24:36 djm Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.12 2026/02/11 17:05:32 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
