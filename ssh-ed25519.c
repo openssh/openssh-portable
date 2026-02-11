@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519.c,v 1.20 2025/07/24 06:12:08 djm Exp $ */
+/* $OpenBSD: ssh-ed25519.c,v 1.21 2026/02/11 17:01:34 dtucker Exp $ */
 /*
  * Copyright (c) 2013 Markus Friedl <markus@openbsd.org>
  *
