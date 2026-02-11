@@ -922,7 +922,6 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 	struct early_child *child;
 	struct sshbuf *buf;
 	socklen_t fromlen;
-	u_char rnd[256];
 	sigset_t nsigset, osigset;
 
 	/* pipes connected to unauthenticated child sshd processes */
@@ -1219,14 +1218,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 			 * Ensure that our random state differs
 			 * from that of the child
 			 */
-			arc4random_stir();
-			arc4random_buf(rnd, sizeof(rnd));
-#ifdef WITH_OPENSSL
-			RAND_seed(rnd, sizeof(rnd));
-			if ((RAND_bytes((u_char *)rnd, 1)) != 1)
-				fatal_f("RAND_bytes failed");
-#endif
-			explicit_bzero(rnd, sizeof(rnd));
+			reseed_prngs();
 		}
 	}
 }
