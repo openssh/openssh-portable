@@ -97,7 +97,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	readpass.o ttymodes.o xmalloc.o addr.o addrmatch.o \
 	atomicio.o dispatch.o mac.o misc.o utf8.o \
 	monitor_fdpass.o rijndael.o ssh-ecdsa.o ssh-ecdsa-sk.o \
-	ssh-ed25519-sk.o ssh-rsa.o dh.o audit-stub.o \
+	ssh-ed25519-sk.o ssh-rsa.o dh.o \
 	msg.o dns.o entropy.o gss-genr.o umac.o umac128.o \
 	smult_curve25519_ref.o \
 	poly1305.o chacha.o cipher-chachapoly.o cipher-chachapoly-libcrypto.o \
@@ -113,8 +113,10 @@ P11OBJS= ssh-pkcs11-client.o
 
 SKOBJS=	ssh-sk-client.o
 
-SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
-	sshconnect.o sshconnect2.o mux.o ssh-pkcs11.o $(SKOBJS)
+AUD_STUB_OBJS = audit-stub.o
+
+SSHOBJS=  ssh.o readconf.o clientloop.o sshtty.o \
+	sshconnect.o sshconnect2.o mux.o ssh-pkcs11.o $(SKOBJS) $(AUD_STUB_OBJS)
 
 SSHDOBJS=sshd.o \
 	platform-listen.o \
@@ -150,7 +152,7 @@ SSHD_AUTH_OBJS=sshd-auth.o \
 	sftp-server.o sftp-common.o \
 	uidswap.o $(P11OBJS) $(SKOBJS)
 
-SFTP_CLIENT_OBJS=sftp-common.o sftp-client.o sftp-glob.o
+SFTP_CLIENT_OBJS=sftp-common.o sftp-client.o sftp-glob.o $(AUD_STUB_OBJS)
 
 SCP_OBJS=	scp.o progressmeter.o $(SFTP_CLIENT_OBJS)
 
@@ -166,7 +168,7 @@ P11HELPER_OBJS=	ssh-pkcs11-helper.o ssh-pkcs11.o $(SKOBJS)
 
 SKHELPER_OBJS=	ssh-sk-helper.o ssh-sk.o sk-usbhid.o
 
-SSHKEYSCAN_OBJS=ssh-keyscan.o $(P11OBJS) $(SKOBJS)
+SSHKEYSCAN_OBJS= ssh-keyscan.o $(P11OBJS) $(SKOBJS) $(AUD_STUB_OBJS)
 
 SFTPSERVER_OBJS=sftp-common.o sftp-server.o sftp-server-main.o
 
