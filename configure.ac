@@ -578,10 +578,11 @@ case "$host" in
 *-*-dragonfly*)
 	COMPATINCLUDES="$COMPATINCLUDESDIR"
 	mkdir -p "$COMPATINCLUDES/sys"
-	echo '#include "/usr/include/sys/queue.h"'
-	echo '#include "/usr/include/sys/mount.h"'
+	(echo '#include "/usr/include/sys/queue.h"'
+	 echo '#include "/usr/include/sys/mount.h"') \
+	    >"$COMPATINCLUDES/sys/mount.h"
 	;;
-esac > "$COMPATINCLUDES/sys/mount.h"
+esac
 
 AC_CHECK_DECLS([le32toh, le64toh, htole64], [], [], [
 #ifdef HAVE_SYS_TYPES_H
