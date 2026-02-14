@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexc.c,v 1.40 2026/02/08 19:54:31 dtucker Exp $ */
+/* $OpenBSD: kexgexc.c,v 1.41 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -40,7 +40,6 @@
 #include <signal.h>
 
 #include "sshkey.h"
-#include "cipher.h"
 #include "digest.h"
 #include "kex.h"
 #include "log.h"

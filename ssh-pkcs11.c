@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.76 2026/02/06 22:59:18 dtucker Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.77 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -27,7 +27,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <ctype.h>
 #include <string.h>
 #include <dlfcn.h>
 

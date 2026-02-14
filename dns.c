@@ -1,4 +1,4 @@
-/* $OpenBSD: dns.c,v 1.46 2025/08/29 03:50:38 djm Exp $ */
+/* $OpenBSD: dns.c,v 1.47 2026/02/14 00:18:34 jsg Exp $ */
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -38,7 +38,6 @@
 
 #include "xmalloc.h"
 #include "sshkey.h"
-#include "ssherr.h"
 #include "dns.h"
 #include "log.h"
 #include "digest.h"

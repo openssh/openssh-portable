@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.332 2026/02/08 19:54:31 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.333 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -45,7 +45,6 @@
 #include <sys/time.h>
 
 #include <netinet/in.h>
-#include <netinet/ip.h>
 #include <arpa/inet.h>
 
 #include <errno.h>
@@ -81,15 +80,12 @@
 #include "compat.h"
 #include "ssh2.h"
 #include "cipher.h"
-#include "sshkey.h"
 #include "kex.h"
 #include "digest.h"
 #include "mac.h"
 #include "log.h"
 #include "canohost.h"
 #include "misc.h"
-#include "channels.h"
-#include "ssh.h"
 #include "packet.h"
 #include "ssherr.h"
 #include "sshbuf.h"

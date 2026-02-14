@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.190 2026/02/08 19:54:31 dtucker Exp $ */
+/* $OpenBSD: kex.c,v 1.191 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -33,7 +33,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <poll.h>
 
 #ifdef WITH_OPENSSL
 #include <openssl/crypto.h>
@@ -54,7 +53,6 @@
 #include "match.h"
 #include "misc.h"
 #include "dispatch.h"
-#include "monitor.h"
 #include "myproposal.h"
 
 #include "ssherr.h"

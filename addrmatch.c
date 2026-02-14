@@ -1,4 +1,4 @@
-/*	$OpenBSD: addrmatch.c,v 1.18 2026/02/06 22:59:18 dtucker Exp $ */
+/*	$OpenBSD: addrmatch.c,v 1.19 2026/02/14 00:18:34 jsg Exp $ */
 
 /*
  * Copyright (c) 2004-2008 Damien Miller <djm@mindrot.org>
@@ -19,11 +19,8 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 
-#include <netdb.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.109 2025/12/22 01:17:31 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.110 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -26,7 +26,6 @@
 #include <sys/un.h>
 
 #include <errno.h>
-#include <fcntl.h>
 #include <poll.h>
 #include <limits.h>
 #include <signal.h>
@@ -36,27 +35,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <util.h>
-#include <paths.h>
 
-#include "atomicio.h"
 #include "xmalloc.h"
 #include "log.h"
 #include "ssh.h"
 #include "ssh2.h"
-#include "pathnames.h"
 #include "misc.h"
 #include "match.h"
 #include "sshbuf.h"
 #include "channels.h"
-#include "msg.h"
 #include "packet.h"
 #include "monitor_fdpass.h"
 #include "sshpty.h"
-#include "sshkey.h"
 #include "readconf.h"
 #include "clientloop.h"
-#include "ssherr.h"
 
 /* from ssh.c */
 extern int tty_flag;

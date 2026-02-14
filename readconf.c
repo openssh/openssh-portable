@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.409 2026/02/11 22:57:55 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.410 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -27,7 +27,6 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <glob.h>
 #include <ifaddrs.h>
 #include <limits.h>
@@ -46,7 +45,6 @@
 
 #include "xmalloc.h"
 #include "ssh.h"
-#include "ssherr.h"
 #include "cipher.h"
 #include "pathnames.h"
 #include "log.h"
@@ -56,7 +54,6 @@
 #include "match.h"
 #include "kex.h"
 #include "mac.h"
-#include "uidswap.h"
 #include "myproposal.h"
 #include "digest.h"
 #include "version.h"

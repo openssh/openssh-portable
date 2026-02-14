@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.28 2026/02/06 22:59:18 dtucker Exp $ */
+/* $OpenBSD: umac.c,v 1.29 2026/02/14 00:18:34 jsg Exp $ */
 /* -----------------------------------------------------------------------
  *
  * umac.c -- C Implementation UMAC Message Authentication
@@ -77,7 +77,6 @@
 #include <endian.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>

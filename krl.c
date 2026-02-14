@@ -1,4 +1,4 @@
-/* $OpenBSD: krl.c,v 1.62 2025/09/15 04:41:20 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.63 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2012 Damien Miller <djm@mindrot.org>
  *
@@ -22,17 +22,14 @@
 #include <sys/queue.h>
 
 #include <errno.h>
-#include <fcntl.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "sshkey.h"
-#include "authfile.h"
 #include "misc.h"
 #include "log.h"
 #include "digest.h"

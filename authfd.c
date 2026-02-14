@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.137 2026/02/07 02:02:00 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.138 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -43,21 +43,17 @@
 
 #include <fcntl.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
 
-#include "xmalloc.h"
 #include "ssh.h"
 #include "sshbuf.h"
 #include "sshkey.h"
 #include "authfd.h"
-#include "cipher.h"
 #include "log.h"
 #include "atomicio.h"
-#include "misc.h"
 #include "ssherr.h"
 
 #define MAX_AGENT_IDENTITIES	2048		/* Max keys in agent reply */

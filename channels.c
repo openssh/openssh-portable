@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.454 2026/02/06 22:59:18 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.455 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -46,7 +46,6 @@
 #include <sys/ioctl.h>
 #include <sys/un.h>
 #include <sys/socket.h>
-#include <sys/time.h>
 #include <sys/queue.h>
 
 #include <netinet/in.h>
@@ -76,8 +75,6 @@
 #include "channels.h"
 #include "compat.h"
 #include "canohost.h"
-#include "sshkey.h"
-#include "authfd.h"
 #include "pathnames.h"
 #include "match.h"
 
