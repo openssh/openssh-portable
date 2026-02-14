@@ -51,6 +51,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/utsname.h>
+#include <sys/un.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -255,6 +256,31 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 	struct addrinfo hints, *res;
 	int gaierr;
 	LogLevel loglevel = SYSLOG_LEVEL_DEBUG1;
+
+	if (name[0] == '/') {
+		struct sockaddr_un *sunaddr;
+
+		if (strlen(name) >= sizeof(sunaddr->sun_path)) {
+			error("%.100s: %.100s", name, strerror(ENAMETOOLONG));
+		}
+		/*
+		 * Fake up a struct addrinfo for AF_UNIX connections.
+		 * main() must check ai_family
+		 * and use free() not freeaddirinfo() for AF_UNIX.
+		 */
+		res = xmalloc(sizeof(*res) + sizeof(*sunaddr));
+		memset(res, 0, sizeof(*res) + sizeof(*sunaddr));
+		res->ai_addr = (struct sockaddr *)(res + 1);
+		res->ai_addrlen = sizeof(*sunaddr);
+		res->ai_family = AF_UNIX;
+		res->ai_socktype = SOCK_STREAM;
+		res->ai_protocol = PF_UNSPEC;
+		sunaddr = (struct sockaddr_un *)res->ai_addr;
+		sunaddr->sun_family = AF_UNIX;
+		strlcpy(sunaddr->sun_path, name, sizeof(sunaddr->sun_path));
+
+		return res;
+	}
 
 	if (port <= 0)
 		port = default_ssh_port();
@@ -1182,7 +1208,7 @@ main(int ac, char **av)
 	if (!host)
 		usage();
 
-	if (!valid_hostname(host))
+	if (host[0] != '/' && !valid_hostname(host))
 		fatal("hostname contains invalid characters");
 	options.host_arg = xstrdup(host);
 
@@ -1257,8 +1283,15 @@ main(int ac, char **av)
 		options.hostname = xstrdup(host);
 	}
 
+	/* enforce HashKnownHosts for unix sockets (file names) to avoid
+	   corrupting the known_hosts file with reserved characters */
+	if (host[0] == '/') {
+		debug("enabling HashKnownHosts for unix socket");
+		options.hash_known_hosts = 1;
+	}
+
 	/* Don't lowercase addresses, they will be explicitly canonicalised */
-	if ((was_addr = is_addr(host)) == 0)
+	if (host[0] != '/' && (was_addr = is_addr(host)) == 0)
 		lowercase(host);
 
 	/*
@@ -1731,7 +1764,6 @@ main(int ac, char **av)
 	    &timeout_ms, options.tcp_keep_alive) != 0)
 		exit(255);
 
-
 	ssh_packet_set_timeout(ssh, options.server_alive_interval,
 	    options.server_alive_count_max);
 
@@ -1841,6 +1873,17 @@ main(int ac, char **av)
 	ssh_login(ssh, &sensitive_data, host, (struct sockaddr *)&hostaddr,
 	    options.port, pw, timeout_ms, cinfo);
 
+	if (ssh_packet_connection_is_on_socket(ssh)) {
+		if (ssh_packet_connection_af(ssh) == AF_UNIX) {
+			verbose("Authenticated to %s.", host);
+		} else {
+			verbose("Authenticated to %s ([%s]:%d).", host,
+			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
+		}
+	} else {
+		verbose("Authenticated to %s (via proxy).", host);
+	}
+
 	/* We no longer need the private host keys.  Clear them now. */
 	if (sensitive_data.nkeys != 0) {
 		for (i = 0; i < sensitive_data.nkeys; i++) {
@@ -1871,8 +1914,12 @@ main(int ac, char **av)
 #endif
 
  skip_connect:
-	if (addrs != NULL)
-		freeaddrinfo(addrs);
+	if (addrs != NULL) {
+		if (addrs->ai_family == AF_UNIX)
+			free(addrs);
+		else
+			freeaddrinfo(addrs);
+	}
 	exit_status = ssh_session2(ssh, cinfo);
 	ssh_conn_info_free(cinfo);
 	channel_free_channels(ssh);

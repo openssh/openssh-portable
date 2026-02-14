@@ -345,6 +345,9 @@ set_sock_tos(int fd, int tos)
 		}
 # endif /* IPV6_TCLASS */
 		break;
+	case AF_UNIX:
+		debug3_f("no tos for unix socket");
+		break;
 	default:
 		debug2_f("unsupported socket family %d", af);
 		break;
