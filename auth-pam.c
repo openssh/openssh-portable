@@ -985,7 +985,6 @@ fake_password(const char *wire_password)
 	return ret;
 }
 
-/* XXX - see also comment in auth-chall.c:verify_response */
 static int
 sshpam_respond(void *ctx, u_int num, char **resp)
 {
