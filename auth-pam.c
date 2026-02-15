@@ -854,10 +854,9 @@ sshpam_query(void *ctx, char **name, char **info,
 {
 	struct sshbuf *buffer;
 	struct pam_ctxt *ctxt = ctx;
-	size_t plen;
 	u_char type;
 	char *msg;
-	size_t len, mlen, nmesg = 0;
+	size_t mlen, nmesg = 0;
 	int r;
 
 	debug3_f("entering");
@@ -865,10 +864,8 @@ sshpam_query(void *ctx, char **name, char **info,
 		fatal_f("sshbuf_new failed");
 	*name = xstrdup("");
 	*info = xstrdup("");
-	*prompts = xmalloc(sizeof(char *));
-	**prompts = NULL;
-	plen = 0;
-	*echo_on = xmalloc(sizeof(u_int));
+	*prompts = NULL;
+	*num = 0;
 	ctxt->pam_done = SshPamNone;
 
 	while (ssh_msg_recv(ctxt->pam_psock, buffer) == 0) {
@@ -880,20 +877,17 @@ sshpam_query(void *ctx, char **name, char **info,
 		switch (type) {
 		case PAM_PROMPT_ECHO_ON:
 		case PAM_PROMPT_ECHO_OFF:
+			*prompts = xcalloc(1, sizeof(char *));
+			*echo_on = xcalloc(1, sizeof(u_int));
+			(*prompts)[0] = msg;	/* transfer ownership */
+			(*echo_on)[0] = (type == PAM_PROMPT_ECHO_ON);
 			*num = 1;
-			len = plen + mlen + 1;
-			**prompts = xreallocarray(**prompts, 1, len);
-			strlcpy(**prompts + plen, msg, len - plen);
-			plen += mlen;
-			**echo_on = (type == PAM_PROMPT_ECHO_ON);
-			free(msg);
 			sshbuf_free(buffer);
 			return (0);
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
-			*num = 0;
 			free(*info);
-			*info = msg; /* Steal the message */
+			*info = msg; /* transfer ownership */
 			msg = NULL;
 			ctxt->pam_done = SshPamAgain;
 			sshbuf_free(buffer);
@@ -907,29 +901,8 @@ sshpam_query(void *ctx, char **name, char **info,
 			/* FALLTHROUGH */
 		case PAM_AUTH_ERR:
 			debug3("PAM: %s", pam_strerror(sshpam_handle, type));
-			if (**prompts != NULL && strlen(**prompts) != 0) {
-				free(*info);
-				*info = **prompts;
-				**prompts = NULL;
-				*num = 0;
-				**echo_on = 0;
-				ctxt->pam_done = SshPamError;
-				free(msg);
-				sshbuf_free(buffer);
-				return 0;
-			}
 			/* FALLTHROUGH */
 		case PAM_SUCCESS:
-			if (**prompts != NULL) {
-				/* drain any accumulated messages */
-				debug("PAM: %s", **prompts);
-				if ((r = sshbuf_put(loginmsg, **prompts,
-				    strlen(**prompts))) != 0)
-					fatal("%s: buffer error: %s",
-					    __func__, ssh_err(r));
-				free(**prompts);
-				**prompts = NULL;
-			}
 			if (type == PAM_SUCCESS) {
 				if (!sshpam_authctxt->valid ||
 				    (sshpam_authctxt->pw->pw_uid == 0 &&
@@ -938,8 +911,6 @@ sshpam_query(void *ctx, char **name, char **info,
 					    "succeeded when it should have "
 					    "failed");
 				import_environments(buffer);
-				*num = 0;
-				**echo_on = 0;
 				ctxt->pam_done = SshPamAuthenticated;
 				free(msg);
 				sshbuf_free(buffer);
@@ -950,8 +921,6 @@ sshpam_query(void *ctx, char **name, char **info,
 			    sshpam_authctxt->user, sshpam_rhost);
 			/* FALLTHROUGH */
 		default:
-			*num = 0;
-			**echo_on = 0;
 			free(msg);
 			ctxt->pam_done = SshPamError;
 			sshbuf_free(buffer);
