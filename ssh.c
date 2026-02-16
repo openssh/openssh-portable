@@ -96,6 +96,7 @@
 #include "match.h"
 #include "version.h"
 #include "ssherr.h"
+#include "utf8.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
