@@ -95,7 +95,6 @@
 #include "servconf.h"
 #include "ssh2.h"
 #include "auth-options.h"
-#include "misc.h"
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
