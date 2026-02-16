@@ -719,6 +719,29 @@ case "$host" in
 		AC_MSG_RESULT([$blibflags])
 	fi
 	LDFLAGS="$saved_LDFLAGS"
+
+	AC_ARG_WITH([baslr],
+    [  --with-baslr            Enable AIX Binary ASLR (-baslr) if possible], [
+        if test "x$withval" = "xno"; then
+            use_baslr=no
+        fi
+        if test "x$withval" = "xyes"; then
+            use_baslr=yes
+        fi
+    ])
+
+	if test "x$use_baslr" = "x"; then
+    	use_baslr=no
+	fi
+
+	if test "x$use_baslr" = "xyes"; then
+    	SAVED_LDFLAGS="$LDFLAGS"
+
+    	dnl Check whether the linker accepts -baslr
+    	OSSH_CHECK_LDFLAG_LINK([-baslr])
+
+	fi
+
 	dnl Check for authenticate.  Might be in libs.a on older AIXes
 	AC_CHECK_FUNC([authenticate], [AC_DEFINE([WITH_AIXAUTHENTICATE], [1],
 		[Define if you want to enable AIX4's authenticate function])],
