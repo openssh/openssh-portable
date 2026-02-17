@@ -113,17 +113,19 @@ P11OBJS= ssh-pkcs11-client.o
 
 SKOBJS=	ssh-sk-client.o
 
-SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
-	sshconnect.o sshconnect2.o mux.o ssh-pkcs11.o $(SKOBJS)
+AUD_STUB_OBJS = audit-stub.o
+
+SSHOBJS=  ssh.o readconf.o clientloop.o sshtty.o \
+	sshconnect.o sshconnect2.o mux.o ssh-pkcs11.o $(SKOBJS) $(AUD_STUB_OBJS)
 
 SSHDOBJS=sshd.o \
 	platform-listen.o \
 	servconf.o sshpty.o srclimit.o groupaccess.o auth2-methods.o \
-	dns.o fatal.o compat.o utf8.o authfd.o canohost.o \
+	dns.o fatal.o compat.o utf8.o authfd.o canohost.o packet.o\
 	$(P11OBJS) $(SKOBJS)
 
 SSHD_SESSION_OBJS=sshd-session.o auth-rhosts.o auth-passwd.o \
-	audit.o audit-bsm.o audit-linux.o platform.o \
+	audit.o audit-bsm.o audit-linux.o platform.o packet.o\
 	sshpty.o sshlogin.o servconf.o serverloop.o \
 	auth.o auth2.o auth2-methods.o auth-options.o session.o \
 	auth2-chall.o groupaccess.o \
@@ -150,7 +152,7 @@ SSHD_AUTH_OBJS=sshd-auth.o \
 	sftp-server.o sftp-common.o \
 	uidswap.o $(P11OBJS) $(SKOBJS)
 
-SFTP_CLIENT_OBJS=sftp-common.o sftp-client.o sftp-glob.o
+SFTP_CLIENT_OBJS=sftp-common.o sftp-client.o sftp-glob.o $(AUD_STUB_OBJS)
 
 SCP_OBJS=	scp.o progressmeter.o $(SFTP_CLIENT_OBJS)
 
@@ -166,7 +168,7 @@ P11HELPER_OBJS=	ssh-pkcs11-helper.o ssh-pkcs11.o $(SKOBJS)
 
 SKHELPER_OBJS=	ssh-sk-helper.o ssh-sk.o sk-usbhid.o
 
-SSHKEYSCAN_OBJS=ssh-keyscan.o $(P11OBJS) $(SKOBJS)
+SSHKEYSCAN_OBJS= ssh-keyscan.o $(P11OBJS) $(SKOBJS) $(AUD_STUB_OBJS)
 
 SFTPSERVER_OBJS=sftp-common.o sftp-server.o sftp-server-main.o
 
