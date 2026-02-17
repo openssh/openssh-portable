@@ -464,6 +464,7 @@ AC_CHECK_HEADERS([ \
 	floatingpoint.h \
 	fnmatch.h \
 	getopt.h \
+	glob.h \
 	ia.h \
 	iaf.h \
 	inttypes.h \
@@ -525,7 +526,6 @@ AC_CHECK_HEADERS([ \
 # platform.  Usually these are just empty, but in some cases they'll include
 # the equivalent file.  This avoids having to wrap those includes in
 # '#ifdef HAVE_FOO_H'.  If we create any such headers, add the path to includes.
-COMPATINCLUDESDIR="openbsd-compat/include"
 COMPATINCLUDES=""
 AC_CHECK_HEADERS([ \
     endian.h \
@@ -538,12 +538,11 @@ AC_CHECK_HEADERS([ \
     stdint.h \
     sys/mman.h \
     sys/stat.h \
-    sys/statvfs.h \
     sys/time.h \
     sys/un.h \
     time.h \
     util.h], [], [
-	COMPATINCLUDES="$COMPATINCLUDESDIR"
+	COMPATINCLUDES="openbsd-compat/include"
 	header="$COMPATINCLUDES/$ac_header"
 	dir=`dirname "$header"`
 	mkdir -p "$dir"
@@ -554,22 +553,7 @@ AC_CHECK_HEADERS([ \
 	*)      ;;
 	esac >"$header"
 ])
-
-dnl Now create replacement headers for those that we always want to shim.
-for include in sys/queue.h sys/tree.h; do
-	COMPATINCLUDES="$COMPATINCLUDESDIR"
-	header="$COMPATINCLUDES/$include"
-	dir=`dirname "$header"`
-	mkdir -p "$dir"
-	case "$include" in
-	sys/queue.h)
-		echo '#include "openbsd-compat/sys-queue.h"'
-		;;
-	sys/tree.h)
-		echo '#include "openbsd-compat/sys-tree.h"'
-		;;
-	esac >"$header"
-done
+AC_SUBST([COMPATINCLUDES])
 
 AC_CHECK_DECLS([le32toh, le64toh, htole64], [], [], [
 #ifdef HAVE_SYS_TYPES_H
@@ -762,6 +746,8 @@ case "$host" in
 	AC_DEFINE([SPT_TYPE], [SPT_REUSEARGV],
 		[Define to a Set Process Title type if your system is
 		supported by bsd-setproctitle.c])
+	AC_DEFINE([SSHPAM_CHAUTHTOK_NEEDS_RUID], [1],
+	    [AIX 5.2 and 5.3 (and presumably newer) require this])
 	AC_DEFINE([PTY_ZEROREAD], [1], [read(1) can return 0 for a non-closed fd])
 	AC_DEFINE([PLATFORM_SYS_DIR_UID], 2, [System dirs owned by bin (uid 2)])
 	AC_DEFINE([BROKEN_STRNDUP], 1, [strndup broken, see APAR IY61211])
@@ -819,7 +805,7 @@ int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE([SETEUID_BREAKS_SETUID])
 	AC_DEFINE([BROKEN_SETREUID])
 	AC_DEFINE([BROKEN_SETREGID])
-	broken_glob=yes  # OS X glob does not do what we expect
+	AC_DEFINE([BROKEN_GLOB], [1], [OS X glob does not do what we expect])
 	AC_DEFINE_UNQUOTED([BIND_8_COMPAT], [1],
 		[Define if your resolver libs need this for getrrsetbyname])
 	AC_DEFINE([SSH_TUN_FREEBSD], [1], [Open tunnel devices the FreeBSD way])
@@ -1137,7 +1123,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	    [Use tunnel device compatibility to OpenBSD])
 	AC_CHECK_HEADER([net/if_tap.h], ,
 	    AC_DEFINE([SSH_TUN_NO_L2], [1], [No layer 2 tunnel support]))
-	broken_glob=yes # FreeBSD glob does not do what we need
+	AC_DEFINE([BROKEN_GLOB], [1], [FreeBSD glob does not do what we need])
 	TEST_MALLOC_OPTIONS="AJRX"
 	# Preauth crypto occasionally uses file descriptors for crypto offload
 	# and will crash if they cannot be opened.
@@ -1201,6 +1187,9 @@ if (setsockopt(s, IPPROTO_IP, IP_TOS, &one, sizeof(one)) == -1)
 	AC_DEFINE([PAM_SUN_CODEBASE])
 	AC_DEFINE([LOGIN_NEEDS_UTMPX])
 	AC_DEFINE([PAM_TTY_KLUDGE])
+	AC_DEFINE([SSHPAM_CHAUTHTOK_NEEDS_RUID], [1],
+		[Define if pam_chauthtok wants real uid set
+		to the unpriv'ed user])
 	AC_DEFINE([LOCKED_PASSWD_STRING], ["*LK*"])
 	# Pushing STREAMS modules will cause sshd to acquire a controlling tty.
 	AC_DEFINE([SSHD_ACQUIRES_CTTY], [1],
@@ -1689,15 +1678,6 @@ else
 	    [Define to rpl_calloc if the replacement function should be used.])
 fi
 
-dnl Figure out if we have a system glob, and if so if we can use it.
-AC_CHECK_FUNCS([glob],
-	[ AC_CHECK_HEADERS([glob.h],
-	  [use_system_glob=yes],
-	  [use_system_glob=no])
-	],
-	use_system_glob=no
-)
-
 # Check for ALTDIRFUNC glob() extension
 AC_MSG_CHECKING([for GLOB_ALTDIRFUNC support])
 AC_EGREP_CPP([FOUNDIT],
@@ -1715,7 +1695,6 @@ AC_EGREP_CPP([FOUNDIT],
 	],
 	[
 		AC_MSG_RESULT([no])
-		use_system_glob=no
 	]
 )
 
@@ -1730,9 +1709,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <glob.h> ]],
 		AC_MSG_RESULT([yes])
 	], [
 		AC_MSG_RESULT([no])
-		use_system_glob=no
-	]
-)
+])
 
 # Check for g.gl_statv glob() extension
 AC_MSG_CHECKING([for gl_statv and GLOB_KEEPSTAT extensions for glob])
@@ -1750,28 +1727,10 @@ g.gl_statv = NULL;
 		AC_MSG_RESULT([yes])
 	], [
 		AC_MSG_RESULT([no])
-		use_system_glob=no
-	]
-)
 
-AC_CHECK_DECLS([GLOB_NOMATCH], , [use_system_glob=no], [#include <glob.h>])
+])
 
-if test "x$broken_glob" = "xyes"; then
-	AC_DEFINE([BROKEN_GLOB], [1], [Do not use system glob])
-	use_system_glob=no
-fi
-
-dnl If we don't have a system glob, or we do but we're not using it, then
-dnl create a glob.h shim so we don't have to sprinkle ifdefs everywhere.
-AC_MSG_CHECKING([if we can use the system glob])
-if test "x$use_system_glob" = "xyes" ; then
-	AC_MSG_RESULT([yes])
-else
-	AC_MSG_RESULT([no])
-	COMPATINCLUDES="openbsd-compat/include"
-	mkdir -p "$COMPATINCLUDES"
-	echo '# include "openbsd-compat/glob.h"' >$COMPATINCLUDES/glob.h
-fi
+AC_CHECK_DECLS([GLOB_NOMATCH], , , [#include <glob.h>])
 
 AC_CHECK_DECL([VIS_ALL], ,
     AC_DEFINE(BROKEN_STRNVIS, 1, [missing VIS_ALL]), [#include <vis.h>])
@@ -1984,6 +1943,7 @@ AC_ARG_WITH([audit],
 		# These are optional
 		AC_CHECK_FUNCS([getaudit_addr aug_get_machine])
 		AC_DEFINE([USE_BSM_AUDIT], [1], [Use BSM audit module])
+		AC_DEFINE([SSH_AUDIT_EVENTS], [1], [Use audit events])
 		if test "$sol2ver" -ge 11; then
 			SSHDLIBS="$SSHDLIBS -lscf"
 			AC_DEFINE([BROKEN_BSM_API], [1],
@@ -1997,7 +1957,15 @@ AC_ARG_WITH([audit],
 		AC_CHECK_HEADERS([libaudit.h])
 		SSHDLIBS="$SSHDLIBS -laudit"
 		AC_DEFINE([USE_LINUX_AUDIT], [1], [Use Linux audit module])
+		AC_DEFINE([SSH_AUDIT_EVENTS], [1], [Use audit events])
 		;;
+	  aix)
+	  AUDIT_MODULE=aix
+	   dnl    Checks for headers, libs and functions
+	   AC_CHECK_HEADERS([sys/audit.h])
+	   AC_MSG_RESULT([aix])
+	   AC_DEFINE([SSH_AUDIT_EVENTS], [1], [Use audit aix module])
+	   ;;
 	  debug)
 		AUDIT_MODULE=debug
 		AC_MSG_RESULT([debug])
@@ -2121,6 +2089,7 @@ AC_CHECK_FUNCS([ \
 	getline \
 	getnameinfo \
 	getopt \
+	getpagesize \
 	getpeereid \
 	getpeerucred \
 	getpgid \
@@ -2129,6 +2098,7 @@ AC_CHECK_FUNCS([ \
 	getrandom \
 	getsid \
 	getttyent \
+	glob \
 	group_from_gid \
 	inet_aton \
 	inet_ntoa \
@@ -5869,7 +5839,6 @@ LDFLAGS_NOPIE=`echo "$LDFLAGS" | sed 's/^-pie //;s/ -pie//g'`
 CFLAGS_NOPIE=`echo "$CFLAGS" | sed 's/^-fPIE //;s/ -fPIE//g'`
 AC_SUBST([LDFLAGS_NOPIE])
 AC_SUBST([CFLAGS_NOPIE])
-AC_SUBST([COMPATINCLUDES])
 
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.333 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: packet.c,v 1.331 2025/12/30 04:28:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -40,11 +40,12 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/queue.h>
+#include "openbsd-compat/sys-queue.h"
 #include <sys/socket.h>
 #include <sys/time.h>
 
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <arpa/inet.h>
 
 #include <errno.h>
@@ -80,15 +81,22 @@
 #include "compat.h"
 #include "ssh2.h"
 #include "cipher.h"
+#include "sshkey.h"
 #include "kex.h"
 #include "digest.h"
 #include "mac.h"
 #include "log.h"
 #include "canohost.h"
 #include "misc.h"
+#include "channels.h"
+#include "ssh.h"
 #include "packet.h"
 #include "ssherr.h"
 #include "sshbuf.h"
+
+#ifdef SSH_AUDIT_EVENTS
+#include "audit.h"
+#endif
 
 #ifdef PACKET_DEBUG
 #define DBG(x) x
@@ -1658,6 +1666,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			sshbuf_dump(state->input, stderr);
 #endif
 			logit("Bad packet length %u.", state->packlen);
+			audit_event(ssh, SSH_BAD_PCKT);
 			if ((r = sshpkt_disconnect(ssh, "Packet corrupt")) != 0)
 				return r;
 			return SSH_ERR_CONN_CORRUPT;
@@ -1688,6 +1697,10 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			sshbuf_dump(state->incoming_packet, stderr);
 #endif
 			logit("Bad packet length %u.", state->packlen);
+#ifdef _AIX
+			audit_event(ssh, SSH_BAD_PCKT);
+#endif
+			
 			return ssh_packet_start_discard(ssh, enc, mac, 0,
 			    PACKET_MAX_SIZE);
 		}
@@ -2076,6 +2089,9 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 		}
 		/* FALLTHROUGH */
 	case SSH_ERR_NO_CIPHER_ALG_MATCH:
+#ifdef SSH_AUDIT_EVENTS
+		audit_event(ssh, SSH_CIPHER_NO_MATCH);
+#endif
 	case SSH_ERR_NO_MAC_ALG_MATCH:
 	case SSH_ERR_NO_COMPRESS_ALG_MATCH:
 	case SSH_ERR_NO_KEX_ALG_MATCH:
