@@ -1961,7 +1961,7 @@ AC_ARG_WITH([wtmpdb],
 
 AUDIT_MODULE=none
 AC_ARG_WITH([audit],
-	[  --with-audit=module     Enable audit support (modules=debug,bsm,linux)],
+	[  --with-audit=module     Enable audit support (modules=debug,bsm,linux,aix)],
 	[
 	  AC_MSG_CHECKING([for supported audit module])
 	  case "$withval" in
@@ -1998,10 +1998,18 @@ AC_ARG_WITH([audit],
 		SSHDLIBS="$SSHDLIBS -laudit"
 		AC_DEFINE([USE_LINUX_AUDIT], [1], [Use Linux audit module])
 		;;
+	  aix)
+	  AC_MSG_RESULT([aix])
+	  AUDIT_MODULE=aix
+	   dnl    Checks for headers, libs and functions
+	   AC_CHECK_HEADERS([sys/audit.h])
+	   AC_DEFINE([USE_AIX_AUDIT], [1], [Use AIX audit module])
+	   ;;
 	  debug)
 		AUDIT_MODULE=debug
 		AC_MSG_RESULT([debug])
 		AC_DEFINE([SSH_AUDIT_EVENTS], [1], [Use audit debugging module])
+		AC_DEFINE([DEBUG_AUDIT_EVENTS], [1], [Use audit debugging module])
 		;;
 	  no)
 		AC_MSG_RESULT([no])

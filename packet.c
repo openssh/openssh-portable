@@ -90,6 +90,10 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 
+#if defined(SSH_AUDIT_EVENTS) || defined(USE_AIX_AUDIT)
+#include "audit.h"
+#endif
+
 #ifdef PACKET_DEBUG
 #define DBG(x) x
 #else
@@ -1658,6 +1662,9 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			sshbuf_dump(state->input, stderr);
 #endif
 			logit("Bad packet length %u.", state->packlen);
+#ifdef USE_AIX_AUDIT
+			audit_event(ssh, SSH_BAD_PCKT);
+#endif
 			if ((r = sshpkt_disconnect(ssh, "Packet corrupt")) != 0)
 				return r;
 			return SSH_ERR_CONN_CORRUPT;
@@ -1688,6 +1695,10 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			sshbuf_dump(state->incoming_packet, stderr);
 #endif
 			logit("Bad packet length %u.", state->packlen);
+#ifdef USE_AIX_AUDIT
+			audit_event(ssh, SSH_BAD_PCKT);
+#endif
+			
 			return ssh_packet_start_discard(ssh, enc, mac, 0,
 			    PACKET_MAX_SIZE);
 		}
@@ -2076,6 +2087,9 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 		}
 		/* FALLTHROUGH */
 	case SSH_ERR_NO_CIPHER_ALG_MATCH:
+#ifdef USE_AIX_AUDIT
+		audit_event(ssh, SSH_CIPHER_NO_MATCH);
+#endif
 	case SSH_ERR_NO_MAC_ALG_MATCH:
 	case SSH_ERR_NO_COMPRESS_ALG_MATCH:
 	case SSH_ERR_NO_KEX_ALG_MATCH:
