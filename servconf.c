@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.444 2026/02/11 22:57:16 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.445 2026/02/17 21:45:07 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2559,7 +2559,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			    " using DSCP values.", filename, linenum, arg);
 			value2 = INT_MAX;
 		}
-		if (*activep) {
+		if (*activep && options->ip_qos_interactive == -1) {
 			options->ip_qos_interactive = value;
 			options->ip_qos_bulk = value2;
 		}
