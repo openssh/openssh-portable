@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.h,v 1.26 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: monitor.h,v 1.27 2026/02/09 21:23:35 dtucker Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>

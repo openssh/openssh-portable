@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.172 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.175 2026/02/11 22:57:16 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -16,7 +16,7 @@
 #ifndef SERVCONF_H
 #define SERVCONF_H
 
-#include <openbsd-compat/sys-queue.h>
+#include <sys/queue.h>
 
 #define MAX_PORTS		256	/* Max # ports. */
 
@@ -223,7 +223,8 @@ typedef struct {
 	u_int   num_permitted_listens;
 
 	char   *chroot_directory;
-	char   *revoked_keys_file;
+	uint	num_revoked_keys_files;
+	char   **revoked_keys_files;
 	char   *trusted_user_ca_keys;
 	char   *authorized_keys_command;
 	char   *authorized_keys_command_user;
@@ -291,7 +292,6 @@ TAILQ_HEAD(include_list, include_item);
 #define COPY_MATCH_STRING_OPTS() do { \
 		M_CP_STROPT(banner); \
 		M_CP_STROPT(trusted_user_ca_keys); \
-		M_CP_STROPT(revoked_keys_file); \
 		M_CP_STROPT(authorized_keys_command); \
 		M_CP_STROPT(authorized_keys_command_user); \
 		M_CP_STROPT(authorized_principals_file); \
@@ -303,21 +303,24 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STROPT(routing_domain); \
 		M_CP_STROPT(permit_user_env_allowlist); \
 		M_CP_STROPT(pam_service_name); \
-		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
-		M_CP_STRARRAYOPT(allow_users, num_allow_users); \
-		M_CP_STRARRAYOPT(deny_users, num_deny_users); \
-		M_CP_STRARRAYOPT(allow_groups, num_allow_groups); \
-		M_CP_STRARRAYOPT(deny_groups, num_deny_groups); \
-		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
-		M_CP_STRARRAYOPT(setenv, num_setenv); \
-		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
-		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens); \
-		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens); \
-		M_CP_STRARRAYOPT(channel_timeouts, num_channel_timeouts); \
-		M_CP_STRARRAYOPT(log_verbose, num_log_verbose); \
-		M_CP_STRARRAYOPT(subsystem_name, num_subsystems); \
-		M_CP_STRARRAYOPT(subsystem_command, num_subsystems); \
-		M_CP_STRARRAYOPT(subsystem_args, num_subsystems); \
+		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files, 1);\
+		M_CP_STRARRAYOPT(revoked_keys_files, \
+		    num_revoked_keys_files, 1); \
+		M_CP_STRARRAYOPT(allow_users, num_allow_users, 1); \
+		M_CP_STRARRAYOPT(deny_users, num_deny_users, 1); \
+		M_CP_STRARRAYOPT(allow_groups, num_allow_groups, 1); \
+		M_CP_STRARRAYOPT(deny_groups, num_deny_groups, 1); \
+		M_CP_STRARRAYOPT(accept_env, num_accept_env, 1); \
+		M_CP_STRARRAYOPT(setenv, num_setenv, 1); \
+		M_CP_STRARRAYOPT(auth_methods, num_auth_methods, 1); \
+		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens, 1); \
+		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens, 1); \
+		M_CP_STRARRAYOPT(channel_timeouts, num_channel_timeouts, 1); \
+		M_CP_STRARRAYOPT(log_verbose, num_log_verbose, 1); \
+		/* Note: don't clobber num_subsystems until all copied */ \
+		M_CP_STRARRAYOPT(subsystem_name, num_subsystems, 0); \
+		M_CP_STRARRAYOPT(subsystem_command, num_subsystems, 0); \
+		M_CP_STRARRAYOPT(subsystem_args, num_subsystems, 1); \
 	} while (0)
 
 void	 initialize_server_options(ServerOptions *);

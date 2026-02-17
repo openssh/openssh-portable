@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.315 2025/11/13 10:35:14 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.318 2026/02/08 17:51:43 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -37,13 +37,14 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/time.h>
+#include <sys/queue.h>
 #include <sys/resource.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
-#include <sys/time.h>
-#include <sys/un.h>
-#include "openbsd-compat/sys-queue.h"
 
 #ifdef WITH_OPENSSL
 #include <openssl/evp.h>
@@ -52,15 +53,15 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <paths.h>
 #include <poll.h>
 #include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
+#include <limits.h>
+#include <time.h>
 #include <unistd.h>
 #include <util.h>
 
@@ -392,7 +393,7 @@ match_key_hop(const char *tag, const struct sshkey *key,
 			return -1; /* shouldn't happen */
 		if (!sshkey_equal(key->cert->signature_key, dch->keys[i]))
 			continue;
-		if (sshkey_cert_check_host(key, hostname, 1,
+		if (sshkey_cert_check_host(key, hostname,
 		    SSH_ALLOWED_CA_SIGALGS, &reason) != 0) {
 			debug_f("cert %s / hostname %s rejected: %s",
 			    key->cert->key_id, hostname, reason);
@@ -1756,6 +1757,26 @@ process_ext_session_bind(SocketEntry *e)
 	return r == 0 ? 1 : 0;
 }
 
+static int
+process_ext_query(SocketEntry *e)
+{
+	int r;
+	struct sshbuf *msg = NULL;
+
+	debug2_f("entering");
+	if ((msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	if ((r = sshbuf_put_u8(msg, SSH_AGENT_EXTENSION_RESPONSE)) != 0 ||
+	    (r = sshbuf_put_cstring(msg, "query")) != 0 ||
+	    /* string[]     supported extension types */
+	    (r = sshbuf_put_cstring(msg, "session-bind@openssh.com")) != 0)
+		fatal_fr(r, "compose");
+	if ((r = sshbuf_put_stringb(e->output, msg)) != 0)
+		fatal_fr(r, "enqueue");
+	sshbuf_free(msg);
+	return 1;
+}
+
 static void
 process_extension(SocketEntry *e)
 {
@@ -1767,7 +1788,9 @@ process_extension(SocketEntry *e)
 		error_fr(r, "parse");
 		goto send;
 	}
-	if (strcmp(name, "session-bind@openssh.com") == 0)
+	if (strcmp(name, "query") == 0)
+		success = process_ext_query(e);
+	else if (strcmp(name, "session-bind@openssh.com") == 0)
 		success = process_ext_session_bind(e);
 	else
 		debug_f("unsupported extension \"%s\"", name);

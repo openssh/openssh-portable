@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.104 2025/11/27 02:18:48 dtucker Exp $ */
+/* $OpenBSD: packet.h,v 1.105 2026/02/08 17:50:49 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -16,6 +16,9 @@
 #ifndef PACKET_H
 #define PACKET_H
 
+#include <sys/queue.h>
+
+#include <signal.h>
 #include <termios.h>
 
 #ifdef WITH_OPENSSL
@@ -35,9 +38,6 @@
 # define EC_POINT	void
 # define EVP_PKEY	void
 #endif /* WITH_OPENSSL */
-
-#include <signal.h>
-#include "openbsd-compat/sys-queue.h"
 
 struct kex;
 struct sshkey;

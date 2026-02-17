@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.36 2024/05/17 04:42:13 djm Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.38 2026/02/08 15:28:01 dtucker Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -328,5 +328,4 @@ Authmethod method_gssapi = {
 	&methodcfg_gssapi,
 	userauth_gssapi,
 };
-
-#endif /* GSSAPI */
+#endif

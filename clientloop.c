@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.418 2025/11/27 02:18:48 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.420 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -64,8 +64,8 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
 #include <sys/time.h>
+#include <sys/queue.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -76,12 +76,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <termios.h>
-#include <pwd.h>
 #include <unistd.h>
 #include <limits.h>
 
-#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh2.h"
@@ -91,9 +88,7 @@
 #include "channels.h"
 #include "dispatch.h"
 #include "sshkey.h"
-#include "cipher.h"
 #include "kex.h"
-#include "myproposal.h"
 #include "log.h"
 #include "misc.h"
 #include "readconf.h"
@@ -103,7 +98,6 @@
 #include "atomicio.h"
 #include "sshpty.h"
 #include "match.h"
-#include "msg.h"
 #include "ssherr.h"
 #include "hostfile.h"
 

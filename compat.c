@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.126 2023/03/06 12:14:48 dtucker Exp $ */
+/* $OpenBSD: compat.c,v 1.127 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -28,7 +28,6 @@
 #include <sys/types.h>
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdarg.h>
 
 #include "xmalloc.h"

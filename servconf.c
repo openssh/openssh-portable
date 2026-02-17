@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.440 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.444 2026/02/11 22:57:16 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -14,19 +14,20 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/queue.h>
 #include <sys/stat.h>
 #ifdef __OpenBSD__
 #include <sys/sysctl.h>
 #endif
 
 #include <netinet/in.h>
-#include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #ifdef HAVE_NET_ROUTE_H
 #include <net/route.h>
 #endif
 
 #include <ctype.h>
+#include <glob.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <stdio.h>
@@ -38,13 +39,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <util.h>
-#ifdef USE_SYSTEM_GLOB
-# include <glob.h>
-#else
-# include "openbsd-compat/glob.h"
-#endif
 
-#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
 #include "log.h"
@@ -198,7 +193,8 @@ initialize_server_options(ServerOptions *options)
 	options->chroot_directory = NULL;
 	options->authorized_keys_command = NULL;
 	options->authorized_keys_command_user = NULL;
-	options->revoked_keys_file = NULL;
+	options->revoked_keys_files = NULL;
+	options->num_revoked_keys_files = 0;
 	options->sk_provider = NULL;
 	options->trusted_user_ca_keys = NULL;
 	options->authorized_principals_file = NULL;
@@ -523,7 +519,6 @@ fill_default_server_options(ServerOptions *options)
 	CLEAR_ON_NONE(options->xauth_location);
 	CLEAR_ON_NONE(options->banner);
 	CLEAR_ON_NONE(options->trusted_user_ca_keys);
-	CLEAR_ON_NONE(options->revoked_keys_file);
 	CLEAR_ON_NONE(options->sk_provider);
 	CLEAR_ON_NONE(options->authorized_principals_file);
 	CLEAR_ON_NONE(options->adm_forced_command);
@@ -539,6 +534,8 @@ fill_default_server_options(ServerOptions *options)
 
 	CLEAR_ON_NONE_ARRAY(channel_timeouts, num_channel_timeouts, "none");
 	CLEAR_ON_NONE_ARRAY(auth_methods, num_auth_methods, "any");
+	CLEAR_ON_NONE_ARRAY(revoked_keys_files, num_revoked_keys_files, "none");
+	CLEAR_ON_NONE_ARRAY(authorized_keys_files, num_authkeys_files, "none");
 #undef CLEAR_ON_NONE
 #undef CLEAR_ON_NONE_ARRAY
 }
@@ -1958,8 +1955,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		break;
 
 	case sSubsystem:
-		arg = argv_next(&ac, &av);
-		if (!arg || *arg == '\0')
+		if ((arg = argv_next(&ac, &av)) == NULL || *arg == '\0' ||
+		   ((arg2 = argv_next(&ac, &av)) == NULL || *arg2 == '\0'))
 			fatal("%s line %d: %s missing argument.",
 			    filename, linenum, keyword);
 		if (!*activep) {
@@ -1992,15 +1989,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		    options->num_subsystems + 1,
 		    sizeof(*options->subsystem_args));
 		options->subsystem_name[options->num_subsystems] = xstrdup(arg);
-		arg = argv_next(&ac, &av);
-		if (!arg || *arg == '\0') {
-			fatal("%s line %d: Missing subsystem command.",
-			    filename, linenum);
-		}
 		options->subsystem_command[options->num_subsystems] =
-		    xstrdup(arg);
+		    xstrdup(arg2);
 		/* Collect arguments (separate to executable) */
-		arg = argv_assemble(1, &arg); /* quote command correctly */
+		arg = argv_assemble(1, &arg2); /* quote command correctly */
 		arg2 = argv_assemble(ac, av); /* rest of command */
 		xasprintf(&options->subsystem_args[options->num_subsystems],
 		    "%s%s%s", arg, *arg2 == '\0' ? "" : " ", arg2);
@@ -2201,12 +2193,24 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 	 * AuthorizedKeysFile	/etc/ssh_keys/%u
 	 */
 	case sAuthorizedKeysFile:
-		found = options->num_authkeys_files == 0;
+		uintptr = &options->num_authkeys_files;
+		chararrayptr = &options->authorized_keys_files;
+ parse_filenames:
+		found = *uintptr == 0;
 		while ((arg = argv_next(&ac, &av)) != NULL) {
 			if (*arg == '\0') {
 				error("%s line %d: keyword %s empty argument",
 				    filename, linenum, keyword);
 				goto out;
+			}
+			/* Allow "none" only in first position */
+			if (strcasecmp(arg, "none") == 0) {
+				if (nstrs > 0 || ac > 0) {
+					error("%s line %d: keyword %s \"none\" "
+					    "argument must appear alone.",
+					    filename, linenum, keyword);
+					goto out;
+				}
 			}
 			arg2 = tilde_expand_filename(arg, getuid());
 			opt_array_append(filename, linenum, keyword,
@@ -2218,8 +2222,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			    filename, linenum, keyword);
 		}
 		if (found && *activep) {
-			options->authorized_keys_files = strs;
-			options->num_authkeys_files = nstrs;
+			*chararrayptr = strs;
+			*uintptr = nstrs;
 			strs = NULL; /* transferred */
 			nstrs = 0;
 		}
@@ -2510,8 +2514,9 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		goto parse_filename;
 
 	case sRevokedKeys:
-		charptr = &options->revoked_keys_file;
-		goto parse_filename;
+		uintptr = &options->num_revoked_keys_files;
+		chararrayptr = &options->revoked_keys_files;
+		goto parse_filenames;
 
 	case sSecurityKeyProvider:
 		charptr = &options->sk_provider;
@@ -2997,7 +3002,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		dst->n = xstrdup(src->n); \
 	} \
 } while(0)
-#define M_CP_STRARRAYOPT(s, num_s) do {\
+#define M_CP_STRARRAYOPT(s, num_s, clobber) do {\
 	u_int i; \
 	if (src->num_s != 0) { \
 		for (i = 0; i < dst->num_s; i++) \
@@ -3006,7 +3011,8 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		dst->s = xcalloc(src->num_s, sizeof(*dst->s)); \
 		for (i = 0; i < src->num_s; i++) \
 			dst->s[i] = xstrdup(src->s[i]); \
-		dst->num_s = src->num_s; \
+		if (clobber) \
+			dst->num_s = src->num_s; \
 	} \
 } while(0)
 
@@ -3323,7 +3329,6 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sForceCommand, o->adm_forced_command);
 	dump_cfg_string(sChrootDirectory, o->chroot_directory);
 	dump_cfg_string(sTrustedUserCAKeys, o->trusted_user_ca_keys);
-	dump_cfg_string(sRevokedKeys, o->revoked_keys_file);
 	dump_cfg_string(sSecurityKeyProvider, o->sk_provider);
 	dump_cfg_string(sAuthorizedPrincipalsFile,
 	    o->authorized_principals_file);
@@ -3353,6 +3358,8 @@ dump_config(ServerOptions *o)
 	/* string array arguments */
 	dump_cfg_strarray_oneline(sAuthorizedKeysFile, o->num_authkeys_files,
 	    o->authorized_keys_files);
+	dump_cfg_strarray_oneline(sRevokedKeys, o->num_revoked_keys_files,
+	    o->revoked_keys_files);
 	dump_cfg_strarray(sHostKeyFile, o->num_host_key_files,
 	    o->host_key_files);
 	dump_cfg_strarray(sHostCertificate, o->num_host_cert_files,

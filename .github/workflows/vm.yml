@@ -22,7 +22,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "6.4.2"
         config: [default]
@@ -83,7 +82,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "13.5"
           - "14.3"
@@ -147,7 +145,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "9.0"
           - "9.4"
@@ -206,15 +203,15 @@ jobs:
         sudo -u builder env SUDO=sudo SSHD_CONFOPTS="UsePam yes" make tests
 
 
-  ominios:
+  omnios:
     name: "omnios-${{ matrix.target }}"
     if: github.repository != 'openssh/openssh-portable-selfhosted'
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "r151054"
+          - "r151046"
         config: [default]
     runs-on: ubuntu-latest
     steps:
@@ -263,7 +260,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "7.3"
           - "7.5"
@@ -317,7 +313,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # First we test all OSes in the default configuration.
         target:
           - "11.4-gcc"
         config: [default]

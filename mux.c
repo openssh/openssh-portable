@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.108 2025/12/05 06:16:27 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.110 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -20,12 +20,13 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/queue.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 
 #include <errno.h>
-#include <fcntl.h>
+#include <poll.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -34,30 +35,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <paths.h>
 
-#include <poll.h>
-
-#include <util.h>
-
-#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "log.h"
 #include "ssh.h"
 #include "ssh2.h"
-#include "pathnames.h"
 #include "misc.h"
 #include "match.h"
 #include "sshbuf.h"
 #include "channels.h"
-#include "msg.h"
 #include "packet.h"
 #include "monitor_fdpass.h"
 #include "sshpty.h"
-#include "sshkey.h"
 #include "readconf.h"
 #include "clientloop.h"
-#include "ssherr.h"
 
 /* from ssh.c */
 extern int tty_flag;
@@ -526,6 +517,10 @@ mux_master_process_ext_info(struct ssh *ssh, u_int rid,
 	if (strcmp(name, "connection") == 0) {
 		if ((msg = connection_info_message(ssh)) == NULL)
 			fatal_f("connection_info_message");
+		status = 1;
+	} else if (strcmp(name, "channels") == 0) {
+		if ((msg = channel_open_message(ssh)) == NULL)
+			fatal_f("channel_open_message");
 		status = 1;
 	} else {
 		msg = xstrdup("info request type not supported");
@@ -2369,7 +2364,7 @@ muxclient(const char *path)
 	struct sockaddr_un addr;
 	int sock, timeout = options.connection_timeout, timeout_ms = -1;
 	u_int pid;
-	char *conninfo = NULL;
+	char *info = NULL;
 
 	if (muxclient_command == 0) {
 		if (options.stdio_forward_host != NULL)
@@ -2441,12 +2436,15 @@ muxclient(const char *path)
 		fprintf(stderr, "Master running (pid=%u)\r\n", pid);
 		exit(0);
 	case SSHMUX_COMMAND_CONNINFO:
+	case SSHMUX_COMMAND_CHANINFO:
 		if (!(extensions & MUX_EXT_INFO))
-			fatal("mux server does not support conninfo");
-		conninfo = mux_client_request_info(sock, "connection");
-		if (conninfo == NULL)
-			fatal_f("connection info request failed");
-		printf("%s", conninfo);
+			fatal("mux server does not support info request");
+		info = mux_client_request_info(sock,
+		    muxclient_command == SSHMUX_COMMAND_CONNINFO ?
+		    "connection" : "channels");
+		if (info == NULL)
+			fatal_f("info request failed");
+		printf("%s", info);
 		exit(0);
 	case SSHMUX_COMMAND_TERMINATE:
 		mux_client_request_terminate(sock);

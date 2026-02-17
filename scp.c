@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.270 2025/12/03 06:29:50 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.272 2026/02/08 19:54:31 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -75,7 +75,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <poll.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/uio.h>
@@ -87,15 +86,10 @@
 #ifdef HAVE_FNMATCH_H
 #include <fnmatch.h>
 #endif
-#ifdef USE_SYSTEM_GLOB
-# include <glob.h>
-#else
-# include "openbsd-compat/glob.h"
-#endif
+#include <glob.h>
 #include <libgen.h>
-#include <limits.h>
-#include <util.h>
 #include <locale.h>
+#include <poll.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -105,6 +99,8 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <limits.h>
+#include <util.h>
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 #include <vis.h>
 #endif
@@ -969,7 +965,7 @@ brace_expand(const char *pattern, char ***patternsp, size_t *npatternsp)
 			continue;
 		}
 		/*
-		 * Pattern did not expand; append the finename component to
+		 * Pattern did not expand; append the filename component to
 		 * the completed list
 		 */
 		if ((cp2 = strrchr(cp, '/')) != NULL)

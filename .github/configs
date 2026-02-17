@@ -135,6 +135,7 @@ case "$config" in
 	CONFIGFLAGS="${CONFIGFLAGS} --with-security-key-builtin --with-selinux"
 	CONFIGFLAGS="${CONFIGFLAGS} --with-linux-memlock-onfault"
 	CFLAGS="-DSK_DEBUG -DSANDBOX_SECCOMP_FILTER_DEBUG"
+	EXTRA_TESTS="gss-auth"
 	;;
     hardenedmalloc)
 	CONFIGFLAGS="--with-ldflags=-lhardened_malloc"
@@ -153,6 +154,7 @@ case "$config" in
 	;;
     krb5|heimdal)
 	CONFIGFLAGS="--with-kerberos5"
+	EXTRA_TESTS="gss-auth"
 	;;
     libedit)
 	CONFIGFLAGS="--with-libedit"
@@ -166,6 +168,7 @@ case "$config" in
     pam-krb5)
 	CONFIGFLAGS="--with-pam --with-kerberos5"
 	SSHD_CONFOPTS="UsePam yes"
+	EXTRA_TESTS="gss-auth"
 	;;
     *pam)
 	CONFIGFLAGS="--with-pam"

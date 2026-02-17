@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.10 2025/11/13 10:35:14 dtucker Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.12 2026/02/11 17:05:32 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -32,12 +32,11 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
+#include <sys/tree.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/time.h>
-
-#include "openbsd-compat/sys-tree.h"
-#include "openbsd-compat/sys-queue.h"
+#include <sys/queue.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -749,9 +748,6 @@ main(int ac, char **av)
 	if ((loginmsg = sshbuf_new()) == NULL)
 		fatal("sshbuf_new loginmsg failed");
 	auth_debug_reset();
-
-	/* Enable challenge-response authentication for privilege separation */
-	privsep_challenge_enable();
 
 #ifdef GSSAPI
 	/* Cache supported mechanism OIDs for later use */

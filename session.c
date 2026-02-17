@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.345 2025/11/17 12:59:29 jca Exp $ */
+/* $OpenBSD: session.c,v 1.347 2026/02/08 15:28:01 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -36,10 +36,11 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/un.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/wait.h>
+#include <sys/queue.h>
 
 #include <arpa/inet.h>
 
@@ -58,7 +59,6 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh2.h"
@@ -314,7 +314,7 @@ do_authenticated(struct ssh *ssh, Authctxt *authctxt)
 
 	auth_log_authopts("active", auth_opts, 0);
 
-	/* setup the channel layer */
+	/* set up the channel layer */
 	/* XXX - streamlocal? */
 	set_fwdpermit_from_authopts(ssh, auth_opts);
 

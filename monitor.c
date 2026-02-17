@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.250 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.252 2026/02/08 19:54:31 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -28,29 +28,29 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
+#include <sys/tree.h>
+#include <sys/queue.h>
 
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <paths.h>
+#include <poll.h>
 #include <pwd.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include <unistd.h>
-#include <poll.h>
 
 #ifdef WITH_OPENSSL
 #include <openssl/dh.h>
 #endif
 
-#include "openbsd-compat/sys-tree.h"
-#include "openbsd-compat/sys-queue.h"
 #include "openbsd-compat/openssl-compat.h"
 
 #include "atomicio.h"
@@ -822,7 +822,7 @@ mm_encode_server_options(struct sshbuf *m)
 		    (r = sshbuf_put_cstring(m, options.x)) != 0) \
 			fatal_fr(r, "assemble %s", #x); \
 	} while (0)
-#define M_CP_STRARRAYOPT(x, nx) do { \
+#define M_CP_STRARRAYOPT(x, nx, clobber) do { \
 		for (i = 0; i < options.nx; i++) { \
 			if ((r = sshbuf_put_cstring(m, options.x[i])) != 0) \
 				fatal_fr(r, "assemble %s", #x); \
@@ -1131,6 +1131,7 @@ mm_answer_pam_account(struct ssh *ssh, int sock, struct sshbuf *m)
 	if ((r = sshbuf_put_u32(m, ret)) != 0 ||
 	    (r = sshbuf_put_stringb(m, loginmsg)) != 0)
 		fatal_fr(r, "buffer error");
+	sshbuf_reset(loginmsg);
 
 	mm_request_send(sock, MONITOR_ANS_PAM_ACCOUNT, m);
 

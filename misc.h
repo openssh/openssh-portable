@@ -118,6 +118,7 @@ void	 sock_set_v6only(int);
 
 struct passwd *pwcopy(struct passwd *);
 void	 pwfree(struct passwd *); /* NB. only use with pwcopy */
+
 const char *ssh_gai_strerror(int);
 
 typedef void privdrop_fn(struct passwd *);

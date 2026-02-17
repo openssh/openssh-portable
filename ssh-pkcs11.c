@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.75 2025/11/23 07:04:18 tb Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.77 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -23,15 +23,12 @@
 #include <sys/time.h>
 
 #include <sys/types.h>
+#include <sys/queue.h>
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <ctype.h>
 #include <string.h>
 #include <dlfcn.h>
-
-#include "openbsd-compat/sys-queue.h"
-#include "openbsd-compat/openssl-compat.h"
 
 #ifdef WITH_OPENSSL
 #include "openbsd-compat/openssl-compat.h"
@@ -1890,7 +1887,7 @@ pkcs11_register_provider(char *provider_id, char *pin,
 	p = xcalloc(1, sizeof(*p));
 	p->name = xstrdup(provider_id);
 	p->handle = handle;
-	/* setup the pkcs11 callbacks */
+	/* set up the pkcs11 callbacks */
 	if ((rv = (*getfunctionlist)(&f)) != CKR_OK) {
 		error("C_GetFunctionList for provider %s failed: %lu",
 		    provider_id, rv);

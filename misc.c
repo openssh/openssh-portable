@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.211 2025/12/05 17:48:47 phessler Exp $ */
+/* $OpenBSD: misc.c,v 1.212 2026/02/11 17:05:32 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -43,7 +43,6 @@
 #include <unistd.h>
 
 #include <netinet/in.h>
-#include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
@@ -1831,7 +1830,7 @@ monotime(void)
 	struct timespec ts;
 
 	monotime_ts(&ts);
-	return ts.tv_sec;
+	return (ts.tv_sec);
 }
 
 double
@@ -1840,7 +1839,7 @@ monotime_double(void)
 	struct timespec ts;
 
 	monotime_ts(&ts);
-	return ts.tv_sec + ((double)ts.tv_nsec / 1000000000);
+	return (double)ts.tv_sec + (double)ts.tv_nsec / 1000000000.0;
 }
 
 void
