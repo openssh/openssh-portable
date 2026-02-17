@@ -121,11 +121,11 @@ SSHOBJS=  ssh.o readconf.o clientloop.o sshtty.o \
 SSHDOBJS=sshd.o \
 	platform-listen.o \
 	servconf.o sshpty.o srclimit.o groupaccess.o auth2-methods.o \
-	dns.o fatal.o compat.o utf8.o authfd.o canohost.o packet.o\
+	dns.o fatal.o compat.o utf8.o authfd.o canohost.o \
 	$(P11OBJS) $(SKOBJS)
 
 SSHD_SESSION_OBJS=sshd-session.o auth-rhosts.o auth-passwd.o \
-	audit.o audit-bsm.o audit-linux.o platform.o packet.o\
+	audit.o audit-bsm.o audit-linux.o platform.o \
 	sshpty.o sshlogin.o servconf.o serverloop.o \
 	auth.o auth2.o auth2-methods.o auth-options.o session.o \
 	auth2-chall.o groupaccess.o \
