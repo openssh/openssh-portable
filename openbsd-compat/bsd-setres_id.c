@@ -69,9 +69,11 @@ int
 setresuid(uid_t ruid, uid_t euid, uid_t suid)
 {
 	int ret = 0, saved_errno;
+#ifdef _AIX
 	privg_t set_pv;
+#endif
 
-	if (ruid != suid) {
+	if (ruid != suid) {	
 		errno = ENOSYS;
 		return -1;
 	}
