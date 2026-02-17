@@ -167,13 +167,13 @@ audit_connection_from(const char *host, int port)
 void
 audit_event(struct ssh *ssh, ssh_audit_event_t event)
 {
+#ifdef _AIX
 	char buf[1024];
 	const char *username;
 	const char *event_name;
 	const char *remote_ip;
 	int ret;
 	uid_t auth_uid;  /* UID of the user attempting authentication */
-#ifdef _AIX
 	int res = 0;  /* AIX audit result code: 0 = success */
 
 	/* Debug: Log that audit_event was called */
@@ -278,6 +278,7 @@ void
 audit_session_open(struct logininfo *li)
 {
 	const char *t = li->line ? li->line : "(no tty)";
+#ifdef _AIX
 	const char *username;
 	const char *hostname;
 	const char *event_name;
@@ -285,8 +286,6 @@ audit_session_open(struct logininfo *li)
 	int ret;
 	uid_t auth_uid;
 
-	
-#ifdef _AIX
 	int res = 0;  /* AIX audit result code: 0 = success for session open */
 	
 	/* Use username from logininfo if available, otherwise from authctxt */
