@@ -52,7 +52,7 @@ case "$config" in
 	CONFIGFLAGS="--with-xauth=/usr/bin/xauth --with-security-key-builtin"
 	CONFIGFLAGS="$CONFIGFLAGS --with-kerberos5=/usr --with-libedit --disable-strip"
 	;;
-   clang-12-Werror)
+    clang-12-Werror)
 	CC="clang-12"
 	# clang's implicit-fallthrough requires that the code be annotated with
 	# __attribute__((fallthrough)) and does not understand /* FALLTHROUGH */
