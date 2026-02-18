@@ -125,7 +125,7 @@ jobs:
 
     - name: "PAM: configure"
       shell: freebsd {0}
-      run: cd $GITHUB_WORKSPACE && sudo -u builder ./configure --with-pam
+      run: cd $GITHUB_WORKSPACE && sudo -u builder ./configure --with-pam --with-audit=bsm
     - name: "PAM: make clean"
       shell: freebsd {0}
       run: cd $GITHUB_WORKSPACE && sudo -u builder make clean
