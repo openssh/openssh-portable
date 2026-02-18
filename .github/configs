@@ -134,6 +134,7 @@ case "$config" in
 	CONFIGFLAGS="--with-kerberos5 --with-libedit --with-pam"
 	CONFIGFLAGS="${CONFIGFLAGS} --with-security-key-builtin --with-selinux"
 	CONFIGFLAGS="${CONFIGFLAGS} --with-linux-memlock-onfault"
+	CONFIGFLAGS="${CONFIGFLAGS} --with-audit=debug"
 	CFLAGS="-DSK_DEBUG -DSANDBOX_SECCOMP_FILTER_DEBUG"
 	EXTRA_TESTS="gss-auth"
 	;;
@@ -198,7 +199,7 @@ case "$config" in
 	fi
 	;;
     selinux)
-	CONFIGFLAGS="--with-selinux"
+	CONFIGFLAGS="--with-selinux --with-audit=linux"
 	;;
     sk)
 	CONFIGFLAGS="--with-security-key-builtin --with-security-key-standalone"
