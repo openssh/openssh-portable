@@ -123,7 +123,7 @@ for TARGET in $TARGETS; do
         PACKAGES="$PACKAGES libfido2-dev libu2f-host-dev libcbor-dev"
         ;;
     selinux)
-        PACKAGES="$PACKAGES libselinux1-dev selinux-policy-dev"
+        PACKAGES="$PACKAGES libselinux1-dev selinux-policy-dev libaudit-dev"
         ;;
     hardenedmalloc)
         INSTALL_HARDENED_MALLOC=yes
