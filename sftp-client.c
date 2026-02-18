@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.183 2026/02/18 02:59:27 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.184 2026/02/18 03:04:12 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2693,7 +2693,7 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
     int depth, Attrib *dirattrib, int preserve_flag, int print_flag,
     int follow_link_flag)
 {
-	int i, ret = 0;
+	int i, ret = 0, created = 0;
 	SFTP_DIRENT **dir_entries;
 	char *filename, *new_from_path = NULL, *new_to_path = NULL;
 	mode_t mode = 0777;
@@ -2739,7 +2739,9 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	 * the path already existed and is a directory.  Ensure we can
 	 * write to the directory we create for the duration of the transfer.
 	 */
-	if (sftp_mkdir(to, to_path, &curdir, 0) != 0) {
+	if (sftp_mkdir(to, to_path, &curdir, 0) == 0)
+		created = 1;
+	else {
 		if (sftp_stat(to, to_path, 0, &newdir) != 0)
 			return -1;
 		if (!S_ISDIR(newdir.perm)) {
@@ -2801,7 +2803,8 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	free(new_to_path);
 	free(new_from_path);
 
-	sftp_setstat(to, to_path, &curdir);
+	if (created || preserve_flag)
+		sftp_setstat(to, to_path, &curdir);
 
 	sftp_free_dirents(dir_entries);
 
