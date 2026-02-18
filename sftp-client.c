@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.182 2026/02/08 03:30:15 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.183 2026/02/18 02:59:27 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2239,7 +2239,7 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
     int depth, int preserve_flag, int print_flag, int resume, int fsync_flag,
     int follow_link_flag, int inplace_flag)
 {
-	int ret = 0;
+	int created = 0, ret = 0;
 	DIR *dirp;
 	struct dirent *dp;
 	char *filename, *new_src = NULL, *new_dst = NULL;
@@ -2280,7 +2280,9 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	 */
 	saved_perm = a.perm;
 	a.perm |= (S_IWUSR|S_IXUSR);
-	if (sftp_mkdir(conn, dst, &a, 0) != 0) {
+	if (sftp_mkdir(conn, dst, &a, 0) == 0)
+		created = 1;
+	else {
 		if (sftp_stat(conn, dst, 0, &dirattrib) != 0)
 			return -1;
 		if (!S_ISDIR(dirattrib.perm)) {
@@ -2344,7 +2346,8 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	free(new_dst);
 	free(new_src);
 
-	sftp_setstat(conn, dst, &a);
+	if (created || preserve_flag)
+		sftp_setstat(conn, dst, &a);
 
 	(void) closedir(dirp);
 	return ret;
