@@ -367,6 +367,13 @@ case "$host" in
 		SKIP_LTESTS="agent-getpeereid" ;;
 	esac
 	;;
+*-solaris2.10)
+	# Only the sol10 VM has BSM libraries installed, so add that to
+	# the PAM test config.
+	if [ "${config}" = "pam" ]; then
+		CONFIGFLAGS="${CONFIGFLAGS} --with-audit=bsm"
+	fi
+	;;
 esac
 
 # Unless specifically configured, search for a suitable version of OpenSSL,

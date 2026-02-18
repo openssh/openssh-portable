@@ -356,7 +356,7 @@ jobs:
 
     - name: "PAM: configure"
       shell: solaris {0}
-      run: cd $GITHUB_WORKSPACE && sudo -u builder ./configure --with-pam --with-audit=bsm
+      run: cd $GITHUB_WORKSPACE && sudo -u builder ./configure --with-pam
     - name: "PAM: make clean"
       shell: solaris {0}
       run: cd $GITHUB_WORKSPACE && sudo -u builder make clean
