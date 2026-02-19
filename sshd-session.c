@@ -1298,8 +1298,13 @@ main(int ac, char **av)
 	ssh_packet_set_timeout(ssh, options.client_alive_interval,
 	    options.client_alive_count_max);
 
-	/* Try to send all our hostkeys to the client */
-	notify_hostkeys(ssh);
+	if (options.notify_hostkeys) {
+		/* Try to send all our hostkeys to the client */
+		debug3("NotifyHostKeys is enabled. Attempting to notify host keys.");
+		notify_hostkeys(ssh);
+	} else {
+		debug3("NotifyHostKeys is disabled.");
+	}
 
 	/* Start session. */
 	do_authenticated(ssh, authctxt);
