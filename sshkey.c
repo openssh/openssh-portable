@@ -64,8 +64,8 @@
 #include "openbsd-compat/openssl-compat.h"
 
 /* openssh private key file format */
-#define MARK_BEGIN		"-----BEGIN OPENSSH PRIVATE KEY-----\n"
-#define MARK_END		"-----END OPENSSH PRIVATE KEY-----\n"
+#define MARK_BEGIN		"-----BEGIN OPENSSH PRIVATE KEY-----"
+#define MARK_END		"-----END OPENSSH PRIVATE KEY-----"
 #define MARK_BEGIN_LEN		(sizeof(MARK_BEGIN) - 1)
 #define MARK_END_LEN		(sizeof(MARK_END) - 1)
 #define KDFNAME			"bcrypt"
@@ -2916,9 +2916,9 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 	sshbuf_reset(blob);
 
 	/* assemble uuencoded key */
-	if ((r = sshbuf_put(blob, MARK_BEGIN, MARK_BEGIN_LEN)) != 0 ||
+	if ((r = sshbuf_put(blob, MARK_BEGIN + '\n', MARK_BEGIN_LEN + 1)) != 0 ||
 	    (r = sshbuf_dtob64(encoded, blob, 1)) != 0 ||
-	    (r = sshbuf_put(blob, MARK_END, MARK_END_LEN)) != 0)
+	    (r = sshbuf_put(blob, MARK_END + '\n', MARK_END_LEN + 1)) != 0)
 		goto out;
 
 	/* success */
