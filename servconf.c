@@ -1036,8 +1036,9 @@ static int
 match_cfg_line(const char *full_line, int *acp, char ***avp,
     int line, struct connection_info *ci)
 {
-	int result = 1, attributes = 0, port;
+	int result = 1, attributes = 0;
 	char *arg, *attrib = NULL, *oattrib;
+	char portstr[NI_MAXSERV];
 
 	if (ci == NULL) {
 		debug3("checking syntax for 'Match %s' on line %d",
@@ -1198,25 +1199,19 @@ match_cfg_line(const char *full_line, int *acp, char ***avp,
 				goto out;
 			}
 		} else if (strcasecmp(attrib, "localport") == 0) {
-			if ((port = a2port(arg)) == -1) {
-				error("Invalid LocalPort '%s' on Match line",
-				    arg);
-				result = -1;
-				goto out;
-			}
 			if (ci == NULL || (ci->test && ci->lport == -1)) {
 				result = 0;
 				goto next;
 			}
 			if (ci->lport == 0)
 				match_test_missing_fatal("LocalPort", "lport");
-			/* TODO support port lists */
-			if (port == ci->lport)
-				debug("connection from %.100s matched "
-				    "'LocalPort %d' at line %d",
-				    ci->laddress, port, line);
-			else
+			snprintf(portstr, sizeof(portstr), "%d", ci->lport);
+			if (match_pattern_list(portstr, arg, 0) != 1)
 				result = 0;
+			else
+				debug("connection from %.100s matched "
+				    "'LocalPort %.100s' at line %d",
+				    ci->laddress, arg, line);
 		} else if (strcasecmp(attrib, "rdomain") == 0) {
 			if (ci == NULL || (ci->test && ci->rdomain == NULL)) {
 				result = 0;
