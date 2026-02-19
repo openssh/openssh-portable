@@ -1531,6 +1531,21 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 	 */
 	env = do_setup_env(ssh, s, shell);
 
+#ifdef USE_PAM
+	if (options.use_pam) {
+		/*
+		 * Shutting down the forked PAM handle must be done as per the
+		 * Linux-PAM documentation, specifically after setuid.
+		 *
+		 * Concretely, this ensures pam_cap can configure ambient
+		 * capabilities for the session by applying them during
+		 * cleanup. Without this, the ambient capability vector gets
+		 * cleared during setuid.
+		 */
+		sshpam_cleanup_in_child();
+	}
+#endif
+
 #ifdef HAVE_LOGIN_CAP
 	shell = login_getcapstr(lc, "shell", (char *)shell, (char *)shell);
 #endif
