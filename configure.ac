@@ -2009,7 +2009,6 @@ AC_ARG_WITH([audit],
 		AUDIT_MODULE=debug
 		AC_MSG_RESULT([debug])
 		AC_DEFINE([SSH_AUDIT_EVENTS], [1], [Use audit debugging module])
-		AC_DEFINE([DEBUG_AUDIT_EVENTS], [1], [Use audit debugging module])
 		;;
 	  no)
 		AC_MSG_RESULT([no])

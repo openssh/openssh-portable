@@ -38,54 +38,7 @@
 #include "audit.h"
 #include "log.h"
 #include "hostfile.h"
-#include "auth.h"
 
-/*
- * Care must be taken when using this since it WILL NOT be initialized when
- * audit_connection_from() is called and MAY NOT be initialized when
- * audit_event(CONNECTION_ABANDON) is called.  Test for NULL before using.
- */
-extern Authctxt *the_authctxt;
-
-/* Maybe add the audit class to struct Authmethod? */
-ssh_audit_event_t
-audit_classify_auth(const char *method)
-{
-	if (strcmp(method, "none") == 0)
-		return SSH_AUTH_FAIL_NONE;
-	else if (strcmp(method, "password") == 0)
-		return SSH_AUTH_FAIL_PASSWD;
-	else if (strcmp(method, "publickey") == 0 ||
-	    strcmp(method, "rsa") == 0)
-		return SSH_AUTH_FAIL_PUBKEY;
-	else if (strncmp(method, "keyboard-interactive", 20) == 0 ||
-	    strcmp(method, "challenge-response") == 0)
-		return SSH_AUTH_FAIL_KBDINT;
-	else if (strcmp(method, "hostbased") == 0 ||
-	    strcmp(method, "rhosts-rsa") == 0)
-		return SSH_AUTH_FAIL_HOSTBASED;
-	else if (strcmp(method, "gssapi-with-mic") == 0)
-		return SSH_AUTH_FAIL_GSSAPI;
-	else
-		return SSH_AUDIT_UNKNOWN;
-}
-
-/* helper to return supplied username */
-const char *
-audit_username(void)
-{
-	static const char unknownuser[] = "(unknown user)";
-	static const char invaliduser[] = "(invalid user)";
-
-	if (the_authctxt == NULL || the_authctxt->user == NULL)
-		return (unknownuser);
-	if(the_authctxt->user != NULL)
-			return (the_authctxt->user);
-	if (!the_authctxt->valid)
-			return (invaliduser);	
-	
-	return (the_authctxt->user);
-}
 
 const char *
 audit_event_lookup(ssh_audit_event_t ev)
@@ -120,11 +73,6 @@ audit_event_lookup(ssh_audit_event_t ev)
 			break;
 	return (event_lookup[i].name);
 }
-
-/*
- * Null implementations of audit functions.
- * These get used if SSH_AUDIT_EVENTS is defined but no audit module is enabled.
- */
 
 /*
  * Called after a connection has been accepted but before any authentication
@@ -162,20 +110,10 @@ audit_event(struct ssh *ssh, ssh_audit_event_t event)
 	auth_uid = (uid_t)-1;  /* Default to -1 if user doesn't exist */
 	
 	/* On AIX, use getuserattr to get UID from username */
-	if (the_authctxt != NULL && the_authctxt->user != NULL) {
+	if (username != NULL ) {
 		int uid_val;
-		if (getuserattr(the_authctxt->user, S_ID, &uid_val, SEC_INT) == 0) {
+		if (getuserattr(username, S_ID, &uid_val, SEC_INT) == 0) {
 			auth_uid = (uid_t)uid_val;
-		}
-	}
-
-	/* On other systems, use getpwnam or authctxt->pw */
-	if (the_authctxt != NULL && the_authctxt->pw != NULL) {
-		auth_uid = the_authctxt->pw->pw_uid;
-	} else if (the_authctxt != NULL && the_authctxt->user != NULL) {
-		struct passwd *pw = getpwnam(the_authctxt->user);
-		if (pw != NULL) {
-			auth_uid = pw->pw_uid;
 		}
 	}
 	

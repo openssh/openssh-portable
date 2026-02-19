@@ -28,11 +28,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#if defined(SSH_AUDIT_EVENTS) || defined(USE_AIX_AUDIT)
+#if defined(SSH_AUDIT_EVENTS)
 
 #include "audit.h"
 #include "log.h"
 #include "hostfile.h"
+#ifndef CUSTOM_SSH_AUDIT_EVENTS
 #include "auth.h"
 
 /*
@@ -40,7 +41,6 @@
  * audit_connection_from() is called and MAY NOT be initialized when
  * audit_event(CONNECTION_ABANDON) is called.  Test for NULL before using.
  */
-#ifdef DEBUG_AUDIT_EVENTS
 extern Authctxt *the_authctxt;
 #endif
 
@@ -74,7 +74,7 @@ audit_username(void)
 	static const char unknownuser[] = "(unknown user)";
 	static const char invaliduser[] = "(invalid user)";
 
-#ifdef DEBUG_AUDIT_EVENTS
+#ifndef CUSTOM_SSH_AUDIT_EVENTS
 	if (the_authctxt == NULL || the_authctxt->user == NULL)
 		return (unknownuser);
 	if (!the_authctxt->valid)
@@ -118,7 +118,7 @@ audit_event_lookup(ssh_audit_event_t ev)
 	return(event_lookup[i].name);
 }
 
-# ifndef DEBUG_AUDIT_EVENTS
+# ifndef CUSTOM_SSH_AUDIT_EVENTS
 /*
  * Null implementations of audit functions.
  * These get used if SSH_AUDIT_EVENTS is defined but no audit module is enabled.
@@ -190,4 +190,5 @@ audit_run_command(const char *command)
 	    audit_username(), command);
 }
 # endif  /* !defined CUSTOM_SSH_AUDIT_EVENTS */
-#endif /* SSH_AUDIT_EVENTS || USE_AIX_AUDIT */
+#endif /* SSH_AUDIT_EVENTS */
+

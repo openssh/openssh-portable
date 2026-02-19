@@ -113,7 +113,7 @@ P11OBJS= ssh-pkcs11-client.o
 
 SKOBJS=	ssh-sk-client.o
 
-AUDOBJ= audit.o
+AUDOBJ= audit-aix.o audit.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
 	sshconnect.o sshconnect2.o mux.o ssh-pkcs11.o $(SKOBJS) $(AUDOBJ)
@@ -168,7 +168,7 @@ P11HELPER_OBJS=	ssh-pkcs11-helper.o ssh-pkcs11.o $(SKOBJS)
 
 SKHELPER_OBJS=	ssh-sk-helper.o ssh-sk.o sk-usbhid.o ssherr-nolibcrypto.o
 
-SSHKEYSCAN_OBJS=ssh-keyscan.o $(P11OBJS) $(SKOBJS)
+SSHKEYSCAN_OBJS=ssh-keyscan.o $(P11OBJS) $(SKOBJS) $(AUDOBJ)
 
 SFTPSERVER_OBJS=sftp-common.o sftp-server.o sftp-server-main.o ssherr-nolibcrypto.o
 

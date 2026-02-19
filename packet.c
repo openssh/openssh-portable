@@ -90,7 +90,7 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 
-#if defined(SSH_AUDIT_EVENTS) || defined(USE_AIX_AUDIT)
+#if defined(SSH_AUDIT_EVENTS)
 #include "audit.h"
 #endif
 
