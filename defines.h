@@ -766,6 +766,11 @@ struct winsize {
 # define CUSTOM_SSH_AUDIT_EVENTS
 #endif
 
+#ifdef USE_AIX_AUDIT
+# define SSH_AUDIT_EVENTS
+# define CUSTOM_SSH_AUDIT_EVENTS
+#endif
+
 #if !defined(HAVE___func__) && defined(HAVE___FUNCTION__)
 #  define __func__ __FUNCTION__
 #elif !defined(HAVE___func__)
