@@ -187,6 +187,10 @@ struct kex {
 	u_char sntrup761_client_key[crypto_kem_sntrup761_SECRETKEYBYTES]; /* KEM */
 	u_char mlkem768_client_key[crypto_kem_mlkem768_SECRETKEYBYTES]; /* KEM */
 	struct sshbuf *client_pub;
+	/* ___store cookie for KEYLOG file */
+	u_char client_cookie[16]; /* optional to store client_cookie */
+        u_char server_cookie[16]; /* optional to store server_cookie */
+        u_char cookie[16]; /* used to store current cookie */
 };
 
 int	 kex_name_valid(const char *);
@@ -276,10 +280,15 @@ int	kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
     const u_char pub[CURVE25519_SIZE], struct sshbuf *out)
 	__attribute__((__bounded__(__minbytes__, 1, CURVE25519_SIZE)))
 	__attribute__((__bounded__(__minbytes__, 2, CURVE25519_SIZE)));
-int	kexc25519_shared_key_ext(const u_char key[CURVE25519_SIZE],
+/* ___keylog file need to pass kex struct to kexc25519_shared_key_ext */
+int	kexc25519_shared_key_ext(struct kex *kex, const u_char key[CURVE25519_SIZE],
     const u_char pub[CURVE25519_SIZE], struct sshbuf *out, int)
 	__attribute__((__bounded__(__minbytes__, 1, CURVE25519_SIZE)))
 	__attribute__((__bounded__(__minbytes__, 2, CURVE25519_SIZE)));
+
+/* ___add for keylog file helper in kex.c */
+void    sshlog_keylog_file(const struct kex *kex, const u_char *shared_key, size_t shared_key_len);
+
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH) || defined(DEBUG_KEXECDH)
 void	dump_digest(const char *, const u_char *, int);

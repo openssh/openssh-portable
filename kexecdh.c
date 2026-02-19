@@ -180,9 +180,14 @@ kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
+
 #ifdef DEBUG_KEXECDH
 	dump_digest("shared secret", kbuf, klen);
 #endif
+
+	/* ___keylog logging for ECDH */
+	sshlog_keylog_file(kex, kbuf, klen);
+
 	if ((r = sshbuf_put_bignum2(buf, shared_secret)) != 0)
 		goto out;
 	*shared_secretp = buf;
