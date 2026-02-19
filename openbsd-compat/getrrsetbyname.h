@@ -72,6 +72,8 @@
 #ifndef RRSET_VALIDATED
 # define RRSET_VALIDATED	1
 #endif
+/* Indicate secure validation cannot occur */
+# define RRSET_SECURE_UNSUPPORTED 8
 
 /*
  * Return codes for getrrsetbyname()
@@ -83,6 +85,7 @@
 # define ERRSET_INVAL		3
 # define ERRSET_NONAME		4
 # define ERRSET_NODATA		5
+# define ERRSET_NOSUPPORT	6
 #endif
 
 struct rdatainfo {

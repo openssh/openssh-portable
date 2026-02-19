@@ -201,6 +201,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	u_int8_t dnskey_digest_type;
 	u_char *dnskey_digest;
 	size_t dnskey_digest_len;
+	int verify_hosts = *flags;
 
 	*flags = 0;
 
@@ -227,6 +228,10 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	} else {
 		debug("found %d insecure fingerprints in DNS",
 		    fingerprints->rri_nrdatas);
+		if (verify_hosts == 1 &&
+		    (fingerprints->rri_flags & RRSET_SECURE_UNSUPPORTED))
+			error("System does not support secure DNS, "
+			      "try options edns0 in resolv.conf");
 	}
 
 	if (fingerprints->rri_nrdatas)
