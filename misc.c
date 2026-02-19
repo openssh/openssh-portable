@@ -59,6 +59,7 @@
 #endif
 
 #include "xmalloc.h"
+#include "addr.h"
 #include "misc.h"
 #include "log.h"
 #include "ssh.h"
@@ -1081,6 +1082,82 @@ urldecode(const char *src)
 	return ret;
 }
 
+static char *
+decode_ipv6(const char *address)
+{
+	const char *percent = strchr(address, '%');
+	const char *tmp_percent;
+	struct xaddr n;
+	char *output;
+
+	if (percent != NULL) {
+		/*
+		 * Only the fragment specifier is allowed to be %-encoded.
+		 * Therefore, the first %-encoded octet must itself be %,
+		 * which is encoded as %25.
+		 */
+		if (percent[1] != '2' || percent[2] != '5')
+			fatal("%s has first %% not part of %%25", address);
+
+		/*
+		 * RFC6874 says that non-unreserved characters MUST be percent-encoded.
+		 * Validate that here.  urldecode() will check for bad characters after
+		 * the '%', as well as for %00.
+		 */
+		for (tmp_percent = percent; *tmp_percent != '\0'; tmp_percent++) {
+			if (!(isalnum((unsigned char)*tmp_percent) ||
+			      *tmp_percent == '-' ||
+			      *tmp_percent == '.' ||
+			      *tmp_percent == '_' ||
+			      *tmp_percent == '~' ||
+			      *tmp_percent == '%'))
+				fatal("Non-unreserved, non-%% character in encoded IPv6 zone ID %s",
+				      address);
+		}
+	}
+
+	/* URL-decode the fragment portion. */
+	output = urldecode(address);
+	if (output == NULL)
+		fatal("Invalid %%-encoding character in IPv6 address %s",
+		      address);
+
+	/*
+	 * glibc getaddrinfo() validates that zone IDs are only found on
+	 * link-scope addresses and correspond to links that actually
+	 * exist.  However, a parsing function should not depend on what
+	 * links are present.  Therefore, only pass the part of the
+	 * string before the zone ID to getaddrinfo().
+	 */
+	if (percent != NULL) {
+		/*
+		 * "%25" decodes to "%", so the output buffer and the
+		 * address have their first "%" at the same offset from
+		 * the start of the string.
+		 */
+		output[percent - address] = '\0';
+	}
+
+	if (addr_pton(output, &n) == -1)
+		fatal("%s is not a valid IPv6 address", output);
+
+	/*
+	 * The only caller already checks for there being a ':' in the address,
+	 * and ':' after the first '%' must be %-encoded.  Therefore, this must
+	 * be an IPv6 address, not an IPv4 address.  Nevertheless, check for
+	 * AF_INET6 as defense in depth.
+	 */
+	if (n.af != AF_INET6)
+		fatal("internal error: %s is an IP address, but not an IPv6 address",
+		      output);
+
+	/* Restore the zone identifier if present. */
+	if (percent != NULL)
+		output[percent - address] = '%';
+
+	return output;
+}
+
 /*
  * Parse an (scp|ssh|sftp)://[user@]host[:port][/path] URI.
  * See https://tools.ietf.org/html/draft-ietf-secsh-scp-sftp-ssh-uri-04
@@ -1097,7 +1174,7 @@ int
 parse_uri(const char *scheme, const char *uri, char **userp, char **hostp,
     int *portp, char **pathp)
 {
-	char *uridup, *cp, *tmp, ch;
+	char *uridup, *cp, *tmp_host, *tmp, ch;
 	char *user = NULL, *host = NULL, *path = NULL;
 	int port = -1, ret = -1;
 	size_t len;
@@ -1140,9 +1217,16 @@ parse_uri(const char *scheme, const char *uri, char **userp, char **hostp,
 	/* Extract mandatory hostname */
 	if ((cp = hpdelim2(&tmp, &ch)) == NULL || *cp == '\0')
 		goto out;
-	host = xstrdup(cleanhostname(cp));
-	if (!valid_domain(host, 0, NULL))
-		goto out;
+	tmp_host = cleanhostname(cp);
+	if (strchr(tmp_host, ':') != NULL) {
+		/* Validate the IPv6 address and URL-decode the zone ID. */
+		if ((host = decode_ipv6(tmp_host)) == NULL)
+			goto out;
+	} else {
+		if (!valid_domain(tmp_host, 0, NULL))
+			goto out;
+		host = xstrdup(tmp_host);
+	}
 
 	if (tmp != NULL && *tmp != '\0') {
 		if (ch == ':') {
