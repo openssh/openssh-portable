@@ -5074,6 +5074,7 @@ AC_ARG_WITH([kerberos5],
 		AC_CHECK_HEADERS([gssapi.h gssapi/gssapi.h])
 		AC_CHECK_HEADERS([gssapi_krb5.h gssapi/gssapi_krb5.h])
 		AC_CHECK_HEADERS([gssapi_generic.h gssapi/gssapi_generic.h])
+		AC_CHECK_HEADERS([gssapi_ext.h gssapi/gssapi_ext.h])
 
 		AC_SEARCH_LIBS([k_hasafs], [kafs], [AC_DEFINE([USE_AFS], [1],
 			[Define this if you want to use libkafs' AFS support])])
