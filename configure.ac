@@ -1958,6 +1958,45 @@ AC_ARG_WITH([wtmpdb],
 	fi ]
 )
 
+# Check whether user wants logind/set tty support
+AC_ARG_WITH([logind],
+	[  --with-logind[[=PATH]]    Enable logind support for sshd],
+	[ if test "x$withval" != "xno" ; then
+		if test "x$withval" = "xyes" ; then
+			AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
+			if test "x$PKGCONFIG" != "xno"; then
+				AC_MSG_CHECKING([if $PKGCONFIG knows about libsystemd])
+				if "$PKGCONFIG" libsystemd; then
+					AC_MSG_RESULT([yes])
+					use_pkgconfig_for_libsystemd=yes
+				else
+					AC_MSG_RESULT([no])
+				fi
+			fi
+		else
+			CPPFLAGS="$CPPFLAGS -I${withval}/include"
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
+			else
+				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
+			fi
+		fi
+		if test "x$use_pkgconfig_for_libsystemd" = "xyes"; then
+			LIBSYSTEMD=`$PKGCONFIG --libs libsystemd`
+			CPPFLAGS="$CPPFLAGS `$PKGCONFIG --cflags libsystemd`"
+		else
+			LIBSYSTEMD="-lsystemd"
+		fi
+		OTHERLIBS=`echo $LIBSYSTEMD | sed 's/-lsystemd//'`
+		AC_CHECK_LIB([systemd], [sd_bus_open_system],
+			[ AC_DEFINE([USE_LOGIND], [1], [Use systemd-logind])
+			  AC_SUBST([LIBSYSTEMD])
+			],
+			[ AC_MSG_ERROR([libsystemd not found]) ],
+			[ $OTHERLIBS ]
+		)
+	fi ]
+)
 
 AUDIT_MODULE=none
 AC_ARG_WITH([audit],
