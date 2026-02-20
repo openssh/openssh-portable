@@ -76,6 +76,91 @@ ssh_gssapi_krb5_init(void)
 	return 1;
 }
 
+static gss_OID_desc valid_krb5_oids[] = {
+    /* RFC-specified mechanism OID */
+    {9, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02" },
+
+/* Non-standard OIDs supported by krb5 but not by heimdal */
+#ifndef HEIMDAL
+    /* Original krb5 mechanism OID */
+    {5, "\x2b\x05\x01\x05\x00" },
+    /* Incorrect krb5 mechanism OID emitted by MS */
+    {9, "\x2a\x86\x48\x82\xf7\x12\x01\x02\x02" },
+    /* IAKERB variant */
+    {6, "\x2b\x06\x01\x05\x02\x05" },
+#endif
+};
+
+/* Validate that the first GSSAPI token begins with a valid Kerberos5 OID.
+ * Assume that the token is encoded as specificed in RFC 1508, Appendix B. The
+ * DER-encoded token begins with:
+ *
+ * - [APPLICATION 0] IMPLICIT SEQUENCE (0x60)
+ * - single- or multi-byte token length
+ * - OBJECT IDENTIFIER (0x06)
+ * - length of krb5 mechanism OID
+ * - krb5 mechanism OID
+ */
+static int
+ssh_gssapi_krb5_firsttokenvalid(gss_buffer_desc *recv_tok)
+{
+	unsigned char *tok = recv_tok->value;
+	size_t tok_len = recv_tok->length;
+	size_t len_bytes;
+
+	/* SEQUENCE tag and at least one length byte */
+	if (tok_len < 2)
+		return 0;
+
+	/* SEQUENCE tag */
+	if (tok[0] != 0x60)
+		return 0;
+
+	if (tok[1] & 0x80)
+		/* Multi-byte length */
+		len_bytes = tok[1] & 0x7f;
+	else
+		/* Single-byte length */
+		len_bytes = 1;
+
+	tok += 2;
+	tok_len -= 2;
+
+	/* Check OID tag that follow length bytes. Heimdal allows GSSAPI tokens
+	 * to be split over multiple packets, so the length specified in the token does
+	 * not necessarily match `tok_len`. So, do not validate the length field
+	 * against `tok_len`
+	 */
+	if (len_bytes + 1 > tok_len)
+		return 0;
+
+	tok += len_bytes;
+	tok_len -= len_bytes;
+
+	/* OBJECT IDENTIFIER tag */
+	if (*tok != 0x06)
+		return 0;
+
+	tok += 1;
+	tok_len -= 1;
+
+	for (size_t i = 0; i < sizeof(valid_krb5_oids) / sizeof(*valid_krb5_oids); i++) {
+		gss_OID_desc *oid = &valid_krb5_oids[i];
+
+		/* The mechanism OID has a one-byte length prepended */
+		if (1 + oid->length > tok_len)
+			continue;
+
+		if (*tok != oid->length)
+			continue;
+
+		if (memcmp(oid->elements, &tok[1], oid->length) == 0)
+			return 1;
+	}
+
+	return 0;
+}
+
 /* Check if this user is OK to login. This only works with krb5 - other
  * GSSAPI mechanisms will need their own.
  * Returns true if the user is OK to log in, otherwise returns 0
@@ -201,6 +286,7 @@ ssh_gssapi_mech gssapi_kerberos_mech = {
 	"Kerberos",
 	{9, "\x2A\x86\x48\x86\xF7\x12\x01\x02\x02"},
 	NULL,
+	&ssh_gssapi_krb5_firsttokenvalid,
 	&ssh_gssapi_krb5_userok,
 	NULL,
 	&ssh_gssapi_krb5_storecreds
