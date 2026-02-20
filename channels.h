@@ -389,7 +389,7 @@ int	 permitopen_port(const char *);
 
 void	 channel_set_x11_refuse_time(struct ssh *, time_t);
 int	 x11_connect_display(struct ssh *);
-int	 x11_create_display_inet(struct ssh *, int, int, int, u_int *, int **);
+int	 x11_create_display_inet(struct ssh *, int, int, int, int, u_int *, int **);
 void	 x11_request_forwarding_with_spoofing(struct ssh *, int,
 	    const char *, const char *, const char *, int);
 int      x11_channel_used_recently(struct ssh *ssh);
