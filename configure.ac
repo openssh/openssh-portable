@@ -3191,6 +3191,7 @@ if test "x$openssl" = "xyes" ; then
 		EVP_DigestVerify \
 		EVP_DigestFinal_ex \
 		EVP_DigestInit_ex \
+		EVP_MAC_init \
 		EVP_MD_CTX_cleanup \
 		EVP_MD_CTX_copy_ex \
 		EVP_MD_CTX_init \
