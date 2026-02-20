@@ -355,7 +355,8 @@ case "$host" in
 *-darwin*)
 	# Unless specified otherwise, build without OpenSSL on Mac OS since
 	# modern versions don't ship with libcrypto.
-	LIBCRYPTOFLAGS="--without-openssl"
+	# Disable libutil as that has been deprecated on Mac OS
+	LIBCRYPTOFLAGS="--without-openssl --disable-libutil"
 	TEST_TARGET=t-exec
 
 	# On some OS X runners we can't write to /var/empty.
