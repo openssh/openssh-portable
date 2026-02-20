@@ -102,7 +102,7 @@ struct rrsetinfo {
 	struct rdatainfo	*rri_sigs;	/* individual signatures */
 };
 
-int		getrrsetbyname(const char *, unsigned int, unsigned int, unsigned int, struct rrsetinfo **);
+int		getrrsetbyname(const char *, unsigned int, unsigned int, unsigned int, struct rrsetinfo **, const char *);
 void		freerrset(struct rrsetinfo *);
 
 #endif /* !defined(HAVE_GETRRSETBYNAME) */
