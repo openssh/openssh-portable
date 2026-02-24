@@ -731,7 +731,7 @@ case "$host" in
     ])
 
 	if test "x$use_baslr" = "x"; then
-    	use_baslr=no
+    	use_baslr=yes
 	fi
 
 	if test "x$use_baslr" = "xyes"; then
