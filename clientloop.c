@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.420 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: clientloop.c,v 1.421 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -429,7 +429,7 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 	 * for the local connection.
 	 */
 	if (!got_data) {
-		u_int8_t rnd[16];
+		uint8_t rnd[16];
 		u_int i;
 
 		logit("Warning: No xauth data; "
@@ -463,7 +463,7 @@ client_check_window_change(struct ssh *ssh)
 }
 
 static int
-client_global_request_reply(int type, u_int32_t seq, struct ssh *ssh)
+client_global_request_reply(int type, uint32_t seq, struct ssh *ssh)
 {
 	struct global_confirm *gc;
 
@@ -1455,7 +1455,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	u_int npfd_alloc = 0, npfd_active = 0;
 	double start_time, total_time;
 	int interactive = -1, channel_did_enqueue = 0, r;
-	u_int64_t ibytes, obytes;
+	uint64_t ibytes, obytes;
 	int conn_in_ready, conn_out_ready;
 	sigset_t bsigset, osigset;
 
@@ -1914,7 +1914,7 @@ client_request_tun_fwd(struct ssh *ssh, int tun_mode,
 
 /* XXXX move to generic input handler */
 static int
-client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
+client_input_channel_open(int type, uint32_t seq, struct ssh *ssh)
 {
 	Channel *c = NULL;
 	char *ctype = NULL;
@@ -1976,7 +1976,7 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 static int
-client_input_channel_req(int type, u_int32_t seq, struct ssh *ssh)
+client_input_channel_req(int type, uint32_t seq, struct ssh *ssh)
 {
 	Channel *c = NULL;
 	char *rtype = NULL;
@@ -2354,7 +2354,7 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 
 static void
 client_global_hostkeys_prove_confirm(struct ssh *ssh, int type,
-    u_int32_t seq, void *_ctx)
+    uint32_t seq, void *_ctx)
 {
 	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
 	size_t i, ndone;
@@ -2664,7 +2664,7 @@ client_input_hostkeys(struct ssh *ssh)
 }
 
 static int
-client_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
+client_input_global_request(int type, uint32_t seq, struct ssh *ssh)
 {
 	char *rtype;
 	u_char want_reply;

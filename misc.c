@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.212 2026/02/11 17:05:32 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.213 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -1660,66 +1660,66 @@ xextendf(char **sp, const char *sep, const char *fmt, ...)
 }
 
 
-u_int64_t
+uint64_t
 get_u64(const void *vp)
 {
 	const u_char *p = (const u_char *)vp;
-	u_int64_t v;
+	uint64_t v;
 
-	v  = (u_int64_t)p[0] << 56;
-	v |= (u_int64_t)p[1] << 48;
-	v |= (u_int64_t)p[2] << 40;
-	v |= (u_int64_t)p[3] << 32;
-	v |= (u_int64_t)p[4] << 24;
-	v |= (u_int64_t)p[5] << 16;
-	v |= (u_int64_t)p[6] << 8;
-	v |= (u_int64_t)p[7];
+	v  = (uint64_t)p[0] << 56;
+	v |= (uint64_t)p[1] << 48;
+	v |= (uint64_t)p[2] << 40;
+	v |= (uint64_t)p[3] << 32;
+	v |= (uint64_t)p[4] << 24;
+	v |= (uint64_t)p[5] << 16;
+	v |= (uint64_t)p[6] << 8;
+	v |= (uint64_t)p[7];
 
 	return (v);
 }
 
-u_int32_t
+uint32_t
 get_u32(const void *vp)
 {
 	const u_char *p = (const u_char *)vp;
-	u_int32_t v;
+	uint32_t v;
 
-	v  = (u_int32_t)p[0] << 24;
-	v |= (u_int32_t)p[1] << 16;
-	v |= (u_int32_t)p[2] << 8;
-	v |= (u_int32_t)p[3];
+	v  = (uint32_t)p[0] << 24;
+	v |= (uint32_t)p[1] << 16;
+	v |= (uint32_t)p[2] << 8;
+	v |= (uint32_t)p[3];
 
 	return (v);
 }
 
-u_int32_t
+uint32_t
 get_u32_le(const void *vp)
 {
 	const u_char *p = (const u_char *)vp;
-	u_int32_t v;
+	uint32_t v;
 
-	v  = (u_int32_t)p[0];
-	v |= (u_int32_t)p[1] << 8;
-	v |= (u_int32_t)p[2] << 16;
-	v |= (u_int32_t)p[3] << 24;
+	v  = (uint32_t)p[0];
+	v |= (uint32_t)p[1] << 8;
+	v |= (uint32_t)p[2] << 16;
+	v |= (uint32_t)p[3] << 24;
 
 	return (v);
 }
 
-u_int16_t
+uint16_t
 get_u16(const void *vp)
 {
 	const u_char *p = (const u_char *)vp;
-	u_int16_t v;
+	uint16_t v;
 
-	v  = (u_int16_t)p[0] << 8;
-	v |= (u_int16_t)p[1];
+	v  = (uint16_t)p[0] << 8;
+	v |= (uint16_t)p[1];
 
 	return (v);
 }
 
 void
-put_u64(void *vp, u_int64_t v)
+put_u64(void *vp, uint64_t v)
 {
 	u_char *p = (u_char *)vp;
 
@@ -1734,7 +1734,7 @@ put_u64(void *vp, u_int64_t v)
 }
 
 void
-put_u32(void *vp, u_int32_t v)
+put_u32(void *vp, uint32_t v)
 {
 	u_char *p = (u_char *)vp;
 
@@ -1745,7 +1745,7 @@ put_u32(void *vp, u_int32_t v)
 }
 
 void
-put_u32_le(void *vp, u_int32_t v)
+put_u32_le(void *vp, uint32_t v)
 {
 	u_char *p = (u_char *)vp;
 
@@ -1756,7 +1756,7 @@ put_u32_le(void *vp, u_int32_t v)
 }
 
 void
-put_u16(void *vp, u_int16_t v)
+put_u16(void *vp, uint16_t v)
 {
 	u_char *p = (u_char *)vp;
 
@@ -1843,7 +1843,7 @@ monotime_double(void)
 }
 
 void
-bandwidth_limit_init(struct bwlimit *bw, u_int64_t kbps, size_t buflen)
+bandwidth_limit_init(struct bwlimit *bw, uint64_t kbps, size_t buflen)
 {
 	bw->buflen = buflen;
 	bw->rate = kbps;
@@ -1857,7 +1857,7 @@ bandwidth_limit_init(struct bwlimit *bw, u_int64_t kbps, size_t buflen)
 void
 bandwidth_limit(struct bwlimit *bw, size_t read_len)
 {
-	u_int64_t waitlen;
+	uint64_t waitlen;
 	struct timespec ts, rm;
 
 	bw->lamt += read_len;

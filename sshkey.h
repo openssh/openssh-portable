@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.72 2026/02/06 22:59:18 dtucker Exp $ */
+/* $OpenBSD: sshkey.h,v 1.73 2026/03/03 09:57:26 dtucker Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -102,11 +102,11 @@ enum sshkey_private_format {
 struct sshkey_cert {
 	struct sshbuf	*certblob; /* Kept around for use on wire */
 	u_int		 type; /* SSH2_CERT_TYPE_USER or SSH2_CERT_TYPE_HOST */
-	u_int64_t	 serial;
+	uint64_t	 serial;
 	char		*key_id;
 	u_int		 nprincipals;
 	char		**principals;
-	u_int64_t	 valid_after, valid_before;
+	uint64_t	 valid_after, valid_before;
 	struct sshbuf	*critical;
 	struct sshbuf	*extensions;
 	struct sshkey	*signature_key;

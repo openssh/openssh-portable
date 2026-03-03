@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.138 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: authfd.c,v 1.139 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -258,7 +258,7 @@ int
 ssh_fetch_identitylist(int sock, struct ssh_identitylist **idlp)
 {
 	u_char type;
-	u_int32_t num, i;
+	uint32_t num, i;
 	struct sshbuf *msg;
 	struct ssh_identitylist *idl = NULL;
 	int r;

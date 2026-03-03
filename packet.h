@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.106 2026/03/02 02:40:15 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.107 2026/03/03 09:57:25 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -127,11 +127,11 @@ int	 ssh_packet_send2_wrapped(struct ssh *);
 int	 ssh_packet_send2(struct ssh *);
 
 int      ssh_packet_read(struct ssh *);
-int ssh_packet_read_poll2(struct ssh *, u_char *, u_int32_t *seqnr_p);
+int ssh_packet_read_poll2(struct ssh *, u_char *, uint32_t *seqnr_p);
 int	 ssh_packet_process_incoming(struct ssh *, const char *buf, u_int len);
 int	 ssh_packet_process_read(struct ssh *, int);
-int      ssh_packet_read_seqnr(struct ssh *, u_char *, u_int32_t *seqnr_p);
-int      ssh_packet_read_poll_seqnr(struct ssh *, u_char *, u_int32_t *seqnr_p);
+int      ssh_packet_read_seqnr(struct ssh *, u_char *, uint32_t *seqnr_p);
+int      ssh_packet_read_poll_seqnr(struct ssh *, u_char *, uint32_t *seqnr_p);
 
 void     ssh_packet_disconnect(struct ssh *, const char *fmt, ...)
 	__attribute__((format(printf, 2, 3)))
@@ -139,7 +139,7 @@ void     ssh_packet_disconnect(struct ssh *, const char *fmt, ...)
 void     ssh_packet_send_debug(struct ssh *, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 int	 ssh_set_newkeys(struct ssh *, int mode);
-void	 ssh_packet_get_bytes(struct ssh *, u_int64_t *, u_int64_t *);
+void	 ssh_packet_get_bytes(struct ssh *, uint64_t *, uint64_t *);
 
 int	 ssh_packet_write_poll(struct ssh *);
 int	 ssh_packet_write_wait(struct ssh *);
@@ -168,7 +168,7 @@ int	 ssh_local_port(struct ssh *);
 const char *ssh_packet_rdomain_in(struct ssh *);
 char	*ssh_remote_hostname(struct ssh *);
 
-void	 ssh_packet_set_rekey_limits(struct ssh *, u_int64_t, u_int32_t);
+void	 ssh_packet_set_rekey_limits(struct ssh *, uint64_t, uint32_t);
 time_t	 ssh_packet_get_rekey_timeout(struct ssh *);
 
 void	*ssh_packet_get_input(struct ssh *);
@@ -188,8 +188,8 @@ int	sshpkt_msg_ignore(struct ssh *, u_int);
 int	sshpkt_put(struct ssh *ssh, const void *v, size_t len);
 int	sshpkt_putb(struct ssh *ssh, const struct sshbuf *b);
 int	sshpkt_put_u8(struct ssh *ssh, u_char val);
-int	sshpkt_put_u32(struct ssh *ssh, u_int32_t val);
-int	sshpkt_put_u64(struct ssh *ssh, u_int64_t val);
+int	sshpkt_put_u32(struct ssh *ssh, uint32_t val);
+int	sshpkt_put_u64(struct ssh *ssh, uint64_t val);
 int	sshpkt_put_string(struct ssh *ssh, const void *v, size_t len);
 int	sshpkt_put_cstring(struct ssh *ssh, const void *v);
 int	sshpkt_put_stringb(struct ssh *ssh, const struct sshbuf *v);
@@ -199,8 +199,8 @@ int	sshpkt_put_bignum2(struct ssh *ssh, const BIGNUM *v);
 
 int	sshpkt_get(struct ssh *ssh, void *valp, size_t len);
 int	sshpkt_get_u8(struct ssh *ssh, u_char *valp);
-int	sshpkt_get_u32(struct ssh *ssh, u_int32_t *valp);
-int	sshpkt_get_u64(struct ssh *ssh, u_int64_t *valp);
+int	sshpkt_get_u32(struct ssh *ssh, uint32_t *valp);
+int	sshpkt_get_u64(struct ssh *ssh, uint64_t *valp);
 int	sshpkt_get_string(struct ssh *ssh, u_char **valp, size_t *lenp);
 int	sshpkt_get_string_direct(struct ssh *ssh, const u_char **valp, size_t *lenp);
 int	sshpkt_peek_string_direct(struct ssh *ssh, const u_char **valp, size_t *lenp);

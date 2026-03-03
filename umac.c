@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.29 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: umac.c,v 1.30 2026/03/03 09:57:26 dtucker Exp $ */
 /* -----------------------------------------------------------------------
  *
  * umac.c -- C Implementation UMAC Message Authentication
@@ -90,10 +90,10 @@
 /* ---------------------------------------------------------------------- */
 
 /* The following assumptions may need change on your system */
-typedef u_int8_t	UINT8;  /* 1 byte   */
-typedef u_int16_t	UINT16; /* 2 byte   */
-typedef u_int32_t	UINT32; /* 4 byte   */
-typedef u_int64_t	UINT64; /* 8 bytes  */
+typedef uint8_t	UINT8;  /* 1 byte   */
+typedef uint16_t	UINT16; /* 2 byte   */
+typedef uint32_t	UINT32; /* 4 byte   */
+typedef uint64_t	UINT64; /* 8 bytes  */
 typedef unsigned int	UWORD;  /* Register */
 
 /* ---------------------------------------------------------------------- */

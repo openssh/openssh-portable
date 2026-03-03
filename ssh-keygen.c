@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.489 2026/02/11 17:05:32 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.490 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -109,8 +109,8 @@ static char *cert_key_id = NULL;
 static char *cert_principals = NULL;
 
 /* Validity period for certificates */
-static u_int64_t cert_valid_from = 0;
-static u_int64_t cert_valid_to = ~0ULL;
+static uint64_t cert_valid_from = 0;
+static uint64_t cert_valid_to = ~0ULL;
 
 /* Certificate options */
 #define CERTOPT_X_FWD				(1)
@@ -122,7 +122,7 @@ static u_int64_t cert_valid_to = ~0ULL;
 #define CERTOPT_REQUIRE_VERIFY			(1<<6)
 #define CERTOPT_DEFAULT	(CERTOPT_X_FWD|CERTOPT_AGENT_FWD| \
 			 CERTOPT_PORT_FWD|CERTOPT_PTY|CERTOPT_USER_RC)
-static u_int32_t certflags_flags = CERTOPT_DEFAULT;
+static uint32_t certflags_flags = CERTOPT_DEFAULT;
 static char *certflags_command = NULL;
 static char *certflags_src_addr = NULL;
 
@@ -166,13 +166,13 @@ static char hostname[NI_MAXHOST];
 
 #ifdef WITH_OPENSSL
 /* moduli.c */
-int gen_candidates(FILE *, u_int32_t, BIGNUM *);
-int prime_test(FILE *, FILE *, u_int32_t, u_int32_t, char *, unsigned long,
+int gen_candidates(FILE *, uint32_t, BIGNUM *);
+int prime_test(FILE *, FILE *, uint32_t, uint32_t, char *, unsigned long,
     unsigned long);
 #endif
 
 static void
-type_bits_valid(int type, const char *name, u_int32_t *bitsp)
+type_bits_valid(int type, const char *name, uint32_t *bitsp)
 {
 	if (type == KEY_UNSPEC)
 		fatal("unknown key type %s", key_type_name);
@@ -1018,7 +1018,7 @@ do_gen_all_hostkeys(struct passwd *pw)
 		{ NULL, NULL, NULL }
 	};
 
-	u_int32_t bits = 0;
+	uint32_t bits = 0;
 	int first = 0;
 	struct stat st;
 	struct sshkey *private, *public;
@@ -1806,7 +1806,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		if ((r = sshkey_to_certified(public)) != 0)
 			fatal_r(r, "Could not upgrade key %s to certificate", tmp);
 		public->cert->type = cert_key_type;
-		public->cert->serial = (u_int64_t)cert_serial;
+		public->cert->serial = (uint64_t)cert_serial;
 		public->cert->key_id = xstrdup(cert_key_id);
 		public->cert->nprincipals = n;
 		public->cert->principals = plist;
@@ -1875,7 +1875,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 #endif
 }
 
-static u_int64_t
+static uint64_t
 parse_relative_time(const char *s, time_t now)
 {
 	int64_t mul, secs;
@@ -1886,7 +1886,7 @@ parse_relative_time(const char *s, time_t now)
 		fatal("Invalid relative certificate time %s", s);
 	if (mul == -1 && secs > now)
 		fatal("Certificate time %s cannot be represented", s);
-	return now + (u_int64_t)(secs * mul);
+	return now + (uint64_t)(secs * mul);
 }
 
 static void
@@ -1947,7 +1947,7 @@ parse_cert_times(char *timespec)
 	if (*to == '-' || *to == '+')
 		cert_valid_to = parse_relative_time(to, now);
 	else if (strcmp(to, "forever") == 0)
-		cert_valid_to = ~(u_int64_t)0;
+		cert_valid_to = ~(uint64_t)0;
 	else if (strncmp(to, "0x", 2) == 0)
 		parse_hex_u64(to, &cert_valid_to);
 	else if (parse_absolute_time(to, &cert_valid_to) != 0)
@@ -2963,7 +2963,7 @@ do_moduli_screen(const char *out_file, char **opts, size_t nopts)
 #ifdef WITH_OPENSSL
 	/* Moduli generation/screening */
 	char *checkpoint = NULL;
-	u_int32_t generator_wanted = 0;
+	uint32_t generator_wanted = 0;
 	unsigned long start_lineno = 0, lines_to_process = 0;
 	int prime_tests = 0;
 	FILE *out, *in = stdin;
@@ -2980,7 +2980,7 @@ do_moduli_screen(const char *out_file, char **opts, size_t nopts)
 			free(checkpoint);
 			checkpoint = xstrdup(p);
 		} else if ((p = strprefix(opts[i], "generator=", 0)) != NULL) {
-			generator_wanted = (u_int32_t)strtonum(p, 1, UINT_MAX,
+			generator_wanted = (uint32_t)strtonum(p, 1, UINT_MAX,
 			    &errstr);
 			if (errstr != NULL) {
 				fatal("Generator invalid: %s (%s)", p, errstr);
@@ -3305,7 +3305,7 @@ main(int argc, char **argv)
 	char *sk_attestation_path = NULL;
 	struct sshbuf *challenge = NULL, *attest = NULL;
 	size_t i, nopts = 0;
-	u_int32_t bits = 0;
+	uint32_t bits = 0;
 	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
 	const char *errstr, *p;
 	int log_level = SYSLOG_LEVEL_INFO;
@@ -3344,7 +3344,7 @@ main(int argc, char **argv)
 			gen_all_hostkeys = 1;
 			break;
 		case 'b':
-			bits = (u_int32_t)strtonum(optarg, 1, UINT32_MAX,
+			bits = (uint32_t)strtonum(optarg, 1, UINT32_MAX,
 			    &errstr);
 			if (errstr)
 				fatal("Bits has bad value %s (%s)",

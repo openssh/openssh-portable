@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.152 2026/02/13 19:06:18 dtucker Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.153 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -87,42 +87,42 @@ struct Stat {
 };
 
 /* Packet handlers */
-static void process_open(u_int32_t id);
-static void process_close(u_int32_t id);
-static void process_read(u_int32_t id);
-static void process_write(u_int32_t id);
-static void process_stat(u_int32_t id);
-static void process_lstat(u_int32_t id);
-static void process_fstat(u_int32_t id);
-static void process_setstat(u_int32_t id);
-static void process_fsetstat(u_int32_t id);
-static void process_opendir(u_int32_t id);
-static void process_readdir(u_int32_t id);
-static void process_remove(u_int32_t id);
-static void process_mkdir(u_int32_t id);
-static void process_rmdir(u_int32_t id);
-static void process_realpath(u_int32_t id);
-static void process_rename(u_int32_t id);
-static void process_readlink(u_int32_t id);
-static void process_symlink(u_int32_t id);
-static void process_extended_posix_rename(u_int32_t id);
-static void process_extended_statvfs(u_int32_t id);
-static void process_extended_fstatvfs(u_int32_t id);
-static void process_extended_hardlink(u_int32_t id);
-static void process_extended_fsync(u_int32_t id);
-static void process_extended_lsetstat(u_int32_t id);
-static void process_extended_limits(u_int32_t id);
-static void process_extended_expand(u_int32_t id);
-static void process_extended_copy_data(u_int32_t id);
-static void process_extended_home_directory(u_int32_t id);
-static void process_extended_get_users_groups_by_id(u_int32_t id);
-static void process_extended(u_int32_t id);
+static void process_open(uint32_t id);
+static void process_close(uint32_t id);
+static void process_read(uint32_t id);
+static void process_write(uint32_t id);
+static void process_stat(uint32_t id);
+static void process_lstat(uint32_t id);
+static void process_fstat(uint32_t id);
+static void process_setstat(uint32_t id);
+static void process_fsetstat(uint32_t id);
+static void process_opendir(uint32_t id);
+static void process_readdir(uint32_t id);
+static void process_remove(uint32_t id);
+static void process_mkdir(uint32_t id);
+static void process_rmdir(uint32_t id);
+static void process_realpath(uint32_t id);
+static void process_rename(uint32_t id);
+static void process_readlink(uint32_t id);
+static void process_symlink(uint32_t id);
+static void process_extended_posix_rename(uint32_t id);
+static void process_extended_statvfs(uint32_t id);
+static void process_extended_fstatvfs(uint32_t id);
+static void process_extended_hardlink(uint32_t id);
+static void process_extended_fsync(uint32_t id);
+static void process_extended_lsetstat(uint32_t id);
+static void process_extended_limits(uint32_t id);
+static void process_extended_expand(uint32_t id);
+static void process_extended_copy_data(uint32_t id);
+static void process_extended_home_directory(uint32_t id);
+static void process_extended_get_users_groups_by_id(uint32_t id);
+static void process_extended(uint32_t id);
 
 struct sftp_handler {
 	const char *name;	/* user-visible name for fine-grained perms */
 	const char *ext_name;	/* extended request name */
 	u_int type;		/* packet type, for non extended packets */
-	void (*handler)(u_int32_t);
+	void (*handler)(uint32_t);
 	int does_write;		/* if nonzero, banned for readonly mode */
 };
 
@@ -305,7 +305,7 @@ struct Handle {
 	int fd;
 	int flags;
 	char *name;
-	u_int64_t bytes_read, bytes_write;
+	uint64_t bytes_read, bytes_write;
 	int next_unused;
 };
 
@@ -430,7 +430,7 @@ handle_update_write(int handle, ssize_t bytes)
 		handles[handle].bytes_write += bytes;
 }
 
-static u_int64_t
+static uint64_t
 handle_bytes_read(int handle)
 {
 	if (handle_is_ok(handle, HANDLE_FILE))
@@ -438,7 +438,7 @@ handle_bytes_read(int handle)
 	return 0;
 }
 
-static u_int64_t
+static uint64_t
 handle_bytes_write(int handle)
 {
 	if (handle_is_ok(handle, HANDLE_FILE))
@@ -520,7 +520,7 @@ send_msg(struct sshbuf *m)
 }
 
 static const char *
-status_to_message(u_int32_t status)
+status_to_message(uint32_t status)
 {
 	static const char * const status_messages[] = {
 		"Success",			/* SSH_FX_OK */
@@ -538,7 +538,7 @@ status_to_message(u_int32_t status)
 }
 
 static void
-send_status_errmsg(u_int32_t id, u_int32_t status, const char *errmsg)
+send_status_errmsg(uint32_t id, uint32_t status, const char *errmsg)
 {
 	struct sshbuf *msg;
 	int r;
@@ -564,13 +564,13 @@ send_status_errmsg(u_int32_t id, u_int32_t status, const char *errmsg)
 }
 
 static void
-send_status(u_int32_t id, u_int32_t status)
+send_status(uint32_t id, uint32_t status)
 {
 	send_status_errmsg(id, status, NULL);
 }
 
 static void
-send_data_or_handle(char type, u_int32_t id, const u_char *data, int dlen)
+send_data_or_handle(char type, uint32_t id, const u_char *data, int dlen)
 {
 	struct sshbuf *msg;
 	int r;
@@ -586,14 +586,14 @@ send_data_or_handle(char type, u_int32_t id, const u_char *data, int dlen)
 }
 
 static void
-send_data(u_int32_t id, const u_char *data, int dlen)
+send_data(uint32_t id, const u_char *data, int dlen)
 {
 	debug("request %u: sent data len %d", id, dlen);
 	send_data_or_handle(SSH2_FXP_DATA, id, data, dlen);
 }
 
 static void
-send_handle(u_int32_t id, int handle)
+send_handle(uint32_t id, int handle)
 {
 	u_char *string;
 	int hlen;
@@ -605,7 +605,7 @@ send_handle(u_int32_t id, int handle)
 }
 
 static void
-send_names(u_int32_t id, int count, const Stat *stats)
+send_names(uint32_t id, int count, const Stat *stats)
 {
 	struct sshbuf *msg;
 	int i, r;
@@ -628,7 +628,7 @@ send_names(u_int32_t id, int count, const Stat *stats)
 }
 
 static void
-send_attrib(u_int32_t id, const Attrib *a)
+send_attrib(uint32_t id, const Attrib *a)
 {
 	struct sshbuf *msg;
 	int r;
@@ -645,10 +645,10 @@ send_attrib(u_int32_t id, const Attrib *a)
 }
 
 static void
-send_statvfs(u_int32_t id, struct statvfs *st)
+send_statvfs(uint32_t id, struct statvfs *st)
 {
 	struct sshbuf *msg;
-	u_int64_t flag;
+	uint64_t flag;
 	int r;
 
 	flag = (st->f_flag & ST_RDONLY) ? SSH2_FXE_STATVFS_ST_RDONLY : 0;
@@ -731,9 +731,9 @@ process_init(void)
 }
 
 static void
-process_open(u_int32_t id)
+process_open(uint32_t id)
 {
-	u_int32_t pflags;
+	uint32_t pflags;
 	Attrib a;
 	char *name;
 	int r, handle, fd, flags, mode, status = SSH2_FX_FAILURE;
@@ -773,7 +773,7 @@ process_open(u_int32_t id)
 }
 
 static void
-process_close(u_int32_t id)
+process_close(uint32_t id)
 {
 	int r, handle, ret, status = SSH2_FX_FAILURE;
 
@@ -788,13 +788,13 @@ process_close(u_int32_t id)
 }
 
 static void
-process_read(u_int32_t id)
+process_read(uint32_t id)
 {
 	static u_char *buf;
 	static size_t buflen;
-	u_int32_t len;
+	uint32_t len;
 	int r, handle, fd, ret, status = SSH2_FX_FAILURE;
-	u_int64_t off;
+	uint64_t off;
 
 	if ((r = get_handle(iqueue, &handle)) != 0 ||
 	    (r = sshbuf_get_u64(iqueue, &off)) != 0 ||
@@ -843,9 +843,9 @@ process_read(u_int32_t id)
 }
 
 static void
-process_write(u_int32_t id)
+process_write(uint32_t id)
 {
-	u_int64_t off;
+	uint64_t off;
 	size_t len;
 	int r, handle, fd, ret, status;
 	u_char *data;
@@ -888,7 +888,7 @@ process_write(u_int32_t id)
 }
 
 static void
-process_do_stat(u_int32_t id, int do_lstat)
+process_do_stat(uint32_t id, int do_lstat)
 {
 	Attrib a;
 	struct stat st;
@@ -914,19 +914,19 @@ process_do_stat(u_int32_t id, int do_lstat)
 }
 
 static void
-process_stat(u_int32_t id)
+process_stat(uint32_t id)
 {
 	process_do_stat(id, 0);
 }
 
 static void
-process_lstat(u_int32_t id)
+process_lstat(uint32_t id)
 {
 	process_do_stat(id, 1);
 }
 
 static void
-process_fstat(u_int32_t id)
+process_fstat(uint32_t id)
 {
 	Attrib a;
 	struct stat st;
@@ -976,7 +976,7 @@ attrib_to_ts(const Attrib *a)
 }
 
 static void
-process_setstat(u_int32_t id)
+process_setstat(uint32_t id)
 {
 	Attrib a;
 	char *name;
@@ -1023,7 +1023,7 @@ process_setstat(u_int32_t id)
 }
 
 static void
-process_fsetstat(u_int32_t id)
+process_fsetstat(uint32_t id)
 {
 	Attrib a;
 	int handle, fd, r;
@@ -1088,7 +1088,7 @@ process_fsetstat(u_int32_t id)
 }
 
 static void
-process_opendir(u_int32_t id)
+process_opendir(uint32_t id)
 {
 	DIR *dirp = NULL;
 	char *path;
@@ -1118,7 +1118,7 @@ process_opendir(u_int32_t id)
 }
 
 static void
-process_readdir(u_int32_t id)
+process_readdir(uint32_t id)
 {
 	DIR *dirp;
 	struct dirent *dp;
@@ -1175,7 +1175,7 @@ process_readdir(u_int32_t id)
 }
 
 static void
-process_remove(u_int32_t id)
+process_remove(uint32_t id)
 {
 	char *name;
 	int r, status = SSH2_FX_FAILURE;
@@ -1192,7 +1192,7 @@ process_remove(u_int32_t id)
 }
 
 static void
-process_mkdir(u_int32_t id)
+process_mkdir(uint32_t id)
 {
 	Attrib a;
 	char *name;
@@ -1213,7 +1213,7 @@ process_mkdir(u_int32_t id)
 }
 
 static void
-process_rmdir(u_int32_t id)
+process_rmdir(uint32_t id)
 {
 	char *name;
 	int r, status;
@@ -1230,7 +1230,7 @@ process_rmdir(u_int32_t id)
 }
 
 static void
-process_realpath(u_int32_t id)
+process_realpath(uint32_t id)
 {
 	char resolvedname[PATH_MAX];
 	char *path;
@@ -1257,7 +1257,7 @@ process_realpath(u_int32_t id)
 }
 
 static void
-process_rename(u_int32_t id)
+process_rename(uint32_t id)
 {
 	char *oldpath, *newpath;
 	int r, status;
@@ -1317,7 +1317,7 @@ process_rename(u_int32_t id)
 }
 
 static void
-process_readlink(u_int32_t id)
+process_readlink(uint32_t id)
 {
 	int r, len;
 	char buf[PATH_MAX];
@@ -1342,7 +1342,7 @@ process_readlink(u_int32_t id)
 }
 
 static void
-process_symlink(u_int32_t id)
+process_symlink(uint32_t id)
 {
 	char *oldpath, *newpath;
 	int r, status;
@@ -1362,7 +1362,7 @@ process_symlink(u_int32_t id)
 }
 
 static void
-process_extended_posix_rename(u_int32_t id)
+process_extended_posix_rename(uint32_t id)
 {
 	char *oldpath, *newpath;
 	int r, status;
@@ -1381,7 +1381,7 @@ process_extended_posix_rename(u_int32_t id)
 }
 
 static void
-process_extended_statvfs(u_int32_t id)
+process_extended_statvfs(uint32_t id)
 {
 	char *path;
 	struct statvfs st;
@@ -1400,7 +1400,7 @@ process_extended_statvfs(u_int32_t id)
 }
 
 static void
-process_extended_fstatvfs(u_int32_t id)
+process_extended_fstatvfs(uint32_t id)
 {
 	int r, handle, fd;
 	struct statvfs st;
@@ -1420,7 +1420,7 @@ process_extended_fstatvfs(u_int32_t id)
 }
 
 static void
-process_extended_hardlink(u_int32_t id)
+process_extended_hardlink(uint32_t id)
 {
 	char *oldpath, *newpath;
 	int r, status;
@@ -1439,7 +1439,7 @@ process_extended_hardlink(u_int32_t id)
 }
 
 static void
-process_extended_fsync(u_int32_t id)
+process_extended_fsync(uint32_t id)
 {
 	int handle, fd, r, status = SSH2_FX_OP_UNSUPPORTED;
 
@@ -1457,7 +1457,7 @@ process_extended_fsync(u_int32_t id)
 }
 
 static void
-process_extended_lsetstat(u_int32_t id)
+process_extended_lsetstat(uint32_t id)
 {
 	Attrib a;
 	char *name;
@@ -1506,7 +1506,7 @@ process_extended_lsetstat(u_int32_t id)
 }
 
 static void
-process_extended_limits(u_int32_t id)
+process_extended_limits(uint32_t id)
 {
 	struct sshbuf *msg;
 	int r;
@@ -1540,7 +1540,7 @@ process_extended_limits(u_int32_t id)
 }
 
 static void
-process_extended_expand(u_int32_t id)
+process_extended_expand(uint32_t id)
 {
 	char cwd[PATH_MAX], resolvedname[PATH_MAX];
 	char *path, *npath;
@@ -1599,11 +1599,11 @@ process_extended_expand(u_int32_t id)
 }
 
 static void
-process_extended_copy_data(u_int32_t id)
+process_extended_copy_data(uint32_t id)
 {
 	u_char buf[64*1024];
 	int read_handle, read_fd, write_handle, write_fd;
-	u_int64_t len, read_off, read_len, write_off;
+	uint64_t len, read_off, read_len, write_off;
 	int r, copy_until_eof, status = SSH2_FX_OP_UNSUPPORTED;
 	size_t ret;
 
@@ -1623,7 +1623,7 @@ process_extended_copy_data(u_int32_t id)
 
 	/* For read length of 0, we read until EOF. */
 	if (read_len == 0) {
-		read_len = (u_int64_t)-1 - read_off;
+		read_len = (uint64_t)-1 - read_off;
 		copy_until_eof = 1;
 	} else
 		copy_until_eof = 0;
@@ -1687,7 +1687,7 @@ process_extended_copy_data(u_int32_t id)
 }
 
 static void
-process_extended_home_directory(u_int32_t id)
+process_extended_home_directory(uint32_t id)
 {
 	char *username;
 	struct passwd *user_pw;
@@ -1714,7 +1714,7 @@ process_extended_home_directory(u_int32_t id)
 }
 
 static void
-process_extended_get_users_groups_by_id(u_int32_t id)
+process_extended_get_users_groups_by_id(uint32_t id)
 {
 	struct passwd *user_pw;
 	struct group *gr;
@@ -1769,7 +1769,7 @@ process_extended_get_users_groups_by_id(u_int32_t id)
 }
 
 static void
-process_extended(u_int32_t id)
+process_extended(uint32_t id)
 {
 	char *request;
 	int r;
@@ -1800,7 +1800,7 @@ process(void)
 	u_char type;
 	const u_char *cp;
 	int i, r;
-	u_int32_t id;
+	uint32_t id;
 
 	buf_len = sshbuf_len(iqueue);
 	if (buf_len < 5)

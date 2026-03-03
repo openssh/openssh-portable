@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.626 2026/02/16 23:47:06 jsg Exp $ */
+/* $OpenBSD: ssh.c,v 1.627 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1950,7 +1950,7 @@ forwarding_success(void)
 
 /* Callback for remote forward global requests */
 static void
-ssh_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
+ssh_confirm_remote_forward(struct ssh *ssh, int type, uint32_t seq, void *ctxt)
 {
 	struct Forward *rfwd = (struct Forward *)ctxt;
 	u_int port;

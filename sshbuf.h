@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.34 2025/12/29 23:52:09 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.35 2026/03/03 09:57:25 dtucker Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -173,22 +173,22 @@ int	sshbuf_putf(struct sshbuf *buf, const char *fmt, ...)
 int	sshbuf_putfv(struct sshbuf *buf, const char *fmt, va_list ap);
 
 /* Functions to extract or store big-endian words of various sizes */
-int	sshbuf_get_u64(struct sshbuf *buf, u_int64_t *valp);
-int	sshbuf_get_u32(struct sshbuf *buf, u_int32_t *valp);
-int	sshbuf_get_u16(struct sshbuf *buf, u_int16_t *valp);
+int	sshbuf_get_u64(struct sshbuf *buf, uint64_t *valp);
+int	sshbuf_get_u32(struct sshbuf *buf, uint32_t *valp);
+int	sshbuf_get_u16(struct sshbuf *buf, uint16_t *valp);
 int	sshbuf_get_u8(struct sshbuf *buf, u_char *valp);
-int	sshbuf_put_u64(struct sshbuf *buf, u_int64_t val);
-int	sshbuf_put_u32(struct sshbuf *buf, u_int32_t val);
-int	sshbuf_put_u16(struct sshbuf *buf, u_int16_t val);
+int	sshbuf_put_u64(struct sshbuf *buf, uint64_t val);
+int	sshbuf_put_u32(struct sshbuf *buf, uint32_t val);
+int	sshbuf_put_u16(struct sshbuf *buf, uint16_t val);
 int	sshbuf_put_u8(struct sshbuf *buf, u_char val);
 
 /* Functions to peek at the contents of a buffer without modifying it. */
 int	sshbuf_peek_u64(const struct sshbuf *buf, size_t offset,
-    u_int64_t *valp);
+    uint64_t *valp);
 int	sshbuf_peek_u32(const struct sshbuf *buf, size_t offset,
-    u_int32_t *valp);
+    uint32_t *valp);
 int	sshbuf_peek_u16(const struct sshbuf *buf, size_t offset,
-    u_int16_t *valp);
+    uint16_t *valp);
 int	sshbuf_peek_u8(const struct sshbuf *buf, size_t offset,
     u_char *valp);
 
@@ -196,9 +196,9 @@ int	sshbuf_peek_u8(const struct sshbuf *buf, size_t offset,
  * Functions to poke values into an existing buffer (e.g. a length header
  * to a packet). The destination bytes must already exist in the buffer.
  */
-int sshbuf_poke_u64(struct sshbuf *buf, size_t offset, u_int64_t val);
-int sshbuf_poke_u32(struct sshbuf *buf, size_t offset, u_int32_t val);
-int sshbuf_poke_u16(struct sshbuf *buf, size_t offset, u_int16_t val);
+int sshbuf_poke_u64(struct sshbuf *buf, size_t offset, uint64_t val);
+int sshbuf_poke_u32(struct sshbuf *buf, size_t offset, uint32_t val);
+int sshbuf_poke_u16(struct sshbuf *buf, size_t offset, uint16_t val);
 int sshbuf_poke_u8(struct sshbuf *buf, size_t offset, u_char val);
 int sshbuf_poke(struct sshbuf *buf, size_t offset, void *v, size_t len);
 
@@ -337,26 +337,26 @@ int sshbuf_read(int, struct sshbuf *, size_t, size_t *)
 
 /* Macros for decoding/encoding integers */
 #define PEEK_U64(p) \
-	(((u_int64_t)(((const u_char *)(p))[0]) << 56) | \
-	 ((u_int64_t)(((const u_char *)(p))[1]) << 48) | \
-	 ((u_int64_t)(((const u_char *)(p))[2]) << 40) | \
-	 ((u_int64_t)(((const u_char *)(p))[3]) << 32) | \
-	 ((u_int64_t)(((const u_char *)(p))[4]) << 24) | \
-	 ((u_int64_t)(((const u_char *)(p))[5]) << 16) | \
-	 ((u_int64_t)(((const u_char *)(p))[6]) << 8) | \
-	  (u_int64_t)(((const u_char *)(p))[7]))
+	(((uint64_t)(((const u_char *)(p))[0]) << 56) | \
+	 ((uint64_t)(((const u_char *)(p))[1]) << 48) | \
+	 ((uint64_t)(((const u_char *)(p))[2]) << 40) | \
+	 ((uint64_t)(((const u_char *)(p))[3]) << 32) | \
+	 ((uint64_t)(((const u_char *)(p))[4]) << 24) | \
+	 ((uint64_t)(((const u_char *)(p))[5]) << 16) | \
+	 ((uint64_t)(((const u_char *)(p))[6]) << 8) | \
+	  (uint64_t)(((const u_char *)(p))[7]))
 #define PEEK_U32(p) \
-	(((u_int32_t)(((const u_char *)(p))[0]) << 24) | \
-	 ((u_int32_t)(((const u_char *)(p))[1]) << 16) | \
-	 ((u_int32_t)(((const u_char *)(p))[2]) << 8) | \
-	  (u_int32_t)(((const u_char *)(p))[3]))
+	(((uint32_t)(((const u_char *)(p))[0]) << 24) | \
+	 ((uint32_t)(((const u_char *)(p))[1]) << 16) | \
+	 ((uint32_t)(((const u_char *)(p))[2]) << 8) | \
+	  (uint32_t)(((const u_char *)(p))[3]))
 #define PEEK_U16(p) \
-	(((u_int16_t)(((const u_char *)(p))[0]) << 8) | \
-	  (u_int16_t)(((const u_char *)(p))[1]))
+	(((uint16_t)(((const u_char *)(p))[0]) << 8) | \
+	  (uint16_t)(((const u_char *)(p))[1]))
 
 #define POKE_U64(p, v) \
 	do { \
-		const u_int64_t __v = (v); \
+		const uint64_t __v = (v); \
 		((u_char *)(p))[0] = (__v >> 56) & 0xff; \
 		((u_char *)(p))[1] = (__v >> 48) & 0xff; \
 		((u_char *)(p))[2] = (__v >> 40) & 0xff; \
@@ -368,7 +368,7 @@ int sshbuf_read(int, struct sshbuf *, size_t, size_t *)
 	} while (0)
 #define POKE_U32(p, v) \
 	do { \
-		const u_int32_t __v = (v); \
+		const uint32_t __v = (v); \
 		((u_char *)(p))[0] = (__v >> 24) & 0xff; \
 		((u_char *)(p))[1] = (__v >> 16) & 0xff; \
 		((u_char *)(p))[2] = (__v >> 8) & 0xff; \
@@ -376,7 +376,7 @@ int sshbuf_read(int, struct sshbuf *, size_t, size_t *)
 	} while (0)
 #define POKE_U16(p, v) \
 	do { \
-		const u_int16_t __v = (v); \
+		const uint16_t __v = (v); \
 		((u_char *)(p))[0] = (__v >> 8) & 0xff; \
 		((u_char *)(p))[1] = __v & 0xff; \
 	} while (0)

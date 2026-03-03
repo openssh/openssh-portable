@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.110 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: mux.c,v 1.111 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -626,7 +626,7 @@ compare_forward(struct Forward *a, struct Forward *b)
 }
 
 static void
-mux_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
+mux_confirm_remote_forward(struct ssh *ssh, int type, uint32_t seq, void *ctxt)
 {
 	struct mux_channel_confirm_ctx *fctx = ctxt;
 	char *failmsg = NULL;

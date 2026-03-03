@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.175 2026/02/11 22:57:16 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.176 2026/03/03 09:57:25 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -242,7 +242,7 @@ typedef struct {
 
 	int	fingerprint_hash;
 	int	expose_userauth_info;
-	u_int64_t timing_secret;
+	uint64_t timing_secret;
 	char   *sk_provider;
 	int	required_rsa_size;	/* minimum size of RSA keys */
 

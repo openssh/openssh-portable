@@ -112,7 +112,7 @@ seed_rng(void)
 void
 reseed_prngs(void)
 {
-	u_int32_t rnd[256];
+	uint32_t rnd[256];
 
 #ifdef WITH_OPENSSL
 	RAND_poll();

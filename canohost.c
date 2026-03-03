@@ -40,7 +40,7 @@ ipv64_normalise_mapped(struct sockaddr_storage *addr, socklen_t *len)
 	struct sockaddr_in6 *a6 = (struct sockaddr_in6 *)addr;
 	struct sockaddr_in *a4 = (struct sockaddr_in *)addr;
 	struct in_addr inaddr;
-	u_int16_t port;
+	uint16_t port;
 
 	if (addr->ss_family != AF_INET6 ||
 	    !IN6_IS_ADDR_V4MAPPED(&a6->sin6_addr))

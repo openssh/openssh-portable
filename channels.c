@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.455 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: channels.c,v 1.456 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3361,7 +3361,7 @@ channel_proxy_downstream(struct ssh *ssh, Channel *downstream)
  * replaces local (proxy) channel ID with downstream channel ID.
  */
 int
-channel_proxy_upstream(Channel *c, int type, u_int32_t seq, struct ssh *ssh)
+channel_proxy_upstream(Channel *c, int type, uint32_t seq, struct ssh *ssh)
 {
 	struct sshbuf *b = NULL;
 	Channel *downstream;
@@ -3444,7 +3444,7 @@ channel_proxy_upstream(Channel *c, int type, u_int32_t seq, struct ssh *ssh)
 static int
 channel_parse_id(struct ssh *ssh, const char *where, const char *what)
 {
-	u_int32_t id;
+	uint32_t id;
 	int r;
 
 	if ((r = sshpkt_get_u32(ssh, &id)) != 0) {
@@ -3473,7 +3473,7 @@ channel_from_packet_id(struct ssh *ssh, const char *where, const char *what)
 }
 
 int
-channel_input_data(int type, u_int32_t seq, struct ssh *ssh)
+channel_input_data(int type, uint32_t seq, struct ssh *ssh)
 {
 	const u_char *data;
 	size_t data_len, win_len;
@@ -3541,11 +3541,11 @@ channel_input_data(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 int
-channel_input_extended_data(int type, u_int32_t seq, struct ssh *ssh)
+channel_input_extended_data(int type, uint32_t seq, struct ssh *ssh)
 {
 	const u_char *data;
 	size_t data_len;
-	u_int32_t tcode;
+	uint32_t tcode;
 	Channel *c = channel_from_packet_id(ssh, __func__, "extended data");
 	int r;
 
@@ -3594,7 +3594,7 @@ channel_input_extended_data(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 int
-channel_input_ieof(int type, u_int32_t seq, struct ssh *ssh)
+channel_input_ieof(int type, uint32_t seq, struct ssh *ssh)
 {
 	Channel *c = channel_from_packet_id(ssh, __func__, "ieof");
 	int r;
@@ -3619,7 +3619,7 @@ channel_input_ieof(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 int
-channel_input_oclose(int type, u_int32_t seq, struct ssh *ssh)
+channel_input_oclose(int type, uint32_t seq, struct ssh *ssh)
 {
 	Channel *c = channel_from_packet_id(ssh, __func__, "oclose");
 	int r;
@@ -3635,10 +3635,10 @@ channel_input_oclose(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 int
-channel_input_open_confirmation(int type, u_int32_t seq, struct ssh *ssh)
+channel_input_open_confirmation(int type, uint32_t seq, struct ssh *ssh)
 {
 	Channel *c = channel_from_packet_id(ssh, __func__, "open confirmation");
-	u_int32_t remote_window, remote_maxpacket;
+	uint32_t remote_window, remote_maxpacket;
 	int r;
 
 	if (channel_proxy_upstream(c, type, seq, ssh))
@@ -3690,10 +3690,10 @@ reason2txt(int reason)
 }
 
 int
-channel_input_open_failure(int type, u_int32_t seq, struct ssh *ssh)
+channel_input_open_failure(int type, uint32_t seq, struct ssh *ssh)
 {
 	Channel *c = channel_from_packet_id(ssh, __func__, "open failure");
-	u_int32_t reason;
+	uint32_t reason;
 	char *msg = NULL;
 	int r;
 
@@ -3727,11 +3727,11 @@ channel_input_open_failure(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 int
-channel_input_window_adjust(int type, u_int32_t seq, struct ssh *ssh)
+channel_input_window_adjust(int type, uint32_t seq, struct ssh *ssh)
 {
 	int id = channel_parse_id(ssh, __func__, "window adjust");
 	Channel *c;
-	u_int32_t adjust;
+	uint32_t adjust;
 	u_int new_rwin;
 	int r;
 
@@ -3757,7 +3757,7 @@ channel_input_window_adjust(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 int
-channel_input_status_confirm(int type, u_int32_t seq, struct ssh *ssh)
+channel_input_status_confirm(int type, uint32_t seq, struct ssh *ssh)
 {
 	int id = channel_parse_id(ssh, __func__, "status confirm");
 	Channel *c;

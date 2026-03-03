@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.21 2026/03/02 02:40:15 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.22 2026/03/03 09:57:26 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -790,7 +790,7 @@ main(int ac, char **av)
 	const char *remote_ip, *rdomain;
 	char *line, *laddr, *logfile = NULL;
 	u_int i;
-	u_int64_t ibytes, obytes;
+	uint64_t ibytes, obytes;
 	mode_t new_umask;
 	Authctxt *authctxt;
 	struct connection_info *connection_info = NULL;
