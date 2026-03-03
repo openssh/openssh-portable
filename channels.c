@@ -5071,7 +5071,7 @@ rdynamic_connect_finish(struct ssh *ssh, Channel *c)
  */
 int
 x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
-    int x11_use_localhost, int single_connection,
+    int x11_use_localhost, int x11_max_displays, int single_connection,
     u_int *display_numberp, int **chanids)
 {
 	Channel *nc = NULL;
@@ -5084,8 +5084,11 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 	    x11_display_offset > UINT16_MAX - X11_BASE_PORT - MAX_DISPLAYS)
 		return -1;
 
+	/* Try to bind ports starting at 6000+X11DisplayOffset */
+	x11_max_displays = x11_max_displays + x11_display_offset;
+
 	for (display_number = x11_display_offset;
-	    display_number < x11_display_offset + MAX_DISPLAYS;
+	    display_number < x11_max_displays;
 	    display_number++) {
 		port = X11_BASE_PORT + display_number;
 		memset(&hints, 0, sizeof(hints));
@@ -5140,7 +5143,7 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 		if (num_socks > 0)
 			break;
 	}
-	if (display_number >= x11_display_offset + MAX_DISPLAYS) {
+	if (display_number >= x11_max_displays || port < X11_BASE_PORT ) {
 		error("Failed to allocate internet-domain X11 display socket.");
 		return -1;
 	}
