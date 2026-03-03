@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 29 2022 $
+.Dd $Mdocdate: March 10 2023 $
 .Dt SSH-SK-HELPER 8
 .Os
 .Sh NAME
@@ -58,6 +58,14 @@ will automatically pass the
 flag to
 .Nm
 when they have themselves been placed in debug mode.
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width "SSH_SK_HELPER_TIMEOUT"
+.It Ev SSH_SK_HELPER_TIMEOUT
+This variable can be used to specify a timeout value in seconds.
+By default,
+.Nm
+blocks indefinitely.
 .El
 .Sh SEE ALSO
 .Xr ssh 1 ,
