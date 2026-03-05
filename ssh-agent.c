@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.319 2026/02/16 23:47:06 jsg Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.320 2026/03/05 05:35:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -598,14 +598,20 @@ confirm_key(Identity *id, const char *extra)
 }
 
 static void
-send_status(SocketEntry *e, int success)
+send_status_generic(SocketEntry *e, u_int code)
 {
 	int r;
 
 	if ((r = sshbuf_put_u32(e->output, 1)) != 0 ||
-	    (r = sshbuf_put_u8(e->output, success ?
-	    SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE)) != 0)
+	    (r = sshbuf_put_u8(e->output, code)) != 0)
 		fatal_fr(r, "compose");
+}
+
+static void
+send_status(SocketEntry *e, int success)
+{
+	return send_status_generic(e,
+	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
 }
 
 /* send list of supported public keys to 'client' */
@@ -1785,18 +1791,26 @@ process_extension(SocketEntry *e)
 	debug2_f("entering");
 	if ((r = sshbuf_get_cstring(e->request, &name, NULL)) != 0) {
 		error_fr(r, "parse");
-		goto send;
+		send_status(e, 0);
+		return;
 	}
+
 	if (strcmp(name, "query") == 0)
 		success = process_ext_query(e);
 	else if (strcmp(name, "session-bind@openssh.com") == 0)
 		success = process_ext_session_bind(e);
-	else
+	else {
 		debug_f("unsupported extension \"%s\"", name);
+		free(name);
+		send_status(e, 0);
+		return;
+	}
 	free(name);
-send:
-	send_status(e, success);
+	/* Agent failures are signalled with a different error code */
+	send_status_generic(e,
+	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_EXTENSION_FAILURE);
 }
+
 /*
  * dispatch incoming message.
  * returns 1 on success, 0 for incomplete messages or -1 on error.

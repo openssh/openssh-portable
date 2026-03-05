@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.139 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: authfd.c,v 1.140 2026/03/05 05:35:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -62,6 +62,7 @@
 /* macro to check for "agent failure" message */
 #define agent_failed(x) \
     ((x == SSH_AGENT_FAILURE) || \
+    (x == SSH_AGENT_EXTENSION_FAILURE) || \
     (x == SSH_COM_AGENT2_FAILURE) || \
     (x == SSH2_AGENT_FAILURE))
 
