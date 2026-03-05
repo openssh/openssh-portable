@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.140 2026/03/05 05:35:44 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.141 2026/03/05 05:44:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -53,8 +53,10 @@
 #include "sshkey.h"
 #include "authfd.h"
 #include "log.h"
+#include "misc.h"
 #include "atomicio.h"
 #include "ssherr.h"
+#include "xmalloc.h"
 
 #define MAX_AGENT_IDENTITIES	2048		/* Max keys in agent reply */
 #define MAX_AGENT_REPLY_LEN	(256 * 1024)	/* Max bytes in agent reply */
@@ -766,6 +768,57 @@ ssh_agent_bind_hostkey(int sock, const struct sshkey *key,
 	/* success */
 	r = 0;
  out:
+	sshbuf_free(msg);
+	return r;
+}
+
+/* Queries supported extension request types */
+int
+ssh_agent_query_extensions(int sock, char ***exts)
+{
+	struct sshbuf *msg;
+	int r;
+	u_char type;
+	char *cp = NULL, **ret = NULL;
+	size_t i = 0;
+
+	*exts = NULL;
+	if ((msg = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_put_u8(msg, SSH_AGENTC_EXTENSION)) != 0 ||
+	    (r = sshbuf_put_cstring(msg, "query")) != 0)
+		goto out;
+	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
+		goto out;
+	if ((r = sshbuf_get_u8(msg, &type)) != 0)
+		goto out;
+	if (agent_failed(type)) {
+		r = SSH_ERR_AGENT_FAILURE;
+		goto out;
+	}
+	/* Reply should start with "query" */
+	if (type != SSH_AGENT_EXTENSION_RESPONSE ||
+	   (r = sshbuf_get_cstring(msg, &cp, NULL)) != 0 ||
+	   strcmp(cp, "query") != 0) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	ret = calloc(1, sizeof(*ret));
+	while (sshbuf_len(msg)) {
+		ret = xrecallocarray(ret, i + 1, i + 2, sizeof(*ret));
+		if ((r = sshbuf_get_cstring(msg, ret + i, NULL)) != 0) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+		i++;
+	}
+	/* success */
+	r = 0;
+	*exts = ret;
+	ret = NULL; /* transferred */
+ out:
+	free(cp);
+	stringlist_free(ret);
 	sshbuf_free(msg);
 	return r;
 }

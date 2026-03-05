@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.h,v 1.54 2026/01/27 06:48:29 djm Exp $ */
+/* $OpenBSD: authfd.h,v 1.55 2026/03/05 05:44:15 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -66,6 +66,8 @@ int	ssh_agent_sign(int sock, const struct sshkey *key,
 int	ssh_agent_bind_hostkey(int sock, const struct sshkey *key,
     const struct sshbuf *session_id, const struct sshbuf *signature,
     int forwarding);
+
+int	ssh_agent_query_extensions(int sock, char ***exts);
 
 /* Messages for the authentication agent connection. */
 #define SSH_AGENTC_REQUEST_RSA_IDENTITIES	1

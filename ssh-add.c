@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.185 2026/02/11 17:01:34 dtucker Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.186 2026/03/05 05:44:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -235,6 +235,21 @@ delete_all(int agent_fd, int qflag)
 		fprintf(stderr, "All identities removed.\n");
 
 	return ret;
+}
+
+static int
+query_exts(int agent_fd)
+{
+	int r;
+	char **exts = NULL;
+	size_t i;
+
+	if ((r = ssh_agent_query_extensions(agent_fd, &exts)) != 0)
+		fatal_r(r, "unable to query supported extensions");
+	for (i = 0; exts != NULL && exts[i] != NULL; i++)
+		puts(exts[i]);
+	stringlist_free(exts);
+	return 0;
 }
 
 static int
@@ -803,7 +818,7 @@ main(int argc, char **argv)
 	char **dest_constraint_strings = NULL, **hostkey_files = NULL;
 	int r, i, ch, deleting = 0, ret = 0, key_only = 0, cert_only = 0;
 	int do_download = 0, xflag = 0, lflag = 0, Dflag = 0;
-	int qflag = 0, Tflag = 0, Nflag = 0;
+	int Qflag = 0, qflag = 0, Tflag = 0, Nflag = 0;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_INFO;
 	struct sshkey *k, **certs = NULL;
@@ -835,7 +850,7 @@ main(int argc, char **argv)
 
 	skprovider = getenv("SSH_SK_PROVIDER");
 
-	while ((ch = getopt(argc, argv, "vkKlLNCcdDTxXE:e:h:H:M:m:qs:S:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "vkKlLNCcdDTxXE:e:h:H:M:m:Qqs:S:t:")) != -1) {
 		switch (ch) {
 		case 'v':
 			if (log_level == SYSLOG_LEVEL_INFO)
@@ -912,6 +927,9 @@ main(int argc, char **argv)
 		case 'q':
 			qflag = 1;
 			break;
+		case 'Q':
+			Qflag = 1;
+			break;
 		case 'T':
 			Tflag = 1;
 			break;
@@ -923,7 +941,7 @@ main(int argc, char **argv)
 	}
 	log_init(__progname, log_level, log_facility, 1);
 
-	if ((xflag != 0) + (lflag != 0) + (Dflag != 0) > 1)
+	if ((xflag != 0) + (lflag != 0) + (Dflag != 0) + (Qflag != 0) > 1)
 		fatal("Invalid combination of actions");
 	else if (xflag) {
 		if (lock_agent(agent_fd, xflag == 'x' ? 1 : 0) == -1)
@@ -935,6 +953,10 @@ main(int argc, char **argv)
 		goto done;
 	} else if (Dflag) {
 		if (delete_all(agent_fd, qflag) == -1)
+			ret = 1;
+		goto done;
+	} else if (Qflag) {
+		if (query_exts(agent_fd) == -1)
 			ret = 1;
 		goto done;
 	}
