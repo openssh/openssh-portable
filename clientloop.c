@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.421 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.422 2026/03/05 05:40:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1939,7 +1939,8 @@ client_input_channel_open(int type, uint32_t seq, struct ssh *ssh)
 		c = client_request_forwarded_streamlocal(ssh, ctype, rchan);
 	} else if (strcmp(ctype, "x11") == 0) {
 		c = client_request_x11(ssh, ctype, rchan);
-	} else if (strcmp(ctype, "auth-agent@openssh.com") == 0) {
+	} else if (strcmp(ctype, "auth-agent@openssh.com") == 0 ||
+	    strcmp(ctype, "agent-connect") == 0) {
 		c = client_request_agent(ssh, ctype, rchan);
 	}
 	if (c != NULL && c->type == SSH_CHANNEL_MUX_CLIENT) {
@@ -2811,6 +2812,20 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 
 	session_setup_complete = 1;
 	client_repledge();
+}
+
+void
+client_channel_reqest_agent_forwarding(struct ssh *ssh, int id)
+{
+	const char *req = "auth-agent-req@openssh.com";
+	int r;
+
+	if (ssh->kex != NULL && (ssh->kex->flags & KEX_HAS_NEWAGENT) != 0)
+		req = "agent-req"; /* XXX RFC XXX */
+	debug("Requesting agent forwarding on channel %d via %s", id, req);
+	channel_request_start(ssh, id, req, 0);
+	if ((r = sshpkt_send(ssh)) != 0)
+		fatal_fr(r, "send");
 }
 
 static void

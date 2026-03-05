@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.192 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: kex.c,v 1.193 2026/03/05 05:40:35 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -297,13 +297,15 @@ kex_compose_ext_info_server(struct ssh *ssh, struct sshbuf *m)
 	if (ssh->kex->server_sig_algs == NULL &&
 	    (ssh->kex->server_sig_algs = sshkey_alg_list(0, 1, 1, ',')) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshbuf_put_u32(m, 3)) != 0 ||
+	if ((r = sshbuf_put_u32(m, 4)) != 0 ||
 	    (r = sshbuf_put_cstring(m, "server-sig-algs")) != 0 ||
 	    (r = sshbuf_put_cstring(m, ssh->kex->server_sig_algs)) != 0 ||
 	    (r = sshbuf_put_cstring(m,
 	    "publickey-hostbound@openssh.com")) != 0 ||
 	    (r = sshbuf_put_cstring(m, "0")) != 0 ||
 	    (r = sshbuf_put_cstring(m, "ping@openssh.com")) != 0 ||
+	    (r = sshbuf_put_cstring(m, "0")) != 0 ||
+	    (r = sshbuf_put_cstring(m, "agent-forward")) != 0 ||
 	    (r = sshbuf_put_cstring(m, "0")) != 0) {
 		error_fr(r, "compose");
 		return r;
@@ -445,6 +447,12 @@ kex_ext_info_client_parse(struct ssh *ssh, const char *name,
 	    strcmp(name, "ping@openssh.com") == 0) {
 		if ((r = kex_ext_info_check_ver(ssh->kex, name, value, vlen,
 		    "0", KEX_HAS_PING)) != 0) {
+			return r;
+		}
+	} else if (ssh->kex->ext_info_received == 1 &&
+	    strcmp(name, "agent-forward") == 0) {
+		if ((r = kex_ext_info_check_ver(ssh->kex, name, value, vlen,
+		    "0", KEX_HAS_NEWAGENT)) != 0) {
 			return r;
 		}
 	} else

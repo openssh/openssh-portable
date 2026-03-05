@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.128 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: kex.h,v 1.129 2026/03/05 05:40:36 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -114,6 +114,7 @@ enum kex_exchange {
 #define KEX_RSA_SHA2_512_SUPPORTED	0x0010 /* only set in server for now */
 #define KEX_HAS_PING			0x0020
 #define KEX_HAS_EXT_INFO_IN_AUTH	0x0040
+#define KEX_HAS_NEWAGENT		0x0080 /* only set in client */
 
 /* kex->pq */
 #define KEX_NOT_PQ			0

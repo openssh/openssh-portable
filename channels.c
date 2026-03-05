@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.456 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.457 2026/03/05 05:40:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1190,7 +1190,8 @@ channel_send_open(struct ssh *ssh, int id)
 }
 
 void
-channel_request_start(struct ssh *ssh, int id, char *service, int wantconfirm)
+channel_request_start(struct ssh *ssh, int id, const char *service,
+    int wantconfirm)
 {
 	Channel *c = channel_lookup(ssh, id);
 	int r;
@@ -2096,7 +2097,8 @@ channel_post_auth_listener(struct ssh *ssh, Channel *c)
 	    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 	    c->local_window_max, c->local_maxpacket,
 	    0, "accepted auth socket", 1);
-	open_preamble(ssh, __func__, nc, "auth-agent@openssh.com");
+	open_preamble(ssh, __func__, nc,
+	    c->agent_new ? "agent-connect" : "auth-agent@openssh.com");
 	if ((r = sshpkt_send(ssh)) != 0)
 		fatal_fr(r, "channel %i", c->self);
 }

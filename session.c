@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.347 2026/02/08 15:28:01 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.348 2026/03/05 05:40:36 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -183,7 +183,7 @@ auth_sock_cleanup_proc(struct passwd *pw)
 }
 
 static int
-auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
+auth_input_request_forwarding(struct ssh *ssh, struct passwd *pw, int agent_new)
 {
 	Channel *nc;
 	int sock = -1;
@@ -211,6 +211,7 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 	    0, "auth socket", 1);
 	nc->path = xstrdup(auth_sock_name);
+	nc->agent_new = agent_new;
 	return 1;
 
  authsock_err:
@@ -2131,7 +2132,7 @@ session_signal_req(struct ssh *ssh, Session *s)
 }
 
 static int
-session_auth_agent_req(struct ssh *ssh, Session *s)
+session_auth_agent_req(struct ssh *ssh, Session *s, int agent_new)
 {
 	static int called = 0;
 	int r;
@@ -2144,12 +2145,11 @@ session_auth_agent_req(struct ssh *ssh, Session *s)
 		debug_f("agent forwarding disabled");
 		return 0;
 	}
-	if (called) {
+	if (called)
 		return 0;
-	} else {
-		called = 1;
-		return auth_input_request_forwarding(ssh, s->pw);
-	}
+
+	called = 1;
+	return auth_input_request_forwarding(ssh, s->pw, agent_new);
 }
 
 int
@@ -2178,7 +2178,9 @@ session_input_channel_req(struct ssh *ssh, Channel *c, const char *rtype)
 		} else if (strcmp(rtype, "x11-req") == 0) {
 			success = session_x11_req(ssh, s);
 		} else if (strcmp(rtype, "auth-agent-req@openssh.com") == 0) {
-			success = session_auth_agent_req(ssh, s);
+			success = session_auth_agent_req(ssh, s, 0);
+		} else if (strcmp(rtype, "agent-req") == 0) {
+			success = session_auth_agent_req(ssh, s, 1);
 		} else if (strcmp(rtype, "subsystem") == 0) {
 			success = session_subsystem_req(ssh, s);
 		} else if (strcmp(rtype, "env") == 0) {
