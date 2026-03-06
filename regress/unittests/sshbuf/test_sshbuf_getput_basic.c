@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshbuf_getput_basic.c,v 1.6 2025/11/21 01:29:27 djm Exp $ */
+/* 	$OpenBSD: test_sshbuf_getput_basic.c,v 1.7 2026/03/06 06:57:33 dtucker Exp $ */
 /*
  * Regress test for sshbuf.h buffer API
  *
@@ -27,9 +27,9 @@ sshbuf_getput_basic_tests(void)
 	u_char *d, d2[32], x[] = {
 		0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x00, 0x99
 	};
-	u_int64_t v64;
-	u_int32_t v32;
-	u_int16_t v16;
+	uint64_t v64;
+	uint32_t v32;
+	uint16_t v16;
 	u_char v8;
 	size_t s;
 	char *s2;
