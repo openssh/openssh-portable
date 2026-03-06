@@ -43,6 +43,9 @@ enum ssh_audit_event_type {
 	SSH_NOLOGIN,		/* denied by /etc/nologin, not implemented */
 	SSH_CONNECTION_CLOSE,	/* closed after attempting auth or session */
 	SSH_CONNECTION_ABANDON,	/* closed without completing auth */
+	SSH_BAD_PCKT,		/* bad/invalid packet received */
+	SSH_CIPHER_NO_MATCH,	/* cipher negotiation failed */
+	SSH_SESSION_OPEN,	/* session opened */
 	SSH_AUDIT_UNKNOWN
 };
 typedef enum ssh_audit_event_type ssh_audit_event_t;
