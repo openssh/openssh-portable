@@ -1,3 +1,5 @@
+/* $OpenBSD: modpipe.c,v 1.9 2026/03/06 07:06:45 dtucker Exp $ */
+
 /*
  * Copyright (c) 2012 Damien Miller <djm@mindrot.org>
  *
@@ -13,8 +15,6 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
-/* $OpenBSD: modpipe.c,v 1.8 2026/03/06 06:57:33 dtucker Exp $ */
 
 #include "includes.h"
 
