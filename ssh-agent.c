@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.320 2026/03/05 05:35:44 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.321 2026/03/07 18:35:43 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2572,7 +2572,25 @@ skip:
 	sigaddset(&nsigset, SIGTERM);
 	sigaddset(&nsigset, SIGUSR1);
 
-	if (pledge("stdio rpath cpath unix id proc exec", NULL) == -1)
+	if (unveil("/", "r") == -1)
+		fatal("%s: unveil /: %s", __progname, strerror(errno));
+	if (getenv("SSH_SK_HELPER"))
+		if (unveil(getenv("SSH_SK_HELPER"), "x") == -1)
+			fatal("%s: unveil %s: %s", __progname,
+			    getenv("SSH_SK_HELPER"), strerror(errno));
+	if (unveil(_PATH_SSH_SK_HELPER, "x") == -1)
+		fatal("%s: unveil %s: %s", __progname,
+		    _PATH_SSH_SK_HELPER, strerror(errno));
+	if (getenv("SSH_ASKPASS"))
+		if (unveil(getenv("SSH_ASKPASS"), "x") == -1)
+			fatal("%s: unveil %s: %s", __progname,
+			    getenv("SSH_ASKPASS"), strerror(errno));
+	if (unveil(_PATH_SSH_ASKPASS_DEFAULT, "x") == -1)
+		fatal("%s: unveil %s: %s", __progname,
+		    _PATH_SSH_ASKPASS_DEFAULT, strerror(errno));
+	if (unveil("/dev/null", "rw") == -1)
+		fatal("%s: unveil /dev/null: %s", __progname, strerror(errno));
+	if (pledge("stdio rpath cpath wpath unix id proc exec", NULL) == -1)
 		fatal("%s: pledge: %s", __progname, strerror(errno));
 	platform_pledge_agent();
 
