@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.55 2025/08/14 09:26:53 dtucker Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.56 2025/12/22 01:49:03 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -211,8 +211,8 @@ hostbased_key_allowed(struct ssh *ssh, struct passwd *pw,
 	}
 	debug2_f("access allowed by auth_rhosts2");
 
-	if (sshkey_is_cert(key) &&
-	    sshkey_cert_check_authority_now(key, 1, 0, 0, lookup, &reason)) {
+	if (sshkey_is_cert(key) && sshkey_cert_check_host(key, lookup,
+	     options.ca_sign_algorithms, &reason) != 0) {
 		if ((fp = sshkey_fingerprint(key->cert->signature_key,
 		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
 			fatal_f("sshkey_fingerprint fail");

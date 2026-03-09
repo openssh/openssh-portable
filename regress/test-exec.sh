@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.138 2025/12/07 02:49:41 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.139 2025/12/22 01:31:07 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -722,9 +722,9 @@ export EXTRA_AGENT_ARGS
 
 maybe_filter_sk() {
 	if test -z "$SSH_SK_PROVIDER" ; then
-		grep -v ^sk
+		grep -v ^sk | grep -v ^webauthn
 	else
-		cat
+		grep -v ^webauthn
 	fi
 }
 

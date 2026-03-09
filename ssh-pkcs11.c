@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.75 2025/11/23 07:04:18 tb Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.78 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -23,15 +23,12 @@
 #include <sys/time.h>
 
 #include <sys/types.h>
+#include <sys/queue.h>
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <ctype.h>
 #include <string.h>
 #include <dlfcn.h>
-
-#include "openbsd-compat/sys-queue.h"
-#include "openbsd-compat/openssl-compat.h"
 
 #ifdef WITH_OPENSSL
 #include "openbsd-compat/openssl-compat.h"
@@ -1836,7 +1833,7 @@ fail:
 
 static struct sshkey *
 pkcs11_rsa_generate_private_key(struct pkcs11_provider *p, CK_ULONG slotidx,
-    char *label, CK_ULONG bits, CK_BYTE keyid, u_int32_t *err)
+    char *label, CK_ULONG bits, CK_BYTE keyid, uint32_t *err)
 {
 	struct pkcs11_slotinfo	*si;
 	char			*plabel = label ? label : "";
@@ -1956,7 +1953,7 @@ static struct ec_curve_info {
 
 static struct sshkey *
 pkcs11_ecdsa_generate_private_key(struct pkcs11_provider *p, CK_ULONG slotidx,
-    char *label, CK_ULONG bits, CK_BYTE keyid, u_int32_t *err)
+    char *label, CK_ULONG bits, CK_BYTE keyid, uint32_t *err)
 {
 	struct pkcs11_slotinfo	*si;
 	char			*plabel = label ? label : "";
@@ -2453,7 +2450,7 @@ pkcs11_key_free(struct sshkey *key)
 #ifdef WITH_PKCS11_KEYGEN
 struct sshkey *
 pkcs11_gakp(char *provider_id, char *pin, unsigned int slotidx, char *label,
-    unsigned int type, unsigned int bits, unsigned char keyid, u_int32_t *err)
+    unsigned int type, unsigned int bits, unsigned char keyid, uint32_t *err)
 {
 	struct pkcs11_provider	*p = NULL;
 	struct pkcs11_slotinfo	*si;
@@ -2519,7 +2516,7 @@ out:
 
 struct sshkey *
 pkcs11_destroy_keypair(char *provider_id, char *pin, unsigned long slotidx,
-    unsigned char keyid, u_int32_t *err)
+    unsigned char keyid, uint32_t *err)
 {
 	struct pkcs11_provider	*p = NULL;
 	struct pkcs11_slotinfo	*si;

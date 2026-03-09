@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.18 2025/12/16 08:32:50 dtucker Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.22 2026/03/03 09:57:26 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -31,12 +31,12 @@
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include "openbsd-compat/sys-tree.h"
-#include "openbsd-compat/sys-queue.h"
 #include <sys/wait.h>
+#include <sys/tree.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/queue.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -51,13 +51,6 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <limits.h>
-
-#ifdef WITH_OPENSSL
-#include <openssl/bn.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#include "openbsd-compat/openssl-compat.h"
-#endif
 
 #ifdef HAVE_SECUREWARE
 #include <sys/security.h>
@@ -269,27 +262,6 @@ demote_sensitive_data(void)
 	}
 }
 
-static void
-reseed_prngs(void)
-{
-	u_int32_t rnd[256];
-
-#ifdef WITH_OPENSSL
-	RAND_poll();
-#endif
-	arc4random_stir(); /* noop on recent arc4random() implementations */
-	arc4random_buf(rnd, sizeof(rnd)); /* let arc4random notice PID change */
-
-#ifdef WITH_OPENSSL
-	RAND_seed(rnd, sizeof(rnd));
-	/* give libcrypto a chance to notice the PID change */
-	if ((RAND_bytes((u_char *)rnd, 1)) != 1)
-		fatal_f("RAND_bytes failed");
-#endif
-
-	explicit_bzero(rnd, sizeof(rnd));
-}
-
 struct sshbuf *
 pack_hostkeys(void)
 {
@@ -405,7 +377,7 @@ privsep_postauth(struct ssh *ssh, Authctxt *authctxt)
 	 * Hack for systems that don't support FD passing: retain privileges
 	 * in the post-auth privsep process so it can allocate PTYs directly.
 	 * This is basically equivalent to what we did <= 9.7, which was to
-	 * disable post-auth privsep entriely.
+	 * disable post-auth privsep entirely.
 	 * Cygwin doesn't need to drop privs here although it doesn't support
 	 * fd passing, as AFAIK PTY allocation on this platform doesn't require
 	 * special privileges to begin with.
@@ -818,7 +790,7 @@ main(int ac, char **av)
 	const char *remote_ip, *rdomain;
 	char *line, *laddr, *logfile = NULL;
 	u_int i;
-	u_int64_t ibytes, obytes;
+	uint64_t ibytes, obytes;
 	mode_t new_umask;
 	Authctxt *authctxt;
 	struct connection_info *connection_info = NULL;
@@ -1247,10 +1219,6 @@ main(int ac, char **av)
 		if (setitimer(ITIMER_REAL, &itv, NULL) == -1)
 			fatal("login grace time setitimer failed");
 	}
-
-	if ((r = kex_exchange_identification(ssh, -1,
-	    options.version_addendum)) != 0)
-		sshpkt_fatal(ssh, r, "banner exchange");
 
 	ssh_packet_set_nonblocking(ssh);
 

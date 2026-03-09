@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.114 2025/12/05 07:43:12 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.115 2026/03/03 09:57:25 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -118,6 +118,7 @@ void	 sock_set_v6only(int);
 
 struct passwd *pwcopy(struct passwd *);
 void	 pwfree(struct passwd *); /* NB. only use with pwcopy */
+
 const char *ssh_gai_strerror(int);
 
 typedef void privdrop_fn(struct passwd *);
@@ -159,34 +160,34 @@ int	 tun_open(int, int, char **);
 #define PORT_STREAMLOCAL	-2
 
 /* Functions to extract or store big-endian words of various sizes */
-u_int64_t	get_u64(const void *)
+uint64_t	get_u64(const void *)
     __attribute__((__bounded__( __minbytes__, 1, 8)));
-u_int32_t	get_u32(const void *)
+uint32_t	get_u32(const void *)
     __attribute__((__bounded__( __minbytes__, 1, 4)));
-u_int16_t	get_u16(const void *)
+uint16_t	get_u16(const void *)
     __attribute__((__bounded__( __minbytes__, 1, 2)));
-void		put_u64(void *, u_int64_t)
+void		put_u64(void *, uint64_t)
     __attribute__((__bounded__( __minbytes__, 1, 8)));
-void		put_u32(void *, u_int32_t)
+void		put_u32(void *, uint32_t)
     __attribute__((__bounded__( __minbytes__, 1, 4)));
-void		put_u16(void *, u_int16_t)
+void		put_u16(void *, uint16_t)
     __attribute__((__bounded__( __minbytes__, 1, 2)));
 
 /* Little-endian store/load, used by umac.c */
-u_int32_t	get_u32_le(const void *)
+uint32_t	get_u32_le(const void *)
     __attribute__((__bounded__(__minbytes__, 1, 4)));
-void		put_u32_le(void *, u_int32_t)
+void		put_u32_le(void *, uint32_t)
     __attribute__((__bounded__(__minbytes__, 1, 4)));
 
 struct bwlimit {
 	size_t buflen;
-	u_int64_t rate;		/* desired rate in kbit/s */
-	u_int64_t thresh;	/* threshold after which we'll check timers */
-	u_int64_t lamt;		/* amount written in last timer interval */
+	uint64_t rate;		/* desired rate in kbit/s */
+	uint64_t thresh;	/* threshold after which we'll check timers */
+	uint64_t lamt;		/* amount written in last timer interval */
 	struct timeval bwstart, bwend;
 };
 
-void bandwidth_limit_init(struct bwlimit *, u_int64_t, size_t);
+void bandwidth_limit_init(struct bwlimit *, uint64_t, size_t);
 void bandwidth_limit(struct bwlimit *, size_t);
 
 int parse_ipqos(const char *);

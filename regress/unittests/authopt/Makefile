@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.11 2025/10/30 23:55:09 djm Exp $
+#	$OpenBSD: Makefile,v 1.12 2026/02/06 23:39:14 dtucker Exp $
 
 PROG=test_authopt
 SRCS=tests.c
@@ -13,6 +13,7 @@ SRCS+=ssherr.c uidswap.c cleanup.c xmalloc.c match.c krl.c fatal.c
 SRCS+=addr.c addrmatch.c bitmap.c
 SRCS+=cipher-chachapoly.c chacha.c poly1305.c ssh-ecdsa-sk.c ssh-sk.c
 SRCS+=ssh-ed25519-sk.c sk-usbhid.c ssh-pkcs11-client.c
+SRCS+=ssherr-libcrypto.c
 
 SRCS+=digest-openssl.c ed25519-openssl.c
 #SRCS+=digest-libc.c ed25519.c

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.33 2025/11/13 10:35:14 dtucker Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.34 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -255,7 +255,7 @@ int
 ssh_packet_next(struct ssh *ssh, u_char *typep)
 {
 	int r;
-	u_int32_t seqnr;
+	uint32_t seqnr;
 	u_char type;
 
 	/*

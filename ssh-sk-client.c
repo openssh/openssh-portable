@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-client.c,v 1.13 2025/02/18 08:02:48 djm Exp $ */
+/* $OpenBSD: ssh-sk-client.c,v 1.14 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -21,7 +21,6 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 
-#include <fcntl.h>
 #include <limits.h>
 #include <errno.h>
 #include <signal.h>
@@ -36,7 +35,6 @@
 #include "sshbuf.h"
 #include "sshkey.h"
 #include "msg.h"
-#include "digest.h"
 #include "pathnames.h"
 #include "ssh-sk.h"
 #include "misc.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: digest-libc.c,v 1.9 2025/12/16 08:36:43 dtucker Exp $ */
+/* $OpenBSD: digest-libc.c,v 1.10 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  * Copyright (c) 2014 Markus Friedl.  All rights reserved.
@@ -50,8 +50,8 @@
 #include "digest.h"
 
 typedef void md_init_fn(void *mdctx);
-typedef void md_update_fn(void *mdctx, const u_int8_t *m, size_t mlen);
-typedef void md_final_fn(u_int8_t[], void *mdctx);
+typedef void md_update_fn(void *mdctx, const uint8_t *m, size_t mlen);
+typedef void md_final_fn(uint8_t[], void *mdctx);
 
 struct ssh_digest_ctx {
 	int alg;

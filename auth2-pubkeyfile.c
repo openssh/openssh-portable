@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkeyfile.c,v 1.6 2025/08/14 10:03:44 dtucker Exp $ */
+/* $OpenBSD: auth2-pubkeyfile.c,v 1.7 2025/12/22 01:49:03 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -364,7 +364,7 @@ auth_check_authkey_line(struct passwd *pw, struct sshkey *key,
 		reason = "Certificate does not contain an authorized principal";
 		goto cert_fail_reason;
 	}
-	if (sshkey_cert_check_authority_now(key, 0, 0, 0,
+	if (sshkey_cert_check_authority_now(key, 0, 0,
 	    keyopts->cert_principals == NULL ? pw->pw_name : NULL,
 	    &reason) != 0)
 		goto cert_fail_reason;

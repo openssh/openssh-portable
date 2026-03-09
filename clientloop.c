@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.418 2025/11/27 02:18:48 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.422 2026/03/05 05:40:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -64,8 +64,8 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
 #include <sys/time.h>
+#include <sys/queue.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -76,12 +76,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <termios.h>
-#include <pwd.h>
 #include <unistd.h>
 #include <limits.h>
 
-#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh2.h"
@@ -91,9 +88,7 @@
 #include "channels.h"
 #include "dispatch.h"
 #include "sshkey.h"
-#include "cipher.h"
 #include "kex.h"
-#include "myproposal.h"
 #include "log.h"
 #include "misc.h"
 #include "readconf.h"
@@ -103,7 +98,6 @@
 #include "atomicio.h"
 #include "sshpty.h"
 #include "match.h"
-#include "msg.h"
 #include "ssherr.h"
 #include "hostfile.h"
 
@@ -435,7 +429,7 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 	 * for the local connection.
 	 */
 	if (!got_data) {
-		u_int8_t rnd[16];
+		uint8_t rnd[16];
 		u_int i;
 
 		logit("Warning: No xauth data; "
@@ -469,7 +463,7 @@ client_check_window_change(struct ssh *ssh)
 }
 
 static int
-client_global_request_reply(int type, u_int32_t seq, struct ssh *ssh)
+client_global_request_reply(int type, uint32_t seq, struct ssh *ssh)
 {
 	struct global_confirm *gc;
 
@@ -1461,7 +1455,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	u_int npfd_alloc = 0, npfd_active = 0;
 	double start_time, total_time;
 	int interactive = -1, channel_did_enqueue = 0, r;
-	u_int64_t ibytes, obytes;
+	uint64_t ibytes, obytes;
 	int conn_in_ready, conn_out_ready;
 	sigset_t bsigset, osigset;
 
@@ -1920,7 +1914,7 @@ client_request_tun_fwd(struct ssh *ssh, int tun_mode,
 
 /* XXXX move to generic input handler */
 static int
-client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
+client_input_channel_open(int type, uint32_t seq, struct ssh *ssh)
 {
 	Channel *c = NULL;
 	char *ctype = NULL;
@@ -1945,7 +1939,8 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 		c = client_request_forwarded_streamlocal(ssh, ctype, rchan);
 	} else if (strcmp(ctype, "x11") == 0) {
 		c = client_request_x11(ssh, ctype, rchan);
-	} else if (strcmp(ctype, "auth-agent@openssh.com") == 0) {
+	} else if (strcmp(ctype, "auth-agent@openssh.com") == 0 ||
+	    strcmp(ctype, "agent-connect") == 0) {
 		c = client_request_agent(ssh, ctype, rchan);
 	}
 	if (c != NULL && c->type == SSH_CHANNEL_MUX_CLIENT) {
@@ -1982,7 +1977,7 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 static int
-client_input_channel_req(int type, u_int32_t seq, struct ssh *ssh)
+client_input_channel_req(int type, uint32_t seq, struct ssh *ssh)
 {
 	Channel *c = NULL;
 	char *rtype = NULL;
@@ -2360,7 +2355,7 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 
 static void
 client_global_hostkeys_prove_confirm(struct ssh *ssh, int type,
-    u_int32_t seq, void *_ctx)
+    uint32_t seq, void *_ctx)
 {
 	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
 	size_t i, ndone;
@@ -2670,7 +2665,7 @@ client_input_hostkeys(struct ssh *ssh)
 }
 
 static int
-client_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
+client_input_global_request(int type, uint32_t seq, struct ssh *ssh)
 {
 	char *rtype;
 	u_char want_reply;
@@ -2817,6 +2812,20 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 
 	session_setup_complete = 1;
 	client_repledge();
+}
+
+void
+client_channel_reqest_agent_forwarding(struct ssh *ssh, int id)
+{
+	const char *req = "auth-agent-req@openssh.com";
+	int r;
+
+	if (ssh->kex != NULL && (ssh->kex->flags & KEX_HAS_NEWAGENT) != 0)
+		req = "agent-req"; /* XXX RFC XXX */
+	debug("Requesting agent forwarding on channel %d via %s", id, req);
+	channel_request_start(ssh, id, req, 0);
+	if ((r = sshpkt_send(ssh)) != 0)
+		fatal_fr(r, "send");
 }
 
 static void

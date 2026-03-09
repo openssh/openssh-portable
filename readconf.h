@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.161 2025/08/11 10:55:38 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.162 2026/02/11 22:57:55 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -162,7 +162,8 @@ typedef struct {
 	int	num_permitted_cnames;
 	struct allowed_cname *permitted_cnames;
 
-	char	*revoked_host_keys;
+	u_int	num_revoked_host_keys;
+	char	**revoked_host_keys;
 
 	int	 fingerprint_hash;
 
