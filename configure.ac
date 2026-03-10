@@ -2214,6 +2214,7 @@ AC_CHECK_FUNCS([ \
 	truncate \
 	unlinkat \
 	unsetenv \
+	unveil \
 	updwtmpx \
 	utimensat \
 	user_from_uid \

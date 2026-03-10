@@ -410,6 +410,14 @@ pledge(const char *promises, const char *execpromises)
 }
 #endif
 
+#ifndef HAVE_UNVEIL
+int
+unveil(const char *path, const char *permissions)
+{
+	return 0;
+}
+#endif
+
 #ifndef HAVE_MBTOWC
 /* a mbtowc that only supports ASCII */
 int
