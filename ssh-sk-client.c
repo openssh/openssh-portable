@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-client.c,v 1.15 2026/03/07 18:27:52 deraadt Exp $ */
+/* $OpenBSD: ssh-sk-client.c,v 1.16 2026/03/10 03:45:01 deraadt Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -114,8 +114,8 @@ start_helper(int *fdp, pid_t *pidp, void (**osigchldp)(int))
 	close(execpipe[0]);
 	if (n > 0) {
 		execbuf[n] = '\0';
-		error("%s", execbuf);
-		return SSH_ERR_SYSTEM_ERROR;
+		error_f("%s", execbuf);
+		return SSH_ERR_AGENT_FAILURE;
 	}
 
 	/* success */
