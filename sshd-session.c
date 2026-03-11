@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.22 2026/03/03 09:57:26 dtucker Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.23 2026/03/11 09:10:59 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -1137,8 +1137,8 @@ main(int ac, char **av)
 	setproctitle("%s", "[accepted]");
 
 	/* Executed child processes don't need these. */
-	fcntl(sock_out, F_SETFD, FD_CLOEXEC);
-	fcntl(sock_in, F_SETFD, FD_CLOEXEC);
+	FD_CLOSEONEXEC(sock_out);
+	FD_CLOSEONEXEC(sock_in);
 
 	/* We will not restart on SIGHUP since it no longer makes sense. */
 	ssh_signal(SIGALRM, SIG_DFL);

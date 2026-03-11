@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.253 2026/03/02 02:40:15 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.254 2026/03/11 09:10:59 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1918,11 +1918,6 @@ mm_get_keystate(struct ssh *ssh, struct monitor *pmonitor)
 
 
 /* XXX */
-
-#define FD_CLOSEONEXEC(x) do { \
-	if (fcntl(x, F_SETFD, FD_CLOEXEC) == -1) \
-		fatal("fcntl(%d, F_SETFD)", x); \
-} while (0)
 
 static void
 monitor_openfds(struct monitor *mon, int do_logfds)

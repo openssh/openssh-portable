@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.115 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: misc.h,v 1.116 2026/03/11 09:10:59 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -269,5 +269,11 @@ int signal_is_crash(int);
 
 /* On OpenBSD time_t is int64_t which is long long. */
 /* #define SSH_TIME_T_MAX LLONG_MAX */
+
+#define FD_CLOSEONEXEC(x) do { \
+	if (fcntl(x, F_SETFD, FD_CLOEXEC) == -1) \
+		fatal_f("fcntl(%d, F_SETFD, FD_CLOEXEC): %s", x, \
+		    strerror(errno)); \
+} while (0)
 
 #endif /* _MISC_H */

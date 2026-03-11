@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-client.c,v 1.17 2026/03/11 09:04:17 dtucker Exp $ */
+/* $OpenBSD: ssh-sk-client.c,v 1.18 2026/03/11 09:10:59 dtucker Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -88,7 +88,7 @@ start_helper(int *fdp, pid_t *pidp, void (**osigchldp)(int))
 	}
 	if (pid == 0) {
 		close(execpipe[0]);
-		fcntl(execpipe[1], F_SETFD, FD_CLOEXEC);
+		FD_CLOSEONEXEC(execpipe[1]);
 		if ((dup2(pair[1], STDIN_FILENO) == -1) ||
 		    (dup2(pair[1], STDOUT_FILENO) == -1)) {
 			snprintf(execbuf, sizeof execbuf,

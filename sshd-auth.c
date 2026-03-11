@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.13 2026/03/02 02:40:15 djm Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.14 2026/03/11 09:10:59 dtucker Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -715,8 +715,8 @@ main(int ac, char **av)
 	setproctitle("%s", "[session-auth]");
 
 	/* Executed child processes don't need these. */
-	fcntl(sock_out, F_SETFD, FD_CLOEXEC);
-	fcntl(sock_in, F_SETFD, FD_CLOEXEC);
+	FD_CLOSEONEXEC(sock_out);
+	FD_CLOSEONEXEC(sock_in);
 
 	ssh_signal(SIGPIPE, SIG_IGN);
 	ssh_signal(SIGALRM, SIG_DFL);
