@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-client.c,v 1.16 2026/03/10 03:45:01 deraadt Exp $ */
+/* $OpenBSD: ssh-sk-client.c,v 1.17 2026/03/11 09:04:17 dtucker Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -113,7 +113,7 @@ start_helper(int *fdp, pid_t *pidp, void (**osigchldp)(int))
 	n = read(execpipe[0], execbuf, sizeof execbuf);
 	close(execpipe[0]);
 	if (n > 0) {
-		execbuf[n] = '\0';
+		execbuf[n - 1] = '\0';
 		error_f("%s", execbuf);
 		return SSH_ERR_AGENT_FAILURE;
 	}
