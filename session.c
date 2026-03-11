@@ -1907,7 +1907,7 @@ static int
 session_subsystem_req(struct ssh *ssh, Session *s)
 {
 	struct stat st;
-	int r, success = 0;
+	int r, success = 0, found = 0;
 	char *prog, *cmd, *type;
 	u_int i;
 
@@ -1919,6 +1919,7 @@ session_subsystem_req(struct ssh *ssh, Session *s)
 
 	for (i = 0; i < options.num_subsystems; i++) {
 		if (strcmp(s->subsys, options.subsystem_name[i]) == 0) {
+			found = 1;
 			prog = options.subsystem_command[i];
 			cmd = options.subsystem_args[i];
 			if (strcmp(INTERNAL_SFTP_NAME, prog) == 0) {
@@ -1941,8 +1942,9 @@ session_subsystem_req(struct ssh *ssh, Session *s)
 	}
 
 	if (!success)
-		logit("subsystem request for %.100s by user %s failed, "
-		    "subsystem not found", s->subsys, s->pw->pw_name);
+		logit("subsystem request for %.100s by user %s failed, %s",
+		    s->subsys, s->pw->pw_name,
+		    found ? "subsystem launch failed" : "subsystem not found");
 
 	return success;
 }
