@@ -1356,6 +1356,7 @@ Available keywords are
 .Cm TrustedUserCAKeys ,
 .Cm UnusedConnectionTimeout ,
 .Cm X11DisplayOffset ,
+.Cm X11MaxDisplays ,
 .Cm X11Forwarding
 and
 .Cm X11UseLocalhost .
@@ -2081,6 +2082,12 @@ Specifies the first display number available for
 X11 forwarding.
 This prevents sshd from interfering with real X11 servers.
 The default is 10.
+.It Cm X11MaxDisplays
+Specifies the maximum number of displays available for
+.Xr sshd 8 Ns 's
+X11 forwarding.
+This prevents sshd from exhausting local ports.
+The default is 1000.
 .It Cm X11Forwarding
 Specifies whether X11 forwarding is permitted.
 The argument must be
