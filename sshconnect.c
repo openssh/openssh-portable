@@ -401,6 +401,9 @@ ssh_create_socket(struct addrinfo *ai)
 		error_f("getnameinfo failed: %s", ssh_gai_strerror(r));
 		goto fail;
 	}
+#ifdef IP_BIND_ADDRESS_NO_PORT
+	(void) setsockopt(sock, SOL_IP, IP_BIND_ADDRESS_NO_PORT, &(int) {1}, sizeof(int));
+#endif
 	if (bind(sock, (struct sockaddr *)&bindaddr, bindaddrlen) != 0) {
 		error("bind %s: %s", ntop, strerror(errno));
 		goto fail;
