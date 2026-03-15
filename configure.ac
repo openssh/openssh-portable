@@ -1662,7 +1662,7 @@ AC_CHECK_FUNCS([fmt_scaled scan_scaled login logout openpty updwtmp logwtmp])
 AC_SEARCH_LIBS([inet_ntop], [resolv nsl])
 AC_SEARCH_LIBS([gethostbyname], [resolv nsl])
 
-# Some Linux distribtions ship the BSD libc hashing functions in
+# Some Linux distributions ship the BSD libc hashing functions in
 # separate libraries.
 AC_SEARCH_LIBS([SHA256Update], [md bsd])
 
@@ -2432,7 +2432,7 @@ AC_CHECK_TYPES([fd_mask], [], [], [[
 	]])
 
 AC_CHECK_FUNCS([setresuid], [
-	dnl Some platorms have setresuid that isn't implemented, test for this
+	dnl Some platforms have setresuid that isn't implemented, test for this
 	AC_MSG_CHECKING([if setresuid seems to work])
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
@@ -2456,7 +2456,7 @@ AC_CHECK_FUNCS([setresuid], [
 ])
 
 AC_CHECK_FUNCS([setresgid], [
-	dnl Some platorms have setresgid that isn't implemented, test for this
+	dnl Some platforms have setresgid that isn't implemented, test for this
 	AC_MSG_CHECKING([if setresgid seems to work])
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
@@ -3854,7 +3854,7 @@ AC_ARG_WITH([sandbox],
 
 if test "x$sandbox_arg" != "xno"; then
 # POSIX specifies that poll() "shall fail with EINVAL if the nfds argument
-# is greater than OPEN_MAX".  On some platforms that includes implementions
+# is greater than OPEN_MAX".  On some platforms that includes implementations
 # of select in userspace on top of poll() so check both work with rlimit
 # NOFILES so check that both work before enabling the rlimit sandbox.
     AC_MSG_CHECKING([if select and/or poll works with descriptor rlimit])
@@ -5570,7 +5570,7 @@ AC_SUBST([piddir])
 
 
 AC_ARG_ENABLE([fd-passing],
-	[  --disable-fd-passing    disable file descriptor passsing [no]],
+	[  --disable-fd-passing    disable file descriptor passing [no]],
 	[
 		if test "x$enableval" = "xno" ; then
 			AC_DEFINE([DISABLE_FD_PASSING])
