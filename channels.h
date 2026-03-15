@@ -181,7 +181,7 @@ struct Channel {
 	u_int	local_consumed;
 	u_int	local_maxpacket;
 	int     extended_usage;
-	int	agent_new;	/* For agent listeners, use RFC XXX reqests */
+	int	agent_new;	/* For agent listeners, use RFC XXX requests */
 	int	single_connection;
 
 	char   *ctype;		/* const type - NB. not freed on channel_free */

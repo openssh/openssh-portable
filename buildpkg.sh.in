@@ -230,7 +230,7 @@ perl -p -i -e "s/#PrintMotd yes/PrintMotd no/" \
 mv $FAKE_ROOT${sysconfdir}/ssh_config $FAKE_ROOT${sysconfdir}/ssh_config.default
 mv $FAKE_ROOT${sysconfdir}/sshd_config $FAKE_ROOT${sysconfdir}/sshd_config.default
 
-# local tweeks here
+# local tweaks here
 [ -s "${POST_MAKE_INSTALL_FIXES}" ]  &&  . ${POST_MAKE_INSTALL_FIXES}
 
 cd $FAKE_ROOT
@@ -651,7 +651,7 @@ find . | egrep -v "prototype|pkginfo|mk-proto.awk" | sort | \
 
 ## Step back a directory and now build the package.
 cd ..
-# local prototype tweeks here
+# local prototype tweaks here
 [ -s "${POST_PROTOTYPE_EDITS}" ]  &&  . ${POST_PROTOTYPE_EDITS}
 
 echo "Building package.."
