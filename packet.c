@@ -1675,7 +1675,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, uint32_t *seqnr_p)
 		    &cp)) != 0)
 			goto out;
 		if ((r = cipher_crypt(state->receive_context,
-		    state->p_send.seqnr, cp, sshbuf_ptr(state->input),
+		    state->p_read.seqnr, cp, sshbuf_ptr(state->input),
 		    block_size, 0, 0)) != 0)
 			goto out;
 		state->packlen = PEEK_U32(sshbuf_ptr(state->incoming_packet));
