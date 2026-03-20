@@ -3507,7 +3507,10 @@ channel_input_data(int type, uint32_t seq, struct ssh *ssh)
 	 * updates are sent back. Otherwise the connection might deadlock.
 	 */
 	if (c->ostate != CHAN_OUTPUT_OPEN) {
-		c->local_window -= win_len;
+		if (win_len > c->local_window)
+			c->local_window = 0;
+		else
+			c->local_window -= win_len;
 		c->local_consumed += win_len;
 		return 0;
 	}
