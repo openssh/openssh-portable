@@ -350,6 +350,7 @@ jobs:
       run: cd $GITHUB_WORKSPACE && sudo -u builder make
     - name: make tests
       shell: solaris {0}
+      timeout-minutes: 120
       run: |
         cd $GITHUB_WORKSPACE
         sudo -u builder make tests
@@ -365,6 +366,7 @@ jobs:
       run: cd $GITHUB_WORKSPACE && sudo -u builder make
     - name: "PAM: make tests"
       shell: solaris {0}
+      timeout-minutes: 120
       run: |
         cd $GITHUB_WORKSPACE
-        sudo -u builder make tests
+        sudo -u builder env SSHD_CONFOPTS="UsePam yes" make tests
