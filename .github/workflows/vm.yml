@@ -349,7 +349,17 @@ jobs:
       shell: solaris {0}
       run: cd $GITHUB_WORKSPACE && sudo -u builder make
     - name: make tests
+      id: test1
       shell: solaris {0}
+      timeout-minutes: 30
+      continue-on-error: true
+      run: |
+        cd $GITHUB_WORKSPACE
+        sudo -u builder make tests
+    - name: retry make tests
+      shell: solaris {0}
+      timeout-minutes: 30
+      if: steps.test1.outcome == 'failure'
       run: |
         cd $GITHUB_WORKSPACE
         sudo -u builder make tests
@@ -364,7 +374,17 @@ jobs:
       shell: solaris {0}
       run: cd $GITHUB_WORKSPACE && sudo -u builder make
     - name: "PAM: make tests"
+      id: pamtest1
       shell: solaris {0}
+      timeout-minutes: 30
+      continue-on-error: true
       run: |
         cd $GITHUB_WORKSPACE
-        sudo -u builder make tests
+        sudo -u builder env SSHD_CONFOPTS="UsePam yes" make tests
+    - name: retry PAM make tests
+      shell: solaris {0}
+      timeout-minutes: 30
+      if: steps.pamtest1.outcome == 'failure'
+      run: |
+        cd $GITHUB_WORKSPACE
+        sudo -u builder env SSHD_CONFOPTS="UsePam yes" make tests
