@@ -143,8 +143,7 @@ for TARGET in $TARGETS; do
         case ${INSTALL_OPENSSL} in
           1.1.1_stable)	INSTALL_OPENSSL="OpenSSL_1_1_1-stable" ;;
           1.*)	INSTALL_OPENSSL="OpenSSL_$(echo ${INSTALL_OPENSSL} | tr . _)" ;;
-          master)	;;
-          *)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
+          [34].*)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
         esac
         PACKAGES="${PACKAGES} putty-tools dropbear-bin"
        ;;
