@@ -55,7 +55,6 @@ enum
 /*
  * Definitions for IP type of service (ip_tos)
  */
-#include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #ifndef IPTOS_LOWDELAY
 # define IPTOS_LOWDELAY          0x10
@@ -95,6 +94,9 @@ enum
 # define	IPTOS_DSCP_CS6		0xc0
 # define	IPTOS_DSCP_CS7		0xe0
 #endif /* IPTOS_DSCP_CS0 */
+#ifndef IPTOS_DSCP_VA
+# define	IPTOS_DSCP_VA		0x2c
+#endif /* IPTOS_DSCP_VA */
 #ifndef IPTOS_DSCP_EF
 # define	IPTOS_DSCP_EF		0xb8
 #endif /* IPTOS_DSCP_EF */
@@ -216,7 +218,9 @@ including rpc/rpc.h breaks Solaris 6
 /* (or die trying) */
 
 #ifndef HAVE_U_INT
+typedef unsigned short u_short;
 typedef unsigned int u_int;
+typedef unsigned long u_long;
 #endif
 
 #ifndef HAVE_INTXX_T
@@ -513,6 +517,13 @@ struct winsize {
    } while (0)
 #endif
 
+#ifndef timespeccmp
+#define	timespeccmp(tsp, usp, cmp)					\
+	(((tsp)->tv_sec == (usp)->tv_sec) ?				\
+	    ((tsp)->tv_nsec cmp (usp)->tv_nsec) :			\
+	    ((tsp)->tv_sec cmp (usp)->tv_sec))
+#endif
+
 #ifndef TIMEVAL_TO_TIMESPEC
 #define	TIMEVAL_TO_TIMESPEC(tv, ts) {					\
 	(ts)->tv_sec = (tv)->tv_sec;					\
@@ -645,6 +656,46 @@ struct winsize {
 #  define BYTE_ORDER LITTLE_ENDIAN
 # endif /* WORDS_BIGENDIAN */
 #endif /* BYTE_ORDER */
+
+#if (defined(HAVE_DECL_LE32TOH) && HAVE_DECL_LE32TOH == 0) || \
+    (defined(HAVE_DECL_LE64TOH) && HAVE_DECL_LE64TOH == 0) || \
+    (defined(HAVE_DECL_HTOLE64) && HAVE_DECL_HTOLE64 == 0)
+# define openssh_swap32(v)					\
+	(uint32_t)(((uint32_t)(v) & 0xff) << 24 |		\
+	((uint32_t)(v) & 0xff00) << 8 |				\
+	((uint32_t)(v) & 0xff0000) >> 8 |			\
+	((uint32_t)(v) & 0xff000000) >> 24)
+# define openssh_swap64(v)					\
+	(uint64_t)((((uint64_t)(v) & 0xff) << 56) |		\
+	((uint64_t)(v) & 0xff00ULL) << 40 |			\
+	((uint64_t)(v) & 0xff0000ULL) << 24 |			\
+	((uint64_t)(v) & 0xff000000ULL) << 8 |		\
+	((uint64_t)(v) & 0xff00000000ULL) >> 8 |		\
+	((uint64_t)(v) & 0xff0000000000ULL) >> 24 |		\
+	((uint64_t)(v) & 0xff000000000000ULL) >> 40 |		\
+	((uint64_t)(v) & 0xff00000000000000ULL) >> 56)
+# ifdef WORDS_BIGENDIAN
+#  if defined(HAVE_DECL_LE32TOH) && HAVE_DECL_LE32TOH == 0
+#   define le32toh(v) (openssh_swap32(v))
+#  endif
+#  if defined(HAVE_DECL_LE64TOH) && HAVE_DECL_LE64TOH == 0
+#   define le64toh(v) (openssh_swap64(v))
+#  endif
+#  if defined(HAVE_DECL_HTOLE64) && HAVE_DECL_HTOLE64 == 0
+#   define htole64(v) (openssh_swap64(v))
+# endif
+# else
+#  if defined(HAVE_DECL_LE32TOH) && HAVE_DECL_LE32TOH == 0
+#   define le32toh(v) ((uint32_t)v)
+#  endif
+#  if defined(HAVE_DECL_LE64TOH) && HAVE_DECL_LE64TOH == 0
+#    define le64toh(v) ((uint64_t)v)
+#  endif
+#  if defined(HAVE_DECL_HTOLE64) && HAVE_DECL_HTOLE64 == 0
+#   define htole64(v) ((uint64_t)v)
+#  endif
+# endif
+#endif
 
 /* Function replacement / compatibility hacks */
 
@@ -928,18 +979,20 @@ struct winsize {
 # endif /* gcc version */
 #endif /* __predict_true */
 
-#if defined(HAVE_GLOB_H) && defined(GLOB_HAS_ALTDIRFUNC) && \
-    defined(GLOB_HAS_GL_MATCHC) && defined(GLOB_HAS_GL_STATV) && \
-    defined(HAVE_DECL_GLOB_NOMATCH) &&  HAVE_DECL_GLOB_NOMATCH != 0 && \
-    !defined(BROKEN_GLOB)
-# define USE_SYSTEM_GLOB
-#endif
-
 /*
  * sntrup761 uses variable length arrays and c99-style declarations after code,
  * so only enable if the compiler supports them.
  */
 #if defined(VARIABLE_LENGTH_ARRAYS) && defined(VARIABLE_DECLARATION_AFTER_CODE)
-# define USE_SNTRUP761X25519 1
+# define USE_SNTRUP761X25519	1
+/* The ML-KEM768 implementation also uses C89 features */
+# define USE_MLKEM768X25519	1
 #endif
+
+#if defined(HAVE_DECL_INFINITY) && HAVE_DECL_INFINITY == 0
+# if defined(HAVE_DECL___BUILTIN_INFF) && HAVE_DECL___BUILTIN_INFF == 1
+#  define INFINITY __builtin_inff()
+# endif
+#endif
+
 #endif /* _DEFINES_H */

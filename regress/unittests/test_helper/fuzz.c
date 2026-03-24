@@ -1,4 +1,4 @@
-/*	$OpenBSD: fuzz.c,v 1.8 2015/03/03 20:42:49 djm Exp $	*/
+/*	$OpenBSD: fuzz.c,v 1.9 2025/06/13 07:23:07 dtucker Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -25,9 +25,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -150,7 +148,6 @@ fuzz_fmt(struct fuzz *fuzz, char *s, size_t n)
 		return 0;
 	default:
 		return -1;
-		abort();
 	}
 }
 
@@ -214,7 +211,7 @@ siginfo(int unused __attribute__((__unused__)))
 struct fuzz *
 fuzz_begin(u_int strategies, const void *p, size_t l)
 {
-	struct fuzz *ret = calloc(sizeof(*ret), 1);
+	struct fuzz *ret = calloc(1, sizeof(*ret));
 
 	assert(p != NULL);
 	assert(ret != NULL);

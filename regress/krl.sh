@@ -1,4 +1,4 @@
-#	$OpenBSD: krl.sh,v 1.11 2019/12/16 02:39:05 djm Exp $
+#	$OpenBSD: krl.sh,v 1.13 2025/05/06 06:05:48 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key revocation lists"
@@ -11,7 +11,6 @@ for t in $SSH_KEYTYPES; do
 	case "$t" in
 		ecdsa*)		ktype2=ecdsa ;;
 		ssh-rsa)	ktype3=rsa ;;
-		ssh-dss)	ktype4=dsa ;;
 		sk-ssh-ed25519@openssh.com)		ktype5=ed25519-sk ;;
 		sk-ecdsa-sha2-nistp256@openssh.com)	ktype6=ecdsa-sk ;;
 	esac
@@ -175,8 +174,8 @@ test_rev() {
 	KEYID_RESULT=$7
 	CERTS_RESULT=$8
 	CA_RESULT=$9
-	SERIAL_WRESULT=$10
-	KEYID_WRESULT=$11
+	SERIAL_WRESULT=${10}
+	KEYID_WRESULT=${11}
 	verbose "$tid: checking revocations for $TAG"
 	for f in $FILES ; do
 		check_krl $f $OBJ/krl-empty		no		"$TAG"

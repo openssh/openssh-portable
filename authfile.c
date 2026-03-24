@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.142 2022/01/01 01:55:30 jsg Exp $ */
+/* $OpenBSD: authfile.c,v 1.149 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -27,7 +27,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/uio.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -36,20 +35,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <limits.h>
 
-#include "cipher.h"
-#include "ssh.h"
 #include "log.h"
 #include "authfile.h"
-#include "misc.h"
-#include "atomicio.h"
 #include "sshkey.h"
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "krl.h"
-
-#define MAX_KEY_FILE_SIZE	(1024 * 1024)
 
 /* Save a key blob to a file */
 static int
@@ -133,8 +125,6 @@ sshkey_load_private_type(int type, const char *filename, const char *passphrase,
 		goto out;
 
 	r = sshkey_load_private_type_fd(fd, type, passphrase, keyp, commentp);
-	if (r == 0 && keyp && *keyp)
-		r = sshkey_set_filename(*keyp, filename);
  out:
 	close(fd);
 	return r;
@@ -186,8 +176,6 @@ sshkey_load_pubkey_from_private(const char *filename, struct sshkey **pubkeyp)
 	    (r = sshkey_parse_pubkey_from_private_fileblob_type(buffer,
 	    KEY_UNSPEC, &pubkey)) != 0)
 		goto out;
-	if ((r = sshkey_set_filename(pubkey, filename)) != 0)
-		goto out;
 	/* success */
 	if (pubkeyp != NULL) {
 		*pubkeyp = pubkey;
@@ -211,6 +199,8 @@ sshkey_try_load_public(struct sshkey **kp, const char *filename,
 	int r;
 	struct sshkey *k = NULL;
 
+	if (kp == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
 	*kp = NULL;
 	if (commentp != NULL)
 		*commentp = NULL;
@@ -328,11 +318,9 @@ sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
 	switch (type) {
 #ifdef WITH_OPENSSL
 	case KEY_RSA:
-	case KEY_DSA:
 	case KEY_ECDSA:
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
-	case KEY_XMSS:
 	case KEY_UNSPEC:
 		break;
 	default:
@@ -501,20 +489,25 @@ sshkey_save_public(const struct sshkey *key, const char *path,
 		return SSH_ERR_SYSTEM_ERROR;
 	if ((f = fdopen(fd, "w")) == NULL) {
 		r = SSH_ERR_SYSTEM_ERROR;
+		close(fd);
 		goto fail;
 	}
 	if ((r = sshkey_write(key, f)) != 0)
 		goto fail;
 	fprintf(f, " %s\n", comment);
-	if (ferror(f) || fclose(f) != 0) {
+	if (ferror(f)) {
 		r = SSH_ERR_SYSTEM_ERROR;
+		goto fail;
+	}
+	if (fclose(f) != 0) {
+		r = SSH_ERR_SYSTEM_ERROR;
+		f = NULL;
  fail:
-		oerrno = errno;
-		if (f != NULL)
+		if (f != NULL) {
+			oerrno = errno;
 			fclose(f);
-		else
-			close(fd);
-		errno = oerrno;
+			errno = oerrno;
+		}
 		return r;
 	}
 	return 0;

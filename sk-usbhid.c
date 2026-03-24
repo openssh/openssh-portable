@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-usbhid.c,v 1.39 2022/04/29 03:16:48 dtucker Exp $ */
+/* $OpenBSD: sk-usbhid.c,v 1.48 2025/05/12 05:41:20 tb Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl
  * Copyright (c) 2020 Pedro Martelletto
@@ -47,6 +47,7 @@
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/evp.h>
+#include "openbsd-compat/openssl-compat.h"
 #endif /* WITH_OPENSSL */
 
 #include <fido.h>
@@ -75,10 +76,11 @@
 #define FIDO_CRED_PROT_UV_OPTIONAL_WITH_ID 0
 #endif
 
+# include "misc.h"
+
 #ifndef SK_STANDALONE
 # include "log.h"
 # include "xmalloc.h"
-# include "misc.h"
 /*
  * If building as part of OpenSSH, then rename exported functions.
  * This must be done before including sk-api.h.
@@ -104,14 +106,6 @@
 #define SELECT_MS		15000
 #define POLL_SLEEP_NS		200000000
 
-/* Compatibility with OpenSSH 1.0.x */
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-#define ECDSA_SIG_get0(sig, pr, ps) \
-	do { \
-		(*pr) = sig->r; \
-		(*ps) = sig->s; \
-	} while (0)
-#endif
 #ifndef FIDO_ERR_OPERATION_DENIED
 #define FIDO_ERR_OPERATION_DENIED 0x27
 #endif
@@ -381,6 +375,14 @@ fido_assert_set_clientdata(fido_assert_t *assert, const u_char *ptr, size_t len)
 }
 #endif /* HAVE_FIDO_ASSERT_SET_CLIENTDATA */
 
+#ifndef HAVE_FIDO_DEV_IS_WINHELLO
+static bool
+fido_dev_is_winhello(const fido_dev_t *fdev)
+{
+	return 0;
+}
+#endif /* HAVE_FIDO_DEV_IS_WINHELLO */
+
 /* Check if the specified key handle exists on a given sk. */
 static int
 sk_try(const struct sk_usbhid *sk, const char *application,
@@ -398,7 +400,7 @@ sk_try(const struct sk_usbhid *sk, const char *application,
 	/* generate an invalid signature on FIDO2 tokens */
 	if ((r = fido_assert_set_clientdata(assert, message,
 	    sizeof(message))) != FIDO_OK) {
-		skdebug(__func__, "fido_assert_set_clientdata_hash: %s",
+		skdebug(__func__, "fido_assert_set_clientdata: %s",
 		    fido_strerr(r));
 		goto out;
 	}
@@ -556,13 +558,17 @@ out:
 
 static struct sk_usbhid *
 sk_probe(const char *application, const uint8_t *key_handle,
-    size_t key_handle_len)
+    size_t key_handle_len, int probe_resident)
 {
 	struct sk_usbhid *sk;
 	fido_dev_info_t *devlist;
 	size_t ndevs;
 	int r;
 
+#ifdef HAVE_CYGWIN
+	if (!probe_resident && (sk = sk_open("windows://hello")) != NULL)
+		return sk;
+#endif /* HAVE_CYGWIN */
 	if ((devlist = fido_dev_info_new(MAX_FIDO_DEVICES)) == NULL) {
 		skdebug(__func__, "fido_dev_info_new failed");
 		return NULL;
@@ -629,8 +635,8 @@ pack_public_key_ecdsa(const fido_cred_t *cred,
 		skdebug(__func__, "BN_bin2bn failed");
 		goto out;
 	}
-	if (EC_POINT_set_affine_coordinates_GFp(g, q, x, y, NULL) != 1) {
-		skdebug(__func__, "EC_POINT_set_affine_coordinates_GFp failed");
+	if (EC_POINT_set_affine_coordinates(g, q, x, y, NULL) != 1) {
+		skdebug(__func__, "EC_POINT_set_affine_coordinates failed");
 		goto out;
 	}
 	response->public_key_len = EC_POINT_point2oct(g, q,
@@ -764,6 +770,65 @@ check_enroll_options(struct sk_option **options, char **devicep,
 	return 0;
 }
 
+static int
+key_lookup(fido_dev_t *dev, const char *application, const uint8_t *user_id,
+    size_t user_id_len, const char *pin)
+{
+	fido_assert_t *assert = NULL;
+	uint8_t message[32];
+	int r = FIDO_ERR_INTERNAL;
+	int sk_supports_uv, uv;
+	size_t i;
+
+	memset(message, '\0', sizeof(message));
+	if ((assert = fido_assert_new()) == NULL) {
+		skdebug(__func__, "fido_assert_new failed");
+		goto out;
+	}
+	/* generate an invalid signature on FIDO2 tokens */
+	if ((r = fido_assert_set_clientdata(assert, message,
+	    sizeof(message))) != FIDO_OK) {
+		skdebug(__func__, "fido_assert_set_clientdata: %s",
+		    fido_strerr(r));
+		goto out;
+	}
+	if ((r = fido_assert_set_rp(assert, application)) != FIDO_OK) {
+		skdebug(__func__, "fido_assert_set_rp: %s", fido_strerr(r));
+		goto out;
+	}
+	if ((r = fido_assert_set_up(assert, FIDO_OPT_FALSE)) != FIDO_OK) {
+		skdebug(__func__, "fido_assert_set_up: %s", fido_strerr(r));
+		goto out;
+	}
+	uv = FIDO_OPT_OMIT;
+	if (pin == NULL && check_sk_options(dev, "uv", &sk_supports_uv) == 0 &&
+	    sk_supports_uv != -1)
+		uv = FIDO_OPT_TRUE;
+	if ((r = fido_assert_set_uv(assert, uv)) != FIDO_OK) {
+		skdebug(__func__, "fido_assert_set_uv: %s", fido_strerr(r));
+		goto out;
+	}
+	if ((r = fido_dev_get_assert(dev, assert, pin)) != FIDO_OK) {
+		skdebug(__func__, "fido_dev_get_assert: %s", fido_strerr(r));
+		goto out;
+	}
+	r = FIDO_ERR_NO_CREDENTIALS;
+	skdebug(__func__, "%zu signatures returned", fido_assert_count(assert));
+	for (i = 0; i < fido_assert_count(assert); i++) {
+		if (fido_assert_user_id_len(assert, i) == user_id_len &&
+		    memcmp(fido_assert_user_id_ptr(assert, i), user_id,
+		    user_id_len) == 0) {
+			skdebug(__func__, "credential exists");
+			r = FIDO_OK;
+			goto out;
+		}
+	}
+ out:
+	fido_assert_free(&assert);
+
+	return r;
+}
+
 int
 sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags, const char *pin,
@@ -776,7 +841,6 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	struct sk_enroll_response *response = NULL;
 	size_t len;
 	int credprot;
-	int internal_uv;
 	int cose_alg;
 	int ret = SSH_SK_ERR_GENERAL;
 	int r;
@@ -810,13 +874,26 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	if (device != NULL)
 		sk = sk_open(device);
 	else
-		sk = sk_probe(NULL, NULL, 0);
+		sk = sk_probe(NULL, NULL, 0, 0);
 	if (sk == NULL) {
 		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "failed to find sk");
 		goto out;
 	}
 	skdebug(__func__, "using device %s", sk->path);
+	if ((flags & SSH_SK_RESIDENT_KEY) != 0 &&
+	    (flags & SSH_SK_FORCE_OPERATION) == 0 &&
+	    (r = key_lookup(sk->dev, application, user_id, sizeof(user_id),
+	    pin)) != FIDO_ERR_NO_CREDENTIALS) {
+		if (r != FIDO_OK) {
+			ret = fidoerr_to_skerr(r);
+			skdebug(__func__, "key_lookup failed");
+		} else {
+			ret = SSH_SK_ERR_CREDENTIAL_EXISTS;
+			skdebug(__func__, "key exists");
+		}
+		goto out;
+	}
 	if ((cred = fido_cred_new()) == NULL) {
 		skdebug(__func__, "fido_cred_new failed");
 		goto out;
@@ -883,26 +960,21 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 			    fido_strerr(r));
 			goto out;
 		}
-	} else {
+	} else if (strcmp(fido_cred_fmt(cred), "none") != 0) {
 		skdebug(__func__, "self-attested credential");
 		if ((r = fido_cred_verify_self(cred)) != FIDO_OK) {
 			skdebug(__func__, "fido_cred_verify_self: %s",
 			    fido_strerr(r));
 			goto out;
 		}
+	} else {
+		skdebug(__func__, "no attestation data");
 	}
 	if ((response = calloc(1, sizeof(*response))) == NULL) {
 		skdebug(__func__, "calloc response failed");
 		goto out;
 	}
 	response->flags = flags;
-	if ((flags & SSH_SK_USER_VERIFICATION_REQD)) {
-		if (check_sk_options(sk->dev, "uv", &internal_uv) == 0 &&
-		    internal_uv != -1) {
-			/* user verification handled by token */
-			response->flags &= ~SSH_SK_USER_VERIFICATION_REQD;
-		}
-	}
 	if (pack_public_key(alg, cred, response) != 0) {
 		skdebug(__func__, "pack_public_key failed");
 		goto out;
@@ -1099,9 +1171,9 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	if (device != NULL)
 		sk = sk_open(device);
 	else if (pin != NULL || (flags & SSH_SK_USER_VERIFICATION_REQD))
-		sk = sk_probe(NULL, NULL, 0);
+		sk = sk_probe(NULL, NULL, 0, 0);
 	else
-		sk = sk_probe(application, key_handle, key_handle_len);
+		sk = sk_probe(application, key_handle, key_handle_len, 0);
 	if (sk == NULL) {
 		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "failed to find sk");
@@ -1131,6 +1203,14 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	    FIDO_OPT_TRUE : FIDO_OPT_FALSE)) != FIDO_OK) {
 		skdebug(__func__, "fido_assert_set_up: %s", fido_strerr(r));
 		goto out;
+	}
+	/*
+	 * WinHello requests the PIN by default.  Make "uv" request explicit
+	 * to allow keys with and without -O verify-required to make sense.
+	 */
+	if (pin == NULL && fido_dev_is_winhello (sk->dev) &&
+	    (r = fido_assert_set_uv(assert, FIDO_OPT_FALSE)) != FIDO_OK) {
+		skdebug(__func__, "fido_assert_set_uv: %s", fido_strerr(r));
 	}
 	if (pin == NULL && (flags & SSH_SK_USER_VERIFICATION_REQD)) {
 		if (check_sk_options(sk->dev, "uv", &internal_uv) < 0 ||
@@ -1365,7 +1445,7 @@ sk_load_resident_keys(const char *pin, struct sk_option **options,
 	if (device != NULL)
 		sk = sk_open(device);
 	else
-		sk = sk_probe(NULL, NULL, 0);
+		sk = sk_probe(NULL, NULL, 0, 1);
 	if (sk == NULL) {
 		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "failed to find sk");

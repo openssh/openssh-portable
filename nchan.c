@@ -1,4 +1,4 @@
-/* $OpenBSD: nchan.c,v 1.74 2022/02/01 23:32:51 djm Exp $ */
+/* $OpenBSD: nchan.c,v 1.77 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -32,10 +32,8 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "openbsd-compat/sys-queue.h"
 #include "ssh2.h"
 #include "sshbuf.h"
-#include "ssherr.h"
 #include "packet.h"
 #include "channels.h"
 #include "compat.h"
@@ -208,7 +206,7 @@ chan_send_close2(struct ssh *ssh, Channel *c)
 {
 	int r;
 
-	debug2("channel %d: send close", c->self);
+	debug2("channel %d: send_close2", c->self);
 	if (c->ostate != CHAN_OUTPUT_CLOSED ||
 	    c->istate != CHAN_INPUT_CLOSED) {
 		error("channel %d: cannot send close for istate/ostate %d/%d",
@@ -218,6 +216,8 @@ chan_send_close2(struct ssh *ssh, Channel *c)
 	} else {
 		if (!c->have_remote_id)
 			fatal_f("channel %d: no remote_id", c->self);
+		debug2("channel %d: send close for remote id %u", c->self,
+		    c->remote_id);
 		if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_CLOSE)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
 		    (r = sshpkt_send(ssh)) != 0)
@@ -349,7 +349,7 @@ chan_is_dead(struct ssh *ssh, Channel *c, int do_send)
 	if (c->flags & CHAN_LOCAL) {
 		debug2("channel %d: is dead (local)", c->self);
 		return 1;
-	}		
+	}
 	if (!(c->flags & CHAN_CLOSE_SENT)) {
 		if (do_send) {
 			chan_send_close2(ssh, c);

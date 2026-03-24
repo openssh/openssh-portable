@@ -1,9 +1,9 @@
-#	$OpenBSD: test-exec.sh,v 1.89 2022/01/06 22:14:25 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.139 2025/12/22 01:31:07 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
 
-if [ ! -x "$TEST_SSH_ELAPSED_TIMES" ]; then
+if [ ! -z "$TEST_SSH_ELAPSED_TIMES" ]; then
 	STARTTIME=`date '+%s'`
 fi
 
@@ -90,22 +90,38 @@ SSHKEYGEN=ssh-keygen
 SSHKEYSCAN=ssh-keyscan
 SFTP=sftp
 SFTPSERVER=/usr/libexec/openssh/sftp-server
+SSHD_SESSION=/usr/libexec/sshd-session
+SSHD_AUTH=/usr/libexec/sshd-auth
 SCP=scp
 
 # Set by make_tmpdir() on demand (below).
 SSH_REGRESS_TMP=
 
 # Interop testing
-PLINK=plink
-PUTTYGEN=puttygen
-CONCH=conch
+PLINK=/usr/local/bin/plink
+PUTTYGEN=/usr/local/bin/puttygen
+CONCH=/usr/local/bin/conch
+DROPBEAR=/usr/local/sbin/dropbear
+DBCLIENT=/usr/local/bin/dbclient
+DROPBEARKEY=/usr/local/bin/dropbearkey
+DROPBEARCONVERT=/usr/local/bin/dropbearconvert
+
+# So we can override this in Portable.
+TEST_SHELL="${TEST_SHELL:-/bin/sh}"
 
 # Tools used by multiple tests
 NC=$OBJ/netcat
-OPENSSL_BIN="${OPENSSL_BIN:-openssl}"
+# Always use the one configure tells us to, even if that's empty.
+#OPENSSL_BIN="${OPENSSL_BIN:-openssl}"
 
 if [ "x$TEST_SSH_SSH" != "x" ]; then
 	SSH="${TEST_SSH_SSH}"
+fi
+if [ "x$TEST_SSH_SSHD_SESSION" != "x" ]; then
+	SSHD_SESSION="${TEST_SSH_SSHD_SESSION}"
+fi
+if [ "x$TEST_SSH_SSHD_AUTH" != "x" ]; then
+	SSHD_AUTH="${TEST_SSH_SSHD_AUTH}"
 fi
 if [ "x$TEST_SSH_SSHD" != "x" ]; then
 	SSHD="${TEST_SSH_SSHD}"
@@ -132,25 +148,28 @@ if [ "x$TEST_SSH_SCP" != "x" ]; then
 	SCP="${TEST_SSH_SCP}"
 fi
 if [ "x$TEST_SSH_PLINK" != "x" ]; then
-	# Find real binary, if it exists
-	case "${TEST_SSH_PLINK}" in
-	/*) PLINK="${TEST_SSH_PLINK}" ;;
-	*) PLINK=`which ${TEST_SSH_PLINK} 2>/dev/null` ;;
-	esac
+	PLINK="${TEST_SSH_PLINK}"
 fi
 if [ "x$TEST_SSH_PUTTYGEN" != "x" ]; then
-	# Find real binary, if it exists
-	case "${TEST_SSH_PUTTYGEN}" in
-	/*) PUTTYGEN="${TEST_SSH_PUTTYGEN}" ;;
-	*) PUTTYGEN=`which ${TEST_SSH_PUTTYGEN} 2>/dev/null` ;;
-	esac
+	PUTTYGEN="${TEST_SSH_PUTTYGEN}"
 fi
 if [ "x$TEST_SSH_CONCH" != "x" ]; then
-	# Find real binary, if it exists
-	case "${TEST_SSH_CONCH}" in
-	/*) CONCH="${TEST_SSH_CONCH}" ;;
-	*) CONCH=`which ${TEST_SSH_CONCH} 2>/dev/null` ;;
-	esac
+	CONCH="${TEST_SSH_CONCH}"
+fi
+if [ "x$TEST_SSH_DROPBEAR" != "x" ]; then
+	DROPBEAR="${TEST_SSH_DROPBEAR}"
+fi
+if [ "x$TEST_SSH_DBCLIENT" != "x" ]; then
+	DBCLIENT="${TEST_SSH_DBCLIENT}"
+fi
+if [ "x$TEST_SSH_DROPBEARKEY" != "x" ]; then
+	DROPBEARKEY="${TEST_SSH_DROPBEARKEY}"
+fi
+if [ "x$TEST_SSH_DROPBEARCONVERT" != "x" ]; then
+	DROPBEARCONVERT="${TEST_SSH_DROPBEARCONVERT}"
+fi
+if [ "x$TEST_SSH_TMUX" != "x" ]; then
+	TMUX="${TEST_SSH_TMUX}"
 fi
 if [ "x$TEST_SSH_PKCS11_HELPER" != "x" ]; then
 	SSH_PKCS11_HELPER="${TEST_SSH_PKCS11_HELPER}"
@@ -166,6 +185,11 @@ fi
 case "$SSHD" in
 /*) ;;
 *) SSHD=`which $SSHD` ;;
+esac
+
+case "$SSH" in
+/*) ;;
+*) SSH=`which $SSH` ;;
 esac
 
 case "$SSHAGENT" in
@@ -239,7 +263,13 @@ fi
 # Logfiles.
 # SSH_LOGFILE should be the debug output of ssh(1) only
 # SSHD_LOGFILE should be the debug output of sshd(8) only
-# REGRESS_LOGFILE is the output of the test itself stdout and stderr
+# REGRESS_LOGFILE is the log of progress of the regress test itself.
+# TEST_SSH_LOGDIR will contain datestamped logs of all binaries run in
+# chronological order.
+if [ "x$TEST_SSH_LOGDIR" = "x" ]; then
+	TEST_SSH_LOGDIR=$OBJ/log
+	mkdir -p $TEST_SSH_LOGDIR
+fi
 if [ "x$TEST_SSH_LOGFILE" = "x" ]; then
 	TEST_SSH_LOGFILE=$OBJ/ssh.log
 fi
@@ -250,21 +280,54 @@ if [ "x$TEST_REGRESS_LOGFILE" = "x" ]; then
 	TEST_REGRESS_LOGFILE=$OBJ/regress.log
 fi
 
+# If set, keep track of successful tests and skip them them if we've
+# previously completed that test.
+if [ "x$TEST_REGRESS_CACHE_DIR" != "x" ]; then
+	if [ ! -d "$TEST_REGRESS_CACHE_DIR" ]; then
+		mkdir -p "$TEST_REGRESS_CACHE_DIR"
+	fi
+	TEST="`basename $SCRIPT .sh`"
+	CACHE="${TEST_REGRESS_CACHE_DIR}/${TEST}.cache"
+	for i in ${SSH} ${SSHD} ${SSHAGENT} ${SSHADD} ${SSHKEYGEN} ${SCP} \
+	    ${SFTP} ${SFTPSERVER} ${SSHKEYSCAN}; do
+		case $i in
+		/*)	bin="$i" ;;
+		*)	bin="`which $i`" ;;
+		esac
+		if [ "$bin" -nt "$CACHE" ]; then
+			rm -f "$CACHE"
+		fi
+	done
+	if [ -f "$CACHE" ]; then
+		echo ok cached $CACHE
+		exit 0
+	fi
+fi
+
 # truncate logfiles
->$TEST_SSH_LOGFILE
->$TEST_SSHD_LOGFILE
 >$TEST_REGRESS_LOGFILE
 
-# Create wrapper ssh with logging.  We can't just specify "SSH=ssh -E..."
-# because sftp and scp don't handle spaces in arguments.  scp and sftp like
-# to use -q so we remove those to preserve our debug logging.  In the rare
-# instance where -q is desirable -qq is equivalent and is not removed.
+# Create ssh and sshd wrappers with logging.  These create a datestamped
+# unique file for every invocation so that we can retain all logs from a
+# given test no matter how many times it's invoked.  It also leaves a
+# symlink with the original name for tests (and people) who look for that.
+
+# For ssh, e can't just specify "SSH=ssh -E..." because sftp and scp don't
+# handle spaces in arguments.  scp and sftp like to use -q so we remove those
+# to preserve our debug logging.  In the rare instance where -q is desirable
+# -qq is equivalent and is not removed.
 SSHLOGWRAP=$OBJ/ssh-log-wrapper.sh
+rm -f ${SSHLOGWRAP}
 cat >$SSHLOGWRAP <<EOD
 #!/bin/sh
-echo "Executing: ${SSH} \$@" >>${TEST_SSH_LOGFILE}
+timestamp="\`$OBJ/timestamp\`"
+logfile="${TEST_SSH_LOGDIR}/\${timestamp}.ssh.\$\$.log"
+echo "Executing: ${SSH} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
+echo "Executing: ${SSH} \$@" >>\${logfile}
 for i in "\$@";do shift;case "\$i" in -q):;; *) set -- "\$@" "\$i";;esac;done
-exec ${SSH} -E${TEST_SSH_LOGFILE} "\$@"
+rm -f $TEST_SSH_LOGFILE
+ln -f -s \${logfile} $TEST_SSH_LOGFILE
+exec ${SSH} -E\${logfile} "\$@"
 EOD
 
 chmod a+rx $OBJ/ssh-log-wrapper.sh
@@ -272,13 +335,38 @@ REAL_SSH="$SSH"
 REAL_SSHD="$SSHD"
 SSH="$SSHLOGWRAP"
 
+SSHDLOGWRAP=$OBJ/sshd-log-wrapper.sh
+rm -f ${SSHDLOGWRAP}
+cat >$SSHDLOGWRAP <<EOD
+#!/bin/sh
+timestamp="\`$OBJ/timestamp\`"
+logfile="${TEST_SSH_LOGDIR}/\${timestamp}.sshd.\$\$.log"
+rm -f $TEST_SSHD_LOGFILE
+touch \$logfile
+test -z "$SUDO" || chown $USER \$logfile
+ln -f -s \${logfile} $TEST_SSHD_LOGFILE
+echo "Executing: ${SSHD} \$@" log \${logfile} >>$TEST_REGRESS_LOGFILE
+echo "Executing: ${SSHD} \$@" >>\${logfile}
+exec ${SSHD} -E\${logfile} "\$@"
+EOD
+chmod a+rx $OBJ/sshd-log-wrapper.sh
+
+ssh_logfile ()
+{
+	tool="$1"
+	timestamp="`$OBJ/timestamp`"
+	logfile="${TEST_SSH_LOGDIR}/${timestamp}.$tool.$$.log"
+	echo "Logging $tool to log \${logfile}" >>$TEST_REGRESS_LOGFILE
+	echo $logfile
+}
+
 # Some test data.  We make a copy because some tests will overwrite it.
 # The tests may assume that $DATA exists and is writable and $COPY does
 # not exist.  Tests requiring larger data files can call increase_datafile_size
 # [kbytes] to ensure the file is at least that large.
 DATANAME=data
 DATA=$OBJ/${DATANAME}
-cat ${SSHAGENT_BIN} >${DATA}
+cat ${SSH_BIN} >${DATA}
 chmod u+w ${DATA}
 COPY=$OBJ/copy
 rm -f ${COPY}
@@ -286,7 +374,7 @@ rm -f ${COPY}
 increase_datafile_size()
 {
 	while [ `du -k ${DATA} | cut -f1` -lt $1 ]; do
-		cat ${SSHAGENT_BIN} >>${DATA}
+		cat ${SSH_BIN} >>${DATA}
 	done
 }
 
@@ -296,7 +384,7 @@ export SSH_PKCS11_HELPER SSH_SK_HELPER
 #echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER $SCP
 
 # Portable specific functions
-have_prog()
+which()
 {
 	saved_IFS="$IFS"
 	IFS=":"
@@ -304,20 +392,36 @@ have_prog()
 	do
 		if [ -x $i/$1 ]; then
 			IFS="$saved_IFS"
+			echo "$i/$1"
 			return 0
 		fi
 	done
 	IFS="$saved_IFS"
+	echo "$i/$1"
 	return 1
+}
+
+have_prog()
+{
+	which "$1" >/dev/null 2>&1
+	return $?
 }
 
 jot() {
 	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } exit }"
 }
+
 if [ ! -x "`which rev`" ]; then
 rev()
 {
 	awk '{for (i=length; i>0; i--) printf "%s", substr($0, i, 1); print ""}'
+}
+fi
+
+if [ -x "/usr/xpg4/bin/id" ]; then
+id()
+{
+	/usr/xpg4/bin/id $@
 }
 fi
 
@@ -366,33 +470,32 @@ make_tmpdir ()
 
 stop_sshd ()
 {
-	if [ -f $PIDFILE ]; then
-		pid=`$SUDO cat $PIDFILE`
-		if [ "X$pid" = "X" ]; then
-			echo no sshd running
-		else
-			if [ $pid -lt 2 ]; then
-				echo bad pid for sshd: $pid
-			else
-				$SUDO kill $pid
-				trace "wait for sshd to exit"
-				i=0;
-				while [ -f $PIDFILE -a $i -lt 5 ]; do
-					i=`expr $i + 1`
-					sleep $i
-				done
-				if test -f $PIDFILE; then
-					if $SUDO kill -0 $pid; then
-						echo "sshd didn't exit " \
-						    "port $PORT pid $pid"
-					else
-						echo "sshd died without cleanup"
-					fi
-					exit 1
-				fi
-			fi
-		fi
+	[ -z $PIDFILE ] && return
+	[ -f $PIDFILE ] || return
+	pid=`$SUDO cat $PIDFILE`
+	if [ "X$pid" = "X" ]; then
+		echo "no sshd running" 1>&2
+		return
+	elif [ $pid -lt 2 ]; then
+		echo "bad pid for sshd: $pid" 1>&2
+		return
 	fi
+	$SUDO kill $pid
+	trace "wait for sshd to exit"
+	i=0;
+	while [ -f $PIDFILE -a $i -lt 5 ]; do
+		i=`expr $i + 1`
+		sleep $i
+	done
+	if test -f $PIDFILE; then
+		if $SUDO kill -0 $pid; then
+			echo "sshd didn't exit port $PORT pid $pid" 1>&2
+		else
+			echo "sshd died without cleanup" 1>&2
+		fi
+		exit 1
+	fi
+	PIDFILE=""
 }
 
 # helper
@@ -418,16 +521,29 @@ cleanup ()
 
 start_debug_log ()
 {
-	echo "trace: $@" >$TEST_REGRESS_LOGFILE
-	echo "trace: $@" >$TEST_SSH_LOGFILE
-	echo "trace: $@" >$TEST_SSHD_LOGFILE
+	echo "trace: $@" >>$TEST_REGRESS_LOGFILE
+	if [ -d "$TEST_SSH_LOGDIR" ]; then
+		rm -f $TEST_SSH_LOGDIR/*
+	fi
 }
 
 save_debug_log ()
 {
+	testname=`echo $tid | tr ' ' _`
+	tarname="$OBJ/failed-$testname-logs.tar"
+
+	for logfile in $TEST_SSH_LOGDIR $TEST_REGRESS_LOGFILE \
+	    $TEST_SSH_LOGFILE $TEST_SSHD_LOGFILE; do
+		if [ ! -z "$SUDO" ]; then
+			touch $logfile
+			$SUDO chown -R $USER $logfile
+			$SUDO chmod ug+rw $logfile
+		fi
+	done
 	echo $@ >>$TEST_REGRESS_LOGFILE
 	echo $@ >>$TEST_SSH_LOGFILE
 	echo $@ >>$TEST_SSHD_LOGFILE
+	echo "Saving debug logs to $tarname" >>$TEST_REGRESS_LOGFILE
 	(cat $TEST_REGRESS_LOGFILE; echo) >>$OBJ/failed-regress.log
 	(cat $TEST_SSH_LOGFILE; echo) >>$OBJ/failed-ssh.log
 	(cat $TEST_SSHD_LOGFILE; echo) >>$OBJ/failed-sshd.log
@@ -477,6 +593,18 @@ skip ()
 	exit $RESULT
 }
 
+maybe_add_scp_path_to_sshd ()
+{
+	# If we're testing a non-installed scp, add its directory to sshd's
+	# PATH so we can test it.  We don't do this for all tests as it
+	# breaks the SetEnv tests.
+	case "$SCP" in
+	/*)	PATH_WITH_SCP="`dirname $SCP`:$PATH"
+		echo "	SetEnv PATH='$PATH_WITH_SCP'" >>$OBJ/sshd_config
+		echo "	SetEnv PATH='$PATH_WITH_SCP'" >>$OBJ/sshd_proxy ;;
+	esac
+}
+
 RESULT=0
 PIDFILE=$OBJ/pidfile
 
@@ -495,6 +623,9 @@ cat << EOF > $OBJ/sshd_config
 	AcceptEnv		_XXX_TEST_*
 	AcceptEnv		_XXX_TEST
 	Subsystem	sftp	$SFTPSERVER
+	SshdSessionPath		$SSHD_SESSION
+	SshdAuthPath		$SSHD_AUTH
+	PerSourcePenalties	no
 EOF
 
 # This may be necessary if /usr/src and/or /usr/obj are group-writable,
@@ -591,9 +722,9 @@ export EXTRA_AGENT_ARGS
 
 maybe_filter_sk() {
 	if test -z "$SSH_SK_PROVIDER" ; then
-		grep -v ^sk
+		grep -v ^sk | grep -v ^webauthn
 	else
-		cat
+		grep -v ^webauthn
 	fi
 }
 
@@ -650,7 +781,11 @@ case "$SCRIPT" in
 *)		REGRESS_INTEROP_PUTTY=no ;;
 esac
 
-if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
+puttysetup() {
+	if test "x$REGRESS_INTEROP_PUTTY" != "xyes" ; then
+		skip "putty interop tests not enabled"
+	fi
+
 	mkdir -p ${OBJ}/.putty
 
 	# Add a PuTTY key to authorized_keys
@@ -680,27 +815,87 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	echo "HostName=127.0.0.1" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "PortNumber=$PORT" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "ProxyMethod=5" >> ${OBJ}/.putty/sessions/localhost_proxy
-	echo "ProxyTelnetCommand=sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy" >> ${OBJ}/.putty/sessions/localhost_proxy
+	echo "ProxyTelnetCommand=${OBJ}/sshd-log-wrapper.sh -i -f $OBJ/sshd_proxy" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "ProxyLocalhost=1" >> ${OBJ}/.putty/sessions/localhost_proxy
 
+	PUTTYVER="`${PLINK} --version | awk '/plink: Release/{print $3}'`"
+	PUTTYMAJORVER="`echo ${PUTTYVER} | cut -f1 -d.`"
+	PUTTYMINORVER="`echo ${PUTTYVER} | cut -f2 -d.`"
+	verbose "plink version ${PUTTYVER} major ${PUTTYMAJORVER} minor ${PUTTYMINORVER}"
+
+	# Re-enable ssh-rsa on older PuTTY versions since they don't do newer
+	# key types.
+	if [ "$PUTTYMAJORVER" -eq "0" ] && [ "$PUTTYMINORVER" -lt "76" ]; then
+		echo "HostKeyAlgorithms +ssh-rsa" >> ${OBJ}/sshd_proxy
+		echo "PubkeyAcceptedKeyTypes +ssh-rsa" >> ${OBJ}/sshd_proxy
+	fi
+
+	if [ "$PUTTYMAJORVER" -eq "0" ] && [ "$PUTTYMINORVER" -le "64" ]; then
+		echo "KexAlgorithms +diffie-hellman-group14-sha1" \
+		    >>${OBJ}/sshd_proxy
+	fi
 	PUTTYDIR=${OBJ}/.putty
 	export PUTTYDIR
+}
+
+REGRESS_INTEROP_DROPBEAR=no
+if test -x "$DROPBEARKEY" -a -x "$DBCLIENT" -a -x "$DROPBEARCONVERT"; then
+	REGRESS_INTEROP_DROPBEAR=yes
+fi
+case "$SCRIPT" in
+*dropbear*)	;;
+*)		REGRESS_INTEROP_DROPBEAR=no ;;
+esac
+
+if test "$REGRESS_INTEROP_DROPBEAR" = "yes" ; then
+	trace Create dropbear keys and add to authorized_keys
+	mkdir -p $OBJ/.dropbear $OBJ/.ssh
+	awk '{print "somehost "$2" "$3}' $OBJ/known_hosts >$OBJ/.ssh/known_hosts
+	kt="ed25519"
+	for i in dss rsa ecdsa; do
+		if $SSH -Q key-plain | grep "$i" >/dev/null; then
+			kt="$kt $i"
+		else
+			rm -f "$OBJ/.dropbear/id_$i"
+		fi
+	done
+	for i in $kt; do
+		if [ ! -f "$OBJ/.dropbear/id_$i" ]; then
+			verbose Create dropbear key type $i
+			$DROPBEARKEY -t $i -f $OBJ/.dropbear/id_$i \
+			    >/dev/null 2>&1
+		fi
+		$DROPBEARCONVERT dropbear openssh $OBJ/.dropbear/id_$i \
+		    $OBJ/.dropbear/ossh.id_$i >/dev/null 2>&1
+		$SSHKEYGEN -y -f $OBJ/.dropbear/ossh.id_$i \
+		   >>$OBJ/authorized_keys_$USER
+		rm -f $OBJ/.dropbear/id_$i.pub $OBJ/.dropbear/ossh.id_$i
+	done
 fi
 
 # create a proxy version of the client config
 (
 	cat $OBJ/ssh_config
-	echo proxycommand ${SUDO} env SSH_SK_HELPER=\"$SSH_SK_HELPER\" sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy
+	echo proxycommand ${SUDO} env SSH_SK_HELPER=\"$SSH_SK_HELPER\" ${TEST_SSH_SSHD_ENV} ${OBJ}/sshd-log-wrapper.sh -i -f $OBJ/sshd_proxy
 ) > $OBJ/ssh_proxy
 
 # check proxy config
 ${SSHD} -t -f $OBJ/sshd_proxy	|| fatal "sshd_proxy broken"
 
+# extract proxycommand into separate shell script for use by Dropbear.
+echo '#!/bin/sh' >$OBJ/ssh_proxy.sh
+awk '/^proxycommand/' $OBJ/ssh_proxy | sed 's/^proxycommand//' \
+   >>$OBJ/ssh_proxy.sh
+chmod a+x $OBJ/ssh_proxy.sh
+
 start_sshd ()
 {
+	PIDFILE=$OBJ/pidfile
 	# start sshd
-	$SUDO ${SSHD} -f $OBJ/sshd_config "$@" -t || fatal "sshd_config broken"
-	$SUDO env SSH_SK_HELPER="$SSH_SK_HELPER" \
+	logfile="${TEST_SSH_LOGDIR}/sshd.`$OBJ/timestamp`.$$.log"
+	$SUDO env SSH_SK_HELPER="$SSH_SK_HELPER" ${TEST_SSH_SSHD_ENV} \
+	    ${SSHD} -f $OBJ/sshd_config "$@" -t || fatal "sshd_config broken"
+	$SUDO env SSH_SK_HELPER="$SSH_SK_HELPER" ${TEST_SSH_SSHD_ENV} \
 	    ${SSHD} -f $OBJ/sshd_config "$@" -E$TEST_SSHD_LOGFILE
 
 	trace "wait for sshd"
@@ -709,8 +904,155 @@ start_sshd ()
 		i=`expr $i + 1`
 		sleep $i
 	done
+	rm -f ${TEST_SSHD_LOGFILE}
+	ln -f -s ${logfile} $TEST_SSHD_LOGFILE
 
 	test -f $PIDFILE || fatal "no sshd running on port $PORT"
+}
+
+enable_all_kexes_in_sshd ()
+{
+	kexs=`$SSH -Q KexAlgorithms | (tr '\n' ,; echo) | sed 's/,$//'`
+	echo KexAlgorithms $kexs >>$OBJ/sshd_config
+}
+
+# Find a PKCS#11 library.
+p11_find_lib() {
+	TEST_SSH_PKCS11=""
+	for _lib in "$@" ; do
+		if test -f "$_lib" ; then
+			TEST_SSH_PKCS11="$_lib"
+			return
+		fi
+	done
+}
+
+# Perform PKCS#11 setup: prepares a softhsm2 token configuration, generated
+# keys and loads them into the virtual token.
+PKCS11_OK=
+export PKCS11_OK
+p11_setup() {
+	# XXX we could potentially test ed25519 only in the absence of
+	# RSA and ECDSA support.
+	$SSH -Q key | grep ssh-rsa >/dev/null || return 1
+	p11_find_lib \
+		/usr/local/lib/softhsm/libsofthsm2.so \
+		/usr/lib64/pkcs11/libsofthsm2.so \
+		/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so
+	test -z "$TEST_SSH_PKCS11" && return 1
+	trace "using token library $TEST_SSH_PKCS11"
+	TEST_SSH_PIN=1234
+	TEST_SSH_SOPIN=12345678
+	if [ "x$TEST_SSH_SSHPKCS11HELPER" != "x" ]; then
+		SSH_PKCS11_HELPER="${TEST_SSH_SSHPKCS11HELPER}"
+		export SSH_PKCS11_HELPER
+	fi
+
+	# setup environment for softhsm2 token
+	SSH_SOFTHSM_DIR=$OBJ/SOFTHSM
+	export SSH_SOFTHSM_DIR
+	rm -rf $SSH_SOFTHSM_DIR
+	TOKEN=$SSH_SOFTHSM_DIR/tokendir
+	mkdir -p $TOKEN
+	SOFTHSM2_CONF=$SSH_SOFTHSM_DIR/softhsm2.conf
+	export SOFTHSM2_CONF
+	cat > $SOFTHSM2_CONF << EOF
+# SoftHSM v2 configuration file
+directories.tokendir = ${TOKEN}
+objectstore.backend = file
+# ERROR, WARNING, INFO, DEBUG
+log.level = DEBUG
+# If CKF_REMOVABLE_DEVICE flag should be set
+slots.removable = false
+EOF
+	out=$(softhsm2-util --init-token --free --label token-slot-0 --pin "$TEST_SSH_PIN" --so-pin "$TEST_SSH_SOPIN")
+	slot=$(echo -- $out | sed 's/.* //')
+	trace "generating keys"
+	# RSA key
+	RSA=${SSH_SOFTHSM_DIR}/RSA
+	RSAP8=${SSH_SOFTHSM_DIR}/RSAP8
+	$OPENSSL_BIN genpkey -algorithm rsa > $RSA 2>/dev/null || \
+	    fatal "genpkey RSA fail"
+	$OPENSSL_BIN pkcs8 -nocrypt -in $RSA > $RSAP8 || fatal "pkcs8 RSA fail"
+	softhsm2-util --slot "$slot" --label 01 --id 01 --pin "$TEST_SSH_PIN" \
+	    --import $RSAP8 >/dev/null || fatal "softhsm import RSA fail"
+	chmod 600 $RSA
+	${SSHKEYGEN} -y -f $RSA > ${RSA}.pub
+	# ECDSA key
+	ECPARAM=${SSH_SOFTHSM_DIR}/ECPARAM
+	EC=${SSH_SOFTHSM_DIR}/EC
+	ECP8=${SSH_SOFTHSM_DIR}/ECP8
+	$OPENSSL_BIN genpkey -genparam -algorithm ec \
+	    -pkeyopt ec_paramgen_curve:prime256v1 > $ECPARAM || \
+	    fatal "param EC fail"
+	$OPENSSL_BIN genpkey -paramfile $ECPARAM > $EC || \
+	    fatal "genpkey EC fail"
+	$OPENSSL_BIN pkcs8 -nocrypt -in $EC > $ECP8 || fatal "pkcs8 EC fail"
+	softhsm2-util --slot "$slot" --label 02 --id 02 --pin "$TEST_SSH_PIN" \
+	    --import $ECP8 >/dev/null || fatal "softhsm import EC fail"
+	chmod 600 $EC
+	${SSHKEYGEN} -y -f $EC > ${EC}.pub
+	# Ed25519 key
+	ED25519=${SSH_SOFTHSM_DIR}/ED25519
+	ED25519P8=${SSH_SOFTHSM_DIR}/ED25519P8
+	$OPENSSL_BIN genpkey -algorithm ed25519 > $ED25519 || \
+	    fatal "genpkey Ed25519 fail"
+	$OPENSSL_BIN pkcs8 -nocrypt -in $ED25519 > $ED25519P8 || \
+		fatal "pkcs8 Ed25519 fail"
+	softhsm2-util --slot "$slot" --label 03 --id 03 --pin "$TEST_SSH_PIN" \
+	    --import $ED25519P8 >/dev/null || \
+		fatal "softhsm import ed25519 fail"
+	chmod 600 $ED25519
+	${SSHKEYGEN} -y -f $ED25519 > ${ED25519}.pub
+	# Prepare some askpass scripts to load PINs.
+	PIN_SH=$SSH_SOFTHSM_DIR/pin.sh
+	cat > $PIN_SH << EOF
+#!/bin/sh
+echo "${TEST_SSH_PIN}"
+EOF
+	chmod 0700 "$PIN_SH"
+	WRONGPIN_SH=$SSH_SOFTHSM_DIR/wrongpin.sh
+	cat > $WRONGPIN_SH << EOF
+#!/bin/sh
+echo "0000"
+EOF
+	chmod 0700 "$WRONGPIN_SH"
+	PKCS11_OK=yes
+	if env SSH_ASKPASS="$PIN_SH" SSH_ASKPASS_REQUIRE=force \
+	    ${SSHKEYGEN} -D ${TEST_SSH_PKCS11} >/dev/null 2>&1 ; then
+		return 0
+	fi
+	return 1
+}
+
+# Peforms ssh-add with the right token PIN.
+p11_ssh_add() {
+	env SSH_ASKPASS="$PIN_SH" SSH_ASKPASS_REQUIRE=force ${SSHADD} "$@"
+}
+
+start_ssh_agent() {
+	EXTRA_AGENT_ARGS="$1"
+	if [ "$PKCS11_OK" = "yes" ]; then
+		EXTRA_AGENT_ARGS="${EXTRA_AGENT_ARGS} -P${TEST_SSH_PKCS11}"
+	fi
+	SSH_AUTH_SOCK="$OBJ/agent.sock"
+	export SSH_AUTH_SOCK
+	rm -f $SSH_AUTH_SOCK $OBJ/agent.log
+	trace "start agent"
+	${SSHAGENT} ${EXTRA_AGENT_ARGS} -d -a $SSH_AUTH_SOCK \
+	    > $OBJ/agent.log 2>&1 &
+	AGENT_PID=$!
+	trap "kill $AGENT_PID" EXIT
+	for x in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 ; do
+		# Give it a chance to start
+		${SSHADD} -l > /dev/null 2>&1
+		r=$?
+		test $r -eq 1 && break
+		sleep 1
+	done
+	if [ $r -ne 1 ]; then
+		fatal "ssh-add -l did not fail with exit code 1 (got $r)"
+	fi
 }
 
 # source test body
@@ -763,6 +1105,9 @@ fi
 
 if [ $RESULT -eq 0 ]; then
 	verbose ok $tid
+	if [ "x$CACHE" != "x" ]; then
+		touch "$CACHE"
+	fi
 else
 	echo failed $tid
 fi

@@ -52,6 +52,7 @@ union login_netinfo {
  */
 /* types - different to utmp.h 'type' macros */
 /* (though set to the same value as linux, openbsd and others...) */
+#define LTYPE_FAILED   6
 #define LTYPE_LOGIN    7
 #define LTYPE_LOGOUT   8
 
@@ -79,6 +80,9 @@ struct logininfo {
 	unsigned int tv_sec;
 	unsigned int tv_usec;
 	union login_netinfo hostaddr;       /* caller's host address(es) */
+#ifdef USE_WTMPDB
+	int64_t wtmpdb_id;                  /* ID for wtmpdb_logout */
+#endif
 }; /* struct logininfo */
 
 /*

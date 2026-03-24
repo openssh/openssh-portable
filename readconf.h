@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.147 2022/06/03 04:30:47 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.162 2026/02/11 22:57:55 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -19,7 +19,6 @@
 /* Data structure for representing option data. */
 
 #define SSH_MAX_HOSTS_FILES	32
-#define MAX_CANON_DOMAINS	32
 #define PATH_MAX_SUN		(sizeof((struct sockaddr_un *)0)->sun_path)
 
 struct allowed_cname {
@@ -28,6 +27,7 @@ struct allowed_cname {
 };
 
 typedef struct {
+	char   *host_arg;	/* Host arg as specified on command line. */
 	int     forward_agent;	/* Forward authentication agent. */
 	char   *forward_agent_sock_path; /* Optional path of the agent. */
 	int     forward_x11;	/* Forward X11 display. */
@@ -49,8 +49,8 @@ typedef struct {
 	int     strict_host_key_checking;	/* Strict host key checking. */
 	int     compression;	/* Compress packets in both directions. */
 	int     tcp_keep_alive;	/* Set SO_KEEPALIVE. */
-	int	ip_qos_interactive;	/* IP ToS/DSCP/class for interactive */
-	int	ip_qos_bulk;		/* IP ToS/DSCP/class for bulk traffic */
+	int	ip_qos_interactive;	/* DSCP value for interactive */
+	int	ip_qos_bulk;		/* DSCP value for bulk traffic */
 	SyslogFacility log_facility;	/* Facility for system logging. */
 	LogLevel log_level;	/* Level for logging. */
 	u_int	num_log_verbose;	/* Verbose log overrides */
@@ -67,8 +67,10 @@ typedef struct {
 	char   *macs;		/* SSH2 macs in order of preference. */
 	char   *hostkeyalgorithms;	/* SSH2 server key types in order of preference. */
 	char   *kex_algorithms;	/* SSH2 kex methods in order of preference. */
+	int	kex_algorithms_set; /* KexAlgorithms was set by the user */
 	char   *ca_sign_algorithms;	/* Allowed CA signature algorithms */
 	char   *hostname;	/* Real host to connect. */
+	char   *tag;		/* Configuration tag name. */
 	char   *host_key_alias;	/* hostname alias for .ssh/known_hosts */
 	char   *proxy_command;	/* Proxy command for connecting the host. */
 	char   *user;		/* User to log in as. */
@@ -85,7 +87,7 @@ typedef struct {
 	char   *sk_provider; /* Security key provider */
 	int	verify_host_key_dns;	/* Verify host key using DNS */
 
-	int     num_identity_files;	/* Number of files for RSA/DSA identities. */
+	int     num_identity_files;	/* Number of files for identities. */
 	char   *identity_files[SSH_MAX_IDENTITY_FILES];
 	int    identity_file_userprovided[SSH_MAX_IDENTITY_FILES];
 	struct sshkey *identity_keys[SSH_MAX_IDENTITY_FILES];
@@ -153,14 +155,15 @@ typedef struct {
 	int	proxy_use_fdpass;
 
 	int	num_canonical_domains;
-	char	*canonical_domains[MAX_CANON_DOMAINS];
+	char	**canonical_domains;
 	int	canonicalize_hostname;
 	int	canonicalize_max_dots;
 	int	canonicalize_fallback_local;
 	int	num_permitted_cnames;
-	struct allowed_cname permitted_cnames[MAX_CANON_DOMAINS];
+	struct allowed_cname *permitted_cnames;
 
-	char	*revoked_host_keys;
+	u_int	num_revoked_host_keys;
+	char	**revoked_host_keys;
 
 	int	 fingerprint_hash;
 
@@ -175,6 +178,16 @@ typedef struct {
 	char   *jump_extra;
 
 	char   *known_hosts_command;
+
+	int	required_rsa_size;	/* minimum size of RSA keys */
+	int	enable_escape_commandline;	/* ~C commandline */
+	int	obscure_keystroke_timing_interval;
+	int	warn_weak_crypto;
+
+	char	**channel_timeouts;	/* inactivity timeout by channel type */
+	u_int	num_channel_timeouts;
+
+	char	*version_addendum;
 
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;
@@ -217,17 +230,22 @@ typedef struct {
 #define SSH_STRICT_HOSTKEY_YES	2
 #define SSH_STRICT_HOSTKEY_ASK	3
 
+/* ObscureKeystrokes parameters */
+#define SSH_KEYSTROKE_DEFAULT_INTERVAL_MS	20
+#define SSH_KEYSTROKE_CHAFF_MIN_MS		1024
+#define SSH_KEYSTROKE_CHAFF_RNG_MS		2048
+
 const char *kex_default_pk_alg(void);
 char	*ssh_connection_hash(const char *thishost, const char *host,
-    const char *portstr, const char *user);
+    const char *portstr, const char *user, const char *jump_host);
 void     initialize_options(Options *);
 int      fill_default_options(Options *);
 void	 fill_default_options_for_canonicalization(Options *);
 void	 free_options(Options *o);
 int	 process_config_line(Options *, struct passwd *, const char *,
-    const char *, char *, const char *, int, int *, int);
+    const char *, const char *, char *, const char *, int, int *, int);
 int	 read_config_file(const char *, struct passwd *, const char *,
-    const char *, Options *, int, int *);
+    const char *, const char *, Options *, int, int *);
 int	 parse_forward(struct Forward *, const char *, int, int);
 int	 parse_jump(const char *, Options *, int);
 int	 parse_ssh_uri(const char *, char **, char **, int *);

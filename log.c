@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.60 2021/09/16 15:11:19 djm Exp $ */
+/* $OpenBSD: log.c,v 1.67 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -38,14 +38,15 @@
 
 #include <sys/types.h>
 
+#include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <errno.h>
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>
 #endif
@@ -62,7 +63,6 @@ static log_handler_fn *log_handler;
 static void *log_handler_ctx;
 static char **log_verbose;
 static size_t nlog_verbose;
-
 extern char *__progname;
 
 #define LOG_SYSLOG_VIS	(VIS_CSTYLE|VIS_NL|VIS_TAB|VIS_OCTAL)
@@ -401,7 +401,8 @@ do_log(LogLevel level, int force, const char *suffix, const char *fmt,
 		/* Avoid recursion */
 		tmp_handler = log_handler;
 		log_handler = NULL;
-		tmp_handler(level, force, fmtbuf, log_handler_ctx);
+		/* Note: this sends the raw (i.e. no strnvis) log message */
+		tmp_handler(level, force, msgbuf, log_handler_ctx);
 		log_handler = tmp_handler;
 	} else if (log_on_stderr) {
 		snprintf(msgbuf, sizeof msgbuf, "%s%s%.*s\r\n",
@@ -448,19 +449,6 @@ sshlogdie(const char *file, const char *func, int line, int showfunc,
 }
 
 void
-sshsigdie(const char *file, const char *func, int line, int showfunc,
-    LogLevel level, const char *suffix, const char *fmt, ...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	sshlogv(file, func, line, showfunc, SYSLOG_LEVEL_FATAL,
-	    suffix, fmt, args);
-	va_end(args);
-	_exit(1);
-}
-
-void
 sshlogv(const char *file, const char *func, int line, int showfunc,
     LogLevel level, const char *suffix, const char *fmt, va_list args)
 {
@@ -469,9 +457,13 @@ sshlogv(const char *file, const char *func, int line, int showfunc,
 	const char *cp;
 	size_t i;
 
-	snprintf(tag, sizeof(tag), "%.48s:%.48s():%d (pid=%ld)",
+	/* short circuit processing early if we're not going to log anything */
+	if (nlog_verbose == 0 && level > log_level)
+		return;
+
+	snprintf(tag, sizeof(tag), "%.48s:%.48s():%d (bin=%s, pid=%ld)",
 	    (cp = strrchr(file, '/')) == NULL ? file : cp + 1, func, line,
-	    (long)getpid());
+	    argv0 == NULL ? "UNKNOWN" : argv0, (long)getpid());
 	for (i = 0; i < nlog_verbose; i++) {
 		if (match_pattern_list(tag, log_verbose[i], 0) == 1) {
 			forced = 1;
@@ -497,4 +489,168 @@ sshlogdirect(LogLevel level, int forced, const char *fmt, ...)
 	va_start(args, fmt);
 	do_log(level, forced, NULL, fmt, args);
 	va_end(args);
+}
+
+
+/*
+ * A simple system for ratelimiting aperiodic events such as logs, without
+ * needing to be hooked into a mainloop/timer. A running total of events is
+ * maintained and when it exceeds a threshold further events are dropped
+ * until the rate falls back below that threshold.
+ *
+ * To prevent flipping in and out of rate-limiting, there is a hysteresis
+ * timer that delays leaving the rate-limited state.
+ *
+ * While in the rate-limited state, events can be periodically allowed through
+ * and the number of dropped events since the last log obtained.
+ *
+ * XXX a moving average rate of events might be a better approach here rather
+ *     than linear decay, which can suppress events for a while after large
+ *     bursts.
+ */
+
+/* #define RATELIMIT_DEBUG 1 */
+
+#ifdef RATELIMIT_DEBUG
+# define RLDBG(x) do { \
+		printf("%s:%d %s: ", __FILE__, __LINE__, __func__); \
+		printf x; \
+		printf("\n"); \
+		fflush(stdout); \
+	} while (0)
+#else
+# define RLDBG(x)
+#endif
+
+/* set up a ratelimit */
+void
+log_ratelimit_init(struct log_ratelimit_ctx *rl, u_int threshold,
+    u_int max_accum, u_int hysteresis, u_int log_every)
+{
+	memset(rl, 0, sizeof(*rl));
+	rl->threshold = threshold;
+	rl->max_accum = max_accum;
+	rl->hysteresis = hysteresis;
+	rl->log_every = log_every;
+	RLDBG(("called: rl=%p thresh=%u max=%u hys=%u log_every=%u",
+	    rl, rl->threshold, rl->max_accum, rl->hysteresis, rl->log_every));
+}
+
+/*
+ * check whether a log event should be dropped because of rate-limiting.
+ * returns non-zero if the event should be dropped. If events_since_last
+ * is supplied then, for periodic logs, it will be set to the number of
+ * dropped events since the last message.
+ */
+int
+log_ratelimit(struct log_ratelimit_ctx *rl, time_t now, int *active,
+    u_int *events_dropped)
+{
+	time_t olast_event;
+
+	RLDBG(("called: rl=%p thresh=%u max=%u hys=%u log_every=%u "
+	    "accum=%u since=%ld since_last=%u", rl, rl->threshold,
+	    rl->max_accum, rl->hysteresis,
+	    rl->log_every, rl->accumulated_events,
+	    rl->last_event == 0 ? -1 : (long)(now - rl->last_event),
+	    rl->ratelimited_events));
+
+	if (now < 0)
+		return 0;
+	if (events_dropped != NULL)
+		*events_dropped = 0;
+	if (active != NULL)
+		*active = rl->ratelimit_active;
+
+	/* First, decay accumulated events */
+	if (rl->last_event <= 0)
+		rl->last_event = now;
+	if (now > rl->last_event) {
+		uint64_t n = now - rl->last_event;
+
+		if (n > UINT_MAX)
+			n = UINT_MAX;
+		if (rl->accumulated_events < (u_int)n)
+			rl->accumulated_events = 0;
+		else
+			rl->accumulated_events -= (u_int)n;
+		RLDBG(("decay: accum=%u", rl->accumulated_events));
+	}
+	rl->accumulated_events++; /* add this event */
+	if (rl->accumulated_events > rl->max_accum)
+		rl->accumulated_events = rl->max_accum;
+	olast_event = rl->last_event;
+	rl->last_event = now;
+	RLDBG(("check threshold: accum=%u vs thresh=%u",
+	    rl->accumulated_events, rl->threshold));
+
+	/* Are we under threshold? */
+	if (rl->accumulated_events < rl->threshold) {
+		if (!rl->ratelimit_active)
+			return 0;
+		RLDBG(("under threshold: hys=%u since_hys=%ld since_last=%ld",
+		    rl->hysteresis, rl->hysteresis_start == 0 ? -1 :
+		    (long)(now - rl->hysteresis_start),
+		    olast_event == 0 ? -1 : (long)(now - olast_event)));
+		if (rl->hysteresis_start == 0) {
+			/* active, but under threshold; hysteresis */
+			if (olast_event + rl->hysteresis < now) {
+				/* hysteresis expired before this event */
+				RLDBG(("hysteresis preexpired"));
+				goto inactive;
+			}
+			RLDBG(("start hysteresis"));
+			rl->hysteresis_start = now;
+		} else if (rl->hysteresis_start + rl->hysteresis < now) {
+			/* Hysteresis period expired, transition to inactive */
+			RLDBG(("complete hysteresis"));
+ inactive:
+			if (events_dropped != NULL)
+				*events_dropped = rl->ratelimited_events;
+			if (active != NULL)
+				*active = 0;
+			rl->ratelimit_active = 0;
+			rl->ratelimit_start = 0;
+			rl->last_log = 0;
+			rl->hysteresis_start = 0;
+			rl->ratelimited_events = 0;
+			return 0;
+		}
+		/* ratelimiting active, but in hysteresis period */
+	} else if (!rl->ratelimit_active) {
+		/* Transition to rate-limiting */
+		RLDBG(("start ratelimit"));
+		rl->ratelimit_active = 1;
+		rl->ratelimit_start = now;
+		rl->last_log = now;
+		rl->hysteresis_start = 0;
+		rl->ratelimited_events = 1;
+		if (active != NULL)
+			*active = 1;
+		return 1;
+	} else if (rl->hysteresis_start != 0) {
+		/* active and over threshold; reset hysteresis timer */
+		RLDBG(("clear hysteresis"));
+		rl->hysteresis_start = 0;
+	}
+
+	/* over threshold or in hysteresis period; log periodically */
+	if (active != NULL)
+		*active = 1;
+	RLDBG(("log_every=%u since_log=%ld", rl->log_every,
+	    (long)(now - rl->last_log)));
+	if (rl->log_every > 0 && now >= rl->last_log + rl->log_every) {
+		RLDBG(("periodic: since_last=%u", rl->ratelimited_events));
+		rl->last_log = now;
+		if (events_dropped != NULL) {
+			*events_dropped = rl->ratelimited_events;
+			rl->ratelimited_events = 0;
+		}
+		return 0;
+	}
+
+	/* drop event */
+	rl->ratelimited_events++;
+	RLDBG(("drop: ratelimited_events=%u", rl->ratelimited_events));
+	return 1;
 }

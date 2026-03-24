@@ -95,6 +95,8 @@ function add(str) {
     } else if(match(words[w],"^Ed$")) {
       skip=1
       literal=0
+    } else if(match(words[w],"^Dl$")) {
+      skip=1
     } else if(match(words[w],"^Ns$")) {
       skip=1
       if(!nospace)
@@ -239,7 +241,7 @@ function add(str) {
       while(w<nwords&&match(words[w+1],"^[\\.,:;)]"))
 	add(words[++w])
     } else if(match(words[w],"^Op$")) {
-      option=1
+      option++
       if(!nospace)
 	nospace=1
       add("[")
@@ -280,6 +282,12 @@ function add(str) {
 	  w++
 	  add("[")
 	  words[nwords]=words[nwords] "]"
+	}
+	if(match(words[w],"^Ns$")) {
+	  w++
+	  if(!nospace)
+	    nospace=1
+	  sub(" $","",line)
 	}
 	if(match(words[w],"^Ar$")) {
 	  add("\\fI" words[++w] "\\fP")
@@ -358,7 +366,7 @@ function add(str) {
     add(")")
   if(angles)
     add(">")
-  if(option)
+  for(;option;option--)
     add("]")
   if(ext&&!extopt&&!match(line," $"))
     add(OFS)

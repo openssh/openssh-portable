@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.26 2021/11/18 03:31:44 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.31 2026/02/11 17:03:17 dtucker Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -18,17 +18,11 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
-
-#include "openbsd-compat/sys-queue.h"
+#include <sys/time.h>
 
 #include <stdlib.h>
 #include <errno.h>
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#endif
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
@@ -44,67 +38,15 @@
 
 #ifdef ENABLE_PKCS11
 
-#ifdef WITH_OPENSSL
-
 /* borrows code from sftp-server and ssh-agent */
 
-struct pkcs11_keyinfo {
-	struct sshkey	*key;
-	char		*providername, *label;
-	TAILQ_ENTRY(pkcs11_keyinfo) next;
-};
-
-TAILQ_HEAD(, pkcs11_keyinfo) pkcs11_keylist;
+static char *providername; /* Provider for this helper */
 
 #define MAX_MSG_LENGTH		10240 /*XXX*/
 
 /* input and output queue */
 struct sshbuf *iqueue;
 struct sshbuf *oqueue;
-
-static void
-add_key(struct sshkey *k, char *name, char *label)
-{
-	struct pkcs11_keyinfo *ki;
-
-	ki = xcalloc(1, sizeof(*ki));
-	ki->providername = xstrdup(name);
-	ki->key = k;
-	ki->label = xstrdup(label);
-	TAILQ_INSERT_TAIL(&pkcs11_keylist, ki, next);
-}
-
-static void
-del_keys_by_name(char *name)
-{
-	struct pkcs11_keyinfo *ki, *nxt;
-
-	for (ki = TAILQ_FIRST(&pkcs11_keylist); ki; ki = nxt) {
-		nxt = TAILQ_NEXT(ki, next);
-		if (!strcmp(ki->providername, name)) {
-			TAILQ_REMOVE(&pkcs11_keylist, ki, next);
-			free(ki->providername);
-			free(ki->label);
-			sshkey_free(ki->key);
-			free(ki);
-		}
-	}
-}
-
-/* lookup matching 'private' key */
-static struct sshkey *
-lookup_key(struct sshkey *k)
-{
-	struct pkcs11_keyinfo *ki;
-
-	TAILQ_FOREACH(ki, &pkcs11_keylist, next) {
-		debug("check %s %s %s", sshkey_type(ki->key),
-		    ki->providername, ki->label);
-		if (sshkey_equal(k, ki->key))
-			return (ki->key);
-	}
-	return (NULL);
-}
 
 static void
 send_msg(struct sshbuf *m)
@@ -118,34 +60,32 @@ send_msg(struct sshbuf *m)
 static void
 process_add(void)
 {
-	char *name, *pin;
+	char *pin;
 	struct sshkey **keys = NULL;
 	int r, i, nkeys;
-	u_char *blob;
-	size_t blen;
 	struct sshbuf *msg;
 	char **labels = NULL;
 
+	if (providername != NULL)
+		fatal_f("provider already set");
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
-	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0 ||
+	if ((r = sshbuf_get_cstring(iqueue, &providername, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(iqueue, &pin, NULL)) != 0)
 		fatal_fr(r, "parse");
-	if ((nkeys = pkcs11_add_provider(name, pin, &keys, &labels)) > 0) {
+	debug3_f("add %s", providername);
+	if ((nkeys = pkcs11_add_provider(providername, pin,
+	    &keys, &labels)) > 0) {
 		if ((r = sshbuf_put_u8(msg,
 		    SSH2_AGENT_IDENTITIES_ANSWER)) != 0 ||
 		    (r = sshbuf_put_u32(msg, nkeys)) != 0)
 			fatal_fr(r, "compose");
 		for (i = 0; i < nkeys; i++) {
-			if ((r = sshkey_to_blob(keys[i], &blob, &blen)) != 0) {
-				debug_fr(r, "encode key");
-				continue;
-			}
-			if ((r = sshbuf_put_string(msg, blob, blen)) != 0 ||
+			if ((r = sshkey_puts(keys[i], msg)) != 0 ||
 			    (r = sshbuf_put_cstring(msg, labels[i])) != 0)
 				fatal_fr(r, "compose key");
-			free(blob);
-			add_key(keys[i], name, labels[i]);
+			debug3_f("%s: %s \"%s\"", providername,
+			    sshkey_type(keys[i]), labels[i]);
 			free(labels[i]);
 		}
 	} else if ((r = sshbuf_put_u8(msg, SSH_AGENT_FAILURE)) != 0 ||
@@ -154,29 +94,6 @@ process_add(void)
 	free(labels);
 	free(keys); /* keys themselves are transferred to pkcs11_keylist */
 	free(pin);
-	free(name);
-	send_msg(msg);
-	sshbuf_free(msg);
-}
-
-static void
-process_del(void)
-{
-	char *name, *pin;
-	struct sshbuf *msg;
-	int r;
-
-	if ((msg = sshbuf_new()) == NULL)
-		fatal_f("sshbuf_new failed");
-	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(iqueue, &pin, NULL)) != 0)
-		fatal_fr(r, "parse");
-	del_keys_by_name(name);
-	if ((r = sshbuf_put_u8(msg, pkcs11_del_provider(name) == 0 ?
-	    SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE)) != 0)
-		fatal_fr(r, "compose");
-	free(pin);
-	free(name);
 	send_msg(msg);
 	sshbuf_free(msg);
 }
@@ -184,55 +101,35 @@ process_del(void)
 static void
 process_sign(void)
 {
-	u_char *blob, *data, *signature = NULL;
-	size_t blen, dlen, slen = 0;
+	const u_char *data;
+	u_char *signature = NULL;
+	size_t dlen, slen = 0;
+	u_int compat;
 	int r, ok = -1;
-	struct sshkey *key, *found;
+	struct sshkey *key = NULL;
 	struct sshbuf *msg;
+	char *alg = NULL;
 
-	/* XXX support SHA2 signature flags */
-	if ((r = sshbuf_get_string(iqueue, &blob, &blen)) != 0 ||
-	    (r = sshbuf_get_string(iqueue, &data, &dlen)) != 0 ||
-	    (r = sshbuf_get_u32(iqueue, NULL)) != 0)
+	if ((r = sshkey_froms(iqueue, &key)) != 0 ||
+	    (r = sshbuf_get_string_direct(iqueue, &data, &dlen)) != 0 ||
+	    (r = sshbuf_get_cstring(iqueue, &alg, NULL)) != 0 ||
+	    (r = sshbuf_get_u32(iqueue, &compat)) != 0)
 		fatal_fr(r, "parse");
 
-	if ((r = sshkey_from_blob(blob, blen, &key)) != 0)
-		fatal_fr(r, "decode key");
-	else {
-		if ((found = lookup_key(key)) != NULL) {
-#ifdef WITH_OPENSSL
-			int ret;
-
-			if (key->type == KEY_RSA) {
-				slen = RSA_size(key->rsa);
-				signature = xmalloc(slen);
-				ret = RSA_private_encrypt(dlen, data, signature,
-				    found->rsa, RSA_PKCS1_PADDING);
-				if (ret != -1) {
-					slen = ret;
-					ok = 0;
-				}
-#ifdef OPENSSL_HAS_ECC
-			} else if (key->type == KEY_ECDSA) {
-				u_int xslen = ECDSA_size(key->ecdsa);
-
-				signature = xmalloc(xslen);
-				/* "The parameter type is ignored." */
-				ret = ECDSA_sign(-1, data, dlen, signature,
-				    &xslen, found->ecdsa);
-				if (ret != 0)
-					ok = 0;
-				else
-					error_f("ECDSA_sign returned %d", ret);
-				slen = xslen;
-#endif /* OPENSSL_HAS_ECC */
-			} else
-				error_f("don't know how to sign with key "
-				    "type %d", (int)key->type);
-#endif /* WITH_OPENSSL */
-		}
-		sshkey_free(key);
+	if (*alg == '\0') {
+		free(alg);
+		alg = NULL;
 	}
+
+	if ((r = pkcs11_sign(key, &signature, &slen, data, dlen,
+	    alg, NULL, NULL, compat)) != 0) {
+		error_fr(r, "sign %s", sshkey_type(key));
+		goto reply;
+	}
+
+	/* success */
+	ok = 0;
+ reply:
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	if (ok == 0) {
@@ -243,8 +140,8 @@ process_sign(void)
 		if ((r = sshbuf_put_u8(msg, SSH2_AGENT_FAILURE)) != 0)
 			fatal_fr(r, "compose failure response");
 	}
-	free(data);
-	free(blob);
+	sshkey_free(key);
+	free(alg);
 	free(signature);
 	send_msg(msg);
 	sshbuf_free(msg);
@@ -280,10 +177,6 @@ process(void)
 		debug("process_add");
 		process_add();
 		break;
-	case SSH_AGENTC_REMOVE_SMARTCARD_KEY:
-		debug("process_del");
-		process_del();
-		break;
 	case SSH2_AGENTC_SIGN_REQUEST:
 		debug("process_sign");
 		process_sign();
@@ -315,7 +208,6 @@ cleanup_exit(int i)
 	_exit(i);
 }
 
-
 int
 main(int argc, char **argv)
 {
@@ -329,8 +221,9 @@ main(int argc, char **argv)
 
 	__progname = ssh_get_progname(argv[0]);
 	seed_rng();
-	TAILQ_INIT(&pkcs11_keylist);
 
+	sanitise_stdfd();
+	closefrom(STDERR_FILENO + 1);
 	log_init(__progname, log_level, log_facility, log_stderr);
 
 	while ((ch = getopt(argc, argv, "v")) != -1) {
@@ -418,21 +311,6 @@ main(int argc, char **argv)
 			fatal_fr(r, "reserve");
 	}
 }
-
-#else /* WITH_OPENSSL */
-void
-cleanup_exit(int i)
-{
-	_exit(i);
-}
-
-int
-main(int argc, char **argv)
-{
-	fprintf(stderr, "PKCS#11 code is not enabled\n");
-	return 1;
-}
-#endif /* WITH_OPENSSL */
 #else /* ENABLE_PKCS11 */
 int
 main(int argc, char **argv)

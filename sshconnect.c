@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.357 2022/06/03 03:21:09 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.382 2026/02/16 00:45:41 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -17,54 +17,40 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
 #include <sys/socket.h>
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
 
 #include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <netdb.h>
-#ifdef HAVE_PATHS_H
 #include <paths.h>
-#endif
 #include <pwd.h>
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#endif
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_IFADDRS_H
-# include <ifaddrs.h>
-#endif
+#include <ifaddrs.h>
 
 #include "xmalloc.h"
 #include "hostfile.h"
 #include "ssh.h"
-#include "sshbuf.h"
-#include "packet.h"
 #include "compat.h"
+#include "packet.h"
 #include "sshkey.h"
 #include "sshconnect.h"
 #include "log.h"
+#include "match.h"
 #include "misc.h"
 #include "readconf.h"
-#include "atomicio.h"
 #include "dns.h"
 #include "monitor_fdpass.h"
-#include "ssh2.h"
-#include "version.h"
 #include "authfile.h"
 #include "ssherr.h"
 #include "authfd.h"
@@ -364,7 +350,7 @@ ssh_create_socket(struct addrinfo *ai)
 		error("socket: %s", strerror(errno));
 		return -1;
 	}
-	fcntl(sock, F_SETFD, FD_CLOEXEC);
+	(void)fcntl(sock, F_SETFD, FD_CLOEXEC);
 
 	/* Use interactive QOS (if specified) until authentication completed */
 	if (options.ip_qos_interactive != INT_MAX)
@@ -482,6 +468,14 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 				errno = oerrno;
 				continue;
 			}
+			if (options.address_family != AF_UNSPEC &&
+			    ai->ai_family != options.address_family) {
+				debug2_f("skipping address [%s]:%s: "
+				    "wrong address family", ntop, strport);
+				errno = EAFNOSUPPORT;
+				continue;
+			}
+
 			debug("Connecting to %.200s [%.100s] port %s.",
 				host, ntop, strport);
 
@@ -640,7 +634,7 @@ get_hostfile_hostname_ipaddr(char *hostname, struct sockaddr *hostaddr,
 		if (options.proxy_command == NULL) {
 			if (getnameinfo(hostaddr, addrlen,
 			    ntop, sizeof(ntop), NULL, 0, NI_NUMERICHOST) != 0)
-			fatal_f("getnameinfo failed");
+				fatal_f("getnameinfo failed");
 			*hostfile_ipaddr = put_host_port(ntop, port);
 		} else {
 			*hostfile_ipaddr = xstrdup("<no hostip for proxy "
@@ -710,6 +704,29 @@ try_tilde_unexpand(const char *path)
 	return ret;
 }
 
+/*
+ * Returns non-zero if the key is accepted by HostkeyAlgorithms.
+ * Made slightly less trivial by the multiple RSA signature algorithm names.
+ */
+int
+hostkey_accepted_by_hostkeyalgs(const struct sshkey *key)
+{
+	const char *ktype = sshkey_ssh_name(key);
+	const char *hostkeyalgs = options.hostkeyalgorithms;
+
+	if (key->type == KEY_UNSPEC)
+		return 0;
+	if (key->type == KEY_RSA &&
+	    (match_pattern_list("rsa-sha2-256", hostkeyalgs, 0) == 1 ||
+	    match_pattern_list("rsa-sha2-512", hostkeyalgs, 0) == 1))
+		return 1;
+	if (key->type == KEY_RSA_CERT &&
+	    (match_pattern_list("rsa-sha2-512-cert-v01@openssh.com", hostkeyalgs, 0) == 1 ||
+	    match_pattern_list("rsa-sha2-256-cert-v01@openssh.com", hostkeyalgs, 0) == 1))
+		return 1;
+	return match_pattern_list(ktype, hostkeyalgs, 0) == 1;
+}
+
 static int
 hostkeys_find_by_key_cb(struct hostkey_foreach_line *l, void *_ctx)
 {
@@ -766,7 +783,7 @@ hostkeys_find_by_key(const char *host, const char *ip, const struct sshkey *key,
     char **system_hostfiles, u_int num_system_hostfiles,
     char ***names, u_int *nnames)
 {
-	struct find_by_key_ctx ctx = {0, 0, 0, 0, 0};
+	struct find_by_key_ctx ctx = {NULL, NULL, NULL, NULL, 0};
 	u_int i;
 
 	*names = NULL;
@@ -935,7 +952,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 	char *ip = NULL, *host = NULL;
 	char hostline[1000], *hostp, *fp, *ra;
 	char msg[1024];
-	const char *type, *fail_reason;
+	const char *type, *fail_reason = NULL;
 	const struct hostkey_entry *host_found = NULL, *ip_found = NULL;
 	int len, cancelled_forwarding = 0, confirmed;
 	int local = sockaddr_is_local(hostaddr);
@@ -958,6 +975,17 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		    "loopback/localhost.");
 		options.update_hostkeys = 0;
 		return 0;
+	}
+
+	/*
+	 * Don't ever try to write an invalid name to a known hosts file.
+	 * Note: do this before get_hostfile_hostname_ipaddr() to catch
+	 * '[' or ']' in the name before they are added.
+	 */
+	if (strcspn(hostname, "@?*#[]|'\'\"\\") != strlen(hostname)) {
+		debug_f("invalid hostname \"%s\"; will not record: %s",
+		    hostname, fail_reason);
+		readonly = RDONLY;
 	}
 
 	/*
@@ -999,6 +1027,12 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 	}
 
  retry:
+	if (!hostkey_accepted_by_hostkeyalgs(host_key)) {
+		error("host key %s not permitted by HostkeyAlgorithms",
+		    sshkey_ssh_name(host_key));
+		goto fail;
+	}
+
 	/* Reload these as they may have changed on cert->key downgrade */
 	want_cert = sshkey_is_cert(host_key);
 	type = sshkey_type(host_key);
@@ -1044,7 +1078,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		if (want_cert) {
 			if (sshkey_cert_check_host(host_key,
 			    options.host_key_alias == NULL ?
-			    hostname : options.host_key_alias, 0,
+			    hostname : options.host_key_alias,
 			    options.ca_sign_algorithms, &fail_reason) != 0) {
 				error("%s", fail_reason);
 				goto fail;
@@ -1097,7 +1131,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 			    options.fingerprint_hash, SSH_FP_RANDOMART);
 			if (fp == NULL || ra == NULL)
 				fatal_f("sshkey_fingerprint failed");
-			logit("Host key fingerprint is %s\n%s", fp, ra);
+			logit("Host key fingerprint is: %s\n%s", fp, ra);
 			free(ra);
 			free(fp);
 		}
@@ -1148,7 +1182,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 			    options.fingerprint_hash, SSH_FP_RANDOMART);
 			if (fp == NULL || ra == NULL)
 				fatal_f("sshkey_fingerprint failed");
-			xextendf(&msg1, "\n", "%s key fingerprint is %s.",
+			xextendf(&msg1, "\n", "%s key fingerprint is: %s",
 			    type, fp);
 			if (options.visual_host_key)
 				xextendf(&msg1, "\n", "%s", ra);
@@ -1265,8 +1299,11 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		}
 		/* The host key has changed. */
 		warn_changed_key(host_key);
-		error("Add correct host key in %.100s to get rid of this message.",
-		    user_hostfiles[0]);
+		if (num_user_hostfiles > 0 || num_system_hostfiles > 0) {
+			error("Add correct host key in %.100s to get rid "
+			    "of this message.", num_user_hostfiles > 0 ?
+			    user_hostfiles[0] : system_hostfiles[0]);
+		}
 		error("Offending %s key in %s:%lu",
 		    sshkey_type(host_found->key),
 		    host_found->file, host_found->line);
@@ -1334,7 +1371,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		if (options.exit_on_forward_failure && cancelled_forwarding)
 			fatal("Error: forwarding disabled due to host key "
 			    "check failure");
-		
+
 		/*
 		 * XXX Should permit the user to change to use the new id.
 		 * This could be done by converting the host key to an
@@ -1383,6 +1420,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		options.update_hostkeys = 0;
 	}
 
+	sshkey_free(raw_key);
 	free(ip);
 	free(host);
 	if (host_hostkeys != NULL)
@@ -1463,22 +1501,23 @@ verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key,
 		goto out;
 	}
 
-	/* Check in RevokedHostKeys file if specified */
-	if (options.revoked_host_keys != NULL) {
-		r = sshkey_check_revoked(host_key, options.revoked_host_keys);
+	/* Check in RevokedHostKeys files if specified */
+	for (i = 0; i < options.num_revoked_host_keys; i++) {
+		r = sshkey_check_revoked(host_key,
+		    options.revoked_host_keys[i]);
 		switch (r) {
 		case 0:
 			break; /* not revoked */
 		case SSH_ERR_KEY_REVOKED:
 			error("Host key %s %s revoked by file %s",
 			    sshkey_type(host_key), fp,
-			    options.revoked_host_keys);
+			    options.revoked_host_keys[i]);
 			r = -1;
 			goto out;
 		default:
 			error_r(r, "Error checking host key %s %s in "
 			    "revoked keys file %s", sshkey_type(host_key),
-			    fp, options.revoked_host_keys);
+			    fp, options.revoked_host_keys[i]);
 			r = -1;
 			goto out;
 		}
@@ -1529,6 +1568,14 @@ out:
 	return r;
 }
 
+static void
+warn_nonpq_kex(void)
+{
+	logit("** WARNING: connection is not using a post-quantum key exchange algorithm.");
+	logit("** This session may be vulnerable to \"store now, decrypt later\" attacks.");
+	logit("** The server may need to be upgraded. See https://openssh.com/pq.html");
+}
+
 /*
  * Starts a dialog with the server, and authenticates the current user on the
  * server.  This does not need any extra privileges.  The basic connection
@@ -1553,8 +1600,14 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 	lowercase(host);
 
 	/* Exchange protocol version identification strings with the server. */
-	if ((r = kex_exchange_identification(ssh, timeout_ms, NULL)) != 0)
+	if ((r = kex_exchange_identification(ssh, timeout_ms,
+	    options.version_addendum)) != 0)
 		sshpkt_fatal(ssh, r, "banner exchange");
+
+	if ((ssh->compat & SSH_BUG_NOREKEY)) {
+		logit("Warning: this server does not support rekeying.");
+		logit("This session will eventually fail");
+	}
 
 	/* Put the connection into non-blocking mode. */
 	ssh_packet_set_nonblocking(ssh);
@@ -1563,6 +1616,10 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 	/* authenticate user */
 	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
 	ssh_kex2(ssh, host, hostaddr, port, cinfo);
+	if (!options.kex_algorithms_set && ssh->kex != NULL &&
+	    ssh->kex->name != NULL && options.warn_weak_crypto &&
+	    !kex_is_pq_from_name(ssh->kex->name))
+		warn_nonpq_kex();
 	ssh_userauth2(ssh, local_user, server_user, host, sensitive);
 	free(local_user);
 	free(host);
@@ -1574,10 +1631,8 @@ show_other_keys(struct hostkeys *hostkeys, struct sshkey *key)
 {
 	int type[] = {
 		KEY_RSA,
-		KEY_DSA,
 		KEY_ECDSA,
 		KEY_ED25519,
-		KEY_XMSS,
 		-1
 	};
 	int i, ret = 0;
@@ -1700,7 +1755,7 @@ maybe_add_key_to_agent(const char *authfile, struct sshkey *private,
 	if ((r = ssh_add_identity_constrained(auth_sock, private,
 	    comment == NULL ? authfile : comment,
 	    options.add_keys_to_agent_lifespan,
-	    (options.add_keys_to_agent == 3), 0, skprovider, NULL, 0)) == 0)
+	    (options.add_keys_to_agent == 3), skprovider, NULL, 0)) == 0)
 		debug("identity added to agent: %s", authfile);
 	else
 		debug("could not add identity to agent: %s (%d)", authfile, r);

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.106 2022/06/15 16:08:25 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.109 2026/02/06 01:24:36 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -104,11 +104,15 @@ struct Authctxt {
  * the client.
  */
 
+struct authmethod_cfg {
+	const char *name;
+	const char *synonym;
+	int *enabled;
+};
+
 struct Authmethod {
-	char	*name;
-	char	*synonym;
+	struct authmethod_cfg *cfg;
 	int	(*userauth)(struct ssh *, const char *);
-	int	*enabled;
 };
 
 /*
@@ -151,8 +155,6 @@ void	 auth2_record_info(Authctxt *authctxt, const char *, ...)
 void	 auth2_update_session_info(Authctxt *, const char *, const char *);
 
 #ifdef KRB5
-int	auth_krb5(Authctxt *authctxt, krb5_data *auth, char **client, krb5_data *);
-int	auth_krb5_tgt(Authctxt *authctxt, krb5_data *tgt);
 int	auth_krb5_password(Authctxt *authctxt, const char *password);
 void	krb5_cleanup_proc(Authctxt *authctxt);
 #endif /* KRB5 */
@@ -179,8 +181,6 @@ int	 auth2_methods_valid(const char *, int);
 int	 auth2_update_methods_lists(Authctxt *, const char *, const char *);
 int	 auth2_setup_methods_lists(Authctxt *);
 int	 auth2_method_allowed(Authctxt *, const char *, const char *);
-
-void	privsep_challenge_enable(void);
 
 int	auth2_challenge(struct ssh *, char *);
 void	auth2_challenge_stop(struct ssh *);
@@ -211,7 +211,6 @@ int	 sshd_hostkey_sign(struct ssh *, struct sshkey *, struct sshkey *,
     u_char **, size_t *, const u_char *, size_t, const char *);
 
 /* Key / cert options linkage to auth layer */
-const struct sshauthopt *auth_options(struct ssh *);
 int	 auth_activate_options(struct ssh *, struct sshauthopt *);
 void	 auth_restrict_session(struct ssh *);
 void	 auth_log_authopts(const char *, const struct sshauthopt *, int);

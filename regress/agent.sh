@@ -1,4 +1,4 @@
-#	$OpenBSD: agent.sh,v 1.20 2021/02/25 03:27:34 djm Exp $
+#	$OpenBSD: agent.sh,v 1.23 2025/05/06 06:05:48 djm Exp $
 #	Placed in the Public Domain.
 
 tid="simple agent test"
@@ -9,7 +9,7 @@ if [ $? -ne 2 ]; then
 fi
 
 trace "start agent, args ${EXTRA_AGENT_ARGS} -s"
-eval `${SSHAGENT} ${EXTRA_AGENT_ARGS} -s` > /dev/null
+eval `${SSHAGENT} ${EXTRA_AGENT_ARGS} -s` >`ssh_logfile ssh-agent`
 r=$?
 if [ $r -ne 0 ]; then
 	fatal "could not start ssh-agent: exit code $r"
@@ -86,10 +86,6 @@ fi
 
 for t in ${SSH_KEYTYPES}; do
 	trace "connect via agent using $t key"
-	if [ "$t" = "ssh-dss" ]; then
-		echo "PubkeyAcceptedAlgorithms +ssh-dss" >> $OBJ/ssh_proxy
-		echo "PubkeyAcceptedAlgorithms +ssh-dss" >> $OBJ/sshd_proxy
-	fi
 	${SSH} -F $OBJ/ssh_proxy -i $OBJ/$t-agent.pub -oIdentitiesOnly=yes \
 		somehost exit 52
 	r=$?
@@ -143,7 +139,6 @@ fi
 (printf 'cert-authority,principals="estragon" '; cat $OBJ/user_ca_key.pub) \
 	> $OBJ/authorized_keys_$USER
 for t in ${SSH_KEYTYPES}; do
-    if [ "$t" != "ssh-dss" ]; then
 	trace "connect via agent using $t key"
 	${SSH} -F $OBJ/ssh_proxy -i $OBJ/$t-agent.pub \
 		-oCertificateFile=$OBJ/$t-agent-cert.pub \
@@ -152,12 +147,11 @@ for t in ${SSH_KEYTYPES}; do
 	if [ $r -ne 52 ]; then
 		fail "ssh connect with failed (exit code $r)"
 	fi
-    fi
 done
 
 ## Deletion tests.
 
-trace "delete all agent keys"
+trace "delete all agent keys using -D"
 ${SSHADD} -D > /dev/null 2>&1
 r=$?
 if [ $r -ne 0 ]; then
@@ -170,6 +164,29 @@ if [ $r -ne 1 ]; then
 	fail "ssh-add -l returned unexpected exit code: $r"
 fi
 trace "readd keys"
+# re-add keys/certs to agent
+for t in ${SSH_KEYTYPES}; do
+	${SSHADD} $OBJ/$t-agent-private >/dev/null 2>&1 || \
+		fail "ssh-add failed exit code $?"
+done
+# make sure they are there
+${SSHADD} -l > /dev/null 2>&1
+r=$?
+if [ $r -ne 0 ]; then
+	fail "ssh-add -l failed: exit code $r"
+fi
+trace "delete all agent keys using SIGUSR1"
+kill -s USR1 $SSH_AGENT_PID
+r=$?
+if [ $r -ne 0 ]; then
+	fail "kill -s USR1 failed: exit code $r"
+fi
+# make sure they're gone
+${SSHADD} -l > /dev/null 2>&1
+r=$?
+if [ $r -ne 1 ]; then
+	fail "ssh-add -l returned unexpected exit code: $r"
+fi
 # re-add keys/certs to agent
 for t in ${SSH_KEYTYPES}; do
 	${SSHADD} $OBJ/$t-agent-private >/dev/null 2>&1 || \

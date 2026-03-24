@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.46 2022/06/03 04:00:15 dtucker Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.53 2025/10/04 21:41:35 naddy Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -6,7 +6,7 @@
 .\" permitted provided that due credit is given to the author and the
 .\" OpenBSD project by leaving this copyright notice intact.
 .\"
-.Dd $Mdocdate: June 3 2022 $
+.Dd $Mdocdate: October 4 2025 $
 .Dt SSH-KEYSCAN 1
 .Os
 .Sh NAME
@@ -14,8 +14,9 @@
 .Nd gather SSH public keys from servers
 .Sh SYNOPSIS
 .Nm ssh-keyscan
-.Op Fl 46cDHv
+.Op Fl 46cDHqv
 .Op Fl f Ar file
+.Op Fl O Ar option
 .Op Fl p Ar port
 .Op Fl T Ar timeout
 .Op Fl t Ar type
@@ -44,6 +45,11 @@ For scanning, one does not need
 login access to the machines that are being scanned, nor does the
 scanning process involve any encryption.
 .Pp
+Hosts to be scanned may be specified by hostname, address or by CIDR
+network range (e.g. 192.168.16/28).
+If a network range is specified, then all addresses in that range will
+be scanned.
+.Pp
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl 4
@@ -58,7 +64,7 @@ to use IPv6 addresses only.
 Request certificates from target hosts instead of plain keys.
 .It Fl D
 Print keys found as SSHFP DNS records.
-The default is to print keys in a format usable as a
+The default is to print keys in a format usable as an
 .Xr ssh 1
 .Pa known_hosts
 file.
@@ -73,9 +79,16 @@ If
 is supplied instead of a filename,
 .Nm
 will read from the standard input.
-Input is expected in the format:
+Names read from a file must start with an address, hostname or CIDR network
+range to be scanned.
+Addresses and hostnames may optionally be followed by comma-separated name
+or address aliases that will be copied to the output.
+For example:
 .Bd -literal
-1.2.3.4,1.2.4.4 name.my.domain,name,n.my.domain,n,1.2.3.4,1.2.4.4
+192.168.11.0/24
+10.20.1.1
+happy.example.org
+10.0.0.1,sad.example.org
 .Ed
 .It Fl H
 Hash all hostnames and addresses in the output.
@@ -85,10 +98,27 @@ and
 .Xr sshd 8 ,
 but they do not reveal identifying information should the file's contents
 be disclosed.
+.It Fl O Ar option
+Specify a key/value option.
+At present, only a single option is supported:
+.Bl -tag -width Ds
+.It Cm hashalg Ns = Ns Ar algorithm
+Selects a hash algorithm to use when printing SSHFP records using the
+.Fl D
+flag.
+Valid algorithms are
+.Dq sha1
+and
+.Dq sha256 .
+The default is to print both.
+.El
 .It Fl p Ar port
 Connect to
 .Ar port
 on the remote host.
+.It Fl q
+Quiet mode:
+do not print server host name and banners in comments.
 .It Fl T Ar timeout
 Set the timeout for connection attempts.
 If
@@ -100,7 +130,6 @@ The default is 5 seconds.
 .It Fl t Ar type
 Specify the type of the key to fetch from the scanned hosts.
 The possible values are
-.Dq dsa ,
 .Dq ecdsa ,
 .Dq ed25519 ,
 .Dq ecdsa-sk ,
@@ -108,14 +137,7 @@ The possible values are
 or
 .Dq rsa .
 Multiple values may be specified by separating them with commas.
-The default is to fetch
-.Dq rsa ,
-.Dq ecdsa ,
-.Dq ed25519 ,
-.Dq ecdsa-sk ,
-and
-.Dq ed25519-sk
-keys.
+The default is to fetch all the above key types.
 .It Fl v
 Verbose mode:
 print debugging messages about progress.
@@ -138,12 +160,16 @@ Print the RSA host key for machine
 .Pp
 .Dl $ ssh-keyscan -t rsa hostname
 .Pp
+Search a network range, printing all supported key types:
+.Pp
+.Dl $ ssh-keyscan 192.168.0.64/25
+.Pp
 Find all hosts from the file
 .Pa ssh_hosts
 which have new or different keys from those in the sorted file
 .Pa ssh_known_hosts :
 .Bd -literal -offset indent
-$ ssh-keyscan -t rsa,dsa,ecdsa,ed25519 -f ssh_hosts | \e
+$ ssh-keyscan -t rsa,ecdsa,ed25519 -f ssh_hosts | \e
 	sort -u - ssh_known_hosts | diff ssh_known_hosts -
 .Ed
 .Sh SEE ALSO

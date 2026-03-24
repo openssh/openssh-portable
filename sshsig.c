@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.29 2022/03/30 04:27:51 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.41 2025/12/22 01:49:03 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -38,11 +38,11 @@
 #define SIG_VERSION		0x01
 #define MAGIC_PREAMBLE		"SSHSIG"
 #define MAGIC_PREAMBLE_LEN	(sizeof(MAGIC_PREAMBLE) - 1)
-#define BEGIN_SIGNATURE		"-----BEGIN SSH SIGNATURE-----\n"
+#define BEGIN_SIGNATURE		"-----BEGIN SSH SIGNATURE-----"
 #define END_SIGNATURE		"-----END SSH SIGNATURE-----"
-#define RSA_SIGN_ALG		"rsa-sha2-512" /* XXX maybe make configurable */
+#define RSA_SIGN_ALG		"rsa-sha2-512"
 #define RSA_SIGN_ALLOWED	"rsa-sha2-512,rsa-sha2-256"
-#define HASHALG_DEFAULT		"sha512" /* XXX maybe make configurable */
+#define HASHALG_DEFAULT		"sha512"
 #define HASHALG_ALLOWED		"sha256,sha512"
 
 int
@@ -59,8 +59,7 @@ sshsig_armor(const struct sshbuf *blob, struct sshbuf **out)
 		goto out;
 	}
 
-	if ((r = sshbuf_put(buf, BEGIN_SIGNATURE,
-	    sizeof(BEGIN_SIGNATURE)-1)) != 0) {
+	if ((r = sshbuf_putf(buf, "%s\n", BEGIN_SIGNATURE)) != 0) {
 		error_fr(r, "sshbuf_putf");
 		goto out;
 	}
@@ -99,23 +98,35 @@ sshsig_dearmor(struct sshbuf *sig, struct sshbuf **out)
 		return SSH_ERR_ALLOC_FAIL;
 	}
 
+	/* Expect and consume preamble + lf/crlf */
 	if ((r = sshbuf_cmp(sbuf, 0,
 	    BEGIN_SIGNATURE, sizeof(BEGIN_SIGNATURE)-1)) != 0) {
 		error("Couldn't parse signature: missing header");
 		goto done;
 	}
-
 	if ((r = sshbuf_consume(sbuf, sizeof(BEGIN_SIGNATURE)-1)) != 0) {
 		error_fr(r, "consume");
 		goto done;
 	}
-
+	if ((r = sshbuf_cmp(sbuf, 0, "\r\n", 2)) == 0)
+		eoffset = 2;
+	else if ((r = sshbuf_cmp(sbuf, 0, "\n", 1)) == 0)
+		eoffset = 1;
+	else {
+		r = SSH_ERR_INVALID_FORMAT;
+		error_f("no header eol");
+		goto done;
+	}
+	if ((r = sshbuf_consume(sbuf, eoffset)) != 0) {
+		error_fr(r, "consume eol");
+		goto done;
+	}
+	/* Find and consume lf + suffix (any prior cr would be ignored) */
 	if ((r = sshbuf_find(sbuf, 0, "\n" END_SIGNATURE,
-	    sizeof("\n" END_SIGNATURE)-1, &eoffset)) != 0) {
+	    sizeof(END_SIGNATURE), &eoffset)) != 0) {
 		error("Couldn't parse signature: missing footer");
 		goto done;
 	}
-
 	if ((r = sshbuf_consume_end(sbuf, sshbuf_len(sbuf)-eoffset)) != 0) {
 		error_fr(r, "consume");
 		goto done;
@@ -179,8 +190,13 @@ sshsig_wrap_sign(struct sshkey *key, const char *hashalg,
 	}
 
 	/* If using RSA keys then default to a good signature algorithm */
-	if (sshkey_type_plain(key->type) == KEY_RSA)
+	if (sshkey_type_plain(key->type) == KEY_RSA) {
 		sign_alg = RSA_SIGN_ALG;
+		if (strcmp(hashalg, "sha256") == 0)
+			sign_alg = "rsa-sha2-256";
+		else if (strcmp(hashalg, "sha512") == 0)
+			sign_alg = "rsa-sha2-512";
+	}
 
 	if (signer != NULL) {
 		if ((r = signer(key, &sig, &slen,
@@ -491,7 +507,7 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 {
 	char *hex, rbuf[8192], hash[SSH_DIGEST_MAX_LENGTH];
 	ssize_t n, total = 0;
-	struct ssh_digest_ctx *ctx;
+	struct ssh_digest_ctx *ctx = NULL;
 	int alg, oerrno, r = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL;
 
@@ -514,7 +530,6 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 				continue;
 			oerrno = errno;
 			error_f("read: %s", strerror(errno));
-			ssh_digest_free(ctx);
 			errno = oerrno;
 			r = SSH_ERR_SYSTEM_ERROR;
 			goto out;
@@ -549,9 +564,11 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 	/* success */
 	r = 0;
  out:
+	oerrno = errno;
 	sshbuf_free(b);
 	ssh_digest_free(ctx);
 	explicit_bzero(hash, sizeof(hash));
+	errno = oerrno;
 	return r;
 }
 
@@ -734,7 +751,7 @@ parse_principals_key_and_options(const char *path, u_long linenum, char *line,
 		*keyp = NULL;
 
 	cp = line;
-	cp = cp + strspn(cp, " \t"); /* skip leading whitespace */
+	cp = cp + strspn(cp, " \t\n\r"); /* skip leading whitespace */
 	if (*cp == '#' || *cp == '\0')
 		return SSH_ERR_KEY_NOT_FOUND; /* blank or all-comment line */
 
@@ -837,8 +854,8 @@ cert_filter_principals(const char *path, u_long linenum,
 
 	while ((cp = strsep(&principals, ",")) != NULL && *cp != '\0') {
 		/* Check certificate validity */
-		if ((r = sshkey_cert_check_authority(cert, 0, 1, 0,
-		    verify_time, NULL, &reason)) != 0) {
+		if ((r = sshkey_cert_check_authority(cert, 0, 0, verify_time,
+		    NULL, &reason)) != 0) {
 			debug("%s:%lu: principal \"%s\" not authorized: %s",
 			    path, linenum, cp, reason);
 			continue;
@@ -862,6 +879,7 @@ cert_filter_principals(const char *path, u_long linenum,
 	}
 	if ((principals = sshbuf_dup_string(nprincipals)) == NULL) {
 		error_f("buffer error");
+		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
 	/* success */
@@ -902,7 +920,7 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 	    sshkey_equal_public(sign_key->cert->signature_key, found_key)) {
 		if (principal) {
 			/* Match certificate CA key with specified principal */
-			if ((r = sshkey_cert_check_authority(sign_key, 0, 1, 0,
+			if ((r = sshkey_cert_check_authority(sign_key, 0, 0,
 			    verify_time, principal, &reason)) != 0) {
 				error("%s:%lu: certificate not authorized: %s",
 				    path, linenum, reason);
@@ -976,7 +994,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	char *line = NULL;
 	size_t linesize = 0;
 	u_long linenum = 0;
-	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
+	int r = SSH_ERR_KEY_NOT_FOUND, oerrno;
 
 	/* Check key and principal against file */
 	if ((f = fopen(path, "r")) == NULL) {
@@ -1006,7 +1024,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	/* Either we hit an error parsing or we simply didn't find the key */
 	fclose(f);
 	free(line);
-	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+	return r;
 }
 
 int
@@ -1017,7 +1035,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 	char *line = NULL;
 	size_t linesize = 0;
 	u_long linenum = 0;
-	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
+	int r = SSH_ERR_KEY_NOT_FOUND, oerrno;
 
 	if ((f = fopen(path, "r")) == NULL) {
 		oerrno = errno;
@@ -1027,7 +1045,6 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 
-	r = SSH_ERR_KEY_NOT_FOUND;
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
 		r = check_allowed_keys_line(path, linenum, line,
@@ -1055,7 +1072,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 		return SSH_ERR_SYSTEM_ERROR;
 	}
 	fclose(f);
-	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+	return r;
 }
 
 int
@@ -1106,16 +1123,16 @@ sshsig_match_principals(const char *path, const char *principal,
 		linesize = 0;
 	}
 	fclose(f);
+	free(line);
 
 	if (ret == 0) {
 		if (nprincipals == 0)
 			ret = SSH_ERR_KEY_NOT_FOUND;
+		if (nprincipalsp != NULL)
+			*nprincipalsp = nprincipals;
 		if (principalsp != NULL) {
 			*principalsp = principals;
 			principals = NULL; /* transferred */
-		}
-		if (nprincipalsp != 0) {
-			*nprincipalsp = nprincipals;
 			nprincipals = 0;
 		}
 	}

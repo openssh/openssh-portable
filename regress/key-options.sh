@@ -1,4 +1,4 @@
-#	$OpenBSD: key-options.sh,v 1.9 2018/07/03 13:53:26 djm Exp $
+#	$OpenBSD: key-options.sh,v 1.11 2024/12/05 14:28:39 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="key options"
@@ -120,5 +120,8 @@ check_valid_before() {
 check_valid_before "default"	""				"pass"
 check_valid_before "invalid"	'expiry-time="INVALID"'		"fail"
 check_valid_before "expired"	'expiry-time="19990101"'	"fail"
+if config_defined "SIZEOF_TIME_T 4"; then
 check_valid_before "valid"	'expiry-time="20380101"'	"pass"
-
+else
+check_valid_before "valid-64b"	'expiry-time="25250101"'	"pass"
+fi

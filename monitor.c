@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.234 2022/06/15 16:08:25 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.254 2026/03/11 09:10:59 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -28,39 +28,29 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
+#include <sys/tree.h>
+#include <sys/queue.h>
 
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
-#ifdef HAVE_PATHS_H
 #include <paths.h>
-#endif
+#include <poll.h>
 #include <pwd.h>
 #include <signal.h>
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include <unistd.h>
-#ifdef HAVE_POLL_H
-#include <poll.h>
-#else
-# ifdef HAVE_SYS_POLL_H
-#  include <sys/poll.h>
-# endif
-#endif
 
 #ifdef WITH_OPENSSL
 #include <openssl/dh.h>
 #endif
 
-#include "openbsd-compat/sys-tree.h"
-#include "openbsd-compat/sys-queue.h"
 #include "openbsd-compat/openssl-compat.h"
 
 #include "atomicio.h"
@@ -96,6 +86,7 @@
 #include "match.h"
 #include "ssherr.h"
 #include "sk-api.h"
+#include "srclimit.h"
 
 #ifdef GSSAPI
 static Gssctxt *gsscontext = NULL;
@@ -104,7 +95,9 @@ static Gssctxt *gsscontext = NULL;
 /* Imports */
 extern ServerOptions options;
 extern u_int utmp_len;
+extern struct sshbuf *cfg;
 extern struct sshbuf *loginmsg;
+extern struct include_list includes;
 extern struct sshauthopt *auth_opts; /* XXX move to permanent ssh->authctxt? */
 
 /* State exported from the child */
@@ -113,6 +106,7 @@ static struct sshbuf *child_state;
 /* Functions on the monitor that answer unprivileged requests */
 
 int mm_answer_moduli(struct ssh *, int, struct sshbuf *);
+int mm_answer_setcompat(struct ssh *, int, struct sshbuf *);
 int mm_answer_sign(struct ssh *, int, struct sshbuf *);
 int mm_answer_pwnamallow(struct ssh *, int, struct sshbuf *);
 int mm_answer_auth2_read_banner(struct ssh *, int, struct sshbuf *);
@@ -125,11 +119,7 @@ int mm_answer_keyverify(struct ssh *, int, struct sshbuf *);
 int mm_answer_pty(struct ssh *, int, struct sshbuf *);
 int mm_answer_pty_cleanup(struct ssh *, int, struct sshbuf *);
 int mm_answer_term(struct ssh *, int, struct sshbuf *);
-int mm_answer_rsa_keyallowed(struct ssh *, int, struct sshbuf *);
-int mm_answer_rsa_challenge(struct ssh *, int, struct sshbuf *);
-int mm_answer_rsa_response(struct ssh *, int, struct sshbuf *);
-int mm_answer_sesskey(struct ssh *, int, struct sshbuf *);
-int mm_answer_sessid(struct ssh *, int, struct sshbuf *);
+int mm_answer_state(struct ssh *, int, struct sshbuf *);
 
 #ifdef USE_PAM
 int mm_answer_pam_start(struct ssh *, int, struct sshbuf *);
@@ -166,6 +156,9 @@ static char *auth_submethod = NULL;
 static u_int session_id2_len = 0;
 static u_char *session_id2 = NULL;
 static pid_t monitor_child_pid;
+static int auth_attempted = 0;
+static int invalid_user = 0;
+static int compat_set = 0;
 
 struct mon_table {
 	enum monitor_reqtype type;
@@ -187,9 +180,11 @@ static int monitor_read(struct ssh *, struct monitor *, struct mon_table *,
 static int monitor_read_log(struct monitor *);
 
 struct mon_table mon_dispatch_proto20[] = {
+    {MONITOR_REQ_STATE, MON_ONCE, mm_answer_state},
 #ifdef WITH_OPENSSL
     {MONITOR_REQ_MODULI, MON_ONCE, mm_answer_moduli},
 #endif
+    {MONITOR_REQ_SETCOMPAT, MON_ONCE, mm_answer_setcompat},
     {MONITOR_REQ_SIGN, MON_ONCE, mm_answer_sign},
     {MONITOR_REQ_PWNAM, MON_ONCE, mm_answer_pwnamallow},
     {MONITOR_REQ_AUTHSERV, MON_ONCE, mm_answer_authserv},
@@ -222,6 +217,7 @@ struct mon_table mon_dispatch_proto20[] = {
 };
 
 struct mon_table mon_dispatch_postauth20[] = {
+    {MONITOR_REQ_STATE, MON_ONCE, mm_answer_state},
 #ifdef WITH_OPENSSL
     {MONITOR_REQ_MODULI, 0, mm_answer_moduli},
 #endif
@@ -270,7 +266,7 @@ void
 monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 {
 	struct mon_table *ent;
-	int authenticated = 0, partial = 0;
+	int status, authenticated = 0, partial = 0;
 
 	debug3("preauth child monitor started");
 
@@ -287,8 +283,10 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 	authctxt->loginmsg = loginmsg;
 
 	mon_dispatch = mon_dispatch_proto20;
-	/* Permit requests for moduli and signatures */
+	/* Permit requests for state, moduli and signatures */
+	monitor_permit(mon_dispatch, MONITOR_REQ_STATE, 1);
 	monitor_permit(mon_dispatch, MONITOR_REQ_MODULI, 1);
+	monitor_permit(mon_dispatch, MONITOR_REQ_SETCOMPAT, 1);
 	monitor_permit(mon_dispatch, MONITOR_REQ_SIGN, 1);
 
 	/* The first few requests do not require asynchronous access */
@@ -300,6 +298,10 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 
 		authenticated = (monitor_read(ssh, pmonitor,
 		    mon_dispatch, &ent) == 1);
+
+		/* Record that auth was attempted to set exit status later */
+		if ((ent->flags & MON_AUTH) != 0)
+			auth_attempted = 1;
 
 		/* Special handling for multiple required authentications */
 		if (options.num_auth_methods != 0) {
@@ -345,6 +347,11 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 				    auth_method, auth_submethod);
 			}
 		}
+		if (authctxt->failures > options.max_authtries) {
+			/* Shouldn't happen */
+			fatal_f("privsep child made too many authentication "
+			    "attempts");
+		}
 	}
 
 	if (!authctxt->valid)
@@ -353,6 +360,7 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 		fatal_f("authentication method name unknown");
 
 	debug_f("user %s authenticated by privileged process", authctxt->user);
+	auth_attempted = 0;
 	ssh->authctxt = NULL;
 	ssh_packet_set_log_preamble(ssh, "user %s", authctxt->user);
 
@@ -362,11 +370,29 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 	while (pmonitor->m_log_recvfd != -1 && monitor_read_log(pmonitor) == 0)
 		;
 
+	/* Wait for the child's exit status */
+	while (waitpid(pmonitor->m_pid, &status, 0) == -1) {
+		if (errno == EINTR)
+			continue;
+		fatal_f("waitpid: %s", strerror(errno));
+	}
+	if (WIFEXITED(status)) {
+		if (WEXITSTATUS(status) != 0)
+			fatal_f("preauth child %ld exited with status %d",
+			    (long)pmonitor->m_pid, WEXITSTATUS(status));
+	} else if (WIFSIGNALED(status)) {
+		fatal_f("preauth child %ld terminated by signal %d",
+		    (long)pmonitor->m_pid, WTERMSIG(status));
+	}
+	debug3_f("preauth child %ld terminated successfully",
+	    (long)pmonitor->m_pid);
+
 	if (pmonitor->m_recvfd >= 0)
 		close(pmonitor->m_recvfd);
 	if (pmonitor->m_log_sendfd >= 0)
 		close(pmonitor->m_log_sendfd);
 	pmonitor->m_sendfd = pmonitor->m_log_recvfd = -1;
+	pmonitor->m_pid = -1;
 }
 
 static void
@@ -398,6 +424,7 @@ monitor_child_postauth(struct ssh *ssh, struct monitor *pmonitor)
 	mon_dispatch = mon_dispatch_postauth20;
 
 	/* Permit requests for moduli and signatures */
+	monitor_permit(mon_dispatch, MONITOR_REQ_STATE, 1);
 	monitor_permit(mon_dispatch, MONITOR_REQ_MODULI, 1);
 	monitor_permit(mon_dispatch, MONITOR_REQ_SIGN, 1);
 	monitor_permit(mon_dispatch, MONITOR_REQ_TERM, 1);
@@ -455,7 +482,8 @@ monitor_read_log(struct monitor *pmonitor)
 	/* Log it */
 	if (log_level_name(level) == NULL)
 		fatal_f("invalid log level %u (corrupted message?)", level);
-	sshlogdirect(level, forced, "%s [preauth]", msg);
+	sshlogdirect(level, forced, "%s [%s]", msg,
+	    mon_dispatch == mon_dispatch_postauth20 ? "postauth" : "preauth");
 
 	sshbuf_free(logmsg);
 	free(msg);
@@ -561,6 +589,81 @@ monitor_reset_key_state(void)
 	hostbased_chost = NULL;
 }
 
+int
+mm_answer_state(struct ssh *ssh, int sock, struct sshbuf *unused)
+{
+	struct sshbuf *m = NULL, *inc = NULL, *hostkeys = NULL;
+	struct sshbuf *opts = NULL, *confdata = NULL;
+	struct include_item *item = NULL;
+	int postauth;
+	int r;
+
+	debug_f("config len %zu", sshbuf_len(cfg));
+
+	if ((m = sshbuf_new()) == NULL ||
+	    (inc = sshbuf_new()) == NULL ||
+	    (opts = sshbuf_new()) == NULL ||
+	    (confdata = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+
+	/* XXX unnecessary? */
+	/* pack includes into a string */
+	TAILQ_FOREACH(item, &includes, entry) {
+		if ((r = sshbuf_put_cstring(inc, item->selector)) != 0 ||
+		    (r = sshbuf_put_cstring(inc, item->filename)) != 0 ||
+		    (r = sshbuf_put_stringb(inc, item->contents)) != 0)
+			fatal_fr(r, "compose includes");
+	}
+
+	hostkeys = pack_hostkeys();
+
+	/*
+	 * Protocol from monitor to unpriv privsep process:
+	 *	string	configuration
+	 *	uint64	timing_secret	XXX move delays to monitor and remove
+	 *	string	host_keys[] {
+	 *		string public_key
+	 *		string certificate
+	 *	}
+	 *	string  server_banner
+	 *	string  client_banner
+	 *	string	included_files[] {
+	 *		string	selector
+	 *		string	filename
+	 *		string	contents
+	 *	}
+	 *	string	configuration_data (postauth)
+	 *	string  keystate (postauth)
+	 *	string  authenticated_user (postauth)
+	 *	string  session_info (postauth)
+	 *	string  authopts (postauth)
+	 */
+	if ((r = sshbuf_put_stringb(m, cfg)) != 0 ||
+	    (r = sshbuf_put_u64(m, options.timing_secret)) != 0 ||
+	    (r = sshbuf_put_stringb(m, hostkeys)) != 0 ||
+	    (r = sshbuf_put_stringb(m, ssh->kex->server_version)) != 0 ||
+	    (r = sshbuf_put_stringb(m, ssh->kex->client_version)) != 0 ||
+	    (r = sshbuf_put_stringb(m, inc)) != 0)
+		fatal_fr(r, "compose config");
+
+	postauth = (authctxt && authctxt->pw && authctxt->authenticated);
+	if (postauth) {
+		/* XXX shouldn't be reachable */
+		fatal_f("internal error: called in postauth");
+	}
+
+	sshbuf_free(inc);
+	sshbuf_free(opts);
+	sshbuf_free(confdata);
+	sshbuf_free(hostkeys);
+
+	mm_request_send(sock, MONITOR_ANS_STATE, m);
+	sshbuf_free(m);
+	debug3_f("done");
+
+	return (0);
+}
+
 #ifdef WITH_OPENSSL
 int
 mm_answer_moduli(struct ssh *ssh, int sock, struct sshbuf *m)
@@ -603,27 +706,48 @@ mm_answer_moduli(struct ssh *ssh, int sock, struct sshbuf *m)
 #endif
 
 int
+mm_answer_setcompat(struct ssh *ssh, int sock, struct sshbuf *m)
+{
+	int r;
+
+	debug3_f("entering");
+
+	if ((r = sshbuf_get_u32(m, &ssh->compat)) != 0)
+		fatal_fr(r, "parse");
+	compat_set = 1;
+
+	return (0);
+}
+
+int
 mm_answer_sign(struct ssh *ssh, int sock, struct sshbuf *m)
 {
 	extern int auth_sock;			/* XXX move to state struct? */
-	struct sshkey *key;
+	struct sshkey *pubkey, *key;
 	struct sshbuf *sigbuf = NULL;
 	u_char *p = NULL, *signature = NULL;
 	char *alg = NULL;
-	size_t datlen, siglen, alglen;
-	int r, is_proof = 0;
-	u_int keyid, compat;
+	size_t datlen, siglen;
+	int r, is_proof = 0, keyid;
+	u_int compat;
 	const char proof_req[] = "hostkeys-prove-00@openssh.com";
 
 	debug3_f("entering");
 
-	if ((r = sshbuf_get_u32(m, &keyid)) != 0 ||
+	/* Make sure the unpriv process sent the compat bits already */
+	if (!compat_set)
+		fatal_f("state error: setcompat never called");
+
+	if ((r = sshkey_froms(m, &pubkey)) != 0 ||
 	    (r = sshbuf_get_string(m, &p, &datlen)) != 0 ||
-	    (r = sshbuf_get_cstring(m, &alg, &alglen)) != 0 ||
+	    (r = sshbuf_get_cstring(m, &alg, NULL)) != 0 ||
 	    (r = sshbuf_get_u32(m, &compat)) != 0)
 		fatal_fr(r, "parse");
-	if (keyid > INT_MAX)
-		fatal_f("invalid key ID");
+
+	if ((keyid = get_hostkey_index(pubkey, 1, ssh)) == -1)
+		fatal_f("unknown hostkey");
+	debug_f("hostkey %s index %d", sshkey_ssh_name(pubkey), keyid);
+	sshkey_free(pubkey);
 
 	/*
 	 * Supported KEX types use SHA1 (20 bytes), SHA256 (32 bytes),
@@ -705,15 +829,45 @@ mm_answer_sign(struct ssh *ssh, int sock, struct sshbuf *m)
 			fatal_fr(r, "assemble %s", #id); \
 	} while (0)
 
+void
+mm_encode_server_options(struct sshbuf *m)
+{
+	int r;
+	u_int i;
+
+	/* XXX this leaks raw pointers to the unpriv child processes */
+	if ((r = sshbuf_put_string(m, &options, sizeof(options))) != 0)
+		fatal_fr(r, "assemble options");
+
+#define M_CP_STROPT(x) do { \
+		if (options.x != NULL && \
+		    (r = sshbuf_put_cstring(m, options.x)) != 0) \
+			fatal_fr(r, "assemble %s", #x); \
+	} while (0)
+#define M_CP_STRARRAYOPT(x, nx, clobber) do { \
+		for (i = 0; i < options.nx; i++) { \
+			if ((r = sshbuf_put_cstring(m, options.x[i])) != 0) \
+				fatal_fr(r, "assemble %s", #x); \
+		} \
+	} while (0)
+	/* See comment in servconf.h */
+	COPY_MATCH_STRING_OPTS();
+#undef M_CP_STROPT
+#undef M_CP_STRARRAYOPT
+}
+
 /* Retrieves the password entry and also checks if the user is permitted */
 int
 mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 {
 	struct passwd *pwent;
 	int r, allowed = 0;
-	u_int i;
 
 	debug3_f("entering");
+
+	/* Make sure the unpriv process sent the compat bits already */
+	if (!compat_set)
+		fatal_f("state error: setcompat never called");
 
 	if (authctxt->attempt++ != 0)
 		fatal_f("multiple attempts for getpwnam");
@@ -728,6 +882,7 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 	sshbuf_reset(m);
 
 	if (pwent == NULL) {
+		invalid_user = 1;
 		if ((r = sshbuf_put_u8(m, 0)) != 0)
 			fatal_fr(r, "assemble fakepw");
 		authctxt->pw = fakepw();
@@ -764,24 +919,18 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
  out:
 	ssh_packet_set_log_preamble(ssh, "%suser %s",
 	    authctxt->valid ? "authenticating" : "invalid ", authctxt->user);
-	if ((r = sshbuf_put_string(m, &options, sizeof(options))) != 0)
-		fatal_fr(r, "assemble options");
 
-#define M_CP_STROPT(x) do { \
-		if (options.x != NULL && \
-		    (r = sshbuf_put_cstring(m, options.x)) != 0) \
-			fatal_fr(r, "assemble %s", #x); \
-	} while (0)
-#define M_CP_STRARRAYOPT(x, nx) do { \
-		for (i = 0; i < options.nx; i++) { \
-			if ((r = sshbuf_put_cstring(m, options.x[i])) != 0) \
-				fatal_fr(r, "assemble %s", #x); \
-		} \
-	} while (0)
-	/* See comment in servconf.h */
-	COPY_MATCH_STRING_OPTS();
-#undef M_CP_STROPT
-#undef M_CP_STRARRAYOPT
+	if (options.refuse_connection) {
+		logit("administratively prohibited connection for "
+		    "%s%s from %.128s port %d",
+		    authctxt->valid ? "" : "invalid user ",
+		    authctxt->user, ssh_remote_ipaddr(ssh),
+		    ssh_remote_port(ssh));
+		cleanup_exit(EXIT_CONFIG_REFUSED);
+	}
+
+	/* Send active options to unpriv */
+	mm_encode_server_options(m);
 
 	/* Create valid auth method lists */
 	if (auth2_setup_methods_lists(authctxt) != 0) {
@@ -897,7 +1046,6 @@ mm_answer_authpassword(struct ssh *ssh, int sock, struct sshbuf *m)
 		fatal_fr(r, "assemble PAM");
 #endif
 
-	debug3("%s: sending result %d", __func__, authenticated);
 	debug3_f("sending result %d", authenticated);
 	mm_request_send(sock, MONITOR_ANS_AUTHPASSWORD, m);
 
@@ -984,7 +1132,7 @@ int
 mm_answer_pam_start(struct ssh *ssh, int sock, struct sshbuf *m)
 {
 	if (!options.use_pam)
-		fatal("UsePAM not set, but ended up in %s anyway", __func__);
+		fatal_f("UsePAM not set, but ended up in %s anyway", __func__);
 
 	start_pam(ssh);
 
@@ -1002,13 +1150,14 @@ mm_answer_pam_account(struct ssh *ssh, int sock, struct sshbuf *m)
 	int r;
 
 	if (!options.use_pam)
-		fatal("%s: PAM not enabled", __func__);
+		fatal_f("PAM not enabled");
 
 	ret = do_pam_account();
 
 	if ((r = sshbuf_put_u32(m, ret)) != 0 ||
 	    (r = sshbuf_put_stringb(m, loginmsg)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
+	sshbuf_reset(loginmsg);
 
 	mm_request_send(sock, MONITOR_ANS_PAM_ACCOUNT, m);
 
@@ -1024,11 +1173,11 @@ mm_answer_pam_init_ctx(struct ssh *ssh, int sock, struct sshbuf *m)
 	u_int ok = 0;
 	int r;
 
-	debug3("%s", __func__);
+	debug3_f("entering");
 	if (!options.kbd_interactive_authentication)
-		fatal("%s: kbd-int authentication not enabled", __func__);
+		fatal_f("kbd-int authentication not enabled");
 	if (sshpam_ctxt != NULL)
-		fatal("%s: already called", __func__);
+		fatal_f("already called");
 	sshpam_ctxt = (sshpam_device.init_ctx)(authctxt);
 	sshpam_authok = NULL;
 	sshbuf_reset(m);
@@ -1038,7 +1187,7 @@ mm_answer_pam_init_ctx(struct ssh *ssh, int sock, struct sshbuf *m)
 		ok = 1;
 	}
 	if ((r = sshbuf_put_u32(m, ok)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
 	mm_request_send(sock, MONITOR_ANS_PAM_INIT_CTX, m);
 	return (0);
 }
@@ -1050,10 +1199,10 @@ mm_answer_pam_query(struct ssh *ssh, int sock, struct sshbuf *m)
 	u_int i, num = 0, *echo_on = 0;
 	int r, ret;
 
-	debug3("%s", __func__);
+	debug3_f("entering");
 	sshpam_authok = NULL;
 	if (sshpam_ctxt == NULL)
-		fatal("%s: no context", __func__);
+		fatal_f("no context");
 	ret = (sshpam_device.query)(sshpam_ctxt, &name, &info,
 	    &num, &prompts, &echo_on);
 	if (ret == 0 && num == 0)
@@ -1067,13 +1216,13 @@ mm_answer_pam_query(struct ssh *ssh, int sock, struct sshbuf *m)
 	    (r = sshbuf_put_cstring(m, info)) != 0 ||
 	    (r = sshbuf_put_u32(m, sshpam_get_maxtries_reached())) != 0 ||
 	    (r = sshbuf_put_u32(m, num)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
 	free(name);
 	free(info);
 	for (i = 0; i < num; ++i) {
 		if ((r = sshbuf_put_cstring(m, prompts[i])) != 0 ||
 		    (r = sshbuf_put_u32(m, echo_on[i])) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+			fatal_fr(r, "buffer error");
 		free(prompts[i]);
 	}
 	free(prompts);
@@ -1091,12 +1240,16 @@ mm_answer_pam_respond(struct ssh *ssh, int sock, struct sshbuf *m)
 	u_int i, num;
 	int r, ret;
 
-	debug3("%s", __func__);
+	debug3_f("entering");
 	if (sshpam_ctxt == NULL)
-		fatal("%s: no context", __func__);
+		fatal_f("no context");
 	sshpam_authok = NULL;
 	if ((r = sshbuf_get_u32(m, &num)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
+	if (num > PAM_MAX_NUM_MSG) {
+		fatal_f("Too many PAM messages, got %u, expected <= %u",
+		    num, (unsigned)PAM_MAX_NUM_MSG);
+	}
 	if (num > 0) {
 		resp = xcalloc(num, sizeof(char *));
 		for (i = 0; i < num; ++i) {
@@ -1113,7 +1266,7 @@ mm_answer_pam_respond(struct ssh *ssh, int sock, struct sshbuf *m)
 	}
 	sshbuf_reset(m);
 	if ((r = sshbuf_put_u32(m, ret)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
 	mm_request_send(sock, MONITOR_ANS_PAM_RESPOND, m);
 	auth_method = "keyboard-interactive";
 	auth_submethod = "pam";
@@ -1127,9 +1280,9 @@ mm_answer_pam_free_ctx(struct ssh *ssh, int sock, struct sshbuf *m)
 {
 	int r = sshpam_authok != NULL && sshpam_authok == sshpam_ctxt;
 
-	debug3("%s", __func__);
+	debug3_f("entering");
 	if (sshpam_ctxt == NULL)
-		fatal("%s: no context", __func__);
+		fatal_f("no context");
 	(sshpam_device.free_ctx)(sshpam_ctxt);
 	sshpam_ctxt = sshpam_authok = NULL;
 	sshbuf_reset(m);
@@ -1161,11 +1314,6 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 		fatal_fr(r, "parse");
 
 	if (key != NULL && authctxt->valid) {
-		/* These should not make it past the privsep child */
-		if (sshkey_type_plain(key->type) == KEY_RSA &&
-		    (ssh->compat & SSH_BUG_RSASIGMD5) != 0)
-			fatal_f("passed a SSH_BUG_RSASIGMD5 key");
-
 		switch (type) {
 		case MM_USERKEY:
 			auth_method = "publickey";
@@ -1480,7 +1628,7 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 	}
 	auth2_record_key(authctxt, ret == 0, key);
 
-	if (key_blobtype == MM_USERKEY)
+	if (key_blobtype == MM_USERKEY && ret == 0)
 		auth_activate_options(ssh, key_opts);
 	monitor_reset_key_state();
 
@@ -1665,10 +1813,10 @@ mm_answer_audit_event(struct ssh *ssh, int socket, struct sshbuf *m)
 	ssh_audit_event_t event;
 	int r;
 
-	debug3("%s entering", __func__);
+	debug3_f("entering");
 
 	if ((r = sshbuf_get_u32(m, &n)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
 	event = (ssh_audit_event_t)n;
 	switch (event) {
 	case SSH_AUTH_FAIL_PUBKEY:
@@ -1693,9 +1841,9 @@ mm_answer_audit_command(struct ssh *ssh, int socket, struct sshbuf *m)
 	char *cmd;
 	int r;
 
-	debug3("%s entering", __func__);
+	debug3_f("entering");
 	if ((r = sshbuf_get_cstring(m, &cmd, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal_fr(r, "buffer error");
 	/* sanity check command, if so how? */
 	audit_run_command(cmd);
 	free(cmd);
@@ -1747,6 +1895,7 @@ monitor_apply_keystate(struct ssh *ssh, struct monitor *pmonitor)
 #endif /* WITH_OPENSSL */
 	kex->kex[KEX_C25519_SHA256] = kex_gen_server;
 	kex->kex[KEX_KEM_SNTRUP761X25519_SHA512] = kex_gen_server;
+	kex->kex[KEX_KEM_MLKEM768X25519_SHA256] = kex_gen_server;
 	kex->load_host_public_key=&get_hostkey_public_by_type;
 	kex->load_host_private_key=&get_hostkey_private_by_type;
 	kex->host_key_index=&get_hostkey_index;
@@ -1769,11 +1918,6 @@ mm_get_keystate(struct ssh *ssh, struct monitor *pmonitor)
 
 
 /* XXX */
-
-#define FD_CLOSEONEXEC(x) do { \
-	if (fcntl(x, F_SETFD, FD_CLOEXEC) == -1) \
-		fatal("fcntl(%d, F_SETFD)", x); \
-} while (0)
 
 static void
 monitor_openfds(struct monitor *mon, int do_logfds)
@@ -1807,8 +1951,6 @@ monitor_openfds(struct monitor *mon, int do_logfds)
 		mon->m_log_recvfd = mon->m_log_sendfd = -1;
 }
 
-#define MM_MEMSIZE	65536
-
 struct monitor *
 monitor_init(void)
 {
@@ -1824,6 +1966,18 @@ void
 monitor_reinit(struct monitor *mon)
 {
 	monitor_openfds(mon, 0);
+}
+
+int
+monitor_auth_attempted(void)
+{
+	return auth_attempted;
+}
+
+int
+monitor_invalid_user(void)
+{
+	return invalid_user;
 }
 
 #ifdef GSSAPI

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.158 2022/06/03 04:47:21 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.164 2026/02/11 22:57:16 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -35,9 +35,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
+#include <paths.h>
 #include <pwd.h>
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -74,13 +72,11 @@
 #include "authfile.h"
 #include "monitor_wrap.h"
 #include "ssherr.h"
-#include "compat.h"
 #include "channels.h"
 
 /* import */
 extern ServerOptions options;
 extern struct include_list includes;
-extern int use_privsep;
 extern struct sshbuf *loginmsg;
 extern struct passwd *privsep_pw;
 extern struct sshauthopt *auth_opts;
@@ -102,8 +98,8 @@ allowed_user(struct ssh *ssh, struct passwd * pw)
 {
 	struct stat st;
 	const char *hostname = NULL, *ipaddr = NULL;
-	u_int i;
 	int r;
+	u_int i;
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
 	if (!pw || !pw->pw_name)
@@ -273,7 +269,7 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 	const char *authmsg;
 	char *extra = NULL;
 
-	if (use_privsep && !mm_is_monitor() && !authctxt->postponed)
+	if (!mm_is_monitor() && !authctxt->postponed)
 		return;
 
 	/* Raise logging level */
@@ -465,6 +461,9 @@ getpwnamallow(struct ssh *ssh, const char *user)
 {
 #ifdef HAVE_LOGIN_CAP
 	extern login_cap_t *lc;
+#ifdef HAVE_AUTH_HOSTOK
+	const char *from_host, *from_ip;
+#endif
 #ifdef BSD_AUTH
 	auth_session_t *as;
 #endif
@@ -473,14 +472,15 @@ getpwnamallow(struct ssh *ssh, const char *user)
 	struct connection_info *ci;
 	u_int i;
 
-	ci = get_connection_info(ssh, 1, options.use_dns);
+	ci = server_get_connection_info(ssh, 1, options.use_dns);
 	ci->user = user;
+	ci->user_invalid = getpwnam(user) == NULL;
 	parse_server_match_config(&options, &includes, ci);
 	log_change_level(options.log_level);
 	log_verbose_reset();
 	for (i = 0; i < options.num_log_verbose; i++)
 		log_verbose_add(options.log_verbose[i]);
-	process_permitopen(ssh, &options);
+	server_process_permitopen(ssh);
 
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_setauthdb(user);
@@ -510,6 +510,21 @@ getpwnamallow(struct ssh *ssh, const char *user)
 		debug("unable to get login class: %s", user);
 		return (NULL);
 	}
+#ifdef HAVE_AUTH_HOSTOK
+	from_host = auth_get_canonical_hostname(ssh, options.use_dns);
+	from_ip = ssh_remote_ipaddr(ssh);
+	if (!auth_hostok(lc, from_host, from_ip)) {
+		debug("Denied connection for %.200s from %.200s [%.200s].",
+		      pw->pw_name, from_host, from_ip);
+		return (NULL);
+	}
+#endif /* HAVE_AUTH_HOSTOK */
+#ifdef HAVE_AUTH_TIMEOK
+	if (!auth_timeok(lc, time(NULL))) {
+		debug("LOGIN %.200s REFUSED (TIME)", pw->pw_name);
+		return (NULL);
+	}
+#endif /* HAVE_AUTH_TIMEOK */
 #ifdef BSD_AUTH
 	if ((as = auth_open()) == NULL || auth_setpwd(as, pw) != 0 ||
 	    auth_approval(as, lc, pw->pw_name, "ssh") <= 0) {
@@ -530,9 +545,10 @@ int
 auth_key_is_revoked(struct sshkey *key)
 {
 	char *fp = NULL;
+	u_int i;
 	int r;
 
-	if (options.revoked_keys_file == NULL)
+	if (options.num_revoked_keys_files == 0)
 		return 0;
 	if ((fp = sshkey_fingerprint(key, options.fingerprint_hash,
 	    SSH_FP_DEFAULT)) == NULL) {
@@ -541,19 +557,22 @@ auth_key_is_revoked(struct sshkey *key)
 		goto out;
 	}
 
-	r = sshkey_check_revoked(key, options.revoked_keys_file);
-	switch (r) {
-	case 0:
-		break; /* not revoked */
-	case SSH_ERR_KEY_REVOKED:
-		error("Authentication key %s %s revoked by file %s",
-		    sshkey_type(key), fp, options.revoked_keys_file);
-		goto out;
-	default:
-		error_r(r, "Error checking authentication key %s %s in "
-		    "revoked keys file %s", sshkey_type(key), fp,
-		    options.revoked_keys_file);
-		goto out;
+	for (i = 0; i < options.num_revoked_keys_files; i++) {
+		r = sshkey_check_revoked(key, options.revoked_keys_files[i]);
+		switch (r) {
+		case 0:
+			break; /* not revoked */
+		case SSH_ERR_KEY_REVOKED:
+			error("Authentication key %s %s revoked by file %s",
+			    sshkey_type(key), fp,
+			    options.revoked_keys_files[i]);
+			goto out;
+		default:
+			error_r(r, "Error checking authentication key %s %s in "
+			    "revoked keys file %s", sshkey_type(key), fp,
+			    options.revoked_keys_files[i]);
+			goto out;
+		}
 	}
 
 	/* Success */
@@ -571,14 +590,13 @@ auth_debug_add(const char *fmt,...)
 	va_list args;
 	int r;
 
-	if (auth_debug == NULL)
-		return;
-
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
-	if ((r = sshbuf_put_cstring(auth_debug, buf)) != 0)
-		fatal_fr(r, "sshbuf_put_cstring");
+	debug3("%s", buf);
+	if (auth_debug != NULL)
+		if ((r = sshbuf_put_cstring(auth_debug, buf)) != 0)
+			fatal_fr(r, "sshbuf_put_cstring");
 }
 
 void
@@ -640,97 +658,6 @@ fakepw(void)
 }
 
 /*
- * Returns the remote DNS hostname as a string. The returned string must not
- * be freed. NB. this will usually trigger a DNS query the first time it is
- * called.
- * This function does additional checks on the hostname to mitigate some
- * attacks on based on conflation of hostnames and IP addresses.
- */
-
-static char *
-remote_hostname(struct ssh *ssh)
-{
-	struct sockaddr_storage from;
-	socklen_t fromlen;
-	struct addrinfo hints, *ai, *aitop;
-	char name[NI_MAXHOST], ntop2[NI_MAXHOST];
-	const char *ntop = ssh_remote_ipaddr(ssh);
-
-	/* Get IP address of client. */
-	fromlen = sizeof(from);
-	memset(&from, 0, sizeof(from));
-	if (getpeername(ssh_packet_get_connection_in(ssh),
-	    (struct sockaddr *)&from, &fromlen) == -1) {
-		debug("getpeername failed: %.100s", strerror(errno));
-		return xstrdup(ntop);
-	}
-
-	ipv64_normalise_mapped(&from, &fromlen);
-	if (from.ss_family == AF_INET6)
-		fromlen = sizeof(struct sockaddr_in6);
-
-	debug3("Trying to reverse map address %.100s.", ntop);
-	/* Map the IP address to a host name. */
-	if (getnameinfo((struct sockaddr *)&from, fromlen, name, sizeof(name),
-	    NULL, 0, NI_NAMEREQD) != 0) {
-		/* Host name not found.  Use ip address. */
-		return xstrdup(ntop);
-	}
-
-	/*
-	 * if reverse lookup result looks like a numeric hostname,
-	 * someone is trying to trick us by PTR record like following:
-	 *	1.1.1.10.in-addr.arpa.	IN PTR	2.3.4.5
-	 */
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_socktype = SOCK_DGRAM;	/*dummy*/
-	hints.ai_flags = AI_NUMERICHOST;
-	if (getaddrinfo(name, NULL, &hints, &ai) == 0) {
-		logit("Nasty PTR record \"%s\" is set up for %s, ignoring",
-		    name, ntop);
-		freeaddrinfo(ai);
-		return xstrdup(ntop);
-	}
-
-	/* Names are stored in lowercase. */
-	lowercase(name);
-
-	/*
-	 * Map it back to an IP address and check that the given
-	 * address actually is an address of this host.  This is
-	 * necessary because anyone with access to a name server can
-	 * define arbitrary names for an IP address. Mapping from
-	 * name to IP address can be trusted better (but can still be
-	 * fooled if the intruder has access to the name server of
-	 * the domain).
-	 */
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = from.ss_family;
-	hints.ai_socktype = SOCK_STREAM;
-	if (getaddrinfo(name, NULL, &hints, &aitop) != 0) {
-		logit("reverse mapping checking getaddrinfo for %.700s "
-		    "[%s] failed.", name, ntop);
-		return xstrdup(ntop);
-	}
-	/* Look for the address from the list of addresses. */
-	for (ai = aitop; ai; ai = ai->ai_next) {
-		if (getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop2,
-		    sizeof(ntop2), NULL, 0, NI_NUMERICHOST) == 0 &&
-		    (strcmp(ntop, ntop2) == 0))
-				break;
-	}
-	freeaddrinfo(aitop);
-	/* If we reached the end of the list, the address was not there. */
-	if (ai == NULL) {
-		/* Address not found for the host name. */
-		logit("Address %.100s maps to %.600s, but this does not "
-		    "map back to the address.", ntop, name);
-		return xstrdup(ntop);
-	}
-	return xstrdup(name);
-}
-
-/*
  * Return the canonical name of the host in the other side of the current
  * connection.  The host name is cached, so it is efficient to call this
  * several times.
@@ -743,12 +670,10 @@ auth_get_canonical_hostname(struct ssh *ssh, int use_dns)
 
 	if (!use_dns)
 		return ssh_remote_ipaddr(ssh);
-	else if (dnsname != NULL)
+	if (dnsname != NULL)
 		return dnsname;
-	else {
-		dnsname = remote_hostname(ssh);
-		return dnsname;
-	}
+	dnsname = ssh_remote_hostname(ssh);
+	return dnsname;
 }
 
 /* These functions link key/cert options to the auth framework */
@@ -835,6 +760,7 @@ auth_activate_options(struct ssh *ssh, struct sshauthopt *opts)
 		error("Inconsistent authentication options: %s", emsg);
 		return -1;
 	}
+	sshauthopt_free(old);
 	return 0;
 }
 

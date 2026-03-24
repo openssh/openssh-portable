@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.27 2021/04/03 06:18:41 djm Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.34 2026/03/03 09:57:25 dtucker Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -27,6 +27,7 @@
 #include "log.h"
 #include "authfile.h"
 #include "sshkey.h"
+#include "dh.h"
 #include "misc.h"
 #include "ssh2.h"
 #include "version.h"
@@ -49,10 +50,8 @@ int	_ssh_host_key_sign(struct ssh *, struct sshkey *, struct sshkey *,
     u_char **, size_t *, const u_char *, size_t, const char *);
 
 /*
- * stubs for the server side implementation of kex.
- * disable privsep so our stubs will never be called.
+ * stubs for privsep calls in the server side implementation of kex.
  */
-int	use_privsep = 0;
 int	mm_sshkey_sign(struct sshkey *, u_char **, u_int *,
     const u_char *, u_int, const char *, const char *, const char *, u_int);
 
@@ -65,14 +64,20 @@ mm_sshkey_sign(struct sshkey *key, u_char **sigp, u_int *lenp,
     const u_char *data, u_int datalen, const char *alg,
     const char *sk_provider, const char *sk_pin, u_int compat)
 {
-	return (-1);
+	size_t slen = 0;
+	int ret;
+
+	ret = sshkey_sign(key, sigp, &slen, data, datalen, alg,
+	    sk_provider, sk_pin, compat);
+	*lenp = slen;
+	return ret;
 }
 
 #ifdef WITH_OPENSSL
 DH *
 mm_choose_dh(int min, int nbits, int max)
 {
-	return (NULL);
+	return choose_dh(min, nbits, max);
 }
 #endif
 
@@ -82,6 +87,7 @@ int
 ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
+	char *populated[PROPOSAL_MAX];
 	struct ssh *ssh;
 	char **proposal;
 	static int called;
@@ -99,10 +105,19 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 
 	/* Initialize key exchange */
 	proposal = kex_params ? kex_params->proposal : myproposal;
-	if ((r = kex_ready(ssh, proposal)) != 0) {
+	kex_proposal_populate_entries(ssh, populated,
+	    proposal[PROPOSAL_KEX_ALGS],
+	    proposal[PROPOSAL_ENC_ALGS_CTOS],
+	    proposal[PROPOSAL_MAC_ALGS_CTOS],
+	    proposal[PROPOSAL_COMP_ALGS_CTOS],
+	    proposal[PROPOSAL_SERVER_HOST_KEY_ALGS]);
+	r = kex_ready(ssh, populated);
+	kex_proposal_free_entries(populated);
+	if (r != 0) {
 		ssh_free(ssh);
 		return r;
 	}
+
 	ssh->kex->server = is_server;
 	if (is_server) {
 #ifdef WITH_OPENSSL
@@ -119,6 +134,7 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 #endif /* WITH_OPENSSL */
 		ssh->kex->kex[KEX_C25519_SHA256] = kex_gen_server;
 		ssh->kex->kex[KEX_KEM_SNTRUP761X25519_SHA512] = kex_gen_server;
+		ssh->kex->kex[KEX_KEM_MLKEM768X25519_SHA256] = kex_gen_server;
 		ssh->kex->load_host_public_key=&_ssh_host_public_key;
 		ssh->kex->load_host_private_key=&_ssh_host_private_key;
 		ssh->kex->sign=&_ssh_host_key_sign;
@@ -137,6 +153,7 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 #endif /* WITH_OPENSSL */
 		ssh->kex->kex[KEX_C25519_SHA256] = kex_gen_client;
 		ssh->kex->kex[KEX_KEM_SNTRUP761X25519_SHA512] = kex_gen_client;
+		ssh->kex->kex[KEX_KEM_MLKEM768X25519_SHA256] = kex_gen_client;
 		ssh->kex->verify_host_key =&_ssh_verify_host_key;
 	}
 	*sshp = ssh;
@@ -238,7 +255,7 @@ int
 ssh_packet_next(struct ssh *ssh, u_char *typep)
 {
 	int r;
-	u_int32_t seqnr;
+	uint32_t seqnr;
 	u_char type;
 
 	/*
@@ -515,7 +532,7 @@ _ssh_order_hostkeyalgs(struct ssh *ssh)
 	char *orig, *avail, *oavail = NULL, *alg, *replace = NULL;
 	char **proposal;
 	size_t maxlen;
-	int ktype, r;
+	int ktype, nid, r;
 
 	/* XXX we de-serialize ssh->kex->my, modify it, and change it */
 	if ((r = kex_buf2prop(ssh->kex->my, NULL, &proposal)) != 0)
@@ -534,15 +551,20 @@ _ssh_order_hostkeyalgs(struct ssh *ssh)
 	while ((alg = strsep(&avail, ",")) && *alg != '\0') {
 		if ((ktype = sshkey_type_from_name(alg)) == KEY_UNSPEC)
 			continue;
+		nid = sshkey_ecdsa_nid_from_name(alg);
 		TAILQ_FOREACH(k, &ssh->public_keys, next) {
-			if (k->key->type == ktype ||
-			    (sshkey_is_cert(k->key) && k->key->type ==
-			    sshkey_type_plain(ktype))) {
-				if (*replace != '\0')
-					strlcat(replace, ",", maxlen);
-				strlcat(replace, alg, maxlen);
-				break;
-			}
+			if (k->key->type != ktype &&
+			    (!sshkey_is_cert(k->key) ||
+			    k->key->type != sshkey_type_plain(ktype)))
+				continue;
+			if (sshkey_type_plain(k->key->type) == KEY_ECDSA &&
+			    k->key->ecdsa_nid != nid)
+				continue;
+			/* Candidate */
+			if (*replace != '\0')
+				strlcat(replace, ",", maxlen);
+			strlcat(replace, alg, maxlen);
+			break;
 		}
 	}
 	if (*replace != '\0') {

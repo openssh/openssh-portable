@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.38 2022/01/14 03:35:10 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.41 2024/08/15 00:51:51 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -23,15 +23,14 @@
 
 #include <dlfcn.h>
 #include <stddef.h>
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 
 #if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 #include <openssl/objects.h>
 #include <openssl/ec.h>
+#include <openssl/evp.h>
 #endif /* WITH_OPENSSL && OPENSSL_HAS_ECC */
 
 #include "log.h"
@@ -127,15 +126,18 @@ sshsk_open(const char *path)
 		ret->sk_enroll = ssh_sk_enroll;
 		ret->sk_sign = ssh_sk_sign;
 		ret->sk_load_resident_keys = ssh_sk_load_resident_keys;
+		return ret;
 #else
 		error("internal security key support not enabled");
+		goto fail;
 #endif
-		return ret;
 	}
-	if ((ret->dlhandle = dlopen(path, RTLD_NOW)) == NULL) {
-		error("Provider \"%s\" dlopen failed: %s", path, dlerror());
+	if (lib_contains_symbol(path, "sk_api_version") != 0) {
+		error("provider %s is not an OpenSSH FIDO library", path);
 		goto fail;
 	}
+	if ((ret->dlhandle = dlopen(path, RTLD_NOW)) == NULL)
+		fatal("Provider \"%s\" dlopen failed: %s", path, dlerror());
 	if ((ret->sk_api_version = dlsym(ret->dlhandle,
 	    "sk_api_version")) == NULL) {
 		error("Provider \"%s\" dlsym(sk_api_version) failed: %s",
@@ -204,7 +206,9 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 {
 	struct sshkey *key = NULL;
 	struct sshbuf *b = NULL;
+	EC_KEY *ecdsa = NULL;
 	EC_POINT *q = NULL;
+	const EC_GROUP *g = NULL;
 	int r;
 
 	*keyp = NULL;
@@ -214,8 +218,9 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 		goto out;
 	}
 	key->ecdsa_nid = NID_X9_62_prime256v1;
-	if ((key->ecdsa = EC_KEY_new_by_curve_name(key->ecdsa_nid)) == NULL ||
-	    (q = EC_POINT_new(EC_KEY_get0_group(key->ecdsa))) == NULL ||
+	if ((ecdsa = EC_KEY_new_by_curve_name(key->ecdsa_nid)) == NULL ||
+	    (g = EC_KEY_get0_group(ecdsa)) == NULL ||
+	    (q = EC_POINT_new(g)) == NULL ||
 	    (b = sshbuf_new()) == NULL) {
 		error_f("allocation failed");
 		r = SSH_ERR_ALLOC_FAIL;
@@ -226,20 +231,30 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 		error_fr(r, "sshbuf_put_string");
 		goto out;
 	}
-	if ((r = sshbuf_get_ec(b, q, EC_KEY_get0_group(key->ecdsa))) != 0) {
+	if ((r = sshbuf_get_ec(b, q, g)) != 0) {
 		error_fr(r, "parse");
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if (sshkey_ec_validate_public(EC_KEY_get0_group(key->ecdsa), q) != 0) {
+	if (sshkey_ec_validate_public(g, q) != 0) {
 		error("Authenticator returned invalid ECDSA key");
 		r = SSH_ERR_KEY_INVALID_EC_VALUE;
 		goto out;
 	}
-	if (EC_KEY_set_public_key(key->ecdsa, q) != 1) {
+	if (EC_KEY_set_public_key(ecdsa, q) != 1) {
 		/* XXX assume it is a allocation error */
 		error_f("allocation failed");
 		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((key->pkey = EVP_PKEY_new()) == NULL) {
+		error_f("allocation failed");
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (EVP_PKEY_set1_EC_KEY(key->pkey, ecdsa) != 1) {
+		error_f("Assigning EC_KEY failed");
+		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
 	/* success */
@@ -247,9 +262,10 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 	key = NULL; /* transferred */
 	r = 0;
  out:
-	EC_POINT_free(q);
 	sshkey_free(key);
 	sshbuf_free(b);
+	EC_KEY_free(ecdsa);
+	EC_POINT_free(q);
 	return r;
 }
 #endif /* WITH_OPENSSL */
@@ -353,6 +369,8 @@ skerr_to_ssherr(int skerr)
 		return SSH_ERR_KEY_WRONG_PASSPHRASE;
 	case SSH_SK_ERR_DEVICE_NOT_FOUND:
 		return SSH_ERR_DEVICE_NOT_FOUND;
+	case SSH_SK_ERR_CREDENTIAL_EXISTS:
+		return SSH_ERR_KEY_BAD_PERMISSIONS;
 	case SSH_SK_ERR_GENERAL:
 	default:
 		return SSH_ERR_INVALID_FORMAT;

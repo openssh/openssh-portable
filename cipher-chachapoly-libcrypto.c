@@ -1,3 +1,4 @@
+/* $OpenBSD: cipher-chachapoly-libcrypto.c,v 1.3 2026/02/14 00:18:34 jsg Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *
@@ -14,8 +15,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: cipher-chachapoly-libcrypto.c,v 1.1 2020/04/03 04:32:21 djm Exp $ */
-
 #include "includes.h"
 #ifdef WITH_OPENSSL
 #include "openbsd-compat/openssl-compat.h"
@@ -24,13 +23,11 @@
 #if defined(HAVE_EVP_CHACHA20) && !defined(HAVE_BROKEN_CHACHA20)
 
 #include <sys/types.h>
-#include <stdarg.h> /* needed for log.h */
 #include <string.h>
 #include <stdio.h>  /* needed for misc.h */
 
 #include <openssl/evp.h>
 
-#include "log.h"
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "cipher-chachapoly.h"

@@ -33,15 +33,11 @@ The method is documented in:
 
 https://www.openssh.com/txt/draft-miller-secsh-compression-delayed-00.txt
 
-1.3. transport: New public key algorithms "ssh-rsa-cert-v01@openssh.com",
-     "ssh-dsa-cert-v01@openssh.com",
-     "ecdsa-sha2-nistp256-cert-v01@openssh.com",
-     "ecdsa-sha2-nistp384-cert-v01@openssh.com" and
-     "ecdsa-sha2-nistp521-cert-v01@openssh.com"
+1.3. transport: Certificate key algorithms
 
 OpenSSH introduces new public key algorithms to support certificate
 authentication for users and host keys. These methods are documented
-in the file PROTOCOL.certkeys
+in at https://datatracker.ietf.org/doc/draft-miller-ssh-cert/
 
 1.4. transport: Elliptic Curve cryptography
 
@@ -82,27 +78,79 @@ contains:
 1.6 transport: AES-GCM
 
 OpenSSH supports the AES-GCM algorithm as specified in RFC 5647.
-Because of problems with the specification of the key exchange
-the behaviour of OpenSSH differs from the RFC as follows:
+Because of problems with the design of the algorithm negotiation in this
+RFC, OpenSSH (and other SSH implementations) use different rules as
+described in:
 
-AES-GCM is only negotiated as the cipher algorithms
-"aes128-gcm@openssh.com" or "aes256-gcm@openssh.com" and never as
-an MAC algorithm. Additionally, if AES-GCM is selected as the cipher
-the exchanged MAC algorithms are ignored and there doesn't have to be
-a matching MAC.
+https://datatracker.ietf.org/doc/draft-miller-sshm-aes-gcm/
 
 1.7 transport: chacha20-poly1305@openssh.com authenticated encryption
 
 OpenSSH supports authenticated encryption using ChaCha20 and Poly1305
-as described in PROTOCOL.chacha20poly1305.
+as described in:
 
-1.8 transport: curve25519-sha256@libssh.org key exchange algorithm
+https://datatracker.ietf.org/doc/draft-ietf-sshm-chacha20-poly1305/
 
-OpenSSH supports the use of ECDH in Curve25519 for key exchange as
-described at:
-http://git.libssh.org/users/aris/libssh.git/plain/doc/curve25519-sha256@libssh.org.txt?h=curve25519
+1.8 transport: ping facility
 
-This is identical to curve25519-sha256 as later published in RFC8731.
+OpenSSH implements a transport level ping message SSH2_MSG_PING
+and a corresponding SSH2_MSG_PONG reply.
+
+#define SSH2_MSG_PING	192
+#define SSH2_MSG_PONG	193
+
+The ping message is simply:
+
+	byte		SSH_MSG_PING
+	string		data
+
+The reply copies the data (which may be the empty string) from the
+ping:
+
+	byte		SSH_MSG_PONG
+	string		data
+
+Replies are sent in order. They are sent immediately except when rekeying
+is in progress, in which case they are queued until rekeying completes.
+
+The server advertises support for these messages using the
+SSH2_MSG_EXT_INFO mechanism (RFC8308), with the following message:
+
+	string		"ping@openssh.com"
+	string		"0" (version)
+
+The ping/reply message is implemented at the transport layer rather
+than as a named global or channel request to allow pings with very
+short packet lengths, which would not be possible with other
+approaches.
+
+1.9 transport: strict key exchange extension
+
+OpenSSH supports a number of transport-layer hardening measures
+designed to thwart the so-called "Terrapin" attack against the
+early SSH protocol. These are collectively referred to as
+"strict KEX" and documented in an Internet-Draft:
+
+https://datatracker.ietf.org/doc/draft-miller-sshm-strict-kex/
+
+1.10 transport: SSH2_MSG_EXT_INFO during user authentication
+
+This protocol extension allows the SSH2_MSG_EXT_INFO to be sent
+during user authentication. RFC8308 does allow a second
+SSH2_MSG_EXT_INFO notification, but it may only be sent at the end
+of user authentication and this is too late to signal per-user
+server signature algorithms.
+
+Support for receiving the SSH2_MSG_EXT_INFO message during user
+authentication is signalled by the client including a
+"ext-info-in-auth@openssh.com" key via its initial SSH2_MSG_EXT_INFO
+set after the SSH2_MSG_NEWKEYS message.
+
+A server that supports this extension MAY send a second
+SSH2_MSG_EXT_INFO message any time after the client's first
+SSH2_MSG_USERAUTH_REQUEST, regardless of whether it succeed or fails.
+The client SHOULD be prepared to update the server-sig-algs that
+it received during an earlier SSH2_MSG_EXT_INFO with the later one.
 
 2. Connection protocol changes
 
@@ -290,52 +338,9 @@ and "hostkeys-prove-00@openssh.com"
 
 OpenSSH supports a protocol extension allowing a server to inform
 a client of all its protocol v.2 host keys after user-authentication
-has completed.
+has completed. This is documented in an Internet-Draft
 
-	byte		SSH_MSG_GLOBAL_REQUEST
-	string		"hostkeys-00@openssh.com"
-	char		0 /* want-reply */
-	string[]	hostkeys
-
-Upon receiving this message, a client should check which of the
-supplied host keys are present in known_hosts.
-
-Note that the server may send key types that the client does not
-support. The client should disregard such keys if they are received.
-
-If the client identifies any keys that are not present for the host,
-it should send a "hostkeys-prove@openssh.com" message to request the
-server prove ownership of the private half of the key.
-
-	byte		SSH_MSG_GLOBAL_REQUEST
-	string		"hostkeys-prove-00@openssh.com"
-	char		1 /* want-reply */
-	string[]	hostkeys
-
-When a server receives this message, it should generate a signature
-using each requested key over the following:
-
-	string		"hostkeys-prove-00@openssh.com"
-	string		session identifier
-	string		hostkey
-
-These signatures should be included in the reply, in the order matching
-the hostkeys in the request:
-
-	byte		SSH_MSG_REQUEST_SUCCESS
-	string[]	signatures
-
-When the client receives this reply (and not a failure), it should
-validate the signatures and may update its known_hosts file, adding keys
-that it has not seen before and deleting keys for the server host that
-are no longer offered.
-
-These extensions let a client learn key types that it had not previously
-encountered, thereby allowing it to potentially upgrade from weaker
-key algorithms to better ones. It also supports graceful key rotation:
-a server may offer multiple keys of the same type for a period (to
-give clients an opportunity to learn them using this extension) before
-removing the deprecated key from those offered.
+https://datatracker.ietf.org/doc/draft-miller-sshm-hostkey-update/
 
 2.6. connection: SIGINFO support for "signal" channel request
 
@@ -615,6 +620,68 @@ This request is identical to the "copy-data" request documented in:
 
 https://tools.ietf.org/html/draft-ietf-secsh-filexfer-extensions-00#section-7
 
+4.11. sftp: Extension request "home-directory"
+
+This request asks the server to expand the specified user's home directory.
+An empty username implies the current user.  This can be used by the client
+to expand ~/ type paths locally.
+
+	byte		SSH_FXP_EXTENDED
+	uint32		id
+	string		"home-directory"
+	string		username
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
+This provides similar information as the "expand-path@openssh.com" extension.
+
+This request is identical to the "home-directory" request documented in:
+
+https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-extensions-00#section-5
+
+4.12. sftp: Extension request "users-groups-by-id@openssh.com"
+
+This request asks the server to return user and/or group names that
+correspond to one or more IDs (e.g. as returned from a SSH_FXP_STAT
+request). This may be used by the client to provide usernames in
+directory listings.
+
+	byte		SSH_FXP_EXTENDED
+	uint32		id
+	string		"users-groups-by-id@openssh.com"
+	string		uids
+	string		gids
+
+Where "uids" and "gids" consists of one or more integer user or group
+identifiers:
+
+	uint32		id-0
+	...
+
+The server will reply with a SSH_FXP_EXTENDED_REPLY:
+
+	byte		SSH_FXP_EXTENDED_REPLY
+	uint32		id
+	string		usernames
+	string		groupnames
+
+Where "username" and "groupnames" consists of names in identical request
+order to "uids" and "gids" respectively:
+
+	string		name-0
+	...
+
+If a name cannot be identified for a given user or group ID, an empty
+string will be returned in its place.
+
+It is acceptable for either "uids" or "gids" to be an empty set, in
+which case the respective "usernames" or "groupnames" list will also
+be empty.
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
 5. Miscellaneous changes
 
 5.1 Public key format
@@ -624,15 +691,15 @@ authorized_keys files, are formatted as a single line of text consisting
 of the public key algorithm name followed by a base64-encoded key blob.
 The public key blob (before base64 encoding) is the same format used for
 the encoding of public keys sent on the wire: as described in RFC4253
-section 6.6 for RSA and DSA keys, RFC5656 section 3.1 for ECDSA keys
-and the "New public key formats" section of PROTOCOL.certkeys for the
-OpenSSH certificate formats.
+section 6.6 for RSA keys, RFC5656 section 3.1 for ECDSA keys and
+https://datatracker.ietf.org/doc/draft-miller-ssh-cert/
+for the OpenSSH certificate formats.
 
 5.2 Private key format
 
 OpenSSH private keys, as generated by ssh-keygen(1) use the format
 described in PROTOCOL.key by default. As a legacy option, PEM format
-(RFC7468) private keys are also supported for RSA, DSA and ECDSA keys
+(RFC7468) private keys are also supported for RSA and ECDSA keys
 and were the default format before OpenSSH 7.8.
 
 5.3 KRL format
@@ -651,4 +718,4 @@ master instance and later clients.
 OpenSSH extends the usual agent protocol. These changes are documented
 in the PROTOCOL.agent file.
 
-$OpenBSD: PROTOCOL,v 1.45 2022/04/08 05:43:39 dtucker Exp $
+$OpenBSD: PROTOCOL,v 1.60 2026/02/09 22:09:48 dtucker Exp $

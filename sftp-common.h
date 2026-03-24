@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-common.h,v 1.12 2015/01/14 13:54:13 djm Exp $ */
+/* $OpenBSD: sftp-common.h,v 1.14 2026/03/03 09:57:25 dtucker Exp $ */
 
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -33,13 +33,13 @@ typedef struct Attrib Attrib;
 
 /* File attributes */
 struct Attrib {
-	u_int32_t	flags;
-	u_int64_t	size;
-	u_int32_t	uid;
-	u_int32_t	gid;
-	u_int32_t	perm;
-	u_int32_t	atime;
-	u_int32_t	mtime;
+	uint32_t	flags;
+	uint64_t	size;
+	uint32_t	uid;
+	uint32_t	gid;
+	uint32_t	perm;
+	uint32_t	atime;
+	uint32_t	mtime;
 };
 
 void	 attrib_clear(Attrib *);
@@ -47,6 +47,7 @@ void	 stat_to_attrib(const struct stat *, Attrib *);
 void	 attrib_to_stat(const Attrib *, struct stat *);
 int	 decode_attrib(struct sshbuf *, Attrib *);
 int	 encode_attrib(struct sshbuf *, const Attrib *);
-char	*ls_file(const char *, const struct stat *, int, int);
+char	*ls_file(const char *, const struct stat *, int, int,
+    const char *, const char *);
 
 const char *fx2txt(int);

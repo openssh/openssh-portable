@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.98 2022/02/08 08:59:12 dtucker Exp $ */
+/* $OpenBSD: auth-options.c,v 1.102 2025/09/15 04:38:00 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -18,17 +18,17 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/queue.h>
 
 #include <stdlib.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <limits.h>
-
-#include "openbsd-compat/sys-queue.h"
 
 #include "xmalloc.h"
 #include "ssherr.h"
@@ -48,10 +48,11 @@ dup_strings(char ***dstp, size_t *ndstp, char **src, size_t nsrc)
 
 	*dstp = NULL;
 	*ndstp = 0;
+
 	if (nsrc == 0)
 		return 0;
-
-	if ((dst = calloc(nsrc, sizeof(*src))) == NULL)
+	if (nsrc >= SIZE_MAX / sizeof(*src) ||
+	    (dst = calloc(nsrc, sizeof(*src))) == NULL)
 		return -1;
 	for (i = 0; i < nsrc; i++) {
 		if ((dst[i] = strdup(src[i])) == NULL) {
@@ -153,6 +154,7 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 				if (addr_match_cidr_list(NULL, allowed) == -1) {
 					error("Certificate source-address "
 					    "contents invalid");
+					free(allowed);
 					goto out;
 				}
 				opts->required_from_host_cert = allowed;
@@ -703,7 +705,7 @@ serialise_array(struct sshbuf *m, char **a, size_t n)
 {
 	struct sshbuf *b;
 	size_t i;
-	int r;
+	int r = SSH_ERR_INTERNAL_ERROR;
 
 	if (n > INT_MAX)
 		return SSH_ERR_INTERNAL_ERROR;
@@ -712,18 +714,17 @@ serialise_array(struct sshbuf *m, char **a, size_t n)
 		return SSH_ERR_ALLOC_FAIL;
 	}
 	for (i = 0; i < n; i++) {
-		if ((r = sshbuf_put_cstring(b, a[i])) != 0) {
-			sshbuf_free(b);
-			return r;
-		}
+		if ((r = sshbuf_put_cstring(b, a[i])) != 0)
+			goto out;
 	}
 	if ((r = sshbuf_put_u32(m, n)) != 0 ||
-	    (r = sshbuf_put_stringb(m, b)) != 0) {
-		sshbuf_free(b);
-		return r;
-	}
+	    (r = sshbuf_put_stringb(m, b)) != 0)
+		goto out;
 	/* success */
-	return 0;
+	r = 0;
+ out:
+	sshbuf_free(b);
+	return r;
 }
 
 static int

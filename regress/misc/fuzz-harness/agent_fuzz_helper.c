@@ -112,7 +112,6 @@ reset_idtab(void)
 	idtab_init();
 	// Load keys.
 	add_key(PRIV_RSA, CERT_RSA);
-	add_key(PRIV_DSA, CERT_DSA);
 	add_key(PRIV_ECDSA, CERT_ECDSA);
 	add_key(PRIV_ED25519, CERT_ED25519);
 	add_key(PRIV_ECDSA_SK, CERT_ECDSA_SK);
@@ -159,6 +158,7 @@ test_one(const uint8_t* s, size_t slen)
 		    SYSLOG_FACILITY_AUTH, 1);
 		devnull = devnull_or_die();
 		allowed_providers = xstrdup("");
+		websafe_allowlist = xstrdup("*");
 		setenv("DISPLAY", "", 1); /* ban askpass */
 	}
 

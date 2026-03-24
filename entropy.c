@@ -57,40 +57,6 @@
  * /dev/random), then collect RANDOM_SEED_SIZE bytes of randomness from
  * PRNGd.
  */
-#ifndef OPENSSL_PRNG_ONLY
-
-void
-rexec_send_rng_seed(struct sshbuf *m)
-{
-	u_char buf[RANDOM_SEED_SIZE];
-	size_t len = sizeof(buf);
-	int r;
-
-	if (RAND_bytes(buf, sizeof(buf)) <= 0) {
-		error("Couldn't obtain random bytes (error %ld)",
-		    ERR_get_error());
-		len = 0;
-	}
-	if ((r = sshbuf_put_string(m, buf, len)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	explicit_bzero(buf, sizeof(buf));
-}
-
-void
-rexec_recv_rng_seed(struct sshbuf *m)
-{
-	const u_char *buf = NULL;
-	size_t len = 0;
-	int r;
-
-	if ((r = sshbuf_get_string_direct(m, &buf, &len)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-
-	debug3("rexec_recv_rng_seed: seeding rng with %lu bytes",
-	    (unsigned long)len);
-	RAND_add(buf, len, len);
-}
-#endif /* OPENSSL_PRNG_ONLY */
 
 void
 seed_rng(void)
@@ -98,7 +64,8 @@ seed_rng(void)
 	unsigned char buf[RANDOM_SEED_SIZE];
 
 	/* Initialise libcrypto */
-	ssh_libcrypto_init();
+	if (ssh_libcrypto_init() != 1)
+		fatal("libcrypto failed to initialize.");
 
 	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER,
 	    OpenSSL_version_num()))
@@ -141,3 +108,24 @@ seed_rng(void)
 }
 
 #endif /* WITH_OPENSSL */
+
+void
+reseed_prngs(void)
+{
+	uint32_t rnd[256];
+
+#ifdef WITH_OPENSSL
+	RAND_poll();
+#endif
+	arc4random_stir(); /* noop on recent arc4random() implementations */
+	arc4random_buf(rnd, sizeof(rnd)); /* let arc4random notice PID change */
+
+#ifdef WITH_OPENSSL
+	RAND_seed(rnd, sizeof(rnd));
+	/* give libcrypto a chance to notice the PID change */
+	if ((RAND_bytes((u_char *)rnd, 1)) != 1)
+		fatal_f("RAND_bytes failed");
+#endif
+
+	explicit_bzero(rnd, sizeof(rnd));
+}

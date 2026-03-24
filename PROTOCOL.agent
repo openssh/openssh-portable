@@ -1,5 +1,5 @@
 The SSH agent protocol is described in
-https://tools.ietf.org/html/draft-miller-ssh-agent-04
+https://datatracker.ietf.org/doc/draft-ietf-sshm-ssh-agent/
 
 This file documents OpenSSH's extensions to the agent protocol.
 
@@ -31,7 +31,7 @@ should be bound for user authentication or forwarding.
 When an agent received this message, it will verify the signature and
 check the consistency of its contents, including refusing to accept
 a duplicate session identifier, or any attempt to bind a connection
-previously bound for authentication. It will then then record the
+previously bound for authentication. It will then record the
 binding for the life of the connection for use later in testing per-key
 destination constraints.
 
@@ -49,12 +49,15 @@ Where a constraint consists of:
 
 	string		from_username (must be empty)
 	string		from_hostname
+	string		reserved
 	keyspec[]	from_hostkeys
 	string		to_username
 	string		to_hostname
+	string		reserved
 	keyspec[]	to_hostkeys
+	string		reserved
 
-An a keyspec consists of:
+And a keyspec consists of:
 
 	string		keyblob
 	bool		is_ca
@@ -70,15 +73,35 @@ identities and, in particular, signature requests will check the key
 constraints against the session-bind@openssh.com bindings recorded for
 the agent connection over which they were received.
 
-3. SSH_AGENT_CONSTRAIN_MAXSIGN key constraint
+3. associated-certs-v00@openssh.com key constraint extension
 
-This key constraint allows communication to an agent of the maximum
-number of signatures that may be made with an XMSS key. The format of
-the constraint is:
+The key constraint extension allows certificates to be associated
+with private keys as they are loaded from a PKCS#11 token.
 
-	byte		SSH_AGENT_CONSTRAIN_MAXSIGN (0x03)
-	uint32		max_signatures
+	byte		SSH_AGENT_CONSTRAIN_EXTENSION (0xff)
+	string		associated-certs-v00@openssh.com
+	bool		certs_only
+	string		certsblob
 
-This option is only valid for XMSS keys.
+Where "certsblob" consists of one or more certificates encoded as public
+key blobs:
 
-$OpenBSD: PROTOCOL.agent,v 1.17 2022/05/09 08:25:27 dtucker Exp $
+	string[]	certificates
+
+This extension is only valid for SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED
+requests. When an agent receives this extension, it will attempt to match
+each certificate in the request with a corresponding private key loaded
+from the requested PKCS#11 token. When a matching key is found, the
+agent will graft the certificate contents to the token-hosted private key
+and store the result for subsequent use by regular agent operations.
+
+If the "certs_only" flag is set, then this extension will cause ONLY
+the resultant certificates to be loaded to the agent. The default
+behaviour is to load the PKCS#11-hosted private key as well as the
+resultant certificate.
+
+A SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED will return SSH_AGENT_SUCCESS
+if any key (plain private or certificate) was successfully loaded, or
+SSH_AGENT_FAILURE if no key was loaded.
+
+$OpenBSD: PROTOCOL.agent,v 1.25 2025/08/29 03:50:38 djm Exp $

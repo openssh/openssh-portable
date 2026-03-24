@@ -32,11 +32,12 @@
 #include "openssl-compat.h"
 
 /*
- * OpenSSL version numbers: MNNFFPPS: major minor fix patch status
- * We match major, minor, fix and status (not patch) for <1.0.0.
- * After that, we acceptable compatible fix versions (so we
- * allow 1.0.1 to work with 1.0.0). Going backwards is only allowed
- * within a patch series.
+ * OpenSSL version numbers: MNNFFPPS: major minor fix patch status.
+ * See the OpenSSL_version_num(3ssl) man page.
+ * Versions >=3 require only major versions to match.
+ * For versions <3, we accept compatible fix versions (so we allow 1.0.1
+ * to work with 1.0.0). Going backwards is only allowed within a patch series.
+ * See https://www.openssl.org/policies/releasestrat.html
  */
 
 int
@@ -48,15 +49,17 @@ ssh_compatible_openssl(long headerver, long libver)
 	if (headerver == libver)
 		return 1;
 
-	/* for versions < 1.0.0, major,minor,fix,status must match */
-	if (headerver < 0x1000000f) {
-		mask = 0xfffff00fL; /* major,minor,fix,status */
+	/*
+	 * For versions >= 3.0, only the major must match.
+	 */
+	if (headerver >= 0x30000000) {
+		mask = 0xf0000000L; /* major only */
 		return (headerver & mask) == (libver & mask);
 	}
 
 	/*
-	 * For versions >= 1.0.0, major,minor,status must match and library
-	 * fix version must be equal to or newer than the header.
+	 * For versions >= 1.0.0, but <3, major,minor,status must match and
+	 * library fix version must be equal to or newer than the header.
 	 */
 	mask = 0xfff0000fL; /* major,minor,status */
 	hfix = (headerver & 0x000ff000) >> 12;
@@ -66,31 +69,48 @@ ssh_compatible_openssl(long headerver, long libver)
 	return 0;
 }
 
-void
+int
 ssh_libcrypto_init(void)
 {
-#if defined(HAVE_OPENSSL_INIT_CRYPTO) && \
-      defined(OPENSSL_INIT_ADD_ALL_CIPHERS) && \
-      defined(OPENSSL_INIT_ADD_ALL_DIGESTS)
-	OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS |
-	    OPENSSL_INIT_ADD_ALL_DIGESTS, NULL);
-#elif defined(HAVE_OPENSSL_ADD_ALL_ALGORITHMS)
-	OpenSSL_add_all_algorithms();
-#endif
+	uint64_t opts = OPENSSL_INIT_ADD_ALL_CIPHERS |
+	    OPENSSL_INIT_ADD_ALL_DIGESTS;
 
 #ifdef	USE_OPENSSL_ENGINE
 	/* Enable use of crypto hardware */
 	ENGINE_load_builtin_engines();
 	ENGINE_register_all_complete();
 
-	/* Load the libcrypto config file to pick up engines defined there */
-# if defined(HAVE_OPENSSL_INIT_CRYPTO) && defined(OPENSSL_INIT_LOAD_CONFIG)
-	OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS |
-	    OPENSSL_INIT_ADD_ALL_DIGESTS | OPENSSL_INIT_LOAD_CONFIG, NULL);
-# else
-	OPENSSL_config(NULL);
-# endif
+	/* Tell libcrypto config file to pick up engines defined there */
+	opts |= OPENSSL_INIT_LOAD_CONFIG;
 #endif /* USE_OPENSSL_ENGINE */
+
+	return OPENSSL_init_crypto(opts, NULL);
 }
+
+#ifndef HAVE_EVP_DIGESTSIGN
+int
+EVP_DigestSign(EVP_MD_CTX *ctx, unsigned char *sigret, size_t *siglen,
+    const unsigned char *tbs, size_t tbslen)
+{
+	if (sigret != NULL) {
+		if (EVP_DigestSignUpdate(ctx, tbs, tbslen) <= 0)
+			return 0;
+	}
+
+	return EVP_DigestSignFinal(ctx, sigret, siglen);
+}
+#endif
+
+#ifndef HAVE_EVP_DIGESTVERIFY
+int
+EVP_DigestVerify(EVP_MD_CTX *ctx, const unsigned char *sigret, size_t siglen,
+    const unsigned char *tbs, size_t tbslen)
+{
+	if (EVP_DigestVerifyUpdate(ctx, tbs, tbslen) <= 0)
+		return -1;
+
+	return EVP_DigestVerifyFinal(ctx, sigret, siglen);
+}
+#endif
 
 #endif /* WITH_OPENSSL */

@@ -1,4 +1,4 @@
-#	$OpenBSD: cfginclude.sh,v 1.3 2021/06/08 06:52:43 djm Exp $
+#	$OpenBSD: cfginclude.sh,v 1.5 2024/09/27 01:05:54 djm Exp $
 #	Placed in the Public Domain.
 
 tid="config include"
@@ -10,7 +10,7 @@ cat > $OBJ/ssh_config.i << _EOF
 Match host a
 	Hostname aa
 
-Match host b # comment
+Match host=b # comment
 	Hostname bb
 	Include $OBJ/ssh_config.i.*
 
@@ -18,7 +18,7 @@ Match host c
 	Include $OBJ/ssh_config.i.*
 	Hostname cc
 
-Match host m
+Match host=m !user xxxyfake
 	Include $OBJ/ssh_config.i.* # comment
 
 Host d
@@ -41,7 +41,7 @@ Match host xxxxxx
 _EOF
 
 cat > $OBJ/ssh_config.i.1 << _EOF
-Match host a
+Match host=a
 	Hostname aaa
 
 Match host b
@@ -64,10 +64,10 @@ cat > $OBJ/ssh_config.i.2 << _EOF
 Match host a
 	Hostname aaaa
 
-Match host b
+Match host=b !user blahblahfake
 	Hostname bbbb
 
-Match host c
+Match host=c
 	Hostname cccc
 
 Host d
@@ -142,7 +142,7 @@ trial a aa
 
 # cleanup
 rm -f $OBJ/ssh_config.i $OBJ/ssh_config.i.* $OBJ/ssh_config.out
-#	$OpenBSD: cfginclude.sh,v 1.3 2021/06/08 06:52:43 djm Exp $
+#	$OpenBSD: cfginclude.sh,v 1.5 2024/09/27 01:05:54 djm Exp $
 #	Placed in the Public Domain.
 
 tid="config include"
@@ -288,6 +288,28 @@ _EOF
 
 ${REAL_SSH} -F $OBJ/ssh_config.i -G a 2>/dev/null && \
 	fail "ssh include allowed infinite recursion?" # or hang...
+
+# Environment variable expansion
+cat > $OBJ/ssh_config.i << _EOF
+Include $OBJ/ssh_config.\${REAL_FILE}
+_EOF
+cat > $OBJ/ssh_config.i.x << _EOF
+Hostname xyzzy
+_EOF
+REAL_FILE=i.x
+export REAL_FILE
+trial a xyzzy
+
+# Environment variable expansion
+cat > $OBJ/ssh_config.i << _EOF
+Include $OBJ/ssh_config.i.%h%h
+_EOF
+cat > $OBJ/ssh_config.i.blahblah << _EOF
+Hostname mekmitastdigoat
+_EOF
+REAL_FILE=i.x
+export REAL_FILE
+trial blah mekmitastdigoat
 
 # cleanup
 rm -f $OBJ/ssh_config.i $OBJ/ssh_config.i.* $OBJ/ssh_config.out
