@@ -2015,12 +2015,12 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				    filename, linenum, keyword);
 		} else if (n == 1) {
 			value3 = value;
-			value = value2 = -1;
+			value2 = -1;
 		} else {
 			fatal("%s line %d: Invalid %s spec.",
 			    filename, linenum, keyword);
 		}
-		if (value3 <= 0 || (value2 != -1 && value <= 0))
+		if (value <= 0 || value3 <= 0)
 			fatal("%s line %d: Invalid %s spec.",
 			    filename, linenum, keyword);
 		if (*activep && options->max_startups == -1) {
