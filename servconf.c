@@ -410,7 +410,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->max_startups == -1)
 		options->max_startups = 100;
 	if (options->max_startups_rate == -1)
-		options->max_startups_rate = 30;		/* 30% */
+		options->max_startups_rate = DEFAULT_MAX_STARTUP_RATE;
 	if (options->max_startups_begin == -1)
 		options->max_startups_begin = 10;
 	if (options->per_source_max_startups == -1)
@@ -2008,19 +2008,17 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			fatal("%s line %d: %s missing argument.",
 			    filename, linenum, keyword);
 		/* begin:rate:max */
-		if ((n = sscanf(arg, "%d:%d:%d",
-		    &value, &value2, &value3)) == 3) {
-			if (value > value3 || value2 > 100 || value2 < 1)
-				fatal("%s line %d: Invalid %s spec.",
-				    filename, linenum, keyword);
-		} else if (n == 1) {
+		n = sscanf(arg, "%d:%d:%d", &value, &value2, &value3);
+		if (n == 1) {
+			/* convert from old style MaxStartups setting (one int) */
 			value3 = value;
-			value2 = -1;
-		} else {
+			value2 = DEFAULT_MAX_STARTUP_RATE;
+		} else if (n != 3) {
 			fatal("%s line %d: Invalid %s spec.",
 			    filename, linenum, keyword);
 		}
-		if (value <= 0 || value3 <= 0)
+		if (value <= 0 || value3 <= 0 || value > value3 ||
+		    value2 > 100 || value2 < 1)
 			fatal("%s line %d: Invalid %s spec.",
 			    filename, linenum, keyword);
 		if (*activep && options->max_startups == -1) {

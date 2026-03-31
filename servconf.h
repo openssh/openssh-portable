@@ -39,6 +39,8 @@
 #define DEFAULT_AUTH_FAIL_MAX	6	/* Default for MaxAuthTries */
 #define DEFAULT_SESSIONS_MAX	10	/* Default for MaxSessions */
 
+#define DEFAULT_MAX_STARTUP_RATE	30	/* 30% */
+
 /* Magic name for internal sftp-server */
 #define INTERNAL_SFTP_NAME	"internal-sftp"
 
