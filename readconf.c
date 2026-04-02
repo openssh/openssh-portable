@@ -2849,7 +2849,7 @@ fill_default_options(Options * options)
 {
 	char *all_cipher, *all_mac, *all_kex, *all_key, *all_sig;
 	char *def_cipher, *def_mac, *def_kex, *def_key, *def_sig;
-	int ret = 0, r;
+	int ret = 0;
 
 	if (options->forward_agent == -1)
 		options->forward_agent = 0;
@@ -3042,9 +3042,9 @@ fill_default_options(Options * options)
 	def_sig = match_filter_allowlist(SSH_ALLOWED_CA_SIGALGS, all_sig);
 #define ASSEMBLE(what, defaults, all) \
 	do { \
-		if ((r = kex_assemble_names(&options->what, \
+		if ((ret = kex_assemble_names(&options->what, \
 		    defaults, all)) != 0) { \
-			error_fr(r, "%s", #what); \
+			error_fr(ret, "%s", #what); \
 			goto fail; \
 		} \
 	} while (0)
