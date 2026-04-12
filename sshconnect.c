@@ -1616,7 +1616,7 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 	/* authenticate user */
 	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
 	ssh_kex2(ssh, host, hostaddr, port, cinfo);
-	if (!options.kex_algorithms_set && ssh->kex != NULL &&
+	if (ssh->kex != NULL &&
 	    ssh->kex->name != NULL && options.warn_weak_crypto &&
 	    !kex_is_pq_from_name(ssh->kex->name))
 		warn_nonpq_kex();
