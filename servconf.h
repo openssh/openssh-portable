@@ -326,10 +326,19 @@ SSHCONF_UNSUPPORTED_INT(gss_deleg_creds, GssDelegateCreds, SSHCFG_GLOBAL) \
 SSHCONF_UNSUPPORTED_INT(gss_strict_acceptor, GssStrictAcceptor, SSHCFG_GLOBAL)
 #endif /* GSSAPI */
 
+#ifdef HAVE_JAIL
+#define SSHD_CONFIG_ENTRIES_OPT \
+SSHCONF_STRING(jail_name, JailName, SSHCFG_ALL, SSHCFG_COPY_MANUAL)
+#else /* JAIL **/
+#define SSHD_CONFIG_ENTRIES_OPT \
+SSHCONF_UNSUPPORTED_STRING(jail_name, JailName, SSHCFG_ALL)
+#endif
+
 #define SSHD_CONFIG_ENTRIES \
 	SSHD_CONFIG_ENTRIES_BASE \
 	SSHD_CONFIG_ENTRIES_KRB5 \
 	SSHD_CONFIG_ENTRIES_GSS \
+	SSHD_CONFIG_ENTRIES_OPT \
 
 /* Macros to declare ServerOptions member variables */
 #define SSHCONF_INT(var, conf, flags, ms, def, cp)	int var;
