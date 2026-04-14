@@ -223,6 +223,9 @@ typedef struct {
 	u_int   num_permitted_listens;
 
 	char   *chroot_directory;
+#ifdef HAVE_JAIL
+	char   *jail_name;
+#endif
 	uint	num_revoked_keys_files;
 	char   **revoked_keys_files;
 	char   *trusted_user_ca_keys;

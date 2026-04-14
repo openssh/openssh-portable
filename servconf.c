@@ -191,6 +191,9 @@ initialize_server_options(ServerOptions *options)
 	options->permitted_listens = NULL;
 	options->adm_forced_command = NULL;
 	options->chroot_directory = NULL;
+#ifdef HAVE_JAIL
+	options->jail_name = NULL;
+#endif
 	options->authorized_keys_command = NULL;
 	options->authorized_keys_command_user = NULL;
 	options->revoked_keys_files = NULL;
@@ -523,6 +526,9 @@ fill_default_server_options(ServerOptions *options)
 	CLEAR_ON_NONE(options->authorized_principals_file);
 	CLEAR_ON_NONE(options->adm_forced_command);
 	CLEAR_ON_NONE(options->chroot_directory);
+#ifdef HAVE_JAIL
+	CLEAR_ON_NONE(options->jail_name);
+#endif
 	CLEAR_ON_NONE(options->routing_domain);
 	CLEAR_ON_NONE(options->host_key_agent);
 	CLEAR_ON_NONE(options->per_source_penalty_exempt);
@@ -567,6 +573,9 @@ typedef enum {
 	sGssAuthentication, sGssCleanupCreds, sGssDelegateCreds, sGssStrictAcceptor,
 	sAcceptEnv, sSetEnv, sPermitTunnel,
 	sMatch, sPermitOpen, sPermitListen, sForceCommand, sChrootDirectory,
+#ifdef HAVE_JAIL
+	sJailName,
+#endif
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
 	sHostCertificate, sInclude,
 	sRevokedKeys, sTrustedUserCAKeys, sAuthorizedPrincipalsFile,
@@ -722,6 +731,9 @@ static struct {
 	{ "permitlisten", sPermitListen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
 	{ "chrootdirectory", sChrootDirectory, SSHCFG_ALL },
+#ifdef HAVE_JAIL
+	{ "jailname", sJailName, SSHCFG_ALL },
+#endif
 	{ "hostcertificate", sHostCertificate, SSHCFG_GLOBAL },
 	{ "revokedkeys", sRevokedKeys, SSHCFG_ALL },
 	{ "trustedusercakeys", sTrustedUserCAKeys, SSHCFG_ALL },
@@ -2509,6 +2521,19 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			*charptr = xstrdup(arg);
 		break;
 
+#ifdef HAVE_JAIL
+	case sJailName:
+		charptr = &options->jail_name;
+
+		arg = argv_next(&ac, &av);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: %s missing argument.",
+			    filename, linenum, keyword);
+		if (*activep && *charptr == NULL)
+			*charptr = xstrdup(arg);
+		break;
+#endif
+
 	case sTrustedUserCAKeys:
 		charptr = &options->trusted_user_ca_keys;
 		goto parse_filename;
@@ -3040,6 +3065,13 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		free(dst->chroot_directory);
 		dst->chroot_directory = NULL;
 	}
+#ifdef HAVE_JAIL
+	M_CP_STROPT(jail_name);
+	if (option_clear_or_none(dst->jail_name)) {
+		free(dst->jail_name);
+		dst->jail_name = NULL;
+	}
+#endif
 
 	/* Subsystems require merging. */
 	servconf_merge_subsystems(dst, src);
@@ -3328,6 +3360,9 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sBanner, o->banner);
 	dump_cfg_string(sForceCommand, o->adm_forced_command);
 	dump_cfg_string(sChrootDirectory, o->chroot_directory);
+#ifdef HAVE_JAIL
+	dump_cfg_string(sJailName, o->jail_name);
+#endif
 	dump_cfg_string(sTrustedUserCAKeys, o->trusted_user_ca_keys);
 	dump_cfg_string(sSecurityKeyProvider, o->sk_provider);
 	dump_cfg_string(sAuthorizedPrincipalsFile,

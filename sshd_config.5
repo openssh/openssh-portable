@@ -990,6 +990,23 @@ for interactive sessions and
 .Cm none
 (the operating system default)
 for non-interactive sessions.
+.It Cm JailName
+Specifies the name of a FreeBSD jail to attach to after authentication.
+At session startup
+.Xr sshd 8
+checks that the session user id matches the same user name outside and inside the jail.
+After attaching to the jail,
+.Xr sshd 8
+changes the working directory to the user's home directory defined inside the jail.
+.Pp
+The
+.Cm JailName
+must matches the name of a running FreeBSD jail, which contain the necessary files and directories to support the
+user's session.
+.Pp
+The default is
+.Cm none ,
+indicating to remain attached to the host system.
 .It Cm KbdInteractiveAuthentication
 Specifies whether to allow keyboard-interactive authentication.
 All authentication styles from
@@ -1340,6 +1357,7 @@ Available keywords are
 .Cm IgnoreRhosts ,
 .Cm Include ,
 .Cm IPQoS ,
+.Cm JailName ,
 .Cm KbdInteractiveAuthentication ,
 .Cm KerberosAuthentication ,
 .Cm LogLevel ,
@@ -1949,6 +1967,8 @@ The default is
 .Cm yes .
 Note that this does not apply to
 .Cm ChrootDirectory ,
+or
+.Cm JailName ,
 whose permissions and ownership are checked unconditionally.
 .It Cm Subsystem
 Configures an external subsystem (e.g. file transfer daemon).
