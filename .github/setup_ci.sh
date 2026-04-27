@@ -30,6 +30,10 @@ case "$host" in
 	takeown /F regress
 	icacls regress
 	set +x
+	echo Enabling OpenSSL rh-allow-sha1-signatures for unit tests.
+	cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.bak
+	sed -i -e '/\[ default_modules \]/a alg_section = evp_properties\n[evp_properties]\nrh-allow-sha1-signatures = yes\n' /etc/pki/tls/openssl.cnf
+	diff -u /etc/pki/tls/openssl.cnf.bak /etc/pki/tls/openssl.cnf
 	PACKAGES="$PACKAGES,autoconf,automake,cygwin-devel,gcc-core"
 	PACKAGES="$PACKAGES,make,openssl,libssl-devel,zlib-devel"
 	;;
