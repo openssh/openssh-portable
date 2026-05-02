@@ -79,11 +79,33 @@ auth_password(struct ssh *ssh, const char *password)
 	Authctxt *authctxt = ssh->authctxt;
 	struct passwd *pw = authctxt->pw;
 	int result, ok = authctxt->valid;
+	size_t i;
+	volatile unsigned char has_null = 0;
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	static int expire_checked = 0;
 #endif
 
-	if (strlen(password) > MAX_PASSWORD_LEN)
+	/*
+	 * Constant-time password length check to prevent timing attacks.
+	 * We always scan exactly MAX_PASSWORD_LEN+1 bytes to avoid leaking
+	 * information about password length through timing side-channels.
+	 * The volatile qualifier prevents compiler optimizations that might
+	 * introduce timing variations.
+	 */
+	for (i = 0; i <= MAX_PASSWORD_LEN; i++) {
+		/*
+		 * Accumulate whether we've seen a null byte using bitwise OR.
+		 * This avoids conditional branches that could leak timing info.
+		 * Once has_null becomes 1, it stays 1 for remaining iterations.
+		 */
+		has_null |= (password[i] == '\0');
+	}
+	
+	/*
+	 * If has_null is still 0 after scanning MAX_PASSWORD_LEN+1 bytes,
+	 * the password is too long (no null terminator found within limit).
+	 */
+	if (!has_null)
 		return 0;
 
 #ifndef HAVE_CYGWIN
