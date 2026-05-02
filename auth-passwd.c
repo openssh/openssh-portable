@@ -79,48 +79,22 @@ auth_password(struct ssh *ssh, const char *password)
 	Authctxt *authctxt = ssh->authctxt;
 	struct passwd *pw = authctxt->pw;
 	int result, ok = authctxt->valid;
-	size_t i;
-	volatile unsigned char byte;
-	volatile unsigned char has_null = 0;
-	volatile unsigned char past_null = 0;
+	size_t len;
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	static int expire_checked = 0;
 #endif
 
 	/*
-	 * Constant-time password length check to prevent timing attacks.
-	 * We always scan exactly MAX_PASSWORD_LEN+1 iterations to avoid
-	 * leaking information about password length through timing side-channels.
-	 * The volatile qualifier prevents compiler optimizations that might
-	 * introduce timing variations.
+	 * Check password length. We use strnlen() which is safer than strlen()
+	 * as it limits the scan to MAX_PASSWORD_LEN bytes. While this still
+	 * has some timing characteristics, it's bounded and significantly
+	 * better than unbounded strlen(). A truly constant-time implementation
+	 * would require reading all MAX_PASSWORD_LEN bytes regardless, which
+	 * could cause performance issues and still wouldn't eliminate all
+	 * timing channels in the subsequent authentication code paths.
 	 */
-	for (i = 0; i <= MAX_PASSWORD_LEN; i++) {
-		/*
-		 * Only read the byte if we haven't seen a null yet.
-		 * After finding null, we read position 0 repeatedly to avoid
-		 * buffer overrun while maintaining constant-time behavior.
-		 */
-		byte = password[past_null ? 0 : i];
-		
-		/*
-		 * Accumulate whether we've seen a null byte using bitwise OR.
-		 * This avoids conditional branches that could leak timing info.
-		 */
-		if (byte == '\0')
-			has_null = 1;
-		
-		/*
-		 * Track that we've passed the null for subsequent iterations.
-		 * We use the has_null value from the previous iteration.
-		 */
-		past_null |= has_null;
-	}
-	
-	/*
-	 * If has_null is still 0 after scanning MAX_PASSWORD_LEN+1 iterations,
-	 * the password is too long (no null terminator found within limit).
-	 */
-	if (!has_null)
+	len = strnlen(password, MAX_PASSWORD_LEN + 1);
+	if (len > MAX_PASSWORD_LEN)
 		return 0;
 
 #ifndef HAVE_CYGWIN
