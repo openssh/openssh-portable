@@ -80,29 +80,44 @@ auth_password(struct ssh *ssh, const char *password)
 	struct passwd *pw = authctxt->pw;
 	int result, ok = authctxt->valid;
 	size_t i;
+	volatile unsigned char byte;
 	volatile unsigned char has_null = 0;
+	volatile unsigned char past_null = 0;
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	static int expire_checked = 0;
 #endif
 
 	/*
 	 * Constant-time password length check to prevent timing attacks.
-	 * We always scan exactly MAX_PASSWORD_LEN+1 bytes to avoid leaking
-	 * information about password length through timing side-channels.
+	 * We always scan exactly MAX_PASSWORD_LEN+1 iterations to avoid
+	 * leaking information about password length through timing side-channels.
 	 * The volatile qualifier prevents compiler optimizations that might
 	 * introduce timing variations.
 	 */
 	for (i = 0; i <= MAX_PASSWORD_LEN; i++) {
 		/*
+		 * Only read the byte if we haven't seen a null yet.
+		 * After finding null, we read position 0 repeatedly to avoid
+		 * buffer overrun while maintaining constant-time behavior.
+		 */
+		byte = password[past_null ? 0 : i];
+		
+		/*
 		 * Accumulate whether we've seen a null byte using bitwise OR.
 		 * This avoids conditional branches that could leak timing info.
-		 * Once has_null becomes 1, it stays 1 for remaining iterations.
 		 */
-		has_null |= (password[i] == '\0');
+		if (byte == '\0')
+			has_null = 1;
+		
+		/*
+		 * Track that we've passed the null for subsequent iterations.
+		 * We use the has_null value from the previous iteration.
+		 */
+		past_null |= has_null;
 	}
 	
 	/*
-	 * If has_null is still 0 after scanning MAX_PASSWORD_LEN+1 bytes,
+	 * If has_null is still 0 after scanning MAX_PASSWORD_LEN+1 iterations,
 	 * the password is too long (no null terminator found within limit).
 	 */
 	if (!has_null)
