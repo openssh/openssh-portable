@@ -2858,7 +2858,7 @@ channel_prepare_pollfd(Channel *c, u_int *next_pollfd,
 		if (ev != 0) {
 			c->pfds[3] = p;
 			pfd[p].fd = c->sock;
-			pfd[p].events = 0;
+			pfd[p].events = ev;
 			dump_channel_poll(__func__, "sock", c, p, &pfd[p]);
 			p++;
 		}
