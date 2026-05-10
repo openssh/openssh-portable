@@ -170,7 +170,7 @@ jobs:
         copyback: false
         prepare: |
           case "$(uname -r)" in
-          9.*) export PKG_PATH="https://cdn.NetBSD.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/9.0_2026Q1/All" ;;
+          9.*) export PKG_PATH="http://cdn.NetBSD.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/9.0_2026Q1/All" ;;
           esac
           /usr/sbin/pkg_add sudo
           openssl rand -base64 9 >$GITHUB_WORKSPACE/regress/password
