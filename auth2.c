@@ -222,7 +222,6 @@ input_service_request(int type, uint32_t seq, struct ssh *ssh)
 }
 
 #define MIN_FAIL_DELAY_SECONDS 0.005
-#define MAX_FAIL_DELAY_SECONDS 5.0
 static double
 user_specific_delay(const char *user)
 {
@@ -246,22 +245,19 @@ static void
 ensure_minimum_time_since(double start, double seconds)
 {
 	struct timespec ts;
-	double elapsed = monotime_double() - start, req = seconds, remain;
+	double elapsed = monotime_double() - start, remain;
 
-	if (elapsed > MAX_FAIL_DELAY_SECONDS) {
-		debug3_f("elapsed %0.3lfms exceeded the max delay "
-		    "requested %0.3lfms)", elapsed*1000, req*1000);
+	if (elapsed >= seconds) {
+		debug3_f("elapsed %0.3lfms already meets requested "
+		    "delay %0.3lfms", elapsed*1000, seconds*1000);
 		return;
 	}
 
-	/* if we've already passed the requested time, scale up */
-	while ((remain = seconds - elapsed) < 0.0)
-		seconds *= 2;
-
+	remain = seconds - elapsed;
 	ts.tv_sec = remain;
 	ts.tv_nsec = (remain - ts.tv_sec) * 1000000000;
-	debug3_f("elapsed %0.3lfms, delaying %0.3lfms (requested %0.3lfms)",
-	    elapsed*1000, remain*1000, req*1000);
+	debug3_f("elapsed %0.3lfms, delaying %0.3lfms",
+	    elapsed*1000, remain*1000);
 	nanosleep(&ts, NULL);
 }
 
