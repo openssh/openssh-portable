@@ -45,6 +45,22 @@ if [ "$1" = "putty-versions" ]; then
 	exit 0
 fi
 
+if [ "$1" = "dropbear-versions" ]; then
+	make regress-binaries
+	# Work backward from current version to last version we support.
+	for ver in master $(cd /tmp/dropbear && git tag | grep -E 'DROPBEAR_' | sort -rn); do
+		year=$(echo "$ver" | cut -f2 -d_ | cut -f1 -d.)
+		if [ "$ver" != "master" ] && [ "$year" -lt "2020" ]; then
+			exit 0
+		fi
+		.github/install_dropbear.sh "${ver}"
+		${env} make ${TEST_TARGET} \
+		    SKIP_LTESTS="${SKIP_LTESTS}" LTESTS="${LTESTS}"
+	done
+
+	exit 0
+fi
+
 if [ -z "${LTESTS}" ]; then
     ${env} make ${TEST_TARGET} SKIP_LTESTS="${SKIP_LTESTS}"
 else

@@ -165,6 +165,9 @@ for TARGET in $TARGETS; do
         INSTALL_AWSLC=1
         PACKAGES="${PACKAGES} cmake ninja-build"
         ;;
+    dropbear-versions)
+	INSTALL_DROPBEAR=master
+	;;
     putty-*)
 	INSTALL_PUTTY=0.83
 	PACKAGES="${PACKAGES} cmake"
@@ -274,6 +277,9 @@ if [ ! -z "${INSTALL_ZLIB}" ]; then
      sudo make install prefix=/opt/zlib)
 fi
 
+if [ ! -z "${INSTALL_DROPBEAR}" ]; then
+	.github/install_dropbear.sh "${INSTALL_DROPBEAR}"
+fi
 if [ ! -z "${INSTALL_PUTTY}" ]; then
 	.github/install_putty.sh "${INSTALL_PUTTY}"
 fi
