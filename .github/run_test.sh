@@ -49,7 +49,7 @@ if [ "$1" = "dropbear-versions" ]; then
 	make regress-binaries
 	# Work backward from current version to last version we support.
 	for ver in master `cd /tmp/dropbear && git tag | grep -E 'DROPBEAR_' | sort -rn`; do
-		year=$(echo "$ver" | cut -f2 -d_ | cut -f1 -d.)
+		year=`echo "$ver" | cut -f2 -d_ | cut -f1 -d.`
 		if [ "$ver" != "master" ] && [ "$year" -lt "2020" ]; then
 			exit 0
 		fi
