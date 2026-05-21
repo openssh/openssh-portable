@@ -95,7 +95,7 @@ enum
 # define	IPTOS_DSCP_CS7		0xe0
 #endif /* IPTOS_DSCP_CS0 */
 #ifndef IPTOS_DSCP_VA
-# define	IPTOS_DSCP_VA		0x2c
+# define	IPTOS_DSCP_VA		0xb0
 #endif /* IPTOS_DSCP_VA */
 #ifndef IPTOS_DSCP_EF
 # define	IPTOS_DSCP_EF		0xb8
