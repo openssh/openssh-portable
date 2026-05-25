@@ -226,7 +226,7 @@ if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
     (cd ${HOME} &&
      git clone https://github.com/GrapheneOS/hardened_malloc.git &&
      cd ${HOME}/hardened_malloc &&
-     make && sudo cp out/libhardened_malloc.so /usr/lib/)
+     make CC=clang && sudo cp out/libhardened_malloc.so /usr/lib/)
 fi
 
 if [ ! -z "${INSTALL_OPENSSL}" ]; then
