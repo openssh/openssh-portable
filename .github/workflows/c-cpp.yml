@@ -52,7 +52,6 @@ jobs:
           - { target: ubuntu-22.04, config: gcc-12-Werror }
           - { target: ubuntu-22.04, config: gcc-sanitize-address }
           - { target: ubuntu-22.04, config: gcc-sanitize-undefined }
-          - { target: ubuntu-22.04, config: hardenedmalloc }
           - { target: ubuntu-22.04, config: heimdal }
           - { target: ubuntu-22.04, config: kitchensink }
           - { target: ubuntu-22.04, config: krb5 }
@@ -72,6 +71,7 @@ jobs:
           - { target: ubuntu-latest, config: clang-19 }
           - { target: ubuntu-latest, config: boringssl }
           - { target: ubuntu-latest, config: aws-lc }
+          - { target: ubuntu-latest, config: hardenedmalloc }
           - { target: ubuntu-latest, config: libressl-master }
           - { target: ubuntu-latest, config: libressl-3.2.7 }
           - { target: ubuntu-latest, config: libressl-3.3.6 }
