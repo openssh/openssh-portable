@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.248 2026/01/21 15:44:51 sthen Exp $ */
+/* $OpenBSD: sftp.c,v 1.250 2026/02/11 17:01:34 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -21,14 +21,12 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-#include <sys/wait.h>
-#ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
-#endif
+#include <sys/wait.h>
 
 #include <ctype.h>
 #include <errno.h>
-
+#include <glob.h>
 #include <paths.h>
 #include <libgen.h>
 #ifdef HAVE_LOCALE_H
@@ -46,7 +44,6 @@ typedef void EditLine;
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-
 #include <util.h>
 
 #include "xmalloc.h"

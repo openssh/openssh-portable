@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkeyfile.c,v 1.7 2025/12/22 01:49:03 djm Exp $ */
+/* $OpenBSD: auth2-pubkeyfile.c,v 1.8 2026/04/02 07:48:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -50,6 +50,7 @@
 #include "authfile.h"
 #include "match.h"
 #include "ssherr.h"
+#include "xmalloc.h"
 
 int
 auth_authorise_keyopts(struct passwd *pw, struct sshauthopt *opts,
@@ -146,20 +147,23 @@ auth_authorise_keyopts(struct passwd *pw, struct sshauthopt *opts,
 static int
 match_principals_option(const char *principal_list, struct sshkey_cert *cert)
 {
-	char *result;
+	char *list, *olist, *entry;
 	u_int i;
 
-	/* XXX percent_expand() sequences for authorized_principals? */
-
-	for (i = 0; i < cert->nprincipals; i++) {
-		if ((result = match_list(cert->principals[i],
-		    principal_list, NULL)) != NULL) {
-			debug3("matched principal from key options \"%.100s\"",
-			    result);
-			free(result);
-			return 1;
+	olist = list = xstrdup(principal_list);
+	for (;;) {
+		if ((entry = strsep(&list, ",")) == NULL || *entry == '\0')
+			break;
+		for (i = 0; i < cert->nprincipals; i++) {
+			if (strcmp(entry, cert->principals[i]) == 0) {
+				debug3("matched principal from key i"
+				    "options \"%.100s\"", entry);
+				free(olist);
+				return 1;
+			}
 		}
 	}
+	free(olist);
 	return 0;
 }
 

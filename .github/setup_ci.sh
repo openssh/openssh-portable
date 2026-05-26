@@ -20,16 +20,17 @@ case "$host" in
 	PACKAGER=setup
 	echo Setting CYGWIN system environment variable.
 	setx CYGWIN "winsymlinks:native"
-	echo Removing extended ACLs so umask works as expected.
-	set -x
-	setfacl -b . regress
-	icacls regress /c /t /q /Inheritance:d
-	icacls regress /c /t /q /Grant ${USERNAME}:F
-	icacls regress /c /t /q /Remove:g "Authenticated Users" \
-	     BUILTIN\\Administrators BUILTIN Everyone System Users
-	takeown /F regress
+	echo Removing extended ACLs on regress so umask works as expected.
+	echo "Original ACLs"
 	icacls regress
-	set +x
+	setfacl -b regress
+	icacls regress /c /t /q /grant 'BUILTIN\Administrators:(RX)'
+	echo "Modifiled ACLs"
+	icacls regress
+	echo Enabling OpenSSL rh-allow-sha1-signatures for unit tests.
+	cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.bak
+	sed -i -e '/\[ default_modules \]/a alg_section = evp_properties\n[evp_properties]\nrh-allow-sha1-signatures = yes\n' /etc/pki/tls/openssl.cnf
+	diff -u /etc/pki/tls/openssl.cnf.bak /etc/pki/tls/openssl.cnf
 	PACKAGES="$PACKAGES,autoconf,automake,cygwin-devel,gcc-core"
 	PACKAGES="$PACKAGES,make,openssl,libssl-devel,zlib-devel"
 	;;
@@ -102,10 +103,10 @@ for TARGET in $TARGETS; do
         PACKAGES="$PACKAGES $compiler"
         ;;
     krb5)
-        PACKAGES="$PACKAGES libkrb5-dev"
+        PACKAGES="$PACKAGES libkrb5-dev libnss-wrapper krb5-admin-server"
 	;;
     heimdal)
-        PACKAGES="$PACKAGES heimdal-dev"
+        PACKAGES="$PACKAGES heimdal-dev libnss-wrapper krb5-admin-server"
         ;;
     libedit)
 	case "$PACKAGER" in
@@ -123,7 +124,7 @@ for TARGET in $TARGETS; do
         PACKAGES="$PACKAGES libfido2-dev libu2f-host-dev libcbor-dev"
         ;;
     selinux)
-        PACKAGES="$PACKAGES libselinux1-dev selinux-policy-dev"
+        PACKAGES="$PACKAGES libselinux1-dev selinux-policy-dev libaudit-dev"
         ;;
     hardenedmalloc)
         INSTALL_HARDENED_MALLOC=yes
@@ -143,7 +144,8 @@ for TARGET in $TARGETS; do
         case ${INSTALL_OPENSSL} in
           1.1.1_stable)	INSTALL_OPENSSL="OpenSSL_1_1_1-stable" ;;
           1.*)	INSTALL_OPENSSL="OpenSSL_$(echo ${INSTALL_OPENSSL} | tr . _)" ;;
-          3.*)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
+          master)	;;
+          *)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
         esac
         PACKAGES="${PACKAGES} putty-tools dropbear-bin"
        ;;
@@ -163,6 +165,9 @@ for TARGET in $TARGETS; do
         INSTALL_AWSLC=1
         PACKAGES="${PACKAGES} cmake ninja-build"
         ;;
+    dropbear-versions)
+	INSTALL_DROPBEAR=master
+	;;
     putty-*)
 	INSTALL_PUTTY=0.83
 	PACKAGES="${PACKAGES} cmake"
@@ -221,7 +226,7 @@ if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
     (cd ${HOME} &&
      git clone https://github.com/GrapheneOS/hardened_malloc.git &&
      cd ${HOME}/hardened_malloc &&
-     make && sudo cp out/libhardened_malloc.so /usr/lib/)
+     make CC=clang && sudo cp out/libhardened_malloc.so /usr/lib/)
 fi
 
 if [ ! -z "${INSTALL_OPENSSL}" ]; then
@@ -272,6 +277,9 @@ if [ ! -z "${INSTALL_ZLIB}" ]; then
      sudo make install prefix=/opt/zlib)
 fi
 
+if [ ! -z "${INSTALL_DROPBEAR}" ]; then
+	.github/install_dropbear.sh "${INSTALL_DROPBEAR}"
+fi
 if [ ! -z "${INSTALL_PUTTY}" ]; then
 	.github/install_putty.sh "${INSTALL_PUTTY}"
 fi

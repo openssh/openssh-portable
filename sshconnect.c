@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.378 2025/12/30 00:35:37 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.382 2026/02/16 00:45:41 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -17,15 +17,12 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
 #include <sys/socket.h>
-#include <sys/time.h>
 
 #include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -45,7 +42,6 @@
 #include "hostfile.h"
 #include "ssh.h"
 #include "compat.h"
-#include "sshbuf.h"
 #include "packet.h"
 #include "sshkey.h"
 #include "sshconnect.h"
@@ -53,11 +49,8 @@
 #include "match.h"
 #include "misc.h"
 #include "readconf.h"
-#include "atomicio.h"
 #include "dns.h"
 #include "monitor_fdpass.h"
-#include "ssh2.h"
-#include "version.h"
 #include "authfile.h"
 #include "ssherr.h"
 #include "authfd.h"
@@ -1508,22 +1501,23 @@ verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key,
 		goto out;
 	}
 
-	/* Check in RevokedHostKeys file if specified */
-	if (options.revoked_host_keys != NULL) {
-		r = sshkey_check_revoked(host_key, options.revoked_host_keys);
+	/* Check in RevokedHostKeys files if specified */
+	for (i = 0; i < options.num_revoked_host_keys; i++) {
+		r = sshkey_check_revoked(host_key,
+		    options.revoked_host_keys[i]);
 		switch (r) {
 		case 0:
 			break; /* not revoked */
 		case SSH_ERR_KEY_REVOKED:
 			error("Host key %s %s revoked by file %s",
 			    sshkey_type(host_key), fp,
-			    options.revoked_host_keys);
+			    options.revoked_host_keys[i]);
 			r = -1;
 			goto out;
 		default:
 			error_r(r, "Error checking host key %s %s in "
 			    "revoked keys file %s", sshkey_type(host_key),
-			    fp, options.revoked_host_keys);
+			    fp, options.revoked_host_keys[i]);
 			r = -1;
 			goto out;
 		}

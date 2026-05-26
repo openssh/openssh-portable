@@ -88,7 +88,7 @@ jobs:
           - { target: nbsd10, config: pam, host: libvirt }
           - { target: omnios, config: pam, host: libvirt }
           # ARM64 VMs
-          - { target: obsd-arm64, config: default, host: libvirt-arm64 }
+          - { target: obsdsnap-arm64, config: default, host: libvirt-arm64 }
           # VMs with persistent disks that have their own runner.
           - { target: win10, config: default,        host: persist-win10 }
           - { target: win10, config: cygwin-release, host: persist-win10 }

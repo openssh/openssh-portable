@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.316 2025/12/22 01:49:03 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.325 2026/04/28 21:32:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -37,13 +37,13 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/resource.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
 #include <sys/time.h>
+#include <sys/queue.h>
+#include <sys/resource.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/un.h>
-#include "openbsd-compat/sys-queue.h"
+#include <sys/wait.h>
 
 #ifdef WITH_OPENSSL
 #include <openssl/evp.h>
@@ -52,15 +52,15 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <paths.h>
 #include <poll.h>
 #include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
+#include <limits.h>
+#include <time.h>
 #include <unistd.h>
 #include <util.h>
 
@@ -598,14 +598,20 @@ confirm_key(Identity *id, const char *extra)
 }
 
 static void
-send_status(SocketEntry *e, int success)
+send_status_generic(SocketEntry *e, u_int code)
 {
 	int r;
 
 	if ((r = sshbuf_put_u32(e->output, 1)) != 0 ||
-	    (r = sshbuf_put_u8(e->output, success ?
-	    SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE)) != 0)
+	    (r = sshbuf_put_u8(e->output, code)) != 0)
 		fatal_fr(r, "compose");
+}
+
+static void
+send_status(SocketEntry *e, int success)
+{
+	return send_status_generic(e,
+	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
 }
 
 /* send list of supported public keys to 'client' */
@@ -1756,6 +1762,26 @@ process_ext_session_bind(SocketEntry *e)
 	return r == 0 ? 1 : 0;
 }
 
+static int
+process_ext_query(SocketEntry *e)
+{
+	int r;
+	struct sshbuf *msg = NULL;
+
+	debug2_f("entering");
+	if ((msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	if ((r = sshbuf_put_u8(msg, SSH_AGENT_EXTENSION_RESPONSE)) != 0 ||
+	    (r = sshbuf_put_cstring(msg, "query")) != 0 ||
+	    /* string[]     supported extension types */
+	    (r = sshbuf_put_cstring(msg, "session-bind@openssh.com")) != 0)
+		fatal_fr(r, "compose");
+	if ((r = sshbuf_put_stringb(e->output, msg)) != 0)
+		fatal_fr(r, "enqueue");
+	sshbuf_free(msg);
+	return 1;
+}
+
 static void
 process_extension(SocketEntry *e)
 {
@@ -1765,16 +1791,26 @@ process_extension(SocketEntry *e)
 	debug2_f("entering");
 	if ((r = sshbuf_get_cstring(e->request, &name, NULL)) != 0) {
 		error_fr(r, "parse");
-		goto send;
+		send_status(e, 0);
+		return;
 	}
-	if (strcmp(name, "session-bind@openssh.com") == 0)
+
+	if (strcmp(name, "query") == 0)
+		success = process_ext_query(e);
+	else if (strcmp(name, "session-bind@openssh.com") == 0)
 		success = process_ext_session_bind(e);
-	else
+	else {
 		debug_f("unsupported extension \"%s\"", name);
+		free(name);
+		send_status(e, 0);
+		return;
+	}
 	free(name);
-send:
-	send_status(e, success);
+	/* Agent failures are signalled with a different error code */
+	send_status_generic(e,
+	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_EXTENSION_FAILURE);
 }
+
 /*
  * dispatch incoming message.
  * returns 1 on success, 0 for incomplete messages or -1 on error.
@@ -2536,7 +2572,31 @@ skip:
 	sigaddset(&nsigset, SIGTERM);
 	sigaddset(&nsigset, SIGUSR1);
 
-	if (pledge("stdio rpath cpath unix id proc exec", NULL) == -1)
+	if (socket_name != NULL && unveil(socket_name, "c") == -1) {
+		fatal("%s: unveil %s %s", __progname, socket_name,
+		    strerror(errno));
+	}
+	if (*socket_dir != '\0' && unveil(socket_dir, "c") == -1) {
+		fatal("%s: unveil %s %s", __progname, socket_dir,
+		    strerror(errno));
+	}
+	if (unveil("/", "r") == -1)
+		fatal("%s: unveil /: %s", __progname, strerror(errno));
+	if ((ccp = getenv("SSH_SK_HELPER")) == NULL || *ccp == '\0')
+		ccp = _PATH_SSH_SK_HELPER;
+	if (unveil(ccp, "x") == -1)
+		fatal("%s: unveil %s: %s", __progname, ccp, strerror(errno));
+	if ((ccp = getenv("SSH_PKCS11_HELPER")) == NULL || *ccp == '\0')
+		ccp = _PATH_SSH_PKCS11_HELPER;
+	if (unveil(ccp, "x") == -1)
+		fatal("%s: unveil %s: %s", __progname, ccp, strerror(errno));
+	if ((ccp = getenv("SSH_ASKPASS")) == NULL || *ccp == '\0')
+		ccp = _PATH_SSH_ASKPASS_DEFAULT;
+	if (unveil(ccp, "x") == -1)
+		fatal("%s: unveil %s: %s", __progname, ccp, strerror(errno));
+	if (unveil("/dev/null", "rw") == -1)
+		fatal("%s: unveil /dev/null: %s", __progname, strerror(errno));
+	if (pledge("stdio rpath cpath wpath unix id proc exec", NULL) == -1)
 		fatal("%s: pledge: %s", __progname, strerror(errno));
 	platform_pledge_agent();
 

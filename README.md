@@ -2,6 +2,7 @@
 
 [![C/C++ CI](../../actions/workflows/c-cpp.yml/badge.svg)](../../actions/workflows/c-cpp.yml)
 [![VM CI](../../actions/workflows/vm.yml/badge.svg)](../../actions/workflows/vm.yml)
+[![C/C++ CI self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml/badge.svg)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml)
 [![CIFuzz](../../actions/workflows/cifuzz.yml/badge.svg)](../../actions/workflows/cifuzz.yml)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/openssh.svg)](https://issues.oss-fuzz.com/issues?q="Project:+openssh"+is:open)
 [![Coverity Status](https://scan.coverity.com/projects/21341/badge.svg)](https://scan.coverity.com/projects/openssh-portable)
@@ -33,7 +34,7 @@ Stable release tarballs are available from a number of [download mirrors](https:
 
 Portable OpenSSH is built using autoconf and make. It requires a working C compiler, standard library and headers.
 
-``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) may also be used.  OpenSSH may be built without either of these, but the resulting binaries will have only a subset of the cryptographic algorithms normally available.
+``libcrypto`` from one of [LibreSSL](https://www.libressl.org/), [OpenSSL](https://www.openssl.org), [AWS-LC](https://github.com/aws/aws-lc) or [BoringSSL](https://github.com/google/boringssl) may also be used.  OpenSSH may be built without either of these, but the resulting binaries will have only a subset of the cryptographic algorithms normally available.
 
 [zlib](https://www.zlib.net/) is optional; without it transport compression is not supported.
 

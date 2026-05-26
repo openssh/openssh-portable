@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.125 2025/09/02 11:08:34 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.127 2026/05/13 05:58:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -47,7 +47,6 @@
 #include "misc.h"
 #include "sshbuf.h"
 #include "ssherr.h"
-#include "digest.h"
 
 #include "openbsd-compat/openssl-compat.h"
 
@@ -207,6 +206,7 @@ ciphers_valid(const char *names)
 	const struct sshcipher *c;
 	char *cipher_list, *cp;
 	char *p;
+	int found = 0;
 
 	if (names == NULL || strcmp(names, "") == 0)
 		return 0;
@@ -218,10 +218,11 @@ ciphers_valid(const char *names)
 		if (c == NULL || (c->flags & CFLAG_INTERNAL) != 0) {
 			free(cipher_list);
 			return 0;
-		}
+		} else
+			found = 1;
 	}
 	free(cipher_list);
-	return 1;
+	return found;
 }
 
 const char *

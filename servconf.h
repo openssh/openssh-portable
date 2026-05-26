@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.174 2025/12/19 01:27:19 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.176 2026/03/03 09:57:25 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -16,7 +16,7 @@
 #ifndef SERVCONF_H
 #define SERVCONF_H
 
-#include <openbsd-compat/sys-queue.h>
+#include <sys/queue.h>
 
 #define MAX_PORTS		256	/* Max # ports. */
 
@@ -223,7 +223,8 @@ typedef struct {
 	u_int   num_permitted_listens;
 
 	char   *chroot_directory;
-	char   *revoked_keys_file;
+	uint	num_revoked_keys_files;
+	char   **revoked_keys_files;
 	char   *trusted_user_ca_keys;
 	char   *authorized_keys_command;
 	char   *authorized_keys_command_user;
@@ -241,7 +242,7 @@ typedef struct {
 
 	int	fingerprint_hash;
 	int	expose_userauth_info;
-	u_int64_t timing_secret;
+	uint64_t timing_secret;
 	char   *sk_provider;
 	int	required_rsa_size;	/* minimum size of RSA keys */
 
@@ -291,7 +292,6 @@ TAILQ_HEAD(include_list, include_item);
 #define COPY_MATCH_STRING_OPTS() do { \
 		M_CP_STROPT(banner); \
 		M_CP_STROPT(trusted_user_ca_keys); \
-		M_CP_STROPT(revoked_keys_file); \
 		M_CP_STROPT(authorized_keys_command); \
 		M_CP_STROPT(authorized_keys_command_user); \
 		M_CP_STROPT(authorized_principals_file); \
@@ -304,6 +304,8 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STROPT(permit_user_env_allowlist); \
 		M_CP_STROPT(pam_service_name); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files, 1);\
+		M_CP_STRARRAYOPT(revoked_keys_files, \
+		    num_revoked_keys_files, 1); \
 		M_CP_STRARRAYOPT(allow_users, num_allow_users, 1); \
 		M_CP_STRARRAYOPT(deny_users, num_deny_users, 1); \
 		M_CP_STRARRAYOPT(allow_groups, num_allow_groups, 1); \

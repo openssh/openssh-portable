@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.125 2025/12/22 01:49:03 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.126 2026/04/02 07:48:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <paths.h>
 #include <pwd.h>
+#include <glob.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -39,11 +40,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <limits.h>
-#ifdef USE_SYSTEM_GLOB
-# include <glob.h>
-#else
-# include "openbsd-compat/glob.h"
-#endif
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -152,9 +148,10 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		error_f("cannot decode key: %s", pkalg);
 		goto done;
 	}
-	if (key->type != pktype) {
-		error_f("type mismatch for decoded key "
-		    "(received %d, expected %d)", key->type, pktype);
+	if (key->type != pktype || (sshkey_type_plain(pktype) == KEY_ECDSA &&
+	    sshkey_ecdsa_nid_from_name(pkalg) != key->ecdsa_nid)) {
+		error_f("key type mismatch for decoded key "
+		    "(received %s, expected %s)", sshkey_ssh_name(key), pkalg);
 		goto done;
 	}
 	if (auth2_key_already_used(authctxt, key)) {

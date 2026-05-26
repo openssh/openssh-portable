@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.56 2025/12/22 01:49:03 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.57 2026/04/02 07:48:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -96,9 +96,10 @@ userauth_hostbased(struct ssh *ssh, const char *method)
 		error_f("cannot decode key: %s", pkalg);
 		goto done;
 	}
-	if (key->type != pktype) {
-		error_f("type mismatch for decoded key "
-		    "(received %d, expected %d)", key->type, pktype);
+	if (key->type != pktype || (sshkey_type_plain(pktype) == KEY_ECDSA &&
+	    sshkey_ecdsa_nid_from_name(pkalg) != key->ecdsa_nid)) {
+		error_f("key type mismatch for decoded key "
+		    "(received %s, expected %s)", sshkey_ssh_name(key), pkalg);
 		goto done;
 	}
 	if (match_pattern_list(pkalg, options.hostbased_accepted_algos, 0) != 1) {

@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.141 2025/10/16 00:01:54 djm Exp $
+#	$OpenBSD: Makefile,v 1.144 2026/03/30 07:19:02 djm Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -108,6 +108,7 @@ LTESTS= 	connect \
 		agent-restrict \
 		hostbased \
 		password \
+		kbdint \
 		channel-timeout \
 		connection-timeout \
 		match-subsystem \
@@ -117,7 +118,8 @@ LTESTS= 	connect \
 		penalty-expire \
 		connect-bigconf \
 		ssh-pkcs11 \
-		ssh-tty
+		ssh-tty \
+		proxyjump
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 INTEROP_TESTS+=	dropbear-ciphers dropbear-kex dropbear-server
