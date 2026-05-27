@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.325 2026/04/28 21:32:05 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.326 2026/05/27 03:04:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -80,6 +80,7 @@
 #include "ssh-pkcs11.h"
 #include "sk-api.h"
 #include "myproposal.h"
+#include "version.h"
 
 #ifndef DEFAULT_ALLOWED_PROVIDERS
 # define DEFAULT_ALLOWED_PROVIDERS "/usr/lib*/*,/usr/local/lib*/*"
@@ -2268,7 +2269,7 @@ main(int ac, char **av)
 	__progname = ssh_get_progname(av[0]);
 	seed_rng();
 
-	while ((ch = getopt(ac, av, "cDdksTuUE:a:O:P:t:")) != -1) {
+	while ((ch = getopt(ac, av, "cDdksTuUVE:a:O:P:t:")) != -1) {
 		switch (ch) {
 		case 'E':
 			fingerprint_hash = ssh_digest_alg_by_name(optarg);
@@ -2334,6 +2335,10 @@ main(int ac, char **av)
 		case 'U':
 			U_flag++;
 			break;
+		case 'V':
+			fprintf(stderr, "%s, %s\n",
+			    SSH_VERSION, SSH_OPENSSL_VERSION);
+			exit(0);
 		default:
 			usage();
 		}
