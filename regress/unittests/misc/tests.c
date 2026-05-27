@@ -27,6 +27,7 @@ void test_hpdelim(void);
 void test_ptimeout(void);
 void test_xextendf(void);
 void test_misc(void);
+void test_log(void);
 
 void
 tests(void)
@@ -40,6 +41,7 @@ tests(void)
 	test_ptimeout();
 	test_xextendf();
 	test_misc();
+	test_log();
 }
 
 void
