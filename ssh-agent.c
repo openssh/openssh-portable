@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.326 2026/05/27 03:04:30 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.327 2026/05/27 03:28:07 tb Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2222,7 +2222,8 @@ usage(void)
 	    "       ssh-agent [-TU] [-a bind_address] [-E fingerprint_hash] [-O option]\n"
 	    "                 [-P allowed_providers] [-t life] command [arg ...]\n"
 	    "       ssh-agent [-c | -s] -k\n"
-	    "       ssh-agent -u\n");
+	    "       ssh-agent -u\n"
+	    "       ssh-agent -V\n");
 	exit(1);
 }
 
