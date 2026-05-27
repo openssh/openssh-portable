@@ -15,7 +15,7 @@ COMMON_DEPS=../../../libssh.a $(COMMON_OBJS)
 TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz \
 	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz \
-	ssh_client_session_fuzz
+	ssh_client_session_fuzz sftp_server_msg_fuzz
 
 all: $(TARGETS)
 
@@ -58,6 +58,11 @@ ssh_client_session_fuzz: ssh_client_session_fuzz.o ssh_client_session_fuzz_helpe
 	$(CXX) -o $@ ssh_client_session_fuzz.o ssh_client_session_fuzz_helper.o $(SK_NULL_OBJS) ../../../sshconnect.o ../../../readconf.o -Wl,--wrap=ssh_packet_write_wait,--wrap=read_passphrase $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 ssh_client_session_fuzz_helper.o: ssh_client_session_fuzz_helper.c ../../../sshconnect2.c
+
+sftp_server_msg_fuzz: sftp_server_msg_fuzz.o sftp_server_msg_fuzz_helper.o fuzz_arena.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ sftp_server_msg_fuzz.o sftp_server_msg_fuzz_helper.o fuzz_arena.o $(SK_NULL_OBJS) ../../../sftp-common.o -Wl,--wrap=malloc,--wrap=calloc,--wrap=realloc,--wrap=free,--wrap=strdup $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
+
+sftp_server_msg_fuzz_helper.o: sftp_server_msg_fuzz_helper.c ../../../sftp-server.c
 
 sk-dummy.o: ../sk-dummy/sk-dummy.c
 	$(CC) $(CFLAGS) -c -o $@ ../sk-dummy/sk-dummy.c -DSK_DUMMY_INTEGRATE=1 $(LDFLAGS) $(FUZZ_FLAGS)
