@@ -116,12 +116,12 @@ main(void)
 	 * values off by ~10^17 (e.g. "0.9E" returned 0; "1.9E" returned
 	 * exactly 1 * E).  After the fix they're within rounding noise.
 	 */
-	check("0.9E", (9 * E) / 10, 1);
+	check("0.9E", E - E / 10, 1);
 	check("0.1E", E / 10, 1);
-	check("1.9E", E + (9 * E) / 10, 1);
-	check("-1.9E", -(E + (9 * E) / 10), 1);
+	check("1.9E", 2 * E - E / 10, 1);
+	check("-1.9E", -(2 * E - E / 10), 1);
 	check("3.7E", 3 * E + (7 * E) / 10, 1);
-	check("7.9E", 7 * E + (9 * E) / 10, 1);
+	check("7.9E", 7 * E + (E - E / 10), 1);
 	check("1.234567T", T + (T * 234567LL) / 1000000LL, 1);
 	check("0.0001P", P / 10000, 1);
 
