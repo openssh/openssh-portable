@@ -16,7 +16,7 @@ TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz \
 	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz \
 	ssh_client_session_fuzz sftp_server_msg_fuzz authfd_reply_fuzz \
-	sftp_client_fuzz misc_parse_fuzz
+	sftp_client_fuzz misc_parse_fuzz ssh_channels_fuzz
 
 all: $(TARGETS)
 
@@ -85,6 +85,9 @@ sntrup761_enc_fuzz: sntrup761_enc_fuzz.o
 
 misc_parse_fuzz: misc_parse_fuzz.o $(SK_NULL_OBJS) $(COMMON_DEPS)
 	$(CXX) -o $@ misc_parse_fuzz.o $(SK_NULL_OBJS) $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS)
+
+ssh_channels_fuzz: ssh_channels_fuzz.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ ssh_channels_fuzz.o $(SK_NULL_OBJS) -Wl,--wrap=ssh_packet_disconnect,--wrap=sshpkt_fatal $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 clean:
 	-rm -f *.o $(TARGETS)
