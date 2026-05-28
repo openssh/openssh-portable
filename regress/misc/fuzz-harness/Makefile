@@ -16,7 +16,8 @@ TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz \
 	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz \
 	ssh_client_session_fuzz sftp_server_msg_fuzz authfd_reply_fuzz \
-	sftp_client_fuzz misc_parse_fuzz ssh_channels_fuzz
+	sftp_client_fuzz misc_parse_fuzz ssh_channels_fuzz \
+	session_channel_req_fuzz
 
 all: $(TARGETS)
 
@@ -88,6 +89,9 @@ misc_parse_fuzz: misc_parse_fuzz.o $(SK_NULL_OBJS) $(COMMON_DEPS)
 
 ssh_channels_fuzz: ssh_channels_fuzz.o $(SK_NULL_OBJS) $(COMMON_DEPS)
 	$(CXX) -o $@ ssh_channels_fuzz.o $(SK_NULL_OBJS) -Wl,--wrap=ssh_packet_disconnect,--wrap=sshpkt_fatal $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
+
+session_channel_req_fuzz: session_channel_req_fuzz.o session_channel_req_fuzz_helper.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ session_channel_req_fuzz.o session_channel_req_fuzz_helper.o $(SK_NULL_OBJS) ../../../session.o ../../../sshpty.o ../../../sshlogin.o ../../../servconf.o ../../../auth.o ../../../auth-options.o ../../../groupaccess.o ../../../auth2-pubkeyfile.o -Wl,--wrap=ssh_packet_disconnect,--wrap=sshpkt_fatal,--wrap=do_exec,--wrap=do_exec_pty,--wrap=do_exec_no_pty $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 clean:
 	-rm -f *.o $(TARGETS)
