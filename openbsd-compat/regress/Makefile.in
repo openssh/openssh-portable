@@ -15,7 +15,8 @@ LIBS=@LIBS@ @CHANNELLIBS@
 LDFLAGS=@LDFLAGS@ $(LIBCOMPAT)
 
 TESTPROGS=closefromtest$(EXEEXT) snprintftest$(EXEEXT) strduptest$(EXEEXT) \
-	strtonumtest$(EXEEXT) opensslvertest$(EXEEXT) utimensattest$(EXEEXT)
+	strtonumtest$(EXEEXT) opensslvertest$(EXEEXT) utimensattest$(EXEEXT) \
+	scan_scaledtest$(EXEEXT)
 
 all:	t-exec ${OTHERTESTS}
 
