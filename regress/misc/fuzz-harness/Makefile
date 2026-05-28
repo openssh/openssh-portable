@@ -14,7 +14,8 @@ COMMON_DEPS=../../../libssh.a $(COMMON_OBJS)
 
 TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz \
-	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz
+	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz \
+	sftp_client_fuzz
 
 all: $(TARGETS)
 
@@ -52,6 +53,9 @@ agent_fuzz: agent_fuzz.o agent_fuzz_helper.o sk-dummy.o ../../../ssh-sk.o $(COMM
 	$(CXX) -o $@ agent_fuzz.o agent_fuzz_helper.o sk-dummy.o ../../../ssh-sk.o $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 agent_fuzz_helper.o: agent_fuzz_helper.c ../../../ssh-agent.c
+
+sftp_client_fuzz: sftp_client_fuzz.o fuzz_arena.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ sftp_client_fuzz.o fuzz_arena.o $(SK_NULL_OBJS) ../../../sftp-client.o ../../../sftp-common.o -Wl,--wrap=malloc,--wrap=calloc,--wrap=realloc,--wrap=free,--wrap=strdup $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 sk-dummy.o: ../sk-dummy/sk-dummy.c
 	$(CC) $(CFLAGS) -c -o $@ ../sk-dummy/sk-dummy.c -DSK_DUMMY_INTEGRATE=1 $(LDFLAGS) $(FUZZ_FLAGS)
