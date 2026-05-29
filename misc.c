@@ -529,6 +529,18 @@ struct passwd *
 pwcopy(struct passwd *pw)
 {
 	struct passwd *copy = xcalloc(1, sizeof(*copy));
+	if (copy == NULL)
+		return NULL;
+
+	pwcopyto(pw, copy);
+	return copy;
+}
+
+void
+pwcopyto(struct passwd *pw, struct passwd *copy)
+{
+	if ((pw == NULL) || (copy == NULL))
+		return;
 
 	copy->pw_name = xstrdup(pw->pw_name);
 	copy->pw_passwd = xstrdup(pw->pw_passwd == NULL ? "*" : pw->pw_passwd);
@@ -548,11 +560,10 @@ pwcopy(struct passwd *pw)
 #endif
 	copy->pw_dir = xstrdup(pw->pw_dir == NULL ? "" : pw->pw_dir);
 	copy->pw_shell = xstrdup(pw->pw_shell == NULL ? "" : pw->pw_shell);
-	return copy;
 }
 
 void
-pwfree(struct passwd *pw)
+pwclear(struct passwd *pw)
 {
 	if (pw == NULL)
 		return;
@@ -567,6 +578,14 @@ pwfree(struct passwd *pw)
 #endif
 	free(pw->pw_dir);
 	free(pw->pw_shell);
+}
+
+void
+pwfree(struct passwd *pw)
+{
+	if (pw == NULL)
+		return;
+	pwclear(pw);
 	freezero(pw, sizeof(*pw));
 }
 
