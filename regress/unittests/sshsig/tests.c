@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #ifdef WITH_OPENSSL
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/crypto.h>
 #endif
@@ -85,7 +86,7 @@ tests(void)
 
 #ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
-	ERR_load_crypto_strings();
+	OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
 #endif
 
 	TEST_START("load data");

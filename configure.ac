@@ -3189,7 +3189,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_MSG_CHECKING([if programs using OpenSSL functions will link])
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[ #include <openssl/err.h> ]],
-		[[ ERR_load_crypto_strings(); ]])],
+		[[ OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL); ]])],
 		[
 			AC_MSG_RESULT([yes])
 		],
@@ -3199,7 +3199,7 @@ if test "x$openssl" = "xyes" ; then
 			AC_MSG_CHECKING([if programs using OpenSSL need -ldl])
 			AC_LINK_IFELSE(
 				[AC_LANG_PROGRAM([[ #include <openssl/err.h> ]],
-				[[ ERR_load_crypto_strings(); ]])],
+				[[ OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL); ]])],
 				[
 					AC_MSG_RESULT([yes])
 					CHANNELLIBS="$CHANNELLIBS -ldl"

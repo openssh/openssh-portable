@@ -339,7 +339,7 @@ main(int argc, char **argv)
 	extern int optind;
 	/* extern char *optarg; */
 
-	ERR_load_crypto_strings();
+	OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
 
 	sanitise_stdfd();
 	log_init(__progname, log_level, SYSLOG_FACILITY_AUTH, 1);
