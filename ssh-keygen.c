@@ -99,6 +99,9 @@ static char *identity_passphrase = NULL;
 /* This is set to the new passphrase if given on the command line. */
 static char *identity_new_passphrase = NULL;
 
+/* This is the empty passphrase. */
+static char *identity_empty_passphrase = "";
+
 /* Key type when certifying */
 static u_int cert_key_type = SSH2_CERT_TYPE_USER;
 
@@ -3242,7 +3245,7 @@ usage(void)
 	    "                  [-t ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
 	    "                  [-w provider] [-Z cipher]\n"
 	    "       ssh-keygen -p [-a rounds] [-f keyfile] [-m format] [-N new_passphrase]\n"
-	    "                   [-P old_passphrase] [-Z cipher]\n"
+	    "                   [-P old_passphrase] [-G] [-Z cipher]\n"
 #ifdef WITH_OPENSSL
 	    "       ssh-keygen -i [-f input_keyfile] [-m key_format]\n"
 	    "       ssh-keygen -e [-f input_keyfile] [-m key_format]\n"
@@ -3335,8 +3338,8 @@ main(int argc, char **argv)
 
 	sk_provider = getenv("SSH_SK_PROVIDER");
 
-	/* Remaining characters: dGjJSTWx */
-	while ((opt = getopt(argc, argv, "ABHKLQUXceghiklopquvy"
+	/* Remaining characters: djJSTWx */
+	while ((opt = getopt(argc, argv, "ABGHKLQUXceghiklopquvy"
 	    "C:D:E:F:I:M:N:O:P:R:V:Y:Z:"
 	    "a:b:f:g:m:n:r:s:t:w:z:")) != -1) {
 		switch (opt) {
@@ -3424,6 +3427,9 @@ main(int argc, char **argv)
 			break;
 		case 'N':
 			identity_new_passphrase = optarg;
+			break;
+		case 'G':
+			identity_new_passphrase = identity_empty_passphrase;
 			break;
 		case 'Q':
 			check_krl = 1;
