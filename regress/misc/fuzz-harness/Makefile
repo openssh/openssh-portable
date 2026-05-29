@@ -17,7 +17,8 @@ TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz \
 	ssh_client_session_fuzz sftp_server_msg_fuzz authfd_reply_fuzz \
 	sftp_client_fuzz misc_parse_fuzz ssh_channels_fuzz \
-	session_channel_req_fuzz sshd_auth_session_fuzz hostfile_fuzz
+	session_channel_req_fuzz sshd_auth_session_fuzz hostfile_fuzz \
+	mux_fuzz
 
 all: $(TARGETS)
 
@@ -98,6 +99,11 @@ sshd_auth_session_fuzz: sshd_auth_session_fuzz.o sshd_auth_session_fuzz_helper.o
 
 hostfile_fuzz: hostfile_fuzz.o $(SK_NULL_OBJS) $(COMMON_DEPS)
 	$(CXX) -o $@ hostfile_fuzz.o $(SK_NULL_OBJS) $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS)
+
+mux_fuzz: mux_fuzz.o mux_fuzz_helper.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ mux_fuzz.o mux_fuzz_helper.o $(SK_NULL_OBJS) ../../../readconf.o -Wl,--wrap=ssh_packet_disconnect,--wrap=sshpkt_fatal,--wrap=ask_permission,--wrap=channel_setup_local_fwd_listener,--wrap=channel_connect_stdio_fwd,--wrap=channel_request_remote_forwarding,--wrap=channel_request_rforward_cancel,--wrap=channel_cancel_lport_listener $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
+
+mux_fuzz_helper.o: mux_fuzz_helper.c ../../../mux.c
 
 clean:
 	-rm -f *.o $(TARGETS)
