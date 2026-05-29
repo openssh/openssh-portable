@@ -76,40 +76,6 @@ ssh_gssapi_krb5_init(void)
 	return 1;
 }
 
-/* Check if this user is OK to login. This only works with krb5 - other
- * GSSAPI mechanisms will need their own.
- * Returns true if the user is OK to log in, otherwise returns 0
- */
-
-static int
-ssh_gssapi_krb5_userok(ssh_gssapi_client *client, char *name)
-{
-	krb5_principal princ;
-	int retval;
-	const char *errmsg;
-
-	if (ssh_gssapi_krb5_init() == 0)
-		return 0;
-
-	if ((retval = krb5_parse_name(krb_context, client->exportedname.value,
-	    &princ))) {
-		errmsg = krb5_get_error_message(krb_context, retval);
-		logit("krb5_parse_name(): %.100s", errmsg);
-		krb5_free_error_message(krb_context, errmsg);
-		return 0;
-	}
-	if (krb5_kuserok(krb_context, princ, name)) {
-		retval = 1;
-		logit("Authorized to %s, krb5 principal %s (krb5_kuserok)",
-		    name, (char *)client->displayname.value);
-	} else
-		retval = 0;
-
-	krb5_free_principal(krb_context, princ);
-	return retval;
-}
-
-
 /* This writes out any forwarded credentials from the structure populated
  * during userauth. Called after we have setuid to the user */
 
@@ -201,7 +167,6 @@ ssh_gssapi_mech gssapi_kerberos_mech = {
 	"Kerberos",
 	{9, "\x2A\x86\x48\x86\xF7\x12\x01\x02\x02"},
 	NULL,
-	&ssh_gssapi_krb5_userok,
 	NULL,
 	&ssh_gssapi_krb5_storecreds
 };
