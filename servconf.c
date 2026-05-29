@@ -109,6 +109,7 @@ initialize_server_options(ServerOptions *options)
 	options->print_lastlog = -1;
 	options->x11_forwarding = -1;
 	options->x11_display_offset = -1;
+	options->x11_max_displays = -1;
 	options->x11_use_localhost = -1;
 	options->permit_tty = -1;
 	options->permit_user_rc = -1;
@@ -338,6 +339,8 @@ fill_default_server_options(ServerOptions *options)
 		options->x11_forwarding = 0;
 	if (options->x11_display_offset == -1)
 		options->x11_display_offset = 10;
+	if (options->x11_max_displays == -1)
+		options->x11_max_displays = DEFAULT_MAX_DISPLAYS;
 	if (options->x11_use_localhost == -1)
 		options->x11_use_localhost = 1;
 	if (options->xauth_location == NULL)
@@ -552,7 +555,7 @@ typedef enum {
 	sKerberosGetAFSToken, sPasswordAuthentication,
 	sKbdInteractiveAuthentication, sListenAddress, sAddressFamily,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
-	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
+	sX11Forwarding, sX11DisplayOffset, sX11MaxDisplays, sX11UseLocalhost,
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
@@ -675,6 +678,7 @@ static struct {
 	{ "ignoreuserknownhosts", sIgnoreUserKnownHosts, SSHCFG_GLOBAL },
 	{ "x11forwarding", sX11Forwarding, SSHCFG_ALL },
 	{ "x11displayoffset", sX11DisplayOffset, SSHCFG_ALL },
+	{ "x11maxdisplays", sX11MaxDisplays, SSHCFG_ALL },
 	{ "x11uselocalhost", sX11UseLocalhost, SSHCFG_ALL },
 	{ "xauthlocation", sXAuthLocation, SSHCFG_GLOBAL },
 	{ "strictmodes", sStrictModes, SSHCFG_GLOBAL },
@@ -1692,6 +1696,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
+
+	case sX11MaxDisplays:
+		intptr = &options->x11_max_displays;
+		goto parse_int;
 
 	case sX11UseLocalhost:
 		intptr = &options->x11_use_localhost;
@@ -2969,6 +2977,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(fwd_opts.streamlocal_bind_unlink);
 	M_CP_INTOPT(x11_display_offset);
 	M_CP_INTOPT(x11_forwarding);
+	M_CP_INTOPT(x11_max_displays);
 	M_CP_INTOPT(x11_use_localhost);
 	M_CP_INTOPT(permit_tty);
 	M_CP_INTOPT(permit_user_rc);
@@ -3263,6 +3272,7 @@ dump_config(ServerOptions *o)
 #endif
 	dump_cfg_int(sLoginGraceTime, o->login_grace_time);
 	dump_cfg_int(sX11DisplayOffset, o->x11_display_offset);
+	dump_cfg_int(sX11MaxDisplays, o->x11_max_displays);
 	dump_cfg_int(sMaxAuthTries, o->max_authtries);
 	dump_cfg_int(sMaxSessions, o->max_sessions);
 	dump_cfg_int(sClientAliveInterval, o->client_alive_interval);
