@@ -1402,10 +1402,14 @@ ssh_packet_type_is_kex(u_char type)
 int
 ssh_packet_send2(struct ssh *ssh)
 {
-	struct session_state *state = ssh->state;
+	struct session_state *state;
 	struct packet *p;
 	u_char type;
 	int r, need_rekey;
+
+	if (ssh == NULL || ssh->state == NULL)
+		return SSH_ERR_INTERNAL_ERROR;
+	state = ssh->state;
 
 	if (sshbuf_len(state->outgoing_packet) < 6)
 		return SSH_ERR_INTERNAL_ERROR;

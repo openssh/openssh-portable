@@ -1737,8 +1737,10 @@ mm_answer_pty(struct ssh *ssh, int sock, struct sshbuf *m)
 	/* make sure nothing uses fd 0 */
 	if ((fd0 = open(_PATH_DEVNULL, O_RDONLY)) == -1)
 		fatal_f("open(/dev/null): %s", strerror(errno));
-	if (fd0 != 0)
+	if (fd0 != 0) {
 		error_f("fd0 %d != 0", fd0);
+		close(fd0);
+	}
 
 	/* slave side of pty is not needed */
 	close(s->ttyfd);
