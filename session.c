@@ -1164,7 +1164,8 @@ do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 	struct stat st;
 
 	do_xauth =
-	    s->display != NULL && s->auth_proto != NULL && s->auth_data != NULL;
+	    s->display != NULL && s->auth_proto != NULL && s->auth_data != NULL &&
+	    xauth_valid_string(s->auth_proto) && xauth_valid_string(s->auth_data);
 	xasprintf(&user_rc, "%s/%s", s->pw->pw_dir, _PATH_SSH_USER_RC);
 
 	/* ignore _PATH_SSH_USER_RC for subsystems and admin forced commands */
