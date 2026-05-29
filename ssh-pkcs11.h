@@ -24,12 +24,16 @@
 #define	SSH_PKCS11_ERR_PIN_REQUIRED		4
 #define	SSH_PKCS11_ERR_PIN_LOCKED		5
 
+#include "ssh-pkcs11-uri.h"
+
 struct sshkey;
 
 int	pkcs11_init(int);
 void	pkcs11_terminate(void);
 int	pkcs11_add_provider(char *, char *, struct sshkey ***, char ***);
+int	pkcs11_add_provider_by_uri(struct pkcs11_uri *, char *, struct sshkey ***, char ***);
 int	pkcs11_del_provider(char *);
+int	pkcs11_uri_write(const struct sshkey *, FILE *);
 int	pkcs11_sign(struct sshkey *, u_char **, size_t *,
 	    const u_char *, size_t, const char *, const char *,
 	    const char *, u_int);
