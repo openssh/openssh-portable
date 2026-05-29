@@ -174,6 +174,7 @@ typedef struct {
 	char   **allow_groups;
 	u_int num_deny_groups;
 	char   **deny_groups;
+	char   *gss_indicators;
 
 	u_int num_subsystems;
 	char   **subsystem_name;
@@ -303,6 +304,7 @@ TAILQ_HEAD(include_list, include_item);
 		M_CP_STROPT(routing_domain); \
 		M_CP_STROPT(permit_user_env_allowlist); \
 		M_CP_STROPT(pam_service_name); \
+		M_CP_STROPT(gss_indicators); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files, 1);\
 		M_CP_STRARRAYOPT(revoked_keys_files, \
 		    num_revoked_keys_files, 1); \
