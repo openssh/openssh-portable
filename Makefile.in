@@ -113,8 +113,10 @@ P11OBJS= ssh-pkcs11-client.o
 
 SKOBJS=	ssh-sk-client.o
 
+AUDOBJ= audit-aix.o audit.o
+
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
-	sshconnect.o sshconnect2.o mux.o ssh-pkcs11.o $(SKOBJS)
+	sshconnect.o sshconnect2.o mux.o ssh-pkcs11.o $(SKOBJS) $(AUDOBJ)
 
 SSHDOBJS=sshd.o \
 	platform-listen.o \
@@ -123,7 +125,7 @@ SSHDOBJS=sshd.o \
 	$(P11OBJS) $(SKOBJS)
 
 SSHD_SESSION_OBJS=sshd-session.o auth-rhosts.o auth-passwd.o \
-	audit.o audit-bsm.o audit-linux.o platform.o \
+	audit-bsm.o audit-linux.o audit-aix.o audit.o platform.o \
 	sshpty.o sshlogin.o servconf.o serverloop.o \
 	auth.o auth2.o auth2-methods.o auth-options.o session.o \
 	auth2-chall.o groupaccess.o \
@@ -143,7 +145,7 @@ SSHD_AUTH_OBJS=sshd-auth.o \
 	auth2-none.o auth2-passwd.o auth2-pubkey.o auth2-pubkeyfile.o \
 	auth2-gss.o gss-serv.o gss-serv-krb5.o \
 	monitor_wrap.o auth-krb5.o \
-	audit.o audit-bsm.o audit-linux.o platform.o \
+	audit-bsm.o audit-linux.o audit-aix.o audit.o platform.o \
 	loginrec.o auth-pam.o auth-shadow.o auth-sia.o \
 	sandbox-null.o sandbox-rlimit.o sandbox-darwin.o \
 	sandbox-seccomp-filter.o sandbox-capsicum.o  sandbox-solaris.o \
@@ -166,7 +168,7 @@ P11HELPER_OBJS=	ssh-pkcs11-helper.o ssh-pkcs11.o $(SKOBJS)
 
 SKHELPER_OBJS=	ssh-sk-helper.o ssh-sk.o sk-usbhid.o ssherr-nolibcrypto.o
 
-SSHKEYSCAN_OBJS=ssh-keyscan.o $(P11OBJS) $(SKOBJS)
+SSHKEYSCAN_OBJS=ssh-keyscan.o $(P11OBJS) $(SKOBJS) $(AUDOBJ)
 
 SFTPSERVER_OBJS=sftp-common.o sftp-server.o sftp-server-main.o ssherr-nolibcrypto.o
 
