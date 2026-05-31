@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.327 2026/05/27 03:28:07 tb Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.328 2026/05/31 04:31:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -101,6 +101,8 @@
 #define AGENT_MAX_DEST_CONSTRAINTS	1024
 /* Maximum number of associated certificate constraints to accept on a key */
 #define AGENT_MAX_EXT_CERTS		1024
+/* Max length of username constraint */
+#define AGENT_USER_CONSTRAINT_MAX_LEN	256
 
 /* XXX store hostkey_sid in a refcounted tree */
 
@@ -1078,13 +1080,13 @@ static int
 parse_dest_constraint_hop(struct sshbuf *b, struct dest_constraint_hop *dch)
 {
 	u_char key_is_ca;
-	size_t elen = 0;
+	size_t elen = 0, userlen = 0;
 	int r;
 	struct sshkey *k = NULL;
 	char *fp;
 
 	memset(dch, '\0', sizeof(*dch));
-	if ((r = sshbuf_get_cstring(b, &dch->user, NULL)) != 0 ||
+	if ((r = sshbuf_get_cstring(b, &dch->user, &userlen)) != 0 ||
 	    (r = sshbuf_get_cstring(b, &dch->hostname, NULL)) != 0 ||
 	    (r = sshbuf_get_string_direct(b, NULL, &elen)) != 0) {
 		error_fr(r, "parse");
@@ -1102,6 +1104,10 @@ parse_dest_constraint_hop(struct sshbuf *b, struct dest_constraint_hop *dch)
 	if (*dch->user == '\0') {
 		free(dch->user);
 		dch->user = NULL;
+	} else if (userlen > AGENT_USER_CONSTRAINT_MAX_LEN) {
+		error_f("user match pattern too long");
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
 	}
 	while (sshbuf_len(b) != 0) {
 		dch->keys = xrecallocarray(dch->keys, dch->nkeys,
