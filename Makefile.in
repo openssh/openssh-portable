@@ -317,6 +317,8 @@ clean:	regressclean
 	rm -f regress/unittests/match/test_match$(EXEEXT)
 	rm -f regress/unittests/misc/*.o
 	rm -f regress/unittests/misc/test_misc$(EXEEXT)
+	rm -f regress/unittests/servconf/*.o
+	rm -f regress/unittests/servconf/test_servconf$(EXEEXT)
 	rm -f regress/unittests/sshbuf/*.o
 	rm -f regress/unittests/sshbuf/test_sshbuf$(EXEEXT)
 	rm -f regress/unittests/sshkey/*.o
@@ -356,6 +358,8 @@ distclean:	regressclean
 	rm -f regress/unittests/match/test_match
 	rm -f regress/unittests/misc/*.o
 	rm -f regress/unittests/misc/test_misc
+	rm -f regress/unittests/servconf/*.o
+	rm -f regress/unittests/servconf/test_servconf
 	rm -f regress/unittests/sshbuf/*.o
 	rm -f regress/unittests/sshbuf/test_sshbuf
 	rm -f regress/unittests/sshkey/*.o
@@ -539,6 +543,7 @@ regress-prep:
 	$(MKDIR_P) `pwd`/regress/unittests/kex
 	$(MKDIR_P) `pwd`/regress/unittests/match
 	$(MKDIR_P) `pwd`/regress/unittests/misc
+	$(MKDIR_P) `pwd`/regress/unittests/servconf
 	$(MKDIR_P) `pwd`/regress/unittests/sshbuf
 	$(MKDIR_P) `pwd`/regress/unittests/sshkey
 	$(MKDIR_P) `pwd`/regress/unittests/sshsig
@@ -708,6 +713,19 @@ regress/unittests/misc/test_misc$(EXEEXT): \
 	    regress/unittests/test_helper/libtest_helper.a \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(TESTLIBS)
 
+UNITTESTS_TEST_SERVCONF_OBJS=\
+	regress/unittests/servconf/tests.o \
+	servconf.o \
+	groupaccess.o \
+	$(P11OBJS) $(SKOBJS)
+
+regress/unittests/servconf/test_servconf$(EXEEXT): \
+    ${UNITTESTS_TEST_SERVCONF_OBJS} \
+    regress/unittests/test_helper/libtest_helper.a libssh.a
+	$(LD) -o $@ $(LDFLAGS) $(UNITTESTS_TEST_SERVCONF_OBJS) \
+	    regress/unittests/test_helper/libtest_helper.a \
+	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(TESTLIBS)
+
 UNITTESTS_TEST_UTF8_OBJS=\
 	regress/unittests/utf8/tests.o
 
@@ -760,6 +778,7 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/kex/test_kex$(EXEEXT) \
 	regress/unittests/match/test_match$(EXEEXT) \
 	regress/unittests/misc/test_misc$(EXEEXT) \
+	regress/unittests/servconf/test_servconf$(EXEEXT) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
 	regress/unittests/sshkey/test_sshkey$(EXEEXT) \
 	regress/unittests/sshsig/test_sshsig$(EXEEXT) \
