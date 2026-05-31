@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.631 2026/05/31 04:24:39 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.632 2026/05/31 05:55:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -399,6 +399,7 @@ check_follow_cname(int direct, char **namep, const char *cname)
 		    "\"%s\" => \"%s\"", *namep, cname);
 		free(*namep);
 		*namep = xstrdup(cname);
+		lowercase(*namep);
 		return 1;
 	}
 	return 0;
