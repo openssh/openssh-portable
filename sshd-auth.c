@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.14 2026/03/11 09:10:59 dtucker Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.15 2026/05/31 11:30:50 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -412,14 +412,13 @@ parse_hostkeys(struct sshbuf *hostkeys)
 }
 
 static void
-recv_privsep_state(struct ssh *ssh, struct sshbuf *conf,
-    uint64_t *timing_secretp)
+recv_privsep_state(struct ssh *ssh, ServerOptions *o, uint64_t *timing_secretp)
 {
 	struct sshbuf *hostkeys;
 
 	debug3_f("begin");
 
-	mm_get_state(ssh, &includes, conf, NULL, timing_secretp,
+	mm_get_state(ssh, o, NULL, timing_secretp,
 	    &hostkeys, NULL, NULL, NULL, NULL);
 	parse_hostkeys(hostkeys);
 
@@ -439,11 +438,9 @@ main(int ac, char **av)
 	extern int optind;
 	int r, opt, have_key = 0;
 	int sock_in = -1, sock_out = -1, rexeced_flag = 0;
-	char *line;
 	u_int i;
 	mode_t new_umask;
 	Authctxt *authctxt;
-	struct connection_info *connection_info = NULL;
 	sigset_t sigmask;
 	uint64_t timing_secret = 0;
 
@@ -482,17 +479,16 @@ main(int ac, char **av)
 	    "C:E:b:c:f:g:h:k:o:p:u:46DGQRTdeiqrtV")) != -1) {
 		switch (opt) {
 		case '4':
-			options.address_family = AF_INET;
+			/* ignore */
 			break;
 		case '6':
-			options.address_family = AF_INET6;
+			/* ignore */
 			break;
 		case 'f':
-			config_file_name = optarg;
+			/* ignore */
 			break;
 		case 'c':
-			servconf_add_hostcert("[command-line]", 0,
-			    &options, optarg);
+			/* ignore */
 			break;
 		case 'd':
 			if (debug_flag == 0) {
@@ -519,46 +515,28 @@ main(int ac, char **av)
 			/* ignored */
 			break;
 		case 'q':
-			options.log_level = SYSLOG_LEVEL_QUIET;
+			/* ignored */
 			break;
 		case 'b':
 			/* protocol 1, ignored */
 			break;
 		case 'p':
-			options.ports_from_cmdline = 1;
-			if (options.num_ports >= MAX_PORTS) {
-				fprintf(stderr, "too many ports.\n");
-				exit(1);
-			}
-			options.ports[options.num_ports++] = a2port(optarg);
-			if (options.ports[options.num_ports-1] <= 0) {
-				fprintf(stderr, "Bad port number.\n");
-				exit(1);
-			}
+			/* ignored */
 			break;
 		case 'g':
-			if ((options.login_grace_time = convtime(optarg)) == -1) {
-				fprintf(stderr, "Invalid login grace time.\n");
-				exit(1);
-			}
+			/* ignored */
 			break;
 		case 'k':
 			/* protocol 1, ignored */
 			break;
 		case 'h':
-			servconf_add_hostkey("[command-line]", 0,
-			    &options, optarg, 1);
+			/* ignored */
 			break;
 		case 't':
 		case 'T':
 		case 'G':
-			fatal("test/dump modes not supported");
-			break;
 		case 'C':
-			connection_info = server_get_connection_info(ssh, 0, 0);
-			if (parse_server_match_testspec(connection_info,
-			    optarg) == -1)
-				exit(1);
+			fatal("test/dump modes not supported");
 			break;
 		case 'u':
 			utmp_len = (u_int)strtonum(optarg, 0, HOST_NAME_MAX+1+1, NULL);
@@ -568,11 +546,7 @@ main(int ac, char **av)
 			}
 			break;
 		case 'o':
-			line = xstrdup(optarg);
-			if (process_server_config_line(&options, line,
-			    "command-line", 0, NULL, NULL, &includes) != 0)
-				exit(1);
-			free(line);
+			/* ignored */
 			break;
 		case 'V':
 			fprintf(stderr, "%s, %s\n",
@@ -637,10 +611,7 @@ main(int ac, char **av)
 	if ((cfg = sshbuf_new()) == NULL)
 		fatal("sshbuf_new config buf failed");
 	setproctitle("%s", "[session-auth early]");
-	recv_privsep_state(ssh, cfg, &timing_secret);
-	parse_server_config(&options, "rexec", cfg, &includes, NULL, 1);
-	/* Fill in default values for those options not explicitly set. */
-	fill_default_server_options(&options);
+	recv_privsep_state(ssh, &options, &timing_secret);
 	options.timing_secret = timing_secret; /* XXX eliminate from unpriv */
 	ssh_packet_set_qos(ssh, options.ip_qos_interactive,
 	    options.ip_qos_bulk);
