@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.336 2026/05/31 04:24:39 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.337 2026/05/31 04:37:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2535,7 +2535,9 @@ newkeys_from_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 	    (r = sshbuf_get_string(b, &enc->key, &keylen)) != 0 ||
 	    (r = sshbuf_get_string(b, &enc->iv, &ivlen)) != 0)
 		goto out;
-	if ((enc->cipher = cipher_by_name(enc->name)) == NULL) {
+	if ((enc->cipher = cipher_by_name(enc->name)) == NULL ||
+	    enc->block_size != cipher_blocksize(enc->cipher) ||
+	    cipher_is_internal(enc->cipher)) {
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
@@ -2547,7 +2549,7 @@ newkeys_from_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 		if ((r = sshbuf_get_u32(b, (u_int *)&mac->enabled)) != 0 ||
 		    (r = sshbuf_get_string(b, &mac->key, &maclen)) != 0)
 			goto out;
-		if (maclen > mac->key_len) {
+		if (maclen != mac->key_len) {
 			r = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
@@ -2593,6 +2595,10 @@ kex_from_blob(struct sshbuf *m, struct kex **kexp)
 	    (r = sshbuf_get_stringb(m, kex->session_id)) != 0 ||
 	    (r = sshbuf_get_u32(m, &kex->flags)) != 0)
 		goto out;
+	if (kex->we_need > 1024) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
 	kex->server = 1;
 	kex->done = 1;
 	r = 0;

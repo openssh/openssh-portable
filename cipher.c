@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.127 2026/05/13 05:58:58 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.128 2026/05/31 04:37:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -181,6 +181,12 @@ u_int
 cipher_is_cbc(const struct sshcipher *c)
 {
 	return (c->flags & CFLAG_CBC) != 0;
+}
+
+u_int
+cipher_is_internal(const struct sshcipher *c)
+{
+	return (c->flags & CFLAG_INTERNAL) != 0;
 }
 
 u_int
