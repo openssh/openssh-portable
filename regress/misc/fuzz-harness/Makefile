@@ -18,7 +18,7 @@ TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	ssh_client_session_fuzz sftp_server_msg_fuzz authfd_reply_fuzz \
 	sftp_client_fuzz misc_parse_fuzz ssh_channels_fuzz \
 	session_channel_req_fuzz sshd_auth_session_fuzz hostfile_fuzz \
-	mux_fuzz
+	mux_fuzz sshconfig_fuzz
 
 all: $(TARGETS)
 
@@ -51,6 +51,11 @@ privkey_fuzz: privkey_fuzz.o $(SK_NULL_OBJS) $(COMMON_DEPS)
 
 kex_fuzz: kex_fuzz.o $(SK_NULL_OBJS) $(COMMON_DEPS)
 	$(CXX) -o $@ kex_fuzz.o $(SK_NULL_OBJS) $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
+
+sshconfig_fuzz: sshconfig_fuzz.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ sshconfig_fuzz.o $(SK_NULL_OBJS) ../../../readconf.o \
+		../../../addrmatch.o ../../../misc.o ../../../krl.o \
+		$(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 agent_fuzz: agent_fuzz.o agent_fuzz_helper.o sk-dummy.o ../../../ssh-sk.o $(COMMON_DEPS)
 	$(CXX) -o $@ agent_fuzz.o agent_fuzz_helper.o sk-dummy.o ../../../ssh-sk.o $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
