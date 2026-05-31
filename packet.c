@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.337 2026/05/31 04:37:56 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.338 2026/05/31 04:44:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1949,6 +1949,13 @@ ssh_packet_read_poll_seqnr(struct ssh *ssh, u_char *typep, uint32_t *seqnr_p)
 			DBG(debug("Received SSH2_MSG_PONG len %zu", len));
 			break;
 		default:
+			if (ssh->kex != NULL &&
+			    (ssh->kex->flags & KEX_INIT_RECVD) != 0 &&
+			    !ssh_packet_type_is_kex(*typep)) {
+				error("non-transport message %u received "
+				    "from peer during key exchange", *typep);
+				return SSH_ERR_PROTOCOL_ERROR;
+			}
 			return 0;
 		}
 	}
