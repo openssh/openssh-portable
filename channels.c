@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.459 2026/04/20 07:43:52 job Exp $ */
+/* $OpenBSD: channels.c,v 1.460 2026/05/31 06:14:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1375,6 +1375,11 @@ x11_open_helper(struct ssh *ssh, struct sshbuf *b)
 	struct ssh_channels *sc = ssh->chanctxt;
 	u_char *ucp;
 	u_int proto_len, data_len;
+
+	if (sc->x11_saved_proto == NULL) {
+		error("X11 forwarding opened before X11 forwarding requested");
+		return -1;
+	}
 
 	/* Is this being called after the refusal deadline? */
 	if (sc->x11_refuse_time != 0 &&
