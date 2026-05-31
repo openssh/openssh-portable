@@ -1376,6 +1376,13 @@ x11_open_helper(struct ssh *ssh, struct sshbuf *b)
 	u_char *ucp;
 	u_int proto_len, data_len;
 
+	/* Null check. */
+    if (sc->x11_saved_proto == NULL) {
+        debug2("X11 open received before x11-req sent");
+        return -1;
+    }
+
+
 	/* Is this being called after the refusal deadline? */
 	if (sc->x11_refuse_time != 0 &&
 	    monotime() >= sc->x11_refuse_time) {
