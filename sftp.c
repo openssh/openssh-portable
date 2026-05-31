@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.250 2026/02/11 17:01:34 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.251 2026/05/31 04:51:45 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -369,10 +369,9 @@ path_strip(const char *path, const char *strip)
 {
 	size_t len;
 
-	if (strip == NULL)
+	if (strip == NULL || (len = strlen(strip)) == 0)
 		return (xstrdup(path));
 
-	len = strlen(strip);
 	if (strncmp(path, strip, len) == 0) {
 		if (strip[len - 1] != '/' && path[len] == '/')
 			len++;
@@ -1283,6 +1282,8 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 					/* Unescape everything */
 					/* XXX support \n and friends? */
 					i++;
+					if (arg[i] == '\0')
+						goto early_nul;
 					argvs[j++] = arg[i];
 				}
 			}
@@ -1293,6 +1294,7 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 				goto string_done;
 		} else if (arg[i] == '\0') {
 			if (state == MA_SQUOTE || state == MA_DQUOTE) {
+ early_nul:
 				if (sloppy) {
 					state = MA_UNQUOTED;
 					if (terminated != NULL)
