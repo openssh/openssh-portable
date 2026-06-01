@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.460 2026/05/31 06:14:42 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.461 2026/06/01 05:40:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2863,7 +2863,7 @@ channel_prepare_pollfd(Channel *c, u_int *next_pollfd,
 		if (ev != 0) {
 			c->pfds[3] = p;
 			pfd[p].fd = c->sock;
-			pfd[p].events = 0;
+			pfd[p].events = ev;
 			dump_channel_poll(__func__, "sock", c, p, &pfd[p]);
 			p++;
 		}
