@@ -84,7 +84,7 @@ jobs:
           - { target: ubuntu-latest, config: libressl-4.0.1 }
           - { target: ubuntu-latest, config: libressl-4.1.1 }
           - { target: ubuntu-latest, config: libressl-4.2.0 }
-          - { target: ubuntu-latest, config: libressl-4.3.1 }
+          - { target: ubuntu-latest, config: libressl-4.3.2 }
           - { target: ubuntu-latest, config: openssl-master }
           - { target: ubuntu-latest, config: openssl-noec }
           - { target: ubuntu-latest, config: openssl-1.1.1 }
