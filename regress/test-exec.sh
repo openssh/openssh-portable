@@ -80,7 +80,7 @@ if test "x${EGREP}" != "x"; then
 fi
 
 # Likewise with awk.
-if test "x${AWK}" != "x"; then
+if test "x${AWK}" != "x" && test "x${AWK}" != "xawk"; then
 	awk ()
 {
 	${AWK} "$@"
