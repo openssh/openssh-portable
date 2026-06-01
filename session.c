@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.348 2026/03/05 05:40:36 djm Exp $ */
+/* $OpenBSD: session.c,v 1.349 2026/06/01 08:27:28 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1907,7 +1907,7 @@ static int
 session_subsystem_req(struct ssh *ssh, Session *s)
 {
 	struct stat st;
-	int r, success = 0;
+	int r, success = 0, found = 0;
 	char *prog, *cmd, *type;
 	u_int i;
 
@@ -1918,31 +1918,34 @@ session_subsystem_req(struct ssh *ssh, Session *s)
 	    s->pw->pw_name);
 
 	for (i = 0; i < options.num_subsystems; i++) {
-		if (strcmp(s->subsys, options.subsystem_name[i]) == 0) {
-			prog = options.subsystem_command[i];
-			cmd = options.subsystem_args[i];
-			if (strcmp(INTERNAL_SFTP_NAME, prog) == 0) {
-				s->is_subsystem = SUBSYSTEM_INT_SFTP;
-				debug("subsystem: %s", prog);
-			} else {
-				if (stat(prog, &st) == -1)
-					debug("subsystem: cannot stat %s: %s",
-					    prog, strerror(errno));
-				s->is_subsystem = SUBSYSTEM_EXT;
-				debug("subsystem: exec() %s", cmd);
-			}
-			xasprintf(&type, "session:subsystem:%s",
-			    options.subsystem_name[i]);
-			channel_set_xtype(ssh, s->chanid, type);
-			free(type);
-			success = do_exec(ssh, s, cmd) == 0;
-			break;
+		if (strcmp(s->subsys, options.subsystem_name[i]) != 0)
+			continue;
+		found = 1;
+		prog = options.subsystem_command[i];
+		cmd = options.subsystem_args[i];
+		if (strcmp(INTERNAL_SFTP_NAME, prog) == 0) {
+			s->is_subsystem = SUBSYSTEM_INT_SFTP;
+			debug("subsystem: %s", prog);
+		} else {
+			if (stat(prog, &st) == -1)
+				debug("subsystem: cannot stat %s: %s",
+				    prog, strerror(errno));
+			s->is_subsystem = SUBSYSTEM_EXT;
+			debug("subsystem: exec() %s", cmd);
 		}
+		xasprintf(&type, "session:subsystem:%s",
+		    options.subsystem_name[i]);
+		channel_set_xtype(ssh, s->chanid, type);
+		free(type);
+		success = do_exec(ssh, s, cmd) == 0;
+		break;
 	}
 
-	if (!success)
-		logit("subsystem request for %.100s by user %s failed, "
-		    "subsystem not found", s->subsys, s->pw->pw_name);
+	if (!success) {
+		logit("subsystem request for %.100s by user %s failed, %s",
+		    s->subsys, s->pw->pw_name,
+		    found ? "execution failed" : "subsystem not found");
+	}
 
 	return success;
 }
