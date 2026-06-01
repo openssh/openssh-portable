@@ -1591,7 +1591,8 @@ main(int ac, char **av)
 		if (options.host_key_files[i] == NULL)
 			continue;
 		if ((r = sshkey_load_private(options.host_key_files[i], "",
-		    &key, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
+		    &key, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR &&
+		    !have_agent)
 			do_log2_r(r, ll, "Unable to load host key \"%s\"",
 			    options.host_key_files[i]);
 		if (sshkey_is_sk(key) &&
