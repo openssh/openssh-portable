@@ -619,6 +619,8 @@ static void nh_update(nh_ctx *hc, const UINT8 *buf, UINT32 nbytes)
     UINT32 i,j;
 
     j = hc->next_data_empty;
+    if (j >= HASH_BUF_BYTES)
+        return;
     if ((j + nbytes) >= HASH_BUF_BYTES) {
         if (j) {
             i = HASH_BUF_BYTES - j;
