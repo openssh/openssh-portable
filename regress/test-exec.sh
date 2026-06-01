@@ -79,6 +79,14 @@ if test "x${EGREP}" != "x"; then
 }
 fi
 
+# Likewise with awk.
+if test "x${AWK}" != "x"; then
+	awk ()
+{
+	${AWK} "$@"
+}
+fi
+
 SRC=`dirname ${SCRIPT}`
 
 # defaults

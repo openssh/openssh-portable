@@ -806,6 +806,7 @@ TEST_SSH_SSHD="$(BUILDDIR)/sshd"
 
 interop-tests t-exec file-tests extra-tests: regress-prep regress-binaries $(TARGETS)
 	cd $(srcdir)/regress || exit $$?; \
+	AWK='@AWK@' \
 	EGREP='@EGREP@' \
 	OPENSSL_BIN='@OPENSSL_BIN@' \
 	$(MAKE) \
