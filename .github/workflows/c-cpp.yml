@@ -140,8 +140,7 @@ jobs:
     - uses: actions/checkout@main
     - name: setup CI system
       run: |
-        timeout 1200 sh .github/setup_ci.sh ${{ matrix.config }} ${{ matrix.target }} || \
-        sh .github/setup_ci.sh ${{ matrix.config }} ${{ matrix.target }}
+        sh -c "timeout 1200 .github/setup_ci.sh ${{ matrix.config }} ${{ matrix.target }} || .github/setup_ci.sh ${{ matrix.config }} ${{ matrix.target }}"
       env:
         CYGWIN_SETUP: ${{ steps.cygwin_install.outputs.setup }}
     - name: autoreconf
