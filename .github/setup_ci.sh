@@ -2,29 +2,14 @@
 
 config="$1"
 target="$2"
-retry="$3"
-
-timeout=3600
-
-fail ()		{ trap '' 0; exit 1; }
-success ()	{ trap '' 0; exit 0; }
-
-if [ "${retry}" != "retry" ]; then
-	echo Set trap for single retry with timeout at $timeout seconds.
-	trap "exec $0 $1 $2 retry" HUP
-	(sleep $timeout; kill -HUP $$) &
-	trap "kill $!; sleep 120; exec $0 $1 $2 retry" 0
-else
-	echo "$0: retrying"
-fi
 
 PACKAGES="tmux"
 
 echo Running as:
 id
 
-echo Environment saved to env.txt
-set >env.txt
+echo Saving environment to runner-env.txt
+set >runner-env.txt
 
  . .github/configs ${config}
 
@@ -84,7 +69,7 @@ if [ ! -z "$SUDO" ]; then
 	fi
 	if ! "$SUDO" -u nobody -S test -x ~ </dev/null; then
 		echo "Still can't sudo to nobody."
-		fail
+		exit 1
 	fi
 fi
 
@@ -193,7 +178,7 @@ for TARGET in $TARGETS; do
     zlib-*)
        ;;
     *) echo "Invalid option '${TARGET}'"
-        fail
+        exit 1
         ;;
     esac
 done
@@ -316,5 +301,3 @@ if [ ! -z "${EPHEMERAL_VM}" ]; then
 	;;
     esac
 fi
-
-success
