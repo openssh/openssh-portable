@@ -53,6 +53,8 @@ int getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 
 	if (sa->sa_family != AF_UNSPEC && sa->sa_family != AF_INET)
 		return (EAI_FAMILY);
+	if (salen < sizeof(struct sockaddr_in))
+		return (EAI_FAMILY);
 	if (serv != NULL) {
 		snprintf(tmpserv, sizeof(tmpserv), "%d", ntohs(sin->sin_port));
 		if (strlcpy(serv, tmpserv, servlen) >= servlen)

@@ -148,6 +148,13 @@ done:
 int
 seed_from_prngd(unsigned char *buf, size_t bytes)
 {
+	/*
+	 * get_random_bytes_prngd() takes an int length and rejects > 255;
+	 * reject oversize requests here so the size_t->int narrowing below
+	 * can never silently truncate into an in-range (short read) value.
+	 */
+	if (bytes > 255)
+		return -1;
 #ifdef PRNGD_PORT
 	debug("trying egd/prngd port %d", PRNGD_PORT);
 	if (get_random_bytes_prngd(buf, bytes, PRNGD_PORT, NULL) == 0)

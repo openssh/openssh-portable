@@ -75,7 +75,7 @@ static char old_registry[REGISTRY_SIZE] = "";
 void
 aix_usrinfo(struct passwd *pw)
 {
-	u_int i;
+	int i;
 	size_t len;
 	char *cp;
 
@@ -84,6 +84,8 @@ aix_usrinfo(struct passwd *pw)
 
 	i = snprintf(cp, len, "LOGNAME=%s%cNAME=%s%c", pw->pw_name, '\0',
 	    pw->pw_name, '\0');
+	if (i < 0 || (size_t)i >= len)
+		fatal("%s: snprintf failed", __func__);
 	if (usrinfo(SETUINFO, cp, i) == -1)
 		fatal("Couldn't set usrinfo: %s", strerror(errno));
 	debug3("AIX/UsrInfo: set len %d", i);
@@ -100,7 +102,7 @@ aix_usrinfo(struct passwd *pw)
 void
 aix_remove_embedded_newlines(char *p)
 {
-	if (p == NULL)
+	if (p == NULL || *p == '\0')
 		return;
 
 	for (; *p; p++) {
