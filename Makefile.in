@@ -758,6 +758,7 @@ SK_DUMMY_OBJS=\
 	ed25519.lo ed25519-openssl.lo
 
 SK_DUMMY_LIBRARY=@SK_DUMMY_LIBRARY@
+PKCS11_UNIT_TEST=@PKCS11_UNIT_TEST@
 
 .c.lo: Makefile.in config.h
 	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
@@ -798,7 +799,7 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/sshkey/test_sshkey$(EXEEXT) \
 	regress/unittests/sshsig/test_sshsig$(EXEEXT) \
 	regress/unittests/utf8/test_utf8$(EXEEXT) \
-	regress/unittests/pkcs11/test_pkcs11$(EXEEXT) \
+	$(PKCS11_UNIT_TEST)
 
 tests:	file-tests t-exec interop-tests extra-tests unit
 	echo all tests passed

@@ -3509,7 +3509,11 @@ fi
 AC_MSG_CHECKING([whether to enable PKCS11])
 if test "x$enable_pkcs11" = "xyes" ; then
 	AC_DEFINE([ENABLE_PKCS11], [], [Enable for PKCS#11 support])
+	PKCS11_UNIT_TEST="regress/unittests/pkcs11/test_pkcs11\$(EXEEXT)"
+else
+	PKCS11_UNIT_TEST=""
 fi
+AC_SUBST([PKCS11_UNIT_TEST])
 AC_MSG_RESULT([$enable_pkcs11])
 
 AC_MSG_CHECKING([whether to enable U2F])

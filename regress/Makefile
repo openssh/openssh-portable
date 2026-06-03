@@ -296,7 +296,9 @@ unit unit-bench:
 		test "x${UNITTEST_VERBOSE}" = "x" || ARGS="$$ARGS -v"; \
 		test "x${UNITTEST_BENCH_DETAIL}" = "x" || ARGS="$$ARGS -B"; \
 		test "x${UNITTEST_BENCH_ONLY}" = "x" || ARGS="$$ARGS -O ${UNITTEST_BENCH_ONLY}"; \
-		 $$V ${.OBJDIR}/unittests/pkcs11/test_pkcs11 ; \
+		 if test -f ${.OBJDIR}/unittests/pkcs11/test_pkcs11 ; then \
+			$$V ${.OBJDIR}/unittests/pkcs11/test_pkcs11 ; \
+		 fi; \
 		 $$V ${.OBJDIR}/unittests/sshbuf/test_sshbuf $${ARGS}; \
 		 $$V ${.OBJDIR}/unittests/sshkey/test_sshkey \
 			-d ${.CURDIR}/unittests/sshkey/testdata $${ARGS}; \
