@@ -36,6 +36,7 @@
 #include <openssl/ecdsa.h>
 #include <openssl/x509.h>
 #include <openssl/err.h>
+#include <openssl/evp.h>
 #endif
 
 #define CRYPTOKI_COMPAT
@@ -86,6 +87,7 @@ struct pkcs11_key {
 	CK_ULONG		slotidx;
 	char			*keyid;
 	int			keyid_len;
+	char			*label;
 	TAILQ_ENTRY(pkcs11_key)	next;
 };
 
@@ -235,6 +237,7 @@ pkcs11_k11_free(struct pkcs11_key *k11)
 	if (k11->provider)
 		pkcs11_provider_unref(k11->provider);
 	free(k11->keyid);
+	free(k11->label);
 	sshbuf_free(k11->keyblob);
 	free(k11);
 }
@@ -492,6 +495,12 @@ pkcs11_record_key(struct pkcs11_provider *provider, CK_ULONG slotidx,
 		k11->keyid = xmalloc(k11->keyid_len);
 		memcpy(k11->keyid, keyid_attrib->pValue, k11->keyid_len);
 	}
+	if (keyid_attrib->ulValueLen > 0 ) {
+		k11->label = xmalloc(keyid_attrib->ulValueLen+1);
+		memcpy(k11->label, keyid_attrib->pValue, keyid_attrib->ulValueLen);
+		k11->label[keyid_attrib->ulValueLen] = 0;
+	}
+
 	TAILQ_INSERT_TAIL(&pkcs11_keys, k11, next);
 
 	return 0;
@@ -910,7 +919,8 @@ static struct sshkey *
 pkcs11_fetch_ecdsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
     CK_OBJECT_HANDLE *obj)
 {
-	CK_ATTRIBUTE		 key_attr[3];
+	CK_ATTRIBUTE		 key_attr[4];
+	int			 nattr = 4;
 	CK_SESSION_HANDLE	 session;
 	CK_FUNCTION_LIST	*f = NULL;
 	CK_RV			 rv;
@@ -923,14 +933,15 @@ pkcs11_fetch_ecdsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 
 	memset(&key_attr, 0, sizeof(key_attr));
 	key_attr[0].type = CKA_ID;
-	key_attr[1].type = CKA_EC_POINT;
-	key_attr[2].type = CKA_EC_PARAMS;
+	key_attr[1].type = CKA_LABEL;
+	key_attr[2].type = CKA_EC_POINT;
+	key_attr[3].type = CKA_EC_PARAMS;
 
 	session = p->module->slotinfo[slotidx].session;
 	f = p->module->function_list;
 
 	/* figure out size of the attributes */
-	rv = f->C_GetAttributeValue(session, *obj, key_attr, 3);
+	rv = f->C_GetAttributeValue(session, *obj, key_attr, nattr);
 	if (rv != CKR_OK) {
 		error("C_GetAttributeValue failed: %lu", rv);
 		return (NULL);
@@ -941,19 +952,19 @@ pkcs11_fetch_ecdsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	 * ensure that none of the others are zero length.
 	 * XXX assumes CKA_ID is always first.
 	 */
-	if (key_attr[1].ulValueLen == 0 ||
-	    key_attr[2].ulValueLen == 0) {
+	if (key_attr[2].ulValueLen == 0 ||
+	    key_attr[3].ulValueLen == 0) {
 		error("invalid attribute length");
 		return (NULL);
 	}
 
 	/* allocate buffers for attributes */
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < nattr; i++)
 		if (key_attr[i].ulValueLen > 0)
 			key_attr[i].pValue = xcalloc(1, key_attr[i].ulValueLen);
 
 	/* retrieve ID, public point and curve parameters of EC key */
-	rv = f->C_GetAttributeValue(session, *obj, key_attr, 3);
+	rv = f->C_GetAttributeValue(session, *obj, key_attr, nattr);
 	if (rv != CKR_OK) {
 		error("C_GetAttributeValue failed: %lu", rv);
 		goto fail;
@@ -965,8 +976,8 @@ pkcs11_fetch_ecdsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		goto fail;
 	}
 
-	attrp = key_attr[2].pValue;
-	group = d2i_ECPKParameters(NULL, &attrp, key_attr[2].ulValueLen);
+	attrp = key_attr[3].pValue;
+	group = d2i_ECPKParameters(NULL, &attrp, key_attr[3].ulValueLen);
 	if (group == NULL) {
 		ossl_error("d2i_ECPKParameters failed");
 		goto fail;
@@ -977,13 +988,13 @@ pkcs11_fetch_ecdsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		goto fail;
 	}
 
-	if (key_attr[1].ulValueLen <= 2) {
+	if (key_attr[2].ulValueLen <= 2) {
 		error("CKA_EC_POINT too small");
 		goto fail;
 	}
 
-	attrp = key_attr[1].pValue;
-	octet = d2i_ASN1_OCTET_STRING(NULL, &attrp, key_attr[1].ulValueLen);
+	attrp = key_attr[2].pValue;
+	octet = d2i_ASN1_OCTET_STRING(NULL, &attrp, key_attr[2].ulValueLen);
 	if (octet == NULL) {
 		ossl_error("d2i_ASN1_OCTET_STRING failed");
 		goto fail;
@@ -1028,7 +1039,7 @@ fail:
 		sshkey_free(key);
 		key = NULL;
 	}
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < nattr; i++)
 		free(key_attr[i].pValue);
 	if (ec)
 		EC_KEY_free(ec);
@@ -1045,7 +1056,8 @@ static struct sshkey *
 pkcs11_fetch_rsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
     CK_OBJECT_HANDLE *obj)
 {
-	CK_ATTRIBUTE		 key_attr[3];
+	CK_ATTRIBUTE		 key_attr[4];
+	int			 nattr = 4;
 	CK_SESSION_HANDLE	 session;
 	CK_FUNCTION_LIST	*f = NULL;
 	CK_RV			 rv;
@@ -1056,14 +1068,15 @@ pkcs11_fetch_rsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 
 	memset(&key_attr, 0, sizeof(key_attr));
 	key_attr[0].type = CKA_ID;
-	key_attr[1].type = CKA_MODULUS;
-	key_attr[2].type = CKA_PUBLIC_EXPONENT;
+	key_attr[1].type = CKA_LABEL;
+	key_attr[2].type = CKA_MODULUS;
+	key_attr[3].type = CKA_PUBLIC_EXPONENT;
 
 	session = p->module->slotinfo[slotidx].session;
 	f = p->module->function_list;
 
 	/* figure out size of the attributes */
-	rv = f->C_GetAttributeValue(session, *obj, key_attr, 3);
+	rv = f->C_GetAttributeValue(session, *obj, key_attr, nattr);
 	if (rv != CKR_OK) {
 		error("C_GetAttributeValue failed: %lu", rv);
 		return (NULL);
@@ -1074,19 +1087,19 @@ pkcs11_fetch_rsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	 * ensure that none of the others are zero length.
 	 * XXX assumes CKA_ID is always first.
 	 */
-	if (key_attr[1].ulValueLen == 0 ||
-	    key_attr[2].ulValueLen == 0) {
+	if (key_attr[2].ulValueLen == 0 ||
+	    key_attr[3].ulValueLen == 0) {
 		error("invalid attribute length");
 		return (NULL);
 	}
 
 	/* allocate buffers for attributes */
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < nattr; i++)
 		if (key_attr[i].ulValueLen > 0)
 			key_attr[i].pValue = xcalloc(1, key_attr[i].ulValueLen);
 
 	/* retrieve ID, modulus and public exponent of RSA key */
-	rv = f->C_GetAttributeValue(session, *obj, key_attr, 3);
+	rv = f->C_GetAttributeValue(session, *obj, key_attr, nattr);
 	if (rv != CKR_OK) {
 		error("C_GetAttributeValue failed: %lu", rv);
 		goto fail;
@@ -1098,8 +1111,8 @@ pkcs11_fetch_rsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		goto fail;
 	}
 
-	rsa_n = BN_bin2bn(key_attr[1].pValue, key_attr[1].ulValueLen, NULL);
-	rsa_e = BN_bin2bn(key_attr[2].pValue, key_attr[2].ulValueLen, NULL);
+	rsa_n = BN_bin2bn(key_attr[2].pValue, key_attr[2].ulValueLen, NULL);
+	rsa_e = BN_bin2bn(key_attr[3].pValue, key_attr[3].ulValueLen, NULL);
 	if (rsa_n == NULL || rsa_e == NULL) {
 		error("BN_bin2bn failed");
 		goto fail;
@@ -1131,7 +1144,7 @@ pkcs11_fetch_rsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	/* success */
 	success = 0;
 fail:
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < nattr; i++)
 		free(key_attr[i].pValue);
 	RSA_free(rsa);
 	if (success != 0) {
@@ -1146,7 +1159,8 @@ static struct sshkey *
 pkcs11_fetch_ed25519_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
     CK_OBJECT_HANDLE *obj)
 {
-	CK_ATTRIBUTE		 key_attr[3];
+	CK_ATTRIBUTE		 key_attr[4];
+	int			 nattr = 4;
 	CK_SESSION_HANDLE	 session;
 	CK_FUNCTION_LIST	*f = NULL;
 	CK_RV			 rv;
@@ -1166,14 +1180,15 @@ pkcs11_fetch_ed25519_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 
 	memset(&key_attr, 0, sizeof(key_attr));
 	key_attr[0].type = CKA_ID;
-	key_attr[1].type = CKA_EC_POINT; /* XXX or CKA_VALUE ? */
-	key_attr[2].type = CKA_EC_PARAMS;
+	key_attr[1].type = CKA_LABEL;
+	key_attr[2].type = CKA_EC_POINT; /* XXX or CKA_VALUE ? */
+	key_attr[3].type = CKA_EC_PARAMS;
 
 	session = p->module->slotinfo[slotidx].session;
 	f = p->module->function_list;
 
 	/* figure out size of the attributes */
-	rv = f->C_GetAttributeValue(session, *obj, key_attr, 3);
+	rv = f->C_GetAttributeValue(session, *obj, key_attr, nattr);
 	if (rv != CKR_OK) {
 		error("C_GetAttributeValue failed: %lu", rv);
 		return (NULL);
@@ -1184,28 +1199,28 @@ pkcs11_fetch_ed25519_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	 * ensure that none of the others are zero length.
 	 * XXX assumes CKA_ID is always first.
 	 */
-	if (key_attr[1].ulValueLen == 0 ||
-	    key_attr[2].ulValueLen == 0) {
+	if (key_attr[2].ulValueLen == 0 ||
+	    key_attr[3].ulValueLen == 0) {
 		error("invalid attribute length");
 		return (NULL);
 	}
 
 	/* allocate buffers for attributes */
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < nattr; i++) {
 		if (key_attr[i].ulValueLen > 0)
 			key_attr[i].pValue = xcalloc(1, key_attr[i].ulValueLen);
 	}
 
 	/* retrieve ID, public point and curve parameters of EC key */
-	rv = f->C_GetAttributeValue(session, *obj, key_attr, 3);
+	rv = f->C_GetAttributeValue(session, *obj, key_attr, nattr);
 	if (rv != CKR_OK) {
 		error("C_GetAttributeValue failed: %lu", rv);
 		goto fail;
 	}
 
 	/* Expect one of the supported identifiers in CKA_EC_PARAMS */
-	d = (u_char *)key_attr[2].pValue;
-	len = key_attr[2].ulValueLen;
+	d = (u_char *)key_attr[3].pValue;
+	len = key_attr[3].ulValueLen;
 	if ((len != sizeof(id1) || memcmp(d, id1, sizeof(id1)) != 0) &&
 	    (len != sizeof(id2) || memcmp(d, id2, sizeof(id2)) != 0)) {
 		hex = tohex(d, len);
@@ -1217,16 +1232,16 @@ pkcs11_fetch_ed25519_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	 * Expect either a raw 32 byte pubkey or an OCTET STRING with
 	 * a 32 byte pubkey in CKA_VALUE
 	 */
-	d = (u_char *)key_attr[1].pValue;
-	len = key_attr[1].ulValueLen;
+	d = (u_char *)key_attr[2].pValue;
+	len = key_attr[2].ulValueLen;
 	if (len == ED25519_PK_SZ + 2 && d[0] == 0x04 && d[1] == ED25519_PK_SZ) {
 		d += 2;
 		len -= 2;
 	}
 	if (len != ED25519_PK_SZ) {
-		hex = tohex(key_attr[1].pValue, key_attr[1].ulValueLen);
+		hex = tohex(key_attr[2].pValue, key_attr[2].ulValueLen);
 		logit_f("CKA_EC_POINT invalid octet str: %s (len %lu)",
-		    hex, (u_long)key_attr[1].ulValueLen);
+		    hex, (u_long)key_attr[2].ulValueLen);
 		goto fail;
 	}
 
@@ -1246,7 +1261,7 @@ pkcs11_fetch_ed25519_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		key = NULL;
 	}
 	free(hex);
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < nattr; i++)
 		free(key_attr[i].pValue);
 	return key;
 }
@@ -1256,7 +1271,8 @@ static int
 pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
     CK_OBJECT_HANDLE *obj, struct sshkey **keyp, char **labelp)
 {
-	CK_ATTRIBUTE		 cert_attr[3];
+	CK_ATTRIBUTE		 cert_attr[4];
+	int			 nattr = 4;
 	CK_SESSION_HANDLE	 session;
 	CK_FUNCTION_LIST	*f = NULL;
 	CK_RV			 rv;
@@ -1282,14 +1298,15 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 
 	memset(&cert_attr, 0, sizeof(cert_attr));
 	cert_attr[0].type = CKA_ID;
-	cert_attr[1].type = CKA_SUBJECT;
-	cert_attr[2].type = CKA_VALUE;
+	cert_attr[1].type = CKA_LABEL;
+	cert_attr[2].type = CKA_SUBJECT;
+	cert_attr[3].type = CKA_VALUE;
 
 	session = p->module->slotinfo[slotidx].session;
 	f = p->module->function_list;
 
 	/* figure out size of the attributes */
-	rv = f->C_GetAttributeValue(session, *obj, cert_attr, 3);
+	rv = f->C_GetAttributeValue(session, *obj, cert_attr, nattr);
 	if (rv != CKR_OK) {
 		error("C_GetAttributeValue failed: %lu", rv);
 		return -1;
@@ -1301,33 +1318,34 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	 * XXX assumes CKA_ID is always first.
 	 */
 	if (cert_attr[1].ulValueLen == 0 ||
-	    cert_attr[2].ulValueLen == 0) {
+	    cert_attr[2].ulValueLen == 0 ||
+	    cert_attr[3].ulValueLen == 0) {
 		error("invalid attribute length");
 		return -1;
 	}
 
 	/* allocate buffers for attributes */
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < nattr; i++)
 		if (cert_attr[i].ulValueLen > 0)
 			cert_attr[i].pValue = xcalloc(1, cert_attr[i].ulValueLen);
 
 	/* retrieve ID, subject and value of certificate */
-	rv = f->C_GetAttributeValue(session, *obj, cert_attr, 3);
+	rv = f->C_GetAttributeValue(session, *obj, cert_attr, nattr);
 	if (rv != CKR_OK) {
 		error("C_GetAttributeValue failed: %lu", rv);
 		goto out;
 	}
 
 	/* Decode DER-encoded cert subject */
-	cp = cert_attr[1].pValue;
+	cp = cert_attr[2].pValue;
 	if ((x509_name = d2i_X509_NAME(NULL, &cp,
-	    cert_attr[1].ulValueLen)) == NULL ||
+	    cert_attr[2].ulValueLen)) == NULL ||
 	    (subject = X509_NAME_oneline(x509_name, NULL, 0)) == NULL)
 		subject = xstrdup("invalid subject");
 	X509_NAME_free(x509_name);
 
-	cp = cert_attr[2].pValue;
-	if ((x509 = d2i_X509(NULL, &cp, cert_attr[2].ulValueLen)) == NULL) {
+	cp = cert_attr[3].pValue;
+	if ((x509 = d2i_X509(NULL, &cp, cert_attr[3].ulValueLen)) == NULL) {
 		error("d2i_x509 failed");
 		goto out;
 	}
@@ -1437,7 +1455,7 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		goto out;
 	}
  out:
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < nattr; i++)
 		free(cert_attr[i].pValue);
 	X509_free(x509);
 	RSA_free(rsa);
