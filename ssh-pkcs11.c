@@ -547,7 +547,7 @@ pkcs11_record_key(struct pkcs11_provider *provider, CK_ULONG slotidx,
 
 /* retrieve the key information by keyblob */
 static struct pkcs11_key *
-pkcs11_lookup_key(struct sshkey *key)
+pkcs11_lookup_key(const struct sshkey *key)
 {
 	struct pkcs11_key *k11, *found = NULL;
 	struct sshbuf *keyblob;
