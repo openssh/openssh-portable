@@ -482,12 +482,14 @@ cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv, size_t len)
 
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
 		return 0;
+#ifndef WITH_OPENSSL
 	if ((cc->cipher->flags & CFLAG_AESCTR) != 0) {
 		if (len != sizeof(cc->ac_ctx.ctr))
 			return SSH_ERR_INVALID_ARGUMENT;
 		aesctr_ivsetup(&cc->ac_ctx, iv);
 		return 0;
 	}
+#endif
 	if ((cc->cipher->flags & CFLAG_NONE) != 0)
 		return 0;
 
