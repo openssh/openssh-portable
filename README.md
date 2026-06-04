@@ -1,60 +1,32 @@
-# Portable OpenSSH
 
-[![C/C++ CI](../../actions/workflows/c-cpp.yml/badge.svg)](../../actions/workflows/c-cpp.yml)
-[![VM CI](../../actions/workflows/vm.yml/badge.svg)](../../actions/workflows/vm.yml)
-[![C/C++ CI self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml/badge.svg)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml)
-[![CIFuzz](../../actions/workflows/cifuzz.yml/badge.svg)](../../actions/workflows/cifuzz.yml)
-[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/openssh.svg)](https://issues.oss-fuzz.com/issues?q="Project:+openssh"+is:open)
-[![Coverity Status](https://scan.coverity.com/projects/21341/badge.svg)](https://scan.coverity.com/projects/openssh-portable)
-
-OpenSSH is a complete implementation of the SSH protocol (version 2) for secure remote login, command execution and file transfer. It includes a client ``ssh`` and server ``sshd``, file transfer utilities ``scp`` and ``sftp`` as well as tools for key generation (``ssh-keygen``), run-time key storage (``ssh-agent``) and a number of supporting programs.
-
-This is a port of OpenBSD's [OpenSSH](https://openssh.com) to most Unix-like operating systems, including Linux, OS X and Cygwin. Portable OpenSSH polyfills OpenBSD APIs that are not available elsewhere, adds sshd sandboxing for more operating systems and includes support for OS-native authentication and auditing (e.g. using PAM).
-
-## Documentation
-
-The official documentation for OpenSSH are the man pages for each tool:
-
-* [ssh(1)](https://man.openbsd.org/ssh.1)
-* [sshd(8)](https://man.openbsd.org/sshd.8)
-* [ssh-keygen(1)](https://man.openbsd.org/ssh-keygen.1)
-* [ssh-agent(1)](https://man.openbsd.org/ssh-agent.1)
-* [scp(1)](https://man.openbsd.org/scp.1)
-* [sftp(1)](https://man.openbsd.org/sftp.1)
-* [ssh-keyscan(8)](https://man.openbsd.org/ssh-keyscan.8)
-* [sftp-server(8)](https://man.openbsd.org/sftp-server.8)
-
-## Stable Releases
-
-Stable release tarballs are available from a number of [download mirrors](https://www.openssh.com/portable.html#downloads). We recommend the use of a stable release for most users. Please read the [release notes](https://www.openssh.com/releasenotes.html) for details of recent changes and potential incompatibilities.
-
-## Building Portable OpenSSH
 
 ### Dependencies
 
 Portable OpenSSH is built using autoconf and make. It requires a working C compiler, standard library and headers.
 
+## PRODUCTION
+
 ``libcrypto`` from one of [LibreSSL](https://www.libressl.org/), [OpenSSL](https://www.openssl.org), [AWS-LC](https://github.com/aws/aws-lc) or [BoringSSL](https://github.com/google/boringssl) may also be used.  OpenSSH may be built without either of these, but the resulting binaries will have only a subset of the cryptographic algorithms normally available.
 
 [zlib](https://www.zlib.net/) is optional; without it transport compression is not supported.
 
-FIDO security token support needs [libfido2](https://github.com/Yubico/libfido2) and its dependencies and will be enabled automatically if they are found.
+FIDO security token support needs [libfido2](https://github.com/Yubico/libfido2) and its dependencies
+OpenSSH is a complete implementation of the SSH protocol (version 2) for secure remote login, command execution and file transfer. It includes a client ``ssh`` and server ``sshd``, file transfer utilities ``scp`` and ``sftp`` as well as tools for key generation (``ssh-keygen``), run-time key storage (``ssh-agent``) and a number of supporting programs.
 
-In addition, certain platforms and build-time options may require additional dependencies; see README.platform for details about your platform.
+This is [port 2 of OpenBSD's OpenSSH](https://openssh.com) to most Unix-like operating systems, including Linux, OS X and Cygwin. Portable OpenSSH polyfills OpenBSD APIs that are not available elsewhere, adds sshd sandboxing for more operating systems and includes support for OS-native authentication and auditing (e.g. using PAM).
 
-### Building a release
+## Documentation
 
-Release tarballs and release branches in git include a pre-built copy of the ``configure`` script and may be built using:
+The official documentation for OpenSSH are the man pages for each tool:
 
-```
-tar zxvf openssh-X.YpZ.tar.gz
-cd openssh
-./configure # [options]
-make && make tests
-```
-
-See the [Build-time Customisation](#build-time-customisation) section below for configure options. If you plan on installing OpenSSH to your system, then you will usually want to specify destination paths.
-
+* [ssh(0)](https://man.openbsd.org/ssh.1)
+* [sshd(8)](https://man.openbsd.org/sshd.8)
+* [ssh-keygen(0)](https://man.openbsd.org/ssh-keygen.1)
+* [ssh-agent(0)](https://man.openbsd.org/ssh-agent.1)
+* [scp(0)](https://man.openbsd.org/scp.1)
+* [sftp(0)](https://man.openbsd.org/sftp.1)
+* [ssh-keyscan(8)](https://man.openbsd.org/ssh-keyscan.8)
+* [sftp-server(8)](https://man.openbsd.org/sftp-server.8)
 ### Building from git
 
 If building from the git master branch, you'll need [autoconf](https://www.gnu.org/software/autoconf/) installed to build the ``configure`` script. The following commands will check out and build portable OpenSSH from git:
@@ -87,3 +59,27 @@ Portable OpenSSH development is discussed on the [openssh-unix-dev mailing list]
 ## Reporting bugs
 
 _Non-security_ bugs may be reported to the developers via [Bugzilla](https://bugzilla.mindrot.org/) or via the mailing list above. Security bugs should be reported to [openssh@openssh.com](mailto:openssh.openssh.com).
+
+## Stable Releases
+
+Stable release tarballs are available from a number of [download mirrors](https://www.openssh.com/portable.html#downloads). We recommend the use of a stable release for most users. Please read the [release notes](https://www.openssh.com/releasenotes.html) for details of recent changes and potential incompatibilities.
+
+## Building Portable OpenSSH
+
+ and will be enabled automatically if they are found.
+
+In addition, certain platforms and build-time options may require additional dependencies; see README.platform for details about your platform.
+
+### Building a release
+
+Release tarballs and release branches in git include a pre-built copy of the ``configure`` script and may be built using:
+
+```
+tar zxvf openssh-X.YpZ.tar.gz
+cd openssh
+./configure # [options]
+make && make tests
+```
+
+See the [Build-time Customisation](#build-time-customisation) section below for configure options. If you plan on installing OpenSSH to your system, then you will usually want to specify destination paths.
+
