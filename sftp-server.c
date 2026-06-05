@@ -1146,7 +1146,22 @@ process_readdir(uint32_t id)
 				nstats *= 2;
 				stats = xreallocarray(stats, nstats, sizeof(Stat));
 			}
-/* XXX OVERFLOW ? */
+			/* Check for path truncation vulnerability (CVE candidate)
+			 * Ensure that path + separator + d_name fits in PATH_MAX
+			 * to prevent silent truncation in snprintf() below.
+			 */
+			size_t path_len = strlen(path);
+			size_t dname_len = strlen(dp->d_name);
+			size_t sep_len = (path_len > 0 && strcmp(path, "/")) ? 1 : 0;
+			
+			if (path_len + sep_len + dname_len >= sizeof(pathname)) {
+				/* Skip entries that would cause path truncation */
+				debug3_f("skipping directory entry: path would overflow "
+				    "(path_len=%zu + sep=%zu + dname_len=%zu >= %zu)",
+				    path_len, sep_len, dname_len, sizeof(pathname));
+				continue;
+			}
+			
 			snprintf(pathname, sizeof pathname, "%s%s%s", path,
 			    strcmp(path, "/") ? "/" : "", dp->d_name);
 			if (lstat(pathname, &st) == -1)
