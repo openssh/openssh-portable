@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: ed25519.sh,v 1.3 2026/06/04 04:26:51 djm Exp $
+#       $OpenBSD: ed25519.sh,v 1.4 2026/06/05 06:51:02 djm Exp $
 #       Placed in the Public Domain.
 #
 AUTHOR="supercop-20221122/crypto_sign/ed25519/ref/implementors"
@@ -60,13 +60,13 @@ for i in $FILES; do
  * Where L = 2^{252} + 27742317777372353535851937790883648493
  * This can be variable time as the signature is public.
  */
-static inline int sc25519_inrange(const unsigned char *pk)
+static inline int sc25519_inrange(const unsigned char *s)
 {
   int i;
 
   for (i = 0; i < 32; i++) {
-    if (pk[31 - i] > sc25519_m[31 - i]) return -1;
-    if (pk[31 - i] < sc25519_m[31 - i]) return 0;
+    if (s[31 - i] > sc25519_m[31 - i]) return -1;
+    if (s[31 - i] < sc25519_m[31 - i]) return 0;
   }
   return -1;
 }
