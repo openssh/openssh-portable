@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.349 2026/06/01 08:27:28 djm Exp $ */
+/* $OpenBSD: session.c,v 1.350 2026/06/05 08:53:07 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1607,21 +1607,22 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 		exit(1);
 	} else if (s->is_subsystem == SUBSYSTEM_INT_SFTP) {
 		extern int optind, optreset;
-		int i;
-		char *p, *args;
+		int sftp_argc;
+		char **sftp_argv;
 
 		setproctitle("%s@%s", s->pw->pw_name, INTERNAL_SFTP_NAME);
-		args = xstrdup(command ? command : "sftp-server");
-		for (i = 0, (p = strtok(args, " ")); p; (p = strtok(NULL, " ")))
-			if (i < ARGV_MAX - 1)
-				argv[i++] = p;
-		argv[i] = NULL;
+		if (argv_split(command == NULL ? "sftp-server" : command,
+		    &sftp_argc, &sftp_argv, 1) != 0) {
+			error("internal error: can't split internal-sftp "
+			    "arguments");
+			exit(1);
+		}
 		optind = optreset = 1;
-		__progname = argv[0];
+		__progname = sftp_argv[0];
 #ifdef WITH_SELINUX
 		ssh_selinux_change_context("sftpd_t");
 #endif
-		exit(sftp_server_main(i, argv, s->pw));
+		exit(sftp_server_main(sftp_argc, sftp_argv, s->pw));
 	}
 
 	fflush(NULL);
