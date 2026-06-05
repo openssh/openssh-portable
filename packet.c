@@ -2548,6 +2548,11 @@ newkeys_from_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
+	if (keylen != cipher_keylen(enc->cipher) ||
+	    ivlen != cipher_ivlen(enc->cipher)) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
 	if (cipher_authlen(enc->cipher) == 0) {
 		if ((r = sshbuf_get_cstring(b, &mac->name, NULL)) != 0)
 			goto out;
