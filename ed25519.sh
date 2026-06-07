@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: ed25519.sh,v 1.4 2026/06/05 06:51:02 djm Exp $
+#       $OpenBSD: ed25519.sh,v 1.5 2026/06/07 08:50:17 dtucker Exp $
 #       Placed in the Public Domain.
 #
 AUTHOR="supercop-20221122/crypto_sign/ed25519/ref/implementors"
@@ -101,7 +101,7 @@ _EOF
 	*/crypto_sign/ed25519/ref/keypair.c)
 	    # provide an explicit-seed key generation function and rename
 	    # it to the name OpenSSH expects
-	    sed -e "s/crypto_sign_keypair(unsigned char \*pk,unsigned char \*sk)/crypto_sign_ed25519_keypair_from_seed(unsigned char *pk,unsigned char *sk, const unsigned char *seed)/g" \
+	    sed -e "s/int crypto_sign_keypair(unsigned char \*pk,unsigned char \*sk)/static int crypto_sign_ed25519_keypair_from_seed(unsigned char *pk,unsigned char *sk, const unsigned char *seed)/g" \
 	        -e "s/randombytes(sk,32);/memcpy(sk, seed, 32);/g"
 	    ;;
 	*/crypto_sign/ed25519/ref/open.c)

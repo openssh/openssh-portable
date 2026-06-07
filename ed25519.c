@@ -1,4 +1,4 @@
-/*  $OpenBSD: ed25519.c,v 1.6 2026/06/05 06:51:02 djm Exp $ */
+/*  $OpenBSD: ed25519.c,v 1.7 2026/06/07 08:50:17 dtucker Exp $ */
 
 /*
  * Public Domain, Authors:
@@ -1912,7 +1912,7 @@ static void ge25519_scalarmult_base(ge25519_p3 *r, const sc25519 *s)
 }
 /* from supercop-20221122/crypto_sign/ed25519/ref/keypair.c */
 
-int crypto_sign_ed25519_keypair_from_seed(unsigned char *pk,unsigned char *sk, const unsigned char *seed)
+static int crypto_sign_ed25519_keypair_from_seed(unsigned char *pk,unsigned char *sk, const unsigned char *seed)
 {
   unsigned char az[64];
   sc25519 scsk;
