@@ -1,0 +1,232 @@
+OpenSSH keylog file
+--------------------
+
+WARNING: Do not enable in production environments. This exposes session secrets.
+
+Since OpenSSH is using Diffie-Hellman methode to comunicate on public network
+it's necessry to log somewhere the session cookie and the computed shared_secret
+to be able to decrypt traffic
+
+Note that TLS 1.2+ is using the same methode (generate an SSLKEYLOGFILE) for
+traffic decryption.
+
+Since TLS1.2+ using ECDHE_* cipher the `private_key` is not enough to decrypt
+trafic because the `session_keys` are needed and are not derived from the
+private_key
+
+In 2025, Operating Systems TLS backend (GnuTLS or OpenSSL,...) usually provide
+a `keylog file` feature to help users dumping necessary informations to decrypt
+TLS traffic
+
+As OpenSSH seems to use session keys approximatively the same way TLS 1.2+ is
+doing, the purpose of this feature is to add a keylog file feature to SSH client
+so anyone connecting a remote SSH server would be able to retrieve the computed
+shared_secret (or to derive it from the session private_key)
+
+
+KEYLOG file format
+------------------
+
+One of the main goal of this feature is to be able to decrypt live SSH traffic
+with a tool like Wireshark / Tshark (https://gitlab.com/wireshark/wireshark).
+
+So the keylog file format will be the one described in Wireshark / Tshark ssh
+packet dissector (in wireshark/epan/dissectors/packet-ssh.c):
+
+Extract from Wireshark SSH dissector packet-ssh.c
+
+    /* File format: each line follows the format "<cookie> <type> <key>".
+     * <cookie> is the hex-encoded (client or server) 16 bytes cookie
+     * (32 characters) found in the SSH_MSG_KEXINIT of the endpoint whose
+     * private random is disclosed.
+     * <type> is either SHARED_SECRET or PRIVATE_KEY depending on the
+     * type of key provided. PRIVAT_KEY is only supported for DH,
+     * DH group exchange, and ECDH (including Curve25519) key exchanges.
+     * <key> is the private random number that is used to generate the DH
+     * negotiation (length depends on algorithm). In RFC4253 it is called
+     * x for the client and y for the server.
+     * For openssh and DH group exchange, it can be retrieved using
+     * DH_get0_key(kex->dh, NULL, &server_random)
+     * for groupN in file kexdh.c function kex_dh_compute_key
+     * for custom group in file kexgexs.c function input_kex_dh_gex_init
+     * For openssh and curve25519, it can be found in function kex_c25519_enc
+     * in variable server_key. One may also provide the shared secret
+     * directly if <type> is set to SHARED_SECRET.
+     *
+     * Example:
+     *  90d886612f9c35903db5bb30d11f23c2 PRIVATE_KEY DEF830C22F6C927E31972FFB20B46C96D0A5F2D5E7BE5A3A8804D6BFC431619ED10AF589EEDFF4750DEA00EFD7AFDB814B6F3528729692B1F2482041521AE9DC
+     */
+
+
+Formatting note:
+----------------
+
+As OpenSSH is computing the SHARED_SECRET for us, it's easier to log this session
+SHARED_SECRET in replacement of the session PRIVATE_KEY which will add complexity
+as you will have to compute the SHARED_SECRET yourself
+
+So the format of the keylog file is:
+
+<cookie> SHARED_SECRET <shared_secret>
+Example:
+a73e1ead2159740ae07a394b402e4acd SHARED_SECRET 2adf18b3dd7eb58f6d14b8256b9c8ee394e2f0d7b0c8b06fbcbc1ad41c331042
+
+
+
+Keylog file first goal:
+-----------------------
+
+The first goal of adding this support to OpenSSH is to be able to do live traffic
+decryption without any MIM (Man-In-the-Middle) proxy using a capture tool like Tshark
+which is Wireshark command line tool using a command like (output in a tcpdump style):
+
+        tshark -i <interface> \
+        -n -l -t ad \
+        -o ssh.keylog_file:/path/to/keylog_file.log \
+        -o ssh.desegment_buffers:TRUE \
+        -o tcp.desegment_tcp_streams:TRUE \
+        -f 'host <src_host> and host <dst_host> and port 22' \
+        -T fields \
+        -e frame.number \
+        -e frame.time_relative \
+        -e ip.src \
+        -e ip.dst \
+        -e tcp.srcport \
+        -e tcp.dstport \
+        -e tcp.len \
+        -e _ws.col.Protocol \
+        -e _ws.col.Info \
+        -e ssh.cookie \
+        -e ssh.payload
+
+
+
+How to use keylog file feature of OpenSSH ?
+---------------------------------------------
+
+Simply export to environment file path and file name in SSHKEYLOGFILE variable
+
+Example:
+        export SSHKEYLOGFILE=~/ssh_keylog.log
+        ssh user@host
+
+And during session, you can see the cookie and the shared_secret logged to file
+~/ssh_keylog.log
+
+For example:
+        cat ~/ssh_keylog.log
+        86f79664772735ddec07368663614c2c SHARED_SECRET 01bc538348137ed3a7fe2e720d00b6f66b06280da58a82c33a299b70f5d0f523
+        79947161e967ab0200403669c94f1548 SHARED_SECRET f18497c66ec6993a1d769734b657a0cd2dd19659684097e1af606fabef039a32
+        3122e0b88007d52e45593c21d7c2d104 SHARED_SECRET d19a874efd715276022c16e6b7b3a8777f993be4c8323d387e3fc844868de75b
+        ...
+
+
+OpenSSH rekeying:
+-----------------
+
+When a "rekey" occurs, the new cookie and the new shared_secret are logged in the
+keylog file.
+It can be easily tested sith a command like:
+
+        ssh -F none -vvv -o RekeyLimit=1K $USER@localhost ls /
+	# run a `tail -f` on keylog file from another terminal to see key logging in progress
+
+
+
+Extended keylog file:
+---------------------
+
+For those who need more detailed informations, you can also set SSHEXTKEYLOGFILE
+environment variable which produce a mode detailed file using format:
+
+<cookie> <optionnal 'REKEY' term> KEX_ALG <kex algo> SHARED_SECRET <shared_secret>
+
+For example:
+        cat ~/ssh_ext_keylog.log
+        4f1a61641d8864b1a941531f9638c68b KEX_ALG sntrup761x25519-sha512 SHARED_SECRET a6de23b55f6462494385e4f891035dee45ed1b7f4283e3929aa7bd362ecd295a
+        54b9ba5193a4a8f0d01cf095a2b20d3b REKEY KEX_ALG sntrup761x25519-sha512 SHARED_SECRET a17e5303f10e753b94527fe9463cc41d914be2a8339d65137afa86ad6c99ef65
+        8a3e42e48f007a22af4b929988048e43 REKEY KEX_ALG sntrup761x25519-sha512 SHARED_SECRET 59753eebb9db89657f5add6fdc063fedaab8fa33a330031b6f2adf76f97f6267
+
+
+How to use extended keylog file feature of OpenSSH ?
+-----------------------------------------------------
+
+Simply export to environment file path and file name in SSHEXTKEYLOGFILE variable
+
+Example:
+        export SSHEXTKEYLOGFILE=~/ssh_ext_keylog.log
+        ssh user@host
+
+And during session, you can see the cookie, algo, rekey and the shared_secret logged to file
+~/ssh_ext_keylog.log
+
+
+DEBUG:
+------
+
+You can enable DEBUG_KEX_COOKIE to validate that the cookie stored in keylog file is OK
+
+To enable this debug flag, do:
+        ./configure CFLAGS="-DDEBUG_KEX_COOKIE"
+        make
+
+NOTES:
+------
+
+This feature log the shared_secret for algo:
+
+DH:
+- diffie-hellman-group1-sha1
+- diffie-hellman-group14-sha1
+- diffie-hellman-group14-sha256
+- diffie-hellman-group16-sha512
+- diffie-hellman-group18-sha512
+- diffie-hellman-group-exchange-sha1
+- diffie-hellman-group-exchange-sha256
+
+ECDH:
+- ecdh-sha2-nistp256
+- ecdh-sha2-nistp384
+- ecdh-sha2-nistp521
+
+ED25519 / KEMs
+- curve25519-sha256
+- sntrup761x25519-sha512
+- mlkem768x25519-sha256
+
+It can be tested with command: (here algo is curve25519-sha256)
+ssh -F none -o KexAlgorithms=curve25519-sha256 -o RekeyLimit=1K ${USER}@localhost ls / 2>&1 >/dev/null
+
+
+DEVELOPEMENT NOTES:
+-------------------
+
+To enable this feature, the following files where patched:
+
+kex.h: modifying 'kex' structure to store session cookie in kex structure
+       declaring helper action: sshlog_keylog_file
+
+kex.c: adding helper action: sshlog_keylog_file
+       copying the cookie to 'kex' structure
+
+kexc25519.c: modifying kexc25519_shared_key_ext to take 'kex' structure and to call sshlog_keylog_file
+             modifying all calls to kexc25519_shared_key_ext (adding 'kex' structure)
+             adding skip logging for hybrid KEMs like sntrup761x25519 and mlkem768x25519
+             calling function sshlog_keylog_file in kexc25519_shared_key_ext for algo curve25519-sha256
+
+kexsntrup761x25519.c: calling function sshlog_keylog_file in kex_kem_sntrup761x25519_dec
+
+kexmlkem768x25519.c : calling function sshlog_keylog_file in kex_kem_mlkem768x25519_dec
+
+kexdh.c: calling function sshlog_keylog_file in kex_dh_compute_key
+
+kexecdh.c: calling function sshlog_keylog_file in kex_ecdh_dec_key_group
+
+
+WARNING:
+--------
+
+Do not enable in production environments. This exposes session secrets.
+
+
+-----------------------------------------------------------------------
