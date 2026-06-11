@@ -73,6 +73,5 @@ u_int	 cipher_is_internal(const struct sshcipher *);
 u_int	 cipher_ctx_is_plaintext(struct sshcipher_ctx *);
 
 int	 cipher_get_keyiv(struct sshcipher_ctx *, u_char *, size_t);
-int	 cipher_set_keyiv(struct sshcipher_ctx *, const u_char *, size_t);
 
 #endif				/* CIPHER_H */
