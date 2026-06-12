@@ -90,6 +90,7 @@
 
 #ifdef GSSAPI
 static Gssctxt *gsscontext = NULL;
+static int gss_mic_verified = 0;
 #endif
 
 /* Imports */
@@ -2046,8 +2047,10 @@ mm_answer_gss_checkmic(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	mm_request_send(sock, MONITOR_ANS_GSSCHECKMIC, m);
 
-	if (!GSS_ERROR(ret))
+	if (!GSS_ERROR(ret)) {
+		gss_mic_verified = 1;
 		monitor_permit(mon_dispatch, MONITOR_REQ_GSSUSEROK, 1);
+	}
 
 	return (0);
 }
@@ -2060,6 +2063,8 @@ mm_answer_gss_userok(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	if (!options.gss_authentication)
 		fatal_f("GSSAPI authentication not enabled");
+	if (!gss_mic_verified)
+		fatal_f("GSSUSEROK called without prior GSSCHECKMIC");
 
 	authenticated = authctxt->valid && ssh_gssapi_userok(authctxt->user);
 
