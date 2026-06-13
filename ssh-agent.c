@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.328 2026/05/31 04:31:04 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.329 2026/06/13 00:37:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1792,7 +1792,7 @@ process_ext_query(SocketEntry *e)
 static void
 process_extension(SocketEntry *e)
 {
-	int r, success = 0;
+	int r, replied = 0, success = 0;
 	char *name;
 
 	debug2_f("entering");
@@ -1803,7 +1803,7 @@ process_extension(SocketEntry *e)
 	}
 
 	if (strcmp(name, "query") == 0)
-		success = process_ext_query(e);
+		replied = success = process_ext_query(e);
 	else if (strcmp(name, "session-bind@openssh.com") == 0)
 		success = process_ext_session_bind(e);
 	else {
@@ -1814,8 +1814,10 @@ process_extension(SocketEntry *e)
 	}
 	free(name);
 	/* Agent failures are signalled with a different error code */
-	send_status_generic(e,
-	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_EXTENSION_FAILURE);
+	if (!replied) {
+		send_status_generic(e,
+		    success ? SSH_AGENT_SUCCESS : SSH_AGENT_EXTENSION_FAILURE);
+	}
 }
 
 /*
