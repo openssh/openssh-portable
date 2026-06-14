@@ -90,8 +90,10 @@ extern const struct sshkey_impl sshkey_ed25519_impl;
 extern const struct sshkey_impl sshkey_ed25519_cert_impl;
 extern const struct sshkey_impl sshkey_ed25519_sk_impl;
 extern const struct sshkey_impl sshkey_ed25519_sk_cert_impl;
+#ifdef USE_MLDSA
 extern const struct sshkey_impl sshkey_mldsa44_ed25519_impl;
 extern const struct sshkey_impl sshkey_mldsa44_ed25519_cert_impl;
+#endif /* USE_MLDSA */
 #ifdef WITH_OPENSSL
 # ifdef OPENSSL_HAS_ECC
 #  ifdef ENABLE_SK
@@ -124,8 +126,10 @@ const struct sshkey_impl * const keyimpls[] = {
 	&sshkey_ed25519_sk_impl,
 	&sshkey_ed25519_sk_cert_impl,
 #endif
+#ifdef USE_MLDSA
 	&sshkey_mldsa44_ed25519_impl,
 	&sshkey_mldsa44_ed25519_cert_impl,
+#endif /* USE_MLDSA */
 #ifdef WITH_OPENSSL
 # ifdef OPENSSL_HAS_ECC
 	&sshkey_ecdsa_nistp256_impl,

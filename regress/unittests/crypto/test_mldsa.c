@@ -7,6 +7,8 @@
 
 #include "includes.h"
 
+#ifdef USE_MLDSA
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -143,3 +145,4 @@ mldsa_tests(void)
 	free_kats(kats, nkats);
 	TEST_DONE();
 }
+#endif /* USE_MLDSA */

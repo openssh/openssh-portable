@@ -7,6 +7,8 @@
 
 #include "includes.h"
 
+#ifdef USE_MLKEM768X25519
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -167,3 +169,4 @@ mlkem_tests(void)
 	}
 	TEST_DONE();
 }
+#endif /* USE_MLKEM768X25519 */

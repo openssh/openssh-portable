@@ -7,6 +7,8 @@
 
 #include "includes.h"
 
+#ifdef USE_MLDSA
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -192,3 +194,4 @@ mldsa_eddsa_tests(void)
 	sshbuf_free(b_s);
 	sshbuf_free(b_sWithContext);
 }
+#endif /* USE_MLDSA */

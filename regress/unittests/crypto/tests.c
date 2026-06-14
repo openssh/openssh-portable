@@ -103,10 +103,16 @@ get_json_string(struct sshbuf *content, const char *key, int consume)
 void
 tests(void)
 {
+#ifdef USE_MLDSA
 	mldsa_tests();
+#endif
+#ifdef USE_MLKEM768X25519
 	mlkem_tests();
+#endif
 	ed25519_tests();
+#ifdef USE_MLDSA
 	mldsa_eddsa_tests();
+#endif
 }
 
 void
