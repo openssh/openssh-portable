@@ -316,6 +316,8 @@ clean:	regressclean
 	rm -f regress/unittests/kex/test_kex$(EXEEXT)
 	rm -f regress/unittests/match/*.o
 	rm -f regress/unittests/match/test_match$(EXEEXT)
+	rm -f regress/unittests/crypto/*.o
+	rm -f regress/unittests/crypto/test_crypto$(EXEEXT)
 	rm -f regress/unittests/misc/*.o
 	rm -f regress/unittests/misc/test_misc$(EXEEXT)
 	rm -f regress/unittests/servconf/*.o
@@ -357,6 +359,8 @@ distclean:	regressclean
 	rm -f regress/unittests/kex/test_kex
 	rm -f regress/unittests/match/*.o
 	rm -f regress/unittests/match/test_match
+	rm -f regress/unittests/crypto/*.o
+	rm -f regress/unittests/crypto/test_crypto
 	rm -f regress/unittests/misc/*.o
 	rm -f regress/unittests/misc/test_misc
 	rm -f regress/unittests/servconf/*.o
@@ -543,6 +547,7 @@ regress-prep:
 	$(MKDIR_P) `pwd`/regress/unittests/hostkeys
 	$(MKDIR_P) `pwd`/regress/unittests/kex
 	$(MKDIR_P) `pwd`/regress/unittests/match
+	$(MKDIR_P) `pwd`/regress/unittests/crypto
 	$(MKDIR_P) `pwd`/regress/unittests/misc
 	$(MKDIR_P) `pwd`/regress/unittests/servconf
 	$(MKDIR_P) `pwd`/regress/unittests/sshbuf
@@ -695,6 +700,21 @@ regress/unittests/match/test_match$(EXEEXT): \
 	    regress/unittests/test_helper/libtest_helper.a \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(TESTLIBS)
 
+UNITTESTS_TEST_CRYPTO_OBJS=\
+	regress/unittests/crypto/test_ed25519.o \
+	regress/unittests/crypto/test_mldsa.o \
+	regress/unittests/crypto/test_mldsa_eddsa.o \
+	regress/unittests/crypto/test_mlkem.o \
+	regress/unittests/crypto/tests.o \
+	$(P11OBJS) $(SKOBJS)
+
+regress/unittests/crypto/test_crypto$(EXEEXT): \
+    ${UNITTESTS_TEST_CRYPTO_OBJS} \
+    regress/unittests/test_helper/libtest_helper.a libssh.a
+	$(LD) -o $@ $(LDFLAGS) $(UNITTESTS_TEST_CRYPTO_OBJS) \
+	    regress/unittests/test_helper/libtest_helper.a \
+	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(TESTLIBS)
+
 UNITTESTS_TEST_MISC_OBJS=\
 	regress/unittests/misc/tests.o \
 	regress/unittests/misc/test_parse.o \
@@ -778,6 +798,7 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/hostkeys/test_hostkeys$(EXEEXT) \
 	regress/unittests/kex/test_kex$(EXEEXT) \
 	regress/unittests/match/test_match$(EXEEXT) \
+	regress/unittests/crypto/test_crypto$(EXEEXT) \
 	regress/unittests/misc/test_misc$(EXEEXT) \
 	regress/unittests/servconf/test_servconf$(EXEEXT) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
