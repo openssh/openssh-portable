@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.141 2026/03/05 05:44:15 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.142 2026/06/14 03:59:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -608,6 +608,8 @@ ssh_add_identity_constrained(int sock, struct sshkey *key,
 #endif
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
+	case KEY_MLDSA44_ED25519:
+	case KEY_MLDSA44_ED25519_CERT:
 	case KEY_ED25519_SK:
 	case KEY_ED25519_SK_CERT:
 		type = constrained ?

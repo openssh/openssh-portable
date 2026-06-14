@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.632 2026/05/31 05:55:21 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.633 2026/06/14 03:59:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1741,9 +1741,11 @@ main(int ac, char **av)
 			L_CERT(_PATH_HOST_ECDSA_KEY_FILE, 0);
 			L_CERT(_PATH_HOST_ED25519_KEY_FILE, 1);
 			L_CERT(_PATH_HOST_RSA_KEY_FILE, 2);
+			L_CERT(_PATH_HOST_MLDSA44_ED25519_KEY_FILE, 3);
 			L_PUBKEY(_PATH_HOST_ECDSA_KEY_FILE, 4);
 			L_PUBKEY(_PATH_HOST_ED25519_KEY_FILE, 5);
 			L_PUBKEY(_PATH_HOST_RSA_KEY_FILE, 6);
+			L_PUBKEY(_PATH_HOST_MLDSA44_ED25519_KEY_FILE, 7);
 			if (loaded == 0)
 				debug("HostbasedAuthentication enabled but no "
 				   "local public host keys could be loaded.");

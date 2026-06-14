@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.490 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.491 2026/06/14 03:59:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -272,6 +272,10 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_ED25519_SK:
 		case KEY_ED25519_SK_CERT:
 			name = _PATH_SSH_CLIENT_ID_ED25519_SK;
+			break;
+		case KEY_MLDSA44_ED25519:
+		case KEY_MLDSA44_ED25519_CERT:
+			name = _PATH_SSH_CLIENT_ID_MLDSA44_ED25519;
 			break;
 		default:
 			fatal("bad key type");
@@ -1015,6 +1019,8 @@ do_gen_all_hostkeys(struct passwd *pw)
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 		{ "ed25519", "ED25519",_PATH_HOST_ED25519_KEY_FILE },
+		{ "mldsa44-ed25519", "MLDSA44-ED25519",
+		     _PATH_HOST_MLDSA44_ED25519_KEY_FILE },
 		{ NULL, NULL, NULL }
 	};
 

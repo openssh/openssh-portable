@@ -1,4 +1,4 @@
-/* $OpenBSD: ed25519-openssl.c,v 1.1 2025/10/30 20:49:10 djm Exp $ */
+/* $OpenBSD: ed25519-openssl.c,v 1.2 2026/06/14 03:59:34 djm Exp $ */
 /*
  * Copyright (c) 2025 OpenSSH
  *
@@ -92,6 +92,38 @@ crypto_sign_ed25519_keypair(unsigned char *pk, unsigned char *sk)
 out:
 	EVP_PKEY_free(pkey);
 	EVP_PKEY_CTX_free(ctx);
+	return ret;
+}
+
+int
+crypto_sign_ed25519_keypair_from_seed(unsigned char *pk, unsigned char *sk,
+    const unsigned char *seed)
+{
+	EVP_PKEY *pkey = NULL;
+	size_t pklen;
+	int ret = -1;
+
+	if ((pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519, NULL,
+	    seed, SSH_ED25519_RAW_SECRET_KEY_LEN)) == NULL) {
+		debug3_f("EVP_PKEY_new_raw_private_key failed");
+		goto out;
+	}
+
+	/* Extract public key */
+	pklen = crypto_sign_ed25519_PUBLICKEYBYTES;
+	if (!EVP_PKEY_get_raw_public_key(pkey, pk, &pklen)) {
+		debug3_f("EVP_PKEY_get_raw_public_key failed");
+		goto out;
+	}
+
+	/* Build sk = seed || pk */
+	memcpy(sk, seed, SSH_ED25519_RAW_SECRET_KEY_LEN);
+	memcpy(sk + SSH_ED25519_RAW_SECRET_KEY_LEN, pk,
+	    crypto_sign_ed25519_PUBLICKEYBYTES);
+
+	ret = 0;
+out:
+	EVP_PKEY_free(pkey);
 	return ret;
 }
 

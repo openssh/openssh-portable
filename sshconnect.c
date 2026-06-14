@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.382 2026/02/16 00:45:41 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.383 2026/06/14 03:59:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1633,6 +1633,7 @@ show_other_keys(struct hostkeys *hostkeys, struct sshkey *key)
 		KEY_RSA,
 		KEY_ECDSA,
 		KEY_ED25519,
+		KEY_MLDSA44_ED25519,
 		-1
 	};
 	int i, ret = 0;

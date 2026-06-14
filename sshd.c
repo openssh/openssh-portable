@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.626 2026/02/09 21:21:39 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.627 2026/06/14 03:59:34 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -1653,6 +1653,7 @@ main(int ac, char **av)
 		case KEY_RSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
+		case KEY_MLDSA44_ED25519:
 		case KEY_ECDSA_SK:
 		case KEY_ED25519_SK:
 			if (have_agent || key != NULL)

@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.149 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: authfile.c,v 1.150 2026/06/14 03:59:34 djm Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -321,6 +321,7 @@ sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
 	case KEY_ECDSA:
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
+	case KEY_MLDSA44_ED25519:
 	case KEY_UNSPEC:
 		break;
 	default:
