@@ -588,7 +588,7 @@ for include in sys/queue.h sys/tree.h; do
 	esac >"$header"
 done
 
-AC_CHECK_DECLS([le32toh, le64toh, htole64], [], [], [
+AC_CHECK_DECLS([le32toh, le64toh, htole64, htobe32], [], [], [
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif

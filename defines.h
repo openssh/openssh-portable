@@ -663,7 +663,8 @@ struct winsize {
 
 #if (defined(HAVE_DECL_LE32TOH) && HAVE_DECL_LE32TOH == 0) || \
     (defined(HAVE_DECL_LE64TOH) && HAVE_DECL_LE64TOH == 0) || \
-    (defined(HAVE_DECL_HTOLE64) && HAVE_DECL_HTOLE64 == 0)
+    (defined(HAVE_DECL_HTOLE64) && HAVE_DECL_HTOLE64 == 0) || \
+    (defined(HAVE_DECL_HTOBE32) && HAVE_DECL_HTOBE32 == 0)
 # define openssh_swap32(v)					\
 	(uint32_t)(((uint32_t)(v) & 0xff) << 24 |		\
 	((uint32_t)(v) & 0xff00) << 8 |				\
@@ -687,7 +688,10 @@ struct winsize {
 #  endif
 #  if defined(HAVE_DECL_HTOLE64) && HAVE_DECL_HTOLE64 == 0
 #   define htole64(v) (openssh_swap64(v))
-# endif
+#  endif
+#  if defined(HAVE_DECL_HTOBE32) && HAVE_DECL_HTOBE32 == 0
+#   define htobe32(v) ((uint32_t)v)
+#  endif
 # else
 #  if defined(HAVE_DECL_LE32TOH) && HAVE_DECL_LE32TOH == 0
 #   define le32toh(v) ((uint32_t)v)
@@ -697,6 +701,9 @@ struct winsize {
 #  endif
 #  if defined(HAVE_DECL_HTOLE64) && HAVE_DECL_HTOLE64 == 0
 #   define htole64(v) ((uint64_t)v)
+#  endif
+#  if defined(HAVE_DECL_HTOBE32) && HAVE_DECL_HTOBE32 == 0
+#   define htobe32(v) (openssh_swap32(v))
 #  endif
 # endif
 #endif
