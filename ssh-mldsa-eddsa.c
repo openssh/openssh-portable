@@ -17,6 +17,8 @@
 
 /* draft-miller-sshm-mldsa44-ed25519-composite-sigs-00 */
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <stdint.h>
 #include <string.h>
