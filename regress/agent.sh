@@ -1,4 +1,4 @@
-#	$OpenBSD: agent.sh,v 1.23 2025/05/06 06:05:48 djm Exp $
+#	$OpenBSD: agent.sh,v 1.24 2026/06/14 04:08:05 djm Exp $
 #	Placed in the Public Domain.
 
 tid="simple agent test"
@@ -84,8 +84,14 @@ if [ $r -ne 52 ]; then
 	fail "ssh connect with failed (exit code $r)"
 fi
 
+cp $OBJ/sshd_proxy $OBJ/sshd_proxy.bak
+cp $OBJ/ssh_proxy $OBJ/ssh_proxy.bak
 for t in ${SSH_KEYTYPES}; do
 	trace "connect via agent using $t key"
+	grep -vi PubkeyAcceptedAlgorithms $OBJ/sshd_proxy.bak > $OBJ/sshd_proxy
+	echo "PubkeyAcceptedAlgorithms=+$t" >> $OBJ/sshd_proxy
+	grep -vi PubkeyAcceptedAlgorithms $OBJ/ssh_proxy.bak > $OBJ/ssh_proxy
+	echo "PubkeyAcceptedAlgorithms=+$t" >> $OBJ/ssh_proxy
 	${SSH} -F $OBJ/ssh_proxy -i $OBJ/$t-agent.pub -oIdentitiesOnly=yes \
 		somehost exit 52
 	r=$?
@@ -93,6 +99,8 @@ for t in ${SSH_KEYTYPES}; do
 		fail "ssh connect with failed (exit code $r)"
 	fi
 done
+cp $OBJ/sshd_proxy.bak $OBJ/sshd_proxy
+cp $OBJ/ssh_proxy.bak $OBJ/ssh_proxy
 
 trace "agent forwarding"
 ${SSH} -A -F $OBJ/ssh_proxy somehost ${SSHADD} -l > /dev/null 2>&1
@@ -140,6 +148,13 @@ fi
 	> $OBJ/authorized_keys_$USER
 for t in ${SSH_KEYTYPES}; do
 	trace "connect via agent using $t key"
+	# Accept both keys and certs.
+	BASE=`echo $t | cut -d '@' -f1`
+	ACCEPT=`$SSH -Q key | grep "^$BASE" | paste -sd , -`
+	grep -vi PubkeyAcceptedAlgorithms $OBJ/sshd_proxy.bak > $OBJ/sshd_proxy
+	echo "PubkeyAcceptedAlgorithms=+$ACCEPT" >> $OBJ/sshd_proxy
+	grep -vi PubkeyAcceptedAlgorithms $OBJ/ssh_proxy.bak > $OBJ/ssh_proxy
+	echo "PubkeyAcceptedAlgorithms=+$ACCEPT" >> $OBJ/ssh_proxy
 	${SSH} -F $OBJ/ssh_proxy -i $OBJ/$t-agent.pub \
 		-oCertificateFile=$OBJ/$t-agent-cert.pub \
 		-oIdentitiesOnly=yes somehost exit 52
