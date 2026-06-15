@@ -1019,8 +1019,10 @@ do_gen_all_hostkeys(struct passwd *pw)
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 		{ "ed25519", "ED25519",_PATH_HOST_ED25519_KEY_FILE },
+#ifdef USE_MLDSA
 		{ "mldsa44-ed25519", "MLDSA44-ED25519",
 		     _PATH_HOST_MLDSA44_ED25519_KEY_FILE },
+#endif
 		{ NULL, NULL, NULL }
 	};
 
