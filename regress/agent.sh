@@ -1,4 +1,4 @@
-#	$OpenBSD: agent.sh,v 1.25 2026/06/15 06:24:20 djm Exp $
+#	$OpenBSD: agent.sh,v 1.26 2026/06/15 06:36:52 djm Exp $
 #	Placed in the Public Domain.
 
 tid="simple agent test"
@@ -215,13 +215,13 @@ if [ $r -ne 0 ]; then
 fi
 
 check_key_absent() {
-	${SSHADD} -L | grep "^$1 " >/dev/null
+	${SSHADD} -L | sed s/' .*//' | grep "^$1\$" #>/dev/null
 	if [ $? -eq 0 ]; then
 		fail "$1 key unexpectedly present"
 	fi
 }
 check_key_present() {
-	${SSHADD} -L | grep "^$1 " >/dev/null
+	${SSHADD} -L | sed s/' .*//' | grep "^$1\$" >/dev/null
 	if [ $? -ne 0 ]; then
 		fail "$1 key missing from agent"
 	fi
