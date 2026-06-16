@@ -3265,26 +3265,6 @@ if test "x$openssl" = "xyes" ; then
 		])
 	fi
 
-	# Check for OpenSSL without EVP_aes_{192,256}_cbc
-	AC_MSG_CHECKING([whether OpenSSL lacks support for AES 192/256])
-	AC_LINK_IFELSE(
-		[AC_LANG_PROGRAM([[
-	#include <stdlib.h>
-	#include <string.h>
-	#include <openssl/evp.h>
-		]], [[
-		exit(EVP_aes_192_cbc() == NULL || EVP_aes_256_cbc() == NULL);
-		]])],
-		[
-			AC_MSG_RESULT([no])
-		],
-		[
-			AC_MSG_RESULT([yes])
-			AC_DEFINE([OPENSSL_LOBOTOMISED_AES], [1],
-			    [libcrypto is missing AES 192 and 256 bit functions])
-		]
-	)
-
 	AC_MSG_CHECKING([if EVP_DigestUpdate returns an int])
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[
