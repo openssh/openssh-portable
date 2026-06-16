@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_ed25519.c,v 1.1 2026/06/14 04:08:05 djm Exp $ */
+/* 	$OpenBSD: test_ed25519.c,v 1.2 2026/06/16 09:00:47 dtucker Exp $ */
 /*
  * Regress test for Ed25519 keypair from seed
  *
@@ -8,6 +8,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
