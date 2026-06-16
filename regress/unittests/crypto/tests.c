@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.1 2026/06/14 04:08:06 djm Exp $ */
+/* 	$OpenBSD: tests.c,v 1.2 2026/06/16 08:15:35 dtucker Exp $ */
 /*
  * Regress test for crypto ergonomic API
  *
@@ -7,8 +7,9 @@
 
 #include "includes.h"
 
-#include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "../test_helper/test_helper.h"
 #include "sshbuf.h"
