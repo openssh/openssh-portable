@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_ed25519.c,v 1.2 2026/06/16 09:00:47 dtucker Exp $ */
+/* 	$OpenBSD: test_ed25519.c,v 1.3 2026/06/16 22:27:10 dtucker Exp $ */
 /*
  * Regress test for Ed25519 keypair from seed
  *
@@ -62,14 +62,6 @@ static const struct ed25519_kat ed25519_kats[] = {
 };
 
 void ed25519_tests(void);
-
-static void
-hex2bin(uint8_t *bin, const char *hex, size_t len)
-{
-	size_t i;
-	for (i = 0; i < len; i++)
-		sscanf(hex + i * 2, "%02hhx", &bin[i]);
-}
 
 void
 ed25519_tests(void)

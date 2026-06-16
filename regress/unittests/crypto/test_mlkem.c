@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_mlkem.c,v 1.1 2026/06/14 04:08:06 djm Exp $ */
+/* 	$OpenBSD: test_mlkem.c,v 1.2 2026/06/16 22:27:10 dtucker Exp $ */
 /*
  * Regress test for ML-KEM
  *
@@ -111,14 +111,6 @@ static const struct mlkem768_kat mlkem768_kats[] = {
 };
 
 void mlkem_tests(void);
-
-static void
-hex2bin(uint8_t *bin, const char *hex, size_t len)
-{
-	size_t i;
-	for (i = 0; i < len; i++)
-		sscanf(hex + i * 2, "%02hhx", &bin[i]);
-}
 
 void
 mlkem_tests(void)

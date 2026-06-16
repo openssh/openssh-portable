@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.c,v 1.16 2026/03/06 06:57:33 dtucker Exp $	*/
+/*	$OpenBSD: test_helper.c,v 1.17 2026/06/16 22:27:10 dtucker Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -660,6 +660,20 @@ static double
 tstod(const struct timespec *ts)
 {
 	return (double)ts->tv_sec + ((double)ts->tv_nsec / 1000000000.0);
+}
+
+void
+hex2bin(uint8_t *bin, const char *hex, size_t len)
+{
+	size_t i;
+	unsigned int v;
+
+	/* Don't use %hhx since it's C99 and older platforms don't have it. */
+	for (i = 0; i < len; i++) {
+		sscanf(hex + i * 2, "%02x", &v);
+		ASSERT_U_INT_LE(v, 256);
+		bin[i] = (uint8_t)v;
+	}
 }
 
 void

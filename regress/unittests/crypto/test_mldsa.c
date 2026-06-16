@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_mldsa.c,v 1.1 2026/06/14 04:08:06 djm Exp $ */
+/* 	$OpenBSD: test_mldsa.c,v 1.3 2026/06/16 22:27:10 dtucker Exp $ */
 /*
  * Regress test for ML-DSA
  *
@@ -80,14 +80,6 @@ free_kats(struct kat **kats, size_t nkats)
 		free(kat);
 	}
 	free(kats);
-}
-
-static void
-hex2bin(uint8_t *bin, const char *hex, size_t len)
-{
-	size_t i;
-	for (i = 0; i < len; i++)
-		sscanf(hex + i * 2, "%02hhx", &bin[i]);
 }
 
 void
