@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.128 2026/05/31 04:37:56 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.129 2026/06/19 05:26:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -467,36 +467,6 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, size_t len)
 		    iv) <= 0)
 			return SSH_ERR_LIBCRYPTO_ERROR;
 	} else if (EVP_CIPHER_CTX_get_iv(cc->evp, iv, len) <= 0)
-		return SSH_ERR_LIBCRYPTO_ERROR;
-#endif
-	return 0;
-}
-
-int
-cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv, size_t len)
-{
-#ifdef WITH_OPENSSL
-	const struct sshcipher *c = cc->cipher;
-	int evplen = 0;
-#endif
-
-	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
-		return 0;
-	if ((cc->cipher->flags & CFLAG_NONE) != 0)
-		return 0;
-
-#ifdef WITH_OPENSSL
-	evplen = EVP_CIPHER_CTX_iv_length(cc->evp);
-	if (evplen <= 0)
-		return SSH_ERR_LIBCRYPTO_ERROR;
-	if ((size_t)evplen != len)
-		return SSH_ERR_INVALID_ARGUMENT;
-	if (cipher_authlen(c)) {
-		/* XXX iv arg is const, but EVP_CIPHER_CTX_ctrl isn't */
-		if (EVP_CIPHER_CTX_ctrl(cc->evp,
-		    EVP_CTRL_GCM_SET_IV_FIXED, -1, (void *)iv) <= 0)
-			return SSH_ERR_LIBCRYPTO_ERROR;
-	} else if (!EVP_CIPHER_CTX_set_iv(cc->evp, iv, evplen))
 		return SSH_ERR_LIBCRYPTO_ERROR;
 #endif
 	return 0;
