@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.c,v 1.17 2026/06/16 22:27:10 dtucker Exp $	*/
+/*	$OpenBSD: test_helper.c,v 1.18 2026/06/22 12:08:33 dtucker Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -670,7 +670,7 @@ hex2bin(uint8_t *bin, const char *hex, size_t len)
 
 	/* Don't use %hhx since it's C99 and older platforms don't have it. */
 	for (i = 0; i < len; i++) {
-		sscanf(hex + i * 2, "%02x", &v);
+		ASSERT_INT_EQ(sscanf(hex + i * 2, "%02x", &v), 1);
 		ASSERT_U_INT_LE(v, 256);
 		bin[i] = (uint8_t)v;
 	}
