@@ -134,10 +134,10 @@ jobs:
     - name: install cygwin
       id: cygwin_install
       if: ${{ startsWith(matrix.target, 'windows') }}
-      uses: cygwin/cygwin-install-action@4ef15ca7fd18a18f1000989fcfd968e06d146ce8 # master
+      uses: cygwin/cygwin-install-action@a3d72946b163026bbd0fa9a88379ccbda4bd86bb # master
       env:
         CYGWIN: "winsymlinks:native"
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # main
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # main
     - name: setup CI system
       run: |
         sh -c "timeout 1200 .github/setup_ci.sh ${{ matrix.config }} ${{ matrix.target }} || .github/setup_ci.sh ${{ matrix.config }} ${{ matrix.target }}"
