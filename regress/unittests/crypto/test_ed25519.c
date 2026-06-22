@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_ed25519.c,v 1.3 2026/06/16 22:27:10 dtucker Exp $ */
+/* 	$OpenBSD: test_ed25519.c,v 1.4 2026/06/22 12:28:48 dtucker Exp $ */
 /*
  * Regress test for Ed25519 keypair from seed
  *
@@ -82,8 +82,8 @@ ed25519_tests(void)
 
 		TEST_START("Ed25519 sign/verify KAT");
 		msglen = strlen(ed25519_kats[i].msg) / 2;
-		msg = malloc(msglen + 64);
-		tmp = malloc(msglen + 64);
+		ASSERT_PTR_NE(msg = malloc(msglen + 64), NULL);
+		ASSERT_PTR_NE(tmp = malloc(msglen + 64), NULL);
 		hex2bin(msg + 64, ed25519_kats[i].msg, msglen);
 		hex2bin(expected_sig, ed25519_kats[i].sig, 64);
 

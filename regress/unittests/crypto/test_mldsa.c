@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_mldsa.c,v 1.3 2026/06/16 22:27:10 dtucker Exp $ */
+/* 	$OpenBSD: test_mldsa.c,v 1.4 2026/06/22 12:28:48 dtucker Exp $ */
 /*
  * Regress test for ML-DSA
  *
@@ -117,7 +117,7 @@ mldsa_tests(void)
 		ASSERT_MEM_EQ(sk_hash, expected_sk_hash, 32);
 
 		msglen = strlen(kat->msg) / 2;
-		msg = malloc(msglen);
+		ASSERT_PTR_NE(msg = malloc(msglen), NULL);
 		hex2bin(msg, kat->msg, msglen);
 		hex2bin(rand, kat->rand, 32);
 		hex2bin(expected_sig_hash, kat->sig_hash, 32);
