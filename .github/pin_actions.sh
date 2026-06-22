@@ -9,7 +9,6 @@ set -e
 github=https://github.com
 
 for workflow in workflows/*.yml; do
-	echo workflow: $workflow
 	sed 's/ - /   /' ${workflow} | grep -v '^#' | awk '/uses:/ {print}' | \
 	    while read line; do
 		action_ver=$(awk '{print $2}' <<<${line})
@@ -31,3 +30,6 @@ for workflow in workflows/*.yml; do
 		     ${workflow}
 	done
 done
+
+# Output actions for allowlist.
+awk 'BEGIN{IFS=":"} /^ +uses:.*@/{print $2","}' workflows/*.yml | sort -u
