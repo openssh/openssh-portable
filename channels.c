@@ -2062,6 +2062,23 @@ channel_post_port_listener(struct ssh *ssh, Channel *c)
 			c->notbefore = monotime() + 1;
 		return;
 	}
+	if (options.fwd_opts.enforce_same_uid &&
+	    c->type != SSH_CHANNEL_UNIX_LISTENER &&
+	    c->type != SSH_CHANNEL_RUNIX_LISTENER) {
+		struct ucred cred;
+		socklen_t len = sizeof(cred);
+
+		if (getsockopt(newsock, SOL_SOCKET, SO_PEERCRED, &cred,
+		    &len) == 0) {
+			if (cred.uid != (uid_t)getuid()) {
+				debug("channel %d: UID mismatch: peer %u != %u, "
+				    "rejecting", c->self,
+				    (u_int)cred.uid, (u_int)getuid());
+				close(newsock);
+				return;
+			}
+		}
+	}
 	if (c->host_port != PORT_STREAMLOCAL)
 		set_nodelay(newsock);
 	nc = channel_new(ssh, rtype, nextstate, newsock, newsock, -1,
@@ -3906,6 +3923,19 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 	    is_client, fwd_opts);
 	debug3_f("type %d wildcard %d addr %s", type, wildcard,
 	    (addr == NULL) ? "NULL" : addr);
+
+	/*
+	 * Prevent GatewayPorts from being combined with enforce_same_uid.
+	 * When enforce_same_uid is true, the peer's UID must be determinable
+	 * via SO_PEERCRED. If GatewayPorts is also set, the port binds to
+	 * all interfaces (0.0.0.0), which allows remote connections whose UID
+	 * cannot be determined, making UID enforcement meaningless.
+	 */
+	if (fwd_opts != NULL && fwd_opts->enforce_same_uid &&
+	    fwd_opts->gateway_ports)
+		fatal("cannot enable both GatewayPorts and EnforceSameUid: "
+		    "UID enforcement requires a locally-bound port "
+		    "where the peer's PID/UID can be determined via SO_PEERCRED");
 
 	/*
 	 * getaddrinfo returns a loopback address if the hostname is

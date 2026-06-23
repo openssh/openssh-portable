@@ -721,7 +721,7 @@ main(int ac, char **av)
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "AB:CD:E:F:GI:J:KL:MNO:P:Q:R:S:TVw:W:XYy")) != -1) { /* HUZdhjruz */
+	    "AB:CD:E:F:GI:J:KL:MNO:P:Q:R:S:TUVv:W:XYy")) != -1) { /* HZdhjruz */
 		switch (opt) {
 		case '1':
 			fatal("SSH protocol v.1 is no longer supported");
@@ -1078,6 +1078,9 @@ main(int ac, char **av)
 			break;
 		case 'F':
 			config = optarg;
+			break;
+		case 'U':
+			options.fwd_opts.enforce_same_uid = 1;
 			break;
 		default:
 			usage();

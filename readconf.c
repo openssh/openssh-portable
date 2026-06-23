@@ -167,7 +167,7 @@ typedef enum {
 	oSecurityKeyProvider, oKnownHostsCommand, oRequiredRSASize,
 	oEnableEscapeCommandline, oObscureKeystrokeTiming, oChannelTimeout,
 	oVersionAddendum, oRefuseConnection, oWarnWeakCrypto,
-	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
+	oEnforceSameUid, oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -261,6 +261,7 @@ static struct {
 	{ "loglevel", oLogLevel },
 	{ "logverbose", oLogVerbose },
 	{ "dynamicforward", oDynamicForward },
+	{ "enforcesameuid", oEnforceSameUid },
 	{ "preferredauthentications", oPreferredAuthentications },
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
 	{ "casignaturealgorithms", oCASignatureAlgorithms },
@@ -1288,6 +1289,10 @@ parse_time:
 
 	case oGatewayPorts:
 		intptr = &options->fwd_opts.gateway_ports;
+		goto parse_flag;
+
+	case oEnforceSameUid:
+		intptr = &options->fwd_opts.enforce_same_uid;
 		goto parse_flag;
 
 	case oExitOnForwardFailure:
@@ -2716,6 +2721,7 @@ initialize_options(Options * options)
 	options->fwd_opts.gateway_ports = -1;
 	options->fwd_opts.streamlocal_bind_mask = (mode_t)-1;
 	options->fwd_opts.streamlocal_bind_unlink = -1;
+	options->fwd_opts.enforce_same_uid = -1;
 	options->pubkey_authentication = -1;
 	options->gss_authentication = -1;
 	options->gss_deleg_creds = -1;
@@ -2880,6 +2886,8 @@ fill_default_options(Options * options)
 		options->fwd_opts.streamlocal_bind_mask = 0177;
 	if (options->fwd_opts.streamlocal_bind_unlink == -1)
 		options->fwd_opts.streamlocal_bind_unlink = 0;
+	if (options->fwd_opts.enforce_same_uid == -1)
+		options->fwd_opts.enforce_same_uid = 0;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = SSH_PUBKEY_AUTH_ALL;
 	if (options->gss_authentication == -1)
@@ -3781,6 +3789,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oStdinNull, o->stdin_null);
 	dump_cfg_fmtint(oForkAfterAuthentication, o->fork_after_authentication);
 	dump_cfg_fmtint(oStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
+	dump_cfg_fmtint(oEnforceSameUid, o->fwd_opts.enforce_same_uid);
 	dump_cfg_fmtint(oStrictHostKeyChecking, o->strict_host_key_checking);
 	dump_cfg_fmtint(oTCPKeepAlive, o->tcp_keep_alive);
 	dump_cfg_fmtint(oTunnel, o->tun_open);
