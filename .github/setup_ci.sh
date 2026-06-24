@@ -27,10 +27,29 @@ case "$host" in
 	icacls regress /c /t /q /grant 'BUILTIN\Administrators:(RX)'
 	echo "Modifiled ACLs"
 	icacls regress
+
 	echo Enabling OpenSSL rh-allow-sha1-signatures for unit tests.
 	cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.bak
-	sed -i -e '/\[ default_modules \]/a alg_section = evp_properties\n[evp_properties]\nrh-allow-sha1-signatures = yes\n' /etc/pki/tls/openssl.cnf
-	diff -u /etc/pki/tls/openssl.cnf.bak /etc/pki/tls/openssl.cnf
+	cat >>/etc/pki/tls/openssl.cnf <<EOD
+[openssl_init]
+alg_section = evp_properties
+
+[evp_properties]
+rh-allow-sha1-signatures = yes
+EOD
+	openssl list -providers -provider legacy
+	printf "Test openssl signing with RSA+SHA1: "
+	openssl genpkey -quiet -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2048
+	openssl pkey -in private_key.pem -pubout -out public_key.pem
+	if ! openssl dgst -sha1 -sign private_key.pem -out signature.sig public_key.pem; then
+		echo fail
+		echo "openssl could not sign with RSA+SHA1."
+		cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.bak regress/
+		exit 1
+	else
+		echo success
+	fi
+
 	PACKAGES="$PACKAGES,autoconf,automake,cygwin-devel,gcc-core"
 	PACKAGES="$PACKAGES,make,openssl,libssl-devel,zlib-devel"
 	;;
