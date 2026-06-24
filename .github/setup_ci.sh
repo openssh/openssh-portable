@@ -185,7 +185,7 @@ for TARGET in $TARGETS; do
         PACKAGES="${PACKAGES} cmake ninja-build"
         ;;
     dropbear-versions)
-	INSTALL_DROPBEAR=master
+	INSTALL_DROPBEAR=main
 	;;
     putty-*)
 	INSTALL_PUTTY=0.83
