@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.462 2026/06/24 06:53:57 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.463 2026/06/24 11:59:09 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -365,7 +365,7 @@ channel_classify(struct ssh *ssh, Channel *c)
 
 	c->bulk = type != NULL && match_pattern_list(type, classifier, 0) == 1;
 	debug3("channel %d: classify type \"%s\" (%s) as %s", c->self,
-	    type, has_tty ? "with TTY" : "no TTY",
+	    type ? type : "(null)", has_tty ? "with TTY" : "no TTY",
 	    c->bulk ? "bulk" : "interactive");
 }
 
