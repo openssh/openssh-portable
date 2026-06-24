@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.461 2026/06/01 05:40:13 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.462 2026/06/24 06:53:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -359,10 +359,14 @@ channel_classify(struct ssh *ssh, Channel *c)
 {
 	struct ssh_channels *sc = ssh->chanctxt;
 	const char *type = c->xctype == NULL ? c->ctype : c->xctype;
-	const char *classifier = (c->isatty || c->remote_has_tty) ?
+	const int has_tty = c->isatty || c->remote_has_tty;
+	const char *classifier = has_tty ?
 	    sc->bulk_classifier_tty : sc->bulk_classifier_notty;
 
 	c->bulk = type != NULL && match_pattern_list(type, classifier, 0) == 1;
+	debug3("channel %d: classify type \"%s\" (%s) as %s", c->self,
+	    type, has_tty ? "with TTY" : "no TTY",
+	    c->bulk ? "bulk" : "interactive");
 }
 
 /*
