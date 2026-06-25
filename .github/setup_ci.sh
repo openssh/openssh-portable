@@ -107,83 +107,83 @@ echo "Setting up for '$TARGETS'"
 for TARGET in $TARGETS; do
     case $TARGET in
     default|without-openssl|without-zlib|c89)
-        # nothing to do
-        ;;
+	# nothing to do
+	;;
     clang-sanitize*)
-        PACKAGES="$PACKAGES clang-12"
-        ;;
+	PACKAGES="$PACKAGES clang-12"
+	;;
     cygwin-release)
-        PACKAGES="$PACKAGES libcrypt-devel libfido2-devel libkrb5-devel"
-        ;;
+	PACKAGES="$PACKAGES libcrypt-devel libfido2-devel libkrb5-devel"
+	;;
     gcc-sanitize*)
-        ;;
+	;;
     clang-*|gcc-*)
-        compiler=$(echo $TARGET | sed 's/-Werror//')
-        PACKAGES="$PACKAGES $compiler"
-        ;;
+	compiler=$(echo $TARGET | sed 's/-Werror//')
+	PACKAGES="$PACKAGES $compiler"
+	;;
     krb5)
-        PACKAGES="$PACKAGES libkrb5-dev libnss-wrapper krb5-admin-server"
+	PACKAGES="$PACKAGES libkrb5-dev libnss-wrapper krb5-admin-server"
 	;;
     heimdal)
-        PACKAGES="$PACKAGES heimdal-dev libnss-wrapper krb5-admin-server"
-        ;;
+	PACKAGES="$PACKAGES heimdal-dev libnss-wrapper krb5-admin-server"
+	;;
     libedit)
 	case "$PACKAGER" in
 	setup)	PACKAGES="$PACKAGES libedit-devel" ;;
 	apt)	PACKAGES="$PACKAGES libedit-dev" ;;
 	esac
-        ;;
+	;;
     *pam)
 	case "$PACKAGER" in
 	apt)	PACKAGES="$PACKAGES libpam0g-dev" ;;
 	esac
-        ;;
+	;;
     sk)
-        INSTALL_FIDO_PPA="yes"
-        PACKAGES="$PACKAGES libfido2-dev libu2f-host-dev libcbor-dev"
-        ;;
+	INSTALL_FIDO_PPA="yes"
+	PACKAGES="$PACKAGES libfido2-dev libu2f-host-dev libcbor-dev"
+	;;
     selinux)
-        PACKAGES="$PACKAGES libselinux1-dev selinux-policy-dev libaudit-dev"
-        ;;
+	PACKAGES="$PACKAGES libselinux1-dev selinux-policy-dev libaudit-dev"
+	;;
     hardenedmalloc)
-        INSTALL_HARDENED_MALLOC=yes
-        ;;
+	INSTALL_HARDENED_MALLOC=yes
+	;;
     musl)
 	PACKAGES="$PACKAGES musl-tools"
 	;;
     tcmalloc)
-        PACKAGES="$PACKAGES libgoogle-perftools-dev"
-        ;;
+	PACKAGES="$PACKAGES libgoogle-perftools-dev"
+	;;
     openssl-noec)
 	INSTALL_OPENSSL=OpenSSL_1_1_1k
 	SSLCONFOPTS="no-ec"
 	;;
     openssl-*)
-        INSTALL_OPENSSL=$(echo ${TARGET} | cut -f2 -d-)
-        case ${INSTALL_OPENSSL} in
-          1.1.1_stable)	INSTALL_OPENSSL="OpenSSL_1_1_1-stable" ;;
-          1.*)	INSTALL_OPENSSL="OpenSSL_$(echo ${INSTALL_OPENSSL} | tr . _)" ;;
-          master)	;;
-          *)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
-        esac
-        PACKAGES="${PACKAGES} putty-tools dropbear-bin"
+	INSTALL_OPENSSL=$(echo ${TARGET} | cut -f2 -d-)
+	case ${INSTALL_OPENSSL} in
+	  1.1.1_stable)	INSTALL_OPENSSL="OpenSSL_1_1_1-stable" ;;
+	  1.*)	INSTALL_OPENSSL="OpenSSL_$(echo ${INSTALL_OPENSSL} | tr . _)" ;;
+	  master)	;;
+	  *)	INSTALL_OPENSSL="openssl-${INSTALL_OPENSSL}" ;;
+	esac
+	PACKAGES="${PACKAGES} putty-tools dropbear-bin"
        ;;
     libressl-*)
-        INSTALL_LIBRESSL=$(echo ${TARGET} | cut -f2 -d-)
-        case ${INSTALL_LIBRESSL} in
-          master) ;;
-          *) INSTALL_LIBRESSL="$(echo ${TARGET} | cut -f2 -d-)" ;;
-        esac
-        PACKAGES="${PACKAGES} putty-tools dropbear-bin"
+	INSTALL_LIBRESSL=$(echo ${TARGET} | cut -f2 -d-)
+	case ${INSTALL_LIBRESSL} in
+	  master) ;;
+	  *) INSTALL_LIBRESSL="$(echo ${TARGET} | cut -f2 -d-)" ;;
+	esac
+	PACKAGES="${PACKAGES} putty-tools dropbear-bin"
        ;;
     boringssl)
-        INSTALL_BORINGSSL=1
-        PACKAGES="${PACKAGES} cmake ninja-build"
+	INSTALL_BORINGSSL=1
+	PACKAGES="${PACKAGES} cmake ninja-build"
        ;;
     aws-lc)
-        INSTALL_AWSLC=1
-        PACKAGES="${PACKAGES} cmake ninja-build"
-        ;;
+	INSTALL_AWSLC=1
+	PACKAGES="${PACKAGES} cmake ninja-build"
+	;;
     dropbear-versions)
 	INSTALL_DROPBEAR=main
 	;;
@@ -197,8 +197,8 @@ for TARGET in $TARGETS; do
     zlib-*)
        ;;
     *) echo "Invalid option '${TARGET}'"
-        exit 1
-        ;;
+	exit 1
+	;;
     esac
 done
 
@@ -255,20 +255,20 @@ fi
 
 if [ ! -z "${INSTALL_LIBRESSL}" ]; then
     if [ "${INSTALL_LIBRESSL}" = "master" ]; then
-        (mkdir -p ${HOME}/libressl && cd ${HOME}/libressl &&
-         git clone https://github.com/libressl-portable/portable.git &&
-         cd ${HOME}/libressl/portable &&
-         git checkout ${INSTALL_LIBRESSL} &&
-         sh update.sh && sh autogen.sh &&
-         ./configure --prefix=/opt/libressl &&
-         make && sudo make install)
+	(mkdir -p ${HOME}/libressl && cd ${HOME}/libressl &&
+	 git clone https://github.com/libressl-portable/portable.git &&
+	 cd ${HOME}/libressl/portable &&
+	 git checkout ${INSTALL_LIBRESSL} &&
+	 sh update.sh && sh autogen.sh &&
+	 ./configure --prefix=/opt/libressl &&
+	 make && sudo make install)
     else
-        LIBRESSL_URLBASE=https://cdn.openbsd.org/pub/OpenBSD/LibreSSL
-        (cd ${HOME} &&
-         wget ${LIBRESSL_URLBASE}/libressl-${INSTALL_LIBRESSL}.tar.gz &&
-         tar xfz libressl-${INSTALL_LIBRESSL}.tar.gz &&
-         cd libressl-${INSTALL_LIBRESSL} &&
-         ./configure --prefix=/opt/libressl && make && sudo make install)
+	LIBRESSL_URLBASE=https://cdn.openbsd.org/pub/OpenBSD/LibreSSL
+	(cd ${HOME} &&
+	 wget ${LIBRESSL_URLBASE}/libressl-${INSTALL_LIBRESSL}.tar.gz &&
+	 tar xfz libressl-${INSTALL_LIBRESSL}.tar.gz &&
+	 cd libressl-${INSTALL_LIBRESSL} &&
+	 ./configure --prefix=/opt/libressl && make && sudo make install)
     fi
 fi
 

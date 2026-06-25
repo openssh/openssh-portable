@@ -15,8 +15,8 @@ if [ ! -z "$SUDO" ] && [ ! -z "$TEST_SSH_HOSTBASED_AUTH" ]; then
     $SUDO mkdir -p $sshconf
     $SUDO make install
     for key in $sshconf/ssh_host*key*.pub; do
-        echo `hostname` `cat $key` | \
-            $SUDO tee -a $sshconf/ssh_known_hosts >/dev/null
+	echo `hostname` `cat $key` | \
+	    $SUDO tee -a $sshconf/ssh_known_hosts >/dev/null
     done
 fi
 
@@ -75,8 +75,8 @@ fi
 if [ ! -z "${SSHD_CONFOPTS}" ]; then
     echo "rerunning t-exec with TEST_SSH_SSHD_CONFOPTS='${SSHD_CONFOPTS}'"
     if [ -z "${LTESTS}" ]; then
-        ${env} make t-exec SKIP_LTESTS="${SKIP_LTESTS}" TEST_SSH_SSHD_CONFOPTS="${SSHD_CONFOPTS}"
+	${env} make t-exec SKIP_LTESTS="${SKIP_LTESTS}" TEST_SSH_SSHD_CONFOPTS="${SSHD_CONFOPTS}"
     else
-        ${env} make t-exec SKIP_LTESTS="${SKIP_LTESTS}" LTESTS="${LTESTS}" TEST_SSH_SSHD_CONFOPTS="${SSHD_CONFOPTS}"
+	${env} make t-exec SKIP_LTESTS="${SKIP_LTESTS}" LTESTS="${LTESTS}" TEST_SSH_SSHD_CONFOPTS="${SSHD_CONFOPTS}"
     fi
 fi
