@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.274 2026/04/29 22:22:10 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.275 2026/06/28 23:47:16 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -2038,6 +2038,10 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 			err = -1;
 			goto out;
 		}
+
+		/* Special handling for source of '..' */
+		if (strcmp(filename, "..") == 0)
+			filename = "."; /* Download to dest, not dest/.. */
 
 		if (targetisdir)
 			abs_dst = sftp_path_append(target, filename);
