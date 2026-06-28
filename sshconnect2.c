@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.386 2026/05/13 05:11:02 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.387 2026/06/28 23:31:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1441,7 +1441,8 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 		    !fallback_sigtype) {
 			if (sign_id->agent_fd != -1)
 				loc = "agent ";
-			else if ((sign_id->key->flags & SSHKEY_FLAG_EXT) != 0)
+			else if (sign_id->key != NULL &&
+			    (sign_id->key->flags & SSHKEY_FLAG_EXT) != 0)
 				loc = "token ";
 			logit("%skey %s %s returned incorrect signature type",
 			    loc, sshkey_type(id->key), fp);
