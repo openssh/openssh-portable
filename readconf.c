@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.411 2026/03/30 07:18:24 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.412 2026/06/29 07:56:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2849,7 +2849,7 @@ fill_default_options(Options * options)
 {
 	char *all_cipher, *all_mac, *all_kex, *all_key, *all_sig;
 	char *def_cipher, *def_mac, *def_kex, *def_key, *def_sig;
-	int ret = 0, r;
+	int ret = -1, r;
 
 	if (options->forward_agent == -1)
 		options->forward_agent = 0;
