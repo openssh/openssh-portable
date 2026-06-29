@@ -1,4 +1,4 @@
-/* $OpenBSD: ed25519-openssl.c,v 1.2 2026/06/14 03:59:34 djm Exp $ */
+/* $OpenBSD: ed25519-openssl.c,v 1.3 2026/06/29 02:08:55 djm Exp $ */
 /*
  * Copyright (c) 2025 OpenSSH
  *
@@ -192,6 +192,10 @@ crypto_sign_ed25519_open(unsigned char *m, unsigned long long *mlen,
 
 	if (smlen < crypto_sign_ed25519_BYTES) {
 		debug3_f("signed message bad length: %llu", smlen);
+		return -1;
+	}
+	if (smlen - crypto_sign_ed25519_BYTES > SIZE_MAX) {
+		debug3_f("signed message too long: %llu", smlen);
 		return -1;
 	}
 	/* Signature is first crypto_sign_ed25519_BYTES, message follows */
