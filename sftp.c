@@ -326,7 +326,6 @@ local_do_shell(const char *args)
 		fatal("Couldn't fork: %s", strerror(errno));
 
 	if (pid == 0) {
-		/* XXX: child has pipe fds to ssh subproc open - issue? */
 		if (args) {
 			debug3("Executing %s -c \"%s\"", shell, args);
 			execl(shell, shell, "-c", args, (char *)NULL);
@@ -2378,6 +2377,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 static void
 connect_to_server(char *path, char **args, int *in, int *out)
 {
+	int flags;
 	int c_in, c_out;
 #ifdef USE_PIPES
 	int pin[2], pout[2];
@@ -2386,6 +2386,10 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		fatal("pipe: %s", strerror(errno));
 	*in = pin[0];
 	*out = pout[1];
+if ((flags = fcntl(pin[0], F_GETFD)) != -1)
+		(void)fcntl(pin[0], F_SETFD, flags | FD_CLOEXEC);
+if ((flags = fcntl(pout[1], F_GETFD)) != -1)
+		(void)fcntl(pout[1], F_SETFD, flags | FD_CLOEXEC);
 	c_in = pout[0];
 	c_out = pin[1];
 #else /* USE_PIPES */
@@ -2395,6 +2399,9 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		fatal("socketpair: %s", strerror(errno));
 	*in = *out = inout[0];
 	c_in = c_out = inout[1];
+
+	if ((flags = fcntl(inout[0], F_GETFD)) != -1)
+		(void)fcntl(inout[0], F_SETFD, flags | FD_CLOEXEC);
 #endif /* USE_PIPES */
 
 	if ((sshpid = fork()) == -1)
