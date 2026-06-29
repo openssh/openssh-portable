@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.412 2026/06/29 07:56:19 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.413 2026/06/29 08:16:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1863,7 +1863,7 @@ parse_pubkey_algos:
 
 	case oMatch:
 		if (cmdline) {
-			error("Host directive not supported as a command-line "
+			error("Match directive not supported as a command-line "
 			    "option");
 			goto out;
 		}
