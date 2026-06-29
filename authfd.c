@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.143 2026/06/29 02:13:05 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.144 2026/06/29 08:57:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -805,7 +805,7 @@ ssh_agent_query_extensions(int sock, char ***exts)
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	ret = calloc(1, sizeof(*ret));
+	ret = xcalloc(1, sizeof(*ret));
 	while (sshbuf_len(msg)) {
 		ret = xrecallocarray(ret, i + 1, i + 2, sizeof(*ret));
 		if ((r = sshbuf_get_cstring(msg, ret + i, NULL)) != 0) {
