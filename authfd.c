@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.142 2026/06/14 03:59:34 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.143 2026/06/29 02:13:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -205,7 +205,7 @@ ssh_request_reply_decode(int sock, struct sshbuf *request)
 void
 ssh_close_authentication_socket(int sock)
 {
-	if (getenv(SSH_AUTHSOCKET_ENV_NAME))
+	if (sock != -1 && getenv(SSH_AUTHSOCKET_ENV_NAME) != NULL)
 		close(sock);
 }
 
