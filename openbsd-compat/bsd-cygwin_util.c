@@ -222,7 +222,7 @@ cygwin_ug_match_pattern_list(const char *string, const char *pattern)
 	char sub[1024];
 	int negated;
 	int got_positive;
-	u_int i, subi, len = strlen(pattern);
+	size_t i, subi, len = strlen(pattern);
 
 	got_positive = 0;
 	for (i = 0; i < len;) {
