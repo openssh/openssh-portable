@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.338 2026/05/31 04:44:38 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.339 2026/06/30 00:09:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2545,6 +2545,11 @@ newkeys_from_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 	if ((enc->cipher = cipher_by_name(enc->name)) == NULL ||
 	    enc->block_size != cipher_blocksize(enc->cipher) ||
 	    cipher_is_internal(enc->cipher)) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if (keylen != cipher_keylen(enc->cipher) ||
+	    ivlen != cipher_ivlen(enc->cipher)) {
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
