@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.256 2026/06/30 00:10:48 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.257 2026/06/30 02:30:19 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -901,12 +901,12 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 				struct stat sb;
 				const char *user = NULL, *group = NULL;
 
+				memset(&sb, 0, sizeof(sb));
+				attrib_to_stat(&d[n]->a, &sb);
 				if ((lflag & LS_NUMERIC_VIEW) == 0) {
 					user = ruser_name(sb.st_uid);
 					group = rgroup_name(sb.st_gid);
 				}
-				memset(&sb, 0, sizeof(sb));
-				attrib_to_stat(&d[n]->a, &sb);
 				lname = ls_file(fname, &sb, 1,
 				    (lflag & LS_SI_UNITS), user, group);
 				mprintf("%s\n", lname);
