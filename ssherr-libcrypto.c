@@ -1,4 +1,4 @@
-/* $OpenBSD: ssherr-libcrypto.c,v 1.1 2026/02/06 23:31:29 dtucker Exp $ */
+/* $OpenBSD: ssherr-libcrypto.c,v 1.2 2026/06/30 03:42:53 tb Exp $ */
 /*
  * Copyright (c) 2026 Darren Tucker
  *
