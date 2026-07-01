@@ -23,19 +23,22 @@ struct sshkey;
 struct sk_option;
 
 /* Version of protocol expected from ssh-sk-helper */
-#define SSH_SK_HELPER_VERSION		5
+#define SSH_SK_HELPER_VERSION		6
 
 /* ssh-sk-helper messages */
 #define SSH_SK_HELPER_ERROR		0	/* Only valid H->C */
 #define SSH_SK_HELPER_SIGN		1
 #define SSH_SK_HELPER_ENROLL		2
 #define SSH_SK_HELPER_LOAD_RESIDENT	3
+#define SSH_SK_HELPER_TEST_OPTION	4
 
 struct sshsk_resident_key {
 	struct sshkey *key;
 	uint8_t *user_id;
 	size_t user_id_len;
 };
+
+int sshsk_test_option(const char *provider_path, const char *test_option);
 
 /*
  * Enroll (generate) a new security-key hosted private key of given type
