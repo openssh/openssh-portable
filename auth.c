@@ -474,7 +474,8 @@ getpwnamallow(struct ssh *ssh, const char *user)
 
 	ci = server_get_connection_info(ssh, 1, options.use_dns);
 	ci->user = user;
-	ci->user_invalid = getpwnam(user) == NULL;
+	pw = getpwnam(user);
+	ci->user_invalid = pw == NULL;
 	parse_server_match_config(&options, &includes, ci);
 	log_change_level(options.log_level);
 	log_verbose_reset();
@@ -484,11 +485,9 @@ getpwnamallow(struct ssh *ssh, const char *user)
 
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_setauthdb(user);
-#endif
 
 	pw = getpwnam(user);
 
-#if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_restoreauthdb();
 #endif
 	if (pw == NULL) {
