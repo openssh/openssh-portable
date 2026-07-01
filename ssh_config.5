@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.425 2026/06/29 08:21:50 djm Exp $
-.Dd $Mdocdate: June 29 2026 $
+.\" $OpenBSD: ssh_config.5,v 1.426 2026/07/01 00:52:31 djm Exp $
+.Dd $Mdocdate: July 1 2026 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -56,31 +56,36 @@ system-wide configuration file
 .Pq Pa /etc/ssh/ssh_config
 .El
 .Pp
-Unless noted otherwise, for each parameter, the first obtained value
-will be used.
-The configuration files contain sections separated by
-.Cm Host
-specifications, and that section is only applied for hosts that
-match one of the patterns given in the specification.
-The matched host name is usually the one given on the command line
-(see the
-.Cm CanonicalizeHostname
-option for exceptions).
+Unless noted otherwise, for each configuration directive, the first
+specified value will be used.
 .Pp
-Since the first obtained value for each parameter is used, more
+The configuration files may contain sections separated by conditional
+.Cm Host
+or
+.Cm Match
+directives.
+Configuration in these sections is only applied if the conditional directive
+that started the section matches.
+.Pp
+Since the first obtained value for each directive is used, more
 host-specific declarations should be given near the beginning of the
 file, and general defaults at the end.
 .Pp
-The file contains keyword-argument pairs, one per line.
+The file contains directive/values pairs, one per line.
 Lines starting with
 .Ql #
 and empty lines are interpreted as comments.
-Arguments may optionally be enclosed in double quotes
+.Ql #
+outside of a quoted string may be used to add a comment to the end of a line.
+Whitespace at the beginning or end of lines is ignored.
+Values may optionally be enclosed in double quotes
 .Pq \&"
 in order to represent arguments containing spaces.
-Configuration options may be separated by whitespace or
-optional whitespace and exactly one
-.Ql = ;
+.Pp
+Configuration directives are separated from their values by whitespace
+or exactly one
+.Ql =
+character (which may be surrounded by whitespace);
 the latter format is useful to avoid the need to quote whitespace
 when specifying configuration options using the
 .Nm ssh ,
