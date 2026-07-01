@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.424 2026/07/01 01:06:54 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.425 2026/07/01 01:08:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1598,7 +1598,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		if (siginfo_received) {
 			char ident[256];
 
-			sshpkt_fmt_connection_id(ssh, ident, sizeof(ident));   
+			sshpkt_fmt_connection_id(ssh, ident, sizeof(ident));
 			logit("%s: connection to %s, up %.1f seconds",
 			    __progname, ident, monotime_double() - start_time);
 			siginfo_received = 0;
