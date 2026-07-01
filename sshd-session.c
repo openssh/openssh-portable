@@ -56,6 +56,10 @@
 #include <sys/security.h>
 #include <prot.h>
 #endif
+#ifdef _AIX
+#include <usersec.h>
+#include <userconf.h>
+#endif
  
 #include "xmalloc.h"
 #include "ssh.h"
@@ -793,6 +797,10 @@ main(int ac, char **av)
 	u_int64_t ibytes, obytes;
 	mode_t new_umask;
 	Authctxt *authctxt;
+#ifdef _AIX
+	int retval;
+	dbattr_t *authType = NULL;
+#endif
 	struct connection_info *connection_info = NULL;
 	sigset_t sigmask;
 	uint64_t timing_secret = 0;
@@ -1281,6 +1289,23 @@ main(int ac, char **av)
 		restore_uid();
 	}
 #endif
+
+#ifdef _AIX
+	retval = getconfattr(SC_SYS_LOGIN, SC_AUTHTYPE, &authType, SEC_CHAR);
+	if (retval != 0 || authType == NULL) {
+		error("AIX getconfattr(SC_AUTHTYPE) failed (ret=%d, errno=%d: %s, authtype=%s): "
+		    "using sshd_config UsePAM setting", retval, errno, strerror(errno),
+		    authType != NULL ? authType : "(null)");
+	} else {
+		debug3("AIX system authtype: %s", authType);
+		if (strcmp(authType, "PAM_AUTH") == 0 && options.use_pam)
+			options.use_pam = 1;
+		else
+			options.use_pam = 0;
+		debug3("options.use_pam set to %d based on AIX authtype",options.use_pam);
+	}
+#endif /* _AIX */
+
 #ifdef USE_PAM
 	if (options.use_pam) {
 		do_pam_setcred();
