@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.155 2026/06/05 08:48:43 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.156 2026/07/01 00:52:23 dtucker Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1633,6 +1633,11 @@ process_extended_copy_data(uint32_t id)
 	/* Disallow reading & writing to the same handle, path or inode */
 	read_fd = handle_to_fd(read_handle);
 	write_fd = handle_to_fd(write_handle);
+	if (read_fd < 0 || write_fd < 0) {
+		error_f("bad read or write fd");
+		status = errno_to_portable(EBADF);
+		goto out;
+	}
 	if (fstat(read_fd, &st_read) != 0) {
 		status = errno_to_portable(errno);
 		error_f("fstat read_fd failed: %s", strerror(errno));
@@ -1643,7 +1648,7 @@ process_extended_copy_data(uint32_t id)
 		error_f("fstat write_fd failed: %s", strerror(errno));
 		goto out;
 	}
-	if (read_handle == write_handle || read_fd < 0 || write_fd < 0 ||
+	if (read_handle == write_handle ||
 	    !strcmp(handle_to_name(read_handle), handle_to_name(write_handle)) ||
 	    (st_read.st_dev != 0 && st_read.st_ino != 0 &&
 	    st_read.st_dev == st_write.st_dev &&
