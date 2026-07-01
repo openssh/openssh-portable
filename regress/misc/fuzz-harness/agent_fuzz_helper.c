@@ -4,6 +4,8 @@
 #define main(ac, av) xxxmain(ac, av)
 #include "../../../ssh-agent.c"
 
+int ssh_sk_timeout = -1; /* XXX; unused */
+
 void test_one(const uint8_t* s, size_t slen);
 
 static int
