@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.423 2026/04/19 23:37:22 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.424 2026/07/01 01:06:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -106,6 +106,8 @@
 
 /* Uncertainty (in percent) of keystroke timing intervals */
 #define SSH_KEYSTROKE_TIMING_FUZZ 10
+
+extern char *__progname;
 
 /* import options */
 extern Options options;
@@ -1594,8 +1596,12 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 		if (sigprocmask(SIG_BLOCK, &bsigset, &osigset) == -1)
 			error_f("bsigset sigprocmask: %s", strerror(errno));
 		if (siginfo_received) {
+			char ident[256];
+
+			sshpkt_fmt_connection_id(ssh, ident, sizeof(ident));   
+			logit("%s: connection to %s, up %.1f seconds",
+			    __progname, ident, monotime_double() - start_time);
 			siginfo_received = 0;
-			channel_report_open(ssh, SYSLOG_LEVEL_INFO);
 		}
 		if (quit_pending)
 			break;
