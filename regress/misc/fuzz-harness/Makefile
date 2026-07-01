@@ -14,7 +14,8 @@ COMMON_DEPS=../../../libssh.a $(COMMON_OBJS)
 
 TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz \
-	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz
+	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz \
+	sshd_auth_session_fuzz
 
 all: $(TARGETS)
 
@@ -64,6 +65,9 @@ sntrup761_dec_fuzz: sntrup761_dec_fuzz.o
 
 sntrup761_enc_fuzz: sntrup761_enc_fuzz.o
 	$(CXX) -o $@ sntrup761_enc_fuzz.o $(LDFLAGS) $(FUZZ_FLAGS) $(FUZZ_LIBS) -lcrypto
+
+sshd_auth_session_fuzz: sshd_auth_session_fuzz.o sshd_auth_session_fuzz_helper.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ sshd_auth_session_fuzz.o sshd_auth_session_fuzz_helper.o $(SK_NULL_OBJS) ../../../auth.o ../../../auth2-none.o ../../../auth2-passwd.o ../../../auth2-pubkey.o ../../../auth2-kbdint.o ../../../auth2-hostbased.o ../../../auth2-chall.o ../../../auth2-methods.o ../../../auth2-pubkeyfile.o ../../../auth-options.o ../../../servconf.o ../../../groupaccess.o ../../../srclimit.o -Wl,--wrap=ssh_packet_write_wait $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 clean:
 	-rm -f *.o $(TARGETS)
