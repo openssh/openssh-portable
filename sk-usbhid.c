@@ -27,6 +27,8 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <time.h>
+#include <unistd.h>
+#include <sys/resource.h>
 #ifdef HAVE_SHA2_H
 #include <sha2.h>
 #endif
@@ -161,6 +163,80 @@ skdebug(const char *func, const char *fmt, ...)
 	(void)fmt; /* XXX */
 #endif
 }
+
+/*
+ * Defense-in-depth: while talking to the security key, temporarily lower
+ * RLIMIT_AS to our current address-space usage plus a fixed headroom.
+ *
+ * CTAP2 responses are CBOR-encoded, and libcbor (used internally by
+ * libfido2) allocates memory for array/map elements based on a count taken
+ * directly from a message's CBOR header, without checking it against the
+ * amount of input data actually available. A malicious or malfunctioning
+ * authenticator can therefore use a few bytes of crafted response to make
+ * cbor_load() attempt a multi-gigabyte allocation.
+ *
+ * Capping RLIMIT_AS makes such an allocation fail with ENOMEM, which
+ * libcbor and libfido2 already handle as an ordinary parse error, instead
+ * of growing this process without bound. This needs no dependency on
+ * libcbor's internals (sk-usbhid.c does not otherwise link against it, and
+ * cbor_set_allocs() would only affect whatever copy of libcbor we happen to
+ * link, which is not guaranteed to be the one libfido2 uses) and covers any
+ * oversized allocation in the authenticator I/O path, not just cbor_load().
+ */
+#if defined(HAVE_GETRLIMIT) && defined(HAVE_SETRLIMIT) && defined(RLIMIT_AS)
+#define SK_AS_HEADROOM	(64 * 1024 * 1024) /* 64MB */
+
+static int
+sk_limit_address_space(struct rlimit *orig)
+{
+	struct rlimit rl;
+	FILE *f;
+	long pages, page_size;
+
+	if (getrlimit(RLIMIT_AS, orig) != 0)
+		return 0;
+	if ((page_size = sysconf(_SC_PAGESIZE)) <= 0)
+		return 0;
+	if ((f = fopen("/proc/self/statm", "r")) == NULL)
+		return 0;
+	if (fscanf(f, "%ld", &pages) != 1) {
+		fclose(f);
+		return 0;
+	}
+	fclose(f);
+	if (pages <= 0)
+		return 0;
+
+	rl = *orig;
+	rl.rlim_cur = (rlim_t)pages * (rlim_t)page_size + SK_AS_HEADROOM;
+	/* never loosen an existing, already-stricter limit */
+	if (orig->rlim_cur != RLIM_INFINITY && rl.rlim_cur >= orig->rlim_cur)
+		return 0;
+	if (setrlimit(RLIMIT_AS, &rl) != 0)
+		return 0;
+
+	return 1;
+}
+
+static void
+sk_restore_address_space(const struct rlimit *orig)
+{
+	setrlimit(RLIMIT_AS, orig);
+}
+#else
+static int
+sk_limit_address_space(struct rlimit *orig)
+{
+	(void)orig;
+	return 0;
+}
+
+static void
+sk_restore_address_space(const struct rlimit *orig)
+{
+	(void)orig;
+}
+#endif /* HAVE_GETRLIMIT && HAVE_SETRLIMIT && RLIMIT_AS */
 
 uint32_t
 sk_api_version(void)
@@ -845,8 +921,11 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	int ret = SSH_SK_ERR_GENERAL;
 	int r;
 	char *device = NULL;
+	struct rlimit as_orig;
+	int as_limited;
 
 	fido_init(SSH_FIDO_INIT_ARG);
+	as_limited = sk_limit_address_space(&as_orig);
 
 	if (enroll_response == NULL) {
 		skdebug(__func__, "enroll_response == NULL");
@@ -1021,6 +1100,8 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	response = NULL;
 	ret = 0;
  out:
+	if (as_limited)
+		sk_restore_address_space(&as_orig);
 	free(device);
 	if (response != NULL) {
 		free(response->public_key);
@@ -1158,8 +1239,11 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	struct sk_sign_response *response = NULL;
 	int ret = SSH_SK_ERR_GENERAL, internal_uv;
 	int r;
+	struct rlimit as_orig;
+	int as_limited;
 
 	fido_init(SSH_FIDO_INIT_ARG);
+	as_limited = sk_limit_address_space(&as_orig);
 
 	if (sign_response == NULL) {
 		skdebug(__func__, "sign_response == NULL");
@@ -1246,6 +1330,8 @@ sk_sign(uint32_t alg, const uint8_t *data, size_t datalen,
 	response = NULL;
 	ret = 0;
  out:
+	if (as_limited)
+		sk_restore_address_space(&as_orig);
 	free(device);
 	if (response != NULL) {
 		free(response->sig_r);
@@ -1437,11 +1523,14 @@ sk_load_resident_keys(const char *pin, struct sk_option **options,
 	struct sk_resident_key **rks = NULL;
 	struct sk_usbhid *sk = NULL;
 	char *device = NULL;
+	struct rlimit as_orig;
+	int as_limited;
 
 	*rksp = NULL;
 	*nrksp = 0;
 
 	fido_init(SSH_FIDO_INIT_ARG);
+	as_limited = sk_limit_address_space(&as_orig);
 
 	if (check_sign_load_resident_options(options, &device) != 0)
 		goto out; /* error already logged */
@@ -1468,6 +1557,8 @@ sk_load_resident_keys(const char *pin, struct sk_option **options,
 	rks = NULL;
 	nrks = 0;
  out:
+	if (as_limited)
+		sk_restore_address_space(&as_orig);
 	sk_close(sk);
 	for (i = 0; i < nrks; i++) {
 		free(rks[i]->application);
