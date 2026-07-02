@@ -147,6 +147,8 @@ for TARGET in $TARGETS; do
 	;;
     hardenedmalloc)
 	INSTALL_HARDENED_MALLOC=yes
+	# Need clang >= 19 for constexpr.
+	PACKAGES="$PACKAGES clang-19"
 	;;
     musl)
 	PACKAGES="$PACKAGES musl-tools"
@@ -245,7 +247,7 @@ if [ "${INSTALL_HARDENED_MALLOC}" = "yes" ]; then
     (cd ${HOME} &&
      git clone https://github.com/GrapheneOS/hardened_malloc.git &&
      cd ${HOME}/hardened_malloc &&
-     make CC=clang && sudo cp out/libhardened_malloc.so /usr/lib/)
+     make CC=clang-19 && sudo cp out/libhardened_malloc.so /usr/lib/)
 fi
 
 if [ ! -z "${INSTALL_OPENSSL}" ]; then
