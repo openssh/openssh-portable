@@ -9,8 +9,8 @@ escalation and mitigate attacks by:
    exposed to attack,
  - reducing information-sharing between privileged and
    unprivileged code, and
- - containing attacks as much as possible the unprivileged process,
-   should they occur.
+ - containing attacks as much as possible to the unprivileged
+   process, should they occur.
 
 To achieve privilege separation in OpenSSH's sshd, the functions
 it performs are split across three discrete binaries:
