@@ -112,7 +112,10 @@ separation:
 Controls the sandboxing implementation used by sshd-auth. OS level
 sandboxing is supported on a number of platforms. A fallback
 rlimit(2)-based sandbox provides some basic control on a wider set
-of platforms.
+of platforms. Most supported sandboxes are detected and enabled
+automatically, so this option is mostly used to disable the sandbox
+(this is handy when debugging or running under tools like
+AddressSanitizer).
 
     --with-privsep-user=user
 
@@ -121,14 +124,15 @@ before it starts handling untrusted data. This user must not be
 shared with any other system service, should own no files, should
 have a locked password, a shell that denies access (such as
 /bin/nologin or /bin/false) and the home directory set to the
-privilege separation path.
+privilege separation path. For most platforms the default user is
+"sshd".
 
     --with-privsep-path=/path
 
 Controls the directory that sshd-auth will chroot(2) to before
 dropping privileges. This directory should be empty, not shared
 with other system accounts and not readable or writable by the
-sandbox user.
+sandbox user. The default privsep path is "/var/empty".
 
 You should do something like the following to prepare the privsep
 preauth environment:
