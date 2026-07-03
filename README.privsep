@@ -4,7 +4,7 @@ privileged monitor process. Its purpose is to prevent privilege
 escalation and mitigate attacks by:
 
  - reducing the privileged attack surface by performing most
-   operations with untrusted data in unprivileged code,
+   operations involving untrusted data in unprivileged code,
  - facilitating OS-level sandboxing of the components that are most
    exposed to attack,
  - reducing information-sharing between privileged and
