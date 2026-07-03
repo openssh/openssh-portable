@@ -23,7 +23,7 @@ pre-authentication phase of their lifecycle to implement the
 MaxStartups and PerSourcePenalties features.
 
 Apart from listening for and accepting connections, the sshd binary
-deals with no untrusted, network-derived data; instead it forks and
+does not handle untrusted, network-derived data; instead it forks and
 executes the sshd-session binary for each new connection.
 
 +---------------------------------------------------------------+
