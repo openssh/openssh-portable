@@ -1,7 +1,7 @@
 Privilege separation, or privsep, is a method in OpenSSH by which
 operations that require root privilege are performed by a separate
 privileged monitor process. Its purpose is to prevent privilege
-escalation by:
+escalation and mitigate attacks by:
 
  - reducing the privileged attack surface by performing most
    operations with untrusted data in unprivileged code,
@@ -82,7 +82,7 @@ PerSourcePenalties controls.
 |                 |  sshd-session (postauth monitor)  |         |
 |                 +---------------++------------------+         |
 |                                 ||                            |
-|                                 || fork+exec                  |
+|                                 || fork                       |
 |                                 ||                            |
 | network socket   +--------------++---------------+            |
 |      \-----------+  sshd-session (unprivileged)  |            |
