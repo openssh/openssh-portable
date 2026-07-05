@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-io.c,v 1.3 2026/06/29 09:14:25 djm Exp $ */
+/*	$OpenBSD: sshbuf-io.c,v 1.4 2026/07/05 00:16:21 djm Exp $ */
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -61,7 +61,7 @@ sshbuf_load_fd(int fd, struct sshbuf **blobp)
 			goto out;
 		}
 	}
-	if (S_ISREG(st.st_mode) == 0 &&
+	if (S_ISREG(st.st_mode) != 0 &&
 	    st.st_size != (off_t)sshbuf_len(blob)) {
 		r = SSH_ERR_FILE_CHANGED;
 		goto out;
