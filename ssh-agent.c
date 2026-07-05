@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.329 2026/06/13 00:37:13 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.330 2026/07/05 02:46:44 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -613,7 +613,7 @@ send_status_generic(SocketEntry *e, u_int code)
 static void
 send_status(SocketEntry *e, int success)
 {
-	return send_status_generic(e,
+	send_status_generic(e,
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
 }
 
