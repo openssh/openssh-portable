@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.633 2026/06/14 03:59:34 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.634 2026/07/06 07:49:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -611,26 +611,6 @@ set_addrinfo_port(struct addrinfo *addrs, int port)
 			break;
 		}
 	}
-}
-
-static void
-ssh_conn_info_free(struct ssh_conn_info *cinfo)
-{
-	if (cinfo == NULL)
-		return;
-	free(cinfo->conn_hash_hex);
-	free(cinfo->shorthost);
-	free(cinfo->uidstr);
-	free(cinfo->keyalias);
-	free(cinfo->thishost);
-	free(cinfo->host_arg);
-	free(cinfo->portstr);
-	free(cinfo->remhost);
-	free(cinfo->remuser);
-	free(cinfo->homedir);
-	free(cinfo->locuser);
-	free(cinfo->jmphost);
-	free(cinfo);
 }
 
 /*
@@ -1803,8 +1783,8 @@ main(int ac, char **av)
 	ssh_signal(SIGCHLD, main_sigchld_handler);
 
 	/* Log into the remote system.  Never returns if the login fails. */
-	ssh_login(ssh, &sensitive_data, host, (struct sockaddr *)&hostaddr,
-	    options.port, pw, timeout_ms, cinfo);
+	ssh_login(ssh, &sensitive_data, host, &hostaddr, options.port,
+	    pw, timeout_ms, cinfo);
 
 	/* We no longer need the private host keys.  Clear them now. */
 	if (sensitive_data.nkeys != 0) {
