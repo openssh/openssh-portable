@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.39 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.40 2026/07/06 07:44:48 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -255,6 +255,7 @@ input_gssapi_exchange_complete(int type, uint32_t plen, struct ssh *ssh)
 {
 	Authctxt *authctxt = ssh->authctxt;
 	int r, authenticated;
+	double tstart = monotime_double();
 
 	if (authctxt == NULL)
 		fatal("No authentication or GSSAPI context");
@@ -268,6 +269,8 @@ input_gssapi_exchange_complete(int type, uint32_t plen, struct ssh *ssh)
 		fatal_fr(r, "parse packet");
 
 	authenticated = mm_ssh_gssapi_userok(authctxt->user);
+	if (!authenticated)
+		auth_failure_delay(authctxt, tstart);
 
 	authctxt->postponed = 0;
 	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
@@ -288,6 +291,7 @@ input_gssapi_mic(int type, uint32_t plen, struct ssh *ssh)
 	gss_buffer_desc mic, gssbuf;
 	u_char *p;
 	size_t len;
+	double tstart = monotime_double();
 
 	if (authctxt == NULL)
 		fatal("No authentication or GSSAPI context");
@@ -314,6 +318,9 @@ input_gssapi_mic(int type, uint32_t plen, struct ssh *ssh)
 
 	sshbuf_free(b);
 	free(mic.value);
+
+	if (!authenticated)
+		auth_failure_delay(authctxt, tstart);
 
 	authctxt->postponed = 0;
 	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
