@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.177 2026/05/31 11:30:50 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.179 2026/07/07 01:00:22 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -314,16 +314,16 @@ SSHCONF_UNSUPPORTED_INT(kerberos_get_afs_token, KerberosGetAFSToken, SSHCFG_GLOB
 
 #ifdef GSSAPI
 #define SSHD_CONFIG_ENTRIES_GSS \
-SSHCONF_INTFLAG(gss_authentication, GssAuthentication, SSHCFG_ALL, 0, SSHCFG_COPY_MATCH) \
-SSHCONF_INTFLAG(gss_cleanup_creds, GssCleanupCreds, SSHCFG_GLOBAL, 1, SSHCFG_COPY_NONE) \
-SSHCONF_INTFLAG(gss_deleg_creds, GssDelegateCreds, SSHCFG_GLOBAL, 1, SSHCFG_COPY_NONE) \
-SSHCONF_INTFLAG(gss_strict_acceptor, GssStrictAcceptor, SSHCFG_GLOBAL, 1, SSHCFG_COPY_NONE)
+SSHCONF_INTFLAG(gss_authentication, GSSAPIAuthentication, SSHCFG_ALL, 0, SSHCFG_COPY_MATCH) \
+SSHCONF_INTFLAG(gss_cleanup_creds, GSSAPICleanupCredentials, SSHCFG_GLOBAL, 1, SSHCFG_COPY_NONE) \
+SSHCONF_INTFLAG(gss_deleg_creds, GSSAPIDelegateCredentials, SSHCFG_GLOBAL, 1, SSHCFG_COPY_NONE) \
+SSHCONF_INTFLAG(gss_strict_acceptor, GSSAPIStrictAcceptorCheck, SSHCFG_GLOBAL, 1, SSHCFG_COPY_NONE)
 #else /* GSSAPI */
 #define SSHD_CONFIG_ENTRIES_GSS \
-SSHCONF_UNSUPPORTED_INT(gss_authentication, GssAuthentication, SSHCFG_ALL) \
-SSHCONF_UNSUPPORTED_INT(gss_cleanup_creds, GssCleanupCreds, SSHCFG_GLOBAL) \
-SSHCONF_UNSUPPORTED_INT(gss_deleg_creds, GssDelegateCreds, SSHCFG_GLOBAL) \
-SSHCONF_UNSUPPORTED_INT(gss_strict_acceptor, GssStrictAcceptor, SSHCFG_GLOBAL)
+SSHCONF_UNSUPPORTED_INT(gss_authentication, GSSAPIAuthentication, SSHCFG_ALL) \
+SSHCONF_UNSUPPORTED_INT(gss_cleanup_creds, GSSAPICleanupCredentials, SSHCFG_GLOBAL) \
+SSHCONF_UNSUPPORTED_INT(gss_deleg_creds, GSSAPIDelegateCredentials, SSHCFG_GLOBAL) \
+SSHCONF_UNSUPPORTED_INT(gss_strict_acceptor, GSSAPIStrictAcceptorCheck, SSHCFG_GLOBAL)
 #endif /* GSSAPI */
 
 #define SSHD_CONFIG_ENTRIES \
