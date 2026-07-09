@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.256 2026/05/31 11:30:50 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.257 2026/07/09 02:22:10 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -716,6 +716,7 @@ mm_answer_sign(struct ssh *ssh, int sock, struct sshbuf *m)
 	int r, is_proof = 0, keyid;
 	u_int compat;
 	const char proof_req[] = "hostkeys-prove-00@openssh.com";
+	static int nhostkey_proofs_done, *hostkey_proofs_done;
 
 	debug3_f("entering");
 
@@ -754,6 +755,17 @@ mm_answer_sign(struct ssh *ssh, int sock, struct sshbuf *m)
 			fatal_f("bad data length: %zu", datlen);
 		if ((key = get_hostkey_public_by_index(keyid, ssh)) == NULL)
 			fatal_f("no hostkey for index %d", keyid);
+		if (keyid >= nhostkey_proofs_done) {
+			hostkey_proofs_done = xrecallocarray(
+			    hostkey_proofs_done, nhostkey_proofs_done,
+			    keyid + 1, sizeof(*hostkey_proofs_done));
+			nhostkey_proofs_done = keyid + 1;
+		}
+		if (hostkey_proofs_done[keyid]) {
+			fatal_f("hostkeys proof requested for %s key %d "
+			    "multiple times", sshkey_type(key), keyid);
+		}
+		hostkey_proofs_done[keyid] = 1;
 		if ((sigbuf = sshbuf_new()) == NULL)
 			fatal_f("sshbuf_new");
 		if ((r = sshbuf_put_cstring(sigbuf, proof_req)) != 0 ||
