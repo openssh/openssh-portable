@@ -78,6 +78,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/uio.h>
+#include <sys/queue.h>
 
 #include <ctype.h>
 #include <dirent.h>
@@ -121,6 +122,12 @@
 extern char *__progname;
 
 #define COPY_BUFLEN	16384
+
+struct filename_node {
+	char *name;
+	SLIST_ENTRY(filename_node) entries;
+};
+SLIST_HEAD(filename_queue, filename_node);
 
 int do_cmd(char *, char *, char *, int, int, char *, int *, int *, pid_t *);
 int do_cmd2(char *, char *, int, char *, int, int);
@@ -1014,17 +1021,35 @@ do_sftp_connect(char *host, char *user, int port, char *sftp_direct,
 	    sftp_copy_buflen, sftp_nrequests, limit_kbps);
 }
 
+static void
+free_filename_queue(struct filename_queue *fq)
+{
+	struct filename_node *curfile;
+
+	while (!SLIST_EMPTY(fq)) {
+		curfile = SLIST_FIRST(fq);
+		SLIST_REMOVE_HEAD(fq, entries);
+		free(curfile->name);
+		free(curfile);
+	}
+}
+
 void
 toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 {
 	char *suser = NULL, *host = NULL, *src = NULL;
-	char *bp, *tuser, *thost, *targ;
-	int sport = -1, tport = -1;
+	char *bp, *bp_temp, *tuser, *thost, *targ;
+	int sport = -1, tport = -1, next_sport = -1;
 	struct sftp_conn *conn = NULL, *conn2 = NULL;
 	arglist alist;
-	int i, r, status;
+	int i, r, status, k;
 	struct stat sb;
 	u_int j;
+	char *next_suser, *next_host;
+	struct filename_node *curfile, *lastfile;
+	struct filename_queue fq;
+
+	SLIST_INIT(&fq);
 
 	memset(&alist, '\0', sizeof(alist));
 	alist.list = NULL;
@@ -1049,7 +1074,7 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	for (i = 0; i < argc - 1; i++) {
 		free(suser);
 		free(host);
-		free(src);
+		free_filename_queue(&fq);
 		r = parse_scp_uri(argv[i], &suser, &host, &sport, &src);
 		if (r == -1) {
 			fmprintf(stderr, "%s: invalid uri\n", argv[i]);
@@ -1063,6 +1088,51 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			++errs;
 			continue;
 		}
+
+		/* run while host and suser dont change */
+		k = 0;
+		while (host && i + k < argc - 1) {
+			curfile = xmalloc(sizeof(struct filename_node));
+			curfile->name = src;
+			src = NULL;
+			SLIST_NEXT(curfile, entries) = NULL;
+			if (SLIST_EMPTY(&fq))
+				SLIST_INSERT_HEAD(&fq, curfile, entries);
+			else
+				SLIST_INSERT_AFTER(lastfile, curfile, entries);
+			lastfile = curfile;
+
+			k++;
+			if (i + k >= argc - 1) {
+				break;
+			}
+
+			r = parse_scp_uri(argv[i+k], &next_suser, &next_host,
+				&next_sport, &src);
+
+			if (r == -1) {
+				k--;
+				break;
+			}
+			if (r != 0)
+				parse_user_host_path(argv[i+k], &next_suser,
+					&next_host, &src);
+
+			if (next_host == NULL || ((next_suser != NULL && suser != NULL)
+				&& (strcmp(next_host, host) || strcmp(next_suser, suser)))
+				|| (suser == NULL) != (next_suser == NULL)
+				|| next_sport != sport) {
+
+				free(next_suser);
+				free(next_host);
+				k--;
+				break;
+			}
+			free(next_suser);
+			free(next_host);
+		}
+		i = i + k;
+
 		if (host && throughlocal) {	/* extended remote to remote */
 			if (mode == MODE_SFTP) {
 				if (remin == -1 || conn == NULL) {
@@ -1078,12 +1148,6 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 					debug3_f("origin in %d out %d pid %ld",
 					    remin, remout, (long)do_cmd_pid);
 				}
-				/*
-				 * XXX remember suser/host/sport and only
-				 * reconnect if they change between arguments.
-				 * would save reconnections for cases like
-				 * scp -3 hosta:/foo hosta:/bar hostb:
-				 */
 				/* Connect to origin now */
 				sftp_free(conn2);
 				conn2 = do_sftp_connect(host, suser,
@@ -1095,7 +1159,14 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				}
 				debug3_f("destination in %d out %d pid %ld",
 				    remin2, remout2, (long)do_cmd_pid2);
-				throughlocal_sftp(conn2, conn, src, targ);
+
+				while (!SLIST_EMPTY(&fq)) {
+					curfile = SLIST_FIRST(&fq);
+					SLIST_REMOVE_HEAD(&fq, entries);
+					throughlocal_sftp(conn2, conn, curfile->name, targ);
+					free(curfile->name);
+					free(curfile);
+				}
 				(void) close(remin2);
 				(void) close(remout2);
 				remin2 = remout2 = -1;
@@ -1107,8 +1178,18 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				do_cmd_pid2 = -1;
 				continue;
 			} else {
-				xasprintf(&bp, "%s -f %s%s", cmd,
-				    *src == '-' ? "-- " : "", src);
+				xasprintf(&bp, "%s -f", cmd);
+				while (!SLIST_EMPTY(&fq)) {
+					curfile = SLIST_FIRST(&fq);
+					xasprintf(&bp_temp, "%s %s%s", bp,
+				    	*curfile->name == '-' ? "-- " : "", curfile->name);
+					free(bp);
+					bp = bp_temp;
+					SLIST_REMOVE_HEAD(&fq, entries);
+
+					free(curfile->name);
+					free(curfile);
+				}
 				if (do_cmd(ssh_program, host, suser, sport, 0,
 				    bp, &remin, &remout, &do_cmd_pid) < 0)
 					exit(1);
@@ -1160,7 +1241,13 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			addargs(&alist, "--");
 			addargs(&alist, "%s", host);
 			addargs(&alist, "%s", cmd);
-			addargs(&alist, "%s", src);
+			while (!SLIST_EMPTY(&fq)) {
+				curfile = SLIST_FIRST(&fq);
+				SLIST_REMOVE_HEAD(&fq, entries);
+				addargs(&alist, "%s", curfile->name);
+				free(curfile->name);
+				free(curfile);
+			}
 			addargs(&alist, "%s%s%s:%s",
 			    tuser ? tuser : "", tuser ? "@" : "",
 			    thost, targ);
@@ -1210,7 +1297,7 @@ out:
 	free(targ);
 	free(suser);
 	free(host);
-	free(src);
+	free_filename_queue(&fq);
 	sftp_free(conn);
 	sftp_free(conn2);
 }
@@ -1218,10 +1305,16 @@ out:
 void
 tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 {
-	char *bp, *host = NULL, *src = NULL, *suser = NULL;
+	char *bp, *bp_temp, *host = NULL, *src = NULL, *suser = NULL;
 	arglist alist;
 	struct sftp_conn *conn = NULL;
-	int i, r, sport = -1;
+	int i, k, r, sport = -1, next_sport = -1;
+	char *next_suser, *next_host;
+	struct filename_node *curfile, *lastfile;
+	struct filename_queue fq;
+	char *files, *files_temp;
+
+	SLIST_INIT(&fq);
 
 	memset(&alist, '\0', sizeof(alist));
 	alist.list = NULL;
@@ -1229,7 +1322,7 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	for (i = 0; i < argc - 1; i++) {
 		free(suser);
 		free(host);
-		free(src);
+		free_filename_queue(&fq);
 		r = parse_scp_uri(argv[i], &suser, &host, &sport, &src);
 		if (r == -1) {
 			fmprintf(stderr, "%s: invalid uri\n", argv[i]);
@@ -1256,6 +1349,48 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				++errs;
 			continue;
 		}
+
+		/* run while host and suser dont change */
+		k = 0;
+		while (i + k < argc - 1) {
+			curfile = xmalloc(sizeof(struct filename_node));
+			curfile->name = src;
+			src = NULL;
+			SLIST_NEXT(curfile, entries) = NULL;
+			if (SLIST_EMPTY(&fq))
+				SLIST_INSERT_HEAD(&fq, curfile, entries);
+			else
+				SLIST_INSERT_AFTER(lastfile, curfile, entries);
+			lastfile = curfile;
+
+			k++;
+			if (i + k >= argc - 1) {
+				break;
+			}
+			r = parse_scp_uri(argv[i+k], &next_suser, &next_host,
+				&next_sport, &src);
+
+			if (r == -1) {
+				k--;
+				break;
+			}
+			if (r != 0)
+				parse_user_host_path(argv[i+k], &next_suser,
+					&next_host, &src);
+
+			if (next_host == NULL || ((next_suser != NULL && suser != NULL)
+				&& (strcmp(next_host, host) || strcmp(next_suser, suser)))
+				|| (suser == NULL) != (next_suser == NULL)
+				|| next_sport != sport) {
+				free(next_suser);
+				free(next_host);
+				k--;
+				break;
+				}
+			free(next_suser);
+			free(next_host);
+		}
+		i = i + k;
 		/* Remote to local. */
 		if (mode == MODE_SFTP) {
 			sftp_free(conn);
@@ -1268,31 +1403,53 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 			}
 
 			/* The protocol */
-			sink_sftp(1, argv[argc - 1], src, conn);
-
+			while (!SLIST_EMPTY(&fq)) {
+				curfile = SLIST_FIRST(&fq);
+				SLIST_REMOVE_HEAD(&fq, entries);
+				sink_sftp(1, argv[argc - 1], curfile->name, conn);
+				free(curfile->name);
+				free(curfile);
+			}
 			(void) close(remin);
 			(void) close(remout);
 			remin = remout = -1;
 			continue;
 		}
 		/* SCP */
-		xasprintf(&bp, "%s -f %s%s",
-		    cmd, *src == '-' ? "-- " : "", src);
+		files = NULL;
+		xasprintf(&bp, "%s -f", cmd);
+		while (!SLIST_EMPTY(&fq)) {
+			curfile = SLIST_FIRST(&fq);
+			SLIST_REMOVE_HEAD(&fq, entries);
+			xasprintf(&bp_temp, "%s %s%s",
+						bp, *curfile->name == '-' ? "-- " : "", curfile->name);
+			xasprintf(&files_temp, "%s%s%c",
+					  files == NULL ? "{" : files, curfile->name,
+					  SLIST_EMPTY(&fq) ? '}' : ',');
+			free(files);
+			files = files_temp;
+			free(bp);
+			bp = bp_temp;
+			free(curfile->name);
+			free(curfile);
+		}
 		if (do_cmd(ssh_program, host, suser, sport, 0, bp,
 		    &remin, &remout, &do_cmd_pid) < 0) {
 			free(bp);
+			free(files);
 			++errs;
 			continue;
 		}
 		free(bp);
-		sink(1, argv + argc - 1, src);
+		sink(1, argv + argc - 1, files);		
+		free(files);
 		(void) close(remin);
 		remin = remout = -1;
 	}
 	freeargs(&alist);
 	free(suser);
 	free(host);
-	free(src);
+	free_filename_queue(&fq);
 	sftp_free(conn);
 }
 
