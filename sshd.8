@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.328 2025/10/04 21:41:35 naddy Exp $
-.Dd $Mdocdate: October 4 2025 $
+.\" $OpenBSD: sshd.8,v 1.329 2026/07/10 17:21:19 naddy Exp $
+.Dd $Mdocdate: July 10 2026 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -181,7 +181,8 @@ is not run as root (as the normal
 host key files are normally not readable by anyone but root).
 The default is
 .Pa /etc/ssh/ssh_host_ecdsa_key ,
-.Pa /etc/ssh/ssh_host_ed25519_key
+.Pa /etc/ssh/ssh_host_ed25519_key ,
+.Pa /etc/ssh/ssh_host_mldsa44_ed25519_key
 and
 .Pa /etc/ssh/ssh_host_rsa_key .
 It is possible to have multiple host key files for
@@ -468,6 +469,8 @@ ecdsa-sha2-nistp521
 sk-ssh-ed25519@openssh.com
 .It
 ssh-ed25519
+.It
+ssh-mldsa44-ed25519@openssh.com
 .It
 ssh-rsa
 .El
@@ -959,6 +962,7 @@ rlogin/rsh.
 .Pp
 .It Pa /etc/ssh/ssh_host_ecdsa_key
 .It Pa /etc/ssh/ssh_host_ed25519_key
+.It Pa /etc/ssh/ssh_host_mldsa44_ed25519_key
 .It Pa /etc/ssh/ssh_host_rsa_key
 These files contain the private parts of the host keys.
 These files should only be owned by root, readable only by root, and not
@@ -969,6 +973,7 @@ does not start if these files are group/world-accessible.
 .Pp
 .It Pa /etc/ssh/ssh_host_ecdsa_key.pub
 .It Pa /etc/ssh/ssh_host_ed25519_key.pub
+.It Pa /etc/ssh/ssh_host_mldsa44_ed25519_key.pub
 .It Pa /etc/ssh/ssh_host_rsa_key.pub
 These files contain the public parts of the host keys.
 These files should be world-readable but writable only by
