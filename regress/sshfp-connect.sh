@@ -1,4 +1,4 @@
-#	$OpenBSD: sshfp-connect.sh,v 1.6 2026/07/11 09:59:10 dtucker Exp $
+#	$OpenBSD: sshfp-connect.sh,v 1.7 2026/07/12 06:10:32 dtucker Exp $
 #	Placed in the Public Domain.
 
 # This test requires external setup and thus is skipped unless
@@ -12,6 +12,8 @@
 #    and the following records that are expected to fail:
 #      rsa-bad: invalid sha1 fingerprint and good sha256 fingerprint
 #      rsa-sha{1,256}-bad: invalid fingerprints for that type only.
+#    The SSHFP records for the other key types (ed25519_openssh.prv)
+#      follow the same pattern.
 
 dnsfps='\
 rsa IN SSHFP 1 1 99C79CC09F5F81069CC017CDF9552CFC94B3B929
@@ -21,7 +23,15 @@ rsa-sha256 IN SSHFP 1 2 E30D6B9EB7A4DE495324E4D5870B8220577993EA6AF417E8E4A4F1C5
 rsa-bad IN SSHFP 1 1 99C79CC09F5F81069CC017CDF9552CFC94B3B928
 rsa-bad IN SSHFP 1 2 E30D6B9EB7A4DE495324E4D5870B8220577993EA6AF417E8E4A4F1C5BF01A9B6
 rsa-sha1-bad IN SSHFP 1 1 99D79CC09F5F81069CC017CDF9552CFC94B3B929
-rsa-sha256-bad IN SSHFP 1 2 E30D6B9EB7A4DE495324E4D5870B8220577993EA6AF417E8E4A4F1C5BF01A9B5'
+rsa-sha256-bad IN SSHFP 1 2 E30D6B9EB7A4DE495324E4D5870B8220577993EA6AF417E8E4A4F1C5BF01A9B5
+ed25519 IN SSHFP 4 1 8A8647A7567E202CE317E62606C799C53D4C121F
+ed25519 IN SSHFP 4 2 54A506FB849AAFB9F229CF78A94436C281EFCB4AE67C8A430E8C06AFCB5EE18F
+ed25519-sha1 IN SSHFP 4 1 8A8647A7567E202CE317E62606C799C53D4C121F
+ed25519-sha256 IN SSHFP 4 2 54A506FB849AAFB9F229CF78A94436C281EFCB4AE67C8A430E8C06AFCB5EE18F
+ed25519-bad IN SSHFP 4 1 8A8647A7567E202CE317E62606C799C53D4C121E
+ed25519-bad IN SSHFP 4 2 54A506FB849AAFB9F229CF78A94436C281EFCB4AE67C8A430E8C06AFCB5EE18F
+ed25519-sha1-bad IN SSHFP 4 1 8A8647A7567E202CE317E62606C799C53D4C121E
+ed25519-sha256-bad IN SSHFP 4 2 54A506FB849AAFB9F229CF78A94436C281EFCB4AE67C8A430E8C06AFCB5EE18E'
 
 tid="sshfp connect"
 
@@ -57,8 +67,18 @@ $dnsfps
 EOD
 verbose "all required sshfp entries exist"
 
+# Zero out known hosts and key aliases to force use of SSHFP records.
+> $OBJ/known_hosts
+mv $OBJ/ssh_proxy $OBJ/ssh_proxy.orig
+sed -e "/HostKeyAlias.*localhost-with-alias/d" \
+    -e "/Hostname.*127.0.0.1/d" \
+    $OBJ/ssh_proxy.orig > $OBJ/ssh_proxy
+
+opts="-F $OBJ/ssh_proxy -oVerifyHostKeyDNS=yes"
+
 if $SSH -Q key-plain | grep ssh-rsa >/dev/null; then
-	verbose "sshfp rsa"
+	verbose "connect sshfp rsa"
+
 	# Set RSA host key to match fingerprints above.
 	mv $OBJ/sshd_proxy $OBJ/sshd_proxy.orig
 	$SUDO cp $SRC/rsa_openssh.prv $OBJ/host.ssh-rsa
@@ -66,22 +86,43 @@ if $SSH -Q key-plain | grep ssh-rsa >/dev/null; then
 	sed -e "s|$OBJ/ssh-rsa|$OBJ/host.ssh-rsa|" \
 	    $OBJ/sshd_proxy.orig > $OBJ/sshd_proxy
 
-	# Zero out known hosts and key aliases to force use of SSHFP records.
-	> $OBJ/known_hosts
-	mv $OBJ/ssh_proxy $OBJ/ssh_proxy.orig
-	sed -e "/HostKeyAlias.*localhost-with-alias/d" \
-	    -e "/Hostname.*127.0.0.1/d" \
-	    $OBJ/ssh_proxy.orig > $OBJ/ssh_proxy
-
 	for n in rsa rsa-sha1 rsa-sha256; do
 		trace "sshfp connect $n good fingerprint"
-		host="${n}.dtucker.net"
-		opts="-F $OBJ/ssh_proxy -oVerifyHostKeyDNS=yes"
-		opts="$opts -oHostKeyAlgorithms=rsa-sha2-512,rsa-sha2-256"
+		algs="$opts -oHostKeyAlgorithms=rsa-sha2-512,rsa-sha2-256"
 		host="${n}.${TEST_SSH_SSHFP_DOMAIN}"
-		SSH_CONNECTION=`${SSH} $opts $host 'echo $SSH_CONNECTION'`
+		SSH_CONNECTION=`${SSH} $opts $algs $host 'echo $SSH_CONNECTION'`
 		if [ $? -ne 0 ]; then
-			fail "ssh sshfp connect failed"
+			fail "ssh sshfp connect $n failed"
+		fi
+		if [ "$SSH_CONNECTION" != "UNKNOWN 65535 UNKNOWN 65535" ]; then
+			fail "bad SSH_CONNECTION: $SSH_CONNECTION"
+		fi
+
+		trace "sshfp connect $n bad fingerprint"
+		host="${n}-bad.${TEST_SSH_SSHFP_DOMAIN}"
+		if ${SSH} $opts ${host} true 2>/dev/null; then
+			fail "sshfp-connect succeeded with bad SSHFP record"
+		fi
+	done
+fi
+
+if $SSH -Q key-plain | grep ssh-ed25519 >/dev/null; then
+	verbose "connect sshfp ed25519"
+
+	# Set ed25519 host key to match fingerprints above.
+	mv $OBJ/sshd_proxy $OBJ/sshd_proxy.orig
+	$SUDO cp $SRC/ed25519_openssh.prv $OBJ/host.ssh-ed25519
+	$SUDO chmod 600 $OBJ/host.ssh-ed25519
+	sed -e "s|$OBJ/ssh-ed25519|$OBJ/host.ssh-ed25519|" \
+	    $OBJ/sshd_proxy.orig > $OBJ/sshd_proxy
+
+	for n in ed25519 ed25519-sha1 ed25519-sha256; do
+		trace "sshfp connect $n good fingerprint"
+		algs="$opts -oHostKeyAlgorithms=ssh-ed25519"
+		host="${n}.${TEST_SSH_SSHFP_DOMAIN}"
+		SSH_CONNECTION=`${SSH} $opts $algs $host 'echo $SSH_CONNECTION'`
+		if [ $? -ne 0 ]; then
+			fail "ssh sshfp connect $n failed"
 		fi
 		if [ "$SSH_CONNECTION" != "UNKNOWN 65535 UNKNOWN 65535" ]; then
 			fail "bad SSH_CONNECTION: $SSH_CONNECTION"
