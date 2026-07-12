@@ -126,8 +126,8 @@ openpty_streams(int *amaster, int *aslave)
 #endif
 
 int
-openpty(int *amaster, int *aslave, char *name, struct termios *termp,
-   struct winsize *winp)
+openpty(int *amaster, int *aslave, char *name, const struct termios *termp,
+   const struct winsize *winp)
 {
 #if defined(HAVE__GETPTY)
 	/*
