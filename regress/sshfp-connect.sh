@@ -1,4 +1,4 @@
-#	$OpenBSD: sshfp-connect.sh,v 1.7 2026/07/12 06:10:32 dtucker Exp $
+#	$OpenBSD: sshfp-connect.sh,v 1.8 2026/07/12 11:19:33 dtucker Exp $
 #	Placed in the Public Domain.
 
 # This test requires external setup and thus is skipped unless
@@ -8,30 +8,13 @@
 #    containing he following SSHFP records with fingerprints from
 #    rsa_openssh.pub in that domain that are expected to succeed:
 #      rsa: valid sha1 and sha256 fingerprints.
-#      rsa-sha{1,256}, : valid fingerprints for that type only.
+#      rsa-sha{1,256}: valid fingerprints for that type only.
 #    and the following records that are expected to fail:
 #      rsa-bad: invalid sha1 fingerprint and good sha256 fingerprint
 #      rsa-sha{1,256}-bad: invalid fingerprints for that type only.
-#    The SSHFP records for the other key types (ed25519_openssh.prv)
-#      follow the same pattern.
-
-dnsfps='\
-rsa IN SSHFP 1 1 99C79CC09F5F81069CC017CDF9552CFC94B3B929
-rsa IN SSHFP 1 2 E30D6B9EB7A4DE495324E4D5870B8220577993EA6AF417E8E4A4F1C5BF01A9B6
-rsa-sha1 IN SSHFP 1 1 99C79CC09F5F81069CC017CDF9552CFC94B3B929
-rsa-sha256 IN SSHFP 1 2 E30D6B9EB7A4DE495324E4D5870B8220577993EA6AF417E8E4A4F1C5BF01A9B6
-rsa-bad IN SSHFP 1 1 99C79CC09F5F81069CC017CDF9552CFC94B3B928
-rsa-bad IN SSHFP 1 2 E30D6B9EB7A4DE495324E4D5870B8220577993EA6AF417E8E4A4F1C5BF01A9B6
-rsa-sha1-bad IN SSHFP 1 1 99D79CC09F5F81069CC017CDF9552CFC94B3B929
-rsa-sha256-bad IN SSHFP 1 2 E30D6B9EB7A4DE495324E4D5870B8220577993EA6AF417E8E4A4F1C5BF01A9B5
-ed25519 IN SSHFP 4 1 8A8647A7567E202CE317E62606C799C53D4C121F
-ed25519 IN SSHFP 4 2 54A506FB849AAFB9F229CF78A94436C281EFCB4AE67C8A430E8C06AFCB5EE18F
-ed25519-sha1 IN SSHFP 4 1 8A8647A7567E202CE317E62606C799C53D4C121F
-ed25519-sha256 IN SSHFP 4 2 54A506FB849AAFB9F229CF78A94436C281EFCB4AE67C8A430E8C06AFCB5EE18F
-ed25519-bad IN SSHFP 4 1 8A8647A7567E202CE317E62606C799C53D4C121E
-ed25519-bad IN SSHFP 4 2 54A506FB849AAFB9F229CF78A94436C281EFCB4AE67C8A430E8C06AFCB5EE18F
-ed25519-sha1-bad IN SSHFP 4 1 8A8647A7567E202CE317E62606C799C53D4C121E
-ed25519-sha256-bad IN SSHFP 4 2 54A506FB849AAFB9F229CF78A94436C281EFCB4AE67C8A430E8C06AFCB5EE18E'
+#    The SSHFP records for the other key types follow the same pattern.
+#    The BIND-format zone file $OBJ/sshfp-connect.zone is created
+#      containing these records.
 
 tid="sshfp connect"
 
@@ -39,32 +22,55 @@ if [ -z "${TEST_SSH_SSHFP_DOMAIN}" ]; then
 	skip "TEST_SSH_SSHFP_DOMAIN not set."
 fi
 
+# Generate expected SSHFP zone file.  This can also be handy to import if
+# you're setting this up from scratch.
+for kt in `$SSH -Q key-plain | grep -v sk- | \
+    egrep '^(ssh-rsa|ecdsa-sha2|ssh-ed25519)'`; do
+	case "$kt" in
+	ssh-rsa)		dnsname=rsa ;;
+	ecdsa-sha2-nistp256)	dnsname=ecdsa256 ;;
+	ecdsa-sha2-nistp384)	dnsname=ecdsa384 ;;
+	ecdsa-sha2-nistp521)	dnsname=ecdsa521 ;;
+	ssh-ed25519)		dnsname=ed25519 ;;
+	*)			fatal "unknown keytype $kt" ;;
+	esac
+	file="${dnsname}_openssh"
+	# Make good fingerprints
+	$SSHKEYGEN -r ${dnsname} -f ${SRC}/${file}.pub
+	$SSHKEYGEN -r ${dnsname}-sha1 -f ${SRC}/${file}.pub | awk '$5=="1"'
+	$SSHKEYGEN -r ${dnsname}-sha256 -f ${SRC}/${file}.pub | awk '$5=="2"'
+	# Make bad fingerprints.
+	# For the name with both types we only want the sha1 to be bad.
+	$SSHKEYGEN -r ${dnsname}-bad -f ${SRC}/${file}.pub | awk '$5=="1"' | tr f e
+	$SSHKEYGEN -r ${dnsname}-bad -f ${SRC}/${file}.pub | awk '$5=="2"'
+	$SSHKEYGEN -r ${dnsname}-sha1-bad -f ${SRC}/${file}.pub | awk '$5=="1"' | tr f e
+	$SSHKEYGEN -r ${dnsname}-sha256-bad -f ${SRC}/${file}.pub | awk '$5=="2"' | tr f e
+done | sort -n -k4,5 > $OBJ/sshfp-connect.zone
+
 # Check that the required DNS entries exist.
 # This also primes any DNS caches and resolvers.
-#
-# It uses here documents instead of the more obvious "foo | while read"
-# since the latter runs the loop inside a subshell and any variables set in it
-# vanish when the subshell does.
 while read line; do
 	name=`echo "$line" | awk '{print $1}'`
-	expected=`echo "$line" | awk '{print $4" "$5" "$6}'`
+	expected=`echo "$line" | awk '{print $4" "$5" "$6}' | tr a-z A-Z`
 	# Ensure at least one result matches exactly
 	matched=no
+
+	# This uses a here document instead of "foo | while read" since the
+	# the latter runs the loop inside a subshell and any variables set
+	# vanish when the subshell does.
 	while read result; do
 		if [ "$result" = "$expected" ]; then
 			matched=yes
 		fi
 	done <<EOD
 `host -t sshfp "${name}.${TEST_SSH_SSHFP_DOMAIN}" | \
-    awk '{print $5" "$6" "$7$8}'`
+    awk '{print $5" "$6" "$7$8}' | tr a-z A-Z`
 EOD
 	if [ "$matched" = "no" ]; then
-		fatal "$name.${TEST_SSH_SSHFP_DOMAIN} does not match required"
+		fatal "$name.${TEST_SSH_SSHFP_DOMAIN} SSHFP record does not match required"
 	fi
 	trace "verified sshfp record '$name' -> '$expected'"
-done <<EOD
-$dnsfps
-EOD
+done <${OBJ}/sshfp-connect.zone
 verbose "all required sshfp entries exist"
 
 # Zero out known hosts and key aliases to force use of SSHFP records.
@@ -100,10 +106,42 @@ if $SSH -Q key-plain | grep ssh-rsa >/dev/null; then
 
 		trace "sshfp connect $n bad fingerprint"
 		host="${n}-bad.${TEST_SSH_SSHFP_DOMAIN}"
-		if ${SSH} $opts ${host} true 2>/dev/null; then
+		if ${SSH} $opts $algs ${host} true 2>/dev/null; then
 			fail "sshfp-connect succeeded with bad SSHFP record"
 		fi
 	done
+fi
+
+if $SSH -Q key-plain | grep ecdsa-sha2-nistp >/dev/null; then
+    for b in 256 384 521; do
+	verbose "connect sshfp ecdsa${b}"
+
+	# Set ecdsa host key to match fingerprints above.
+	mv $OBJ/sshd_proxy $OBJ/sshd_proxy.orig
+	$SUDO cp $SRC/ecdsa${b}_openssh.prv $OBJ/host.ecdsa-sha2-nistp${b}
+	$SUDO chmod 600 $OBJ/host.ecdsa-sha2-nistp${b}
+	sed -e "s|$OBJ/ecdsa-sha2-nistp${b}|$OBJ/host.ecdsa-sha2-nistp${b}|" \
+	    $OBJ/sshd_proxy.orig > $OBJ/sshd_proxy
+
+	for n in ecdsa${b} ecdsa${b}-sha1 ecdsa${b}-sha256; do
+		trace "sshfp connect $n good fingerprint"
+		algs="$opts -oHostKeyAlgorithms=ecdsa-sha2-nistp${b}"
+		host="${n}.${TEST_SSH_SSHFP_DOMAIN}"
+		SSH_CONNECTION=`${SSH} $opts $algs $host 'echo $SSH_CONNECTION'`
+		if [ $? -ne 0 ]; then
+			fail "ssh sshfp connect $n failed"
+		fi
+		if [ "$SSH_CONNECTION" != "UNKNOWN 65535 UNKNOWN 65535" ]; then
+			fail "bad SSH_CONNECTION: $SSH_CONNECTION"
+		fi
+
+		trace "sshfp connect $n bad fingerprint"
+		host="${n}-bad.${TEST_SSH_SSHFP_DOMAIN}"
+		if ${SSH} $opts $algs ${host} true 2>/dev/null; then
+			fail "sshfp-connect succeeded with bad SSHFP record"
+		fi
+	done
+    done
 fi
 
 if $SSH -Q key-plain | grep ssh-ed25519 >/dev/null; then
@@ -130,7 +168,7 @@ if $SSH -Q key-plain | grep ssh-ed25519 >/dev/null; then
 
 		trace "sshfp connect $n bad fingerprint"
 		host="${n}-bad.${TEST_SSH_SSHFP_DOMAIN}"
-		if ${SSH} $opts ${host} true 2>/dev/null; then
+		if ${SSH} $opts $algs ${host} true 2>/dev/null; then
 			fail "sshfp-connect succeeded with bad SSHFP record"
 		fi
 	done
