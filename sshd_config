@@ -15,9 +15,9 @@
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-#HostKey /etc/ssh/ssh_host_rsa_key
-#HostKey /etc/ssh/ssh_host_ecdsa_key
-#HostKey /etc/ssh/ssh_host_ed25519_key
+#HostKey /usr/local/etc/ssh/ssh_host_rsa_key
+#HostKey /usr/local/etc/ssh/ssh_host_ecdsa_key
+#HostKey /usr/local/etc/ssh/ssh_host_ed25519_key
 
 # Ciphers and keying
 #RekeyLimit default none
@@ -81,7 +81,7 @@ AuthorizedKeysFile	.ssh/authorized_keys
 # If you just want the PAM account and session checks to run without
 # PAM authentication, then enable this but set PasswordAuthentication
 # and KbdInteractiveAuthentication to 'no'.
-#UsePAM no
+#UsePAM yes
 
 #AllowAgentForwarding yes
 #AllowTcpForwarding yes

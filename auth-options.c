@@ -40,6 +40,223 @@
 #include "ssh2.h"
 #include "auth-options.h"
 
+/*tpm2-tools lib headerfile add*/
+#include "files.h"                          
+#include "log.h"                                                 
+#include "tpm2_alg_util.h"                                  
+#include "tpm2_convert.h"                                
+#include "tpm2_openssl.h"                                        
+#include "tpm2_tool_output.h"                                     
+#include "tpm2_eventlog.h"
+#include "tpm2_util.h"                                       
+
+/*tss2 headerfile add*/
+#include <tss2/tss2_common.h>
+#include <tss2/tss2_mu.h>
+
+/*TPM structure*/
+typedef struct tpm2_verifysig_ctx tpm2_verifysig_ctx;
+struct tpm2_verifysig_ctx {
+    TPMI_ALG_HASH halg;
+    TPM2B_DIGEST msg_hash;
+    TPM2B_DIGEST pcr_hash;
+    TPMS_ATTEST attest;
+    TPM2B_DATA extra_data;
+    TPM2B_MAX_BUFFER signature;
+    tpm2_convert_pcrs_output_fmt pcrs_format;
+};
+
+static tpm2_verifysig_ctx ctx = {
+    .halg       = TPM2_ALG_SHA256,
+    .msg_hash   = TPM2B_TYPE_INIT(TPM2B_DIGEST, buffer),
+    .pcr_hash   = TPM2B_TYPE_INIT(TPM2B_DIGEST, buffer),
+    .pcrs_format = pcrs_output_format_serialized,
+};
+
+#define N_PADDING 3
+static const int rsaPadding[N_PADDING] = {
+    -1,                  
+    RSA_PKCS1_PADDING,
+    RSA_PKCS1_PSS_PADDING
+};
+
+/*
+tpm2_checkquote.c内の内部関数、message_from_fileを参考に、fileから、データを取得したくないので、
+fileから取得する部分を変えて、certificateから取得したデータをそのまま構造体に代入できるようにした
+*/
+
+static tool_rc message_from_cert(unsigned char *msg_cert,unsigned long size) 
+{
+    	tool_rc return_value = tool_rc_general_error;
+    	TPM2B_ATTEST *msg = (TPM2B_ATTEST *)calloc(1, sizeof(TPM2B_ATTEST) + size);
+    	if (!msg) {
+        	goto err;
+   	}
+
+    	msg->size = size;
+    	memcpy(msg->attestationData,msg_cert,size);
+    	if (!(size)) {
+        	goto err;
+    	}
+	tool_rc tmp_rc = files_tpm2b_attest_to_tpms_attest(msg,&ctx.attest);
+    	if (tmp_rc != tool_rc_success) {
+        	return_value = tmp_rc;
+        	goto err;
+   	 }
+
+    	bool res = tpm2_openssl_hash_compute_data(ctx.halg,msg->attestationData, msg->size,&ctx.msg_hash);
+    	if (!res) {
+        	goto err;
+    	}
+    	return_value = tool_rc_success;
+
+	err:
+    		free(msg);
+    		return return_value;
+}
+
+/*
+この関数は、tpm2-tools/lib/tpm2_convert.cのtpm2_convert_sig_load_plain()関数から、tpm2-tools/lib/file.cのtpm2_load_sig_slint()を見て、pathを使わない設計で関数を作り替え、元々の関数はfread()でファイルのデータを取得しているのだが、これをやめて、certificateから来た、dataをtpm2のstructureに合わせたい。
+*/
+
+static tool_rc signature_from_cert(unsigned char *sig_cert,unsigned long size)
+{
+    	/*
+     	* TSS signature need be read and converted to plain
+     	* So load it up into the TPMT Structure
+     	*/
+    	tool_rc return_value = tool_rc_general_error;
+	TPMI_ALG_HASH expected_halg = TPM2_ALG_ERROR;
+    	TPMT_SIGNATURE tmp = { 0 };
+	size_t offset = 0;
+    	UINT8 *buffer;
+	UINT16 size_u16=(UINT16)size;
+       
+        TSS2_RC rc = Tss2_MU_TPMT_SIGNATURE_Unmarshal(sig_cert,size_u16, &offset, &tmp); 
+     
+	if (rc != TSS2_RC_SUCCESS) {
+        	/* plain signatures are just used as is */
+        	expected_halg = TPM2_ALG_NULL;
+
+        	ctx.signature.size = sizeof(ctx.signature.buffer);
+    	}
+    	expected_halg = tmp.signature.any.hashAlg;
+
+    	/* Then convert it to plain, but into a buffer */
+
+    	buffer = tpm2_convert_sig(&(size_u16), &tmp);
+    	if (buffer == NULL) {
+        	return tool_rc_general_error;
+    	}
+
+    	if (size_u16 > sizeof(ctx.signature.buffer)) {
+        	free(buffer);
+        	return tool_rc_general_error;
+    	}
+
+   	ctx.signature.size = size_u16;
+    	memcpy(ctx.signature.buffer, buffer, size_u16);
+    	free(buffer);
+
+    	return tool_rc_success;
+}
+
+/*
+この関数は、tpm2-tools/lib/tpm2_convert.cのtpm2_util_bin_form_hex_or_file()関数から、pathを使わない設計で関数を作り変え、元々の関数はfread()でファイルのデータを取得しているのだが、これをやめて、certificateから来た、dataをtpm2のstructureに合わせる。
+*/ 
+
+static tool_rc nonce_from_cert(unsigned char *nonce_cert,unsigned long size)
+{
+	memcpy(ctx.extra_data.buffer,nonce_cert,size);
+	ctx.extra_data.size=(UINT16)size;
+	return tool_rc_success;
+            
+}
+
+/*
+tpm2_chechqoute.c内の関数であり、今回、quote.msg、quote.sig、nonce.binのみの検証なので、元々の関数から必要なものだけをverifyの関数に入れた。
+*/
+
+static bool verify(void)
+{
+	bool result = false;
+    	EVP_PKEY_CTX *pkey_ctx = NULL;
+    	int rc;
+    	EVP_PKEY *pkey = NULL;
+    	bool ret = tpm2_public_load_pkey("/home/ubuntu/.ssh/certificate_ak.pub", &pkey);
+    	if (!ret) {
+        	return false;
+    	}
+	char hex_buf[512];
+	char *p=hex_buf;
+	for(int i=0; i < ctx.signature.size;i++){
+		int written=sprintf(p,"%2X",ctx.signature.buffer[i]);
+		p+=written;	
+	}
+	logit("sig:%s",hex_buf);
+
+    	for (int i = 0; i < N_PADDING; i++) {
+        	pkey_ctx = EVP_PKEY_CTX_new(pkey, NULL);
+        	if (!pkey_ctx) {
+		    	error("EVP_PKEY_CTX_new failed");	
+            		goto err;
+        	}
+
+        	const EVP_MD *md = tpm2_openssl_md_from_tpmhalg(ctx.halg);
+        	if (!md) {
+			error("Algorithm not support %X",ctx.halg);
+            		goto err;
+        	}
+
+        	rc = EVP_PKEY_verify_init(pkey_ctx);
+        	if (!rc) {
+			error("EVP_PKEY_verify_init faid");
+            		goto err;
+        	}
+
+        	rc = EVP_PKEY_CTX_set_signature_md(pkey_ctx, md);
+        	if (!rc) {
+			error("EVP_PKEY_CTX_set_signature_md faided");
+            		goto err;
+       	 	}
+
+        	if (rsaPadding[i] != -1) {
+            		rc = EVP_PKEY_CTX_set_rsa_padding(pkey_ctx, rsaPadding[i]);
+            		if (rc < 0) {
+				error("EVP_PKEY_CTX_set_rsa_padding");
+                		goto err;
+            		}
+        	}
+
+        	rc = EVP_PKEY_verify(pkey_ctx, ctx.signature.buffer, ctx.signature.size, ctx.msg_hash.buffer,  ctx.msg_hash.size);
+        	if (rc == 1) {
+            		break;
+        	} else {
+            		EVP_PKEY_CTX_free(pkey_ctx);
+            		pkey_ctx = NULL;
+       	 	}
+ 	}
+
+    	/* nonce*/
+    	if (ctx.attest.extraData.size != ctx.extra_data.size ||
+            memcmp(ctx.attest.extraData.buffer, ctx.extra_data.buffer, ctx.extra_data.size) != 0) {
+        	error("Error validating nonce from quote");
+		goto err;
+    	}
+    	/* magic*/
+    	if (ctx.attest.magic != TPM2_GENERATED_VALUE) {
+		error("Bad magic gpt");        	
+		return false;
+    	}
+
+    	result = true;
+
+	err:
+    		EVP_PKEY_free(pkey);
+    		EVP_PKEY_CTX_free(pkey_ctx);
+    		return result;
+}
+
 static int
 dup_strings(char ***dstp, size_t *ndstp, char **src, size_t nsrc)
 {
@@ -68,16 +285,17 @@ dup_strings(char ***dstp, size_t *ndstp, char **src, size_t nsrc)
 	return 0;
 }
 
+/*ここを変えた*/
 #define OPTIONS_CRITICAL	1
 #define OPTIONS_EXTENSIONS	2
-static int
-cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
-    u_int which, int crit)
+static int cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob, u_int which, int crit)
 {
-	char *command, *allowed;
+	char *command, *allowed, *value;
 	char *name = NULL;
 	struct sshbuf *c = NULL, *data = NULL;
 	int r, ret = -1, found;
+	u_char buf[BUFSIZ];
+	int len;
 
 	if ((c = sshbuf_fromb(oblob)) == NULL) {
 		error_f("sshbuf_fromb failed");
@@ -92,8 +310,7 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 			error_r(r, "Unable to parse certificate options");
 			goto out;
 		}
-		debug3("found certificate option \"%.100s\" len %zu",
-		    name, sshbuf_len(data));
+		debug3("found certificate option \"%.100s\" len %zu", name, sshbuf_len(data));
 		found = 0;
 		if ((which & OPTIONS_EXTENSIONS) != 0) {
 			if (strcmp(name, "no-touch-required") == 0) {
@@ -125,13 +342,11 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 			} else if (strcmp(name, "force-command") == 0) {
 				if ((r = sshbuf_get_cstring(data, &command,
 				    NULL)) != 0) {
-					error_r(r, "Unable to parse \"%s\" "
-					    "section", name);
+					error_r(r, "Unable to parse \"%s\" section", name);
 					goto out;
 				}
 				if (opts->force_command != NULL) {
-					error("Certificate has multiple "
-					    "force-command options");
+					error("Certificate has multiple force-command options");
 					free(command);
 					goto out;
 				}
@@ -140,20 +355,17 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 			} else if (strcmp(name, "source-address") == 0) {
 				if ((r = sshbuf_get_cstring(data, &allowed,
 				    NULL)) != 0) {
-					error_r(r, "Unable to parse \"%s\" "
-					    "section", name);
+					error_r(r, "Unable to parse \"%s\" section", name);
 					goto out;
 				}
 				if (opts->required_from_host_cert != NULL) {
-					error("Certificate has multiple "
-					    "source-address options");
+					error("Certificate has multiple source-address options");
 					free(allowed);
 					goto out;
 				}
 				/* Check syntax */
 				if (addr_match_cidr_list(NULL, allowed) == -1) {
-					error("Certificate source-address "
-					    "contents invalid");
+					error("Certificate source-address contents invalid");
 					free(allowed);
 					goto out;
 				}
@@ -164,16 +376,35 @@ cert_option_list(struct sshauthopt *opts, struct sshbuf *oblob,
 
 		if (!found) {
 			if (crit) {
-				error("Certificate critical option \"%s\" "
-				    "is not supported", name);
+				error("Certificate critical option \"%s\" is not supported", name);
 				goto out;
-			} else {
-				logit("Certificate extension \"%s\" "
-				    "is not supported", name);
-			}
-		} else if (sshbuf_len(data) != 0) {
-			error("Certificate option \"%s\" corrupt "
-			    "(extra data)", name);
+					fatal_fr(r,"parse option");
+				if (strcmp(name,"quote_msg.b64") == 0){
+					logit("Certificate extension %s is supported", name);
+					len=b64_pton(value,buf,sizeof(buf));
+					message_from_cert(buf,len);
+				}else if (strcmp(name, "quote_sig.b64") == 0){
+					logit("Certificate extension %s is supported ",name);
+					len=b64_pton(value,buf,sizeof(buf));
+					signature_from_cert(buf,len);
+				}else if (strcmp(name,"nonce_bin.b64") == 0) {
+					logit("Certificate extension %s is supported", name);
+					len=b64_pton(value,buf,sizeof(buf));
+					nonce_from_cert(buf,len);
+				}else{
+					logit("Certificate extension \"%s\" is not supported", name);
+				}
+				if(ctx.msg_hash.size&&ctx.signature.size&&ctx.extra_data.size){
+					bool res=verify();
+					if(res == true){
+						logit("Verify OK");
+					}else{
+						error("Verify signature failed");
+					}
+				}
+			}	
+		}else if (sshbuf_len(data) != 0) {
+			error("Certificate option \"%s\" corrupt (extra data)", name);
 			goto out;
 		}
 		free(name);
