@@ -1,4 +1,4 @@
-#	$OpenBSD: sshfp-connect.sh,v 1.8 2026/07/12 11:19:33 dtucker Exp $
+#	$OpenBSD: sshfp-connect.sh,v 1.9 2026/07/16 09:07:18 dtucker Exp $
 #	Placed in the Public Domain.
 
 # This test requires external setup and thus is skipped unless
@@ -37,14 +37,14 @@ for kt in `$SSH -Q key-plain | grep -v sk- | \
 	file="${dnsname}_openssh"
 	# Make good fingerprints
 	$SSHKEYGEN -r ${dnsname} -f ${SRC}/${file}.pub
-	$SSHKEYGEN -r ${dnsname}-sha1 -f ${SRC}/${file}.pub | awk '$5=="1"'
-	$SSHKEYGEN -r ${dnsname}-sha256 -f ${SRC}/${file}.pub | awk '$5=="2"'
+	$SSHKEYGEN -r ${dnsname}-sha1 -f ${SRC}/${file}.pub -Ohashalg=sha1
+	$SSHKEYGEN -r ${dnsname}-sha256 -f ${SRC}/${file}.pub -Ohashalg=sha256
 	# Make bad fingerprints.
 	# For the name with both types we only want the sha1 to be bad.
-	$SSHKEYGEN -r ${dnsname}-bad -f ${SRC}/${file}.pub | awk '$5=="1"' | tr f e
-	$SSHKEYGEN -r ${dnsname}-bad -f ${SRC}/${file}.pub | awk '$5=="2"'
-	$SSHKEYGEN -r ${dnsname}-sha1-bad -f ${SRC}/${file}.pub | awk '$5=="1"' | tr f e
-	$SSHKEYGEN -r ${dnsname}-sha256-bad -f ${SRC}/${file}.pub | awk '$5=="2"' | tr f e
+	$SSHKEYGEN -r ${dnsname}-bad -f ${SRC}/${file}.pub -Ohashalg=sha1 | tr f e
+	$SSHKEYGEN -r ${dnsname}-bad -f ${SRC}/${file}.pub -Ohashalg=sha256
+	$SSHKEYGEN -r ${dnsname}-sha1-bad -f ${SRC}/${file}.pub -Ohashalg=sha1 | tr f e
+	$SSHKEYGEN -r ${dnsname}-sha256-bad -f ${SRC}/${file}.pub -Ohashalg=sha256 | tr f e
 done | sort -n -k4,5 > $OBJ/sshfp-connect.zone
 
 # Check that the required DNS entries exist.
