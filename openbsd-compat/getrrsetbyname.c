@@ -190,7 +190,7 @@ static int count_dns_rr(struct dns_rr *, u_int16_t, u_int16_t);
 int
 getrrsetbyname(const char *hostname, unsigned int rdclass,
     unsigned int rdtype, unsigned int flags,
-    struct rrsetinfo **res)
+    struct rrsetinfo **res, const char *ldns_anchor_file)
 {
 	struct __res_state *_resp = _THREAD_PRIVATE(_res, _res, &_res);
 	int result;
