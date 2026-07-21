@@ -81,6 +81,7 @@ typedef struct ssh_gssapi_mech_struct {
 	char *name;
 	gss_OID_desc oid;
 	int (*dochild) (ssh_gssapi_client *);
+	int (*firsttokenvalid) (gss_buffer_desc *);
 	int (*userok) (ssh_gssapi_client *, char *);
 	int (*localname) (ssh_gssapi_client *, char **);
 	void (*storecreds) (ssh_gssapi_client *);
@@ -95,6 +96,7 @@ typedef struct {
 	gss_cred_id_t	creds; /* server */
 	gss_name_t	client; /* server */
 	gss_cred_id_t	client_creds; /* server */
+	int		first_token_validated; /* server */
 } Gssctxt;
 
 extern ssh_gssapi_mech *supported_mechs[];
