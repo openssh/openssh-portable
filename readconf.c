@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.414 2026/07/11 11:15:03 naddy Exp $ */
+/* $OpenBSD: readconf.c,v 1.415 2026/07/21 05:21:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2768,10 +2768,10 @@ initialize_options(Options * options)
 	options->bind_interface = NULL;
 	options->pkcs11_provider = NULL;
 	options->sk_provider = NULL;
-	options->enable_ssh_keysign = - 1;
-	options->no_host_authentication_for_localhost = - 1;
-	options->identities_only = - 1;
-	options->rekey_limit = - 1;
+	options->enable_ssh_keysign = -1;
+	options->no_host_authentication_for_localhost = -1;
+	options->identities_only = -1;
+	options->rekey_limit = -1;
 	options->rekey_interval = -1;
 	options->verify_host_key_dns = -1;
 	options->server_alive_interval = -1;
@@ -2956,7 +2956,7 @@ fill_default_options(Options * options)
 		options->log_level = SYSLOG_LEVEL_INFO;
 	if (options->log_facility == SYSLOG_FACILITY_NOT_SET)
 		options->log_facility = SYSLOG_FACILITY_USER;
-	if (options->no_host_authentication_for_localhost == - 1)
+	if (options->no_host_authentication_for_localhost == -1)
 		options->no_host_authentication_for_localhost = 0;
 	if (options->identities_only == -1)
 		options->identities_only = 0;
