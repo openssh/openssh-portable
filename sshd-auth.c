@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.16 2026/06/14 03:59:34 djm Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.17 2026/07/21 06:17:42 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -772,9 +772,8 @@ do_ssh2_kex(struct ssh *ssh)
 	struct kex *kex;
 	int r;
 
-	if (options.rekey_limit || options.rekey_interval)
-		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
-		    options.rekey_interval);
+	ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
+	    options.rekey_interval);
 
 	if (options.compression == COMP_NONE)
 		compression = "none";

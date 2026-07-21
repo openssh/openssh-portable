@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.388 2026/07/06 07:49:58 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.389 2026/07/21 06:17:42 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -227,9 +227,8 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr_storage *hostaddr,
 	xxx_hostaddr = *hostaddr;
 	xxx_conn_info = ssh_conn_info_dup(cinfo);
 
-	if (options.rekey_limit || options.rekey_interval)
-		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
-		    options.rekey_interval);
+	ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
+	    options.rekey_interval);
 
 	/*
 	 * If the user has not specified HostkeyAlgorithms, or has only

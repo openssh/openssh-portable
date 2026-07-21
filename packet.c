@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.339 2026/06/30 00:09:01 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.340 2026/07/21 06:17:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2356,6 +2356,9 @@ ssh_packet_get_maxsize(struct ssh *ssh)
 void
 ssh_packet_set_rekey_limits(struct ssh *ssh, uint64_t bytes, uint32_t seconds)
 {
+	if (bytes == 0 && seconds == 0)
+		return;
+
 	debug3("rekey after %llu bytes, %u seconds", (unsigned long long)bytes,
 	    (unsigned int)seconds);
 	ssh->state->rekey_limit = bytes;
