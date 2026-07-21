@@ -67,8 +67,8 @@ listenaddress ::1
 EOD
 
 ($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
- grep '^listenaddress ' >$OBJ/sshd_config.2 &&
- diff $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
+ grep -i '^ListenAddress ' >$OBJ/sshd_config.2 &&
+ diff -i $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
  fail "listenaddress order 2"
 
 # Check idempotence of MaxStartups
@@ -80,8 +80,8 @@ MaxStartups 1:2:3
 MaxStartups 8:16:32
 EOD
 ($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
- grep '^maxstartups ' >$OBJ/sshd_config.2 &&
- diff $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
+ grep -i '^maxstartups ' >$OBJ/sshd_config.2 &&
+ diff -i $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
  fail "maxstartups idempotence"
 
 # cleanup
