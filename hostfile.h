@@ -119,5 +119,6 @@ int hostkeys_foreach_file(const char *path, FILE *f,
     const char *host, const char *ip, u_int options, u_int note);
 
 void hostfile_create_user_ssh_dir(const char *, int);
+void hostfile_set_minimum_rsa_size(int);
 
 #endif
