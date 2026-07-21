@@ -71,6 +71,7 @@ typedef struct {
 typedef struct {
 	gss_buffer_desc displayname;
 	gss_buffer_desc exportedname;
+	gss_name_t client;
 	gss_cred_id_t creds;
 	struct ssh_gssapi_mech_struct *mech;
 	ssh_gssapi_ccache store;
@@ -81,7 +82,6 @@ typedef struct ssh_gssapi_mech_struct {
 	char *name;
 	gss_OID_desc oid;
 	int (*dochild) (ssh_gssapi_client *);
-	int (*userok) (ssh_gssapi_client *, char *);
 	int (*localname) (ssh_gssapi_client *, char **);
 	void (*storecreds) (ssh_gssapi_client *);
 } ssh_gssapi_mech;
