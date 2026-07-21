@@ -1,11 +1,19 @@
-#	$OpenBSD: cfgparse.sh,v 1.10 2026/07/12 08:40:00 djm Exp $
+#	$OpenBSD: cfgparse.sh,v 1.11 2026/07/21 23:43:15 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="sshd config parse"
 
 # This is a reasonable proxy for IPv6 support.
 if ! config_defined HAVE_STRUCT_IN6_ADDR ; then
-	SKIP_IPV6=yes
+       SKIP_IPV6=yes
+
+# Some variables for the IPv6 addresses.  This allows Portable to skip
+# these on platorms without IPv6 support without having diffs within the
+# tests themselves.
+LISTENADDRESS_IPV6_LOOPBACK="listenaddress ::1"
+LISTENADDRESS_IPV6_LOOPBACK_1234="listenaddress [::1]:1234"
+LISTENADDRESS_IPV6_LOOPBACK_5678="listenaddress [::1]:5678"
+
 fi
 
 # We need to use the keys generated for the regression test because sshd -T
@@ -28,44 +36,37 @@ verbose "reparse regress config"
 
 verbose "listenaddress order"
 # expected output
-cat > $OBJ/sshd_config.0 <<EOD
+egrep -v '^$' > $OBJ/sshd_config.0 <<EOD
 listenaddress 1.2.3.4:1234
 listenaddress 1.2.3.4:5678
-EOD
-[ X${SKIP_IPV6} = Xyes ] || cat >> $OBJ/sshd_config.0 <<EOD
-listenaddress [::1]:1234
-listenaddress [::1]:5678
+$LISTENADDRESS_IPV6_LOOPBACK_1234
+$LISTENADDRESS_IPV6_LOOPBACK_5678
 EOD
 
 # test input sets.  should all result in the output above.
 # test 1: addressfamily and port first
-cat > $OBJ/sshd_config.1 <<EOD
+egrep -v '^$' > $OBJ/sshd_config.1 <<EOD
 ${SSHD_KEYS}
 addressfamily any
 port 1234
 port 5678
 listenaddress 1.2.3.4
+$LISTENADDRESS_IPV6_LOOPBACK
 EOD
-[ X${SKIP_IPV6} = Xyes ] || cat >> $OBJ/sshd_config.1 <<EOD
-listenaddress ::1
-EOD
-
 ($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
  grep -i '^listenaddress ' >$OBJ/sshd_config.2 &&
  diff -i $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
  fail "listenaddress order 1"
+
 # test 2: listenaddress first
 cat > $OBJ/sshd_config.1 <<EOD
 ${SSHD_KEYS}
 listenaddress 1.2.3.4
+$LISTENADDRESS_IPV6_LOOPBACK
 port 1234
 port 5678
 addressfamily any
 EOD
-[ X${SKIP_IPV6} = Xyes ] || cat >> $OBJ/sshd_config.1 <<EOD
-listenaddress ::1
-EOD
-
 ($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
  grep -i '^ListenAddress ' >$OBJ/sshd_config.2 &&
  diff -i $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
