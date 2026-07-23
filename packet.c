@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.340 2026/07/21 06:17:42 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.341 2026/07/23 06:33:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1578,7 +1578,7 @@ ssh_packet_read(struct ssh *ssh)
 	int r;
 
 	if ((r = ssh_packet_read_seqnr(ssh, &type, NULL)) != 0)
-		fatal_fr(r, "read");
+		sshpkt_fatal(ssh, r, "read");
 	return type;
 }
 
@@ -2047,7 +2047,7 @@ ssh_packet_send_debug(struct ssh *ssh, const char *fmt,...)
 	    (r = sshpkt_put_cstring(ssh, "")) != 0 ||
 	    (r = sshpkt_send(ssh)) != 0 ||
 	    (r = ssh_packet_write_wait(ssh)) != 0)
-		fatal_fr(r, "send DEBUG");
+		sshpkt_fatal(ssh, r, "send DEBUG");
 }
 
 void
