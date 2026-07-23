@@ -1019,12 +1019,13 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 {
 	char *suser = NULL, *host = NULL, *src = NULL;
 	char *bp, *tuser, *thost, *targ;
-	int sport = -1, tport = -1;
+	int sport = -1, tport = -1, next_sport = -1;
 	struct sftp_conn *conn = NULL, *conn2 = NULL;
 	arglist alist;
-	int i, r, status;
+	int i, r, status, k;
 	struct stat sb;
 	u_int j;
+	char *next_suser, *next_host; 
 
 	memset(&alist, '\0', sizeof(alist));
 	alist.list = NULL;
@@ -1078,12 +1079,6 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 					debug3_f("origin in %d out %d pid %ld",
 					    remin, remout, (long)do_cmd_pid);
 				}
-				/*
-				 * XXX remember suser/host/sport and only
-				 * reconnect if they change between arguments.
-				 * would save reconnections for cases like
-				 * scp -3 hosta:/foo hosta:/bar hostb:
-				 */
 				/* Connect to origin now */
 				sftp_free(conn2);
 				conn2 = do_sftp_connect(host, suser,
@@ -1095,7 +1090,41 @@ toremote(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 				}
 				debug3_f("destination in %d out %d pid %ld",
 				    remin2, remout2, (long)do_cmd_pid2);
-				throughlocal_sftp(conn2, conn, src, targ);
+
+				/* run while host and suser dont change */
+				k = 0;
+				while (i + k < argc - 1) {
+					throughlocal_sftp(conn2, conn, src, targ);
+					k++;
+					if (i + k >= argc - 1) {
+						break;
+					}
+					free(src);
+					r = parse_scp_uri(argv[i+k], &next_suser, &next_host,
+						&next_sport, &src);
+
+					if (r == -1) {
+						k--;
+						break;
+					}
+					if (r != 0)
+						parse_user_host_path(argv[i+k], &next_suser,
+							&next_host, &src);
+
+					if (next_host == NULL || ((next_suser != NULL && suser != NULL)
+						&& (strcmp(next_host, host) || strcmp(next_suser, suser)))
+						|| (suser == NULL) != (next_suser == NULL)
+						|| next_sport != sport) {
+
+						free(next_suser);
+						free(next_host);
+						k--;
+						break;
+					}
+					free(next_suser);
+					free(next_host);
+				}
+				i = i + k;
 				(void) close(remin2);
 				(void) close(remout2);
 				remin2 = remout2 = -1;
