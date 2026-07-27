@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.168 2026/06/14 03:59:34 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.169 2026/07/27 12:28:52 markus Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -297,6 +297,7 @@ keygrab_ssh2(con *c)
 	c->c_ssh->kex->kex[KEX_C25519_SHA256] = kex_gen_client;
 	c->c_ssh->kex->kex[KEX_KEM_SNTRUP761X25519_SHA512] = kex_gen_client;
 	c->c_ssh->kex->kex[KEX_KEM_MLKEM768X25519_SHA256] = kex_gen_client;
+	c->c_ssh->kex->kex[KEX_KEM_MLKEM768ECDH_SHA256] = kex_gen_client;
 	ssh_set_verify_host_key_callback(c->c_ssh, key_print_wrapper);
 	/*
 	 * do the key-exchange until an error occurs or until

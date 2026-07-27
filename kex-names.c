@@ -1,4 +1,4 @@
-/* $OpenBSD: kex-names.c,v 1.7 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: kex-names.c,v 1.8 2026/07/27 12:28:52 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -70,6 +70,8 @@ static const struct kexalg kexalgs[] = {
 	{ KEX_ECDH_SHA2_NISTP521, KEX_ECDH_SHA2, NID_secp521r1,
 	    SSH_DIGEST_SHA512, KEX_NOT_PQ },
 # endif /* OPENSSL_HAS_NISTP521 */
+	{ KEX_MLKEM768NISTP256_SHA256, KEX_KEM_MLKEM768ECDH_SHA256,
+	    NID_X9_62_prime256v1, SSH_DIGEST_SHA256, KEX_IS_PQ },
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 #if defined(HAVE_EVP_SHA256) || !defined(WITH_OPENSSL)

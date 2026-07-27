@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdh.c,v 1.12 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: kexecdh.c,v 1.13 2026/07/27 12:28:52 markus Exp $ */
 /*
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
@@ -40,10 +40,6 @@
 #include "kex.h"
 #include "sshbuf.h"
 #include "ssherr.h"
-
-static int
-kex_ecdh_dec_key_group(struct kex *, const struct sshbuf *, EC_KEY *key,
-    const EC_GROUP *, struct sshbuf **);
 
 int
 kex_ecdh_keypair(struct kex *kex)
@@ -133,7 +129,7 @@ kex_ecdh_enc(struct kex *kex, const struct sshbuf *client_blob,
 	return r;
 }
 
-static int
+int
 kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
     EC_KEY *key, const EC_GROUP *group, struct sshbuf **shared_secretp)
 {
