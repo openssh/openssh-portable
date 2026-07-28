@@ -83,7 +83,8 @@ ssh_ed25519_generate(struct sshkey *k, int bits)
 	if ((k->ed25519_pk = malloc(ED25519_PK_SZ)) == NULL ||
 	    (k->ed25519_sk = malloc(ED25519_SK_SZ)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	crypto_sign_ed25519_keypair(k->ed25519_pk, k->ed25519_sk);
+	if (crypto_sign_ed25519_keypair(k->ed25519_pk, k->ed25519_sk) != 0)
+		return SSH_ERR_CRYPTO_ERROR;
 	return 0;
 }
 
