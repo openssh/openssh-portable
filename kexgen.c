@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgen.c,v 1.13 2026/07/27 12:28:52 markus Exp $ */
+/* $OpenBSD: kexgen.c,v 1.14 2026/07/30 07:29:09 dtucker Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -113,6 +113,9 @@ kex_gen_client(struct ssh *ssh)
 	case KEX_ECDH_SHA2:
 		r = kex_ecdh_keypair(kex);
 		break;
+	case KEX_KEM_MLKEM768ECDH_SHA256:
+		r = kex_kem_mlkem768ecdh_keypair(kex);
+		break;
 #endif /* WITH_OPENSSL */
 	case KEX_C25519_SHA256:
 		r = kex_c25519_keypair(kex);
@@ -122,9 +125,6 @@ kex_gen_client(struct ssh *ssh)
 		break;
 	case KEX_KEM_MLKEM768X25519_SHA256:
 		r = kex_kem_mlkem768x25519_keypair(kex);
-		break;
-	case KEX_KEM_MLKEM768ECDH_SHA256:
-		r = kex_kem_mlkem768ecdh_keypair(kex);
 		break;
 	default:
 		r = SSH_ERR_INVALID_ARGUMENT;
@@ -190,6 +190,10 @@ input_kex_gen_reply(int type, uint32_t seq, struct ssh *ssh)
 	case KEX_ECDH_SHA2:
 		r = kex_ecdh_dec(kex, server_blob, &shared_secret);
 		break;
+	case KEX_KEM_MLKEM768ECDH_SHA256:
+		r = kex_kem_mlkem768ecdh_dec(kex, server_blob,
+		    &shared_secret);
+		break;
 #endif /* WITH_OPENSSL */
 	case KEX_C25519_SHA256:
 		r = kex_c25519_dec(kex, server_blob, &shared_secret);
@@ -200,10 +204,6 @@ input_kex_gen_reply(int type, uint32_t seq, struct ssh *ssh)
 		break;
 	case KEX_KEM_MLKEM768X25519_SHA256:
 		r = kex_kem_mlkem768x25519_dec(kex, server_blob,
-		    &shared_secret);
-		break;
-	case KEX_KEM_MLKEM768ECDH_SHA256:
-		r = kex_kem_mlkem768ecdh_dec(kex, server_blob,
 		    &shared_secret);
 		break;
 	default:
@@ -317,6 +317,10 @@ input_kex_gen_init(int type, uint32_t seq, struct ssh *ssh)
 		r = kex_ecdh_enc(kex, client_pubkey, &server_pubkey,
 		    &shared_secret);
 		break;
+	case KEX_KEM_MLKEM768ECDH_SHA256:
+		r = kex_kem_mlkem768ecdh_enc(kex, client_pubkey,
+		    &server_pubkey, &shared_secret);
+		break;
 #endif /* WITH_OPENSSL */
 	case KEX_C25519_SHA256:
 		r = kex_c25519_enc(kex, client_pubkey, &server_pubkey,
@@ -328,10 +332,6 @@ input_kex_gen_init(int type, uint32_t seq, struct ssh *ssh)
 		break;
 	case KEX_KEM_MLKEM768X25519_SHA256:
 		r = kex_kem_mlkem768x25519_enc(kex, client_pubkey,
-		    &server_pubkey, &shared_secret);
-		break;
-	case KEX_KEM_MLKEM768ECDH_SHA256:
-		r = kex_kem_mlkem768ecdh_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
 		break;
 	default:

@@ -38,6 +38,7 @@
 #include "digest.h"
 #include "ssherr.h"
 
+#ifdef WITH_OPENSSL
 int
 kex_kem_mlkem768ecdh_keypair(struct kex *kex)
 {
@@ -301,3 +302,4 @@ kex_kem_mlkem768ecdh_dec(struct kex *kex,
 	sshbuf_free(buf);
 	return r;
 }
+#endif	/* WITH_OPENSSL */
