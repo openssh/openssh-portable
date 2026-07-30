@@ -1,4 +1,4 @@
-/* $OpenBSD: kexmlkem768ecdh.c,v */
+/* $OpenBSD: kexmlkem768ecdh.c,v 1.3 2026/07/30 07:30:41 dtucker Exp $ */
 /*
  * Copyright (c) 2025 Markus Friedl.  All rights reserved.
  *
