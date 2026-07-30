@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-mldsa-eddsa.c,v 1.2 2026/07/14 04:43:13 djm Exp $ */
+/* $OpenBSD: ssh-mldsa-eddsa.c,v 1.3 2026/07/30 03:13:34 deraadt Exp $ */
 /*
  * Copyright (c) 2026 Damien Miller <djm@mindrot.org>
  *
@@ -350,12 +350,15 @@ ssh_mldsa44_ed25519_generate(struct sshkey *k, int bits)
 	if ((k->mldsa_ed25519_pk = malloc(MLDSA44_ED25519_PK_SZ)) == NULL ||
 	    (k->mldsa_ed25519_sk = malloc(MLDSA44_ED25519_SK_SZ)) == NULL) {
 		free(k->mldsa_ed25519_pk);
+		k->mldsa_ed25519_pk = NULL;
 		return SSH_ERR_ALLOC_FAIL;
 	}
 	if (crypto_sign_mldsa44_ed25519_keygen(k->mldsa_ed25519_pk,
 	    k->mldsa_ed25519_sk) != 0) {
-		free(k->mldsa_ed25519_pk);
-		free(k->mldsa_ed25519_sk);
+		freezero(k->mldsa_ed25519_pk, MLDSA44_ED25519_PK_SZ);
+		k->mldsa_ed25519_pk = NULL;
+		freezero(k->mldsa_ed25519_sk, MLDSA44_ED25519_PK_SZ);
+		k->mldsa_ed25519_sk = NULL;
 		return SSH_ERR_CRYPTO_ERROR;
 	}
 	return 0;
