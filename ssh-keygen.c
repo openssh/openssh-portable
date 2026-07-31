@@ -251,7 +251,6 @@ ask_filename(struct passwd *pw, const char *prompt)
 		name = _PATH_SSH_CLIENT_ID_ED25519;
 	else {
 		switch (sshkey_type_from_shortname(key_type_name)) {
-#ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA_CERT:
 		case KEY_ECDSA:
 			name = _PATH_SSH_CLIENT_ID_ECDSA;
@@ -260,7 +259,6 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_ECDSA_SK:
 			name = _PATH_SSH_CLIENT_ID_ECDSA_SK;
 			break;
-#endif
 		case KEY_RSA_CERT:
 		case KEY_RSA:
 			name = _PATH_SSH_CLIENT_ID_RSA;
@@ -364,13 +362,11 @@ do_convert_to_pkcs8(struct sshkey *k)
 		    EVP_PKEY_get0_RSA(k->pkey)))
 			fatal("PEM_write_RSA_PUBKEY failed");
 		break;
-#ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		if (!PEM_write_EC_PUBKEY(stdout,
 		    EVP_PKEY_get0_EC_KEY(k->pkey)))
 			fatal("PEM_write_EC_PUBKEY failed");
 		break;
-#endif
 	default:
 		fatal_f("unsupported key type %s", sshkey_type(k));
 	}
@@ -385,13 +381,11 @@ do_convert_to_pem(struct sshkey *k)
 		    EVP_PKEY_get0_RSA(k->pkey)))
 			fatal("PEM_write_RSAPublicKey failed");
 		break;
-#ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		if (!PEM_write_EC_PUBKEY(stdout,
 		    EVP_PKEY_get0_EC_KEY(k->pkey)))
 			fatal("PEM_write_EC_PUBKEY failed");
 		break;
-#endif
 	default:
 		fatal_f("unsupported key type %s", sshkey_type(k));
 	}
@@ -673,7 +667,6 @@ do_convert_from_pkcs8(struct sshkey **k, int *private)
 		(*k)->pkey = pubkey;
 		pubkey = NULL;
 		break;
-#ifdef OPENSSL_HAS_ECC
 	case EVP_PKEY_EC:
 		if ((*k = sshkey_new(KEY_UNSPEC)) == NULL)
 			fatal("sshkey_new failed");
@@ -683,7 +676,6 @@ do_convert_from_pkcs8(struct sshkey **k, int *private)
 		(*k)->pkey = pubkey;
 		pubkey = NULL;
 		break;
-#endif
 	default:
 		fatal_f("unsupported pubkey type %d",
 		    EVP_PKEY_base_id(pubkey));
@@ -747,13 +739,11 @@ do_convert_from(struct passwd *pw)
 			fprintf(stdout, "\n");
 	} else {
 		switch (k->type) {
-#ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA:
 			ok = PEM_write_ECPrivateKey(stdout,
 			    EVP_PKEY_get0_EC_KEY(k->pkey), NULL, NULL, 0,
 			    NULL, NULL);
 			break;
-#endif
 		case KEY_RSA:
 			ok = PEM_write_RSAPrivateKey(stdout,
 			    EVP_PKEY_get0_RSA(k->pkey), NULL, NULL, 0,
@@ -1014,9 +1004,7 @@ do_gen_all_hostkeys(struct passwd *pw)
 	} key_types[] = {
 #ifdef WITH_OPENSSL
 		{ "rsa", "RSA" ,_PATH_HOST_RSA_KEY_FILE },
-#ifdef OPENSSL_HAS_ECC
 		{ "ecdsa", "ECDSA",_PATH_HOST_ECDSA_KEY_FILE },
-#endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 		{ "ed25519", "ED25519",_PATH_HOST_ED25519_KEY_FILE },
 #ifdef USE_MLDSA

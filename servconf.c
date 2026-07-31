@@ -313,10 +313,8 @@ fill_default_server_options(ServerOptions *options)
 		/* fill default hostkeys */
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_RSA_KEY_FILE, 0);
-#ifdef OPENSSL_HAS_ECC
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ECDSA_KEY_FILE, 0);
-#endif
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ED25519_KEY_FILE, 0);
 		servconf_add_hostkey("[default]", 0, options,

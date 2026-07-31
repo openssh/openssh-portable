@@ -156,10 +156,6 @@ for TARGET in $TARGETS; do
     tcmalloc)
 	PACKAGES="$PACKAGES libgoogle-perftools-dev"
 	;;
-    openssl-noec)
-	INSTALL_OPENSSL=OpenSSL_1_1_1k
-	SSLCONFOPTS="no-ec"
-	;;
     openssl-*)
 	INSTALL_OPENSSL=$(echo ${TARGET} | cut -f2 -d-)
 	case ${INSTALL_OPENSSL} in

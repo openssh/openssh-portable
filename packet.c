@@ -67,9 +67,7 @@
 #ifdef WITH_OPENSSL
 # include <openssl/bn.h>
 # include <openssl/evp.h>
-# ifdef OPENSSL_HAS_ECC
-#  include <openssl/ec.h>
-# endif
+# include <openssl/ec.h>
 #endif
 
 #ifdef WITH_ZLIB
@@ -2746,7 +2744,6 @@ sshpkt_put_stringb(struct ssh *ssh, const struct sshbuf *v)
 }
 
 #ifdef WITH_OPENSSL
-#ifdef OPENSSL_HAS_ECC
 int
 sshpkt_put_ec(struct ssh *ssh, const EC_POINT *v, const EC_GROUP *g)
 {
@@ -2758,7 +2755,6 @@ sshpkt_put_ec_pkey(struct ssh *ssh, EVP_PKEY *pkey)
 {
 	return sshbuf_put_ec_pkey(ssh->state->outgoing_packet, pkey);
 }
-#endif /* OPENSSL_HAS_ECC */
 
 int
 sshpkt_put_bignum2(struct ssh *ssh, const BIGNUM *v)
@@ -2824,13 +2820,11 @@ sshpkt_getb_froms(struct ssh *ssh, struct sshbuf **valp)
 }
 
 #ifdef WITH_OPENSSL
-#ifdef OPENSSL_HAS_ECC
 int
 sshpkt_get_ec(struct ssh *ssh, EC_POINT *v, const EC_GROUP *g)
 {
 	return sshbuf_get_ec(ssh->state->incoming_packet, v, g);
 }
-#endif /* OPENSSL_HAS_ECC */
 
 int
 sshpkt_get_bignum2(struct ssh *ssh, BIGNUM **valp)

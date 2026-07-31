@@ -26,7 +26,7 @@
 
 #include "includes.h"
 
-#if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
+#if defined(WITH_OPENSSL)
 #include "openbsd-compat/openssl-compat.h"
 
 #include <sys/types.h>
@@ -582,4 +582,4 @@ const struct sshkey_impl sshkey_ecdsa_nistp521_cert_impl = {
 };
 #endif
 
-#endif /* WITH_OPENSSL && OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */

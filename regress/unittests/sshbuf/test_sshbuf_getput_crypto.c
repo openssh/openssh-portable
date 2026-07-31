@@ -16,10 +16,8 @@
 #include <string.h>
 
 #include <openssl/bn.h>
+#include <openssl/ec.h>
 #include <openssl/objects.h>
-#ifdef OPENSSL_HAS_NISTP256
-# include <openssl/ec.h>
-#endif
 #include "openbsd-compat/openssl-compat.h"
 
 #include "../test_helper/test_helper.h"
@@ -45,7 +43,7 @@ sshbuf_getput_crypto_tests(void)
 		0x70, 0x60, 0x50, 0x40, 0x30, 0x20, 0x10, 0x00,
 		0x7f, 0xff, 0x11
 	};
-#if defined(OPENSSL_HAS_ECC) && defined(OPENSSL_HAS_NISTP256)
+#if defined(OPENSSL_HAS_NISTP256)
 	const u_char *d;
 	size_t s;
 	BIGNUM *bn_x, *bn_y;
@@ -221,7 +219,7 @@ sshbuf_getput_crypto_tests(void)
 	sshbuf_free(p1);
 	TEST_DONE();
 
-#if defined(OPENSSL_HAS_ECC) && defined(OPENSSL_HAS_NISTP256)
+#if defined(OPENSSL_HAS_NISTP256)
 	TEST_START("sshbuf_put_ec");
 	eck = EC_KEY_new_by_curve_name(ec256_nid);
 	ASSERT_PTR_NE(eck, NULL);

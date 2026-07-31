@@ -3365,11 +3365,9 @@ if test "x$openssl" = "xyes" ; then
 
 	if test x$enable_nistp256 = x1 || test x$enable_nistp384 = x1 || \
 	    test x$enable_nistp521 = x1; then
-		AC_DEFINE(OPENSSL_HAS_ECC, [1], [OpenSSL has ECC])
 		AC_CHECK_FUNCS([EC_KEY_METHOD_new])
-		openssl_ecc=yes
 	else
-		openssl_ecc=no
+		AC_MSG_ERROR([libcrypto does not have required ECC support])
 	fi
 	if test x$enable_nistp256 = x1; then
 		AC_DEFINE([OPENSSL_HAS_NISTP256], [1],
