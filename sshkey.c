@@ -105,10 +105,8 @@ extern const struct sshkey_impl sshkey_ecdsa_nistp256_impl;
 extern const struct sshkey_impl sshkey_ecdsa_nistp256_cert_impl;
 extern const struct sshkey_impl sshkey_ecdsa_nistp384_impl;
 extern const struct sshkey_impl sshkey_ecdsa_nistp384_cert_impl;
-# ifdef OPENSSL_HAS_NISTP521
 extern const struct sshkey_impl sshkey_ecdsa_nistp521_impl;
 extern const struct sshkey_impl sshkey_ecdsa_nistp521_cert_impl;
-# endif /* OPENSSL_HAS_NISTP521 */
 extern const struct sshkey_impl sshkey_rsa_impl;
 extern const struct sshkey_impl sshkey_rsa_cert_impl;
 extern const struct sshkey_impl sshkey_rsa_sha256_impl;
@@ -133,10 +131,8 @@ const struct sshkey_impl * const keyimpls[] = {
 	&sshkey_ecdsa_nistp256_cert_impl,
 	&sshkey_ecdsa_nistp384_impl,
 	&sshkey_ecdsa_nistp384_cert_impl,
-# ifdef OPENSSL_HAS_NISTP521
 	&sshkey_ecdsa_nistp521_impl,
 	&sshkey_ecdsa_nistp521_cert_impl,
-# endif /* OPENSSL_HAS_NISTP521 */
 # ifdef ENABLE_SK
 	&sshkey_ecdsa_sk_impl,
 	&sshkey_ecdsa_sk_cert_impl,
@@ -575,10 +571,8 @@ sshkey_curve_name_to_nid(const char *name)
 		return NID_X9_62_prime256v1;
 	else if (strcmp(name, "nistp384") == 0)
 		return NID_secp384r1;
-# ifdef OPENSSL_HAS_NISTP521
 	else if (strcmp(name, "nistp521") == 0)
 		return NID_secp521r1;
-# endif /* OPENSSL_HAS_NISTP521 */
 	else
 		return -1;
 }
@@ -591,10 +585,8 @@ sshkey_curve_nid_to_bits(int nid)
 		return 256;
 	case NID_secp384r1:
 		return 384;
-# ifdef OPENSSL_HAS_NISTP521
 	case NID_secp521r1:
 		return 521;
-# endif /* OPENSSL_HAS_NISTP521 */
 	default:
 		return 0;
 	}
@@ -608,10 +600,8 @@ sshkey_ecdsa_bits_to_nid(int bits)
 		return NID_X9_62_prime256v1;
 	case 384:
 		return NID_secp384r1;
-# ifdef OPENSSL_HAS_NISTP521
 	case 521:
 		return NID_secp521r1;
-# endif /* OPENSSL_HAS_NISTP521 */
 	default:
 		return -1;
 	}
@@ -625,10 +615,8 @@ sshkey_curve_nid_to_name(int nid)
 		return "nistp256";
 	case NID_secp384r1:
 		return "nistp384";
-# ifdef OPENSSL_HAS_NISTP521
 	case NID_secp521r1:
 		return "nistp521";
-# endif /* OPENSSL_HAS_NISTP521 */
 	default:
 		return NULL;
 	}

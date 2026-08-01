@@ -3300,100 +3300,15 @@ if test "x$openssl" = "xyes" ; then
 	#include <openssl/opensslv.h>
 		]], [[
 		EC_KEY *e = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+		EC_KEY *f = EC_KEY_new_by_curve_name(NID_secp384r1);
+		EC_KEY *g = EC_KEY_new_by_curve_name(NID_secp521r1);
+		/* Also require EC_KEY_METHOD support for ECDSA PKCS#11 */
+		void *h = EC_KEY_METHOD_new(NULL);
 		const EVP_MD *m = EVP_sha256(); /* We need this too */
 		]])],
-		[ AC_MSG_RESULT([yes])
-		  enable_nistp256=1 ],
-		[ AC_MSG_RESULT([no]) ]
+		[ AC_MSG_RESULT([yes]) ],
+		[ AC_MSG_ERROR([libcrypto does not have required ECC support]) ]
 	)
-
-	AC_MSG_CHECKING([whether OpenSSL has NID_secp384r1])
-	AC_LINK_IFELSE(
-		[AC_LANG_PROGRAM([[
-	#include <openssl/ec.h>
-	#include <openssl/ecdh.h>
-	#include <openssl/ecdsa.h>
-	#include <openssl/evp.h>
-	#include <openssl/objects.h>
-	#include <openssl/opensslv.h>
-		]], [[
-		EC_KEY *e = EC_KEY_new_by_curve_name(NID_secp384r1);
-		const EVP_MD *m = EVP_sha384(); /* We need this too */
-		]])],
-		[ AC_MSG_RESULT([yes])
-		  enable_nistp384=1 ],
-		[ AC_MSG_RESULT([no]) ]
-	)
-
-	AC_MSG_CHECKING([whether OpenSSL has NID_secp521r1])
-	AC_LINK_IFELSE(
-		[AC_LANG_PROGRAM([[
-	#include <openssl/ec.h>
-	#include <openssl/ecdh.h>
-	#include <openssl/ecdsa.h>
-	#include <openssl/evp.h>
-	#include <openssl/objects.h>
-	#include <openssl/opensslv.h>
-		]], [[
-		EC_KEY *e = EC_KEY_new_by_curve_name(NID_secp521r1);
-		const EVP_MD *m = EVP_sha512(); /* We need this too */
-		]])],
-		[ AC_MSG_RESULT([yes])
-		  AC_MSG_CHECKING([if OpenSSL's NID_secp521r1 is functional])
-		  AC_RUN_IFELSE(
-			[AC_LANG_PROGRAM([[
-	#include <stdlib.h>
-	#include <openssl/ec.h>
-	#include <openssl/ecdh.h>
-	#include <openssl/ecdsa.h>
-	#include <openssl/evp.h>
-	#include <openssl/objects.h>
-	#include <openssl/opensslv.h>
-			]],[[
-			EC_KEY *e = EC_KEY_new_by_curve_name(NID_secp521r1);
-			const EVP_MD *m = EVP_sha512(); /* We need this too */
-			exit(e == NULL || m == NULL);
-			]])],
-			[ AC_MSG_RESULT([yes])
-			  enable_nistp521=1 ],
-			[ AC_MSG_RESULT([no]) ],
-			[ AC_MSG_WARN([cross-compiling: assuming yes])
-			  enable_nistp521=1 ]
-		  )],
-		AC_MSG_RESULT([no])
-	)
-
-	if test x$enable_nistp256 = x1 || test x$enable_nistp384 = x1 || \
-	    test x$enable_nistp521 = x1; then
-		AC_CHECK_FUNCS([EC_KEY_METHOD_new])
-	else
-		AC_MSG_ERROR([libcrypto does not have required ECC support])
-	fi
-	if test x$enable_nistp256 = x1; then
-		AC_DEFINE([OPENSSL_HAS_NISTP256], [1],
-		    [libcrypto has NID_X9_62_prime256v1])
-	else
-		unsupported_algorithms="$unsupported_algorithms \
-			ecdsa-sha2-nistp256 \
-			ecdh-sha2-nistp256 \
-			ecdsa-sha2-nistp256-cert-v01@openssh.com"
-	fi
-	if test x$enable_nistp384 = x1; then
-		AC_DEFINE([OPENSSL_HAS_NISTP384], [1], [libcrypto has NID_secp384r1])
-	else
-		unsupported_algorithms="$unsupported_algorithms \
-			ecdsa-sha2-nistp384 \
-			ecdh-sha2-nistp384 \
-			ecdsa-sha2-nistp384-cert-v01@openssh.com"
-	fi
-	if test x$enable_nistp521 = x1; then
-		AC_DEFINE([OPENSSL_HAS_NISTP521], [1], [libcrypto has NID_secp521r1])
-	else
-		unsupported_algorithms="$unsupported_algorithms \
-			ecdh-sha2-nistp521 \
-			ecdsa-sha2-nistp521 \
-			ecdsa-sha2-nistp521-cert-v01@openssh.com"
-	fi
 
 	# Check libcrypto ED25519 support
 	AC_CHECK_FUNCS([EVP_PKEY_get_raw_public_key])
