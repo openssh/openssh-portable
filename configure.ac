@@ -3302,13 +3302,13 @@ if test "x$openssl" = "xyes" ; then
 		EC_KEY *e = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 		EC_KEY *f = EC_KEY_new_by_curve_name(NID_secp384r1);
 		EC_KEY *g = EC_KEY_new_by_curve_name(NID_secp521r1);
-		/* Also require EC_KEY_METHOD support for ECDSA PKCS#11 */
-		void *h = EC_KEY_METHOD_new(NULL);
 		const EVP_MD *m = EVP_sha256(); /* We need this too */
 		]])],
 		[ AC_MSG_RESULT([yes]) ],
 		[ AC_MSG_ERROR([libcrypto does not have required ECC support]) ]
 	)
+	# Check for EC_KEY_METHOD support for ECDSA PKCS#11
+	AC_CHECK_FUNCS([EC_KEY_METHOD_new])
 
 	# Check libcrypto ED25519 support
 	AC_CHECK_FUNCS([EVP_PKEY_get_raw_public_key])
