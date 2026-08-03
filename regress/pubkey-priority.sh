@@ -1,4 +1,4 @@
-#	$OpenBSD: pubkey-priority.sh,v 1.1 2026/08/03 06:52:50 djm Exp $
+#	$OpenBSD: pubkey-priority.sh,v 1.2 2026/08/03 23:22:23 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="public key priority and ordering"
@@ -102,8 +102,8 @@ agent_normal_cert ED25519
 agent_sk_verify ED25519-SK
 agent_sk_notouch ED25519-SK
 explicit_agent ED25519
-$HOME/.ssh/id_rsa 
-$HOME/.ssh/id_ecdsa 
+$HOME/.ssh/id_rsa RSA
+$HOME/.ssh/id_ecdsa ECDSA
 $HOME/.ssh/id_ecdsa_sk ECDSA-SK
 $HOME/.ssh/id_ed25519 ED25519
 $HOME/.ssh/id_ed25519_sk 
