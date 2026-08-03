@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.390 2026/07/27 12:28:52 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.391 2026/08/03 06:47:24 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1648,11 +1648,13 @@ get_agent_identities(struct ssh *ssh, int *agent_fdp,
 			debug_fr(r, "ssh_get_authentication_socket");
 		return r;
 	}
-	if ((r = ssh_agent_bind_hostkey(agent_fd, ssh->kex->initial_hostkey,
-	    ssh->kex->session_id, ssh->kex->initial_sig, 0)) == 0)
-		debug_f("bound agent to hostkey");
-	else
-		debug2_fr(r, "ssh_agent_bind_hostkey");
+	if (ssh != NULL && ssh->kex != NULL) {
+		if ((r = ssh_agent_bind_hostkey(agent_fd, ssh->kex->initial_hostkey,
+		    ssh->kex->session_id, ssh->kex->initial_sig, 0)) == 0)
+			debug_f("bound agent to hostkey");
+		else
+			debug2_fr(r, "ssh_agent_bind_hostkey");
+	}
 
 	if ((r = ssh_fetch_identitylist(agent_fd, &idlist)) != 0) {
 		debug_fr(r, "ssh_fetch_identitylist");
@@ -1810,7 +1812,8 @@ pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 			    "not in PubkeyAcceptedAlgorithms",
 			    sshkey_ssh_name(id->key), id->filename);
 			disallowed = 1;
-		} else if (ssh->kex->server_sig_algs != NULL &&
+		} else if (ssh != NULL && ssh->kex != NULL &&
+		    ssh->kex->server_sig_algs != NULL &&
 		    (cp = key_sig_algorithm(ssh, id->key)) == NULL) {
 			debug("Skipping %s key %s - corresponding algorithm "
 			    "not supported by server",
@@ -1852,6 +1855,27 @@ pubkey_cleanup(struct ssh *ssh)
 		free(id->filename);
 		free(id);
 	}
+}
+
+void
+pubkey_dump(struct ssh *ssh)
+{
+	Authctxt authctxt;
+	Identity *id;
+	char *ident;
+
+	memset(&authctxt, 0, sizeof(authctxt));
+	authctxt.agent_fd = -1;
+	ssh->authctxt = &authctxt;
+
+	pubkey_prepare(ssh, &authctxt);
+	TAILQ_FOREACH(id, &authctxt.keys, next) {
+		ident = format_identity(id);
+		fprintf(stdout, "%s\n", ident);
+		free(ident);
+	}
+	pubkey_cleanup(ssh);
+	ssh->authctxt = NULL;
 }
 
 static void

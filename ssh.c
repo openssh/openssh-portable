@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.634 2026/07/06 07:49:58 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.635 2026/08/03 06:47:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -168,7 +168,7 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-"usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]\n"
+"usage: ssh [-46AaCfGgKkMNnqsTtVvZXxYyZ] [-B bind_interface] [-b bind_address]\n"
 "           [-c cipher_spec] [-D [bind_address:]port] [-E log_file]\n"
 "           [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]\n"
 "           [-J destination] [-L address] [-l login_name] [-m mac_spec]\n"
@@ -621,7 +621,7 @@ main(int ac, char **av)
 {
 	struct ssh *ssh = NULL;
 	int i, r, opt, exit_status, use_syslog, direct, timeout_ms;
-	int was_addr, config_test = 0, opt_terminated = 0, want_final_pass = 0;
+	int was_addr, config_test = 0, dump_pubkeys = 0, opt_terminated = 0, want_final_pass = 0;
 	int user_on_commandline = 0, user_was_default = 0, user_expanded = 0;
 	char *p, *cp, *line, *argv0, *logfile, *args;
 	char cname[NI_MAXHOST], thishost[NI_MAXHOST];
@@ -700,8 +700,9 @@ main(int ac, char **av)
 	argv0 = av[0];
 
  again:
-	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "AB:CD:E:F:GI:J:KL:MNO:P:Q:R:S:TVw:W:XYy")) != -1) { /* HUZdhjruz */
+	/* remaining: HUdhjruz */
+	while ((opt = getopt(ac, av, "1246ACGKMNTVXYZafgknqstvxy"
+	    "B:D:E:F:I:J:L:O:P:Q:R:S:W:b:c:e:i:l:m:o:p:w:")) != -1) {
 		switch (opt) {
 		case '1':
 			fatal("SSH protocol v.1 is no longer supported");
@@ -740,6 +741,9 @@ main(int ac, char **av)
 		case 'Y':
 			options.forward_x11 = 1;
 			options.forward_x11_trusted = 1;
+			break;
+		case 'Z':
+			dump_pubkeys = 1;
 			break;
 		case 'g':
 			options.fwd_opts.gateway_ports = 1;
@@ -1638,6 +1642,38 @@ main(int ac, char **av)
 		}
 	}
 
+	/* load options.identity_files */
+	load_public_identity_files(cinfo);
+
+	/* optionally set the SSH_AUTHSOCKET_ENV_NAME variable */
+	if (options.identity_agent &&
+	    strcmp(options.identity_agent, SSH_AUTHSOCKET_ENV_NAME) != 0) {
+		if (strcmp(options.identity_agent, "none") == 0) {
+			unsetenv(SSH_AUTHSOCKET_ENV_NAME);
+		} else {
+			cp = options.identity_agent;
+			/* legacy (limited) format */
+			if (cp[0] == '$' && cp[1] != '{') {
+				if (!valid_env_name(cp + 1)) {
+					fatal("Invalid IdentityAgent "
+					    "environment variable name %s", cp);
+				}
+				if ((p = getenv(cp + 1)) == NULL)
+					unsetenv(SSH_AUTHSOCKET_ENV_NAME);
+				else
+					setenv(SSH_AUTHSOCKET_ENV_NAME, p, 1);
+			} else {
+				/* identity_agent specifies a path directly */
+				setenv(SSH_AUTHSOCKET_ENV_NAME, cp, 1);
+			}
+		}
+	}
+
+	if (dump_pubkeys) {
+		pubkey_dump(ssh);
+		exit(0);
+	}
+
 	/*
 	 * If hostname canonicalisation was not enabled, then we may not
 	 * have yet resolved the hostname. Do so now.
@@ -1729,33 +1765,6 @@ main(int ac, char **av)
 			if (loaded == 0)
 				debug("HostbasedAuthentication enabled but no "
 				   "local public host keys could be loaded.");
-		}
-	}
-
-	/* load options.identity_files */
-	load_public_identity_files(cinfo);
-
-	/* optionally set the SSH_AUTHSOCKET_ENV_NAME variable */
-	if (options.identity_agent &&
-	    strcmp(options.identity_agent, SSH_AUTHSOCKET_ENV_NAME) != 0) {
-		if (strcmp(options.identity_agent, "none") == 0) {
-			unsetenv(SSH_AUTHSOCKET_ENV_NAME);
-		} else {
-			cp = options.identity_agent;
-			/* legacy (limited) format */
-			if (cp[0] == '$' && cp[1] != '{') {
-				if (!valid_env_name(cp + 1)) {
-					fatal("Invalid IdentityAgent "
-					    "environment variable name %s", cp);
-				}
-				if ((p = getenv(cp + 1)) == NULL)
-					unsetenv(SSH_AUTHSOCKET_ENV_NAME);
-				else
-					setenv(SSH_AUTHSOCKET_ENV_NAME, p, 1);
-			} else {
-				/* identity_agent specifies a path directly */
-				setenv(SSH_AUTHSOCKET_ENV_NAME, cp, 1);
-			}
 		}
 	}
 
