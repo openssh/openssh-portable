@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.132 2026/07/27 12:31:09 markus Exp $ */
+/* $OpenBSD: kex.h,v 1.133 2026/08/03 06:43:16 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -236,7 +236,7 @@ int	 kex_dh_enc(struct kex *, const struct sshbuf *, struct sshbuf **,
 int	 kex_dh_dec(struct kex *, const struct sshbuf *, struct sshbuf **);
 
 int	 kex_ecdh_dec_key_group(struct kex *, const struct sshbuf *, EC_KEY *key,
-	    const EC_GROUP *, struct sshbuf **);
+	    const EC_GROUP *, int, struct sshbuf **);
 
 int	 kex_ecdh_keypair(struct kex *);
 int	 kex_ecdh_enc(struct kex *, const struct sshbuf *, struct sshbuf **,
