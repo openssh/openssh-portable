@@ -3289,7 +3289,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_CHECK_FUNCS([EVP_sha256 EVP_sha384 EVP_sha512 EVP_chacha20])
 
 	# Check complete ECC support in OpenSSL
-	AC_MSG_CHECKING([whether OpenSSL has NID_X9_62_prime256v1])
+	AC_MSG_CHECKING([whether OpenSSL has ECC support])
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[
 	#include <openssl/ec.h>
