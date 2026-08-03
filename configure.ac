@@ -3113,8 +3113,9 @@ if test "x$openssl" = "xyes" ; then
 			100*|10100*) # 1.0.x, 1.1.0x
 				AC_MSG_ERROR([OpenSSL >= 1.1.1 required (have "$ssl_showver")])
 				;;
-			101*)   ;; # 1.1.x
-			200*)   # LibreSSL
+			101*)   openssl_impl="openssl" # 1.1.x
+				;;
+			200*)   openssl_impl="libressl"
 				lver=`echo "$sslver" | sed 's/.*libressl-//'`
 				case "$lver" in
 				2*|300*) # 2.x, 3.0.0
@@ -3123,7 +3124,7 @@ if test "x$openssl" = "xyes" ; then
 				*) ;;	# Assume all other versions are good.
 				esac
 				;;
-			30*|40*)
+			30*|40*) openssl_impl="openssl"
 				# OpenSSL 3 & 4; we use the 1.1x API
 				# https://openssl.org/policies/general/versioning-policy.html
 				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
@@ -3210,6 +3211,18 @@ if test "x$openssl" = "xyes" ; then
 			)
 		]
 	)
+
+	AC_CHECK_DECL([OPENSSL_IS_AWSLC],
+	    [openssl_impl="aws-lc"], [],
+	    [#include <openssl/base.h>]
+	)
+	AC_CHECK_DECL([OPENSSL_IS_BORINGSSL],
+	    [openssl_impl="boringssl"], [],
+	    [#include <openssl/base.h>]
+	)
+
+	AC_MSG_CHECKING([OpenSSL implementation])
+	AC_MSG_RESULT([$openssl_impl])
 
 	AC_CHECK_FUNCS([ \
 		BN_is_prime_ex \
@@ -3337,17 +3350,30 @@ if test "x$openssl" = "xyes" ; then
 			AC_MSG_RESULT([no])
 		]
 	)
+
+	case "$openssl_impl" in
+	aws-lc|boringssl)
+		# Brainpool does not work with AWC-LS or BoringSSL.
+		unsupported_algorithms="$unsupported_algorithms mlkem768brainpoolp256r1-sha256"
+		;;
+	*)
+		AC_CHECK_DECL([NID_brainpoolP256r1],
+		    [AC_DEFINE([USE_BRAINPOOLP256R1], [1], [Enable brainpool])],
+		    [],
+		    [[#include <openssl/evp.h>]]
+		)
+		;;
+	esac
+
 fi
 
 # PKCS11/U2F depend on OpenSSL and dlopen().
 enable_pkcs11=yes
 enable_sk=yes
 
-AC_CHECK_DECL([OPENSSL_IS_AWSLC],
-	[enable_pkcs11="disabled; PKCS#11 not supported with AWS-LC"],
-	[],
-	[#include <openssl/base.h>]
-)
+if test "x$openssl_impl" = "xaws-lc"; then
+	enable_pkcs11="disabled; PKCS#11 not supported with AWS-LC"
+fi
 if test "x$ac_cv_func_dlopen" != "xyes" ; then
 	enable_pkcs11="disabled; missing dlopen(3)"
 	enable_sk="disabled; missing dlopen(3)"
