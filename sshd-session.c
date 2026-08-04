@@ -56,6 +56,10 @@
 #include <sys/security.h>
 #include <prot.h>
 #endif
+#ifdef _AIX
+#include <usersec.h>
+#include <userconf.h>
+#endif
  
 #include "xmalloc.h"
 #include "ssh.h"
@@ -1277,7 +1281,9 @@ main(int ac, char **av)
 		restore_uid();
 	}
 #endif
+
 #ifdef USE_PAM
+	debug("options.use_pam = %d", options.use_pam);
 	if (options.use_pam) {
 		do_pam_setcred();
 		do_pam_session(ssh);
