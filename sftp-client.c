@@ -1739,7 +1739,7 @@ sftp_download(struct sftp_conn *conn, const char *remote_path,
 				seen_zerolen = 1;
 			}
 			lmodified = 1;
-			if ((lseek(local_fd, req->offset, SEEK_SET) == -1 ||
+			if (((conn->num_requests > 1 && lseek(local_fd, req->offset, SEEK_SET) == -1) ||
 			    atomicio(vwrite, local_fd, data, len) != len) &&
 			    !write_error) {
 				write_errno = errno;
