@@ -1677,6 +1677,7 @@ show_other_keys(struct hostkeys *hostkeys, struct sshkey *key)
 		KEY_ECDSA,
 		KEY_ED25519,
 		KEY_MLDSA44_ED25519,
+		KEY_MLDSA87,
 		-1
 	};
 	int i, ret = 0;

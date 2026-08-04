@@ -87,6 +87,7 @@ static char *default_files[] = {
 #endif /* WITH_OPENSSL */
 	_PATH_SSH_CLIENT_ID_ED25519,
 	_PATH_SSH_CLIENT_ID_ED25519_SK,
+	_PATH_SSH_CLIENT_ID_MLDSA87,
 	NULL
 };
 

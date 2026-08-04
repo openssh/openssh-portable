@@ -93,6 +93,8 @@ extern const struct sshkey_impl sshkey_ed25519_sk_cert_impl;
 #ifdef USE_MLDSA
 extern const struct sshkey_impl sshkey_mldsa44_ed25519_impl;
 extern const struct sshkey_impl sshkey_mldsa44_ed25519_cert_impl;
+extern const struct sshkey_impl sshkey_mldsa87_impl;
+extern const struct sshkey_impl sshkey_mldsa87_cert_impl;
 #endif /* USE_MLDSA */
 #ifdef WITH_OPENSSL
 # ifdef OPENSSL_HAS_ECC
@@ -129,6 +131,8 @@ const struct sshkey_impl * const keyimpls[] = {
 #ifdef USE_MLDSA
 	&sshkey_mldsa44_ed25519_impl,
 	&sshkey_mldsa44_ed25519_cert_impl,
+	&sshkey_mldsa87_impl,
+	&sshkey_mldsa87_cert_impl,
 #endif /* USE_MLDSA */
 #ifdef WITH_OPENSSL
 # ifdef OPENSSL_HAS_ECC
@@ -449,6 +453,8 @@ sshkey_type_plain(int type)
 		return KEY_ED25519;
 	case KEY_MLDSA44_ED25519_CERT:
 		return KEY_MLDSA44_ED25519;
+	case KEY_MLDSA87_CERT:
+		return KEY_MLDSA87;
 	case KEY_ED25519_SK_CERT:
 		return KEY_ED25519_SK;
 	default:
@@ -471,6 +477,8 @@ sshkey_type_certified(int type)
 		return KEY_ED25519_CERT;
 	case KEY_MLDSA44_ED25519:
 		return KEY_MLDSA44_ED25519_CERT;
+	case KEY_MLDSA87:
+		return KEY_MLDSA87_CERT;
 	case KEY_ED25519_SK:
 		return KEY_ED25519_SK_CERT;
 	default:
@@ -3405,6 +3413,7 @@ sshkey_private_to_fileblob(struct sshkey *key, struct sshbuf *blob,
 	case KEY_ECDSA_SK:
 #endif /* WITH_OPENSSL */
 	case KEY_MLDSA44_ED25519:
+	case KEY_MLDSA87:
 		return sshkey_private_to_blob2(key, blob, passphrase,
 		    comment, openssh_format_cipher, openssh_format_rounds);
 	default:
