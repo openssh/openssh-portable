@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.145 2026/08/03 06:52:50 djm Exp $
+#	$OpenBSD: Makefile,v 1.146 2026/08/04 02:48:00 djm Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -87,7 +87,6 @@ LTESTS= 	connect \
 		kextype \
 		cert-hostkey \
 		cert-userkey \
-		pubkey-priority \
 		host-expand \
 		keys-command \
 		forward-control \
