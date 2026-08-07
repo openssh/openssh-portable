@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.636 2026/08/04 22:47:07 naddy Exp $ */
+/* $OpenBSD: ssh.c,v 1.637 2026/08/07 05:03:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1912,13 +1912,23 @@ forwarding_success(void)
 	}
 }
 
+struct rfwd_confirm_ctx {
+	int fid;
+};
+
 /* Callback for remote forward global requests */
 static void
 ssh_confirm_remote_forward(struct ssh *ssh, int type, uint32_t seq, void *ctxt)
 {
-	struct Forward *rfwd = (struct Forward *)ctxt;
+	struct rfwd_confirm_ctx *rctx = (struct rfwd_confirm_ctx *)ctxt;
+	struct Forward *rfwd;
 	u_int port;
 	int r;
+
+	if (rctx->fid < 0 || rctx->fid >= options.num_remote_forwards)
+		fatal_f("invalid forwarding ID %d", rctx->fid);
+	rfwd = &options.remote_forwards[rctx->fid];
+	freezero(rctx, sizeof(*rctx));
 
 	/* XXX verbose() on failure? */
 	debug("remote forward %s for: listen %s%s%d, connect %s:%d",
@@ -2097,6 +2107,8 @@ ssh_init_forwarding(struct ssh *ssh, char **ifname)
 
 	/* Initiate remote TCP/IP port forwardings. */
 	for (i = 0; i < options.num_remote_forwards; i++) {
+		struct rfwd_confirm_ctx *rctx;
+
 		debug("Remote connections from %.200s:%d forwarded to "
 		    "local address %.200s:%d",
 		    (options.remote_forwards[i].listen_path != NULL) ?
@@ -2111,9 +2123,10 @@ ssh_init_forwarding(struct ssh *ssh, char **ifname)
 		if ((options.remote_forwards[i].handle =
 		    channel_request_remote_forwarding(ssh,
 		    &options.remote_forwards[i])) >= 0) {
+			rctx = xcalloc(1, sizeof(*rctx));
+			rctx->fid = i;
 			client_register_global_confirm(
-			    ssh_confirm_remote_forward,
-			    &options.remote_forwards[i]);
+			    ssh_confirm_remote_forward, rctx);
 			forward_confirms_pending++;
 		} else if (options.exit_on_forward_failure)
 			fatal("Could not request remote forwarding.");
