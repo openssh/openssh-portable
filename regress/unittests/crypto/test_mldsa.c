@@ -136,5 +136,24 @@ mldsa_tests(void)
 	}
 	free_kats(kats, nkats);
 	TEST_DONE();
+
+	TEST_START("ML-DSA 87 roundtrip");
+	{
+		uint8_t pk87[MLDSA87_PUBLICKEYBYTES];
+		uint8_t sk87[MLDSA87_SECRETKEYBYTES];
+		uint8_t sig87[MLDSA87_SIGBYTES];
+		static const uint8_t m[6] = { 0x4a, 0x75, 0x6c, 0x69, 0x75, 0x73 };
+
+		ASSERT_INT_EQ(crypto_sign_mldsa87_keypair(pk87, sk87), 0);
+		ASSERT_INT_EQ(crypto_sign_mldsa87(sig87, m, sizeof(m),
+		    NULL, 0, sk87), 0);
+		ASSERT_INT_EQ(crypto_sign_mldsa87_verify(sig87, m, sizeof(m),
+		    NULL, 0, pk87), 0);
+		/* corrupt the signature: verification must fail */
+		sig87[10] ^= 0x10;
+		ASSERT_INT_NE(crypto_sign_mldsa87_verify(sig87, m, sizeof(m),
+		    NULL, 0, pk87), 0);
+	}
+	TEST_DONE();
 }
 #endif /* USE_MLDSA */

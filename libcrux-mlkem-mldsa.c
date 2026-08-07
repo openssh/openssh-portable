@@ -316,7 +316,7 @@ crypto_sign_mldsa65_verify(const uint8_t sig[MLDSA65_SIGBYTES],
 
 /* ML-DSA 87 */
 
-#if 0
+#ifndef OPENSSL_HAS_MLDSA87
 int
 crypto_sign_mldsa87_keypair(uint8_t pk[MLDSA87_PUBLICKEYBYTES],
     uint8_t sk[MLDSA87_SECRETKEYBYTES])
@@ -329,6 +329,7 @@ crypto_sign_mldsa87_keypair(uint8_t pk[MLDSA87_PUBLICKEYBYTES],
 	explicit_bzero(rnd, sizeof(rnd));
 	return r;
 }
+#endif /* !OPENSSL_HAS_MLDSA87 */
 
 int
 crypto_sign_mldsa87_keypair_seeded(uint8_t pk[MLDSA87_PUBLICKEYBYTES],
@@ -347,6 +348,7 @@ crypto_sign_mldsa87_keypair_seeded(uint8_t pk[MLDSA87_PUBLICKEYBYTES],
 	return 0;
 }
 
+#ifndef OPENSSL_HAS_MLDSA87
 int
 crypto_sign_mldsa87(uint8_t sig[MLDSA87_SIGBYTES],
     const uint8_t *msg, size_t msglen,
@@ -361,6 +363,7 @@ crypto_sign_mldsa87(uint8_t sig[MLDSA87_SIGBYTES],
 	explicit_bzero(rnd, sizeof(rnd));
 	return r;
 }
+#endif /* !OPENSSL_HAS_MLDSA87 */
 
 int
 crypto_sign_mldsa87_seeded(uint8_t sig[MLDSA87_SIGBYTES],
@@ -391,6 +394,7 @@ crypto_sign_mldsa87_seeded(uint8_t sig[MLDSA87_SIGBYTES],
 	return r;
 }
 
+#ifndef OPENSSL_HAS_MLDSA87
 int
 crypto_sign_mldsa87_verify(const uint8_t sig[MLDSA87_SIGBYTES],
     const uint8_t *msg, size_t msglen,
@@ -410,7 +414,7 @@ crypto_sign_mldsa87_verify(const uint8_t sig[MLDSA87_SIGBYTES],
 
 	return (res.tag == LIBCRUX_RESULT_OK) ? 0 : -1;
 }
-#endif
+#endif /* !OPENSSL_HAS_MLDSA87 */
 
 void
 sha3_256(uint8_t digest[32], const uint8_t *data, size_t len)

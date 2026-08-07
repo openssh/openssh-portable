@@ -69,6 +69,8 @@ enum sshkey_types {
 	KEY_ED25519_SK_CERT,
 	KEY_MLDSA44_ED25519,
 	KEY_MLDSA44_ED25519_CERT,
+	KEY_MLDSA87,
+	KEY_MLDSA87_CERT,
 	KEY_UNSPEC
 };
 
@@ -129,6 +131,9 @@ struct sshkey {
 	/* KEY_MLDSA44_ED25519 */
 	u_char	*mldsa_ed25519_sk;
 	u_char	*mldsa_ed25519_pk;
+	/* KEY_MLDSA87 */
+	u_char	*mldsa87_sk;
+	u_char	*mldsa87_pk;
 	/* KEY_ECDSA_SK and KEY_ED25519_SK */
 	char	*sk_application;
 	uint8_t	sk_flags;

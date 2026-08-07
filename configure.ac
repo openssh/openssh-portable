@@ -3424,6 +3424,30 @@ if test "x$openssl" = "xyes" ; then
 			AC_MSG_RESULT([no])
 		]
 	)
+
+	# Check libcrypto ML-DSA-87 support (OpenSSL >= 3.5)
+	AC_MSG_CHECKING([whether OpenSSL has ML-DSA-87 support])
+	AC_LINK_IFELSE(
+		[AC_LANG_PROGRAM([[
+	#include <string.h>
+	#include <openssl/evp.h>
+	#ifndef EVP_PKEY_ML_DSA_87
+	# error "OpenSSL does not have ML-DSA-87 support."
+	#endif
+		]], [[
+		EVP_PKEY_CTX *ctx;
+		ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_ML_DSA_87, NULL);
+		EVP_PKEY_CTX_free(ctx);
+		]])],
+		[
+			AC_MSG_RESULT([yes])
+			AC_DEFINE([OPENSSL_HAS_MLDSA87], [1],
+			    [libcrypto has ML-DSA-87 support])
+		],
+		[
+			AC_MSG_RESULT([no])
+		]
+	)
 fi
 
 # PKCS11/U2F depend on OpenSSL and dlopen().
