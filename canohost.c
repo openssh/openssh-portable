@@ -192,7 +192,7 @@ get_sock_port(int sock, int local)
 	    strport, sizeof(strport), NI_NUMERICSERV)) != 0)
 		fatal_f("getnameinfo NI_NUMERICSERV failed: %s",
 		    ssh_gai_strerror(r));
-	return atoi(strport);
+	return (int)strtonum(strport, 0, UINT16_MAX, NULL);
 }
 
 int
