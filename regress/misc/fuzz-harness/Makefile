@@ -14,7 +14,8 @@ COMMON_DEPS=../../../libssh.a $(COMMON_OBJS)
 
 TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz \
-	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz
+	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz \
+	session_channel_req_fuzz
 
 all: $(TARGETS)
 
@@ -64,6 +65,9 @@ sntrup761_dec_fuzz: sntrup761_dec_fuzz.o
 
 sntrup761_enc_fuzz: sntrup761_enc_fuzz.o
 	$(CXX) -o $@ sntrup761_enc_fuzz.o $(LDFLAGS) $(FUZZ_FLAGS) $(FUZZ_LIBS) -lcrypto
+
+session_channel_req_fuzz: session_channel_req_fuzz.o session_channel_req_fuzz_helper.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ session_channel_req_fuzz.o session_channel_req_fuzz_helper.o $(SK_NULL_OBJS) ../../../session.o ../../../sshpty.o ../../../sshlogin.o ../../../servconf.o ../../../auth.o ../../../auth-options.o ../../../groupaccess.o ../../../auth2-pubkeyfile.o -Wl,--wrap=ssh_packet_disconnect,--wrap=sshpkt_fatal,--wrap=do_exec,--wrap=do_exec_pty,--wrap=do_exec_no_pty $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 clean:
 	-rm -f *.o $(TARGETS)
