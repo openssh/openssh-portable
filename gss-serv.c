@@ -311,9 +311,11 @@ ssh_gssapi_getclient(Gssctxt *ctx, ssh_gssapi_client *client)
 		return (ctx->major);
 	}
 
-	/* We can't copy this structure, so we just move the pointer to it */
+	/* We can't copy these structures, so we just move the pointer to it */
 	client->creds = ctx->client_creds;
 	ctx->client_creds = GSS_C_NO_CREDENTIAL;
+	client->client = ctx->client;
+	ctx->client = GSS_C_NO_NAME;
 	return (ctx->major);
 }
 
@@ -372,20 +374,20 @@ ssh_gssapi_userok(char *user)
 		debug("No suitable client data");
 		return 0;
 	}
-	if (gssapi_client.mech && gssapi_client.mech->userok)
-		if ((*gssapi_client.mech->userok)(&gssapi_client, user))
-			return 1;
-		else {
-			/* Destroy delegated credentials if userok fails */
-			gss_release_buffer(&lmin, &gssapi_client.displayname);
-			gss_release_buffer(&lmin, &gssapi_client.exportedname);
-			gss_release_cred(&lmin, &gssapi_client.creds);
-			explicit_bzero(&gssapi_client,
-			    sizeof(ssh_gssapi_client));
-			return 0;
-		}
-	else
-		debug("ssh_gssapi_userok: Unknown GSSAPI mechanism");
+
+	if (gss_userok(gssapi_client.client, user))
+	  return 1;
+	else {
+	  /* Destroy delegated credentials if userok fails */
+	  gss_release_buffer(&lmin, &gssapi_client.displayname);
+	  gss_release_buffer(&lmin, &gssapi_client.exportedname);
+	  gss_release_cred(&lmin, &gssapi_client.creds);
+	  gss_release_name(&lmin, &gssapi_client.client);
+	  explicit_bzero(&gssapi_client,
+			 sizeof(ssh_gssapi_client));
+	  return 0;
+	}
+
 	return (0);
 }
 
