@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.133 2026/08/03 06:43:16 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.134 2026/08/08 07:27:54 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -59,7 +59,6 @@
 #define	KEX_SNTRUP761X25519_SHA512_OLD	"sntrup761x25519-sha512@openssh.com"
 #define	KEX_MLKEM768X25519_SHA256	"mlkem768x25519-sha256"
 #define	KEX_MLKEM768NISTP256_SHA256	"mlkem768nistp256-sha256"
-#define	KEX_MLKEM768BRAINPOOLP256R1_SHA256 "mlkem768brainpoolp256r1-sha256"
 
 #define COMP_NONE	0
 #define COMP_DELAYED	2
