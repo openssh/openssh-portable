@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.392 2026/08/03 06:50:49 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.393 2026/08/08 07:25:55 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1869,9 +1869,9 @@ pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 			}
 		}
 		ssh_free_identitylist(idlist);
+		/* append remaining agent keys */
 		TAILQ_CONCAT(&agent_keys, &agent, next);
 		order_identities_by_prio(&agent_keys);
-		/* append remaining agent keys */
 		TAILQ_CONCAT(preferred, &agent_keys, next);
 		authctxt->agent_fd = agent_fd;
 	}
