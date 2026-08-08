@@ -872,6 +872,10 @@ colon(char *cp)
 
 	if (*cp == ':')		/* Leading colon is part of file name. */
 		return NULL;
+#ifdef HAVE_CYGWIN
+	if (isalpha(*cp) && *(cp+1) == ':')	/* Do not split at drive name. */
+		return NULL;
+#endif
 	if (*cp == '[')
 		flag = 1;
 
