@@ -59,6 +59,10 @@
 #include <unistd.h>
 #include <limits.h>
 
+#ifdef HAVE_JAIL
+#include <jail.h>
+#endif
+
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh2.h"
@@ -162,6 +166,9 @@ login_cap_t *lc;
 
 static int is_child = 0;
 static int in_chroot = 0;
+#ifdef HAVE_JAIL
+static int in_jail = 0;
+#endif
 
 /* File containing userauth info, if ExposeAuthInfo set */
 static char *auth_info_file = NULL;
@@ -1257,6 +1264,57 @@ do_nologin(struct passwd *pw)
 	exit(254);
 }
 
+#ifdef HAVE_JAIL
+/*
+ * jail process after checking it for safety:
+ * ensure the same username and UID match both on the jail and on the host system.
+ */
+static void
+safely_jail(const char *jail_name, struct passwd *session_pw)
+{
+	int jail_id;
+	struct passwd *jail_pw;
+
+	if (session_pw == NULL)
+		fatal("safely jail(\"%s\"): missing host user info", jail_name);
+
+#ifdef HAVE_LOGIN_CAP
+	login_close(lc);
+	lc = NULL;
+#endif
+
+	jail_id = jail_getid(jail_name);
+	if (jail_id < 0)
+		fatal("jail getid(\"%s\"): %s", jail_name, strerror(errno));
+
+	if (jail_attach(jail_id) == -1)
+		fatal("jail attach (\"%s\"): %s", jail_name, strerror(errno));
+
+	jail_pw = getpwuid(session_pw->pw_uid);
+	if (jail_pw == NULL)
+		fatal("jail user info(\"%d\"): %s", session_pw->pw_uid, strerror(errno));
+
+	if (strcmp(session_pw->pw_name, jail_pw->pw_name) != 0)
+		fatal("safely jail(\"%s\"): user \"%s\" names mismatch", jail_name, session_pw->pw_name);
+
+	/* replace session password with jail password, to later set user context and env */
+	pwclear(session_pw);
+	pwcopyto(jail_pw, session_pw);
+
+#ifdef HAVE_LOGIN_CAP
+	/* replace host login class with jail login class, to later set user context and env */
+	lc = login_getpwclass(session_pw);
+	if (lc == NULL)
+		fatal("safely jail (\"%s\"): unable to get user \"%s\" login class", jail_name, session_pw->pw_name);
+#endif
+
+	if (chdir("/") == -1)
+		fatal_f("chdir(/) after jailing: %s", strerror(errno));
+
+	verbose("Jailed into \"%s\" as user \"%s\"", jail_name, jail_pw->pw_name);
+}
+#endif
+
 /*
  * Chroot into a directory after checking it for safety: all path components
  * must be root-owned directories with strict permissions.
@@ -1320,6 +1378,17 @@ do_setusercontext(struct passwd *pw)
 	platform_setusercontext(pw);
 
 	if (platform_privileged_uidswap()) {
+#ifdef HAVE_JAIL
+		if (!in_jail && options.jail_name != NULL &&
+		    strcasecmp(options.jail_name, "none") != 0) {
+			safely_jail(options.jail_name, pw);
+			/* Make sure we don't attempt to jail again */
+			free(options.jail_name);
+			options.jail_name = NULL;
+			in_jail = 1;
+		}
+#endif
+
 #ifdef HAVE_LOGIN_CAP
 		if (setusercontext(lc, pw, pw->pw_uid,
 		    (LOGIN_SETALL & ~(LOGIN_SETPATH|LOGIN_SETUSER))) < 0) {
@@ -1343,6 +1412,11 @@ do_setusercontext(struct passwd *pw)
 
 		platform_setusercontext_post_groups(pw);
 
+#ifdef HAVE_JAIL
+		/* When already jailed, skip chroot handling. */
+		if (!in_jail)
+		{
+#endif
 		if (!in_chroot && options.chroot_directory != NULL &&
 		    strcasecmp(options.chroot_directory, "none") != 0) {
 			tmp = tilde_expand_filename(options.chroot_directory,
@@ -1359,6 +1433,9 @@ do_setusercontext(struct passwd *pw)
 			options.chroot_directory = NULL;
 			in_chroot = 1;
 		}
+#ifdef HAVE_JAIL
+		}
+#endif
 
 #ifdef HAVE_LOGIN_CAP
 		if (setusercontext(lc, pw, pw->pw_uid, LOGIN_SETUSER) < 0) {
@@ -1760,7 +1837,11 @@ session_open(Authctxt *authctxt, int chanid)
 		return 0;
 	}
 	s->authctxt = authctxt;
+#ifdef HAVE_JAIL
+	s->pw = pwcopy(authctxt->pw);
+#else
 	s->pw = authctxt->pw;
+#endif
 	if (s->pw == NULL || !authctxt->valid)
 		fatal("no user for session %d", s->self);
 	debug("session_open: session %d: link with channel %d", s->self, chanid);
@@ -2416,6 +2497,9 @@ session_close(struct ssh *ssh, Session *s)
 		}
 		free(s->env);
 	}
+#ifdef HAVE_JAIL
+	pwfree(s->pw);
+#endif
 	session_proctitle(s);
 	session_unused(s->self);
 }

@@ -1160,6 +1160,10 @@ mips-sony-bsd|mips-sony-newsos4)
 	# and will crash if they cannot be opened.
 	AC_DEFINE([SANDBOX_SKIP_RLIMIT_NOFILE], [1],
 	    [define if setrlimit RLIMIT_NOFILE breaks things])
+	AC_CHECK_LIB([jail], [jail_attach],
+	    AC_CHECK_HEADER([jail.h],
+	        AC_DEFINE([HAVE_JAIL], [1], [FreeBSD jail support])
+	        SSHDLIBS="$SSHDLIBS -ljail" ))
 	case "$host" in
 	*-*-freebsd9.*|*-*-freebsd10.*)
 		# Capsicum on 9 and 10 do not allow ppoll() so don't auto-enable.
