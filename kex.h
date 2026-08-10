@@ -46,6 +46,7 @@
 # define EC_KEY		void
 # define EC_GROUP	void
 # define EC_POINT	void
+# define EVP_PKEY	void
 #endif /* WITH_OPENSSL */
 
 #define KEX_COOKIE_LEN	16
@@ -65,6 +66,7 @@
 #define	KEX_SNTRUP761X25519_SHA512	"sntrup761x25519-sha512"
 #define	KEX_SNTRUP761X25519_SHA512_OLD	"sntrup761x25519-sha512@openssh.com"
 #define	KEX_MLKEM768X25519_SHA256	"mlkem768x25519-sha256"
+#define	KEX_MLKEM1024_SHA384		"mlkem1024-sha384"
 
 #define COMP_NONE	0
 #define COMP_DELAYED	2
@@ -103,6 +105,7 @@ enum kex_exchange {
 	KEX_C25519_SHA256,
 	KEX_KEM_SNTRUP761X25519_SHA512,
 	KEX_KEM_MLKEM768X25519_SHA256,
+	KEX_KEM_MLKEM1024_SHA384,
 	KEX_MAX
 };
 
@@ -188,6 +191,7 @@ struct kex {
 	u_char c25519_client_pubkey[CURVE25519_SIZE]; /* 25519 */
 	u_char sntrup761_client_key[crypto_kem_sntrup761_SECRETKEYBYTES]; /* KEM */
 	u_char mlkem768_client_key[crypto_kem_mlkem768_SECRETKEYBYTES]; /* KEM */
+	EVP_PKEY *mlkem1024_client_key;	/* ML-KEM-1024 (OpenSSL EVP) */
 	struct sshbuf *client_pub;
 };
 
@@ -261,6 +265,12 @@ int	 kex_kem_mlkem768x25519_enc(struct kex *, const struct sshbuf *,
 int	 kex_kem_mlkem768x25519_dec(struct kex *, const struct sshbuf *,
     struct sshbuf **);
 
+int	 kex_kem_mlkem1024_keypair(struct kex *);
+int	 kex_kem_mlkem1024_enc(struct kex *, const struct sshbuf *,
+    struct sshbuf **, struct sshbuf **);
+int	 kex_kem_mlkem1024_dec(struct kex *, const struct sshbuf *,
+    struct sshbuf **);
+
 int	 kex_dh_keygen(struct kex *);
 int	 kex_dh_compute_key(struct kex *, BIGNUM *, struct sshbuf *);
 
@@ -291,6 +301,9 @@ void	dump_digest(const char *, const u_char *, int);
 # undef EC_KEY
 # undef EC_GROUP
 # undef EC_POINT
+#endif
+#if !defined(WITH_OPENSSL)
+# undef EVP_PKEY
 #endif
 
 #endif
