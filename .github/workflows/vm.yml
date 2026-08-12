@@ -165,6 +165,7 @@ jobs:
           - "9.4"
           - "10.0"
           - "10.1"
+          - "11.0"
         config: [default]
     runs-on: ubuntu-latest
     steps:
