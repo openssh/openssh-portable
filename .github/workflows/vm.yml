@@ -169,12 +169,12 @@ jobs:
         config: [default]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # main
+    - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # main
     - name: autoreconf
       run: sh -c autoreconf
 
     - name: start NetBSD ${{ matrix.target }} VM
-      uses: vmactions/netbsd-vm@99816dccf75edf233ed6cd00a159e3a5b85ea373 # v1
+      uses: vmactions/netbsd-vm@00081e82b14bc40114eb97f32b4455306828516b # v1
       with:
         release: ${{ matrix.target }}
         usesh: true
