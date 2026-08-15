@@ -944,6 +944,9 @@ sglob_comp(const void *aa, const void *bb)
 	int rmul = sort_flag & LS_REVERSE_SORT ? -1 : 1;
 
 #define NCMP(a,b) (a == b ? 0 : (a < b ? 1 : -1))
+	/* order entries without stat information last */
+	if (as == NULL || bs == NULL)
+		return (as == bs) ? 0 : (as == NULL ? rmul : -rmul);
 	if (sort_flag & LS_NAME_SORT)
 		return (rmul * strcmp(ap, bp));
 	else if (sort_flag & LS_TIME_SORT) {
