@@ -859,6 +859,7 @@ int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_LIB([sandbox], [sandbox_apply], [
 	    SSHDLIBS="$SSHDLIBS -lsandbox"
 	])
+	AC_CHECK_DECLS(kSBXProfilePureComputation, [], [], [#include <sandbox.h>])
 	# proc_pidinfo()-based closefrom() replacement.
 	AC_CHECK_HEADERS([libproc.h])
 	AC_CHECK_FUNCS([proc_pidinfo])
@@ -3904,10 +3905,12 @@ fi
 
 if test "x$sandbox_arg" = "xdarwin" || \
      ( test -z "$sandbox_arg" && test "x$ac_cv_func_sandbox_init" = "xyes" && \
-       test "x$ac_cv_header_sandbox_h" = "xyes") ; then
+       test "x$ac_cv_header_sandbox_h" = "xyes" && \
+       test "x$ac_cv_have_decl_kSBXProfilePureComputation" = "xyes") ; then
 	test "x$ac_cv_func_sandbox_init" != "xyes" -o \
-	     "x$ac_cv_header_sandbox_h" != "xyes" && \
-		AC_MSG_ERROR([Darwin seatbelt sandbox requires sandbox.h and sandbox_init function])
+	     "x$ac_cv_header_sandbox_h" != "xyes" -o \
+	     "x$ac_cv_have_decl_kSBXProfilePureComputation" != "xyes" && \
+		AC_MSG_ERROR([Darwin seatbelt sandbox requires sandbox.h, sandbox_init() and kSBXProfilePureComputation])
 	SANDBOX_STYLE="darwin"
 	AC_DEFINE([SANDBOX_DARWIN], [1], [Sandbox using Darwin sandbox_init(3)])
 elif test "x$sandbox_arg" = "xseccomp_filter" || \
