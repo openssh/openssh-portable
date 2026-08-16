@@ -28,8 +28,12 @@ Match Address 1.1.1.1,::1,!::3,2000::/16
 	ForceCommand match2
 Match LocalAddress 127.0.0.1,::1
 	ForceCommand match3
-Match LocalPort 5678
+Match LocalAddress !2.2.2.?,!::2:2:2:?,2.2.*,::2:2:*
 	ForceCommand match4
+Match LocalPort 5678
+	ForceCommand portmatch1
+Match LocalPort !5679,567?
+	ForceCommand portmatch2
 EOD
 
 run_trial user 192.168.0.1 somehost 1.2.3.4 1234 match1 "first entry"
@@ -39,7 +43,13 @@ run_trial user 10.255.255.254 somehost 1.2.3.4 1234 match1 "list middle"
 run_trial user 192.168.30.1 192.168.0.1 1.2.3.4 1234 nomatch "faked IP in hostname"
 run_trial user 1.1.1.1 somehost.example.com 1.2.3.4 1234 match2 "bare IP4 address"
 run_trial user 19.0.0.1 somehost 127.0.0.1 1234 match3 "localaddress"
-run_trial user 19.0.0.1 somehost 1.2.3.4 5678 match4 "localport"
+run_trial user 19.0.0.1 somehost 2.2.3.3 1234 match4 "wildcard localaddress"
+run_trial user 19.0.0.1 somehost 2.2.2.2 1234 nomatch "negative wildcard localaddress"
+run_trial user 19.0.0.1 somehost 2.2.2.20 1234 match4 "one char wildcard localaddress"
+run_trial user 19.0.0.1 somehost 1.2.3.4 5678 portmatch1 "localport"
+run_trial user 19.0.0.1 somehost 1.2.3.4 5671 portmatch2 "one char wildcard localport"
+run_trial user 19.0.0.1 somehost 1.2.3.4 56710 nomatch "no match wildcard localport"
+run_trial user 19.0.0.1 somehost 1.2.3.4 5679 nomatch "negative wildcard localport"
 
 if test "$TEST_SSH_IPV6" != "no"; then
 run_trial user ::1 somehost.example.com ::2 1234 match2 "bare IP6 address"
@@ -49,7 +59,13 @@ run_trial user ::4 somehost ::2 1234 nomatch "IP6 no match"
 run_trial user 2000::1 somehost ::2 1234 match2 "IP6 network"
 run_trial user 2001::1 somehost ::2 1234 nomatch "IP6 network"
 run_trial user ::5 somehost ::1 1234 match3 "IP6 localaddress"
-run_trial user ::5 somehost ::2 5678 match4 "IP6 localport"
+run_trial user ::6 somehost ::2:2:3:3 1234 match4 "IP6 wildcard localaddress"
+run_trial user ::6 somehost ::2:2:2:2 1234 nomatch "IP6 negative wildcard localaddress"
+run_trial user ::6 somehost ::2:2:2:20 1234 match4 "IP6 one char wildcard localaddress"
+run_trial user ::5 somehost ::2 5678 portmatch1 "IP6 localport"
+run_trial user ::5 somehost ::2 5671 portmatch2 "IP6 wildcard localport"
+run_trial user ::5 somehost ::2 56710 nomatch "IP6 no match wildcard localport"
+run_trial user ::5 somehost ::2 5679 nomatch "IP6 negative wildcard localport"
 fi
 
 #
