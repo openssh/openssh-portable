@@ -716,7 +716,7 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 	} else if (options->hostname != NULL) {
 		/* NB. Please keep in sync with ssh.c:main() */
 		host = percent_expand(options->hostname,
-		    "h", host_arg, (char *)NULL);
+		    "n", host_arg, (char *)NULL);
 	} else {
 		host = xstrdup(host_arg);
 	}
