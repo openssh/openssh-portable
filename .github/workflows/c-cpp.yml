@@ -180,7 +180,7 @@ jobs:
       run: sh -c 'SUDO="$(which sudo 2>/dev/null)"; $SUDO chown -R "${LOGNAME}" regress'
     - name: show logs
       if: failure()
-      run: sh -c "for i in regress/failed*.log; do echo ====; echo logfile $i; echo =====; cat $i; done"
+      run: sh -c 'for i in regress/failed*.log; do echo ====; echo logfile $i; echo =====; tail -50 $i; done'
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # main
