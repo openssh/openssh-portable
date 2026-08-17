@@ -59,6 +59,7 @@ EOD
 	;;
 *)
 	PACKAGER=apt
+	PACKAGES="libcrypt-dev"
 esac
 
 TARGETS=${config}
