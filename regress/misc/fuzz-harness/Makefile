@@ -14,7 +14,8 @@ COMMON_DEPS=../../../libssh.a $(COMMON_OBJS)
 
 TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz \
-	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz
+	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz \
+	ssh_client_session_fuzz
 
 all: $(TARGETS)
 
@@ -52,6 +53,11 @@ agent_fuzz: agent_fuzz.o agent_fuzz_helper.o sk-dummy.o ../../../ssh-sk.o $(COMM
 	$(CXX) -o $@ agent_fuzz.o agent_fuzz_helper.o sk-dummy.o ../../../ssh-sk.o $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 agent_fuzz_helper.o: agent_fuzz_helper.c ../../../ssh-agent.c
+
+ssh_client_session_fuzz: ssh_client_session_fuzz.o ssh_client_session_fuzz_helper.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ ssh_client_session_fuzz.o ssh_client_session_fuzz_helper.o $(SK_NULL_OBJS) ../../../sshconnect.o ../../../readconf.o -Wl,--wrap=ssh_packet_write_wait,--wrap=read_passphrase $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
+
+ssh_client_session_fuzz_helper.o: ssh_client_session_fuzz_helper.c ../../../sshconnect2.c
 
 sk-dummy.o: ../sk-dummy/sk-dummy.c
 	$(CC) $(CFLAGS) -c -o $@ ../sk-dummy/sk-dummy.c -DSK_DUMMY_INTEGRATE=1 $(LDFLAGS) $(FUZZ_FLAGS)
