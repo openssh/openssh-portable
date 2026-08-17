@@ -117,6 +117,8 @@ char	*get_homedir(void);
 void	 sock_set_v6only(int);
 
 struct passwd *pwcopy(struct passwd *);
+void	 pwcopyto(struct passwd *pw, struct passwd *copy);
+void	 pwclear(struct passwd *);
 void	 pwfree(struct passwd *); /* NB. only use with pwcopy */
 
 const char *ssh_gai_strerror(int);
