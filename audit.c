@@ -28,11 +28,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef SSH_AUDIT_EVENTS
+#if defined(SSH_AUDIT_EVENTS)
 
 #include "audit.h"
 #include "log.h"
 #include "hostfile.h"
+#ifndef CUSTOM_SSH_AUDIT_EVENTS
 #include "auth.h"
 
 /*
@@ -41,6 +42,7 @@
  * audit_event(CONNECTION_ABANDON) is called.  Test for NULL before using.
  */
 extern Authctxt *the_authctxt;
+#endif
 
 /* Maybe add the audit class to struct Authmethod? */
 ssh_audit_event_t
@@ -72,11 +74,15 @@ audit_username(void)
 	static const char unknownuser[] = "(unknown user)";
 	static const char invaliduser[] = "(invalid user)";
 
+#ifndef CUSTOM_SSH_AUDIT_EVENTS
 	if (the_authctxt == NULL || the_authctxt->user == NULL)
 		return (unknownuser);
 	if (!the_authctxt->valid)
 		return (invaliduser);
 	return (the_authctxt->user);
+#else
+	return (unknownuser);
+#endif
 }
 
 const char *
@@ -100,6 +106,9 @@ audit_event_lookup(ssh_audit_event_t ev)
 		{SSH_NOLOGIN,			"NOLOGIN"},
 		{SSH_CONNECTION_CLOSE,		"CONNECTION_CLOSE"},
 		{SSH_CONNECTION_ABANDON,	"CONNECTION_ABANDON"},
+		{SSH_BAD_PCKT,		"BAD_PCKT"},
+		{SSH_CIPHER_NO_MATCH,	"CIPHER_NO_MATCH"},
+		{SSH_SESSION_OPEN,	"SESSION_OPEN"},
 		{SSH_AUDIT_UNKNOWN,		"AUDIT_UNKNOWN"}
 	};
 
@@ -182,3 +191,4 @@ audit_run_command(const char *command)
 }
 # endif  /* !defined CUSTOM_SSH_AUDIT_EVENTS */
 #endif /* SSH_AUDIT_EVENTS */
+
