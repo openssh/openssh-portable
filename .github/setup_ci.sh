@@ -204,8 +204,8 @@ if [ "yes" = "$INSTALL_FIDO_PPA" ]; then
     sudo apt update -qq
     sudo apt install -qy software-properties-common
     # Not all release+arch combinations have this, so optionally install.
-    sudo apt-add-repository -y ppa:yubico/stable && \
-	sudo apt install libfido2-dev libu2f-host-dev libcbor-dev || true
+    (sudo apt-add-repository -y ppa:yubico/stable && \
+	sudo apt install libfido2-dev libu2f-host-dev libcbor-dev) || true
 fi
 
 tries=3
