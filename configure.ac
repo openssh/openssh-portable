@@ -588,18 +588,6 @@ for include in sys/queue.h sys/tree.h; do
 	esac >"$header"
 done
 
-AC_CHECK_DECLS([le32toh, le64toh, htole64, htobe32], [], [], [
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#endif
-])
-
 # On some platforms (eg SunOS4) sys/audit.h requires sys/[time|types|label.h]
 # to be included first.
 AC_CHECK_HEADERS([sys/audit.h], [], [], [
@@ -1530,6 +1518,18 @@ int main(int argc, char **argv) {
 			AC_CHECK_HEADERS([libgen.h])
 		fi
 	])
+])
+
+AC_CHECK_DECLS([le32toh, le64toh, htole64, htobe32], [], [], [
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+#ifdef HAVE_ENDIAN_H
+# include <endian.h>
+#endif
 ])
 
 AC_CHECK_FUNC([getspnam], ,
