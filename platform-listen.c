@@ -24,6 +24,7 @@
 #include "log.h"
 #include "misc.h"
 #include "platform.h"
+#include "servconf.h"
 
 #include "openbsd-compat/openbsd-compat.h"
 
@@ -40,6 +41,16 @@ platform_pre_listen(void)
 	 * new connections while it is active and migrating pages.
 	 */
 	memlock_onfault_setup();
+#endif
+#if defined(_AIX) && defined(USE_PAM)
+	/*
+	 * Reconcile the sshd_config UsePAM setting with the AIX system-wide
+	 * SC_AUTHTYPE.  Must happen before authentication so that both the
+	 * PAM auth stack and PAM session/setcred are either both enabled or
+	 * both disabled.
+	 */
+	extern ServerOptions options;
+	options.use_pam = aix_set_use_pam(options.use_pam);
 #endif
 }
 
