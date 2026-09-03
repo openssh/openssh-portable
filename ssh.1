@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.454 2026/08/04 22:47:07 naddy Exp $
-.Dd $Mdocdate: August 4 2026 $
+.\" $OpenBSD: ssh.1,v 1.455 2026/09/03 20:28:39 naddy Exp $
+.Dd $Mdocdate: September 3 2026 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -1188,7 +1188,7 @@ has been disabled).
 Fingerprints can be determined using
 .Xr ssh-keygen 1 :
 .Pp
-.Dl $ ssh-keygen -l -f /etc/ssh/ssh_host_rsa_key
+.Dl $ ssh-keygen -l -f /etc/ssh/ssh_host_ed25519_key
 .Pp
 If the fingerprint is already known, it can be matched
 and the key can be accepted or rejected.
