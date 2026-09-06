@@ -2138,6 +2138,7 @@ AC_CHECK_FUNCS([ \
 	getaddrinfo \
 	getcwd \
 	getentropy \
+	getexecpath \
 	getgrouplist \
 	getline \
 	getnameinfo \

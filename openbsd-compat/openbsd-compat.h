@@ -90,6 +90,11 @@ int getpagesize(void);
 char *getcwd(char *pt, size_t size);
 #endif
 
+#ifndef HAVE_GETEXECPATH
+/* XXX this relies on correct fallback behaviour */
+#define getexecpath(a, b) (-1)
+#endif
+
 #ifndef HAVE_KILLPG
 int killpg(pid_t, int);
 #endif

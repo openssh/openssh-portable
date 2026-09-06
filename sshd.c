@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.628 2026/06/29 07:36:37 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.629 2026/09/06 18:36:24 deraadt Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -103,6 +103,7 @@ ServerOptions options;
 int debug_flag = 0;
 
 /* Saved arguments to main(). */
+static char execpath[PATH_MAX];
 static char **saved_argv;
 static int saved_argc;
 
@@ -520,8 +521,8 @@ sighup_restart(void)
 	close_listen_socks();
 	close_startup_pipes();
 	ssh_signal(SIGHUP, SIG_IGN); /* will be restored after exec */
-	execv(saved_argv[0], saved_argv);
-	logit("RESTART FAILED: av[0]='%.100s', error: %.100s.", saved_argv[0],
+	execv(execpath, saved_argv);
+	logit("RESTART FAILED: execpath='%.100s', error: %.100s.", execpath,
 	    strerror(errno));
 	exit(1);
 }
@@ -1451,7 +1452,15 @@ main(int ac, char **av)
 			break;
 		}
 	}
-	if (!test_flag && !inetd_flag && !do_dump_cfg && !path_absolute(av[0]))
+
+	if (getexecpath(execpath, sizeof execpath) != 0) {
+		if (strlcpy(execpath, av[0], sizeof execpath) >=
+		    sizeof execpath) {
+			fprintf(stderr, "execution path is too long\n");
+			exit(1);
+		}
+	}
+	if (!test_flag && !inetd_flag && !do_dump_cfg && !path_absolute(execpath))
 		fatal("sshd requires execution with an absolute path");
 
 	closefrom(STDERR_FILENO + 1);
