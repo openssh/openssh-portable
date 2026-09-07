@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.215 2026/06/21 19:23:56 tb Exp $ */
+/* $OpenBSD: misc.c,v 1.216 2026/09/07 20:24:22 job Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -3226,4 +3226,51 @@ get_homedir(void)
 		return xstrdup(pw->pw_dir);
 
 	return NULL;
+}
+
+int
+mkdir_path(const char *target, mode_t mode)
+{
+	char *dir, *odir = NULL, *next;
+	int fd = AT_FDCWD, fd2, subpath_len, ret = -1;
+
+	dir = odir = xstrdup(target);
+
+	if (*dir == '/' &&
+	    (fd = open("/", O_RDONLY|O_DIRECTORY)) == -1) {
+		error_f("open(\"/\"): %s", strerror(errno));
+		return -1;
+	}
+	/* Work through the path, component-wise */
+	for (; dir != NULL && *dir != '\0'; dir = next) {
+		if ((next = strchr(dir, '/')) != NULL)
+			*(next++) = '\0';
+		if (*dir == '\0')
+			continue;
+		subpath_len = (next == NULL) ? INT_MAX : next - odir - 1;
+		if (mkdirat(fd, dir, mode) == 0)
+			debug_f("created directory %.*s", subpath_len, target);
+		else if (errno != EEXIST) {
+			error_f("mkdir(\"%.*s\"): %s",
+			    subpath_len, target, strerror(errno));
+			goto out;
+		}
+
+		/* descend */
+		if ((fd2 = openat(fd, dir, O_RDONLY|O_DIRECTORY)) == -1) {
+			error_f("open(\"%.*s\"): %s",
+			    subpath_len, target, strerror(errno));
+			goto out;
+		}
+		if (fd != AT_FDCWD)
+			close(fd);
+		fd = fd2;
+	}
+	/* success */
+	ret = 0;
+ out:
+	free(odir);
+	if (fd != AT_FDCWD)
+		close(fd);
+	return ret;
 }

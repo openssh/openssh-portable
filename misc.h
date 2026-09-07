@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.116 2026/03/11 09:10:59 dtucker Exp $ */
+/* $OpenBSD: misc.h,v 1.117 2026/09/07 20:24:22 job Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -113,6 +113,7 @@ int	 path_absolute(const char *);
 int	 stdfd_devnull(int, int, int);
 int	 lib_contains_symbol(const char *, const char *);
 char	*get_homedir(void);
+int	 mkdir_path(const char *, mode_t);
 
 void	 sock_set_v6only(int);
 
