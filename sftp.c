@@ -946,7 +946,19 @@ sglob_comp(const void *aa, const void *bb)
 #define NCMP(a,b) (a == b ? 0 : (a < b ? 1 : -1))
 	if (sort_flag & LS_NAME_SORT)
 		return (rmul * strcmp(ap, bp));
-	else if (sort_flag & LS_TIME_SORT) {
+
+	/*
+	 * Entries may lack stat information, e.g. a GLOB_NOCHECK literal
+	 * for a pattern that matched nothing, or a failed stat/lstat
+	 * reply from the server (which fully controls this for any
+	 * glob(3) that reaches the server, cooperative or not). Sort
+	 * those last, independent of sort direction, rather than
+	 * dereferencing NULL below.
+	 */
+	if (as == NULL || bs == NULL)
+		return (as == bs) ? 0 : (as == NULL ? 1 : -1);
+
+	if (sort_flag & LS_TIME_SORT) {
 #if defined(HAVE_STRUCT_STAT_ST_MTIM)
 		if (timespeccmp(&as->st_mtim, &bs->st_mtim, ==))
 			return 0;
