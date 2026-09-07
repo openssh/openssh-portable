@@ -90,6 +90,15 @@
 
 #ifdef GSSAPI
 static Gssctxt *gsscontext = NULL;
+/*
+ * Whether the negotiated GSSAPI context requires a MIC exchange before
+ * GSSUSEROK may be answered, and whether that MIC has been verified yet.
+ * The monitor must track this itself rather than trusting the order of
+ * requests made by the unprivileged process: see mm_answer_gss_accept_ctx(),
+ * mm_answer_gss_checkmic() and mm_answer_gss_userok() below.
+ */
+static int gss_mic_required = 0;
+static int gss_mic_verified = 0;
 #endif
 
 /* Imports */
@@ -2026,8 +2035,23 @@ mm_answer_gss_accept_ctx(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	if (major == GSS_S_COMPLETE) {
 		monitor_permit(mon_dispatch, MONITOR_REQ_GSSSTEP, 0);
-		monitor_permit(mon_dispatch, MONITOR_REQ_GSSUSEROK, 1);
 		monitor_permit(mon_dispatch, MONITOR_REQ_GSSCHECKMIC, 1);
+		/*
+		 * auth2-gss.c only asks the client for a MIC when the
+		 * negotiated context supports per-message integrity
+		 * (GSS_C_INTEG_FLAG); otherwise it proceeds straight from
+		 * context establishment to the userok decision (see
+		 * input_gssapi_exchange_complete()). Mirror that here: only
+		 * permit GSSUSEROK immediately when no MIC will ever be
+		 * requested. When integrity is available, GSSUSEROK stays
+		 * unpermitted until mm_answer_gss_checkmic() succeeds, so a
+		 * compromised unprivileged process cannot skip straight to
+		 * the userok decision without the monitor itself having
+		 * verified the MIC.
+		 */
+		gss_mic_required = (flags & GSS_C_INTEG_FLAG) ? 1 : 0;
+		if (!gss_mic_required)
+			monitor_permit(mon_dispatch, MONITOR_REQ_GSSUSEROK, 1);
 	}
 	return (0);
 }
@@ -2057,8 +2081,10 @@ mm_answer_gss_checkmic(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	mm_request_send(sock, MONITOR_ANS_GSSCHECKMIC, m);
 
-	if (!GSS_ERROR(ret))
+	if (!GSS_ERROR(ret)) {
+		gss_mic_verified = 1;
 		monitor_permit(mon_dispatch, MONITOR_REQ_GSSUSEROK, 1);
+	}
 
 	return (0);
 }
@@ -2071,6 +2097,8 @@ mm_answer_gss_userok(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	if (!options.gss_authentication)
 		fatal_f("GSSAPI authentication not enabled");
+	if (gss_mic_required && !gss_mic_verified)
+		fatal_f("userok requested before required MIC was verified");
 
 	authenticated = authctxt->valid && ssh_gssapi_userok(authctxt->user);
 
