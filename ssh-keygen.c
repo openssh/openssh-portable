@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.494 2026/08/22 12:48:18 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.495 2026/09/08 02:55:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -141,7 +141,8 @@ static size_t ncert_ext;
 enum {
 	FMT_RFC4716,
 	FMT_PKCS8,
-	FMT_PEM
+	FMT_PEM,
+	FMT_HEXDUMP
 } convert_format = FMT_RFC4716;
 
 static char *key_type_name = NULL;
@@ -389,9 +390,33 @@ do_convert_to_pem(struct sshkey *k)
 }
 
 static void
+do_convert_to_hexdump(struct sshkey *k)
+{
+	struct sshbuf *b;
+	int r;
+
+	if ((b = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	/* pubkey */
+	if ((r = sshkey_putb(k, b)) != 0)
+		fatal_fr(r, "serialise private");
+	printf("Public %s key:\n", sshkey_type(k));
+	sshbuf_dump(b, stdout);
+	sshbuf_reset(b);
+	if ((r = sshkey_private_serialize(k, b)) != 0) {
+		debug_fr(r, "serialise private");
+		goto out;
+	}
+	printf("\nPrivate %s key:\n", sshkey_type(k));
+	sshbuf_dump(b, stdout);
+ out:
+	sshbuf_free(b);
+}
+
+static void
 do_convert_to(struct passwd *pw)
 {
-	struct sshkey *k;
+	struct sshkey *k = NULL;
 	struct stat st;
 	int r;
 
@@ -399,8 +424,17 @@ do_convert_to(struct passwd *pw)
 		ask_filename(pw, "Enter file in which the key is");
 	if (stat(identity_file, &st) == -1)
 		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
-	if ((r = sshkey_load_public(identity_file, &k, NULL)) != 0)
+
+	/* If we're trying to hexdump, then prefer the private key */
+	if (convert_format == FMT_HEXDUMP) {
+		if ((r = sshkey_load_private(identity_file,
+		    NULL, &k, NULL)) != 0 &&
+		    r == SSH_ERR_KEY_WRONG_PASSPHRASE)
+			k = load_identity(identity_file, NULL);
+	}
+	if (k == NULL && (r = sshkey_load_public(identity_file, &k, NULL)) != 0)
 		k = load_identity(identity_file, NULL);
+
 	switch (convert_format) {
 	case FMT_RFC4716:
 		do_convert_to_ssh2(pw, k);
@@ -410,6 +444,9 @@ do_convert_to(struct passwd *pw)
 		break;
 	case FMT_PEM:
 		do_convert_to_pem(k);
+		break;
+	case FMT_HEXDUMP:
+		do_convert_to_hexdump(k);
 		break;
 	default:
 		fatal_f("unknown key format %d", convert_format);
@@ -3420,6 +3457,10 @@ main(int argc, char **argv)
 				private_key_format = SSHKEY_PRIVATE_PEM;
 				break;
 			}
+			if (strcasecmp(optarg, "hexdump") == 0) {
+				convert_format = FMT_HEXDUMP;
+				break;
+			}
 			fatal("Unsupported conversion format \"%s\"", optarg);
 		case 'n':
 			cert_principals = optarg;
@@ -3907,6 +3948,8 @@ main(int argc, char **argv)
 		/* Create default comment field for the passphrase. */
 		snprintf(comment, sizeof comment, "%s@%s", pw->pw_name, hostname);
 	}
+
+
 
 	/* Save the key with the given passphrase and comment. */
 	if ((r = sshkey_save_private(private, identity_file, passphrase,
