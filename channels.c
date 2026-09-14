@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.463 2026/06/24 11:59:09 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.464 2026/09/14 02:38:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2066,7 +2066,7 @@ channel_post_port_listener(struct ssh *ssh, Channel *c)
 			c->notbefore = monotime() + 1;
 		return;
 	}
-	if (c->host_port != PORT_STREAMLOCAL)
+	if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6)
 		set_nodelay(newsock);
 	nc = channel_new(ssh, rtype, nextstate, newsock, newsock, -1,
 	    c->local_window_max, c->local_maxpacket, 0, rtype, 1);
