@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.341 2026/07/23 06:33:06 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.342 2026/09/14 02:40:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -451,22 +451,22 @@ ssh_packet_connection_is_on_socket(struct ssh *ssh)
 	state = ssh->state;
 	if (state->connection_in == -1 || state->connection_out == -1)
 		return 0;
-	/* filedescriptors in and out are the same, so it's a socket */
-	if (state->connection_in == state->connection_out)
-		return 1;
 	fromlen = sizeof(from);
 	memset(&from, 0, sizeof(from));
 	if (getpeername(state->connection_in, (struct sockaddr *)&from,
 	    &fromlen) == -1)
 		return 0;
+	if (from.ss_family != AF_INET && from.ss_family != AF_INET6)
+		return 0;
+	/* filedescriptors in and out are the same, so it's a socket */
+	if (state->connection_in == state->connection_out)
+		return 1;
 	tolen = sizeof(to);
 	memset(&to, 0, sizeof(to));
 	if (getpeername(state->connection_out, (struct sockaddr *)&to,
 	    &tolen) == -1)
 		return 0;
 	if (fromlen != tolen || memcmp(&from, &to, fromlen) != 0)
-		return 0;
-	if (from.ss_family != AF_INET && from.ss_family != AF_INET6)
 		return 0;
 	return 1;
 }
