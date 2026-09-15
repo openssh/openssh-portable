@@ -346,6 +346,9 @@ static const struct sock_filter preauth_insns[] = {
 # ifdef MADV_DONTNEED
 	SC_ALLOW_ARG(__NR_madvise, 2, MADV_DONTNEED),
 # endif
+# ifdef MADV_DONTNEED_LOCKED
+	SC_ALLOW_ARG(__NR_madvise, 2, MADV_DONTNEED_LOCKED),
+# endif
 # ifdef MADV_DONTFORK
 	SC_ALLOW_ARG(__NR_madvise, 2, MADV_DONTFORK),
 # endif
