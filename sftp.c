@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.258 2026/09/07 20:24:22 job Exp $ */
+/* $OpenBSD: sftp.c,v 1.259 2026/09/15 08:17:57 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -853,6 +853,9 @@ sdirent_comp(const void *aa, const void *bb)
 	int rmul = sort_flag & LS_REVERSE_SORT ? -1 : 1;
 
 #define NCMP(a,b) (a == b ? 0 : (a < b ? 1 : -1))
+	/* order entries without stat information last */
+	if (as == NULL || bs == NULL)
+		return (as == bs) ? 0 : (as == NULL ? rmul : -rmul);
 	if (sort_flag & LS_NAME_SORT)
 		return (rmul * strcmp(a->filename, b->filename));
 	else if (sort_flag & LS_TIME_SORT)
