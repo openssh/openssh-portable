@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.495 2026/09/08 02:55:58 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.496 2026/09/15 08:00:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2178,6 +2178,8 @@ print_cert(struct sshkey *key)
 		printf("\n");
 		show_options(key->cert->extensions, 0);
 	}
+	free(key_fp);
+	free(ca_fp);
 }
 
 static void
