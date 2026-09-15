@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.216 2026/09/07 20:24:22 job Exp $ */
+/* $OpenBSD: misc.c,v 1.217 2026/09/15 08:26:49 job Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -3239,6 +3239,7 @@ mkdir_path(const char *target, mode_t mode)
 	if (*dir == '/' &&
 	    (fd = open("/", O_RDONLY|O_DIRECTORY)) == -1) {
 		error_f("open(\"/\"): %s", strerror(errno));
+		free(odir);
 		return -1;
 	}
 	/* Work through the path, component-wise */
