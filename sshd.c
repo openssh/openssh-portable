@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.631 2026/09/15 06:49:51 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.632 2026/09/15 07:08:09 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -1273,7 +1273,7 @@ prepare_proctitle(int ac, char **av)
 }
 
 /* Disconnect from the controlling tty. */
-void
+static void
 disconnect_controlling_tty(void)
 {
 #ifdef TIOCNOTTY

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.465 2026/09/15 06:05:47 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.466 2026/09/15 07:08:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -392,9 +392,9 @@ channel_set_xtype(struct ssh *ssh, int id, const char *xctype)
 		c->inactive_deadline = xtype_deadline;
 	channel_classify(ssh, c);
 	/* report effective timeout: per-channel if set, else global */
-	debug2_f("labeled channel %d as %s (inactive timeout %u)", id, xctype,
-	    c->inactive_deadline != 0 ? c->inactive_deadline
-	    : (u_int)sc->global_deadline);
+	debug2_f("labeled channel %d as %s (inactive timeout %d)", id, xctype,
+	    c->inactive_deadline != 0 ?
+	    c->inactive_deadline : sc->global_deadline);
 }
 
 /*
@@ -564,10 +564,9 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	c->inactive_deadline = lookup_timeout(ssh, c->ctype);
 	TAILQ_INIT(&c->status_confirms);
 	channel_classify(ssh, c);
-	debug("channel %d: new %s [%s] (inactive timeout: %u)",
-	    found, c->ctype, remote_name,
-	    c->inactive_deadline != 0 ? c->inactive_deadline
-	    : (u_int)sc->global_deadline);
+	debug("channel %d: new %s [%s] (inactive timeout: %d)",
+	    found, c->ctype, remote_name, c->inactive_deadline != 0 ?
+	    c->inactive_deadline : sc->global_deadline);
 	return c;
 }
 
@@ -2715,10 +2714,9 @@ channel_handler(struct ssh *ssh, int table, struct timespec *timeout)
 			    channel_get_expiry(ssh, c) != 0 &&
 			    now >= channel_get_expiry(ssh, c)) {
 				/* channel closed for inactivity */
-				u_int fired_deadline = c->inactive_deadline != 0
-				    ? c->inactive_deadline
-				    : (u_int)sc->global_deadline;
-				verbose("channel %d: closing after %u seconds "
+				int fired_deadline = c->inactive_deadline != 0 ?
+				    c->inactive_deadline : sc->global_deadline;
+				verbose("channel %d: closing after %d seconds "
 				    "of inactivity", c->self, fired_deadline);
 				channel_force_close(ssh, c, 1);
 			} else if (c->notbefore <= now) {
