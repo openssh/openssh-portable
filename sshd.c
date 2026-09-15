@@ -1272,6 +1272,23 @@ prepare_proctitle(int ac, char **av)
 	return ret;
 }
 
+/* Disconnect from the controlling tty. */
+void
+disconnect_controlling_tty(void)
+{
+#ifdef TIOCNOTTY
+# ifndef O_NOCTTY
+#  define O_NOCTTY 0
+# endif
+	int fd;
+
+	if ((fd = open(_PATH_TTY, O_RDWR | O_NOCTTY)) >= 0) {
+		(void) ioctl(fd, TIOCNOTTY, NULL);
+		close(fd);
+	}
+#endif /* TIOCNOTTY */
+}
+
 static void
 print_config(struct connection_info *connection_info)
 {
