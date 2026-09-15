@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.629 2026/09/06 18:36:24 deraadt Exp $ */
+/* $OpenBSD: sshd.c,v 1.631 2026/09/15 06:49:51 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -1447,7 +1447,8 @@ main(int ac, char **av)
 			have_connection_info = 1;
 			break;
 		case 'u':
-			utmp_len = (u_int)strtonum(optarg, 0, HOST_NAME_MAX+1+1, NULL);
+			utmp_len = (u_int)strtonum(optarg, 0,
+			    HOST_NAME_MAX+1+1, NULL);
 			if (utmp_len > HOST_NAME_MAX+1) {
 				fprintf(stderr, "Invalid utmp length.\n");
 				exit(1);
