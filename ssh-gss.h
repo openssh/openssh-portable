@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-gss.h,v 1.17 2026/09/16 00:37:07 djm Exp $ */
+/* $OpenBSD: ssh-gss.h,v 1.18 2026/09/16 00:37:52 djm Exp $ */
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
  *
@@ -74,6 +74,7 @@ typedef struct {
 	gss_cred_id_t creds;
 	struct ssh_gssapi_mech_struct *mech;
 	ssh_gssapi_ccache store;
+	int userok;
 } ssh_gssapi_client;
 
 typedef struct ssh_gssapi_mech_struct {
