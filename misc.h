@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.118 2026/09/16 00:13:58 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.119 2026/09/16 00:25:50 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -241,9 +241,11 @@ struct timespec *ptimeout_get_tsp(struct timespec *pt);
 int ptimeout_isset(struct timespec *pt);
 
 /* misc-agent.c */
-char	*agent_hostname_hash(void);
-int	 agent_listener(const char *, const char *, int *, char **);
-void	 agent_cleanup_stale(const char *, int);
+int	 agent_listener(const char *, const char *, uid_t, const char *,
+	    pid_t, const char *, int *, char **, char **);
+void	 agent_cleanup_stale(const char *, const char *, uid_t,
+	    const char *, int);
+int	 agent_listener_cleanup(const char *, const char *, const char *);
 
 /* readpass.c */
 

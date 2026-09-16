@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.405 2026/09/16 00:16:52 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.406 2026/09/16 00:25:50 djm Exp $
 .Dd $Mdocdate: September 16 2026 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -97,6 +97,31 @@ Valid arguments are
 (use IPv4 only), or
 .Cm inet6
 (use IPv6 only).
+.It Cm AgentSocketPath
+Specifies the filesystem path used for forwarded
+.Xr ssh-agent 1
+sockets.
+Sockets may be created in either a shared location or a user-specific
+directory.
+User-specific directories are specified by prefixing the path name with
+.Cm user: .
+.Xr sshd 8
+will ensure the directory exists and create the listening socket
+directly in it.
+Relative user-specific directory paths will be created to the user's
+.Ev $HOME .
+.Pp
+Shared directories may be specified by prefixing an absolute path name with
+.Cm shared: .
+In this case, a temporary subdirectory will be created under the specified
+directory and the listening agent socket will be created in that.
+.Pp
+.Cm AgentSocketPath
+accepts the tokens described in the
+.Sx TOKENS
+section.
+The default path speification is
+.Pa user:.ssh/agent .
 .It Cm AllowAgentForwarding
 Specifies whether
 .Xr ssh-agent 1
@@ -2278,6 +2303,9 @@ The numeric user ID of the target user.
 .It %u
 The username.
 .El
+.Pp
+.Cm AgentSocketPath
+accepts the tokens %%, %h, %U, and %u.
 .Pp
 .Cm AuthorizedKeysCommand
 accepts the tokens %%, %C, %D, %f, %h, %k, %t, %U, and %u.
