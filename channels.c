@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.467 2026/09/16 00:13:58 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.468 2026/09/16 04:12:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -327,7 +327,7 @@ static void
 channel_free_connect_ctx(Channel *c)
 {
 	if (c == NULL || c->connect_ctx)
-		return
+		return;
 	free_connect_ctx(c->connect_ctx);
 	free(c->connect_ctx);
 	c->connect_ctx = NULL;
