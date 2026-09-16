@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.634 2026/09/16 06:12:42 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.635 2026/09/16 07:47:29 jsg Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -613,7 +613,7 @@ drop_connection(int sock, int startups, int notify_pipe)
 		if (!should_drop_connection(startups) &&
 		    srclimit_check_allow(sock, notify_pipe) == 1)
 			return 0;
-		reason = "Maxstartups";
+		reason = "MaxStartups";
 		rl = &ratelimit_maxstartups;
 	}
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.129 2026/09/16 00:31:27 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.130 2026/09/16 07:47:29 jsg Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -86,7 +86,7 @@ format_key(const struct sshkey *key)
 
 /*
  * Verify that the hostkey in a publickey-hostbound-v00@openssh.com userauth
- * request matches the hostkey that was negotiatied during initial KEX.
+ * request matches the hostkey that was negotiated during initial KEX.
  */
 static void
 check_hostbound_hostkey(struct ssh *ssh)

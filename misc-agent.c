@@ -1,4 +1,4 @@
-/* $OpenBSD: misc-agent.c,v 1.9 2026/09/16 05:03:07 djm Exp $ */
+/* $OpenBSD: misc-agent.c,v 1.10 2026/09/16 07:47:29 jsg Exp $ */
 /*
  * Copyright (c) 2025 Damien Miller <djm@mindrot.org>
  *
@@ -277,7 +277,7 @@ agent_listener(const char *pathspec, const char *username, uid_t uid,
 	}
 	if (strncmp(pathspec, "shared:", 7) == 0) {
 		if (pathspec[7] != '/') {
-			error_f("shared agent socket paths must be absoute");
+			error_f("shared agent socket paths must be absolute");
 			goto out;
 		}
 		if ((dir = expand_pathspec(pathspec + 7,

@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.407 2026/09/16 00:29:44 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.408 2026/09/16 07:47:29 jsg Exp $
 .Dd $Mdocdate: September 16 2026 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -120,7 +120,7 @@ directory and the listening agent socket will be created in that.
 accepts the tokens described in the
 .Sx TOKENS
 section.
-The default path speification is
+The default path specification is
 .Pa user:.ssh/agent .
 .It Cm AllowAgentForwarding
 Specifies whether
@@ -2035,7 +2035,7 @@ The default is AUTH.
 Specifies whether the system should send keepalive messages on TCP sockets it
 has opened.
 If they are sent, failure of the connection or crash of one
-of the endpoins may more promptly detected.
+of the endpoints may be more promptly detected.
 However, this means that
 connections may terminate if the connection is suffers a transient disruption.
 .Pp

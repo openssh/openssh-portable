@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.639 2026/09/16 06:23:16 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.640 2026/09/16 07:47:29 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2197,7 +2197,7 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 
 	check_agent_present();
 	if (options.forward_agent)
-		client_channel_reqest_agent_forwarding(ssh, id);
+		client_channel_request_agent_forwarding(ssh, id);
 
 	if ((term = lookup_env_in_list("TERM", options.setenv,
 	    options.num_setenv)) == NULL || *term == '\0')

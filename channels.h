@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.169 2026/09/16 06:23:15 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.170 2026/09/16 07:47:29 jsg Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -176,7 +176,7 @@ struct Channel {
 	u_int	local_consumed;
 	u_int	local_maxpacket;
 	int     extended_usage;
-	int	agent_new;	/* For agent listeners, use RFC XXX reqests */
+	int	agent_new;	/* For agent listeners, use RFC XXX requests */
 	int	single_connection;
 
 	char   *ctype;		/* const type - NB. not freed on channel_free */
@@ -396,7 +396,7 @@ int	 chan_is_dead(struct ssh *, Channel *, int);
 void	 chan_mark_dead(struct ssh *, Channel *);
 
 /* agent forwarding */
-void	 client_channel_reqest_agent_forwarding(struct ssh *, int);
+void	 client_channel_request_agent_forwarding(struct ssh *, int);
 
 /* channel events */
 

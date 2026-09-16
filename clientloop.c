@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.425 2026/07/01 01:08:51 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.426 2026/09/16 07:47:29 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2827,7 +2827,7 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 }
 
 void
-client_channel_reqest_agent_forwarding(struct ssh *ssh, int id)
+client_channel_request_agent_forwarding(struct ssh *ssh, int id)
 {
 	const char *req = "auth-agent-req@openssh.com";
 	int r;
