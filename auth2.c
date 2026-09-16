@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.175 2026/09/16 00:16:52 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.176 2026/09/16 00:37:07 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -336,6 +336,7 @@ input_userauth_request(int type, uint32_t seq, struct ssh *ssh)
 	auth2_challenge_stop(ssh);
 
 #ifdef GSSAPI
+	ssh_gssapi_cleanup_global_client();
 	/* XXX move to auth2_gssapi_stop() */
 	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
 	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE, NULL);

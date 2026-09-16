@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-gss.h,v 1.16 2024/05/17 06:42:04 jsg Exp $ */
+/* $OpenBSD: ssh-gss.h,v 1.17 2026/09/16 00:37:07 djm Exp $ */
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
  *
@@ -132,6 +132,7 @@ void ssh_gssapi_do_child(char ***, u_int *);
 void ssh_gssapi_cleanup_creds(void);
 void ssh_gssapi_storecreds(void);
 const char *ssh_gssapi_displayname(void);
+void ssh_gssapi_cleanup_global_client();
 
 #endif /* GSSAPI */
 

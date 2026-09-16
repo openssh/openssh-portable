@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-serv.c,v 1.37 2026/02/11 16:57:38 dtucker Exp $ */
+/* $OpenBSD: gss-serv.c,v 1.38 2026/09/16 00:37:07 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -361,12 +361,21 @@ ssh_gssapi_do_child(char ***envp, u_int *envsizep)
 	}
 }
 
+void
+ssh_gssapi_cleanup_global_client()
+{
+	OM_uint32 lmin;
+
+	gss_release_buffer(&lmin, &gssapi_client.displayname);
+	gss_release_buffer(&lmin, &gssapi_client.exportedname);
+	gss_release_cred(&lmin, &gssapi_client.creds);
+	explicit_bzero(&gssapi_client, sizeof(ssh_gssapi_client));
+}
+
 /* Privileged */
 int
 ssh_gssapi_userok(char *user)
 {
-	OM_uint32 lmin;
-
 	if (gssapi_client.exportedname.length == 0 ||
 	    gssapi_client.exportedname.value == NULL) {
 		debug("No suitable client data");
@@ -377,11 +386,7 @@ ssh_gssapi_userok(char *user)
 			return 1;
 		else {
 			/* Destroy delegated credentials if userok fails */
-			gss_release_buffer(&lmin, &gssapi_client.displayname);
-			gss_release_buffer(&lmin, &gssapi_client.exportedname);
-			gss_release_cred(&lmin, &gssapi_client.creds);
-			explicit_bzero(&gssapi_client,
-			    sizeof(ssh_gssapi_client));
+			ssh_gssapi_cleanup_global_client();
 			return 0;
 		}
 	else
