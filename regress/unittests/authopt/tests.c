@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.6 2026/09/16 04:51:28 djm Exp $ */
+/* 	$OpenBSD: tests.c,v 1.7 2026/09/16 04:56:12 djm Exp $ */
 
 /*
  * Regress test for keys options functions.
@@ -422,9 +422,10 @@ test_merge(void)
 	    rflag, var, val) \
 	do { \
 		PREPARE(keybase " " label, keyname, keywords); \
-		expected = rflag ? default_authkey_restrict_opts() : \
-		    (mostly_off ? sshauthopt_new() : default_authkey_opts()); \
+		expected = mostly_off ? \
+		    sshauthopt_new() : default_authkey_opts(); \
 		ASSERT_PTR_NE(expected, NULL); \
+		expected->restricted = rflag; \
 		expected->var = val; \
 		CHECK_SUCCESS_AND_CLEANUP(); \
 		TEST_DONE(); \
