@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.19 2026/09/16 00:13:58 djm Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.20 2026/09/16 00:29:44 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -798,6 +798,7 @@ do_ssh2_kex(struct ssh *ssh)
 	if ((r = kex_setup(ssh, myproposal)) != 0)
 		fatal_r(r, "kex_setup");
 	kex_set_server_sig_algs(ssh, options.pubkey_accepted_algos);
+	kex_set_warn_weak_crypto(ssh, options.warn_weak_crypto);
 	kex = ssh->kex;
 
 #ifdef WITH_OPENSSL

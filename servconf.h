@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.182 2026/09/16 00:25:50 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.183 2026/09/16 00:29:44 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -241,7 +241,8 @@ SSHCONF_INT(unused_connection_timeout, UnusedConnectionTimeout, SSHCFG_ALL, NULL
 SSHCONF_STRING(sshd_session_path, SshdSessionPath, SSHCFG_GLOBAL, SSHCFG_COPY_NONE) \
 SSHCONF_STRING(sshd_auth_path, SshdAuthPath, SSHCFG_GLOBAL, SSHCFG_COPY_NONE) \
 SSHCONF_INTFLAG(refuse_connection, RefuseConnection, SSHCFG_ALL, 0, SSHCFG_COPY_MATCH) \
-SSHCONF_STRING(agent_socket_path, AgentSocketPath, SSHCFG_ALL, SSHCFG_COPY_MATCH)
+SSHCONF_STRING(agent_socket_path, AgentSocketPath, SSHCFG_ALL, SSHCFG_COPY_MATCH) \
+SSHCONF_INT(warn_weak_crypto, WarnWeakCrypto, SSHCFG_GLOBAL, multistate_warnweakcrypto, 1, SSHCFG_COPY_NONE)
 
 #define SSHD_CONFIG_ENTRIES_LEGACY \
 SSHCONF_DEPRECATE(ServerKeyBits, SSHCFG_GLOBAL, SSHCONF_DEPRECATED) \

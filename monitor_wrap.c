@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.149 2026/09/16 00:13:58 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.150 2026/09/16 00:29:44 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -386,6 +386,7 @@ out:
 	channel_set_tcp_keepalives(ssh,
 	    options.tcp_keep_alive == SSH_KEEPALIVES_ALL);
 	kex_set_server_sig_algs(ssh, options.pubkey_accepted_algos);
+	kex_set_warn_weak_crypto(ssh, options.warn_weak_crypto);
 	ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
 	    options.rekey_interval);
 	sshbuf_free(m);

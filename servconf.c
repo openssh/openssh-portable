@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.455 2026/09/16 00:25:50 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.456 2026/09/16 00:29:44 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1107,6 +1107,13 @@ static const struct multistate multistate_keepalives[] = {
 	{ "no",				SSH_KEEPALIVES_OFF },
 	{ "transport",			SSH_KEEPALIVES_TRANSPORT },
 	{ "all",			SSH_KEEPALIVES_ALL },
+};
+static const struct multistate multistate_warnweakcrypto[] = {
+	{ "true",			1 },
+	{ "false",			0 },
+	{ "yes",			1 },
+	{ "no",				0 },
+	{ "no-pq-kex",			0 },
 	{ NULL, -1 }
 };
 
@@ -2604,6 +2611,11 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 	case sRefuseConnection:
 		intptr = &options->refuse_connection;
 		multistate_ptr = multistate_flag;
+		goto parse_multistate;
+
+	case sWarnWeakCrypto:
+		intptr = &options->warn_weak_crypto;
+		multistate_ptr = multistate_warnweakcrypto;
 		goto parse_multistate;
 
 	case sDeprecated:
@@ -4140,6 +4152,8 @@ fmt_intarg(ServerOpCodes code, int val)
 		return fmt_multistate_int(val, multistate_ignore_rhosts);
 	case sTCPKeepAlive:
 		return fmt_multistate_int(val, multistate_keepalives);
+	case sWarnWeakCrypto:
+		return fmt_multistate_int(val, multistate_warnweakcrypto);
 	case sFingerprintHash:
 		return ssh_digest_alg_name(val);
 	default:
@@ -4334,6 +4348,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(sFingerprintHash, o->fingerprint_hash);
 	dump_cfg_fmtint(sExposeAuthInfo, o->expose_userauth_info);
+	dump_cfg_fmtint(sWarnWeakCrypto, o->warn_weak_crypto);
 	dump_cfg_fmtint(sRefuseConnection, o->refuse_connection);
 
 	/* string arguments */

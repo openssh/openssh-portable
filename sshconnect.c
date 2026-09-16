@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.385 2026/09/16 00:13:58 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.386 2026/09/16 00:29:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1657,10 +1657,14 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 	/* authenticate user */
 	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
 	ssh_kex2(ssh, host, hostaddr, port, cinfo);
+	kex_set_warn_weak_crypto(ssh, options.warn_weak_crypto &&
+	    !options.kex_algorithms_set);
 	if (!options.kex_algorithms_set && ssh->kex != NULL &&
 	    ssh->kex->name != NULL && options.warn_weak_crypto &&
-	    !kex_is_pq_from_name(ssh->kex->name))
+	    !kex_is_pq_from_name(ssh->kex->name)) {
 		warn_nonpq_kex();
+		ssh->kex->non_pq_kex_warned = 1;
+	}
 	ssh_userauth2(ssh, local_user, server_user, host, sensitive);
 	free(local_user);
 	free(host);
