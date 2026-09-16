@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.220 2026/09/16 06:23:15 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.221 2026/09/16 17:31:27 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -3092,7 +3092,7 @@ ptimeout_deadline_sec_double(struct timespec *pt, double sec)
 	struct timespec t;
 
 	memset(&t, 0, sizeof(t));
-	if ((int64_t)sec > SSH_TIME_T_MAX)
+	if ((int64_t)sec >= SSH_TIME_T_MAX)
 		t.tv_sec = SSH_TIME_T_MAX;
 	else if (sec > 0) {
 		t.tv_sec = sec;
