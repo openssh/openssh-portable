@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.168 2026/09/16 00:13:58 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.169 2026/09/16 06:23:15 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -147,7 +147,7 @@ struct Channel {
 #endif
 	int	client_tty;	/* (client) TTY has been requested */
 	int     force_drain;	/* force close on iEOF */
-	time_t	notbefore;	/* Pause IO until deadline (time_t) */
+	double	notbefore;	/* Pause IO until deadline (time_t) */
 	int     delayed;	/* post-IO handlers for newly created
 				 * channels are delayed until the first call
 				 * to a matching pre-IO handler.
@@ -211,9 +211,9 @@ struct Channel {
 	/* Inactivity timeouts */
 
 	/* Last traffic seen for OPEN channels */
-	time_t			lastused;
+	double			lastused;
 	/* Inactivity timeout deadline in seconds (0 = no timeout) */
-	int			inactive_deadline;
+	double			inactive_deadline;
 };
 
 #define CHAN_EXTENDED_IGNORE		0
@@ -315,7 +315,7 @@ int	 channel_has_bulk(struct ssh *);
 void	 channel_set_tcp_keepalives(struct ssh *, int);
 
 /* channel inactivity timeouts */
-void channel_add_timeout(struct ssh *, const char *, int);
+void channel_add_timeout(struct ssh *, const char *, double);
 void channel_clear_timeouts(struct ssh *);
 
 /* mux proxy support */
@@ -383,7 +383,7 @@ int	 permitopen_port(const char *);
 
 /* x11 forwarding */
 
-void	 channel_set_x11_refuse_time(struct ssh *, time_t);
+void	 channel_set_x11_refuse_time(struct ssh *, double);
 int	 x11_connect_display(struct ssh *);
 int	 x11_create_display_inet(struct ssh *, int, int, int, u_int *, int **);
 void	 x11_request_forwarding_with_spoofing(struct ssh *, int,

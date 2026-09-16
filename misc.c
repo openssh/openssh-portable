@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.219 2026/09/16 00:13:58 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.220 2026/09/16 06:23:15 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2633,10 +2633,10 @@ format_absolute_time(uint64_t t, char *buf, size_t len)
  * Caller must free *typep.
  */
 int
-parse_pattern_interval(const char *s, char **typep, int *secsp)
+parse_pattern_interval(const char *s, char **typep, double *secsp)
 {
 	char *cp, *sdup;
-	int secs;
+	double secs;
 
 	if (typep != NULL)
 		*typep = NULL;
@@ -2651,7 +2651,7 @@ parse_pattern_interval(const char *s, char **typep, int *secsp)
 		return -1;
 	}
 	*cp++ = '\0';
-	if ((secs = convtime(cp)) < 0) {
+	if ((secs = convtime_double(cp)) < 0.0) {
 		free(sdup);
 		return -1;
 	}
@@ -3085,6 +3085,22 @@ ptimeout_deadline_ms(struct timespec *pt, long ms)
 	ptimeout_deadline_tsp(pt, &p);
 }
 
+/* Specify a poll/ppoll deadline of at most 'sec' seconds (double) */
+void
+ptimeout_deadline_sec_double(struct timespec *pt, double sec)
+{
+	struct timespec t;
+
+	memset(&t, 0, sizeof(t));
+	if ((int64_t)sec > SSH_TIME_T_MAX)
+		t.tv_sec = SSH_TIME_T_MAX;
+	else if (sec > 0) {
+		t.tv_sec = sec;
+		t.tv_nsec = (sec - (double)t.tv_sec) * 1000000000.0;
+	}
+	ptimeout_deadline_tsp(pt, &t);
+}
+
 /* Specify a poll/ppoll deadline at wall clock monotime 'when' (timespec) */
 void
 ptimeout_deadline_monotime_tsp(struct timespec *pt, struct timespec *when)
@@ -3101,6 +3117,13 @@ ptimeout_deadline_monotime_tsp(struct timespec *pt, struct timespec *when)
 		timespecsub(when, &now, &t);
 		ptimeout_deadline_tsp(pt, &t);
 	}
+}
+
+/* Specify a poll/ppoll deadline at wall clock monotime 'when' (double) */
+void
+ptimeout_deadline_monotime_double(struct timespec *pt, double when)
+{
+	ptimeout_deadline_sec_double(pt, when - monotime_double());
 }
 
 /* Specify a poll/ppoll deadline at wall clock monotime 'when' */

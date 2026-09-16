@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.119 2026/09/16 00:25:50 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.120 2026/09/16 06:23:16 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -109,7 +109,7 @@ int	 valid_env_name(const char *);
 const char *atoi_err(const char *, int *);
 int	 parse_absolute_time(const char *, uint64_t *);
 void	 format_absolute_time(uint64_t, char *, size_t);
-int	 parse_pattern_interval(const char *, char **, int *);
+int	 parse_pattern_interval(const char *, char **, double *);
 int	 path_absolute(const char *);
 int	 stdfd_devnull(int, int, int);
 int	 lib_contains_symbol(const char *, const char *);
@@ -234,8 +234,10 @@ struct timespec;
 void ptimeout_init(struct timespec *pt);
 void ptimeout_deadline_sec(struct timespec *pt, long sec);
 void ptimeout_deadline_ms(struct timespec *pt, long ms);
+void ptimeout_deadline_sec_double(struct timespec *pt, double sec);
 void ptimeout_deadline_monotime_tsp(struct timespec *pt, struct timespec *when);
 void ptimeout_deadline_monotime(struct timespec *pt, time_t when);
+void ptimeout_deadline_monotime_double(struct timespec *pt, double when);
 int ptimeout_get_ms(struct timespec *pt);
 struct timespec *ptimeout_get_tsp(struct timespec *pt);
 int ptimeout_isset(struct timespec *pt);

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.469 2026/09/16 05:00:51 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.470 2026/09/16 06:23:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -147,7 +147,7 @@ struct permission_set {
 /* Used to record timeouts per channel type */
 struct ssh_channel_timeout {
 	char *type_pattern;
-	int timeout_secs;
+	double timeout_secs;
 };
 
 /* Master structure for channels state */
@@ -191,7 +191,7 @@ struct ssh_channels {
 	u_int x11_saved_data_len;
 
 	/* Deadline after which all X11 connections are refused */
-	time_t x11_refuse_time;
+	double x11_refuse_time;
 
 	/*
 	 * Fake X11 authentication data.  This is what the server will be
@@ -211,8 +211,8 @@ struct ssh_channels {
 	struct ssh_channel_timeout *timeouts;
 	size_t ntimeouts;
 	/* Global timeout for all OPEN channels */
-	int global_deadline;
-	time_t lastused;
+	double global_deadline;
+	double lastused;
 	/* pattern-lists used to classify channels as bulk */
 	char *bulk_classifier_tty, *bulk_classifier_notty;
 	/* Number of active bulk channels (set by channel_handler) */
@@ -346,16 +346,16 @@ channel_set_tcp_keepalives(struct ssh *ssh, int on)
  */
 void
 channel_add_timeout(struct ssh *ssh, const char *type_pattern,
-    int timeout_secs)
+    double timeout_secs)
 {
 	struct ssh_channels *sc = ssh->chanctxt;
 
 	if (strcmp(type_pattern, "global") == 0) {
-		debug2_f("global channel timeout %d seconds", timeout_secs);
+		debug2_f("global channel timeout %f seconds", timeout_secs);
 		sc->global_deadline = timeout_secs;
 		return;
 	}
-	debug2_f("channel type \"%s\" timeout %d seconds",
+	debug2_f("channel type \"%s\" timeout %f seconds",
 	    type_pattern, timeout_secs);
 	sc->timeouts = xrecallocarray(sc->timeouts, sc->ntimeouts,
 	    sc->ntimeouts + 1, sizeof(*sc->timeouts));
@@ -379,7 +379,7 @@ channel_clear_timeouts(struct ssh *ssh)
 	sc->ntimeouts = 0;
 }
 
-static int
+static double
 lookup_timeout(struct ssh *ssh, const char *type)
 {
 	struct ssh_channels *sc = ssh->chanctxt;
@@ -426,13 +426,13 @@ channel_set_xtype(struct ssh *ssh, int id, const char *xctype)
 		free(c->xctype);
 	c->xctype = xstrdup(xctype);
 	/* Only override deadline if xctype has a more specific match. */
-	int xtype_deadline = lookup_timeout(ssh, c->xctype);
+	double xtype_deadline = lookup_timeout(ssh, c->xctype);
 	if (xtype_deadline != 0)
 		c->inactive_deadline = xtype_deadline;
 	channel_classify(ssh, c);
 	/* report effective timeout: per-channel if set, else global */
-	debug2_f("labeled channel %d as %s (inactive timeout %d)", id, xctype,
-	    c->inactive_deadline != 0 ?
+	debug2_f("labeled channel %d as %s (inactive timeout %f)", id, xctype,
+	    c->inactive_deadline != 0.0 ?
 	    c->inactive_deadline : sc->global_deadline);
 }
 
@@ -443,7 +443,7 @@ channel_set_xtype(struct ssh *ssh, int id, const char *xctype)
 static void
 channel_set_used_time(struct ssh *ssh, Channel *c)
 {
-	ssh->chanctxt->lastused = monotime();
+	ssh->chanctxt->lastused = monotime_double();
 	if (c != NULL)
 		c->lastused = ssh->chanctxt->lastused;
 }
@@ -452,11 +452,11 @@ channel_set_used_time(struct ssh *ssh, Channel *c)
  * Get the time at which a channel is due to time out for inactivity.
  * Returns 0 if the channel is not due to time out ever.
  */
-static time_t
+static double
 channel_get_expiry(struct ssh *ssh, Channel *c)
 {
 	struct ssh_channels *sc = ssh->chanctxt;
-	time_t expiry = 0, channel_expiry;
+	double expiry = 0, channel_expiry;
 
 	if (sc->lastused != 0 && sc->global_deadline != 0)
 		expiry = sc->lastused + sc->global_deadline;
@@ -603,8 +603,8 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	c->inactive_deadline = lookup_timeout(ssh, c->ctype);
 	TAILQ_INIT(&c->status_confirms);
 	channel_classify(ssh, c);
-	debug("channel %d: new %s [%s] (inactive timeout: %d)",
-	    found, c->ctype, remote_name, c->inactive_deadline != 0 ?
+	debug("channel %d: new %s [%s] (inactive timeout: %f)",
+	    found, c->ctype, remote_name, c->inactive_deadline != 0.0 ?
 	    c->inactive_deadline : sc->global_deadline);
 	return c;
 }
@@ -1432,8 +1432,8 @@ x11_open_helper(struct ssh *ssh, struct sshbuf *b)
 	}
 
 	/* Is this being called after the refusal deadline? */
-	if (sc->x11_refuse_time != 0 &&
-	    monotime() >= sc->x11_refuse_time) {
+	if (sc->x11_refuse_time != 0.0 &&
+	    monotime_double() >= sc->x11_refuse_time) {
 		verbose("Rejected X11 connection after ForwardX11Timeout "
 		    "expired");
 		return -1;
@@ -1980,7 +1980,7 @@ channel_post_x11_listener(struct ssh *ssh, Channel *c)
 		    errno != ECONNABORTED)
 			error("accept: %.100s", strerror(errno));
 		if (errno == EMFILE || errno == ENFILE)
-			c->notbefore = monotime() + 1;
+			c->notbefore = monotime_double() + 1.0;
 		return;
 	}
 	set_nodelay(newsock);
@@ -2064,7 +2064,7 @@ port_open_helper(struct ssh *ssh, Channel *c, char *rtype)
 }
 
 void
-channel_set_x11_refuse_time(struct ssh *ssh, time_t refuse_time)
+channel_set_x11_refuse_time(struct ssh *ssh, double refuse_time)
 {
 	ssh->chanctxt->x11_refuse_time = refuse_time;
 }
@@ -2111,7 +2111,7 @@ channel_post_port_listener(struct ssh *ssh, Channel *c)
 		    errno != ECONNABORTED)
 			error("accept: %.100s", strerror(errno));
 		if (errno == EMFILE || errno == ENFILE)
-			c->notbefore = monotime() + 1;
+			c->notbefore = monotime_double() + 1.0;
 		return;
 	}
 	if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6) {
@@ -2150,7 +2150,7 @@ channel_post_auth_listener(struct ssh *ssh, Channel *c)
 	if (newsock == -1) {
 		error("accept from auth socket: %.100s", strerror(errno));
 		if (errno == EMFILE || errno == ENFILE)
-			c->notbefore = monotime() + 1;
+			c->notbefore = monotime_double() + 1.0;
 		return;
 	}
 	nc = channel_new(ssh, "agent-connection",
@@ -2640,7 +2640,7 @@ channel_post_mux_listener(struct ssh *ssh, Channel *c)
 	    &addrlen)) == -1) {
 		error_f("accept: %s", strerror(errno));
 		if (errno == EMFILE || errno == ENFILE)
-			c->notbefore = monotime() + 1;
+			c->notbefore = monotime_double() + 1.0;
 		return;
 	}
 
@@ -2738,9 +2738,9 @@ channel_handler(struct ssh *ssh, int table, struct timespec *timeout)
 	chan_fn **ftab = table == CHAN_PRE ? sc->channel_pre : sc->channel_post;
 	u_int i, oalloc;
 	Channel *c;
-	time_t now;
+	double now;
 
-	now = monotime();
+	now = monotime_double();
 	for (sc->nbulk = i = 0, oalloc = sc->channels_alloc; i < oalloc; i++) {
 		c = sc->channels[i];
 		if (c == NULL)
@@ -2762,10 +2762,10 @@ channel_handler(struct ssh *ssh, int table, struct timespec *timeout)
 			    channel_get_expiry(ssh, c) != 0 &&
 			    now >= channel_get_expiry(ssh, c)) {
 				/* channel closed for inactivity */
-				int fired_deadline = c->inactive_deadline != 0 ?
+				double deadline = c->inactive_deadline != 0.0 ?
 				    c->inactive_deadline : sc->global_deadline;
-				verbose("channel %d: closing after %d seconds "
-				    "of inactivity", c->self, fired_deadline);
+				verbose("channel %d: closing after %f seconds "
+				    "of inactivity", c->self, deadline);
 				channel_force_close(ssh, c, 1);
 			} else if (c->notbefore <= now) {
 				/* Run handlers that are not paused. */
@@ -5485,15 +5485,15 @@ int
 x11_channel_used_recently(struct ssh *ssh) {
 	u_int i;
 	Channel *c;
-	time_t lastused = 0;
+	double lastused = 0;
 
 	for (i = 0; i < ssh->chanctxt->channels_alloc; i++) {
 		c = ssh->chanctxt->channels[i];
-		if (c == NULL || c->ctype == NULL || c->lastused == 0 ||
+		if (c == NULL || c->ctype == NULL || c->lastused == 0.0 ||
 		    strcmp(c->ctype, "x11-connection") != 0)
 			continue;
 		if (c->lastused > lastused)
 			lastused = c->lastused;
 	}
-	return lastused != 0 && monotime() <= lastused + 1;
+	return lastused != 0.0 && monotime_double() <= lastused + 1.0;
 }
