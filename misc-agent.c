@@ -1,4 +1,4 @@
-/* $OpenBSD: misc-agent.c,v 1.8 2026/09/16 00:25:50 djm Exp $ */
+/* $OpenBSD: misc-agent.c,v 1.9 2026/09/16 05:03:07 djm Exp $ */
 /*
  * Copyright (c) 2025 Damien Miller <djm@mindrot.org>
  *
@@ -411,7 +411,7 @@ agent_cleanup_stale(const char *pathspec, const char *username, uid_t uid,
 	/* Only consider sockets last modified > 1 hour ago */
 	if (clock_gettime(CLOCK_REALTIME, &now) != 0) {
 		error_f("clock_gettime: %s", strerror(errno));
-		return;
+		goto out;
 	}
 	sub.tv_sec = 60 * 60;
 	sub.tv_nsec = 0;
@@ -421,7 +421,7 @@ agent_cleanup_stale(const char *pathspec, const char *username, uid_t uid,
 	if (!ignore_hosthash) {
 		if ((path = agent_hostname_hash()) == NULL) {
 			error_f("couldn't get hostname hash");
-			return;
+			goto out;
 		}
 		xasprintf(&prefix, "s.%s.", path);
 		free(path);
