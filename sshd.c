@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.633 2026/09/16 00:08:52 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.634 2026/09/16 06:12:42 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -987,8 +987,8 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 				 * Leave termination signals blocked, so
 				 * they don't get lost across a restart.
 				 */
-				sigdelset(&osigset, SIGTERM);
-				sigdelset(&osigset, SIGQUIT);
+				sigaddset(&osigset, SIGTERM);
+				sigaddset(&osigset, SIGQUIT);
 				sigprocmask(SIG_SETMASK, &osigset, NULL);
 				sighup_restart();
 			}
