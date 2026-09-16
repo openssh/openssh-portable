@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: ed25519.sh,v 1.7 2026/09/16 00:46:17 djm Exp $
+#       $OpenBSD: ed25519.sh,v 1.8 2026/09/16 00:59:12 djm Exp $
 #       Placed in the Public Domain.
 
 set -eu
@@ -32,7 +32,7 @@ for f in LICENSE "$PRIVATE/ed25519_ref10.h" \
 done
 
 (
-	printf '/*  $OpenBSD: ed25519.sh,v 1.7 2026/09/16 00:46:17 djm Exp $ */\n\n'
+	printf '/*  $OpenBSD: ed25519.sh,v 1.8 2026/09/16 00:59:12 djm Exp $ */\n\n'
 	echo "/* Extracted from libsodium revision $LIBSODIUM_REVISION */"
 	echo
 	cat "$LIBSODIUM_DIR/LICENSE"
@@ -268,7 +268,7 @@ test "$globals" = "$expected" || {
 	echo "$globals" >&2
 	exit 1
 }
-${CC:-cc} -o ed25519_check ed25519_check.o 
+${CC:-cc} -o ed25519_check ed25519_check.o
 ./ed25519_check
 mv "$NEW" "$OUT"
 echo "ed25519.c OK (libsodium $LIBSODIUM_REVISION)" >&2
