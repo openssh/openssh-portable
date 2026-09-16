@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-auth.c,v 1.18 2026/07/27 12:28:52 markus Exp $ */
+/* $OpenBSD: sshd-auth.c,v 1.19 2026/09/16 00:13:58 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -702,6 +702,8 @@ main(int ac, char **av)
 	/* Prepare the channels layer */
 	channel_init_channels(ssh);
 	channel_set_af(ssh, options.address_family);
+	channel_set_tcp_keepalives(ssh,
+	    options.tcp_keep_alive == SSH_KEEPALIVES_ALL);
 	server_process_channel_timeouts(ssh);
 	server_process_permitopen(ssh);
 

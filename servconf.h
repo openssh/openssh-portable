@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.179 2026/07/07 01:00:22 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.180 2026/09/16 00:13:58 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -56,6 +56,11 @@ struct sshbuf;
 #else
 #define SSHD_DEFAULT_COMPRESSION	COMP_NONE
 #endif
+
+/* TCPKeepAlive flags */
+#define SSH_KEEPALIVES_OFF		0
+#define SSH_KEEPALIVES_TRANSPORT	1
+#define SSH_KEEPALIVES_ALL		2
 
 struct ssh;
 
@@ -177,7 +182,7 @@ SSHCONF_STRING(xauth_location, XAuthLocation, SSHCFG_GLOBAL, SSHCFG_COPY_NONE) \
 SSHCONF_INTFLAG(permit_tty, PermitTTY, SSHCFG_ALL, 1, SSHCFG_COPY_MATCH) \
 SSHCONF_INTFLAG(permit_user_rc, PermitUserRC, SSHCFG_ALL, 1, SSHCFG_COPY_MATCH) \
 SSHCONF_INTFLAG(strict_modes, StrictModes, SSHCFG_GLOBAL, 1, SSHCFG_COPY_NONE) \
-SSHCONF_INTFLAG(tcp_keep_alive, TCPKeepAlive, SSHCFG_GLOBAL, 1, SSHCFG_COPY_NONE) \
+SSHCONF_INTFLAG(tcp_keep_alive, TCPKeepAlive, SSHCFG_GLOBAL, SSH_KEEPALIVES_TRANSPORT, SSHCFG_COPY_NONE) \
 SSHCONF_STRING(ciphers, Ciphers, SSHCFG_GLOBAL, SSHCFG_COPY_NONE) \
 SSHCONF_STRING(macs, Macs, SSHCFG_GLOBAL, SSHCFG_COPY_NONE) \
 SSHCONF_STRING(kex_algorithms, KexAlgorithms, SSHCFG_GLOBAL, SSHCFG_COPY_NONE) \

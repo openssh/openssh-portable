@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.218 2026/09/15 08:31:46 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.219 2026/09/16 00:13:58 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -235,6 +235,19 @@ set_reuseaddr(int fd)
 
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
 		error("setsockopt SO_REUSEADDR fd %d: %s", fd, strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+
+/* Set TCP keepalives */
+int
+set_keepalive(int fd)
+{
+	int on = 1;
+
+	if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) == -1) {
+		error("setsockopt SO_KEEPALIVE fd %d: %s", fd, strerror(errno));
 		return -1;
 	}
 	return 0;

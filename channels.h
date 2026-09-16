@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.167 2026/06/24 06:53:11 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.168 2026/09/16 00:13:58 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -90,6 +90,7 @@
 struct ssh;
 struct Channel;
 typedef struct Channel Channel;
+struct channel_connect;
 
 typedef void channel_open_fn(struct ssh *, int, int, void *);
 typedef void channel_callback_fn(struct ssh *, int, int, void *);
@@ -108,13 +109,6 @@ struct channel_confirm {
 	void *ctx;
 };
 TAILQ_HEAD(channel_confirms, channel_confirm);
-
-/* Context for non-blocking connects */
-struct channel_connect {
-	char *host;
-	int port;
-	struct addrinfo *ai, *aitop;
-};
 
 /* Callbacks for mux channels back into client-specific code */
 typedef int mux_callback_fn(struct ssh *, struct Channel *);
@@ -206,8 +200,7 @@ struct Channel {
 	int			datagram;
 
 	/* non-blocking connect */
-	/* XXX make this a pointer so the structure can be opaque */
-	struct channel_connect	connect_ctx;
+	struct channel_connect	*connect_ctx;
 
 	/* multiplexing protocol hook, called for each packet received */
 	mux_callback_fn		*mux_rcb;
@@ -319,6 +312,7 @@ void	 channel_cancel_cleanup(struct ssh *, int);
 int	 channel_close_fd(struct ssh *, Channel *, int *);
 void	 channel_send_window_changes(struct ssh *);
 int	 channel_has_bulk(struct ssh *);
+void	 channel_set_tcp_keepalives(struct ssh *, int);
 
 /* channel inactivity timeouts */
 void channel_add_timeout(struct ssh *, const char *, int);

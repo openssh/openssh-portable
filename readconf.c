@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.416 2026/09/15 05:16:43 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.417 2026/09/16 00:13:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1089,6 +1089,15 @@ static const struct multistate multistate_compression[] = {
 	{ "no",				COMP_NONE },
 	{ NULL, -1 }
 };
+static const struct multistate multistate_keepalives[] = {
+	{ "true",			SSH_KEEPALIVES_TRANSPORT },
+	{ "false",			SSH_KEEPALIVES_OFF },
+	{ "yes",			SSH_KEEPALIVES_TRANSPORT },
+	{ "no",				SSH_KEEPALIVES_OFF },
+	{ "transport",			SSH_KEEPALIVES_TRANSPORT },
+	{ "all",			SSH_KEEPALIVES_ALL },
+	{ NULL, -1 }
+};
 /* XXX this will need to be replaced with a bitmask if we add more flags */
 static const struct multistate multistate_warnweakcrypto[] = {
 	{ "true",			1 },
@@ -1348,7 +1357,8 @@ parse_time:
 
 	case oTCPKeepAlive:
 		intptr = &options->tcp_keep_alive;
-		goto parse_flag;
+		multistate_ptr = multistate_keepalives;
+		goto parse_multistate;
 
 	case oNoHostAuthenticationForLocalhost:
 		intptr = &options->no_host_authentication_for_localhost;
@@ -2901,7 +2911,7 @@ fill_default_options(Options * options)
 	if (options->compression == -1)
 		options->compression = 0;
 	if (options->tcp_keep_alive == -1)
-		options->tcp_keep_alive = 1;
+		options->tcp_keep_alive = SSH_KEEPALIVES_TRANSPORT;
 	if (options->port == -1)
 		options->port = 0;	/* Filled in ssh_connect. */
 	if (options->address_family == -1)
@@ -3609,6 +3619,8 @@ fmt_intarg(OpCodes code, int val)
 		return fmt_multistate_int(val, multistate_yesnoaskconfirm);
 	case oPubkeyAuthentication:
 		return fmt_multistate_int(val, multistate_pubkey_auth);
+	case oTCPKeepAlive:
+		return fmt_multistate_int(val, multistate_keepalives);
 	case oFingerprintHash:
 		return ssh_digest_alg_name(val);
 	default:

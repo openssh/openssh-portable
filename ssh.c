@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.637 2026/08/07 05:03:56 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.638 2026/09/16 00:13:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1703,6 +1703,8 @@ main(int ac, char **av)
 		channel_add_timeout(ssh, cp, i);
 		free(cp);
 	}
+	channel_set_tcp_keepalives(ssh,
+	    options.tcp_keep_alive == SSH_KEEPALIVES_ALL);
 
 	/* Open a connection to the remote host. */
 	if (ssh_connect(ssh, host, options.host_arg, addrs, &hostaddr,

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.148 2026/07/21 06:17:42 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.149 2026/09/16 00:13:58 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -383,6 +383,8 @@ out:
 	mm_decode_activate_server_options(ssh, m);
 	server_process_permitopen(ssh);
 	server_process_channel_timeouts(ssh);
+	channel_set_tcp_keepalives(ssh,
+	    options.tcp_keep_alive == SSH_KEEPALIVES_ALL);
 	kex_set_server_sig_algs(ssh, options.pubkey_accepted_algos);
 	ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
 	    options.rekey_interval);
