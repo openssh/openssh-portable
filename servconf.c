@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.456 2026/09/16 00:29:44 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.457 2026/09/16 00:35:09 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -4052,6 +4052,22 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	assemble_algorithms(dst);
 
 	/*
+	 * These options may be "none" to clear a global setting.  They are
+	 * consulted before authentication, so they must be cleared here
+	 * rather than in the post-auth section below.
+	 */
+#define CLEAR_ON_NONE(v) \
+	do { \
+		if (option_clear_or_none(v)) { \
+			free(v); \
+			v = NULL; \
+		} \
+	} while(0)
+	CLEAR_ON_NONE(dst->authorized_principals_file);
+	CLEAR_ON_NONE(dst->trusted_user_ca_keys);
+	CLEAR_ON_NONE(dst->banner);
+
+	/*
 	 * The only things that should be below this point are string options
 	 * which are only used after authentication.
 	 */
@@ -4061,16 +4077,11 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	/* These options may be "none" to clear a global setting */
 	copy_server_option_string(&dst->adm_forced_command,
 	    src->adm_forced_command);
-	if (option_clear_or_none(dst->adm_forced_command)) {
-		free(dst->adm_forced_command);
-		dst->adm_forced_command = NULL;
-	}
 	copy_server_option_string(&dst->chroot_directory,
 	    src->chroot_directory);
-	if (option_clear_or_none(dst->chroot_directory)) {
-		free(dst->chroot_directory);
-		dst->chroot_directory = NULL;
-	}
+	CLEAR_ON_NONE(dst->chroot_directory);
+	CLEAR_ON_NONE(dst->adm_forced_command);
+#undef CLEAR_ON_NONE
 
 	/* Subsystems require merging. */
 	servconf_merge_subsystems(dst, src);
