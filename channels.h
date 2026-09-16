@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.170 2026/09/16 07:47:29 jsg Exp $ */
+/* $OpenBSD: channels.h,v 1.171 2026/09/16 23:26:41 jsg Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -176,7 +176,7 @@ struct Channel {
 	u_int	local_consumed;
 	u_int	local_maxpacket;
 	int     extended_usage;
-	int	agent_new;	/* For agent listeners, use RFC XXX requests */
+	int	agent_new;	/* For agent listeners, use RFC 9987 requests */
 	int	single_connection;
 
 	char   *ctype;		/* const type - NB. not freed on channel_free */

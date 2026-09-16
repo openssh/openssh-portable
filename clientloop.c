@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.426 2026/09/16 07:47:29 jsg Exp $ */
+/* $OpenBSD: clientloop.c,v 1.427 2026/09/16 23:26:41 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2833,7 +2833,7 @@ client_channel_request_agent_forwarding(struct ssh *ssh, int id)
 	int r;
 
 	if (ssh->kex != NULL && (ssh->kex->flags & KEX_HAS_NEWAGENT) != 0)
-		req = "agent-req"; /* XXX RFC XXX */
+		req = "agent-req"; /* RFC 9987 */
 	debug("Requesting agent forwarding on channel %d via %s", id, req);
 	channel_request_start(ssh, id, req, 0);
 	if ((r = sshpkt_send(ssh)) != 0)
