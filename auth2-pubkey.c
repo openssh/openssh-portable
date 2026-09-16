@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.127 2026/07/30 03:37:39 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.128 2026/09/16 00:16:52 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -291,7 +291,19 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 			    (r = ssh_packet_write_wait(ssh)) != 0)
 				fatal_fr(r, "send packet");
 			authctxt->postponed = 1;
-		}
+		} else {
+			/*
+			 * Don't count this as an authentication failure
+			 * unless we have already used up the separate
+			 * max-pk-ok budget (if any).
+			 */
+			if (authctxt->pk_ok_failures++ < options.max_pubkey_ok)
+				authctxt->auth_failure_already_counted = 1;
+			debug3_f("pubkey test %d of %d%s",
+			    authctxt->pk_ok_failures, options.max_pubkey_ok,
+			    authctxt->auth_failure_already_counted ?
+			    "" : ": treating as authentication failure");
+		 }
 	}
 done:
 	if (authenticated == 1 && auth_activate_options(ssh, authopts) != 0) {

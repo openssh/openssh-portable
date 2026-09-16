@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.404 2026/09/16 00:13:58 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.405 2026/09/16 00:16:52 djm Exp $
 .Dd $Mdocdate: September 16 2026 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -1782,9 +1782,10 @@ Sets one or more public key authentication options.
 The supported keywords are:
 .Cm none
 (the default; indicating no additional options are enabled),
-.Cm touch-required
+.Cm touch-required ,
+.Cm verify-required
 and
-.Cm verify-required .
+.Cm max-pk-ok .
 .Pp
 The
 .Cm touch-required
@@ -1812,6 +1813,19 @@ Neither the
 or
 .Cm verify-required
 options have any effect for other, non-FIDO, public key types.
+.Pp
+The
+.Cm max-pk-ok
+option takes a numeric argument separated by a colon character, e.g.
+.Sq max-pk-ok:4
+to specify the number of public key query attempts are permitted
+before the attempts are considered failed authentications that count against
+.Cm MaxAuthTries .
+Public key queries are a SSH protocol mechanism that allow a client to test
+whether a server accepts a given public key before an actual authentication
+attempt, to avoid the need to enter PINs/key passphrases or touch FIDO
+authenticators unnecessarily.
+The default is 6.
 .It Cm PubkeyAuthentication
 Specifies whether public key authentication is allowed.
 The default is
