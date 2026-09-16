@@ -2170,6 +2170,7 @@ AC_CHECK_FUNCS([ \
 	nlist \
 	nsleep \
 	ogetaddrinfo \
+	openat \
 	openlog_r \
 	pledge \
 	poll \
