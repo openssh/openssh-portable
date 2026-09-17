@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.408 2026/09/16 07:47:29 jsg Exp $
-.Dd $Mdocdate: September 16 2026 $
+.\" $OpenBSD: sshd_config.5,v 1.409 2026/09/17 15:27:05 schwarze Exp $
+.Dd $Mdocdate: September 17 2026 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -104,15 +104,16 @@ sockets.
 Sockets may be created in either a shared location or a user-specific
 directory.
 User-specific directories are specified by prefixing the path name with
-.Cm user: .
+.Cm user:\& .
 .Xr sshd 8
 will ensure the directory exists and create the listening socket
 directly in it.
-Relative user-specific directory paths will be created to the user's
-.Ev $HOME .
+Relative user-specific directory paths will be created relative to the user's
+.Pf $ Ev HOME
+directory.
 .Pp
 Shared directories may be specified by prefixing an absolute path name with
-.Cm shared: .
+.Cm shared:\& .
 In this case, a temporary subdirectory will be created under the specified
 directory and the listening agent socket will be created in that.
 .Pp
