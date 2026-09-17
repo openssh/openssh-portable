@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.190 2026/09/16 16:46:07 dtucker Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.191 2026/09/17 18:12:10 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -611,6 +611,7 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag, int no_pin,
 	if ((r = sshsk_load_resident(skprovider, NULL, pin == NULL ? "" : pin,
 	    0, &srks, &nsrks)) != 0) {
 		error_r(r, "Unable to load resident keys");
+		free(pin);
 		return r;
 	}
 	free(pin);
