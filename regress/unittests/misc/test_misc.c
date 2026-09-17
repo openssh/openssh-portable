@@ -462,8 +462,6 @@ test_skip_space(void)
 void
 test_misc(void)
 {
-	mkdir_path("/tmp/foo/bar", 0700);
-	exit(0);
 	test_chop();
 	test_rtrim();
 	test_strprefix();
