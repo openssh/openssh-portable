@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.409 2026/09/17 15:27:05 schwarze Exp $
+.\" $OpenBSD: sshd_config.5,v 1.410 2026/09/17 15:32:07 schwarze Exp $
 .Dd $Mdocdate: September 17 2026 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -655,7 +655,7 @@ The argument must be
 .Cm yes ,
 .Cm delayed
 (a legacy synonym for
-.Cm yes )
+.Cm yes ) ,
 or
 .Cm no .
 The default is
@@ -880,7 +880,7 @@ used by SSH.
 The defaults are
 .Pa /etc/ssh/ssh_host_ecdsa_key ,
 .Pa /etc/ssh/ssh_host_ed25519_key ,
-.Pa /etc/ssh/ssh_host_mldsa44_ed25519_key
+.Pa /etc/ssh/ssh_host_mldsa44_ed25519_key ,
 and
 .Pa /etc/ssh/ssh_host_rsa_key .
 .Pp
@@ -1402,7 +1402,7 @@ Available keywords are
 .Cm TrustedUserCAKeys ,
 .Cm UnusedConnectionTimeout ,
 .Cm X11DisplayOffset ,
-.Cm X11Forwarding
+.Cm X11Forwarding ,
 and
 .Cm X11UseLocalhost .
 .It Cm MaxAuthTries
@@ -1809,7 +1809,7 @@ The supported keywords are:
 .Cm none
 (the default; indicating no additional options are enabled),
 .Cm touch-required ,
-.Cm verify-required
+.Cm verify-required ,
 and
 .Cm max-pk-ok .
 .Pp
@@ -1842,7 +1842,7 @@ options have any effect for other, non-FIDO, public key types.
 .Pp
 The
 .Cm max-pk-ok
-option takes a numeric argument separated by a colon character, e.g.
+option takes a numeric argument separated by a colon character, e.g.\&
 .Sq max-pk-ok:4
 to specify the number of public key query attempts are permitted
 before the attempts are considered failed authentications that count against
@@ -2356,7 +2356,7 @@ OpenSSH is a derivative of the original and free
 ssh 1.2.12 release by
 .An Tatu Ylonen .
 .An Aaron Campbell , Bob Beck , Markus Friedl , Niels Provos ,
-.An Theo de Raadt
+.An Theo de Raadt ,
 and
 .An Dug Song
 removed many bugs, re-added newer features and
