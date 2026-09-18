@@ -1001,6 +1001,16 @@ struct winsize {
 # define USE_MLDSA		1
 #endif
 
+/*
+ * Pure ML-KEM-1024 (mlkem1024-sha384) is backed by the native ML-KEM
+ * implementation in OpenSSL 3.5 and later, via the EVP_PKEY KEM interface.
+ * Only enable it when building against a new enough libcrypto.
+ */
+#if defined(WITH_OPENSSL) && defined(OPENSSL_VERSION_NUMBER) && \
+    OPENSSL_VERSION_NUMBER >= 0x30500000L
+# define USE_MLKEM1024_EVP	1
+#endif
+
 #if defined(HAVE_DECL_INFINITY) && HAVE_DECL_INFINITY == 0
 # if defined(HAVE_DECL___BUILTIN_INFF) && HAVE_DECL___BUILTIN_INFF == 1
 #  define INFINITY __builtin_inff()
