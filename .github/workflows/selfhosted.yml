@@ -40,6 +40,7 @@ jobs:
           - fbsd12
           - fbsd13
           - fbsd14
+          - fbsd15
           - nbsd3
           - nbsd4
           - nbsd8
@@ -85,6 +86,7 @@ jobs:
           - { target: fbsd12, config: pam, host: libvirt }
           - { target: fbsd13, config: pam, host: libvirt }
           - { target: fbsd14, config: pam, host: libvirt }
+          - { target: fbsd15, config: pam, host: libvirt }
           - { target: nbsd8,  config: pam, host: libvirt }
           - { target: nbsd9,  config: pam, host: libvirt }
           - { target: nbsd10, config: pam, host: libvirt }
