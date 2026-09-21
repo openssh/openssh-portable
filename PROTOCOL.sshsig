@@ -50,7 +50,7 @@ draft-ietf-curdle-ssh-ed25519-ed448, etc.
 Verifiers MUST reject signatures with versions greater than those
 they support.
 
-The purpose of the namespace value is to specify a unambiguous
+The purpose of the namespace value is to specify an unambiguous
 interpretation domain for the signature, e.g. file signing.
 This prevents cross-protocol attacks caused by signatures
 intended for one intended domain being accepted in another.
