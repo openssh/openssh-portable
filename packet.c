@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.344 2026/09/22 00:24:47 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.345 2026/09/22 04:38:09 job Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -805,14 +805,13 @@ ssh_packet_init_compression(struct ssh *ssh)
 
 #ifdef WITH_ZLIB
 static int
-start_compression_out(struct ssh *ssh, int level)
+start_compression_out(struct ssh *ssh)
 {
-	if (level < 1 || level > 9)
-		return SSH_ERR_INVALID_ARGUMENT;
-	debug("Enabling compression at level %d.", level);
+	debug("Enabling compression.");
 	if (ssh->state->compression_out_started == 1)
 		deflateEnd(&ssh->state->compression_out_stream);
-	switch (deflateInit(&ssh->state->compression_out_stream, level)) {
+	switch (deflateInit2(&ssh->state->compression_out_stream,
+	    Z_BEST_SPEED, Z_DEFLATED, 15, 8, Z_HUFFMAN_ONLY)) {
 	case Z_OK:
 		ssh->state->compression_out_started = 1;
 		break;
@@ -938,7 +937,7 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 #else	/* WITH_ZLIB */
 
 static int
-start_compression_out(struct ssh *ssh, int level)
+start_compression_out(struct ssh *ssh)
 {
 	return SSH_ERR_INTERNAL_ERROR;
 }
@@ -1044,7 +1043,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		if ((r = ssh_packet_init_compression(ssh)) < 0)
 			return r;
 		if (mode == MODE_OUT) {
-			if ((r = start_compression_out(ssh, 6)) != 0)
+			if ((r = start_compression_out(ssh)) != 0)
 				return r;
 		} else {
 			if ((r = start_compression_in(ssh)) != 0)
@@ -1189,7 +1188,7 @@ ssh_packet_enable_delayed_compress(struct ssh *ssh)
 			if ((r = ssh_packet_init_compression(ssh)) != 0)
 				return r;
 			if (mode == MODE_OUT) {
-				if ((r = start_compression_out(ssh, 6)) != 0)
+				if ((r = start_compression_out(ssh)) != 0)
 					return r;
 			} else {
 				if ((r = start_compression_in(ssh)) != 0)
