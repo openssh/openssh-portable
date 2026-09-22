@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.332 2026/09/16 00:25:50 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.333 2026/09/22 22:30:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2493,7 +2493,8 @@ main(int ac, char **av)
 		socket_name = xstrdup(agentsocket);
 		if ((sock = unix_listener(socket_name,
 		    SSH_LISTEN_BACKLOG, 0)) < 0) {
-			*socket_name = '\0'; /* Don't unlink existing file */
+			free(socket_name);
+			socket_name = NULL; /* Don't unlink existing file */
 			cleanup_exit(1);
 		}
 		umask(prev_mask);
