@@ -37,6 +37,11 @@
 #include "ssh.h"
 #include "ssh_api.h"
 #include "log.h"
+#include "misc.h"
+#include "match.h"
+#include "servconf.h"
+#include <usersec.h>
+#include <userconf.h>
 
 #include <errno.h>
 #if defined(HAVE_NETDB_H)
@@ -407,6 +412,43 @@ aix_krb5_get_principal_name(const char *const_pw_name)
 	return principal;
 }
 # endif /* USE_AIX_KRB_NAME */
+
+# ifdef USE_PAM
+/*
+ * Adjust options.use_pam based on the AIX system authentication type
+ * (SC_AUTHTYPE attribute of SC_SYS_LOGIN).  This must be called early,
+ * before authentication begins, so that both the PAM auth stack and the
+ * PAM session/setcred calls are either both active or both inactive.
+ *
+ * PAM is used only when the system is configured for PAM_AUTH *and*
+ * sshd_config has UsePAM yes.  In all other combinations PAM is disabled
+ * so that the auth and session phases remain consistent.
+ */
+int
+aix_set_use_pam(int use_pam)
+{
+	int retval;
+	dbattr_t *authType = NULL;
+
+	retval = getconfattr(SC_SYS_LOGIN, SC_AUTHTYPE, &authType, SEC_CHAR);
+	if (retval != 0 || authType == NULL) {
+		error("AIX getconfattr(SC_AUTHTYPE) failed (ret=%d, errno=%d: %s, "
+		    "authtype=%s): using sshd_config UsePAM setting",
+		    retval, errno, strerror(errno),
+		    authType != NULL ? authType : "(null)");
+		return use_pam;
+	}
+	debug3("AIX system authtype: %s", authType);
+	/*
+	 * Enable PAM only when SC_AUTHTYPE is PAM_AUTH *and* UsePAM is set;
+	 * disable it in every other combination so auth and session are
+	 * handled consistently.
+	 */
+	use_pam = (strcmp(authType, "PAM_AUTH") == 0 && use_pam) ? 1 : 0;
+	debug3("options.use_pam set to %d based on AIX authtype", use_pam);
+	return use_pam;
+}
+# endif /* USE_PAM */
 
 # if defined(AIX_GETNAMEINFO_HACK) && !defined(BROKEN_ADDRINFO)
 # undef getnameinfo
