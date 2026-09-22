@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.345 2026/09/22 04:38:09 job Exp $ */
+/* $OpenBSD: packet.c,v 1.346 2026/09/22 22:51:43 job Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -913,6 +913,8 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 			if ((r = sshbuf_put(out, buf, sizeof(buf) -
 			    ssh->state->compression_in_stream.avail_out)) != 0)
 				return r;
+			if (sshbuf_len(out) >= PACKET_MAX_SIZE)
+				return SSH_ERR_INVALID_FORMAT;
 			break;
 		case Z_BUF_ERROR:
 			/*
