@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.41 2025/12/07 02:59:53 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.42 2026/09/22 03:26:32 djm Exp $
 #	Placed in the Public Domain.
 
 tid="connection multiplexing"
@@ -47,6 +47,24 @@ EOF
 if [ $? -ne 0 ]; then
 	fail "environment not found"
 fi
+
+start_auto_mux_master()
+{
+	trace "start master (with ControlMaster=auto), fork to background"
+	${SSH} -Nn2 -o ControlMaster=auto -S$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost \
+	    -E $TEST_REGRESS_LOGFILE 2>&1 &
+	# NB. $SSH_PID will be killed by test-exec.sh:cleanup on fatal errors.
+	SSH_PID=$!
+	sleep 2
+	wait_for_mux_master_ready
+}
+
+verbose "test $tid: stale control socket"
+trace "correctly handle stale control socket"
+kill -9 ${SSH_PID} 2>/dev/null
+wait ${SSH_PID}
+test -e "$CTL" || fail "control socket did not remain (after killing ssh command)"
+start_auto_mux_master
 
 verbose "test $tid: envpass"
 trace "env passing over multiplexed connection"
@@ -195,6 +213,7 @@ ${SSH} -F $OBJ/ssh_config -S $CTL -Oexit otherhost >>$TEST_REGRESS_LOGFILE 2>&1 
 # Wait for master to exit
 wait $SSH_PID
 kill -0 $SSH_PID >/dev/null 2>&1 && fail "exit command failed"
+test ! -e "$CTL" || fail "control socket still exists after exit command"
 
 # Enable compression and alternative kex for next conninfo test.
 if $SSH -Q compression | grep zlib@openssh.com >/dev/null; then
