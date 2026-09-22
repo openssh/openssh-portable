@@ -37,6 +37,16 @@ struct test_state {
 	struct sshbuf *s_template, *c_template; /* main copy of input */
 };
 
+/*
+ * Optional proposal overrides applied to both sides. Each field
+ * replaces one KEXINIT slot when non-NULL.
+ */
+struct kex_overrides {
+	const char *cipher;
+	const char *mac;
+	const char *comp;
+};
+
 static int
 do_send_and_receive(struct ssh *from, struct ssh *to,
     struct sshbuf *store, int clobber, size_t *n)
@@ -171,15 +181,48 @@ get_privkey(struct shared_state *st, int keytype)
 }
 
 static int
+build_proposal_side(char **out, const char *defaults[PROPOSAL_MAX],
+    const char *kex, const char *keyname,
+    const char *cipher, const char *mac, const char *comp)
+{
+	int i;
+	for (i = 0; i < PROPOSAL_MAX; i++) {
+		const char *ccp = defaults[i];
+#ifdef CIPHER_NONE_AVAIL
+		if (i == PROPOSAL_ENC_ALGS_CTOS ||
+		    i == PROPOSAL_ENC_ALGS_STOC)
+			ccp = "none";
+#endif
+		if (i == PROPOSAL_SERVER_HOST_KEY_ALGS)
+			ccp = keyname;
+		else if (i == PROPOSAL_KEX_ALGS && kex != NULL)
+			ccp = kex;
+		else if ((i == PROPOSAL_ENC_ALGS_CTOS ||
+		    i == PROPOSAL_ENC_ALGS_STOC) && cipher != NULL)
+			ccp = cipher;
+		else if ((i == PROPOSAL_MAC_ALGS_CTOS ||
+		    i == PROPOSAL_MAC_ALGS_STOC) && mac != NULL)
+			ccp = mac;
+		else if ((i == PROPOSAL_COMP_ALGS_CTOS ||
+		    i == PROPOSAL_COMP_ALGS_STOC) && comp != NULL)
+			ccp = comp;
+		if ((out[i] = strdup(ccp)) == NULL)
+			return -1;
+	}
+	return 0;
+}
+
+static int
 do_kex_with_key(struct shared_state *st, struct test_state *ts,
-    const char *kex, int keytype)
+    const char *kex, int keytype, const struct kex_overrides *ov)
 {
 	struct ssh *client = NULL, *server = NULL;
 	struct sshkey *privkey = NULL, *pubkey = NULL;
 	struct sshbuf *state = NULL;
 	struct kex_params kex_params;
-	const char *ccp, *proposal[PROPOSAL_MAX] = { KEX_CLIENT };
-	char *myproposal[PROPOSAL_MAX] = {0}, *keyname = NULL;
+	const char *proposal[PROPOSAL_MAX] = { KEX_CLIENT };
+	char *myproposal[PROPOSAL_MAX] = {0};
+	char *keyname = NULL;
 	int i, r;
 
 	ts->cin = ts->sin = NULL;
@@ -202,20 +245,13 @@ do_kex_with_key(struct shared_state *st, struct test_state *ts,
 	} else
 		debug_f("%s %s noclobber", kex, keyname);
 
-	for (i = 0; i < PROPOSAL_MAX; i++) {
-		ccp = proposal[i];
-#ifdef CIPHER_NONE_AVAIL
-		if (i == PROPOSAL_ENC_ALGS_CTOS || i == PROPOSAL_ENC_ALGS_STOC)
-			ccp = "none";
-#endif
-		if (i == PROPOSAL_SERVER_HOST_KEY_ALGS)
-			ccp = keyname;
-		else if (i == PROPOSAL_KEX_ALGS && kex != NULL)
-			ccp = kex;
-		if ((myproposal[i] = strdup(ccp)) == NULL) {
-			error_f("strdup prop %d", i);
-			goto fail;
-		}
+	if (build_proposal_side(myproposal, proposal, kex, keyname,
+	    ov ? ov->cipher : NULL,
+	    ov ? ov->mac : NULL,
+	    ov ? ov->comp : NULL) != 0) {
+		error_f("build proposal");
+		r = SSH_ERR_ALLOC_FAIL;
+		goto fail;
 	}
 	memcpy(kex_params.proposal, myproposal, sizeof(myproposal));
 	if ((r = ssh_init(&client, 0, &kex_params)) != 0) {
@@ -322,6 +358,7 @@ int main(void)
 	struct test_state *ts;
 	const int keytypes[] = { KEY_RSA, KEY_ECDSA, KEY_ED25519, -1 };
 	static const char * const kextypes[] = {
+		"mlkem768x25519-sha256",
 		"sntrup761x25519-sha512@openssh.com",
 		"curve25519-sha256@libssh.org",
 		"ecdh-sha2-nistp256",
@@ -345,7 +382,7 @@ int main(void)
 			ts = (struct test_state *)xcalloc(1, sizeof(*ts));
 			ts->smsgs = sshbuf_new();
 			ts->cmsgs = sshbuf_new();
-			do_kex_with_key(st, ts, kextypes[j], keytypes[i]);
+			do_kex_with_key(st, ts, kextypes[j], keytypes[i], NULL);
 			xasprintf(&path, "S2C-%s-%s",
 			    kextypes[j], sshkey_type(st->pubkeys[keytypes[i]]));
 			debug_f("%s", path);
@@ -393,19 +430,68 @@ int main(void)
 static void
 do_kex(struct shared_state *st, struct test_state *ts, const char *kex)
 {
-	do_kex_with_key(st, ts, kex, KEY_RSA);
-	do_kex_with_key(st, ts, kex, KEY_ECDSA);
-	do_kex_with_key(st, ts, kex, KEY_ED25519);
+	do_kex_with_key(st, ts, kex, KEY_RSA, NULL);
+	do_kex_with_key(st, ts, kex, KEY_ECDSA, NULL);
+	do_kex_with_key(st, ts, kex, KEY_ED25519, NULL);
+}
+
+/*
+ * Run one full KEX per variant on the cheapest kex+key combo
+ * (curve25519 + ed25519) so cipher/MAC/compression/mismatch paths get
+ * exercised once per fuzz input without multiplying total attempts.
+ */
+static void
+kex_extras(struct shared_state *st, struct test_state *ts)
+{
+	static const char * const ciphers[] = {
+		"chacha20-poly1305@openssh.com",
+		"aes256-gcm@openssh.com",
+		"aes128-ctr",
+		"aes256-ctr",
+		NULL,
+	};
+	static const char * const macs[] = {
+		"hmac-sha2-256-etm@openssh.com",
+		"hmac-sha2-512-etm@openssh.com",
+		"umac-128-etm@openssh.com",
+		NULL,
+	};
+	static const char * const comps[] = {
+		"zlib@openssh.com",
+		"zlib",
+		NULL,
+	};
+	const char *kex = "curve25519-sha256@libssh.org";
+	int i;
+
+	for (i = 0; ciphers[i] != NULL; i++) {
+		struct kex_overrides ov = { 0 };
+		ov.cipher = ciphers[i];
+		do_kex_with_key(st, ts, kex, KEY_ED25519, &ov);
+	}
+	for (i = 0; macs[i] != NULL; i++) {
+		struct kex_overrides ov = { 0 };
+		ov.cipher = "aes128-ctr";
+		ov.mac = macs[i];
+		do_kex_with_key(st, ts, kex, KEY_ED25519, &ov);
+	}
+	for (i = 0; comps[i] != NULL; i++) {
+		struct kex_overrides ov = { 0 };
+		ov.comp = comps[i];
+		do_kex_with_key(st, ts, kex, KEY_ED25519, &ov);
+	}
 }
 
 static void
 kex_tests(struct shared_state *st, struct test_state *ts)
 {
+	do_kex(st, ts, "mlkem768x25519-sha256");
 	do_kex(st, ts, "sntrup761x25519-sha512@openssh.com");
 	do_kex(st, ts, "curve25519-sha256@libssh.org");
 	do_kex(st, ts, "ecdh-sha2-nistp256");
 	do_kex(st, ts, "diffie-hellman-group1-sha1");
 	do_kex(st, ts, "diffie-hellman-group-exchange-sha1");
+	kex_extras(st, ts);
 }
 
 int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
