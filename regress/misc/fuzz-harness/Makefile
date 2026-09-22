@@ -13,7 +13,7 @@ SK_NULL_OBJS=ssh-sk-null.o
 COMMON_DEPS=../../../libssh.a $(COMMON_OBJS)
 
 TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
-	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz \
+	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz sk_sign_fuzz \
 	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz
 
 all: $(TARGETS)
@@ -52,6 +52,20 @@ agent_fuzz: agent_fuzz.o agent_fuzz_helper.o sk-dummy.o ../../../ssh-sk.o $(COMM
 	$(CXX) -o $@ agent_fuzz.o agent_fuzz_helper.o sk-dummy.o ../../../ssh-sk.o $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
 
 agent_fuzz_helper.o: agent_fuzz_helper.c ../../../ssh-agent.c
+
+# Links the real sk-usbhid.c against libfido2/libcbor, with its single
+# fido_dev_new() call redirected to fuzz_fido_dev_new() (see
+# sk_sign_fuzz.cc) so it talks to a fake HID transport instead of real
+# hardware. ssh-sk-null.o supplies the sshsk_sign()/sshsk_enroll()/
+# sshsk_load_resident() stubs that sshkey.o needs at link time (our
+# harness calls sk_sign() directly, not sshsk_sign()).
+sk_sign_fuzz: sk_sign_fuzz.o sk-usbhid-fuzz.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ sk_sign_fuzz.o sk-usbhid-fuzz.o $(SK_NULL_OBJS) $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS)
+
+sk-usbhid-fuzz.o: ../../../sk-usbhid.c
+	$(CC) $(CFLAGS) -DENABLE_SK_INTERNAL -DSK_STANDALONE \
+	    -Dfido_dev_new=fuzz_fido_dev_new \
+	    -c -o $@ ../../../sk-usbhid.c $(FUZZ_FLAGS)
 
 sk-dummy.o: ../sk-dummy/sk-dummy.c
 	$(CC) $(CFLAGS) -c -o $@ ../sk-dummy/sk-dummy.c -DSK_DUMMY_INTEGRATE=1 $(LDFLAGS) $(FUZZ_FLAGS)
