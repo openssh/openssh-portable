@@ -1,4 +1,4 @@
-/* $OpenBSD: misc-agent.c,v 1.10 2026/09/16 07:47:29 jsg Exp $ */
+/* $OpenBSD: misc-agent.c,v 1.11 2026/09/22 22:29:27 djm Exp $ */
 /*
  * Copyright (c) 2025 Damien Miller <djm@mindrot.org>
  *
@@ -321,7 +321,7 @@ int
 agent_listener_cleanup(const char *pathspec, const char *sockpath,
     const char *sockdir)
 {
-	if (sockpath == NULL || pathspec == NULL)
+	if (sockpath == NULL)
 		return 0;
 	if (unlink(sockpath) != 0) {
 		error_f("unlink \"%s\": %s", sockpath, strerror(errno));
@@ -329,6 +329,8 @@ agent_listener_cleanup(const char *pathspec, const char *sockpath,
 	}
 	debug3_f("removed socket %s", sockpath);
 
+	if (pathspec == NULL)
+		return 0;
 	if (strncmp(pathspec, "shared:", 7) == 0 && sockdir != NULL) {
 		if (rmdir(sockdir) != 0) {
 			error_f("rmdir \"%s\": %s", sockdir, strerror(errno));
