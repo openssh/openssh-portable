@@ -12398,6 +12398,16 @@ then :
 
 fi
 
+	ac_fn_check_decl "$LINENO" "kSBXProfilePureComputation" "ac_cv_have_decl_kSBXProfilePureComputation" "#include <sandbox.h>
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_kSBXProfilePureComputation" = xyes
+then :
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
+fi
+printf "%s\n" "#define HAVE_DECL_KSBXPROFILEPURECOMPUTATION $ac_have_decl" >>confdefs.h
+
 	# proc_pidinfo()-based closefrom() replacement.
 	ac_fn_c_check_header_compile "$LINENO" "libproc.h" "ac_cv_header_libproc_h" "$ac_includes_default"
 if test "x$ac_cv_header_libproc_h" = xyes
@@ -12955,9 +12965,6 @@ fi
 printf "%s\n" "#define SSH_TUN_PREPEND_AF 1" >>confdefs.h
 
 	TEST_MALLOC_OPTIONS="AJRX"
-
-printf "%s\n" "#define BROKEN_READ_COMPARISON 1" >>confdefs.h
-
 	;;
 *-*-freebsd*)
 
@@ -21119,10 +21126,12 @@ fi
 
 if test "x$sandbox_arg" = "xdarwin" || \
      ( test -z "$sandbox_arg" && test "x$ac_cv_func_sandbox_init" = "xyes" && \
-       test "x$ac_cv_header_sandbox_h" = "xyes") ; then
+       test "x$ac_cv_header_sandbox_h" = "xyes" && \
+       test "x$ac_cv_have_decl_kSBXProfilePureComputation" = "xyes") ; then
 	test "x$ac_cv_func_sandbox_init" != "xyes" -o \
-	     "x$ac_cv_header_sandbox_h" != "xyes" && \
-		as_fn_error $? "Darwin seatbelt sandbox requires sandbox.h and sandbox_init function" "$LINENO" 5
+	     "x$ac_cv_header_sandbox_h" != "xyes" -o \
+	     "x$ac_cv_have_decl_kSBXProfilePureComputation" != "xyes" && \
+		as_fn_error $? "Darwin seatbelt sandbox requires sandbox.h, sandbox_init() and kSBXProfilePureComputation" "$LINENO" 5
 	SANDBOX_STYLE="darwin"
 
 printf "%s\n" "#define SANDBOX_DARWIN 1" >>confdefs.h

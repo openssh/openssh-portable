@@ -50,10 +50,6 @@
 /* Can't do comparisons on readv */
 #undef BROKEN_READV_COMPARISON
 
-/* NetBSD read function is sometimes redirected, breaking atomicio comparisons
-   against it */
-#undef BROKEN_READ_COMPARISON
-
 /* Needed for NeXT */
 #undef BROKEN_SAVED_UIDS
 
@@ -381,6 +377,10 @@
 /* Define to 1 if you have the declaration of `INFINITY', and to 0 if you
    don't. */
 #undef HAVE_DECL_INFINITY
+
+/* Define to 1 if you have the declaration of `kSBXProfilePureComputation',
+   and to 0 if you don't. */
+#undef HAVE_DECL_KSBXPROFILEPURECOMPUTATION
 
 /* Define to 1 if you have the declaration of `le32toh', and to 0 if you
    don't. */
