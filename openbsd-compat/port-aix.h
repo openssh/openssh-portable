@@ -99,6 +99,7 @@ char *sys_auth_get_lastlogin_msg(const char *, uid_t);
 # define USE_AIX_KRB_NAME
 char *aix_krb5_get_principal_name(const char *);
 # endif
+extern int passwdexpiredx(char *, char **, void **);
 #endif
 
 void aix_setauthdb(const char *);
