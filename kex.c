@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.195 2026/09/16 00:29:44 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.196 2026/09/22 00:24:47 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -1473,7 +1473,7 @@ kex_exchange_identification(struct ssh *ssh, int timeout_ms,
  out:
 	free(our_version_string);
 	free(peer_version_string);
-	free(remote_version);
+	ssh->remote_version = remote_version;  /* transferred */
 	if (r == SSH_ERR_SYSTEM_ERROR)
 		errno = oerrno;
 	return r;

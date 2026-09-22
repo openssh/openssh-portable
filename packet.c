@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.343 2026/09/16 00:29:44 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.344 2026/09/22 00:24:47 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -87,6 +87,7 @@
 #include "packet.h"
 #include "ssherr.h"
 #include "sshbuf.h"
+#include "version.h"
 
 #ifdef PACKET_DEBUG
 #define DBG(x) x
@@ -3104,6 +3105,7 @@ connection_info_message(struct ssh *ssh)
 	comp_info = comp_status_message(ssh);
 
 	xasprintf(&ret, "Connection information for %s pid %lld\r\n"
+	    "  versions %s -> %s\r\n"
 	    "%s"
 	    "  duration %s\r\n"
 	    "  kexalgorithm %s\r\n  hostkeyalgorithm %s\r\n"
@@ -3112,6 +3114,7 @@ connection_info_message(struct ssh *ssh)
 	    "  traffic %s in, %s out\r\n"
 	    "%s",
 	    thishost, (long long)getpid(),
+	    SSH_RELEASE, ssh->remote_version,
 	    tcp_info,
 	    fmt_timeframe(monotime() - state->start_time),
 	    kex->name, kex->hostkey_alg,
