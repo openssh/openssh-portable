@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.h,v 1.42 2026/09/22 03:22:00 djm Exp $ */
+/* $OpenBSD: clientloop.h,v 1.43 2026/09/23 21:42:39 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -78,7 +78,6 @@ void client_expect_confirm(struct ssh *, int, const char *,
 #define SSHMUX_COMMAND_CONNINFO		9	/* Show connection information */
 #define SSHMUX_COMMAND_CHANINFO		10	/* Show channels information */
 
-int	muxserver(const char *);
 void	muxserver_listen(struct ssh *);
 int	muxclient(const char *);
 void	mux_exit_message(struct ssh *, Channel *, int);

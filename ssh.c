@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.641 2026/09/22 03:22:00 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.642 2026/09/23 21:42:39 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1634,11 +1634,7 @@ main(int ac, char **av)
 		fatal("No ControlPath specified for \"-O\" command");
 	if (options.control_path != NULL) {
 		int sock;
-
-		if (muxclient_command == 0 &&
-		    (sock = muxserver(options.control_path)) >= 0) {
-			debug("We will be multiplex master, not client.");
-		} else if ((sock = muxclient(options.control_path)) >= 0) {
+		if ((sock = muxclient(options.control_path)) >= 0) {
 			if (ssh_packet_set_connection(ssh, sock, sock) == NULL)
 				fatal("ssh_packet_set_connection failed");
 			ssh_packet_set_mux(ssh);

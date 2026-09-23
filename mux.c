@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.115 2026/09/22 03:22:00 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.116 2026/09/23 21:42:39 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1315,20 +1315,21 @@ mux_tty_alloc_failed(struct ssh *ssh, Channel *c)
 	sshbuf_free(m);
 }
 
-/*
- * Create a listening Unix domain socket for mux master or find out that
- * one exists already.
- */
-int
-muxserver(const char *path)
+/* Prepare a mux master to listen on a Unix domain socket. */
+void
+muxserver_listen(struct ssh *ssh)
 {
 	mode_t old_umask;
-	char *tmp_path;
+	char *orig_control_path = options.control_path;
 	char rbuf[16+1];
 	u_int i, r;
 	int oerrno;
 
-	debug("trying to setup multiplex master socket at %s", path);
+	if (options.control_path == NULL ||
+	    options.control_master == SSHCTL_MASTER_NO)
+		return;
+
+	debug("setting up multiplex master socket");
 
 	/*
 	 * Use a temporary path before listen so we can pseudo-atomically
@@ -1343,53 +1344,51 @@ muxserver(const char *path)
 		    '0' + r - 26 - 26;
 	}
 	rbuf[sizeof(rbuf) - 1] = '\0';
-	xasprintf(&tmp_path, "%s.%s", path, rbuf);
-	debug3_f("temporary control path %s", tmp_path);
+	options.control_path = NULL;
+	xasprintf(&options.control_path, "%s.%s", orig_control_path, rbuf);
+	debug3_f("temporary control path %s", options.control_path);
 
 	old_umask = umask(0177);
-	muxserver_sock = unix_listener(tmp_path, 64, 0);
+	muxserver_sock = unix_listener(options.control_path, 64, 0);
 	oerrno = errno;
 	umask(old_umask);
 	if (muxserver_sock < 0) {
 		if (oerrno == EINVAL || oerrno == EADDRINUSE) {
-			error("Temporary ControlSocket %s already exists", tmp_path);
-			free(tmp_path);
-			return -1;
+			error("ControlSocket %s already exists, "
+			    "disabling multiplexing", options.control_path);
+ disable_mux_master:
+			if (muxserver_sock != -1) {
+				close(muxserver_sock);
+				muxserver_sock = -1;
+			}
+			free(orig_control_path);
+			free(options.control_path);
+			options.control_path = NULL;
+			options.control_master = SSHCTL_MASTER_NO;
+			return;
 		} else {
 			/* unix_listener() logs the error */
 			cleanup_exit(255);
 		}
 	}
-	set_nonblock(muxserver_sock);
 
 	/* Now atomically "move" the mux socket into position */
-	if (link(tmp_path, path) != 0) {
+	if (link(options.control_path, orig_control_path) != 0) {
 		if (errno != EEXIST) {
 			fatal_f("link mux listener %s => %s: %s",
-			    tmp_path, path,
+			    options.control_path, orig_control_path,
 			    strerror(errno));
 		}
-		debug("ControlSocket %s already exists", path);
-		close(muxserver_sock);
-		muxserver_sock = -1;
+		error("ControlSocket %s already exists, disabling multiplexing",
+		    orig_control_path);
+		unlink(options.control_path);
+		goto disable_mux_master;
 	}
-	unlink(tmp_path);
-	free(tmp_path);
-	return muxserver_sock;
-}
+	unlink(options.control_path);
+	free(options.control_path);
+	options.control_path = orig_control_path;
 
-/* Prepare a mux master to listen on the previously created Unix domain socket. */
-void
-muxserver_listen(struct ssh *ssh)
-{
-	if (options.control_path == NULL ||
-	    options.control_master == SSHCTL_MASTER_NO)
-		return;
-
-	debug("setting up multiplex master socket");
-	if (muxserver_sock < 0) {
-		muxserver_sock = muxserver(options.control_path);
-	}
+	set_nonblock(muxserver_sock);
 
 	mux_listener_channel = channel_new(ssh, "mux listener",
 	    SSH_CHANNEL_MUX_LISTENER, muxserver_sock, muxserver_sock, -1,
