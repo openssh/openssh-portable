@@ -14,7 +14,8 @@ COMMON_DEPS=../../../libssh.a $(COMMON_OBJS)
 
 TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz authkeys_fuzz sshsig_fuzz \
 	sshsigopt_fuzz privkey_fuzz kex_fuzz agent_fuzz \
-	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz
+	mkcorpus_sntrup761 sntrup761_enc_fuzz sntrup761_dec_fuzz \
+	mux_fuzz
 
 all: $(TARGETS)
 
@@ -64,6 +65,11 @@ sntrup761_dec_fuzz: sntrup761_dec_fuzz.o
 
 sntrup761_enc_fuzz: sntrup761_enc_fuzz.o
 	$(CXX) -o $@ sntrup761_enc_fuzz.o $(LDFLAGS) $(FUZZ_FLAGS) $(FUZZ_LIBS) -lcrypto
+
+mux_fuzz: mux_fuzz.o mux_fuzz_helper.o $(SK_NULL_OBJS) $(COMMON_DEPS)
+	$(CXX) -o $@ mux_fuzz.o mux_fuzz_helper.o $(SK_NULL_OBJS) ../../../readconf.o -Wl,--wrap=ssh_packet_disconnect,--wrap=sshpkt_fatal,--wrap=ask_permission,--wrap=channel_setup_local_fwd_listener,--wrap=channel_connect_stdio_fwd,--wrap=channel_request_remote_forwarding,--wrap=channel_request_rforward_cancel,--wrap=channel_cancel_lport_listener $(LDFLAGS) $(FUZZ_FLAGS) $(LIBS) -lz
+
+mux_fuzz_helper.o: mux_fuzz_helper.c ../../../mux.c
 
 clean:
 	-rm -f *.o $(TARGETS)
