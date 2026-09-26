@@ -47,6 +47,8 @@
 
 #if !defined (HAVE_GETRRSETBYNAME) && defined (HAVE_LDNS)
 
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -58,6 +60,70 @@
 
 #define malloc(x)	(xmalloc(x))
 #define calloc(x, y)	(xcalloc((x),(y)))
+
+#ifdef LDNS_TRUST_ANCHOR_FILE
+/*
+ * Add the DNSKEY and DS records in LDNS_TRUST_ANCHOR_FILE to the resolver's
+ * DNSSEC trust anchors.
+ */
+static void
+load_trust_anchors(ldns_resolver *ldns_res)
+{
+	FILE *f;
+	ldns_rr *rr;
+	ldns_rdf *origin = NULL, *prev = NULL;
+	ldns_status err;
+	uint32_t ttl = 0;
+	int line_nr = 0, nanchors = 0;
+
+	debug2("ldns: loading trust anchors from %s", LDNS_TRUST_ANCHOR_FILE);
+	if ((f = fopen(LDNS_TRUST_ANCHOR_FILE, "r")) == NULL) {
+		logit("ldns: cannot open trust anchor file %s: %s",
+		    LDNS_TRUST_ANCHOR_FILE, strerror(errno));
+		return;
+	}
+
+	while (!feof(f) && !ferror(f)) {
+		rr = NULL;
+		err = ldns_rr_new_frm_fp_l(&rr, f, &ttl, &origin, &prev,
+		    &line_nr);
+		switch (err) {
+		case LDNS_STATUS_OK:
+			break;
+		case LDNS_STATUS_SYNTAX_EMPTY:
+		case LDNS_STATUS_SYNTAX_TTL:
+		case LDNS_STATUS_SYNTAX_ORIGIN:
+			continue;
+		default:
+			logit("ldns: %s line %d: error parsing trust anchor: %s",
+			    LDNS_TRUST_ANCHOR_FILE, line_nr,
+			    ldns_get_errorstr_by_id(err));
+			continue;
+		}
+
+		if (ldns_resolver_push_dnssec_anchor(ldns_res, rr) ==
+		    LDNS_STATUS_OK) {
+			debug2("ldns: added DNSSEC trust anchor");
+			nanchors++;
+		} else {
+			debug2("ldns: %s line %d: skipping record: "
+			    "not DNSKEY or DS", LDNS_TRUST_ANCHOR_FILE, line_nr);
+		}
+		ldns_rr_free(rr);
+	}
+
+	if (ferror(f))
+		logit("ldns: error reading trust anchor file %s",
+		    LDNS_TRUST_ANCHOR_FILE);
+	if (nanchors == 0)
+		logit("ldns: no DNSSEC trust anchors loaded from %s",
+		    LDNS_TRUST_ANCHOR_FILE);
+
+	ldns_rdf_deep_free(origin);
+	ldns_rdf_deep_free(prev);
+	fclose(f);
+}
+#endif /* LDNS_TRUST_ANCHOR_FILE */
 
 int
 getrrsetbyname(const char *hostname, unsigned int rdclass,
@@ -151,6 +217,9 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 		rrset->rri_flags |= RRSET_VALIDATED;
 	} else { /* AD is not set, try autonomous validation */
 		ldns_rr_list * trusted_keys = ldns_rr_list_new();
+#ifdef LDNS_TRUST_ANCHOR_FILE
+		load_trust_anchors(ldns_res);
+#endif
 
 		debug2("ldns: trying to validate RRset");
 		/* Get eventual sigs */
