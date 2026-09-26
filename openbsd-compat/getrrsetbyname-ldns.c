@@ -216,7 +216,6 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	if (ldns_pkt_ad(pkt)) {
 		rrset->rri_flags |= RRSET_VALIDATED;
 	} else { /* AD is not set, try autonomous validation */
-		ldns_rr_list * trusted_keys = ldns_rr_list_new();
 #ifdef LDNS_TRUST_ANCHOR_FILE
 		load_trust_anchors(ldns_res);
 #endif
@@ -230,16 +229,14 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 		debug2("ldns: got %u signature(s) (RRTYPE %u) from DNS",
 		       rrset->rri_nsigs, LDNS_RR_TYPE_RRSIG);
 
-		if ((err = ldns_verify_trusted(ldns_res, rrdata, rrsigs,
-		     trusted_keys)) == LDNS_STATUS_OK) {
+		if ((err = ldns_verify_trusted(ldns_res, rrdata, rrsigs, NULL))
+				== LDNS_STATUS_OK) {
 			rrset->rri_flags |= RRSET_VALIDATED;
 			debug2("ldns: RRset is signed with a valid key");
 		} else {
 			debug2("ldns: RRset validation failed: %s",
 			    ldns_get_errorstr_by_id(err));
 		}
-
-		ldns_rr_list_deep_free(trusted_keys);
 	}
 
 	/* allocate memory for answers */
