@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.259 2026/09/15 08:17:57 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.260 2026/10/01 03:11:49 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -699,9 +699,15 @@ process_get(struct sftp_conn *conn, const char *src, const char *dst,
 			goto out;
 		}
 
-		/* Special handling for dest of '..' */
-		if (strcmp(filename, "..") == 0)
-			filename = "."; /* Download to dest, not dest/.. */
+		/*
+		 * Special handling for destinations of '..' and remote roots.
+		 * In particular, never select the local root as an implicit
+		 * destination for a remote root.
+		 */
+		if (strcmp(filename, "..") == 0 ||
+		    (filename[0] != '\0' &&
+		    filename[strspn(filename, "/")] == '\0'))
+			filename = ".";
 
 		if (g.gl_matchc == 1 && dst) {
 			if (local_is_dir(dst)) {
