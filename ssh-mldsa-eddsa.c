@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-mldsa-eddsa.c,v 1.6 2026/09/16 00:43:00 djm Exp $ */
+/* $OpenBSD: ssh-mldsa-eddsa.c,v 1.7 2026/10/01 04:17:39 djm Exp $ */
 /*
  * Copyright (c) 2026 Damien Miller <djm@mindrot.org>
  *
@@ -470,7 +470,7 @@ const struct sshkey_impl sshkey_mldsa44_ed25519_impl = {
 	/* .nid = */		0,
 	/* .cert = */		0,
 	/* .sigonly = */	0,
-	/* .keybits = */	256,
+	/* .keybits = */	512, /* size of the private key */
 	/* .funcs = */		&sshkey_mldsa44_ed25519_funcs,
 };
 
@@ -482,7 +482,7 @@ const struct sshkey_impl sshkey_mldsa44_ed25519_cert_impl = {
 	/* .nid = */		0,
 	/* .cert = */		1,
 	/* .sigonly = */	0,
-	/* .keybits = */	256,
+	/* .keybits = */	512, /* size of the private key */
 	/* .funcs = */		&sshkey_mldsa44_ed25519_funcs,
 };
 #endif /* USE_MLDSA */
