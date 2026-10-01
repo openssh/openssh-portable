@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.164 2026/09/16 00:31:27 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.165 2026/10/01 07:07:49 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -72,7 +72,8 @@
 #define AUTH_MAGIC		"openssh-key-v1"
 #define SALT_LEN		16
 #define DEFAULT_CIPHERNAME	"aes256-ctr"
-#define	DEFAULT_ROUNDS		24
+#define	DEFAULT_ROUNDS		32
+#define	MAX_KDF_ROUNDS		(1<<20)
 
 /*
  * Constants relating to "shielding" support; protection of keys expected
@@ -2862,6 +2863,10 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 
 	if (rounds <= 0)
 		rounds = DEFAULT_ROUNDS;
+	if (rounds > MAX_KDF_ROUNDS) {
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
 	if (passphrase == NULL || !strlen(passphrase)) {
 		ciphername = "none";
 		kdfname = "none";
@@ -3126,6 +3131,10 @@ private2_decrypt(struct sshbuf *decoded, const char *passphrase,
 		if ((r = sshbuf_get_string(kdf, &salt, &slen)) != 0 ||
 		    (r = sshbuf_get_u32(kdf, &rounds)) != 0)
 			goto out;
+		if (rounds > MAX_KDF_ROUNDS) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
 		if (bcrypt_pbkdf(passphrase, strlen(passphrase), salt, slen,
 		    key, keylen + ivlen, rounds) < 0) {
 			r = SSH_ERR_INVALID_FORMAT;
