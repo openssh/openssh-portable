@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.130 2026/09/16 07:47:29 jsg Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.131 2026/10/01 02:01:51 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -292,10 +292,6 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		if ((r = sshpkt_get_end(ssh)) != 0)
 			fatal_fr(r, "parse packet");
 
-		if (!authctxt->valid || authctxt->user == NULL) {
-			debug2_f("disabled because of invalid user");
-			goto done;
-		}
 		/* XXX fake reply and always send PK_OK ? */
 		/*
 		 * XXX this allows testing whether a user is allowed
@@ -304,7 +300,8 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		 * if a user is not allowed to login. is this an
 		 * issue? -markus
 		 */
-		if (mm_user_key_allowed(ssh, pw, key, 0, NULL)) {
+		if (authctxt->valid && authctxt->user != NULL &&
+		    mm_user_key_allowed(ssh, pw, key, 0, NULL)) {
 			if ((r = sshpkt_start(ssh, SSH2_MSG_USERAUTH_PK_OK))
 			    != 0 ||
 			    (r = sshpkt_put_cstring(ssh, pkalg)) != 0 ||
@@ -314,6 +311,11 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 				fatal_fr(r, "send packet");
 			authctxt->postponed = 1;
 		} else {
+			/*
+			 * NB. invalid users must be accounted for in exactly
+			 * the same way as valid users whose key was refused,
+			 * otherwise MaxAuthTries becomes a username oracle.
+			 */
 			/*
 			 * Don't count this as an authentication failure
 			 * unless we have already used up the separate
