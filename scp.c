@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.277 2026/09/27 22:39:40 dtucker Exp $ */
+/* $OpenBSD: scp.c,v 1.278 2026/10/01 07:10:56 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -511,6 +511,8 @@ main(int argc, char **argv)
 			throughlocal = 1;
 			break;
 		case 'R':
+			fprintf(stderr, "warning: remote/remote -R copy mode "
+			    "is deprecated and will soon be removed\n");
 			throughlocal = 0;
 			break;
 		case 'o':
