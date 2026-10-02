@@ -1880,6 +1880,18 @@ int main(void) { ldns_status status = ldns_verify_trusted(NULL, NULL, NULL, NULL
 	fi
 ])
 
+AC_ARG_WITH([ldns-trust-anchor-file],
+    [  --with-ldns-trust-anchor-file=PATH   Specify the path to the DNSSEC trust anchor],
+    [ if test "x$withval" = "xyes" || test "x$withval" = "x" ; then
+        AC_MSG_ERROR([--with-ldns-trust-anchor-file needs a file path])
+      elif test "x$withval" != "xno" ; then
+        if test "$LDNS_MSG" != "yes" ; then
+            AC_MSG_ERROR([--with-ldns-trust-anchor-file requires ldns])
+        fi
+        AC_DEFINE_UNQUOTED([LDNS_TRUST_ANCHOR_FILE], ["$withval"], [Define to the DNSSEC trust anchor file])
+      fi
+])
+
 # Check whether user wants libedit support
 LIBEDIT_MSG="no"
 AC_ARG_WITH([libedit],
