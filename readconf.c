@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.417 2026/09/16 00:13:58 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.418 2026/10/03 00:46:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2322,7 +2322,9 @@ parse_pubkey_algos:
 			error("%.200s line %d: Bad mask.", filename, linenum);
 			goto out;
 		}
-		options->fwd_opts.streamlocal_bind_mask = (mode_t)value;
+		if (*activep &&
+		    options->fwd_opts.streamlocal_bind_mask == (mode_t)-1)
+			options->fwd_opts.streamlocal_bind_mask = (mode_t)value;
 		break;
 
 	case oStreamLocalBindUnlink:
