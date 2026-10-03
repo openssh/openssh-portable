@@ -161,7 +161,6 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - "9.0"
           - "9.4"
           - "10.0"
           - "10.1"
