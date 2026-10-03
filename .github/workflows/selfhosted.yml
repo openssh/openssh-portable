@@ -94,10 +94,10 @@ jobs:
           - { target: win10, config: default,        host: persist-win10 }
           - { target: win10, config: cygwin-release, host: persist-win10 }
           # Physical hosts with native runners.
-          - { target: ARM, config: default, host: ARM }
           - { target: ARM64, config: default, host: ARM64 }
           - { target: ARM64, config: pam, host: ARM64 }
           # Physical hosts with remote runners.
+          - { target: debian-arm, config: default, host: remote-debian-arm}
           - { target: debian-riscv64, config: default, host: remote-debian-riscv64 }
           - { target: openwrt-mips, config: default, host: remote-openwrt-mips }
           - { target: openwrt-mipsel, config: default, host: remote-openwrt-mipsel }
