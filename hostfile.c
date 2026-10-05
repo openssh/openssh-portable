@@ -63,6 +63,14 @@
 #include "hmac.h"
 #include "sshbuf.h"
 
+static int required_rsa_size = SSH_RSA_MINIMUM_MODULUS_SIZE;
+
+void
+hostfile_set_minimum_rsa_size(int size)
+{
+	required_rsa_size = size;
+}
+
 /* XXX hmac is too easy to dictionary attack; use bcrypt? */
 
 static int
@@ -233,11 +241,18 @@ record_hostkey(struct hostkey_foreach_line *l, void *_ctx)
 	struct load_callback_ctx *ctx = (struct load_callback_ctx *)_ctx;
 	struct hostkeys *hostkeys = ctx->hostkeys;
 	struct hostkey_entry *tmp;
+	int r = 0;
 
 	if (l->status == HKF_STATUS_INVALID) {
 		/* XXX make this verbose() in the future */
 		debug("%s:%ld: parse error in hostkeys file",
 		    l->path, l->linenum);
+		return 0;
+	}
+
+	if ((r = sshkey_check_rsa_length(l->key, required_rsa_size)) != 0) {
+		debug2_f("%s:%ld: ignoring hostkey: %s",
+		    l->path, l->linenum, ssh_err(r));
 		return 0;
 	}
 
