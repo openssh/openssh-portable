@@ -38,6 +38,7 @@ char ** fetch_pam_child_environment(void);
 void free_pam_environment(char **);
 void sshpam_thread_cleanup(void);
 void sshpam_cleanup(void);
+void sshpam_cleanup_in_child(void);
 int sshpam_auth_passwd(Authctxt *, const char *);
 int sshpam_get_maxtries_reached(void);
 void sshpam_set_maxtries_reached(int);
