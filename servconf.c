@@ -273,6 +273,18 @@ fill_default_server_options(ServerOptions *options)
 {
 	u_int i;
 
+	/* Portable-specific overrides */
+#ifdef SKIP_PRIVDROP
+	if (options->allow_streamlocal_forwarding != -1 &&
+	    options->allow_streamlocal_forwarding != FORWARD_DENY)
+		logit("StreamlocalForwarding is not supported on this system");
+	options->allow_streamlocal_forwarding = 0;
+	if (options->fwd_opts.gateway_ports != -1 &&
+	    options->fwd_opts.gateway_ports == 0)
+		logit("GatewayPorts is not supported on this system");
+	options->fwd_opts.gateway_ports = 0;
+#endif
+
 #define SSHCONF_INT(var, conf, flags, ms, def, cp) \
 	if (options->var == -1) \
 		options->var = def;
