@@ -1099,7 +1099,7 @@ input_userauth_passwd_changereq(int type, uint32_t seqnr, struct ssh *ssh)
 	    (r = sshpkt_get_cstring(ssh, &lang, NULL)) != 0)
 		goto out;
 	if ((len = strlen(info)) > 0) {
-		addnl = info[len] != '\n';
+		addnl = info[len - 1] != '\n';
 		fmprintf(stderr, "%s%s", info, addnl ? "\n" : "");
 	}
 	if ((r = sshpkt_start(ssh, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
@@ -2098,11 +2098,11 @@ input_userauth_info_req(int type, uint32_t seq, struct ssh *ssh)
 	    (r = sshpkt_get_cstring(ssh, &lang, NULL)) != 0)
 		goto out;
 	if ((len = strlen(name)) > 0) {
-		addnl = name[len] != '\n';
+		addnl = name[len - 1] != '\n';
 		fmprintf(stderr, "%s%s", name, addnl ? "\n" : "");
 	}
 	if ((len = strlen(inst)) > 0) {
-		addnl = inst[len] != '\n';
+		addnl = inst[len - 1] != '\n';
 		fmprintf(stderr, "%s%s", inst, addnl ? "\n" : "");
 	}
 
