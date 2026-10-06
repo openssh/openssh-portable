@@ -31,7 +31,7 @@ trial()
 		;;
 	proxycommand)
 		case "$arg" in
-		*(%C|%i|%L|%l|%u|%d)*)
+		*%C*|*%i*|*%L*|*%l*|*%u*|*%d*)
 			# Not supported, skip
 			got="$expect"
 			;;
