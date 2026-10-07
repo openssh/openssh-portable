@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-serv.c,v 1.39 2026/09/16 00:37:52 djm Exp $ */
+/* $OpenBSD: gss-serv.c,v 1.40 2026/10/07 09:00:11 robert Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -368,7 +368,7 @@ ssh_gssapi_do_child(char ***envp, u_int *envsizep)
 }
 
 void
-ssh_gssapi_cleanup_global_client()
+ssh_gssapi_cleanup_global_client(void)
 {
 	OM_uint32 lmin;
 
