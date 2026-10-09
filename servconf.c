@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.458 2026/10/03 00:46:58 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.459 2026/10/09 10:48:43 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1119,6 +1119,7 @@ static const struct multistate multistate_keepalives[] = {
 	{ "no",				SSH_KEEPALIVES_OFF },
 	{ "transport",			SSH_KEEPALIVES_TRANSPORT },
 	{ "all",			SSH_KEEPALIVES_ALL },
+	{ NULL, -1 }
 };
 static const struct multistate multistate_warnweakcrypto[] = {
 	{ "true",			1 },
