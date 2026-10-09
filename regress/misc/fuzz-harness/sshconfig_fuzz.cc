@@ -12,6 +12,7 @@
 extern "C" {
 
 #include "includes.h"
+#include "misc.h"
 #include "readconf.h"
 #include "log.h"
 #include "xmalloc.h"
