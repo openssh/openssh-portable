@@ -12,9 +12,10 @@
 extern "C" {
 
 #include "includes.h"
+#include "ssh.h"
 #include "misc.h"
-#include "readconf.h"
 #include "log.h"
+#include "readconf.h"
 #include "xmalloc.h"
 
 // Stub out log output to reduce noise
