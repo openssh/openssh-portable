@@ -131,6 +131,7 @@ struct logininfo *login_alloc_entry(pid_t pid, const char *username,
     const char *hostname, const char *line)
     { (void)pid; (void)username; (void)hostname; (void)line; return NULL; }
 void server_process_permitopen(struct ssh *ssh) { (void)ssh; }
+void server_process_channel_timeouts(struct ssh *ssh) { (void)ssh; }
 int server_loop2(struct ssh *ssh, Authctxt *authctxt)
     { (void)ssh; (void)authctxt; return 0; }
 int platform_privileged_uidswap(void) { return 0; }

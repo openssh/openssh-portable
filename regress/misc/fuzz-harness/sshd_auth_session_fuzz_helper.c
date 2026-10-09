@@ -247,6 +247,7 @@ struct connection_info *
 server_get_connection_info(struct ssh *ssh, int populate, int use_dns)
     { (void)ssh; (void)populate; (void)use_dns; return NULL; }
 void server_process_permitopen(struct ssh *ssh) { (void)ssh; }
+void server_process_channel_timeouts(struct ssh *ssh) { (void)ssh; }
 
 #include "../../../auth2.c"
 
