@@ -219,7 +219,7 @@ client_expect_confirm(struct ssh *ssh, int id, const char *reason,
 }
 
 void
-client_channel_reqest_agent_forwarding(struct ssh *ssh, int chanid)
+client_channel_request_agent_forwarding(struct ssh *ssh, int chanid)
 {
 	(void)ssh; (void)chanid;
 }
