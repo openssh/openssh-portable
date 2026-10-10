@@ -470,7 +470,8 @@ dopr(char *buffer, size_t maxlen, const char *format, va_list args_in)
 				break;
 			case 'w':
 				/* not supported yet, treat as next char */
-				ch = *format++;
+				if (*format != '\0')
+					ch = *format++;
 				break;
 			default:
 				/* Unknown, skip */
