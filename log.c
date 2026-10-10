@@ -63,6 +63,10 @@ static log_handler_fn *log_handler;
 static void *log_handler_ctx;
 static char **log_verbose;
 static size_t nlog_verbose;
+#if !(defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT))
+/* Track process-global syslog state left open by this module. */
+static int syslog_open;
+#endif
 extern char *__progname;
 
 #define LOG_SYSLOG_VIS	(VIS_CSTYLE|VIS_NL|VIS_TAB|VIS_OCTAL)
@@ -209,6 +213,12 @@ log_init(const char *av0, LogLevel level, SyslogFacility facility,
 	log_handler = NULL;
 	log_handler_ctx = NULL;
 
+#if !(defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT))
+	if (syslog_open) {
+		closelog();
+		syslog_open = 0;
+	}
+#endif
 	log_on_stderr = on_stderr;
 	if (on_stderr)
 		return;
@@ -262,14 +272,14 @@ log_init(const char *av0, LogLevel level, SyslogFacility facility,
 	/*
 	 * If an external library (eg libwrap) attempts to use syslog
 	 * immediately after reexec, syslog may be pointing to the wrong
-	 * facility, so we force an open/close of syslog here.
+	 * facility, so we force a syslog reinitialisation here.
 	 */
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
 	openlog_r(argv0 ? argv0 : __progname, LOG_PID, log_facility, &sdata);
 	closelog_r(&sdata);
 #else
 	openlog(argv0 ? argv0 : __progname, LOG_PID, log_facility);
-	closelog();
+	syslog_open = 1;
 #endif
 }
 
@@ -416,9 +426,10 @@ do_log(LogLevel level, int force, const char *suffix, const char *fmt,
 		syslog_r(pri, &sdata, "%.500s", fmtbuf);
 		closelog_r(&sdata);
 #else
+		/* Restore OpenSSH ident/facility before using global syslog. */
 		openlog(progname, LOG_PID, log_facility);
+		syslog_open = 1;
 		syslog(pri, "%.500s", fmtbuf);
-		closelog();
 #endif
 	}
 	errno = saved_errno;

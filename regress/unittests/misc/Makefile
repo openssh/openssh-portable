@@ -11,6 +11,7 @@ SRCS+=	test_strdelim.c
 SRCS+=	test_hpdelim.c
 SRCS+=	test_ptimeout.c
 SRCS+=	test_xextendf.c
+SRCS+=	test_log.c
 
 # From usr.bin/ssh/Makefile.inc
 SRCS+=	sshbuf.c
