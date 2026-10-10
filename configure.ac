@@ -1982,6 +1982,47 @@ AC_ARG_WITH([wtmpdb],
 	fi ]
 )
 
+# Check whether user wants utmps support <https://skarnet.org/software/utmps/>
+UTMPS_MSG="no"
+AC_ARG_WITH([utmps],
+	[  --with-utmps[[=PATH]]   Enable utmps support for sshd],
+	[ if test "x$withval" != "xno" ; then
+		use_pkgconfig_for_libutmps=
+		if test "x$withval" = "xyes" ; then
+			if test "x$PKGCONFIG" != "xno"; then
+				AC_MSG_CHECKING([if $PKGCONFIG knows about utmps])
+				if "$PKGCONFIG" libutmps; then
+					AC_MSG_RESULT([yes])
+					use_pkgconfig_for_libutmps=yes
+				else
+					AC_MSG_RESULT([no])
+				fi
+			fi
+		else
+			CPPFLAGS="$CPPFLAGS -I${withval}/include"
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
+			else
+				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
+			fi
+		fi
+		if test "x$use_pkgconfig_for_libutmps" = "xyes"; then
+			LIBUTMPS=`$PKGCONFIG --libs libutmps`
+			CPPFLAGS="$CPPFLAGS `$PKGCONFIG --cflags libutmps`"
+		else
+			LIBUTMPS="-lutmps"
+		fi
+		OTHERLIBS=`echo $LIBUTMPS | sed 's/-lutmps//'`
+		AC_CHECK_LIB([utmps], [utmps_start],
+			[ AC_DEFINE([USE_UTMPS], [1], [Use libutmps for sshd])
+			  UTMPS_MSG="yes"
+			  AC_SUBST([LIBUTMPS])
+			],
+			[ AC_MSG_ERROR([libutmps not found]) ],
+			[ $OTHERLIBS ]
+		)
+	fi ]
+)
 
 AUDIT_MODULE=none
 AC_ARG_WITH([audit],
