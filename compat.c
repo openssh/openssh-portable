@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.128 2026/03/02 02:40:15 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.129 2026/10/11 20:41:20 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -74,8 +74,6 @@ compat_banner(struct ssh *ssh, const char *version)
 		{ "OpenSSH*",		SSH_NEW_OPENSSH },
 		{ "*MindTerm*",		0 },
 		{ "3.0.*",		SSH_BUG_DEBUG },
-		{ "3.0 SecureCRT*",	SSH_OLD_SESSIONID },
-		{ "1.7 SecureFX*",	SSH_OLD_SESSIONID },
 		{ "Cisco-1.*",		SSH_BUG_DHGEX_LARGE|
 					SSH_BUG_HOSTKEYS },
 		{ "*SSH_Version_Mapper*",

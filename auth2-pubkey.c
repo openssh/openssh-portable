@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.131 2026/10/01 02:01:51 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.132 2026/10/11 20:41:20 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -210,14 +210,9 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 			fatal_fr(r, "parse signature packet");
 		if ((b = sshbuf_new()) == NULL)
 			fatal_f("sshbuf_new failed");
-		if (ssh->compat & SSH_OLD_SESSIONID) {
-			if ((r = sshbuf_putb(b, ssh->kex->session_id)) != 0)
-				fatal_fr(r, "put old session id");
-		} else {
-			if ((r = sshbuf_put_stringb(b,
-			    ssh->kex->session_id)) != 0)
-				fatal_fr(r, "put session id");
-		}
+		if ((r = sshbuf_put_stringb(b,
+		    ssh->kex->session_id)) != 0)
+			fatal_fr(r, "put session id");
 		if (!authctxt->valid || authctxt->user == NULL) {
 			debug2_f("disabled because of invalid user");
 			goto done;

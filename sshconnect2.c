@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.394 2026/09/16 00:31:27 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.395 2026/10/11 20:41:20 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1410,14 +1410,9 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 		sshbuf_free(b);
 		if ((b = sshbuf_new()) == NULL)
 			fatal_f("sshbuf_new failed");
-		if (ssh->compat & SSH_OLD_SESSIONID) {
-			if ((r = sshbuf_putb(b, ssh->kex->session_id)) != 0)
-				fatal_fr(r, "sshbuf_putb");
-		} else {
-			if ((r = sshbuf_put_stringb(b,
-			    ssh->kex->session_id)) != 0)
-				fatal_fr(r, "sshbuf_put_stringb");
-		}
+		if ((r = sshbuf_put_stringb(b,
+		    ssh->kex->session_id)) != 0)
+			fatal_fr(r, "sshbuf_put_stringb");
 		skip = sshbuf_len(b);
 		if ((r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
 		    (r = sshbuf_put_cstring(b, authctxt->server_user)) != 0 ||
