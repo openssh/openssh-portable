@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.470 2026/09/16 06:23:15 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.471 2026/10/11 20:45:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3585,7 +3585,12 @@ channel_input_data(int type, uint32_t seq, struct ssh *ssh)
 		return 0;
 	}
 	if (win_len > c->local_window) {
-		c->local_window_exceeded += win_len - c->local_window;
+		u_int delta = win_len - c->local_window;
+
+		if (c->local_window_exceeded > UINT_MAX - delta)
+			c->local_window_exceeded = UINT_MAX;
+		else
+			c->local_window_exceeded += delta;
 		logit("channel %d: rcvd too much data %zu, win %u/%u "
 		    "(excess %u)", c->self, win_len, c->local_window,
 		    c->local_window_max, c->local_window_exceeded);
