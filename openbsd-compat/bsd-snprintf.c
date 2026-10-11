@@ -468,10 +468,6 @@ dopr(char *buffer, size_t maxlen, const char *format, va_list args_in)
 			case '%':
 				DOPR_OUTCH(buffer, currlen, maxlen, ch);
 				break;
-			case 'w':
-				/* not supported yet, treat as next char */
-				ch = *format++;
-				break;
 			default:
 				/* Unknown, skip */
 				break;
