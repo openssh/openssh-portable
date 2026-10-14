@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: ed25519.sh,v 1.8 2026/09/16 00:59:12 djm Exp $
+#       $OpenBSD: ed25519.sh,v 1.9 2026/10/14 04:35:45 djm Exp $
 #       Placed in the Public Domain.
 
 set -eu
@@ -15,7 +15,7 @@ SIGN=src/libsodium/crypto_sign/ed25519/ref10
 PRIVATE=src/libsodium/include/sodium/private
 
 die() { echo "ed25519.sh: $*" >&2; exit 1; }
-cleanup() { return;rm -f "$NEW" "$CHECK_C" "$CHECK" "$CHECK_O"; }
+cleanup() { rm -f "$NEW" "$CHECK_C" "$CHECK" "$CHECK_O"; }
 trap cleanup EXIT HUP INT TERM
 
 test -d "$LIBSODIUM_DIR/.git" || die "$LIBSODIUM_DIR is not a libsodium checkout"
@@ -32,7 +32,7 @@ for f in LICENSE "$PRIVATE/ed25519_ref10.h" \
 done
 
 (
-	printf '/*  $OpenBSD: ed25519.sh,v 1.8 2026/09/16 00:59:12 djm Exp $ */\n\n'
+	printf '/*  $OpenBSD: ed25519.sh,v 1.9 2026/10/14 04:35:45 djm Exp $ */\n\n'
 	echo "/* Extracted from libsodium revision $LIBSODIUM_REVISION */"
 	echo
 	cat "$LIBSODIUM_DIR/LICENSE"
