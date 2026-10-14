@@ -4352,8 +4352,7 @@ check_rfwd_permission(struct ssh *ssh, struct Forward *fwd)
 #ifdef SKIP_PRIVDROP
 	if (fwd->listen_path != NULL)
 		return 0;
-	if (allowed_open->listen_port != FWD_PERMIT_ANY_PORT &&
-	    allowed_open->listen_port < 1024)
+	if (fwd->listen_port != 0 && fwd->listen_port < 1024)
 		return 0;
 #endif
 
