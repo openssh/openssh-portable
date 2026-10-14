@@ -44,16 +44,16 @@ SSH_ASKPASS=/bin/false SSH_ASKPASS_REQUIRE=force DISPLAY=:1 \
     -o NumberOfPasswordPrompts=1 somehost true \
     > $OBJ/agent-fp.log 2>&1
 [ $? -ne 0 ] || fail "rejected override key unexpectedly authenticated"
-grep 'Selected agent identity .* was rejected' $OBJ/agent-fp.log \
+grep 'Selected agent identity .* was rejected' $TEST_SSH_LOGFILE \
     > /dev/null || fail "rejected key error missing"
-grep 'Next authentication method: password' $OBJ/agent-fp.log \
+grep 'Next authentication method: password' $TEST_SSH_LOGFILE \
     > /dev/null || fail "password fallback after rejection missing"
 
 trace "absent agent key"
 ${SSH} -F $OBJ/ssh_proxy -u "$absent" somehost true \
     > $OBJ/agent-fp.log 2>&1
 [ $? -ne 0 ] || fail "absent key unexpectedly authenticated"
-grep 'Selected agent identity .* is not present' $OBJ/agent-fp.log \
+grep 'Selected agent identity .* is not present' $TEST_SSH_LOGFILE \
     > /dev/null || fail "absent key error missing"
 
 trace "missing agent falls back to password"
@@ -64,9 +64,9 @@ SSH_AUTH_SOCK=/nonexistent SSH_ASKPASS=/bin/false \
     -o NumberOfPasswordPrompts=1 somehost true \
     > $OBJ/agent-fp.log 2>&1
 [ $? -ne 0 ] || fail "missing agent unexpectedly authenticated"
-grep 'Selected agent identity .* is unavailable' $OBJ/agent-fp.log \
+grep 'Selected agent identity .* is unavailable' $TEST_SSH_LOGFILE \
     > /dev/null || fail "missing agent error missing"
-grep 'Next authentication method: password' $OBJ/agent-fp.log \
+grep 'Next authentication method: password' $TEST_SSH_LOGFILE \
     > /dev/null || fail "password fallback after missing agent missing"
 
 trace "partial fingerprint is invalid"
