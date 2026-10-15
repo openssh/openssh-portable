@@ -316,7 +316,7 @@ mprintf(const char *fmt, ...)
 /*
  * Set up libc for multibyte output in the user's chosen locale.
  *
- * XXX: we are known to have problems with Turkic languahes (i/I confusion) so
+ * XXX: we are known to have problems with Turkic languages (i/I confusion) so
  *      we deliberately fall back to the C locale for now. Longer term we
  *      should always prefer to select C.[encoding] if possible, but there's
  *      no standardisation in locales between systems, so we'll need to survey
