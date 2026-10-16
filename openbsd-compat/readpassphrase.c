@@ -1,4 +1,4 @@
-/*	$OpenBSD: readpassphrase.c,v 1.31 2026/10/15 05:55:06 djm Exp $	*/
+/*	$OpenBSD: readpassphrase.c,v 1.32 2026/10/15 16:40:50 millert Exp $	*/
 
 /*
  * Copyright (c) 2000-2002, 2007, 2010
@@ -162,7 +162,7 @@ restart:
 	}
 	*p = '\0';
 	save_errno = errno;
-	if (!(term.c_lflag & ECHO))
+	if (!(term.c_lflag & ECHO) && !(nr == -1 && errno == EINTR))
 		(void)write(output, "\n", 1);
 
 	/* Restore old terminal settings and signals. */
