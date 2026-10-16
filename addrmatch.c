@@ -32,7 +32,8 @@
 
 /*
  * Match "addr" against list pattern list "_list", which may contain a
- * mix of CIDR addresses and old-school wildcards.
+ * mix of CIDR addresses and old-school wildcards. Leading spaces are
+ * ignored.
  *
  * If addr is NULL, then no matching is performed, but _list is parsed
  * and checked for well-formedness.
@@ -57,6 +58,8 @@ addr_match_list(const char *addr, const char *_list)
 	if ((o = list = strdup(_list)) == NULL)
 		return -1;
 	while ((cp = strsep(&list, ",")) != NULL) {
+		while (*cp == ' ')
+			cp++;
 		neg = *cp == '!';
 		if (neg)
 			cp++;
