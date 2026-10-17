@@ -1,4 +1,4 @@
-/* $OpenBSD: krl.c,v 1.64 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: krl.c,v 1.65 2026/10/17 11:46:37 djm Exp $ */
 /*
  * Copyright (c) 2012 Damien Miller <djm@mindrot.org>
  *
@@ -475,7 +475,8 @@ ssh_krl_revoke_key(struct ssh_krl *krl, const struct sshkey *key)
  */
 static int
 choose_next_state(int current_state, uint64_t contig, int final,
-    uint64_t last_gap, uint64_t next_gap, int *force_new_section)
+    uint64_t last_gap, uint64_t next_gap, size_t bitmap_len,
+    int *force_new_section)
 {
 	int new_state;
 	uint64_t cost, cost_list, cost_range, cost_bitmap, cost_bitmap_restart;
@@ -520,6 +521,14 @@ choose_next_state(int current_state, uint64_t contig, int final,
 	cost_bitmap = (cost_bitmap + 7) / 8;
 	cost_bitmap_restart = (cost_bitmap_restart + 7) / 8;
 	cost_range = (cost_range + 7) / 8;
+
+	/* Ensure that we never emit a bitmap larger than sshbuf can handle */
+	if (bitmap_len + cost_bitmap >= SSHBUF_MAX_BIGNUM) {
+		KRL_DBG(("bitmap overfull len=%zu cost=%llu max=%u",
+		    bitmap_len, (unsigned long long)cost_bitmap,
+		    SSHBUF_MAX_BIGNUM));
+		cost_bitmap = (uint64_t)-1;
+	}
 
 	/* Now pick the best choice */
 	*force_new_section = 0;
@@ -577,6 +586,7 @@ revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
 	struct revoked_serial *rs, *nrs;
 	struct revoked_key_id *rki;
 	int next_state, state = 0;
+	size_t bitmap_len;
 	struct sshbuf *sect;
 	struct bitmap *bitmap = NULL;
 
@@ -608,9 +618,13 @@ revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
 		gap = nrs == NULL ? 0 : nrs->lo - rs->hi;
 		contig = 1 + (rs->hi - rs->lo);
 
+		bitmap_len = state == KRL_SECTION_CERT_SERIAL_BITMAP ?
+		    bitmap_nbytes(bitmap) : 0;
+
 		/* Choose next state based on these */
 		next_state = choose_next_state(state, contig, final,
-		    state == 0 ? 0 : rs->lo - last, gap, &force_new_sect);
+		    state == 0 ? 0 : rs->lo - last, gap, bitmap_len,
+		    &force_new_sect);
 
 		/*
 		 * If the current section is a range section or has a different
