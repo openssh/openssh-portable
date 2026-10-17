@@ -1,4 +1,4 @@
-/* $OpenBSD: krl.c,v 1.65 2026/10/17 11:46:37 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.66 2026/10/17 11:47:42 djm Exp $ */
 /*
  * Copyright (c) 2012 Damien Miller <djm@mindrot.org>
  *
@@ -251,7 +251,8 @@ insert_serial_range(struct revoked_serial_tree *rt, uint64_t lo, uint64_t hi)
 {
 	struct revoked_serial rs, *ers, *crs, *irs;
 
-	KRL_DBG(("insert %llu:%llu", lo, hi));
+	KRL_DBG(("insert %llu:%llu",
+	    (unsigned long long)lo, (unsigned long long)hi));
 	memset(&rs, 0, sizeof(rs));
 	rs.lo = lo;
 	rs.hi = hi;
@@ -270,7 +271,8 @@ insert_serial_range(struct revoked_serial_tree *rt, uint64_t lo, uint64_t hi)
 		}
 		ers = irs;
 	} else {
-		KRL_DBG(("overlap found %llu:%llu", ers->lo, ers->hi));
+		KRL_DBG(("overlap found %llu:%llu",
+		    (unsigned long long)ers->lo, (unsigned long long)ers->hi));
 		/*
 		 * The inserted entry overlaps an existing one. Grow the
 		 * existing entry.
@@ -288,31 +290,38 @@ insert_serial_range(struct revoked_serial_tree *rt, uint64_t lo, uint64_t hi)
 
 	/* Check predecessors */
 	while ((crs = RB_PREV(revoked_serial_tree, rt, ers)) != NULL) {
-		KRL_DBG(("pred %llu:%llu", crs->lo, crs->hi));
+		KRL_DBG(("pred %llu:%llu",
+		    (unsigned long long)crs->lo, (unsigned long long)crs->hi));
 		if (ers->lo != 0 && crs->hi < ers->lo - 1)
 			break;
 		/* This entry overlaps. */
 		if (crs->lo < ers->lo) {
 			ers->lo = crs->lo;
-			KRL_DBG(("pred extend %llu:%llu", ers->lo, ers->hi));
+			KRL_DBG(("pred extend %llu:%llu",
+			    (unsigned long long)ers->lo,
+			    (unsigned long long)ers->hi));
 		}
 		RB_REMOVE(revoked_serial_tree, rt, crs);
 		free(crs);
 	}
 	/* Check successors */
 	while ((crs = RB_NEXT(revoked_serial_tree, rt, ers)) != NULL) {
-		KRL_DBG(("succ %llu:%llu", crs->lo, crs->hi));
+		KRL_DBG(("succ %llu:%llu",
+		    (unsigned long long)crs->lo, (unsigned long long)crs->hi));
 		if (ers->hi != (uint64_t)-1 && crs->lo > ers->hi + 1)
 			break;
 		/* This entry overlaps. */
 		if (crs->hi > ers->hi) {
 			ers->hi = crs->hi;
-			KRL_DBG(("succ extend %llu:%llu", ers->lo, ers->hi));
+			KRL_DBG(("succ extend %llu:%llu",
+			    (unsigned long long)ers->lo,
+			    (unsigned long long)ers->hi));
 		}
 		RB_REMOVE(revoked_serial_tree, rt, crs);
 		free(crs);
 	}
-	KRL_DBG(("done, final %llu:%llu", ers->lo, ers->hi));
+	KRL_DBG(("done, final %llu:%llu",
+	    (unsigned long long)ers->lo, (unsigned long long)ers->hi));
 	return 0;
 }
 
@@ -1195,7 +1204,9 @@ is_cert_revoked(const struct sshkey *key, struct revoked_certs *rc)
 	ers = RB_FIND(revoked_serial_tree, &rc->revoked_serials, &rs);
 	if (ers != NULL) {
 		KRL_DBG(("revoked serial %llu matched %llu:%llu",
-		    key->cert->serial, ers->lo, ers->hi));
+		    (unsigned long long)key->cert->serial,
+		    (unsigned long long)ers->lo,
+		    (unsigned long long)ers->hi));
 		return SSH_ERR_KEY_REVOKED;
 	}
 	return 0;
@@ -1261,7 +1272,7 @@ is_key_revoked(struct ssh_krl *krl, const struct sshkey *key)
 			return r;
 	}
 
-	KRL_DBG(("%llu no match", key->cert->serial));
+	KRL_DBG(("%llu no match", (unsigned long long)key->cert->serial));
 	return 0;
 }
 
@@ -1320,8 +1331,7 @@ krl_dump(struct ssh_krl *krl, FILE *f)
 
 	/* Try to print in a KRL spec-compatible format */
 	format_timestamp(krl->generated_date, timestamp, sizeof(timestamp));
-	fprintf(f, "# KRL version %llu\n",
-	    (unsigned long long)krl->krl_version);
+	fprintf(f, "# KRL version %llu\n", (unsigned long long)krl->krl_version);
 	fprintf(f, "# Generated at %s\n", timestamp);
 	if (krl->comment != NULL && *krl->comment != '\0') {
 		r = INT_MAX;
