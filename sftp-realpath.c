@@ -173,6 +173,10 @@ sftp_realpath(const char *path, char *resolved)
 			slen = readlink(resolved, symlink, sizeof(symlink) - 1);
 			if (slen < 0)
 				goto err;
+			if (slen == 0) {
+				errno = ENOENT;
+				goto err;
+			}
 			symlink[slen] = '\0';
 			if (symlink[0] == '/') {
 				resolved[1] = 0;
