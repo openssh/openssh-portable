@@ -1,5 +1,3 @@
-name: CI
-
 # For testing, you can set variables in your repo (Repo -> Settings ->
 # Security -> Actions -> Variables) to restrict the tests that are run.
 # The supported variables are:
@@ -11,6 +9,8 @@ name: CI
 # LTESTS: Override the set of tests run.
 # TEST_SSH_TRACE: Set to yes for additional regress output.
 
+name: CI
+permissions: read-all
 on:
   push:
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', 'regress/Makefile', '.github/configs', '.github/*.sh', '.github/workflows/c-cpp.yml' ]

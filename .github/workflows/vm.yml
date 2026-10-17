@@ -5,6 +5,7 @@
 # RUN_ONLY_PLATFORM: run only tests on specified platform.
 
 name: CI VM
+permissions: read-all
 on:
   push:
     paths: [ '**.c', '**.h', '**.m4', '**.sh', '**/Makefile.in', 'configure.ac', 'regress/Makefile', '.github/configs', '.github/workflows/vm.yml' ]

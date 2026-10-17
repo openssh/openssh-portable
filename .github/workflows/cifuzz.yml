@@ -1,4 +1,5 @@
 name: CIFuzz
+permissions: read-all
 on:
   push:
     paths: [ '**.c', '**.cc', '**.h', '**.m4', '**.sh', '**/Makefile.in', '**/Makefile', 'configure.ac', '.github/configs', '.github/workflows/cifuzz.yml' ]
