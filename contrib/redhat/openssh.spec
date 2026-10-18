@@ -71,7 +71,7 @@ Release: %{rel}rescue
 Release: %{rel}
 %endif
 URL: https://www.openssh.com/portable.html
-Source0: https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{version}.tar.gz
+Source0: https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{version}.tar.gz
 Source1: https://github.com/openssh/x11-ssh-askpass/releases/download/v%{aversion}/x11-ssh-askpass-%{aversion}.tar.gz
 License: BSD
 Group: Applications/Internet
