@@ -472,10 +472,10 @@ g_charclass(const Char **patternp, Char **bufnextp)
 static int
 glob0(const Char *pattern, glob_t *pglob, struct glob_lim *limitp)
 {
-	const Char *qpatnext;
+	const Char *qpatnext, *qpatbracket;
 	int c, err;
 	size_t oldpathc;
-	Char *bufnext, patbuf[PATH_MAX];
+	Char *bufnext, *bufbracket, patbuf[PATH_MAX];
 
 	qpatnext = globtilde(pattern, patbuf, PATH_MAX, pglob);
 	oldpathc = pglob->gl_pathc;
@@ -485,6 +485,8 @@ glob0(const Char *pattern, glob_t *pglob, struct glob_lim *limitp)
 	while ((c = *qpatnext++) != EOS) {
 		switch (c) {
 		case LBRACKET:
+			qpatbracket = qpatnext;
+			bufbracket = bufnext;
 			c = *qpatnext;
 			if (c == NOT)
 				++qpatnext;
@@ -511,17 +513,28 @@ glob0(const Char *pattern, glob_t *pglob, struct glob_lim *limitp)
 					if (err == -1 &&
 					    !(pglob->gl_flags & GLOB_NOCHECK))
 						return GLOB_NOMATCH;
-					if (c == RBRACKET)
+					if (c == RBRACKET || c == EOS)
 						break;
 				}
 				*bufnext++ = CHAR(c);
 				if (*qpatnext == RANGE &&
-				    (c = qpatnext[1]) != RBRACKET) {
+				    (c = qpatnext[1]) != RBRACKET && c != EOS) {
 					*bufnext++ = M_RNG;
 					*bufnext++ = CHAR(c);
 					qpatnext += 2;
 				}
-			} while ((c = *qpatnext++) != RBRACKET);
+			} while ((c = *qpatnext++) != RBRACKET && c != EOS);
+			if (c == EOS) {
+				/*
+				 * The only RBRACKET was consumed by a character
+				 * class, so the set is unterminated: back out
+				 * and treat the LBRACKET as a literal.
+				 */
+				qpatnext = qpatbracket;
+				bufnext = bufbracket;
+				*bufnext++ = LBRACKET;
+				break;
+			}
 			pglob->gl_flags |= GLOB_MAGCHAR;
 			*bufnext++ = M_END;
 			break;
