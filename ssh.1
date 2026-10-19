@@ -62,6 +62,7 @@
 .Op Fl p Ar port
 .Op Fl R Ar address
 .Op Fl S Ar ctl_path
+.Op Fl u Ar agent_fingerprint
 .Op Fl W Ar host : Ns Ar port
 .Op Fl w Ar local_tun Ns Op : Ns Ar remote_tun
 .Ar destination
@@ -687,6 +688,20 @@ Multiple
 options force tty allocation, even if
 .Nm
 has no local tty.
+.Pp
+.It Fl u Ar agent_fingerprint
+Selects a single public key from the authentication agent by its complete
+SHA256 fingerprint, as displayed by
+.Xr ssh-add 1
+.Fl l .
+No other public keys are offered, including keys from identity files.
+If the selected key is unavailable or rejected, an error is displayed and
+authentication may continue using a password if permitted by the server
+and client configuration.
+This option overrides
+.Cm AgentIdentityFingerprint
+in
+.Xr ssh_config 5 .
 .Pp
 .It Fl V
 Display the version number and exit.

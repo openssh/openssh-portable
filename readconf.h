@@ -100,6 +100,7 @@ typedef struct {
 	int	add_keys_to_agent;
 	int	add_keys_to_agent_lifespan;
 	char   *identity_agent;		/* Optional path to ssh-agent socket */
+	char   *agent_identity_fingerprint; /* SHA256 fingerprint of agent key */
 
 	/* Local TCP/IP forward requests. */
 	int     num_local_forwards;
@@ -264,5 +265,6 @@ void	 add_local_forward(Options *, const struct Forward *);
 void	 add_remote_forward(Options *, const struct Forward *);
 void	 add_identity_file(Options *, const char *, const char *, int);
 void	 add_certificate_file(Options *, const char *, int);
+int	 valid_agent_identity_fingerprint(const char *);
 
 #endif				/* READCONF_H */
