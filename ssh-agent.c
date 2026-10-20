@@ -182,6 +182,12 @@ static char *allowed_providers;
  */
 static int remote_add_provider;
 
+/*
+ * Require confirmation for all signatures requested over forwarded
+ * connections (identified by session-bind@openssh.com).
+ */
+static int confirm_forwarded;
+
 /* locking */
 #define LOCK_SIZE	32
 #define LOCK_SALT_SIZE	16
@@ -576,6 +582,19 @@ socket_is_remote(SocketEntry *e)
 	return e->session_bind_attempted || (e->nsession_ids != 0);
 }
 
+/*
+ * Unlike socket_is_remote(), this is false for connections that ssh(1)
+ * bound for its own user authentication.
+ */
+static int
+socket_is_forwarded(SocketEntry *e)
+{
+	/* A failed bind may have been an attempt to bind for forwarding */
+	if (e->nsession_ids == 0)
+		return e->session_bind_attempted;
+	return e->session_ids[0].forwarded;
+}
+
 /* return matching private key for given public key */
 static Identity *
 lookup_identity(struct sshkey *key)
@@ -874,6 +893,50 @@ buf_equal(const struct sshbuf *a, const struct sshbuf *b)
 	return 0;
 }
 
+/*
+ * Describe a signature request received over a forwarded connection for
+ * the confirmation prompt. user, sid and hostkey are from the parsed
+ * request; user is NULL if it isn't a login request. The user name comes
+ * from the requester. The destination host key is only shown if the
+ * request is for the session most recently bound by the remote ssh(1),
+ * whose host key signature the agent verified. Returns NULL on error.
+ */
+static char *
+describe_forwarded_request(SocketEntry *e, const char *user,
+    const struct sshbuf *sid, const struct sshkey *hostkey)
+{
+	struct hostkey_sid *last = NULL;
+	char *fp = NULL, *to = NULL, *dest = NULL, *ret = NULL;
+	int width = INT_MAX;
+
+	if (e->nsession_ids > 1)
+		last = &e->session_ids[e->nsession_ids - 1];
+	/* Signing anything but a login is unusual, so make it stand out */
+	if (user == NULL)
+		dest = xstrdup("\nNOT A LOGIN REQUEST");
+	else {
+		if (last != NULL && !last->forwarded &&
+		    buf_equal(sid, last->sid) == 0 &&
+		    (hostkey == NULL || sshkey_equal(hostkey, last->key))) {
+			if ((fp = sshkey_fingerprint(last->key,
+			    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+				fatal_f("fingerprint failed");
+			xasprintf(&to, "host key %s %s",
+			    sshkey_type(last->key), fp);
+		}
+		if (asmprintf(&dest, INT_MAX, &width, "for login as \"%s\" "
+		    "to %s", user, to == NULL ? "unverified destination" :
+		    to) < 0)
+			goto out;
+	}
+	xasprintf(&ret, "requested via agent forwarding\n%s", dest);
+ out:
+	free(fp);
+	free(to);
+	free(dest);
+	return ret;
+}
+
 /* ssh2 only */
 static void
 process_sign_request2(SocketEntry *e)
@@ -881,7 +944,7 @@ process_sign_request2(SocketEntry *e)
 	u_char *signature = NULL;
 	size_t slen = 0;
 	u_int compat = 0, flags;
-	int r, ok = -1, retried = 0, width;
+	int r, ok = -1, retried = 0, width, confirm;
 	char *fp = NULL, *pin = NULL, *prompt = NULL;
 	char *user = NULL, *sig_dest = NULL;
 	const char *fwd_host = NULL, *dest_host = NULL;
@@ -978,7 +1041,17 @@ process_sign_request2(SocketEntry *e)
 			goto send;
 		}
 	}
-	if (id->confirm && confirm_key(id, sig_dest) != 0) {
+	confirm = id->confirm || (confirm_forwarded && socket_is_forwarded(e));
+	if (confirm && sig_dest == NULL && socket_is_forwarded(e)) {
+		/* Only destination-constrained requests were parsed above */
+		(void)parse_userauth_request(data, key, &user, &sid, &hostkey);
+		if ((sig_dest = describe_forwarded_request(e, user, sid,
+		    hostkey)) == NULL) {
+			error_f("failed to describe forwarded request");
+			goto send;
+		}
+	}
+	if (confirm && confirm_key(id, sig_dest) != 0) {
 		verbose_f("user refused key");
 		goto send;
 	}
@@ -2397,6 +2470,8 @@ main(int ac, char **av)
 				restrict_websafe = 0;
 			else if (strcmp(optarg, "allow-remote-pkcs11") == 0)
 				remote_add_provider = 1;
+			else if (strcmp(optarg, "confirm-forwarded") == 0)
+				confirm_forwarded = 1;
 			else if ((ccp = strprefix(optarg,
 			    "websafe-allow=", 0)) != NULL) {
 				if (websafe_allowlist != NULL)
