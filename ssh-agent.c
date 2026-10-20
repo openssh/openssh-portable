@@ -632,7 +632,7 @@ confirm_key(Identity *id, const char *extra)
 	if (p != NULL &&
 	    ask_permission("Allow use of key %s?\nKey fingerprint %s.%s%s",
 	    id->comment, p,
-	    extra == NULL ? "" : "\n", extra == NULL ? "" : extra))
+	    extra == NULL ? "" : "\n\n", extra == NULL ? "" : extra))
 		ret = 0;
 	free(p);
 
@@ -930,7 +930,6 @@ process_sign_request2(SocketEntry *e)
 		debug_f("user=%s", user);
 		if (identity_permitted(id, e, user, &fwd_host, &dest_host) != 0)
 			goto send;
-		/* XXX display fwd_host/dest_host in askpass UI */
 		/*
 		 * Ensure that the session ID is the most recent one
 		 * registered on the socket - it should have been bound by
@@ -964,12 +963,17 @@ process_sign_request2(SocketEntry *e)
 		}
 		/*
 		 * The user name comes from the requester; don't let embedded
-		 * newlines add lines to the confirmation prompt.
+		 * newlines add lines to the confirmation prompt. The host
+		 * names are those of the destination constraints that
+		 * matched the hops bound to this connection.
 		 */
 		width = INT_MAX;
-		if (asmprintf(&sig_dest, INT_MAX, &width, "public key "
-		    "authentication request for user \"%s\" to listed host",
-		    user) < 0) {
+		if (asmprintf(&sig_dest, INT_MAX, &width,
+		    "public key authentication request for user \"%s\" "
+		    "to host \"%s\"%s%s%s", user, dest_host,
+		    fwd_host == NULL ? "" : " via host \"",
+		    fwd_host == NULL ? "" : fwd_host,
+		    fwd_host == NULL ? "" : "\"") < 0) {
 			error_f("asmprintf failed");
 			goto send;
 		}
