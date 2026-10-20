@@ -99,6 +99,8 @@
 #define AGENT_MAX_SESSION_IDS		16
 /* Maximum size of session ID */
 #define AGENT_MAX_SID_LEN		128
+/* Maximum length of hostname sent by session-hostname@openssh.com */
+#define AGENT_MAX_HOSTNAME_LEN		1024
 /* Maximum number of destination constraints to accept on a key */
 #define AGENT_MAX_DEST_CONSTRAINTS	1024
 /* Maximum number of destination constraint hostkeys to hold across all keys */
@@ -131,6 +133,7 @@ typedef struct socket_entry {
 	size_t nsession_ids;
 	struct hostkey_sid *session_ids;
 	int session_bind_attempted;
+	char *hostname;
 } SocketEntry;
 
 u_int sockets_alloc = 0;
@@ -221,6 +224,7 @@ close_socket(SocketEntry *e)
 		sshbuf_free(e->session_ids[i].sid);
 	}
 	free(e->session_ids);
+	free(e->hostname);
 	memset(e, '\0', sizeof(*e));
 	e->fd = -1;
 	e->type = AUTH_UNUSED;
@@ -900,6 +904,8 @@ buf_equal(const struct sshbuf *a, const struct sshbuf *b)
  * from the requester. The destination host key is only shown if the
  * request is for the session most recently bound by the remote ssh(1),
  * whose host key signature the agent verified. Returns NULL on error.
+ * The forwarding host name was supplied by the local ssh(1) before it
+ * bound the connection.
  */
 static char *
 describe_forwarded_request(SocketEntry *e, const char *user,
@@ -929,7 +935,11 @@ describe_forwarded_request(SocketEntry *e, const char *user,
 		    to) < 0)
 			goto out;
 	}
-	xasprintf(&ret, "requested via agent forwarding\n%s", dest);
+	if (e->hostname == NULL || e->nsession_ids == 0)
+		xasprintf(&ret, "requested via agent forwarding\n%s", dest);
+	else
+		xasprintf(&ret, "requested from host \"%s\" via agent "
+		    "forwarding\n%s", e->hostname, dest);
  out:
 	free(fp);
 	free(to);
@@ -1921,6 +1931,48 @@ process_ext_session_bind(SocketEntry *e)
 	return r == 0 ? 1 : 0;
 }
 
+/*
+ * Records the name of the host that the connection is about to be bound
+ * to. Only accepted before the first session-bind@openssh.com, so that
+ * the name can only come from the ssh(1) that opened the connection and
+ * not from a remote host using it as a forwarded agent.
+ */
+static int
+process_ext_session_hostname(SocketEntry *e)
+{
+	int r, width = INT_MAX;
+	char *hostname = NULL;
+	size_t len;
+
+	debug2_f("entering");
+	/*
+	 * Not an error: with multi-hop forwarding, each intermediate ssh(1)
+	 * sends one over a connection that is already bound.
+	 */
+	if (e->session_bind_attempted || e->hostname != NULL) {
+		debug_f("ignoring hostname after session bind");
+		return 0;
+	}
+	if ((r = sshbuf_get_cstring(e->request, &hostname, &len)) != 0) {
+		error_fr(r, "parse");
+		return 0;
+	}
+	if (len == 0 || len > AGENT_MAX_HOSTNAME_LEN) {
+		error_f("invalid hostname length %zu", len);
+		free(hostname);
+		return 0;
+	}
+	/* It is only ever displayed, so store it escaped */
+	if (asmprintf(&e->hostname, INT_MAX, &width, "%s", hostname) < 0) {
+		error_f("asmprintf failed");
+		free(hostname);
+		return 0;
+	}
+	free(hostname);
+	debug_f("recorded hostname \"%s\"", e->hostname);
+	return 1;
+}
+
 static int
 process_ext_query(SocketEntry *e)
 {
@@ -1933,7 +1985,8 @@ process_ext_query(SocketEntry *e)
 	if ((r = sshbuf_put_u8(msg, SSH_AGENT_EXTENSION_RESPONSE)) != 0 ||
 	    (r = sshbuf_put_cstring(msg, "query")) != 0 ||
 	    /* string[]     supported extension types */
-	    (r = sshbuf_put_cstring(msg, "session-bind@openssh.com")) != 0)
+	    (r = sshbuf_put_cstring(msg, "session-bind@openssh.com")) != 0 ||
+	    (r = sshbuf_put_cstring(msg, "session-hostname@openssh.com")) != 0)
 		fatal_fr(r, "compose");
 	if ((r = sshbuf_put_stringb(e->output, msg)) != 0)
 		fatal_fr(r, "enqueue");
@@ -1956,12 +2009,15 @@ process_extension(SocketEntry *e)
 
 	/*
 	 * This function can be called while the agent is locked to allow
-	 * session binds to be processed for new channels.
+	 * session binds (and the hostnames that precede them) to be
+	 * processed for new channels.
 	 * Other operations should be refused when locked.
 	 */
 
 	if (strcmp(name, "session-bind@openssh.com") == 0) {
 		success = process_ext_session_bind(e);
+	} else if (strcmp(name, "session-hostname@openssh.com") == 0) {
+		success = process_ext_session_hostname(e);
 	} else if (locked) {
 		debug_f("attempt to use extension \"%s\" while locked", name);
 		goto generic_fail;
