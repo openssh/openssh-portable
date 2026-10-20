@@ -81,6 +81,7 @@
 #include "ssh-pkcs11.h"
 #include "sk-api.h"
 #include "myproposal.h"
+#include "utf8.h"
 #include "version.h"
 
 #ifndef DEFAULT_ALLOWED_PROVIDERS
@@ -880,7 +881,7 @@ process_sign_request2(SocketEntry *e)
 	u_char *signature = NULL;
 	size_t slen = 0;
 	u_int compat = 0, flags;
-	int r, ok = -1, retried = 0;
+	int r, ok = -1, retried = 0, width;
 	char *fp = NULL, *pin = NULL, *prompt = NULL;
 	char *user = NULL, *sig_dest = NULL;
 	const char *fwd_host = NULL, *dest_host = NULL;
@@ -961,8 +962,17 @@ process_sign_request2(SocketEntry *e)
 			    "recently bound session");
 			goto send;
 		}
-		xasprintf(&sig_dest, "public key authentication request for "
-		    "user \"%s\" to listed host", user);
+		/*
+		 * The user name comes from the requester; don't let embedded
+		 * newlines add lines to the confirmation prompt.
+		 */
+		width = INT_MAX;
+		if (asmprintf(&sig_dest, INT_MAX, &width, "public key "
+		    "authentication request for user \"%s\" to listed host",
+		    user) < 0) {
+			error_f("asmprintf failed");
+			goto send;
+		}
 	}
 	if (id->confirm && confirm_key(id, sig_dest) != 0) {
 		verbose_f("user refused key");
