@@ -106,6 +106,7 @@ LTESTS= 	connect \
 		knownhosts \
 		knownhosts-command \
 		agent-restrict \
+		agent-confirm \
 		hostbased \
 		password \
 		kbdint \
