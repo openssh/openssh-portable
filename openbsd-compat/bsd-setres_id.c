@@ -21,6 +21,11 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
+#ifdef _AIX
+#include <sys/id.h>
+#include <userpriv.h>
+#include <sys/priv.h>
+#endif
 
 #include "log.h"
 
@@ -64,8 +69,11 @@ int
 setresuid(uid_t ruid, uid_t euid, uid_t suid)
 {
 	int ret = 0, saved_errno;
+#ifdef _AIX
+	privg_t set_pv;
+#endif
 
-	if (ruid != suid) {
+	if (ruid != suid) {	
 		errno = ENOSYS;
 		return -1;
 	}
@@ -86,12 +94,22 @@ setresuid(uid_t ruid, uid_t euid, uid_t suid)
 		ret = -1;
 	}
 # endif
+#ifdef _AIX
+	if (setuidx(ID_EFFECTIVE|ID_REAL|ID_SAVED,ruid) < 0)  {
+#else
 	if (setuid(ruid) < 0) {
+#endif
 		saved_errno = errno;
 		error("setuid %lu: %.100s", (u_long)ruid, strerror(errno));
 		errno = saved_errno;
 		ret = -1;
 	}
+#ifdef _AIX
+	priv_clrall(&set_pv);
+	privbit_set(&set_pv,PV_AU_);
+	setppriv(getpid(), (privg_tp)&set_pv, (privg_tp)&set_pv, (privg_tp)&set_pv, NULL);
+#endif
+
 #endif
 	return ret;
 }
