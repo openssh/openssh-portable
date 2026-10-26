@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.49 2020/04/21 08:25:22 dtucker Exp $ */
+/*	$OpenBSD: glob.c,v 1.51 2026/10/24 18:08:57 millert Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -501,6 +501,9 @@ glob0(const Char *pattern, glob_t *pglob, struct glob_lim *limitp)
 			c = *qpatnext++;
 			do {
 				if (c == LBRACKET && *qpatnext == ':') {
+					const Char *oqpatnext = qpatnext;
+					Char *obufnext = bufnext;
+
 					do {
 						err = g_charclass(&qpatnext,
 						    &bufnext);
@@ -513,6 +516,14 @@ glob0(const Char *pattern, glob_t *pglob, struct glob_lim *limitp)
 						return GLOB_NOMATCH;
 					if (c == RBRACKET)
 						break;
+					if (c == EOS ||
+					    g_strchr(qpatnext, RBRACKET) == NULL) {
+						/* No matching RBRACKET, undo */
+						c = LBRACKET;
+						bufnext = obufnext;
+						qpatnext = oqpatnext;
+						break;
+					}
 				}
 				*bufnext++ = CHAR(c);
 				if (*qpatnext == RANGE &&
