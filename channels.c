@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.472 2026/10/15 05:50:32 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.473 2026/10/27 22:51:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1709,7 +1709,7 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 	uint16_t dest_port;
 	char dest_addr[255+1], ntop[INET6_ADDRSTRLEN];
 	u_int af;
-	int r, success = -1;;
+	int r, success = -1;
 	struct sshbuf *b = NULL;
 
 	debug2("channel %d: decode socks5 %s", c->self,
@@ -1733,8 +1733,11 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 		success = socks_decode_error(c, r, __func__, "version");
 		goto out;
 	}
-	if (socks_ver != 5) /* shouldn't happen */
-		fatal_fr(r, "channel %d: internal error: not socks5", c->self);
+	if (socks_ver != 5) {
+		error_f("channel %d: SOCKS5 request with bad version %d",
+		    c->self, socks_ver);
+		goto out;
+	}
 
 	/* Parse SOCKS5 request header */
 	debug2("channel %d: socks5 post auth", c->self);
