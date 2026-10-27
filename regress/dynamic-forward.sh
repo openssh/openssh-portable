@@ -1,4 +1,4 @@
-#	$OpenBSD: dynamic-forward.sh,v 1.18 2025/05/21 08:41:52 djm Exp $
+#	$OpenBSD: dynamic-forward.sh,v 1.19 2026/10/27 22:53:11 djm Exp $
 #	Placed in the Public Domain.
 
 tid="dynamic forwarding"
@@ -74,6 +74,18 @@ check_socks() {
 	done
 }
 
+check_socks_malformed() {
+	direction=$1
+	# SOCKS5 auth and a bad request in a single write; bz#4034
+	trace "testing malformed socks5 request (-$direction)"
+	printf '\005\001\000\377' | \
+	    $OBJ/netcat -w 5 127.0.0.1 $FWDPORT >/dev/null 2>&1
+	if ! ${REAL_SSH} -qF$OBJ/ssh_config -O check \
+	     -oControlPath=$CTL somehost >/dev/null 2>&1 ; then
+		fatal "forwarding ssh process died on malformed request"
+	fi
+}
+
 start_sshd
 trap "stop_ssh" EXIT
 
@@ -81,6 +93,7 @@ for d in D R; do
 	verbose "test -$d forwarding"
 	start_ssh $d
 	check_socks $d Y
+	check_socks_malformed $d
 	stop_ssh
 	test "x$d" = "xR" || continue
 	
