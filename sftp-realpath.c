@@ -1,4 +1,4 @@
-/*	$OpenBSD: sftp-realpath.c,v 1.2 2021/09/02 21:03:54 deraadt Exp $ */
+/*	$OpenBSD: sftp-realpath.c,v 1.3 2026/10/29 04:41:59 djm Exp $ */
 /*
  * Copyright (c) 2003 Constantin S. Svintsoff <kostik@iclub.nsu.ru>
  *
@@ -173,6 +173,11 @@ sftp_realpath(const char *path, char *resolved)
 			slen = readlink(resolved, symlink, sizeof(symlink) - 1);
 			if (slen < 0)
 				goto err;
+			if (slen == 0) {
+				/* refuse empty links */
+				errno = ENOENT;
+				goto err;
+			}
 			symlink[slen] = '\0';
 			if (symlink[0] == '/') {
 				resolved[1] = 0;
