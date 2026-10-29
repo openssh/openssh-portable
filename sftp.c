@@ -2586,9 +2586,16 @@ main(int argc, char **argv)
 			global_aflag = 1;
 			break;
 		case 'B':
-			copy_buffer_len = strtol(optarg, &cp, 10);
-			if (copy_buffer_len == 0 || *cp != '\0')
-				fatal("Invalid buffer size \"%s\"", optarg);
+			/*
+			 * The transfer buffer is used to build SSH2_FXP_WRITE
+			 * requests, so leave room for the message header.
+			 */
+			llv = strtonum(optarg, 1, SFTP_MAX_MSG_LENGTH - 1024,
+			    &errstr);
+			if (errstr != NULL)
+				fatal("Invalid buffer size \"%s\": %s", optarg,
+				    errstr);
+			copy_buffer_len = (size_t)llv;
 			break;
 		case 'b':
 			if (batchmode)

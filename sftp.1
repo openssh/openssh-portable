@@ -122,6 +122,8 @@ uses when transferring files.
 Larger buffers require fewer round trips at the cost of higher
 memory consumption.
 The default is 32768 bytes.
+The maximum supported value is 261120 bytes (256 KB less room for the
+SFTP message header).
 .It Fl b Ar batchfile
 Batch mode reads a series of commands from an input
 .Ar batchfile
