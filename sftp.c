@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.260 2026/10/01 03:11:49 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.261 2026/10/29 23:04:20 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1299,6 +1299,8 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 					argvs[j++] = arg[i];
 				} else {
 					argvs[j++] = arg[i++];
+					if (arg[i] == '\0')
+						goto early_nul;
 					argvs[j++] = arg[i];
 				}
 			} else {
