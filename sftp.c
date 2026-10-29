@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.261 2026/10/29 23:04:20 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.262 2026/10/29 23:07:43 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2279,7 +2279,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 	char *remote_path;
 	char *dir = NULL, *startdir = NULL;
 	char cmd[2048];
-	int err, interactive;
+	int r, err, interactive;
 	EditLine *el = NULL;
 #ifdef USE_LIBEDIT
 	const char *editor;
@@ -2334,23 +2334,26 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		if (sftp_remote_is_dir(conn, dir) && file2 == NULL) {
 			if (!quiet)
 				mprintf("Changing to: %s\n", dir);
-			snprintf(cmd, sizeof cmd, "cd \"%s\"", dir);
-			if (parse_dispatch_command(conn, cmd,
+			r = snprintf(cmd, sizeof cmd, "cd \"%s\"", dir);
+			if (r < 0 || (size_t)r >= sizeof(cmd)) {
+				error("Remote path too long");
+				err = -1;
+				goto bad;
+			}
+		if (parse_dispatch_command(conn, cmd,
 			    &remote_path, startdir, 1, 0) != 0) {
-				free(dir);
-				free(startdir);
-				free(remote_path);
-				free(conn);
-				return (-1);
+				err = -1;
+				goto bad;
 			}
 		} else {
 			err = process_get(conn, dir, file2, remote_path, 0, 0,
 			    global_aflag, 0);
+ bad:
 			free(dir);
 			free(startdir);
 			free(remote_path);
 			free(conn);
-			return (err);
+			return err;
 		}
 		free(dir);
 	}
