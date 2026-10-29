@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.496 2026/09/15 08:00:01 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.497 2026/10/29 23:12:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -968,15 +968,18 @@ do_fingerprint(struct passwd *pw)
 
 		/*
 		 * Try private keys first. Assume a key is private if
-		 * "SSH PRIVATE KEY" appears on the first line and we're
-		 * not reading from stdin (XXX support private keys on stdin).
+		 * the first line is a "-----BEGIN ... PRIVATE KEY-----"
+		 * header and we're not reading from stdin (XXX support
+		 * private keys on stdin). Keep going afterwards: ssh(1)
+		 * and sshd(8) would use any public keys that follow, so
+		 * they must be listed too.
 		 */
 		if (lnum == 1 && strcmp(identity_file, "-") != 0 &&
-		    strstr(cp, "PRIVATE KEY") != NULL) {
-			free(line);
-			fclose(f);
+		    strncmp(line, "-----BEGIN ", 11) == 0 &&
+		    strstr(line, "PRIVATE KEY") != NULL) {
 			fingerprint_private(path);
-			exit(0);
+			invalid = 0;
+			continue;
 		}
 
 		/*
