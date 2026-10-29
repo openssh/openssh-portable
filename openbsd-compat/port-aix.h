@@ -104,6 +104,9 @@ char *aix_krb5_get_principal_name(const char *);
 void aix_setauthdb(const char *);
 void aix_restoreauthdb(void);
 void aix_remove_embedded_newlines(char *);
+#ifdef USE_PAM
+int aix_set_use_pam(int use_pam);
+#endif
 
 #if defined(AIX_GETNAMEINFO_HACK) && !defined(BROKEN_GETADDRINFO)
 # ifdef getnameinfo
