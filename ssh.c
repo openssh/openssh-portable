@@ -173,7 +173,8 @@ usage(void)
 "           [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]\n"
 "           [-J destination] [-L address] [-l login_name] [-m mac_spec]\n"
 "           [-O ctl_cmd] [-o option] [-P tag] [-p port] [-R address]\n"
-"           [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]\n"
+"           [-S ctl_path] [-u agent_fingerprint] [-W host:port]\n"
+"           [-w local_tun[:remote_tun]]\n"
 "           destination [command [argument ...]]\n"
 "       ssh [-Q query_option]\n"
 	);
@@ -700,9 +701,9 @@ main(int ac, char **av)
 	argv0 = av[0];
 
  again:
-	/* remaining: HUdhjruz */
+	/* remaining: HUdhjrz */
 	while ((opt = getopt(ac, av, "1246ACGKMNTVXYZafgknqstvxy"
-	    "B:D:E:F:I:J:L:O:P:Q:R:S:W:b:c:e:i:l:m:o:p:w:")) != -1) {
+	    "B:D:E:F:I:J:L:O:P:Q:R:S:W:b:c:e:i:l:m:o:p:u:w:")) != -1) {
 		switch (opt) {
 		case '1':
 			fatal("SSH protocol v.1 is no longer supported");
@@ -851,6 +852,12 @@ main(int ac, char **av)
 			else
 				add_identity_file(&options, NULL, p, 1);
 			free(p);
+			break;
+		case 'u':
+			if (!valid_agent_identity_fingerprint(optarg))
+				fatal("-u requires a complete SHA256 fingerprint");
+			free(options.agent_identity_fingerprint);
+			options.agent_identity_fingerprint = xstrdup(optarg);
 			break;
 		case 'I':
 #ifdef ENABLE_PKCS11

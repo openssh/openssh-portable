@@ -1168,6 +1168,20 @@ or
 (the default).
 This option is intended for situations where ssh-agent
 offers many different identities.
+.It Cm AgentIdentityFingerprint
+Selects a single public key from the authentication agent by its complete
+SHA256 fingerprint, as displayed by
+.Xr ssh-add 1
+.Fl l .
+No other public keys are offered, including keys from identity files.
+If the selected key is unavailable or rejected, an error is displayed and
+authentication may continue using a password if permitted by the server
+and client configuration.
+The
+.Fl u
+option to
+.Xr ssh 1
+overrides this setting.
 .It Cm IdentityAgent
 Specifies the
 .Ux Ns -domain

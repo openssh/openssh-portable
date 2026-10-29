@@ -127,6 +127,25 @@ static int process_config_line_depth(Options *options, struct passwd *pw,
     char *line, const char *filename, int linenum, int *activep, int flags,
     int *want_final_pass, int depth);
 
+/* SHA256 fingerprints contain 32 bytes encoded as 43 unpadded base64 chars. */
+int
+valid_agent_identity_fingerprint(const char *fp)
+{
+	const char *p;
+
+	if (fp == NULL || strncmp(fp, "SHA256:", 7) != 0 ||
+	    strlen(fp + 7) != 43)
+		return 0;
+	for (p = fp + 7; *p != '\0'; p++) {
+		if ((*p >= 'A' && *p <= 'Z') ||
+		    (*p >= 'a' && *p <= 'z') ||
+		    (*p >= '0' && *p <= '9') || *p == '+' || *p == '/')
+			continue;
+		return 0;
+	}
+	return 1;
+}
+
 /* Keyword tokens. */
 
 typedef enum {
@@ -139,6 +158,7 @@ typedef enum {
 	oIdentityFile, oHostname, oPort, oRemoteForward, oLocalForward,
 	oPermitRemoteOpen,
 	oCertificateFile, oAddKeysToAgent, oIdentityAgent,
+	oAgentIdentityFingerprint,
 	oUser, oEscapeChar, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
@@ -233,6 +253,7 @@ static struct {
 	{ "certificatefile", oCertificateFile },
 	{ "addkeystoagent", oAddKeysToAgent },
 	{ "identityagent", oIdentityAgent },
+	{ "agentidentityfingerprint", oAgentIdentityFingerprint },
 	{ "hostname", oHostname },
 	{ "hostkeyalias", oHostKeyAlias },
 	{ "proxycommand", oProxyCommand },
@@ -2455,6 +2476,17 @@ parse_pubkey_algos:
 			*charptr = xstrdup(arg);
 		break;
 
+	case oAgentIdentityFingerprint:
+		arg = argv_next(&ac, &av);
+		if (!valid_agent_identity_fingerprint(arg)) {
+			error("%.200s line %d: AgentIdentityFingerprint requires a "
+			    "complete SHA256 fingerprint.", filename, linenum);
+			goto out;
+		}
+		if (*activep && options->agent_identity_fingerprint == NULL)
+			options->agent_identity_fingerprint = xstrdup(arg);
+		break;
+
 	case oEnableEscapeCommandline:
 		intptr = &options->enable_escape_commandline;
 		goto parse_flag;
@@ -2806,6 +2838,7 @@ initialize_options(Options * options)
 	options->add_keys_to_agent = -1;
 	options->add_keys_to_agent_lifespan = -1;
 	options->identity_agent = NULL;
+	options->agent_identity_fingerprint = NULL;
 	options->visual_host_key = -1;
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
@@ -3178,6 +3211,7 @@ free_options(Options *o)
 		sshkey_free(o->certificates[i]);
 	}
 	free(o->identity_agent);
+	free(o->agent_identity_fingerprint);
 	for (i = 0; i < o->num_local_forwards; i++) {
 		free(o->local_forwards[i].listen_host);
 		free(o->local_forwards[i].listen_path);
@@ -3821,6 +3855,8 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oHostKeyAlias, o->host_key_alias);
 	dump_cfg_string(oHostbasedAcceptedAlgorithms, o->hostbased_accepted_algos);
 	dump_cfg_string(oIdentityAgent, o->identity_agent);
+	dump_cfg_string(oAgentIdentityFingerprint,
+	    o->agent_identity_fingerprint);
 	dump_cfg_string(oIgnoreUnknown, o->ignored_unknown);
 	dump_cfg_string(oKbdInteractiveDevices, o->kbd_interactive_devices);
 	dump_cfg_string(oKexAlgorithms, o->kex_algorithms);
