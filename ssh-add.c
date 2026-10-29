@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.191 2026/09/17 18:12:10 dtucker Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.192 2026/10/29 22:53:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -488,7 +488,8 @@ update_card(int agent_fd, int add, const char *id, int qflag, int no_pin,
 		    add ? "add" : "remove", id, ssh_err(r));
 		ret = -1;
 	}
-	free(pin);
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 	return ret;
 }
 
@@ -614,7 +615,8 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag, int no_pin,
 		free(pin);
 		return r;
 	}
-	free(pin);
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 	for (i = 0; i < nsrks; i++) {
 		key = srks[i]->key;
 		if ((fp = sshkey_fingerprint(key,
