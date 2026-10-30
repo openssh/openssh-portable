@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.351 2026/09/16 00:25:50 djm Exp $ */
+/* $OpenBSD: session.c,v 1.352 2026/10/30 01:23:12 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2041,17 +2041,24 @@ static int
 session_env_req(struct ssh *ssh, Session *s)
 {
 	char *name, *val;
+	size_t namelen, vallen;
 	u_int i;
 	int r;
 
-	if ((r = sshpkt_get_cstring(ssh, &name, NULL)) != 0 ||
-	    (r = sshpkt_get_cstring(ssh, &val, NULL)) != 0 ||
+	if ((r = sshpkt_get_cstring(ssh, &name, &namelen)) != 0 ||
+	    (r = sshpkt_get_cstring(ssh, &val, &vallen)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
 
 	/* Don't set too many environment variables */
 	if (s->num_env > 128) {
-		debug2("Ignoring env request %s: too many env vars", name);
+		debug2_f("ignoring env request %s: too many env vars", name);
+		goto fail;
+	}
+	/* or accept oversize ones */
+	if (namelen > 2048 || vallen > 16384) {
+		debug2_f("ignoring env request %.128s: "
+		    "name or value too long", name);
 		goto fail;
 	}
 
