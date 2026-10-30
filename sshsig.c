@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.41 2025/12/22 01:49:03 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.42 2026/10/30 02:18:03 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -34,6 +34,7 @@
 #include "sshkey.h"
 #include "match.h"
 #include "digest.h"
+#include "myproposal.h"
 
 #define SIG_VERSION		0x01
 #define MAGIC_PREAMBLE		"SSHSIG"
@@ -918,6 +919,14 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 		debug("%s:%lu: matched key", path, linenum);
 	} else if (sigopts->ca && sshkey_is_cert(sign_key) &&
 	    sshkey_equal_public(sign_key->cert->signature_key, found_key)) {
+		/* Ensure that the CA used an acceptable signature algorithm */
+		if ((r = sshkey_check_cert_sigtype(sign_key,
+		    SSH_ALLOWED_CA_SIGALGS)) != 0) {
+			error("%s:%lu: certificate signed with disallowed "
+			    "algorithm %s", path, linenum,
+			    sign_key->cert->signature_type);
+			goto done;
+		}
 		if (principal) {
 			/* Match certificate CA key with specified principal */
 			if ((r = sshkey_cert_check_authority(sign_key, 0, 0,
