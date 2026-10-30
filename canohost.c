@@ -1,4 +1,4 @@
-/* $OpenBSD: canohost.c,v 1.78 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: canohost.c,v 1.79 2026/10/30 05:52:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -22,6 +22,7 @@
 #include <arpa/inet.h>
 
 #include <errno.h>
+#include <ifaddrs.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +32,7 @@
 
 #include "xmalloc.h"
 #include "log.h"
+#include "addr.h"
 #include "canohost.h"
 #include "misc.h"
 
@@ -60,11 +62,59 @@ ipv64_normalise_mapped(struct sockaddr_storage *addr, socklen_t *len)
 }
 
 /*
+ * Check whether an IP address is configured on one of this host's
+ * interfaces. Returns 1 if it is or 0 otherwise.
+ */
+static int
+is_local_address(struct sockaddr *sa, socklen_t salen)
+{
+#ifdef HAVE_IFADDRS_H
+	struct ifaddrs *ifa, *ifaddrs = NULL;
+	struct xaddr addr, ifaddr;
+	socklen_t ifalen;
+	int found = 0;
+
+	if (addr_sa_to_xaddr(sa, salen, &addr) != 0)
+		return 0;
+	if (getifaddrs(&ifaddrs) != 0) {
+		error_f("getifaddrs failed: %s", strerror(errno));
+		return 0;
+	}
+	for (ifa = ifaddrs; ifa != NULL; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr == NULL ||
+		    ifa->ifa_addr->sa_family != sa->sa_family)
+			continue;
+		switch (ifa->ifa_addr->sa_family) {
+		case AF_INET:
+			ifalen = sizeof(struct sockaddr_in);
+			break;
+		case AF_INET6:
+			ifalen = sizeof(struct sockaddr_in6);
+			break;
+		default:
+			continue;
+		}
+		if (addr_sa_to_xaddr(ifa->ifa_addr, ifalen, &ifaddr) == 0 &&
+		    addr_cmp(&addr, &ifaddr) == 0) {
+			found = 1;
+			break;
+		}
+	}
+	freeifaddrs(ifaddrs);
+	return found;
+#else /* HAVE_IFADDRS_H */
+	return 1;
+#endif /* HAVE_IFADDRS_H */
+}
+
+/*
  * Returns the local/remote IP-address/hostname of socket as a string.
+ * If local_only is set then only IP addresses that are configured on this
+ * host are returned; Unix domain socket paths are not.
  * The returned string must be freed.
  */
 static char *
-get_socket_address(int sock, int remote, int flags)
+get_socket_address(int sock, int remote, int flags, int local_only)
 {
 	struct sockaddr_storage addr;
 	socklen_t addrlen;
@@ -95,6 +145,9 @@ get_socket_address(int sock, int remote, int flags)
 	switch (addr.ss_family) {
 	case AF_INET:
 	case AF_INET6:
+		if (local_only &&
+		    !is_local_address((struct sockaddr *)&addr, addrlen))
+			return NULL;
 		/* Get the address in ascii. */
 		if ((r = getnameinfo((struct sockaddr *)&addr, addrlen, ntop,
 		    sizeof(ntop), NULL, 0, flags)) != 0) {
@@ -104,6 +157,8 @@ get_socket_address(int sock, int remote, int flags)
 		}
 		return xstrdup(ntop);
 	case AF_UNIX:
+		if (local_only)
+			return NULL;
 		/* Get the Unix domain socket path. */
 		return xstrdup(((struct sockaddr_un *)&addr)->sun_path);
 	default:
@@ -117,7 +172,7 @@ get_peer_ipaddr(int sock)
 {
 	char *p;
 
-	if ((p = get_socket_address(sock, 1, NI_NUMERICHOST)) != NULL)
+	if ((p = get_socket_address(sock, 1, NI_NUMERICHOST, 0)) != NULL)
 		return p;
 	return xstrdup("UNKNOWN");
 }
@@ -127,7 +182,7 @@ get_local_ipaddr(int sock)
 {
 	char *p;
 
-	if ((p = get_socket_address(sock, 0, NI_NUMERICHOST)) != NULL)
+	if ((p = get_socket_address(sock, 0, NI_NUMERICHOST, 0)) != NULL)
 		return p;
 	return xstrdup("UNKNOWN");
 }
@@ -137,11 +192,16 @@ get_local_name(int fd)
 {
 	char *host, myname[NI_MAXHOST];
 
-	/* Assume we were passed a socket */
-	if ((host = get_socket_address(fd, 0, NI_NAMEREQD)) != NULL)
+	/*
+	 * Assume we were passed a socket. Only trust the address if it is
+	 * one of this host's: ssh-keysign(8) receives fd from an unprivileged
+	 * caller that may have bound it to an arbitrary Unix domain socket
+	 * path or to another host's address (e.g. via IP_FREEBIND).
+	 */
+	if ((host = get_socket_address(fd, 0, NI_NAMEREQD, 1)) != NULL)
 		return host;
 
-	/* Handle the case where we were passed a pipe */
+	/* Handle the case where we were passed a pipe or local socket */
 	if (gethostname(myname, sizeof(myname)) == -1) {
 		verbose_f("gethostname: %s", strerror(errno));
 		host = xstrdup("UNKNOWN");
