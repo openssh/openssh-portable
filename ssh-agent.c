@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.334 2026/10/30 04:08:33 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.335 2026/10/30 04:22:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -918,6 +918,11 @@ process_sign_request2(SocketEntry *e)
 		    &hostkey) != 0) {
 			logit_f("refusing use of destination-constrained key "
 			   "to sign an unidentified signature");
+			goto send;
+		}
+		if (strlen(user) > AGENT_USER_CONSTRAINT_MAX_LEN) {
+			logit_f("refusing use of destination-constrained key: "
+			    "user name in signature request too long");
 			goto send;
 		}
 		/* XXX logspam */
