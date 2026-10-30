@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.335 2026/10/30 04:22:15 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.336 2026/10/30 07:18:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1709,9 +1709,19 @@ process_remove_smartcard_key(SocketEntry *e)
 	}
 	free(pin);
 
+	if (socket_is_remote(e) && !remote_add_provider) {
+		verbose("failed PKCS#11 remove of \"%.100s\": remote removal of "
+		    "providers is disabled", provider);
+		goto send;
+	}
 	if (realpath(provider, canonical_provider) == NULL) {
-		verbose("failed PKCS#11 add of \"%.100s\": realpath: %s",
+		verbose("failed PKCS#11 remove of \"%.100s\": realpath: %s",
 		    provider, strerror(errno));
+		goto send;
+	}
+	if (match_pattern_list(canonical_provider, allowed_providers, 0) != 1) {
+		verbose("refusing PKCS#11 remove of \"%.100s\": "
+		    "provider not allowed", canonical_provider);
 		goto send;
 	}
 
