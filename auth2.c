@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.176 2026/09/16 00:37:07 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.177 2026/10/30 06:35:25 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -292,6 +292,9 @@ input_userauth_request(int type, uint32_t seq, struct ssh *ssh)
 
 	if ((style = strchr(user, ':')) != NULL)
 		*style++ = 0;
+	/* An empty style is no style; the monitor treats it the same way. */
+	if (style != NULL && *style == '\0')
+		style = NULL;
 
 	if (authctxt->attempt >= 1024)
 		auth_maxtries_exceeded(ssh);

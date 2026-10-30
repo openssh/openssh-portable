@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.59 2026/09/16 00:31:27 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.60 2026/10/30 06:35:25 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -62,7 +62,7 @@ userauth_hostbased(struct ssh *ssh, const char *method)
 	Authctxt *authctxt = ssh->authctxt;
 	struct sshbuf *keyblob = NULL, *b = NULL;
 	struct sshkey *key = NULL;
-	char *pkalg, *cuser, *chost;
+	char *pkalg, *cuser, *chost, *userstyle = NULL;
 	u_char *sig;
 	size_t alen, slen;
 	int r, pktype, authenticated = 0;
@@ -136,9 +136,12 @@ userauth_hostbased(struct ssh *ssh, const char *method)
 	if ((b = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	/* reconstruct packet */
+	xasprintf(&userstyle, "%s%s%s", authctxt->user,
+	    authctxt->style ? ":" : "",
+	    authctxt->style ? authctxt->style : "");
 	if ((r = sshbuf_put_stringb(b, ssh->kex->session_id)) != 0 ||
 	    (r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
-	    (r = sshbuf_put_cstring(b, authctxt->user)) != 0 ||
+	    (r = sshbuf_put_cstring(b, userstyle)) != 0 ||
 	    (r = sshbuf_put_cstring(b, authctxt->service)) != 0 ||
 	    (r = sshbuf_put_cstring(b, method)) != 0 ||
 	    (r = sshbuf_put_string(b, pkalg, alen)) != 0 ||
@@ -168,6 +171,7 @@ done:
 	sshbuf_free(b);
 	sshbuf_free(keyblob);
 	free(pkalg);
+	free(userstyle);
 	free(cuser);
 	free(chost);
 	free(sig);
