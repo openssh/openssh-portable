@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-genr.c,v 1.31 2026/02/08 19:54:31 dtucker Exp $ */
+/* $OpenBSD: gss-genr.c,v 1.32 2026/10/30 02:15:00 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2007 Simon Wilkinson. All rights reserved.
@@ -147,7 +147,8 @@ ssh_gssapi_last_error(Gssctxt *ctxt, OM_uint32 *major_status,
 
 	if ((r = sshbuf_put_u8(b, '\n')) != 0)
 		fatal_fr(r, "assemble newline");
-	ret = xstrdup((const char *)sshbuf_ptr(b));
+	if ((ret = sshbuf_dup_string(b)) == NULL)
+		fatal_f("sshbuf_dup_string failed");
 	sshbuf_free(b);
 	return (ret);
 }
