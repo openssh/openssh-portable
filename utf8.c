@@ -1,4 +1,4 @@
-/* $OpenBSD: utf8.c,v 1.11 2020/05/01 06:28:52 djm Exp $ */
+/* $OpenBSD: utf8.c,v 1.12 2026/10/30 03:40:56 djm Exp $ */
 /*
  * Copyright (c) 2016 Ingo Schwarze <schwarze@openbsd.org>
  *
@@ -77,7 +77,12 @@ grow_dst(char **dst, size_t *sz, size_t maxsz, char **dp, size_t need)
 
 	if (*dp + need < *dst + *sz)
 		return 0;
-	tsz = *sz + 128;
+	/*
+	 * Grow geometrically to avoid recallocarray repeatedly having to
+	 * copy its buffer as the allocation grows.
+	 * Note: maxsz is always <=INT_MAX so we can't overflow the size_t;
+	 */
+	tsz = *sz + (*sz > 128 ? *sz : 128);
 	if (tsz > maxsz)
 		tsz = maxsz;
 	if ((tp = recallocarray(*dst, *sz, tsz, 1)) == NULL)
