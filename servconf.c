@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.461 2026/10/30 03:28:03 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.462 2026/10/30 08:07:36 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2226,7 +2226,8 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 			/* requested glob was not in cache */
 			debug2("%s line %d: new include %s",
 			    filename, linenum, arg);
-			if ((r = glob(arg, 0, NULL, &gbuf)) != 0) {
+			if ((r = glob(arg, 0, include_glob_error,
+			    &gbuf)) != 0) {
 				if (r != GLOB_NOMATCH) {
 					fatal("%s line %d: include \"%s\" glob "
 					    "failed", filename, linenum, arg);

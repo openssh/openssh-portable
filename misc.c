@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.222 2026/10/30 01:16:44 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.223 2026/10/30 08:07:36 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2684,6 +2684,21 @@ int
 path_absolute(const char *path)
 {
 	return (*path == '/') ? 1 : 0;
+}
+
+/*
+ * glob(3) error callback for configuration file Include directives.
+ * A directory that doesn't exist matches no files, but a failure to read
+ * one that does must not be mistaken for that: abort the glob instead.
+ */
+int
+include_glob_error(const char *path, int errnum)
+{
+	if (errnum == ENOENT || errnum == ENOTDIR)
+		return 0;
+	error("Include: unable to read directory %s: %s", path,
+	    strerror(errnum));
+	return 1;
 }
 
 void

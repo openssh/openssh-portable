@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.120 2026/09/16 06:23:16 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.121 2026/10/30 08:07:36 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -111,6 +111,7 @@ int	 parse_absolute_time(const char *, uint64_t *);
 void	 format_absolute_time(uint64_t, char *, size_t);
 int	 parse_pattern_interval(const char *, char **, double *);
 int	 path_absolute(const char *);
+int	 include_glob_error(const char *, int);
 int	 stdfd_devnull(int, int, int);
 int	 lib_contains_symbol(const char *, const char *);
 char	*get_homedir(void);

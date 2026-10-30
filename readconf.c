@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.421 2026/10/30 06:40:58 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.422 2026/10/30 08:07:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2150,7 +2150,7 @@ parse_pubkey_algos:
 			}
 			free(p);
 			memset(&gl, 0, sizeof(gl));
-			r = glob(arg2, GLOB_TILDE, NULL, &gl);
+			r = glob(arg2, GLOB_TILDE, include_glob_error, &gl);
 			if (r == GLOB_NOMATCH) {
 				debug("%.200s line %d: include %s matched no "
 				    "files",filename, linenum, arg2);
