@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-client.c,v 1.26 2026/02/09 22:11:39 dtucker Exp $ */
+/* $OpenBSD: ssh-pkcs11-client.c,v 1.27 2026/10/30 01:41:01 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -390,8 +390,15 @@ pkcs11_add_provider(char *name, char *pin, struct sshkey ***keysp,
 	struct sshbuf *msg;
 	struct helper *helper;
 
-	if ((helper = helper_by_provider(name)) == NULL &&
-	    (helper = pkcs11_start_helper(name)) == NULL)
+	/*
+	 * A helper accepts a single add request and may be serving keys
+	 * already, so don't reuse (and below, terminate) an existing one.
+	 */
+	if (helper_by_provider(name) != NULL) {
+		debug_f("provider already registered: %s", name);
+		return -1;
+	}
+	if ((helper = pkcs11_start_helper(name)) == NULL)
 		return -1;
 
 	debug3_f("add %s", helper->path);
