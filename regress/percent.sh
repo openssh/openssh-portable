@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.24 2026/10/03 05:08:49 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.25 2026/10/30 08:43:39 djm Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -122,7 +122,8 @@ for i in matchexec localcommand proxycommand remotecommand controlpath \
 	fi
 	# Matches implementation in readconf.c:ssh_connection_hash()
 	if [ ! -z "${OPENSSL_BIN}" ]; then
-		HASH=`printf "${HOSTNAME}127.0.0.1${PORT}${REMUSER}" |
+		HASH=`printf '%s\\0%s\\0%s\\0%s\\0%s\\0' \\
+		    "${HOSTNAME}" 127.0.0.1 "${PORT}" "${REMUSER}" "" |
 		    $OPENSSL_BIN sha1 | cut -f2 -d' '`
 		trial $i '%C' $HASH
 	fi
@@ -150,6 +151,17 @@ for i in matchexec localcommand proxycommand remotecommand controlpath \
 		trial $i "$in" "$out"
 	fi
 done
+
+# %C must differ between destinations whose fields merely concatenate to the
+# same string, e.g. host 127.0.0.1 port 2222 vs. host 127.0.0.12 port 222.
+verbose $tid controlpath hash unique
+a=`${SSH} -F $OBJ/ssh_proxy -oControlPath=%C -oHostname=127.0.0.1 -p 2222 -G \
+    remuser@somehost | awk '$1=="controlpath"{print $2}'`
+b=`${SSH} -F $OBJ/ssh_proxy -oControlPath=%C -oHostname=127.0.0.12 -p 222 -G \
+    remuser@somehost | awk '$1=="controlpath"{print $2}'`
+if [ -z "$a" ] || [ "$a" = "$b" ]; then
+	fail "controlpath %C not unique: '$a' vs '$b'"
+fi
 
 # Subset of above since we don't expand shell-style variables on anything that
 # runs a command because the shell will expand those.
