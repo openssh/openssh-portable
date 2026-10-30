@@ -44,8 +44,9 @@
 extern struct sshbuf *loginmsg;
 
 /*
- * For the account and password expiration functions, we assume the expiry
- * occurs the day after the day specified.
+ * For the password expiration function, we assume the expiry occurs the
+ * day after the day specified.  An account is expired from the day given
+ * by sp_expire onward, matching chage(1), login(1) and pam_unix(8).
  */
 
 /*
@@ -66,7 +67,7 @@ auth_shadow_acctexpired(struct spwd *spw)
 
 	if (spw->sp_expire == -1) {
 		debug3("account expiration disabled");
-	} else if (daysleft < 0) {
+	} else if (daysleft <= 0) {
 		logit("Account %.100s has expired", spw->sp_namp);
 		return 1;
 	} else if (daysleft <= spw->sp_warn) {
