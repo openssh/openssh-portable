@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.117 2026/10/30 07:25:33 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.118 2026/10/30 08:27:49 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -222,8 +222,16 @@ mux_master_control_cleanup_cb(struct ssh *ssh, int cid, int force, void *unused)
 		} else {
 			if (sc->istate == CHAN_INPUT_OPEN)
 				chan_read_failed(ssh, sc);
-			if (sc->ostate == CHAN_OUTPUT_OPEN)
+			if (sc->ostate == CHAN_OUTPUT_OPEN ||
+			    sc->ostate == CHAN_OUTPUT_WAIT_DRAIN)
 				chan_write_failed(ssh, sc);
+			/*
+			 * Also close the client's stderr, otherwise the
+			 * server could keep writing extended data to it
+			 * until the channel is fully closed.
+			 */
+			if (sc->efd != -1)
+				channel_close_fd(ssh, sc, &sc->efd);
 		}
 	}
 	channel_cancel_cleanup(ssh, c->self);
