@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.498 2026/10/30 03:24:23 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.499 2026/10/30 03:47:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2511,6 +2511,58 @@ do_gen_krl(struct passwd *pw, int updating, const char *ca_key_path,
 	sshkey_free(ca);
 }
 
+/* Check a single key against a KRL; returns non-zero if it is revoked. */
+static int
+check_krl_key(struct ssh_krl *krl, const struct sshkey *k,
+    const char *path, const char *comment)
+{
+	int r;
+
+	r = ssh_krl_check_key(krl, k);
+	printf("%s%s%s%s: %s\n", path,
+	    *comment ? " (" : "", comment, *comment ? ")" : "",
+	    r == 0 ? "ok" : "REVOKED");
+	return r != 0;
+}
+
+/*
+ * Check every public key listed in a file (one per line) against a KRL,
+ * setting *revokedp if any is revoked. Returns the number of keys checked;
+ * zero if the file could not be opened or contains no public keys.
+ */
+static u_long
+check_krl_file(struct ssh_krl *krl, const char *path, int *revokedp)
+{
+	FILE *f;
+	struct sshkey *k;
+	char *cp, *line = NULL;
+	size_t linesize = 0;
+	u_long lnum = 0, nkeys = 0;
+
+	if ((f = fopen(path, "r")) == NULL)
+		return 0;
+	while (getline(&line, &linesize, f) != -1) {
+		lnum++;
+		cp = line + strspn(line, " \t");
+		cp[strcspn(cp, "\r\n")] = '\0';
+		if (*cp == '#' || *cp == '\0')
+			continue;
+		/* Stop if this looks like a private key */
+		if (strncmp(cp, "-----BEGIN", 10) == 0)
+			break;
+		if ((k = try_read_key(&cp)) == NULL)
+			fatal("%s:%lu: invalid key", path, lnum);
+		cp += strspn(cp, " \t");
+		if (check_krl_key(krl, k, path, *cp ? cp : path))
+			*revokedp = 1;
+		sshkey_free(k);
+		nkeys++;
+	}
+	fclose(f);
+	free(line);
+	return nkeys;
+}
+
 static void
 do_check_krl(struct passwd *pw, int print_krl, int argc, char **argv)
 {
@@ -2525,13 +2577,14 @@ do_check_krl(struct passwd *pw, int print_krl, int argc, char **argv)
 	if (print_krl)
 		krl_dump(krl, stdout);
 	for (i = 0; i < argc; i++) {
+		/* Test every key in the file, not just the first */
+		if (check_krl_file(krl, argv[i], &ret) != 0)
+			continue;
+		/* No public keys found; try the ".pub" suffix or a private key */
 		if ((r = sshkey_load_public(argv[i], &k, &comment)) != 0)
 			fatal_r(r, "Cannot load public key %s", argv[i]);
-		r = ssh_krl_check_key(krl, k);
-		printf("%s%s%s%s: %s\n", argv[i],
-		    *comment ? " (" : "", comment, *comment ? ")" : "",
-		    r == 0 ? "ok" : "REVOKED");
-		if (r != 0)
+		if (check_krl_key(krl, k, argv[i],
+		    comment == NULL ? "" : comment))
 			ret = 1;
 		sshkey_free(k);
 		free(comment);

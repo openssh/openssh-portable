@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.243 2026/10/30 02:18:03 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.244 2026/10/30 03:47:56 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1255,6 +1255,8 @@ It is also possible, given a KRL, to test whether it revokes a particular key
 The
 .Fl Q
 flag will query an existing KRL, testing each key specified on the command line.
+Files specified on the command line may contain multiple public keys,
+listed one per line, all of which will be tested.
 If any key listed on the command line has been revoked (or an error encountered)
 then
 .Nm
