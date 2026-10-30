@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.497 2026/10/29 23:12:32 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.498 2026/10/30 03:24:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -390,7 +390,7 @@ do_convert_to_pem(struct sshkey *k)
 }
 
 static void
-do_convert_to_hexdump(struct sshkey *k)
+do_convert_to_hexdump(struct sshkey *k, int private)
 {
 	struct sshbuf *b;
 	int r;
@@ -399,10 +399,13 @@ do_convert_to_hexdump(struct sshkey *k)
 		fatal_f("sshbuf_new failed");
 	/* pubkey */
 	if ((r = sshkey_putb(k, b)) != 0)
-		fatal_fr(r, "serialise private");
+		fatal_fr(r, "serialise public");
 	printf("Public %s key:\n", sshkey_type(k));
 	sshbuf_dump(b, stdout);
 	sshbuf_reset(b);
+	/* only a private key has private components to dump */
+	if (!private)
+		goto out;
 	if ((r = sshkey_private_serialize(k, b)) != 0) {
 		debug_fr(r, "serialise private");
 		goto out;
@@ -418,7 +421,7 @@ do_convert_to(struct passwd *pw)
 {
 	struct sshkey *k = NULL;
 	struct stat st;
-	int r;
+	int r, private = 0;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
@@ -431,9 +434,13 @@ do_convert_to(struct passwd *pw)
 		    NULL, &k, NULL)) != 0 &&
 		    r == SSH_ERR_KEY_WRONG_PASSPHRASE)
 			k = load_identity(identity_file, NULL);
+		private = k != NULL;
 	}
-	if (k == NULL && (r = sshkey_load_public(identity_file, &k, NULL)) != 0)
+	if (k == NULL &&
+	    (r = sshkey_load_public(identity_file, &k, NULL)) != 0) {
 		k = load_identity(identity_file, NULL);
+		private = 1;
+	}
 
 	switch (convert_format) {
 	case FMT_RFC4716:
@@ -446,7 +453,7 @@ do_convert_to(struct passwd *pw)
 		do_convert_to_pem(k);
 		break;
 	case FMT_HEXDUMP:
-		do_convert_to_hexdump(k);
+		do_convert_to_hexdump(k, private);
 		break;
 	default:
 		fatal_f("unknown key format %d", convert_format);
