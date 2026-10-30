@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.260 2026/10/11 20:41:20 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.261 2026/10/30 03:44:02 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1006,6 +1006,32 @@ key_base_type_match(const char *method, const struct sshkey *key,
 	return found;
 }
 
+/*
+ * Check that the key satisfies the CASignatureAlgorithms and
+ * RequiredRSASize policies. These are also checked in the unprivileged
+ * authentication code, but are re-checked here so that they hold
+ * regardless of what the unprivileged process sends us.
+ * Returns 1 on success, 0 otherwise.
+ */
+static int
+key_policy_match(const char *method, const struct sshkey *key)
+{
+	int r;
+
+	if ((r = sshkey_check_cert_sigtype(key,
+	    options.ca_sign_algorithms)) != 0) {
+		error_r(r, "%s certificate signature algorithm not in "
+		    "CASignatureAlgorithms", method);
+		return 0;
+	}
+	if ((r = sshkey_check_rsa_length(key,
+	    options.required_rsa_size)) != 0) {
+		error_r(r, "%s refusing %s key", method, sshkey_type(key));
+		return 0;
+	}
+	return 1;
+}
+
 int
 mm_answer_authpassword(struct ssh *ssh, int sock, struct sshbuf *m)
 {
@@ -1309,6 +1335,8 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 			if (!key_base_type_match(auth_method, key,
 			    options.pubkey_accepted_algos))
 				break;
+			if (!key_policy_match(auth_method, key))
+				break;
 			allowed = user_key_allowed(ssh, authctxt->pw, key,
 			    pubkey_auth_attempt, &opts);
 			break;
@@ -1320,6 +1348,8 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 				break;
 			if (!key_base_type_match(auth_method, key,
 			    options.hostbased_accepted_algos))
+				break;
+			if (!key_policy_match(auth_method, key))
 				break;
 			allowed = hostbased_key_allowed(ssh, authctxt->pw,
 			    cuser, chost, key);
