@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.172 2026/10/30 03:13:52 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.173 2026/10/30 07:46:41 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -571,7 +571,8 @@ congreet(int s)
 		confree(s);
 		return;
 	}
-	if (!quiet) {
+	/* The comment names the host, which -H promises not to reveal */
+	if (!quiet && !hash_hosts) {
 		fprintf(stdout, "%c %s:%d %s\n", print_sshfp ? ';' : '#',
 		    c->c_name, ssh_port, chop(buf));
 	}

@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.54 2026/06/26 06:17:13 djm Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.55 2026/10/30 07:46:41 djm Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -6,7 +6,7 @@
 .\" permitted provided that due credit is given to the author and the
 .\" OpenBSD project by leaving this copyright notice intact.
 .\"
-.Dd $Mdocdate: June 26 2026 $
+.Dd $Mdocdate: October 30 2026 $
 .Dt SSH-KEYSCAN 1
 .Os
 .Sh NAME
@@ -107,6 +107,10 @@ and
 .Xr sshd 8 ,
 but they do not reveal identifying information should the file's contents
 be disclosed.
+This option also suppresses the comments containing the server host name
+and banner, as if
+.Fl q
+had been specified.
 .It Fl O Ar option
 Specify a key/value option.
 At present, only a single option is supported:
