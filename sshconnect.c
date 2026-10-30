@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.386 2026/09/16 00:29:44 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.387 2026/10/30 03:20:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1653,10 +1653,21 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 	/* Put the connection into non-blocking mode. */
 	ssh_packet_set_nonblocking(ssh);
 
+	/*
+	 * ConnectTimeout also covers the initial key exchange: bound each
+	 * packet read/write during KEX by the time remaining, rounded up to
+	 * whole seconds. Time spent at the host key prompt is not counted.
+	 */
+	if (timeout_ms > 0)
+		ssh_packet_set_timeout(ssh, timeout_ms / 1000 + 1, 1);
+
 	/* key exchange */
 	/* authenticate user */
 	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
 	ssh_kex2(ssh, host, hostaddr, port, cinfo);
+	/* KEX done; use the keepalive timeout for the rest of the session. */
+	ssh_packet_set_timeout(ssh, options.server_alive_interval,
+	    options.server_alive_count_max);
 	kex_set_warn_weak_crypto(ssh, options.warn_weak_crypto &&
 	    !options.kex_algorithms_set);
 	if (!options.kex_algorithms_set && ssh->kex != NULL &&
