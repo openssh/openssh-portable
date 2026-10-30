@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.167 2026/10/30 03:22:47 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.168 2026/10/30 09:02:03 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3552,6 +3552,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 	BIO *bio = NULL;
 	int r;
 	RSA *rsa = NULL;
+	const BIGNUM *rsa_n = NULL, *rsa_e = NULL;
 	EC_KEY *ecdsa = NULL;
 
 	if (keyp != NULL)
@@ -3594,6 +3595,20 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 #ifdef DEBUG_PK
 		RSA_print_fp(stderr, rsa, 8);
 #endif
+		/*
+		 * libcrypto doesn't limit the size of the integers it decodes
+		 * from PEM, and RSA_blinding_on() below computes a modular
+		 * exponentiation using n and e. Apply the same upper bound
+		 * that sshbuf_get_bignum2() enforces for the other key formats
+		 * before doing any arithmetic on the key.
+		 */
+		RSA_get0_key(rsa, &rsa_n, &rsa_e, NULL);
+		if (rsa_n == NULL || rsa_e == NULL ||
+		    BN_num_bits(rsa_n) > SSHBUF_MAX_BIGNUM * 8 ||
+		    BN_num_bits(rsa_e) > SSHBUF_MAX_BIGNUM * 8) {
+			r = SSH_ERR_KEY_LENGTH;
+			goto out;
+		}
 		if (RSA_blinding_on(rsa, NULL) != 1 ||
 		    EVP_PKEY_set1_RSA(pk, rsa) != 1) {
 			r = SSH_ERR_LIBCRYPTO_ERROR;
