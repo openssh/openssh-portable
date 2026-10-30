@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.84 2026/02/14 00:18:34 jsg Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.85 2026/10/30 01:45:14 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -235,7 +235,9 @@ ssh_rsa_deserialize_private(const char *ktype, struct sshbuf *b,
 	int r;
 	BIGNUM *rsa_n = NULL, *rsa_e = NULL, *rsa_d = NULL;
 	BIGNUM *rsa_iqmp = NULL, *rsa_p = NULL, *rsa_q = NULL;
-	BIGNUM *rsa_dmp1 = NULL, *rsa_dmq1 = NULL;
+	BIGNUM *rsa_dmp1 = NULL, *rsa_dmq1 = NULL, *rsa_pq = NULL;
+	const BIGNUM *n = NULL, *e = NULL;
+	BN_CTX *ctx = NULL;
 	RSA *rsa = NULL;
 
 	if (sshkey_is_cert(key)) {
@@ -264,6 +266,31 @@ ssh_rsa_deserialize_private(const char *ktype, struct sshbuf *b,
 	    (r = sshbuf_get_bignum2(b, &rsa_p)) != 0 ||
 	    (r = sshbuf_get_bignum2(b, &rsa_q)) != 0)
 		goto out;
+	/*
+	 * libcrypto doesn't check that the private values belong to the
+	 * modulus, but the cost of using the key is determined by their
+	 * size, so check them here before they can be used to sign.
+	 */
+	RSA_get0_key(rsa, &n, &e, NULL);
+	if ((ctx = BN_CTX_new()) == NULL || (rsa_pq = BN_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (BN_mul(rsa_pq, rsa_p, rsa_q, ctx) != 1) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+	if (BN_cmp(rsa_pq, n) != 0 || BN_cmp(rsa_d, n) >= 0 ||
+	    BN_cmp(rsa_iqmp, rsa_p) >= 0 || BN_cmp(e, n) >= 0) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	/* Same limit on the public exponent as libcrypto's public key ops */
+	if (BN_num_bits(n) > OPENSSL_RSA_SMALL_MODULUS_BITS &&
+	    BN_num_bits(e) > OPENSSL_RSA_MAX_PUBEXP_BITS) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
 	if ((r = ssh_rsa_complete_crt_parameters(rsa_d, rsa_p, rsa_q,
 	    rsa_iqmp, &rsa_dmp1, &rsa_dmq1)) != 0)
 		goto out;
@@ -304,6 +331,8 @@ ssh_rsa_deserialize_private(const char *ktype, struct sshbuf *b,
 	BN_clear_free(rsa_iqmp);
 	BN_clear_free(rsa_dmp1);
 	BN_clear_free(rsa_dmq1);
+	BN_clear_free(rsa_pq);
+	BN_CTX_free(ctx);
 	return r;
 }
 
