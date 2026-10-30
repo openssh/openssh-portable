@@ -1,4 +1,4 @@
-#	$OpenBSD: sshcfgparse.sh,v 1.11 2026/10/30 06:41:17 djm Exp $
+#	$OpenBSD: sshcfgparse.sh,v 1.12 2026/10/30 08:12:58 djm Exp $
 #	Placed in the Public Domain.
 
 tid="ssh config parse"
@@ -73,6 +73,9 @@ f=`${SSH} -GF none -opubkeyacceptedalgorithms=-ssh-ed25519 host | \
     awk '/^pubkeyacceptedalgorithms /{print $2}'`
 expect_result_present "$f" "ssh-ed25519-cert-v01.*"
 expect_result_absent "$f" "ssh-ed25519"
+# Removal of the entire default set is an error.
+${SSH} -GF none '-opubkeyacceptedalgorithms=-*' host >/dev/null 2>&1 && \
+	fail "pubkeyacceptedalgorithms empty after removal accepted"
 # Append to default set.
 # This is not tested when built !WITH_OPENSSL
 # XXX need a test for this

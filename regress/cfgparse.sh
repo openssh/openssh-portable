@@ -1,4 +1,4 @@
-#	$OpenBSD: cfgparse.sh,v 1.12 2026/07/22 00:37:24 dtucker Exp $
+#	$OpenBSD: cfgparse.sh,v 1.13 2026/10/30 08:12:58 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshd config parse"
@@ -83,6 +83,15 @@ EOD
  grep -i '^maxstartups ' >$OBJ/sshd_config.2 &&
  diff -i $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
  fail "maxstartups idempotence"
+
+# Removal of the entire default algorithm set is an error.
+verbose "remove all algorithms"
+cat > $OBJ/sshd_config.1 <<EOD
+${SSHD_KEYS}
+PubkeyAcceptedAlgorithms -*
+EOD
+$SUDO ${SSHD} -tq -f $OBJ/sshd_config.1 && \
+ fail "pubkeyacceptedalgorithms empty after removal accepted"
 
 # cleanup
 rm -f $OBJ/sshd_config.[012]
