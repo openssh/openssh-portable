@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.333 2026/09/22 22:30:27 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.334 2026/10/30 04:08:33 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -100,6 +100,8 @@
 #define AGENT_MAX_SID_LEN		128
 /* Maximum number of destination constraints to accept on a key */
 #define AGENT_MAX_DEST_CONSTRAINTS	1024
+/* Maximum number of destination constraint hostkeys to hold across all keys */
+#define AGENT_MAX_DEST_CONSTRAINT_KEYS	16384
 /* Maximum number of associated certificate constraints to accept on a key */
 #define AGENT_MAX_EXT_CERTS		1024
 /* Max length of username constraint */
@@ -376,13 +378,15 @@ match_key_hop(const char *tag, const struct sshkey *key,
 		if (dch->keys[i] == NULL)
 			return -1;
 		/* XXX logspam */
-		if ((fp = sshkey_fingerprint(dch->keys[i], SSH_FP_HASH_DEFAULT,
-		    SSH_FP_DEFAULT)) == NULL)
-			fatal_f("fingerprint failed");
-		debug3_f("%s: key %u: %s%s %s", tag, i,
-		    dch->key_is_ca[i] ? "CA " : "",
-		    sshkey_type(dch->keys[i]), fp);
-		free(fp);
+		if (log_level_get() >= SYSLOG_LEVEL_DEBUG3) {
+			if ((fp = sshkey_fingerprint(dch->keys[i],
+			    SSH_FP_HASH_DEFAULT, SSH_FP_DEFAULT)) == NULL)
+				fatal_f("fingerprint failed");
+			debug3_f("%s: key %u: %s%s %s", tag, i,
+			    dch->key_is_ca[i] ? "CA " : "",
+			    sshkey_type(dch->keys[i]), fp);
+			free(fp);
+		}
 		if (!sshkey_is_cert(key)) {
 			/* plain key */
 			if (dch->key_is_ca[i] ||
@@ -582,6 +586,38 @@ lookup_identity(struct sshkey *key)
 			return (id);
 	}
 	return (NULL);
+}
+
+static size_t
+count_dest_constraint_keys(const struct dest_constraint *dcs, size_t ndcs)
+{
+	size_t i, ret = 0;
+
+	for (i = 0; i < ndcs; i++)
+		ret += (size_t)dcs[i].from.nkeys + dcs[i].to.nkeys;
+	return ret;
+}
+
+/*
+ * Check whether the hostkeys in 'dcs' (replacing those of the existing
+ * identity 'old', if not NULL) would exceed the total number of destination
+ * constraint hostkeys the agent is willing to hold across all identities.
+ * Returns 0 if within limits or -1 otherwise.
+ */
+static int
+check_dest_constraint_space(const struct dest_constraint *dcs, size_t ndcs,
+    const Identity *old)
+{
+	Identity *id;
+	size_t nkeys = count_dest_constraint_keys(dcs, ndcs);
+
+	TAILQ_FOREACH(id, &idtab->idlist, next) {
+		if (id == old)
+			continue;
+		nkeys += count_dest_constraint_keys(id->dest_constraints,
+		    id->ndest_constraints);
+	}
+	return nkeys <= AGENT_MAX_DEST_CONSTRAINT_KEYS ? 0 : -1;
 }
 
 /* Check confirmation of keysign request */
@@ -1404,6 +1440,11 @@ process_add_identity(SocketEntry *e)
 			}
 		}
 	}
+	if (check_dest_constraint_space(dest_constraints, ndest_constraints,
+	    lookup_identity(k)) != 0) {
+		error_f("too many destination constraint hostkeys loaded");
+		goto out;
+	}
 	if ((r = sshkey_shield_private(k)) != 0) {
 		error_fr(r, "shield private");
 		goto out;
@@ -1536,6 +1577,13 @@ add_p11_identity(struct sshkey *key, char *comment, const char *provider,
 	Identity *id;
 
 	if (lookup_identity(key) != NULL) {
+		sshkey_free(key);
+		free(comment);
+		return;
+	}
+	if (check_dest_constraint_space(dest_constraints, ndest_constraints,
+	    NULL) != 0) {
+		error_f("too many destination constraint hostkeys loaded");
 		sshkey_free(key);
 		free(comment);
 		return;
