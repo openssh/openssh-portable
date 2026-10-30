@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.352 2026/10/30 01:23:12 djm Exp $ */
+/* $OpenBSD: session.c,v 1.353 2026/10/30 02:11:00 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -551,18 +551,16 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 	 * simplifies code in server_loop.  The descriptor is bidirectional.
 	 * Do this before forking (and cleanup in the child) so as to
 	 * detect and gracefully fail out-of-fd conditions.
+	 * On failure s->ptyfd and s->ttyfd remain owned by the session and
+	 * are closed by session_pty_cleanup().
 	 */
 	if ((fdout = dup(ptyfd)) == -1) {
 		error_f("dup #1: %s", strerror(errno));
-		close(ttyfd);
-		close(ptyfd);
 		return -1;
 	}
 	/* we keep a reference to the pty master */
 	if ((ptymaster = dup(ptyfd)) == -1) {
 		error_f("dup #2: %s", strerror(errno));
-		close(ttyfd);
-		close(ptyfd);
 		close(fdout);
 		return -1;
 	}
@@ -573,8 +571,6 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 		error_f("fork: %.100s", strerror(errno));
 		close(fdout);
 		close(ptymaster);
-		close(ttyfd);
-		close(ptyfd);
 		return -1;
 	case 0:
 		is_child = 1;
