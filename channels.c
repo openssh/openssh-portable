@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.477 2026/10/30 07:25:33 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.478 2026/10/30 07:30:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -833,9 +833,18 @@ channel_free(struct ssh *ssh, Channel *c)
 		    other->type == SSH_CHANNEL_MUX_PROXY &&
 		    other->mux_ctx == c) {
 			other->mux_ctx = NULL;
-			other->type = SSH_CHANNEL_OPEN;
-			other->istate = CHAN_INPUT_CLOSED;
 			other->ostate = CHAN_OUTPUT_CLOSED;
+			if (other->have_remote_id) {
+				other->type = SSH_CHANNEL_OPEN;
+				other->istate = CHAN_INPUT_CLOSED;
+			} else {
+				/*
+				 * Peer hasn't answered the open yet, so we
+				 * can't send a close until it does.
+				 */
+				other->type = SSH_CHANNEL_OPENING;
+				other->istate = CHAN_INPUT_WAIT_DRAIN;
+			}
 		}
 	}
 	debug("channel %d: free: %s, nchannels %u", c->self,
@@ -3527,6 +3536,10 @@ channel_proxy_upstream(Channel *c, int type, uint32_t seq, struct ssh *ssh)
 			c->remote_id = PEEK_U32(cp);
 			c->have_remote_id = 1;
 		}
+		break;
+	case SSH2_MSG_CHANNEL_OPEN_FAILURE:
+		/* peer refused the open; there will be no close to track */
+		channel_free(ssh, c);
 		break;
 	case SSH2_MSG_CHANNEL_CLOSE:
 		if (c->flags & CHAN_CLOSE_SENT)
