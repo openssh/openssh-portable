@@ -3363,6 +3363,17 @@ if test "x$openssl" = "xyes" ; then
 	aws-lc|boringssl)
 		# Brainpool does not work with AWC-LS or BoringSSL.
 		unsupported_algorithms="$unsupported_algorithms mlkem768brainpoolp256r1-sha256"
+
+		# BoringSSL removed these in exports in commit 625475f
+		# Assume they are no larger than they were when removed.
+		AC_CHECK_DECL([OPENSSL_RSA_SMALL_MODULUS_BITS], [],
+		    AC_DEFINE([OPENSSL_RSA_SMALL_MODULUS_BITS], [3072],
+			[BoringSSL/AWS-LC does not provide this]),
+		    [[#include <openssl/rsa.h>]])
+		AC_CHECK_DECL([OPENSSL_RSA_MAX_PUBEXP_BITS], [],
+		    AC_DEFINE([OPENSSL_RSA_MAX_PUBEXP_BITS], [64],
+			[BoringSSL/AWS-LC does not provide this]),
+		    [[#include <openssl/rsa.h>]])
 		;;
 	*)
 		AC_CHECK_DECL([NID_brainpoolP256r1],
