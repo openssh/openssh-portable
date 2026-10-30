@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.422 2026/10/30 08:07:36 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.423 2026/10/30 08:42:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -348,12 +348,17 @@ ssh_connection_hash(const char *thishost, const char *host, const char *portstr,
 	struct ssh_digest_ctx *md;
 	u_char conn_hash[SSH_DIGEST_MAX_LENGTH];
 
+	/*
+	 * Hash each field including its terminating NUL so that the field
+	 * boundaries are unambiguous; otherwise e.g. host "10.0.0.1" port
+	 * "2222" and host "10.0.0.12" port "222" would hash identically.
+	 */
 	if ((md = ssh_digest_start(SSH_DIGEST_SHA1)) == NULL ||
-	    ssh_digest_update(md, thishost, strlen(thishost)) < 0 ||
-	    ssh_digest_update(md, host, strlen(host)) < 0 ||
-	    ssh_digest_update(md, portstr, strlen(portstr)) < 0 ||
-	    ssh_digest_update(md, user, strlen(user)) < 0 ||
-	    ssh_digest_update(md, jumphost, strlen(jumphost)) < 0 ||
+	    ssh_digest_update(md, thishost, strlen(thishost) + 1) < 0 ||
+	    ssh_digest_update(md, host, strlen(host) + 1) < 0 ||
+	    ssh_digest_update(md, portstr, strlen(portstr) + 1) < 0 ||
+	    ssh_digest_update(md, user, strlen(user) + 1) < 0 ||
+	    ssh_digest_update(md, jumphost, strlen(jumphost) + 1) < 0 ||
 	    ssh_digest_final(md, conn_hash, sizeof(conn_hash)) < 0)
 		fatal_f("mux digest failed");
 	ssh_digest_free(md);

@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.434 2026/10/30 06:03:54 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.435 2026/10/30 08:42:29 djm Exp $
 .Dd $Mdocdate: October 30 2026 $
 .Dt SSH_CONFIG 5
 .Os
@@ -2356,7 +2356,7 @@ are:
 A literal
 .Sq % .
 .It \&%C
-Hash of %l%h%p%r%j.
+Hash of a delimited concatenation of %l, %h, %p, %r and %j.
 .It %d
 Local user's home directory.
 .It %f
