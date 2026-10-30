@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.427 2026/09/16 23:26:41 jsg Exp $ */
+/* $OpenBSD: clientloop.c,v 1.428 2026/10/30 08:39:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -127,6 +127,9 @@ extern char *host;
  * instead of SSH_AUTH_SOCK.
  */
 extern char *forward_agent_sock_path;
+
+/* Set if we continued past a host key verification failure (sshconnect.c) */
+extern int hostkey_untrusted;
 
 /*
  * Flag to indicate that we have received a window change signal which has
@@ -1068,6 +1071,11 @@ process_cmdline(struct ssh *ssh)
 		}
 		logit("Canceled forwarding.");
 	} else {
+		if (hostkey_untrusted) {
+			logit("Port forwarding is disabled to avoid "
+			    "monster-in-the-middle attacks.");
+			goto out;
+		}
 		/* -R specs can be both dynamic or not, so check both. */
 		if (remote) {
 			if (!parse_forward(&fwd, s, 0, remote) &&

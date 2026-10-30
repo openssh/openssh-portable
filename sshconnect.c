@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.392 2026/10/30 08:21:42 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.393 2026/10/30 08:39:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -57,6 +57,14 @@
 #include "kex.h"
 
 struct sshkey *previous_host_key = NULL;
+
+/*
+ * Set if the host key failed verification and we continued anyway
+ * (StrictHostKeyChecking=no). Used to refuse MITM-able forwarding
+ * requests that arrive after the connection is established, e.g.
+ * from multiplexing clients.
+ */
+int hostkey_untrusted = 0;
 
 static int matching_host_key_dns = 0;
 
@@ -1417,6 +1425,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		 * the connection but without MITM-able authentication or
 		 * forwarding.
 		 */
+		hostkey_untrusted = 1;
 		if (options.password_authentication) {
 			error("Password authentication is disabled to avoid "
 			    "man-in-the-middle attacks.");

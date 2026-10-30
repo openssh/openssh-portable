@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.118 2026/10/30 08:27:49 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.119 2026/10/30 08:39:48 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -57,6 +57,9 @@ extern Options options;
 extern char *host;
 extern struct sshbuf *command;
 extern volatile sig_atomic_t quit_pending;
+
+/* from sshconnect.c */
+extern int hostkey_untrusted;
 
 /* Context for session open confirmation callback */
 struct mux_session_confirm_ctx {
@@ -835,6 +838,15 @@ mux_master_process_open_fwd(struct ssh *ssh, u_int rid,
 			goto out;
 		}
 		break;
+	}
+
+	/* Forwarding was disabled when the host key failed verification */
+	if (hostkey_untrusted) {
+		logit_f("refusing %s: host key is not trusted", fwd_desc);
+		reply_error(reply, MUX_S_PERMISSION_DENIED, rid,
+		    "Port forwarding is disabled to avoid "
+		    "man-in-the-middle attacks");
+		goto out;
 	}
 
 	if (options.control_master == SSHCTL_MASTER_ASK ||
