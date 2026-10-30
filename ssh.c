@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.644 2026/10/30 06:47:17 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.645 2026/10/30 08:17:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2512,7 +2512,10 @@ main_sigchld_handler(int sig)
 	int status;
 
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
-	    (pid == -1 && errno == EINTR))
-		;
+	    (pid == -1 && errno == EINTR)) {
+		/* Once reaped, the ProxyCommand's pid may be reused. */
+		if (pid > 0)
+			ssh_proxy_command_reaped(pid);
+	}
 	errno = save_errno;
 }

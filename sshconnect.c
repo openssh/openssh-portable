@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.390 2026/10/30 07:44:23 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.391 2026/10/30 08:17:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -60,7 +60,7 @@ struct sshkey *previous_host_key = NULL;
 
 static int matching_host_key_dns = 0;
 
-static pid_t proxy_command_pid = 0;
+static volatile pid_t proxy_command_pid = 0;
 
 /* import */
 extern int debug_flag;
@@ -301,15 +301,33 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, const char *host_arg,
 	return 0;
 }
 
+/*
+ * Called from the SIGCHLD handler for each child it reaps. Forget the
+ * proxy command once it has been reaped, as its pid may be reused.
+ */
+void
+ssh_proxy_command_reaped(pid_t pid)
+{
+	if (pid == proxy_command_pid)
+		proxy_command_pid = 0;
+}
+
 void
 ssh_kill_proxy_command(void)
 {
+	sigset_t nset, oset;
+
 	/*
 	 * Send SIGHUP to proxy command if used. We don't wait() in
-	 * case it hangs and instead rely on init to reap the child
+	 * case it hangs and instead rely on init to reap the child.
+	 * Block SIGCHLD so it can't be reaped between the check and kill().
 	 */
+	sigemptyset(&nset);
+	sigaddset(&nset, SIGCHLD);
+	sigprocmask(SIG_BLOCK, &nset, &oset);
 	if (proxy_command_pid > 1)
 		kill(proxy_command_pid, SIGHUP);
+	sigprocmask(SIG_SETMASK, &oset, NULL);
 }
 
 #ifdef HAVE_IFADDRS_H
