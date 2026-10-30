@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.261 2026/10/30 03:44:02 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.262 2026/10/30 04:40:03 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1630,10 +1630,13 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 			ret = SSH_ERR_SIGNATURE_INVALID;
 		}
 	}
+	if (ret == 0 && key_blobtype == MM_USERKEY &&
+	    auth_activate_options(ssh, key_opts) != 0) {
+		debug_f("key options inconsistent with existing");
+		ret = SSH_ERR_INVALID_ARGUMENT;
+	}
 	auth2_record_key(authctxt, ret == 0, key);
 
-	if (key_blobtype == MM_USERKEY && ret == 0)
-		auth_activate_options(ssh, key_opts);
 	monitor_reset_key_state();
 
 	sshbuf_reset(m);
