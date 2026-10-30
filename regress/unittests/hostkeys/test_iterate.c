@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_iterate.c,v 1.11 2025/11/17 09:59:13 dtucker Exp $ */
+/* 	$OpenBSD: test_iterate.c,v 1.12 2026/10/30 07:50:02 djm Exp $ */
 /*
  * Regress test for hostfile.h hostkeys_foreach()
  *
@@ -758,6 +758,20 @@ struct expected expected_full[] = {
 		KEY_UNSPEC,
 		NULL,	/* filled at runtime */
 		NULL,
+		0,
+	} },
+	{ "ed25519_4.pub" , -1, -1, 0, HKF_MATCH_HOST, 0, 0, -1, {
+		NULL,
+		43,
+		HKF_STATUS_OK,
+		0,
+		NULL,
+		MRK_REVOKE,
+		"sisyphus.example.com",
+		NULL,
+		KEY_ED25519,
+		NULL,	/* filled at runtime */
+		"ED25519 #4",
 		0,
 	} },
 };

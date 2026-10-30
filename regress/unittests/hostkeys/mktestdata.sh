@@ -1,5 +1,5 @@
 #!/bin/sh
-# $OpenBSD: mktestdata.sh,v 1.3 2025/05/06 06:05:48 djm Exp $
+# $OpenBSD: mktestdata.sh,v 1.4 2026/10/30 07:50:02 djm Exp $
 
 set -ex
 
@@ -80,6 +80,9 @@ rm -f known_hosts_hash_frag.old
 	echo "sisyphus.example.com ssh-XXX AAAATgAAAAdzc2gtWFhYAAAAP0ZVQ0tPRkZGVUNLT0ZGRlVDS09GRkZVQ0tPRkZGVUNLT0ZGRlVDS09GRkZVQ0tPRkZGVUNLT0ZGRlVDS09GRg=="
 	# Type mismatch with blob
 	echo "prometheus.example.com ssh-rsa AAAATgAAAAdzc2gtWFhYAAAAP0ZVQ0tPRkZGVUNLT0ZGRlVDS09GRkZVQ0tPRkZGVUNLT0ZGRlVDS09GRkZVQ0tPRkZGVUNLT0ZGRlVDS09GRg=="
+
+	# Tab-separated marker line that also contains spaces
+	printf "@revoked\tsisyphus.example.com\t" ; cat ed25519_4.pub
 ) > known_hosts
 
 echo OK
