@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.165 2026/10/01 07:07:49 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.166 2026/10/30 01:34:10 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1455,9 +1455,16 @@ int
 sshkey_check_rsa_length(const struct sshkey *k, int min_size)
 {
 #ifdef WITH_OPENSSL
-	int nbits;
+	int r, nbits;
 
-	if (k == NULL || k->pkey == NULL ||
+	if (k == NULL)
+		return 0;
+	/* A certificate is no stronger than the CA key that signed it */
+	if (sshkey_is_cert(k) && k->cert != NULL &&
+	    (r = sshkey_check_rsa_length(k->cert->signature_key,
+	    min_size)) != 0)
+		return r;
+	if (k->pkey == NULL ||
 	    (k->type != KEY_RSA && k->type != KEY_RSA_CERT))
 		return 0;
 	nbits = EVP_PKEY_bits(k->pkey);
