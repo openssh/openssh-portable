@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.499 2026/10/30 03:47:56 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.500 2026/10/30 08:23:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1350,8 +1350,12 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 		fatal_fr(r, "hostkeys_foreach");
 	}
 
-	if (inplace)
-		fclose(ctx.out);
+	/* Don't replace the original with an incompletely-written copy */
+	if (inplace && (ferror(ctx.out) || fclose(ctx.out) != 0)) {
+		oerrno = errno;
+		unlink(tmp);
+		fatal("write %s: %s", tmp, strerror(oerrno));
+	}
 
 	if (ctx.invalid) {
 		error("%s is not a valid known_hosts file.", identity_file);

@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.101 2026/10/30 07:48:23 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.102 2026/10/30 08:23:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -592,7 +592,8 @@ host_delete(struct hostkey_foreach_line *l, void *_ctx)
 			if (!sshkey_equal(ctx->keys[i], l->key))
 				continue;
 			ctx->match_keys[i] |= l->match;
-			fprintf(ctx->out, "%s\n", l->line);
+			if (fprintf(ctx->out, "%s\n", l->line) < 0)
+				return SSH_ERR_SYSTEM_ERROR;
 			debug3_f("%s key already at %s:%ld",
 			    sshkey_type(l->key), l->path, l->linenum);
 			return 0;
@@ -614,7 +615,8 @@ host_delete(struct hostkey_foreach_line *l, void *_ctx)
 		    ctx->quiet ? __func__ : "", ctx->quiet ? ": " : "",
 		    l->path, l->linenum);
 	}
-	fprintf(ctx->out, "%s\n", l->line);
+	if (fprintf(ctx->out, "%s\n", l->line) < 0)
+		return SSH_ERR_SYSTEM_ERROR;
 	return 0;
 }
 
@@ -717,8 +719,15 @@ hostfile_replace_entries(const char *filename, const char *host, const char *ip,
 		fp = NULL;
 		ctx.modified = 1;
 	}
-	fclose(ctx.out);
+	/* Don't replace the original with an incompletely-written copy */
+	r = fclose(ctx.out);
 	ctx.out = NULL;
+	if (r != 0) {
+		oerrno = errno;
+		error_f("fclose \"%s\": %s", temp, strerror(oerrno));
+		r = SSH_ERR_SYSTEM_ERROR;
+		goto fail;
+	}
 
 	if (ctx.modified) {
 		/* Backup the original file and replace it with the temporary */
@@ -955,6 +964,9 @@ hostkeys_foreach_file(const char *path, FILE *f, hostkeys_foreach_fn *callback,
 		if ((r = callback(&lineinfo, ctx)) != 0)
 			break;
 	}
+	/* A read error must not be mistaken for the end of the file */
+	if (r == 0 && ferror(f))
+		r = SSH_ERR_SYSTEM_ERROR;
 	sshkey_free(lineinfo.key);
 	free(lineinfo.line);
 	free(line);
