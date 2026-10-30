@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.34 2026/06/14 04:08:06 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.35 2026/10/30 01:37:30 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -629,6 +629,34 @@ sshkey_tests(void)
 	ASSERT_INT_EQ(sshkey_from_blob(sshbuf_ptr(b), sshbuf_len(b), &k4),
 	    SSH_ERR_KEY_CERT_INVALID_SIGN_KEY);
 	ASSERT_PTR_EQ(k4, NULL);
+	sshkey_free(k1);
+	sshkey_free(k2);
+	sshkey_free(k3);
+	k1 = k2 = k3 = NULL;
+	sshbuf_free(b);
+	TEST_DONE();
+
+	TEST_START("RSA length check on certificate CA key");
+	/* non-RSA key certified by a 1024 bit RSA CA */
+	ASSERT_INT_EQ(sshkey_load_public(test_data_file("ed25519_1.pub"),
+	    &k1, NULL), 0);
+	k2 = get_private("rsa_1");
+	ASSERT_INT_EQ(sshkey_check_rsa_length(k2, 2048), SSH_ERR_KEY_LENGTH);
+	ASSERT_INT_EQ(sshkey_to_certified(k1), 0);
+	ASSERT_PTR_NE(k1->cert, NULL);
+	k1->cert->type = SSH2_CERT_TYPE_USER;
+	k1->cert->serial = 1234;
+	k1->cert->valid_after = 0;
+	k1->cert->valid_before = (uint64_t)-1;
+	ASSERT_INT_EQ(sshkey_from_private(k2, &k1->cert->signature_key), 0);
+	ASSERT_INT_EQ(sshkey_certify(k1, k2, NULL, NULL, NULL), 0);
+	b = sshbuf_new();
+	ASSERT_PTR_NE(b, NULL);
+	ASSERT_INT_EQ(sshkey_putb(k1, b), 0);
+	ASSERT_INT_EQ(sshkey_from_blob(sshbuf_ptr(b), sshbuf_len(b), &k3), 0);
+	ASSERT_INT_EQ(sshkey_check_rsa_length(k3, 0), 0);
+	ASSERT_INT_EQ(sshkey_check_rsa_length(k3, 1024), 0);
+	ASSERT_INT_EQ(sshkey_check_rsa_length(k3, 2048), SSH_ERR_KEY_LENGTH);
 	sshkey_free(k1);
 	sshkey_free(k2);
 	sshkey_free(k3);
