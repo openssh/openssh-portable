@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.420 2026/10/30 04:14:37 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.421 2026/10/30 06:40:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3046,10 +3046,13 @@ fill_default_options(Options * options)
 		options->request_tty = REQUEST_TTY_AUTO;
 	if (options->session_type == -1)
 		options->session_type = SESSION_TYPE_DEFAULT;
-	if (options->stdin_null == -1)
-		options->stdin_null = 0;
 	if (options->fork_after_authentication == -1)
 		options->fork_after_authentication = 0;
+	/* ForkAfterAuthentication implies StdinNull, same as ssh -f */
+	if (options->fork_after_authentication)
+		options->stdin_null = 1;
+	if (options->stdin_null == -1)
+		options->stdin_null = 0;
 	if (options->proxy_use_fdpass == -1)
 		options->proxy_use_fdpass = 0;
 	if (options->canonicalize_max_dots == -1)
