@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.642 2026/09/23 21:42:39 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.643 2026/10/30 04:14:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1416,8 +1416,7 @@ main(int ac, char **av)
 	cinfo->remhost = xstrdup(host);
 	cinfo->homedir = xstrdup(pw->pw_dir);
 	cinfo->locuser = xstrdup(pw->pw_name);
-	cinfo->jmphost = xstrdup(options.jump_host == NULL ?
-	    "" : options.jump_host);
+	cinfo->jmphost = ssh_jump_spec(&options);
 
 	/*
 	 * If the user was specified via a configuration directive then attempt

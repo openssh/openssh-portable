@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.419 2026/10/05 06:03:40 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.420 2026/10/30 04:14:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -361,6 +361,44 @@ ssh_connection_hash(const char *thishost, const char *host, const char *portstr,
 }
 
 /*
+ * Returns the configured ProxyJump specification (all hops, including any
+ * user and port) in the form printed by "ssh -G" and expanded by the %j
+ * token, or an empty string if no jump host is set. Caller must free
+ * returned value.
+ */
+char *
+ssh_jump_spec(const Options *o)
+{
+	char *ret, portstr[NI_MAXSERV];
+	int i;
+
+	if (o->jump_host == NULL || (strcmp(o->jump_host, "none") == 0 &&
+	    o->jump_port == 0 && o->jump_user == NULL))
+		return xstrdup("");
+	/* Check for numeric addresses */
+	i = strchr(o->jump_host, ':') != NULL ||
+	    strspn(o->jump_host, "1234567890.") == strlen(o->jump_host);
+	snprintf(portstr, sizeof(portstr), "%d", o->jump_port);
+	xasprintf(&ret, "%s%s%s%s%s%s%s%s%s",
+	    /* optional additional jump spec */
+	    o->jump_extra == NULL ? "" : o->jump_extra,
+	    o->jump_extra == NULL ? "" : ",",
+	    /* optional user */
+	    o->jump_user == NULL ? "" : o->jump_user,
+	    o->jump_user == NULL ? "" : "@",
+	    /* opening [ if hostname is numeric */
+	    i ? "[" : "",
+	    /* mandatory hostname */
+	    o->jump_host,
+	    /* closing ] if hostname is numeric */
+	    i ? "]" : "",
+	    /* optional port number */
+	    o->jump_port <= 0 ? "" : ":",
+	    o->jump_port <= 0 ? "" : portstr);
+	return ret;
+}
+
+/*
  * Adds a local TCP/IP port forward to options.  Never returns if there is an
  * error.
  */
@@ -663,8 +701,7 @@ expand_match_exec_or_include_path(const char *path, Options *options,
 	}
 	if (gethostname(thishost, sizeof(thishost)) == -1)
 		fatal("gethostname: %s", strerror(errno));
-	jmphost = option_clear_or_none(options->jump_host) ?
-	    "" : options->jump_host;
+	jmphost = ssh_jump_spec(options);
 	strlcpy(shorthost, thishost, sizeof(shorthost));
 	shorthost[strcspn(thishost, ".")] = '\0';
 	snprintf(portstr, sizeof(portstr), "%d", port);
@@ -689,6 +726,7 @@ expand_match_exec_or_include_path(const char *path, Options *options,
 	    "j", jmphost,
 	    (char *)NULL);
 	free(host);
+	free(jmphost);
 	free(conn_hash_hex);
 	return ret;
 }
@@ -3739,7 +3777,7 @@ void
 dump_client_config(Options *o, const char *host)
 {
 	int i, r;
-	char buf[8], *all_key;
+	char buf[8], *all_key, *jumpspec;
 
 	/*
 	 * Expand HostKeyAlgorithms name lists. This isn't handled in
@@ -3944,25 +3982,8 @@ dump_client_config(Options *o, const char *host)
 	if (o->jump_host == NULL)
 		dump_cfg_string(oProxyCommand, o->proxy_command);
 	else {
-		/* Check for numeric addresses */
-		i = strchr(o->jump_host, ':') != NULL ||
-		    strspn(o->jump_host, "1234567890.") == strlen(o->jump_host);
-		snprintf(buf, sizeof(buf), "%d", o->jump_port);
-		printf("proxyjump %s%s%s%s%s%s%s%s%s\n",
-		    /* optional additional jump spec */
-		    o->jump_extra == NULL ? "" : o->jump_extra,
-		    o->jump_extra == NULL ? "" : ",",
-		    /* optional user */
-		    o->jump_user == NULL ? "" : o->jump_user,
-		    o->jump_user == NULL ? "" : "@",
-		    /* opening [ if hostname is numeric */
-		    i ? "[" : "",
-		    /* mandatory hostname */
-		    o->jump_host,
-		    /* closing ] if hostname is numeric */
-		    i ? "]" : "",
-		    /* optional port number */
-		    o->jump_port <= 0 ? "" : ":",
-		    o->jump_port <= 0 ? "" : buf);
+		jumpspec = ssh_jump_spec(o);
+		printf("proxyjump %s\n", jumpspec);
+		free(jumpspec);
 	}
 }
