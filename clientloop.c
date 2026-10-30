@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.428 2026/10/30 08:39:48 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.429 2026/10/30 09:00:39 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2343,7 +2343,10 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 	for (i = 0; i < options.num_user_hostfiles; i++) {
 		/*
 		 * NB. keys are only added to hostfiles[0], for the rest we
-		 * just delete the hostname entries.
+		 * just delete the hostname entries. If the keys could not be
+		 * written to hostfiles[0] then leave the remaining files
+		 * untouched, otherwise the host's existing entries there
+		 * would be deleted without being recorded anywhere.
 		 */
 		if (stat(options.user_hostfiles[i], &sb) != 0) {
 			if (errno == ENOENT) {
@@ -2354,6 +2357,8 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 				    "inaccessible: %s",
 				    options.user_hostfiles[i], strerror(errno));
 			}
+			if (i == 0)
+				break;
 			continue;
 		}
 		if ((r = hostfile_replace_entries(options.user_hostfiles[i],
@@ -2363,6 +2368,8 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 		    options.fingerprint_hash)) != 0) {
 			error_fr(r, "hostfile_replace_entries failed for %s",
 			    options.user_hostfiles[i]);
+			if (i == 0)
+				break;
 		}
 	}
 }
