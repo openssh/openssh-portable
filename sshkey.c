@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.166 2026/10/30 01:34:10 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.167 2026/10/30 03:22:47 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2560,6 +2560,8 @@ sshkey_serialize_private_sk(const struct sshkey *key, struct sshbuf *b)
 {
 	int r;
 
+	if (key->sk_key_handle == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
 	if ((r = sshbuf_put_cstring(b, key->sk_application)) != 0 ||
 	    (r = sshbuf_put_u8(b, key->sk_flags)) != 0 ||
 	    (r = sshbuf_put_stringb(b, key->sk_key_handle)) != 0 ||

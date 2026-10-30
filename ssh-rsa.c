@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.85 2026/10/30 01:45:14 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.86 2026/10/30 03:22:47 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -99,6 +99,8 @@ ssh_rsa_serialize_private(const struct sshkey *key, struct sshbuf *b,
 	RSA_get0_key(rsa, &rsa_n, &rsa_e, &rsa_d);
 	RSA_get0_factors(rsa, &rsa_p, &rsa_q);
 	RSA_get0_crt_params(rsa, NULL, NULL, &rsa_iqmp);
+	if (rsa_d == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
 
 	if (!sshkey_is_cert(key)) {
 		/* Note: can't reuse ssh_rsa_serialize_public: e, n vs. n, e */

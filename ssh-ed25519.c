@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519.c,v 1.24 2026/09/16 00:43:00 djm Exp $ */
+/* $OpenBSD: ssh-ed25519.c,v 1.25 2026/10/30 03:22:47 djm Exp $ */
 /*
  * Copyright (c) 2013 Markus Friedl <markus@openbsd.org>
  *
@@ -70,6 +70,8 @@ ssh_ed25519_serialize_private(const struct sshkey *key, struct sshbuf *b,
 {
 	int r;
 
+	if (key->ed25519_sk == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
 	if ((r = sshbuf_put_string(b, key->ed25519_pk, ED25519_PK_SZ)) != 0 ||
 	    (r = sshbuf_put_string(b, key->ed25519_sk, ED25519_SK_SZ)) != 0)
 		return r;
