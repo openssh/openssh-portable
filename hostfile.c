@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.100 2025/11/25 00:57:04 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.101 2026/10/30 07:48:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -188,8 +188,7 @@ check_markers(char **cpp)
 		if (ret != MRK_NONE)
 			return MRK_ERROR;
 		/* Markers are terminated by whitespace */
-		if ((sp = strchr(cp, ' ')) == NULL &&
-		    (sp = strchr(cp, '\t')) == NULL)
+		if ((sp = strpbrk(cp, " \t")) == NULL)
 			return MRK_ERROR;
 		/* Extract marker for comparison */
 		if (sp <= cp + 1 || sp >= cp + sizeof(marker))
