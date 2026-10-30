@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.103 2026/09/16 00:33:44 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.104 2026/10/30 00:58:02 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -821,11 +821,17 @@ sshauthopt_serialise(const struct sshauthopt *opts, struct sshbuf *m,
 	    0 : (u_int)opts->force_tun_device)) != 0)
 		return r;
 
-	/* String options; these may be NULL */
+	/*
+	 * String options; these may be NULL. In untrusted mode the
+	 * contents of the forced command are hidden, but its presence
+	 * must be preserved as PermitRootLogin=forced-commands-only
+	 * depends on it.
+	 */
 	if ((r = serialise_nullable_string(m,
 	    untrusted ? "yes" : opts->cert_principals)) != 0 ||
 	    (r = serialise_nullable_string(m,
-	    untrusted ? "true" : opts->force_command)) != 0 ||
+	    (untrusted && opts->force_command != NULL) ?
+	    "true" : opts->force_command)) != 0 ||
 	    (r = serialise_nullable_string(m,
 	    untrusted ? NULL : opts->required_from_host_cert)) != 0 ||
 	    (r = serialise_nullable_string(m,
