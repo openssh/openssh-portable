@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.643 2026/10/30 04:14:37 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.644 2026/10/30 06:47:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -267,7 +267,12 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 		return NULL;
 	}
 	if (cname != NULL && res->ai_canonname != NULL) {
-		if (!valid_domain(res->ai_canonname, 0, &errstr)) {
+		/*
+		 * Force the name returned by the resolver to lowercase before
+		 * it is matched against CanonicalizePermittedCNAMEs, so that
+		 * case in the answer (e.g. DNS0x20) cannot slip past a pattern.
+		 */
+		if (!valid_domain(res->ai_canonname, 1, &errstr)) {
 			error("ignoring bad CNAME \"%s\" for host \"%s\": %s",
 			    res->ai_canonname, name, errstr);
 		} else if (strlcpy(cname, res->ai_canonname, clen) >= clen) {
@@ -392,14 +397,18 @@ check_follow_cname(int direct, char **namep, const char *cname)
 	debug3_f("check \"%s\" CNAME \"%s\"", *namep, cname);
 	for (i = 0; i < options.num_permitted_cnames; i++) {
 		rule = options.permitted_cnames + i;
+		/*
+		 * The CNAME comes from the resolver and may be in any case
+		 * (e.g. DNS0x20); match it lowercased so that a negated
+		 * target pattern cannot be evaded by capitalisation.
+		 */
 		if (match_pattern_list(*namep, rule->source_list, 1) != 1 ||
-		    match_pattern_list(cname, rule->target_list, 1) != 1)
+		    match_hostname(cname, rule->target_list) != 1)
 			continue;
 		verbose("Canonicalized DNS aliased hostname "
 		    "\"%s\" => \"%s\"", *namep, cname);
 		free(*namep);
 		*namep = xstrdup(cname);
-		lowercase(*namep);
 		return 1;
 	}
 	return 0;
