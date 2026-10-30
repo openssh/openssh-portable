@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.248 2026/07/14 01:05:05 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.249 2026/10/30 04:25:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -547,7 +547,7 @@ server_request_tun(struct ssh *ssh)
 		goto done;
 	debug("Tunnel forwarding using interface %s", ifname);
 
-	c = channel_new(ssh, "tun", SSH_CHANNEL_OPEN, sock, sock, -1,
+	c = channel_new(ssh, "tun-connection", SSH_CHANNEL_OPEN, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
 	c->datagram = 1;
 #if defined(SSH_TUN_FILTER)

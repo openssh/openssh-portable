@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.474 2026/10/30 02:59:36 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.475 2026/10/30 04:25:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -601,6 +601,9 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	c->ctl_chan = -1;
 	c->delayed = 1;		/* prevent call to channel_post handler */
 	c->inactive_deadline = lookup_timeout(ssh, c->ctype);
+	/* channels created already open need a last used time for timeouts */
+	if (type == SSH_CHANNEL_OPEN)
+		channel_set_used_time(ssh, c);
 	TAILQ_INIT(&c->status_confirms);
 	channel_classify(ssh, c);
 	debug("channel %d: new %s [%s] (inactive timeout: %f)",
