@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.171 2026/09/02 00:37:59 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.172 2026/10/30 03:13:52 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -352,10 +352,29 @@ keyprint(con *c, struct sshkey *key)
 	free(ohosts);
 }
 
+/*
+ * Pending connections cannot be serviced while we are blocked outside
+ * the event loop (e.g. in getaddrinfo() or reading the host list), so
+ * don't count that time against their timeouts.  Every deadline moves
+ * by the same amount, which keeps the timeout queue in order.
+ */
+static void
+conextend(const struct timespec *start)
+{
+	struct timespec blocked;
+	con *c;
+
+	monotime_ts(&blocked);
+	timespecsub(&blocked, start, &blocked);
+	TAILQ_FOREACH(c, &tq, c_link)
+		timespecadd(&c->c_ts, &blocked, &c->c_ts);
+}
+
 static int
 tcpconnect(char *host)
 {
 	struct addrinfo hints, *ai, *aitop;
+	struct timespec start;
 	char strport[NI_MAXSERV];
 	int gaierr, s = -1;
 
@@ -363,7 +382,10 @@ tcpconnect(char *host)
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = IPv4or6;
 	hints.ai_socktype = SOCK_STREAM;
-	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0) {
+	monotime_ts(&start);
+	gaierr = getaddrinfo(host, strport, &hints, &aitop);
+	conextend(&start);
+	if (gaierr != 0) {
 		error("getaddrinfo %s: %s", host, ssh_gai_strerror(gaierr));
 		return -1;
 	}
@@ -674,6 +696,8 @@ main(int argc, char **argv)
 	int opt, fopt_count = 0, j;
 	char *tname, *cp, *line = NULL;
 	size_t linesize = 0;
+	ssize_t linelen;
+	struct timespec start;
 	FILE *fp;
 
 	extern int optind;
@@ -809,7 +833,12 @@ main(int argc, char **argv)
 			fatal("%s: %s: %s", __progname,
 			    fp == stdin ? "<stdin>" : argv[j], strerror(errno));
 
-		while (getline(&line, &linesize, fp) != -1) {
+		for (;;) {
+			monotime_ts(&start);
+			linelen = getline(&line, &linesize, fp);
+			conextend(&start);
+			if (linelen == -1)
+				break;
 			/* Chomp off trailing whitespace and comments */
 			if ((cp = strchr(line, '#')) == NULL)
 				cp = line + strlen(line) - 1;
