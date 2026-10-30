@@ -226,6 +226,18 @@
 	SC_ALLOW_ARG_MASK(_nr, 2, PROT_READ|PROT_WRITE|PROT_NONE)
 #endif /* __NR_mmap || __NR_mmap2 */
 
+/*
+ * Special handling for clock_gettime(2), clock_nanosleep(2) and their
+ * time64 variants: only permit the fixed clock IDs, CLOCK_REALTIME (0)
+ * through CLOCK_BOOTTIME (7). Negative clock IDs name the CPU-time clock
+ * of an arbitrary process, which the kernel lets anyone read.
+ */
+#define SC_CLOCKID_MASK 0x7
+/* Use this for all clock_*(2) variants */
+#define SC_CLOCK(_nr) \
+	SC_ALLOW_ARG_MASK(_nr, 0, SC_CLOCKID_MASK), \
+	SC_DENY(_nr, EINVAL)
+
 /* Special handling for setsockopt(2) */
 #define SC_ALLOW_SETSOCKOPT(_level, _optname) \
 	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_setsockopt, 0, 10), \
@@ -315,10 +327,10 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW(__NR_brk),
 #endif
 #ifdef __NR_clock_gettime
-	SC_ALLOW(__NR_clock_gettime),
+	SC_CLOCK(__NR_clock_gettime),
 #endif
 #ifdef __NR_clock_gettime64
-	SC_ALLOW(__NR_clock_gettime64),
+	SC_CLOCK(__NR_clock_gettime64),
 #endif
 #ifdef __NR_close
 	SC_ALLOW(__NR_close),
@@ -342,7 +354,7 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW(__NR_geteuid32),
 #endif
 #ifdef __NR_getpgid
-	SC_ALLOW(__NR_getpgid),
+	SC_ALLOW_ARG(__NR_getpgid, 0, 0),
 #endif
 #ifdef __NR_getpid
 	SC_ALLOW(__NR_getpid),
@@ -411,10 +423,10 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW(__NR_nanosleep),
 #endif
 #ifdef __NR_clock_nanosleep
-	SC_ALLOW(__NR_clock_nanosleep),
+	SC_CLOCK(__NR_clock_nanosleep),
 #endif
 #ifdef __NR_clock_nanosleep_time64
-	SC_ALLOW(__NR_clock_nanosleep_time64),
+	SC_CLOCK(__NR_clock_nanosleep_time64),
 #endif
 #ifdef __NR__newselect
 	SC_ALLOW(__NR__newselect),
@@ -502,7 +514,7 @@ static const struct sock_filter preauth_insns[] = {
 	 * x86-64 syscall under some circumstances, e.g.
 	 * https://bugs.debian.org/849923
 	 */
-	SC_ALLOW(__NR_clock_gettime & ~__X32_SYSCALL_BIT),
+	SC_CLOCK(__NR_clock_gettime & ~__X32_SYSCALL_BIT),
 #endif
 
 	/* Default deny */
