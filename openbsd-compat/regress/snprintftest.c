@@ -48,7 +48,7 @@ int x_snprintf(char *str, size_t count, const char *fmt, ...)
 int
 main(void)
 {
-	char b[5];
+	char b[5], n[32];
 	char *src = NULL;
 	int ret;
 
@@ -72,6 +72,14 @@ main(void)
 		fail("snprintf does not return required length");
 	if (x_snprintf(b, 1, "%s %d", "hello", 12345) != 11)
 		fail("vsnprintf does not return required length");
+
+	/* check that the largest 64-bit values are printed in full */
+	ret = snprintf(n, sizeof(n), "%llu", 0xffffffffffffffffULL);
+	if (ret != 20 || strcmp(n, "18446744073709551615") != 0)
+		fail("snprintf truncates 20-digit unsigned values");
+	ret = snprintf(n, sizeof(n), "%llo", 0xffffffffffffffffULL);
+	if (ret != 22 || strcmp(n, "1777777777777777777777") != 0)
+		fail("snprintf truncates 22-digit octal values");
 
 	free(src);
 	return failed;

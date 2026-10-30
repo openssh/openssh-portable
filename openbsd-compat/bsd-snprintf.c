@@ -544,7 +544,7 @@ fmtint(char *buffer, size_t *currlen, size_t maxlen,
 {
 	int signvalue = 0;
 	unsigned LLONG uvalue;
-	char convert[20];
+	char convert[sizeof(uvalue) * CHAR_BIT / 3 + 2]; /* octal digits + NUL */
 	int place = 0;
 	int spadlen = 0; /* amount to space pad */
 	int zpadlen = 0; /* amount to zero pad */
@@ -574,8 +574,7 @@ fmtint(char *buffer, size_t *currlen, size_t maxlen,
 			(caps? "0123456789ABCDEF":"0123456789abcdef")
 			[uvalue % (unsigned)base  ];
 		uvalue = (uvalue / (unsigned)base );
-	} while(uvalue && (place < 20));
-	if (place == 20) place--;
+	} while(uvalue && (place < (int)sizeof(convert) - 1));
 	convert[place] = 0;
 
 	zpadlen = max - place;
