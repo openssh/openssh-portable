@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.645 2026/10/30 08:17:19 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.646 2026/10/30 08:19:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1640,7 +1640,8 @@ main(int ac, char **av)
 
 	if (muxclient_command != 0 && options.control_path == NULL)
 		fatal("No ControlPath specified for \"-O\" command");
-	if (options.control_path != NULL) {
+	/* NB. -Z only lists keys; it must not start a session via a master */
+	if (options.control_path != NULL && !dump_pubkeys) {
 		int sock;
 		if ((sock = muxclient(options.control_path)) >= 0) {
 			if (ssh_packet_set_connection(ssh, sock, sock) == NULL)
