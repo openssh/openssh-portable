@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.460 2026/10/30 01:55:19 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.461 2026/10/30 03:28:03 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -4077,9 +4077,22 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 			v = NULL; \
 		} \
 	} while(0)
+#define CLEAR_ON_NONE_ARRAY(v, nv, none) \
+	do { \
+		if (dst->nv == 1 && \
+		    strcasecmp(dst->v[0], none) == 0) { \
+			free(dst->v[0]); \
+			free(dst->v); \
+			dst->v = NULL; \
+			dst->nv = 0; \
+		} \
+	} while (0)
 	CLEAR_ON_NONE(dst->authorized_principals_file);
 	CLEAR_ON_NONE(dst->trusted_user_ca_keys);
 	CLEAR_ON_NONE(dst->banner);
+	CLEAR_ON_NONE_ARRAY(channel_timeouts, num_channel_timeouts, "none");
+	CLEAR_ON_NONE_ARRAY(revoked_keys_files, num_revoked_keys_files, "none");
+#undef CLEAR_ON_NONE_ARRAY
 
 	/*
 	 * The only things that should be below this point are string options
