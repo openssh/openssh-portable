@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.165 2026/07/21 06:17:42 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.166 2026/10/30 04:39:16 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -755,14 +755,15 @@ auth_log_authopts(const char *loc, const struct sshauthopt *opts, int do_remote)
 int
 auth_activate_options(struct ssh *ssh, struct sshauthopt *opts)
 {
-	struct sshauthopt *old = auth_opts;
+	struct sshauthopt *old = auth_opts, *merged;
 	const char *emsg = NULL;
 
 	debug_f("setting new authentication options");
-	if ((auth_opts = sshauthopt_merge(old, opts, &emsg)) == NULL) {
+	if ((merged = sshauthopt_merge(old, opts, &emsg)) == NULL) {
 		error("Inconsistent authentication options: %s", emsg);
 		return -1;
 	}
+	auth_opts = merged;
 	sshauthopt_free(old);
 	return 0;
 }
