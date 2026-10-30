@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.475 2026/10/30 04:25:21 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.476 2026/10/30 05:16:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -62,6 +62,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "xmalloc.h"
@@ -217,6 +218,10 @@ struct ssh_channels {
 	char *bulk_classifier_tty, *bulk_classifier_notty;
 	/* Number of active bulk channels (set by channel_handler) */
 	u_int nbulk;
+
+	/* ratelimiting of forwarding refusals to avoid unlimited logspam */
+	struct log_ratelimit_ctx log_ratelimit;
+	int log_ratelimit_init_done;
 };
 
 /* helper */
@@ -4399,29 +4404,59 @@ check_rfwd_permission(struct ssh *ssh, struct Forward *fwd)
 	return permit && permit_adm;
 }
 
+/*
+ * Forwarding requests cost the peer nothing and a refusal leaves the
+ * connection open, so the peer decides how many refusals are logged.
+ * Rate-limit them. Returns non-zero if the refusal should be logged at
+ * debug level instead of the usual INFO.
+ */
+int
+channel_fwd_refusal_ratelimited(struct ssh *ssh)
+{
+	struct ssh_channels *sc = ssh->chanctxt;
+	int ratelimited;
+	u_int ndropped = 0;
+
+	if (!sc->log_ratelimit_init_done) {
+		sc->log_ratelimit_init_done = 1;
+		log_ratelimit_init(&sc->log_ratelimit, 8, 60, 30, 2*60);
+	}
+	ratelimited = log_ratelimit(&sc->log_ratelimit, time(NULL),
+	    NULL, &ndropped);
+	if (ndropped != 0) {
+		logit("forwarding refusal logging rate-limited: additional %u "
+		    "requests refused", ndropped);
+	}
+	return ratelimited;
+}
+
 /* protocol v2 remote port fwd, used by sshd */
 int
 channel_setup_remote_fwd_listener(struct ssh *ssh, struct Forward *fwd,
     int *allocated_listen_port, struct ForwardOptions *fwd_opts)
 {
+	LogLevel level;
+
 	if (!check_rfwd_permission(ssh, fwd)) {
 		ssh_packet_send_debug(ssh, "port forwarding refused");
+		level = channel_fwd_refusal_ratelimited(ssh) ?
+		    SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO;
 		if (fwd->listen_path != NULL)
 			/* XXX always allowed, see remote_open_match() */
-			logit("Received request from %.100s port %d to "
-			    "remote forward to path \"%.100s\", "
+			do_log2(level, "Received request from %.100s port %d "
+			    "to remote forward to path \"%.100s\", "
 			    "but the request was denied.",
 			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 			    fwd->listen_path);
 		else if(fwd->listen_host != NULL)
-			logit("Received request from %.100s port %d to "
-			    "remote forward to host %.100s port %d, "
+			do_log2(level, "Received request from %.100s port %d "
+			    "to remote forward to host %.100s port %d, "
 			    "but the request was denied.",
 			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 			    fwd->listen_host, fwd->listen_port );
 		else
-			logit("Received request from %.100s port %d to remote "
-			    "forward, but the request was denied.",
+			do_log2(level, "Received request from %.100s port %d "
+			    "to remote forward, but the request was denied.",
 			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 		return 0;
 	}
@@ -4997,7 +5032,9 @@ channel_connect_to_port(struct ssh *ssh, const char *host, u_short port,
 	}
 
 	if (!permit || !permit_adm) {
-		logit("Received request from %.100s port %d to connect to "
+		do_log2(channel_fwd_refusal_ratelimited(ssh) ?
+		    SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO,
+		    "Received request from %.100s port %d to connect to "
 		    "host %.100s port %d, but the request was denied.",
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh), host, port);
 		if (reason != NULL)
@@ -5056,7 +5093,9 @@ channel_connect_to_path(struct ssh *ssh, const char *path,
 	}
 
 	if (!permit || !permit_adm) {
-		logit("Received request to connect to path %.100s, "
+		do_log2(channel_fwd_refusal_ratelimited(ssh) ?
+		    SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO,
+		    "Received request to connect to path %.100s, "
 		    "but the request was denied.", path);
 		return NULL;
 	}

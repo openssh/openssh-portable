@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.171 2026/09/16 23:26:41 jsg Exp $ */
+/* $OpenBSD: channels.h,v 1.172 2026/10/30 05:16:48 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -361,6 +361,7 @@ void	 channel_add_permission(struct ssh *, int, int, char *, int);
 void	 channel_clear_permission(struct ssh *, int, int);
 void	 channel_disable_admin(struct ssh *, int);
 void	 channel_update_permission(struct ssh *, int, int);
+int	 channel_fwd_refusal_ratelimited(struct ssh *);
 Channel	*channel_connect_to_port(struct ssh *, const char *, u_short,
 	    char *, char *, int *, const char **);
 Channel *channel_connect_to_path(struct ssh *, const char *, char *, char *);

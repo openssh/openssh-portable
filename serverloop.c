@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.249 2026/10/30 04:25:21 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.250 2026/10/30 05:16:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -449,8 +449,10 @@ server_request_direct_tcpip(struct ssh *ssh, int *reason, const char **errmsg)
 		c = channel_connect_to_port(ssh, target, target_port,
 		    "direct-tcpip", "direct-tcpip", reason, errmsg);
 	} else {
-		logit("refused local port forward: "
-		    "originator %s port %d, target %s port %d",
+		do_log2(channel_fwd_refusal_ratelimited(ssh) ?
+		    SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO,
+		    "refused local port forward: "
+		    "originator %.100s port %d, target %.100s port %d",
 		    originator, originator_port, target, target_port);
 		if (reason != NULL)
 			*reason = SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED;
@@ -494,8 +496,10 @@ server_request_direct_streamlocal(struct ssh *ssh)
 		c = channel_connect_to_path(ssh, target,
 		    "direct-streamlocal@openssh.com", "direct-streamlocal");
 	} else {
-		logit("refused streamlocal port forward: "
-		    "originator %s port %d, target %s",
+		do_log2(channel_fwd_refusal_ratelimited(ssh) ?
+		    SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO,
+		    "refused streamlocal port forward: "
+		    "originator %.100s port %d, target %.100s",
 		    originator, originator_port, target);
 	}
 
