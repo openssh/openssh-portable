@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.459 2026/10/09 10:48:43 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.460 2026/10/30 01:55:19 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2542,7 +2542,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		if ((value = ssh_digest_alg_by_name(arg)) == -1)
 			fatal("%.200s line %d: Invalid %s algorithm \"%s\".",
 			    filename, linenum, keyword, arg);
-		if (*activep)
+		if (*activep && options->fingerprint_hash == -1)
 			options->fingerprint_hash = value;
 		break;
 
@@ -2608,7 +2608,7 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		/* peek at first arg for "none" so we can reuse parse_time */
 		if (av[0] != NULL && strcasecmp(av[0], "none") == 0) {
 			(void)argv_next(&ac, &av); /* consume arg */
-			if (*activep)
+			if (*activep && *intptr == -1)
 				*intptr = 0;
 			break;
 		}
