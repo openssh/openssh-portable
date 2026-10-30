@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.152 2026/10/30 02:31:36 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.153 2026/10/30 05:38:16 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1211,7 +1211,7 @@ server_get_connection_info(struct ssh *ssh, int populate, int use_dns)
 
 	if (ssh == NULL || !populate)
 		return &ci;
-	ci.host = use_dns ? ssh_remote_hostname(ssh) : ssh_remote_ipaddr(ssh);
+	ci.host = auth_get_canonical_hostname(ssh, use_dns);
 	ci.address = ssh_remote_ipaddr(ssh);
 	ci.laddress = ssh_local_ipaddr(ssh);
 	ci.lport = ssh_local_port(ssh);
