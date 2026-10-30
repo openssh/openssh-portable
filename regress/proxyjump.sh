@@ -1,4 +1,4 @@
-#	$OpenBSD: proxyjump.sh,v 1.1 2026/03/30 07:19:02 djm Exp $
+#	$OpenBSD: proxyjump.sh,v 1.2 2026/10/30 04:16:47 djm Exp $
 #	Placed in the Public Domain.
 
 tid="proxyjump"
@@ -34,6 +34,29 @@ for jspec in \
 	if [ "$f" != "$expected" ]; then
 		fail "ssh -J $jspec: expected $expected, got $f"
 	fi
+	f=`${SSH} -GF /dev/null -J "$jspec" -oControlPath=/%j somehost | \
+		awk '/^controlpath /{print $2}'`
+	if [ "$f" != "/$expected" ]; then
+		fail "ssh -J $jspec: expected %j $expected, got $f"
+	fi
+done
+
+verbose "connection hash"
+seen=""
+for jspec in \
+	"jump1" \
+	"user@jump1" \
+	"jump1:2222" \
+	"jump1:2223" \
+	"jump2,jump1" \
+	"jump3,jump1" \
+	; do
+	f=`${SSH} -GF /dev/null -J "$jspec" -oControlPath=/%C somehost | \
+		awk '/^controlpath /{print $2}'`
+	case "$seen" in
+	*" $f "*)	fail "ssh -J $jspec: %C is not unique" ;;
+	esac
+	seen="$seen $f "
 done
 
 verbose "precedence"
