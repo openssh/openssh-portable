@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.347 2026/10/30 04:36:21 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.348 2026/10/30 05:21:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1945,6 +1945,11 @@ ssh_packet_read_poll_seqnr(struct ssh *ssh, u_char *typep, uint32_t *seqnr_p)
 			}
 			if (ssh_packet_is_rekeying(ssh)) {
 				DBG(debug("Won't reply to PING during KEX"));
+				break;
+			}
+			/* Don't let replies pile up if the peer isn't reading */
+			if (!ssh_packet_not_very_much_data_to_write(ssh)) {
+				DBG(debug("Won't reply to PING with backlog"));
 				break;
 			}
 			if ((r = sshpkt_start(ssh, SSH2_MSG_PONG)) != 0 ||

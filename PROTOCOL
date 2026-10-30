@@ -110,8 +110,10 @@ ping:
 	byte		SSH_MSG_PONG
 	string		data
 
-Replies are sent in order. They are sent immediately except when rekeying
-is in progress, in which case they are queued until rekeying completes.
+Replies are sent in order. No reply is sent to a ping that is received
+before authentication has completed, while rekeying is in progress or
+while the peer has not yet read a significant amount of previously sent
+data.
 
 The server advertises support for these messages using the
 SSH2_MSG_EXT_INFO mechanism (RFC8308), with the following message:
@@ -718,4 +720,4 @@ master instance and later clients.
 OpenSSH extends the usual agent protocol. These changes are documented
 in the PROTOCOL.agent file.
 
-$OpenBSD: PROTOCOL,v 1.60 2026/02/09 22:09:48 dtucker Exp $
+$OpenBSD: PROTOCOL,v 1.61 2026/10/30 05:21:48 djm Exp $
