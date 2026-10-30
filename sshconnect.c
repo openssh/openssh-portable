@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.388 2026/10/30 06:31:49 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.389 2026/10/30 07:12:55 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1123,6 +1123,12 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 	if (!want_cert && ip_hostkeys != NULL) {
 		ip_status = check_key_in_hostkeys(ip_hostkeys, host_key,
 		    &ip_found);
+		/*
+		 * A key that is revoked for the address must never be
+		 * accepted, regardless of what is recorded for the hostname.
+		 */
+		if (ip_status == HOST_REVOKED)
+			host_status = HOST_REVOKED;
 		if (host_status == HOST_CHANGED &&
 		    (ip_status != HOST_CHANGED ||
 		    (ip_found != NULL &&
