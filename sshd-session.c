@@ -707,6 +707,12 @@ check_ip_options(struct ssh *ssh)
 	if (getpeername(sock_in, (struct sockaddr *)&from,
 	    &fromlen) == -1)
 		return;
+	/*
+	 * IPv4 clients of a dual-stack socket (e.g. inherited via sshd -i)
+	 * appear as IPv4-mapped IPv6 addresses; they are still IPv4
+	 * connections and can carry IPv4 options, so check them too.
+	 */
+	ipv64_normalise_mapped(&from, &fromlen);
 	if (from.ss_family != AF_INET)
 		return;
 	/* XXX IPv6 options? */
