@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.188 2026/10/01 03:11:49 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.189 2026/10/30 08:53:23 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2273,6 +2273,20 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 	return status == SSH2_FX_OK ? 0 : -1;
 }
 
+/*
+ * Set the final attributes of a remote directory once the transfer into
+ * it has completed. A user who can write to the parent directory may
+ * have replaced it with a symlink in the meantime, so don't follow links
+ * if the server supports it.
+ */
+static int
+setstat_dir(struct sftp_conn *conn, const char *path, Attrib *a)
+{
+	if ((conn->exts & SFTP_EXT_LSETSTAT) != 0)
+		return sftp_lsetstat(conn, path, a);
+	return sftp_setstat(conn, path, a);
+}
+
 static int
 upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
     int depth, int preserve_flag, int print_flag, int resume, int fsync_flag,
@@ -2385,8 +2399,13 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	free(new_dst);
 	free(new_src);
 
-	if (created || preserve_flag)
-		sftp_setstat(conn, dst, &a);
+	/*
+	 * Restore the directory's mode unless mkdir already left it as
+	 * we want it; always set the attributes if preserving them.
+	 */
+	if (preserve_flag ||
+	    (created && (a.perm & (S_IWUSR|S_IXUSR)) != (S_IWUSR|S_IXUSR)))
+		setstat_dir(conn, dst, &a);
 
 	(void) closedir(dirp);
 	return ret;
@@ -2847,8 +2866,13 @@ crossload_dir_internal(struct sftp_conn *from, struct sftp_conn *to,
 	free(new_to_path);
 	free(new_from_path);
 
-	if (created || preserve_flag)
-		sftp_setstat(to, to_path, &curdir);
+	/*
+	 * Restore the directory's mode unless mkdir already left it as
+	 * we want it; always set the attributes if preserving them.
+	 */
+	if (preserve_flag ||
+	    (created && (mode & (S_IWUSR|S_IXUSR)) != (S_IWUSR|S_IXUSR)))
+		setstat_dir(to, to_path, &curdir);
 
 	sftp_free_dirents(dir_entries);
 
