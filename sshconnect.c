@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.387 2026/10/30 03:20:00 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.388 2026/10/30 06:31:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -999,7 +999,7 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 	int local = sockaddr_is_local(hostaddr);
 	int r, want_cert = sshkey_is_cert(host_key), host_ip_differ = 0;
 	int hostkey_trusted = 0; /* Known or explicitly accepted by user */
-	struct hostkeys *host_hostkeys, *ip_hostkeys;
+	struct hostkeys *host_hostkeys, *ip_hostkeys, *noport_hostkeys = NULL;
 	u_int i;
 
 	/*
@@ -1054,6 +1054,21 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		    "HOSTNAME", cinfo, host_key, host);
 	}
 
+	/*
+	 * Entries without a port identifier apply to all ports on the host
+	 * (see HOST_NEW below), so also load these to check for revoked keys.
+	 */
+	if (options.host_key_alias == NULL && port != 0 &&
+	    port != SSH_DEFAULT_PORT && !clobber_port) {
+		noport_hostkeys = init_hostkeys();
+		for (i = 0; i < num_user_hostfiles; i++)
+			load_hostkeys(noport_hostkeys, hostname,
+			    user_hostfiles[i], 0);
+		for (i = 0; i < num_system_hostfiles; i++)
+			load_hostkeys(noport_hostkeys, hostname,
+			    system_hostfiles[i], 0);
+	}
+
 	ip_hostkeys = NULL;
 	if (!want_cert && options.check_host_ip) {
 		ip_hostkeys = init_hostkeys();
@@ -1084,6 +1099,13 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 	 */
 	host_status = check_key_in_hostkeys(host_hostkeys, host_key,
 	    &host_found);
+	/* A revocation without a port identifier overrides any other match */
+	if (noport_hostkeys != NULL && check_key_in_hostkeys(noport_hostkeys,
+	    host_key, NULL) == HOST_REVOKED) {
+		debug("host key revoked without port identifier");
+		host_status = HOST_REVOKED;
+		host_found = NULL;
+	}
 
 	/*
 	 * If there are no hostfiles, or if the hostkey was found via
@@ -1468,6 +1490,8 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 		free_hostkeys(host_hostkeys);
 	if (ip_hostkeys != NULL)
 		free_hostkeys(ip_hostkeys);
+	if (noport_hostkeys != NULL)
+		free_hostkeys(noport_hostkeys);
 	return 0;
 
 fail:
@@ -1491,6 +1515,8 @@ fail:
 		free_hostkeys(host_hostkeys);
 	if (ip_hostkeys != NULL)
 		free_hostkeys(ip_hostkeys);
+	if (noport_hostkeys != NULL)
+		free_hostkeys(noport_hostkeys);
 	return -1;
 }
 
