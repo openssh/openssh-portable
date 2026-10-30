@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.389 2026/10/30 07:12:55 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.390 2026/10/30 07:44:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1069,8 +1069,13 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 			    system_hostfiles[i], 0);
 	}
 
+	/*
+	 * Load the keys for the address unconditionally, even if we were
+	 * offered a certificate: they are needed if the certificate doesn't
+	 * match a CA and we downgrade to the plain key at "retry" below.
+	 */
 	ip_hostkeys = NULL;
-	if (!want_cert && options.check_host_ip) {
+	if (options.check_host_ip) {
 		ip_hostkeys = init_hostkeys();
 		for (i = 0; i < num_user_hostfiles; i++)
 			load_hostkeys(ip_hostkeys, ip, user_hostfiles[i], 0);
