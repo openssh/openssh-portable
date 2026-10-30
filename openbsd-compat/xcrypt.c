@@ -84,6 +84,13 @@ pick_salt(void)
 			continue;
 		if (passwd[0] == '$' && (p = strrchr(passwd+1, '$')) != NULL) {
 			typelen = p - passwd + 1;
+			/*
+			 * bcrypt ($2*$NN$) has no '$' between its 22 character
+			 * salt and the hash, so keep the salt too or crypt(3)
+			 * will reject the setting without doing any work.
+			 */
+			if (passwd[1] == '2' && strlen(p + 1) >= 22)
+				typelen += 1 + 22;
 			strlcpy(salt, passwd, MINIMUM(typelen, sizeof(salt)));
 			explicit_bzero(passwd, strlen(passwd));
 			goto out;
