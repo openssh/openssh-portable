@@ -360,7 +360,15 @@ static const struct sock_filter preauth_insns[] = {
 # endif
 	SC_DENY(__NR_madvise, EINVAL),
 #endif
-#ifdef __NR_mmap
+#if defined(__NR_mmap) && !defined(__i386__)
+	/*
+	 * On i386, __NR_mmap is old_mmap(2), which takes its arguments via
+	 * a struct in memory that the filter cannot inspect, so SC_MMAP's
+	 * prot and flags checks would be ineffective. Don't allow it; libc
+	 * uses mmap2(2) there. NB. s390 passes the arguments to both
+	 * variants this way and has no alternative, so the checks cannot
+	 * be relied upon on that platform.
+	 */
 	SC_MMAP(__NR_mmap),
 #endif
 #ifdef __NR_mmap2
