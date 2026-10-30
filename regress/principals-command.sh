@@ -1,4 +1,4 @@
-#	$OpenBSD: principals-command.sh,v 1.14 2021/09/30 05:26:26 dtucker Exp $
+#	$OpenBSD: principals-command.sh,v 1.15 2026/10/30 09:05:12 djm Exp $
 #	Placed in the Public Domain.
 
 tid="authorized principals command"
@@ -38,14 +38,18 @@ trap "$SUDO rm -f ${PRINCIPALS_COMMAND}" 0
 cat << _EOF | $SUDO sh -c "cat > '$PRINCIPALS_COMMAND'"
 #!/bin/sh
 test "x\$1" != "x${LOGNAME}" && exit 1
-test "x\$2" != "xssh-${userkeytype}-cert-v01@openssh.com" && exit 1
-test "x\$3" != "xssh-ed25519" && exit 1
-test "x\$4" != "xJoanne User" && exit 1
-test "x\$5" != "x${SERIAL}" && exit 1
-test "x\$6" != "x${CA_FP}" && exit 1
-test "x\$7" != "x${CERT_FP}" && exit 1
-test "x\$8" != "x${CERT_BODY}" && exit 1
-test "x\$9" != "x${CA_BODY}" && exit 1
+if test \$# -eq 9 ; then
+	test "x\$2" != "xssh-${userkeytype}-cert-v01@openssh.com" && exit 1
+	test "x\$3" != "xssh-ed25519" && exit 1
+	test "x\$4" != "xJoanne User" && exit 1
+	test "x\$5" != "x${SERIAL}" && exit 1
+	test "x\$6" != "x${CA_FP}" && exit 1
+	test "x\$7" != "x${CERT_FP}" && exit 1
+	test "x\$8" != "x${CERT_BODY}" && exit 1
+	test "x\$9" != "x${CA_BODY}" && exit 1
+elif test \$# -ne 1 ; then
+	exit 1
+fi
 test -f "$OBJ/authorized_principals_${LOGNAME}" &&
 	exec cat "$OBJ/authorized_principals_${LOGNAME}"
 _EOF
@@ -132,6 +136,29 @@ echo 'command="true" mekmitasdigoat' > \
     $OBJ/authorized_principals_$USER
 ${SSH} -i $OBJ/cert_user_key \
     -F $OBJ/ssh_proxy somehost false >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+	fail "ssh cert connect failed"
+fi
+
+# AuthorizedPrincipalsCommand without arguments
+# Check that no arguments results in the username being passed.
+verbose "$tid: principals command without arguments"
+(
+	cat $OBJ/sshd_proxy_bak
+	echo "AuthorizedKeysFile none"
+	echo "AuthorizedPrincipalsCommand $PRINCIPALS_COMMAND"
+	echo "AuthorizedPrincipalsCommandUser ${LOGNAME}"
+	echo "TrustedUserCAKeys $OBJ/user_ca_key.pub"
+) > $OBJ/sshd_proxy
+echo gregorsamsa > $OBJ/authorized_principals_$USER
+${SSH} -i $OBJ/cert_user_key \
+    -F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+	fail "ssh cert connect succeeded unexpectedly"
+fi
+echo mekmitasdigoat > $OBJ/authorized_principals_$USER
+${SSH} -i $OBJ/cert_user_key \
+    -F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
 if [ $? -ne 0 ]; then
 	fail "ssh cert connect failed"
 fi
