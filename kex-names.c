@@ -1,4 +1,4 @@
-/* $OpenBSD: kex-names.c,v 1.10 2026/08/08 07:27:54 djm Exp $ */
+/* $OpenBSD: kex-names.c,v 1.11 2026/10/30 08:11:21 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -265,13 +265,12 @@ kex_assemble_names(char **listp, const char *def, const char *all)
 		list = tmp;
 	} else if (*list == '-') {
 		/* Remove names from default list */
-		if ((*listp = match_filter_denylist(def, list + 1)) == NULL) {
+		if ((ret = match_filter_denylist(def, list + 1)) == NULL) {
 			r = SSH_ERR_ALLOC_FAIL;
 			goto fail;
 		}
-		free(list);
 		/* filtering has already been done */
-		return 0;
+		goto done;
 	} else if (*list == '^') {
 		/* Place names at head of default list */
 		if ((tmp = kex_names_cat(list + 1, def)) == NULL) {
@@ -313,6 +312,7 @@ kex_assemble_names(char **listp, const char *def, const char *all)
 		free(ret);
 		ret = tmp;
 	}
+ done:
 	if (ret == NULL || *ret == '\0') {
 		/* An empty name-list is an error */
 		/* XXX better error code? */
