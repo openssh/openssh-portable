@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.473 2026/10/27 22:51:00 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.474 2026/10/30 02:59:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2496,7 +2496,19 @@ channel_handle_efd(struct ssh *ssh, Channel *c)
 static int
 channel_check_window(struct ssh *ssh, Channel *c)
 {
+	u_int excess;
 	int r;
+
+	/*
+	 * Data that the peer sent beyond the advertised window was never
+	 * charged against it, so don't hand back window for consuming it.
+	 * The excess is forgiven as it drains from the buffer instead.
+	 */
+	if (c->local_window_exceeded != 0) {
+		excess = MINIMUM(c->local_consumed, c->local_window_exceeded);
+		c->local_consumed -= excess;
+		c->local_window_exceeded -= excess;
+	}
 
 	if (c->type == SSH_CHANNEL_OPEN &&
 	    !(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
@@ -3603,10 +3615,8 @@ channel_input_data(int type, uint32_t seq, struct ssh *ssh)
 			ssh_packet_disconnect(ssh, "channel %d: peer ignored "
 			    "channel window", c->self);
 		}
-	} else {
+	} else
 		c->local_window -= win_len;
-		c->local_window_exceeded = 0;
-	}
 
 	if (c->datagram) {
 		if ((r = sshbuf_put_string(c->output, data, data_len)) != 0)
