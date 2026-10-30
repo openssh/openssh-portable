@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.78 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.79 2026/10/30 02:02:22 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -744,7 +744,8 @@ pkcs11_sign_ed25519(struct sshkey *key,
 	f = k11->provider->function_list;
 	si = &k11->provider->slotinfo[k11->slotidx];
 
-	xdata = xmalloc(datalen);
+	/* copy data as C_Sign() takes a non-const pointer; datalen may be 0 */
+	xdata = xmalloc(MAXIMUM(datalen, 1));
 	memcpy(xdata, data, datalen);
 	sig = xmalloc(crypto_sign_ed25519_BYTES);
 	slen = crypto_sign_ed25519_BYTES;
