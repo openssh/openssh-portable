@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-common.c,v 1.37 2026/10/30 02:24:52 djm Exp $ */
+/* $OpenBSD: sftp-common.c,v 1.38 2026/10/30 02:28:56 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -38,6 +38,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <util.h>
+#include <limits.h>
 
 #include "xmalloc.h"
 #include "ssherr.h"
