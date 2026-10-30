@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-common.c,v 1.36 2026/02/11 17:05:32 dtucker Exp $ */
+/* $OpenBSD: sftp-common.c,v 1.37 2026/10/30 02:24:52 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -250,7 +250,9 @@ ls_file(const char *name, const struct stat *st, int remote, int si_units,
 	ulen = MAXIMUM(strlen(user), 8);
 	glen = MAXIMUM(strlen(group), 8);
 	if (si_units) {
-		fmt_scaled((long long)st->st_size, sbuf);
+		if ((unsigned long long)st->st_size > LLONG_MAX ||
+		    fmt_scaled((long long)st->st_size, sbuf) != 0)
+			strlcpy(sbuf, "error", sizeof(sbuf));
 		snprintf(buf, sizeof buf, "%s %3s %-*s %-*s %8s %s %s",
 		    mode, lc, ulen, user, glen, group,
 		    sbuf, tbuf, name);
