@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.262 2026/10/30 04:40:03 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.263 2026/10/30 04:52:11 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -2096,7 +2096,7 @@ mm_answer_gss_userok(struct ssh *ssh, int sock, struct sshbuf *m)
 	if (!options.gss_authentication)
 		fatal_f("GSSAPI authentication not enabled");
 
-	authenticated = authctxt->valid && ssh_gssapi_userok(authctxt->user);
+	authenticated = authctxt->valid && ssh_gssapi_userok(authctxt->pw);
 
 	sshbuf_reset(m);
 	if ((r = sshbuf_put_u32(m, authenticated)) != 0)

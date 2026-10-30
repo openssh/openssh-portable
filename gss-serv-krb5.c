@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-serv-krb5.c,v 1.10 2026/02/08 15:28:01 dtucker Exp $ */
+/* $OpenBSD: gss-serv-krb5.c,v 1.11 2026/10/30 04:52:11 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -30,8 +30,11 @@
 #ifdef KRB5
 
 #include <sys/types.h>
+#include <sys/stat.h>
 
+#include <pwd.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "xmalloc.h"
@@ -76,19 +79,62 @@ ssh_gssapi_krb5_init(void)
 	return 1;
 }
 
+/*
+ * krb5_kuserok() consults the user's ~/.k5login but may check no more than
+ * its owner, so when StrictModes is set subject it and the home directory
+ * to the same ownership and mode checks as the user's other access lists
+ * (authorized_keys, .shosts, etc).
+ * Returns true if they are safe to use, otherwise returns 0
+ */
+
+static int
+ssh_gssapi_krb5_k5login_ok(struct passwd *pw)
+{
+	struct stat st;
+	char *path, err[1024];
+	int ok = 1;
+
+	if (!options.strict_modes)
+		return 1;
+
+	/*
+	 * Check the home directory first: anyone who can write to it can
+	 * supply a .k5login, and safe_path() does not see the directory a
+	 * symlink was planted in, only the one its target lives in.
+	 */
+	if (stat(pw->pw_dir, &st) == 0 &&
+	    ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
+	    (st.st_mode & 022) != 0)) {
+		logit("Authentication refused for %.100s: bad ownership or "
+		    "modes for home directory %.200s", pw->pw_name, pw->pw_dir);
+		return 0;
+	}
+	xasprintf(&path, "%s/.k5login", pw->pw_dir);
+	if (stat(path, &st) == 0 && safe_path(path, &st, pw->pw_dir,
+	    pw->pw_uid, err, sizeof(err)) != 0) {
+		logit("Authentication refused: %s", err);
+		ok = 0;
+	}
+	free(path);
+	return ok;
+}
+
 /* Check if this user is OK to login. This only works with krb5 - other
  * GSSAPI mechanisms will need their own.
  * Returns true if the user is OK to log in, otherwise returns 0
  */
 
 static int
-ssh_gssapi_krb5_userok(ssh_gssapi_client *client, char *name)
+ssh_gssapi_krb5_userok(ssh_gssapi_client *client, struct passwd *pw)
 {
 	krb5_principal princ;
 	int retval;
 	const char *errmsg;
 
 	if (ssh_gssapi_krb5_init() == 0)
+		return 0;
+
+	if (!ssh_gssapi_krb5_k5login_ok(pw))
 		return 0;
 
 	if ((retval = krb5_parse_name(krb_context, client->exportedname.value,
@@ -98,10 +144,10 @@ ssh_gssapi_krb5_userok(ssh_gssapi_client *client, char *name)
 		krb5_free_error_message(krb_context, errmsg);
 		return 0;
 	}
-	if (krb5_kuserok(krb_context, princ, name)) {
+	if (krb5_kuserok(krb_context, princ, pw->pw_name)) {
 		retval = 1;
 		logit("Authorized to %s, krb5 principal %s (krb5_kuserok)",
-		    name, (char *)client->displayname.value);
+		    pw->pw_name, (char *)client->displayname.value);
 	} else
 		retval = 0;
 
