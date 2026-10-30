@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.348 2026/10/30 05:21:48 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.349 2026/10/30 07:25:33 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -88,6 +88,7 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 #include "version.h"
+#include "utf8.h"
 
 #ifdef PACKET_DEBUG
 #define DBG(x) x
@@ -3094,8 +3095,9 @@ connection_info_message(struct ssh *ssh)
 	struct kex *kex;
 	struct session_state *state;
 	struct newkeys *nk_in, *nk_out;
-	char *stats_in = NULL, *stats_out = NULL;
+	char *stats_in = NULL, *stats_out = NULL, *remote_version = NULL;
 	uint64_t epoch = (uint64_t)time(NULL) - monotime();
+	int w;
 
 	if (ssh == NULL)
 		return NULL;
@@ -3150,6 +3152,15 @@ connection_info_message(struct ssh *ssh)
 	}
 	comp_info = comp_status_message(ssh);
 
+	/*
+	 * The remote version string was supplied by the peer; don't let
+	 * control characters in it mess up the display.
+	 */
+	w = INT_MAX;
+	asmprintf(&remote_version, INT_MAX, &w, "%s", ssh->remote_version);
+	if (remote_version == NULL)
+		fatal_f("asmprintf failed");
+
 	xasprintf(&ret, "Connection information for %s pid %lld\r\n"
 	    "  versions %s -> %s\r\n"
 	    "%s"
@@ -3160,7 +3171,7 @@ connection_info_message(struct ssh *ssh)
 	    "  traffic %s in, %s out\r\n"
 	    "%s",
 	    thishost, (long long)getpid(),
-	    SSH_RELEASE, ssh->remote_version,
+	    SSH_RELEASE, remote_version,
 	    tcp_info,
 	    fmt_timeframe(monotime() - state->start_time),
 	    kex->name, kex->hostkey_alg,
@@ -3178,6 +3189,7 @@ connection_info_message(struct ssh *ssh)
 	free(rekey_volume);
 	free(rekey_time);
 	free(comp_info);
+	free(remote_version);
 	return ret;
 }
 

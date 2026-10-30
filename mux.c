@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.116 2026/09/23 21:42:39 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.117 2026/10/30 07:25:33 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -49,6 +49,7 @@
 #include "sshpty.h"
 #include "readconf.h"
 #include "clientloop.h"
+#include "utf8.h"
 
 /* from ssh.c */
 extern int tty_flag;
@@ -2450,7 +2451,7 @@ muxclient(const char *path)
 		    "connection" : "channels");
 		if (info == NULL)
 			fatal_f("info request failed");
-		printf("%s", info);
+		mprintf("%s", info);
 		exit(0);
 	case SSHMUX_COMMAND_TERMINATE:
 		mux_client_request_terminate(sock);
