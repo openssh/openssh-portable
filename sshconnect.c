@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.391 2026/10/30 08:17:19 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.392 2026/10/30 08:21:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1549,6 +1549,52 @@ fail:
 	return -1;
 }
 
+/*
+ * Check whether the known_hosts files (or KnownHostsCommand) mark the host
+ * key as @revoked for this host. As in check_host_key(), the host is looked
+ * up with the port identifier and, if that is not the default, without it.
+ * Returns 1 if the key is revoked, 0 otherwise.
+ */
+static int
+host_key_revoked_in_hostfiles(char *hostname, struct sockaddr *hostaddr,
+    const struct ssh_conn_info *cinfo, struct sshkey *host_key)
+{
+	struct hostkeys *hostkeys;
+	char *host = NULL;
+	u_short port = options.port;
+	u_int i;
+	int revoked = 0;
+
+	hostkeys = init_hostkeys();
+	for (;;) {
+		get_hostfile_hostname_ipaddr(hostname, hostaddr, port,
+		    &host, NULL);
+		for (i = 0; i < options.num_user_hostfiles; i++)
+			load_hostkeys(hostkeys, host,
+			    options.user_hostfiles[i], 0);
+		for (i = 0; i < options.num_system_hostfiles; i++)
+			load_hostkeys(hostkeys, host,
+			    options.system_hostfiles[i], 0);
+		if (options.known_hosts_command != NULL && port != 0) {
+			load_hostkeys_command(hostkeys,
+			    options.known_hosts_command, "HOSTNAME", cinfo,
+			    host_key, host);
+		}
+		free(host);
+		if (options.host_key_alias != NULL || port == 0 ||
+		    port == SSH_DEFAULT_PORT)
+			break;
+		port = 0; /* retry without port identifier */
+	}
+	if (check_key_in_hostkeys(hostkeys, host_key, NULL) == HOST_REVOKED) {
+		debug_f("%s host key for %s is marked as revoked in known_hosts",
+		    sshkey_type(host_key), hostname);
+		revoked = 1;
+	}
+	free_hostkeys(hostkeys);
+	return revoked;
+}
+
 /* returns 0 if key verifies or -1 if key does NOT verify */
 int
 verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key,
@@ -1630,9 +1676,16 @@ verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key,
 			sshkey_drop_cert(plain);
 		if (verify_host_key_dns(host, hostaddr, plain, &flags) == 0) {
 			if (flags & DNS_VERIFY_FOUND) {
+				/*
+				 * A secure DNS match is implicitly trusted, but a
+				 * key that known_hosts marks as revoked must never
+				 * be accepted; leave it to check_host_key().
+				 */
 				if (options.verify_host_key_dns == 1 &&
 				    flags & DNS_VERIFY_MATCH &&
-				    flags & DNS_VERIFY_SECURE) {
+				    flags & DNS_VERIFY_SECURE &&
+				    !host_key_revoked_in_hostfiles(host, hostaddr,
+				    cinfo, host_key)) {
 					r = 0;
 					goto out;
 				}
