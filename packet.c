@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.346 2026/09/22 22:51:43 job Exp $ */
+/* $OpenBSD: packet.c,v 1.347 2026/10/30 04:36:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -223,6 +223,9 @@ struct session_state {
 
 	/* Nagle disabled on socket */
 	int nodelay_set;
+
+	/* Set to permanently poison this connection instance */
+	int poisoned;
 
 	/* Hook for fuzzing inbound packets */
 	ssh_packet_hook_fn *hook_in;
@@ -1501,6 +1504,9 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, uint32_t *seqnr_p)
 
 	DBG(debug("packet_read()"));
 
+	if (state->poisoned)
+		return SSH_ERR_PROTOCOL_ERROR;
+
 	/*
 	 * Since we are blocking, ensure that all written packets have
 	 * been sent.
@@ -1592,6 +1598,8 @@ ssh_packet_read_poll2_mux(struct ssh *ssh, u_char *typep, uint32_t *seqnr_p)
 
 	if (ssh->kex)
 		return SSH_ERR_INTERNAL_ERROR;
+	if (state->poisoned)
+		return SSH_ERR_PROTOCOL_ERROR;
 	*typep = SSH_MSG_NONE;
 	cp = sshbuf_ptr(state->input);
 	if (state->packlen == 0) {
@@ -1634,6 +1642,8 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, uint32_t *seqnr_p)
 
 	if (state->mux)
 		return ssh_packet_read_poll2_mux(ssh, typep, seqnr_p);
+	if (state->poisoned)
+		return SSH_ERR_PROTOCOL_ERROR;
 
 	*typep = SSH_MSG_NONE;
 
@@ -2937,6 +2947,8 @@ sshpkt_msg_ignore(struct ssh *ssh, u_int nbytes)
 int
 sshpkt_send(struct ssh *ssh)
 {
+	if (ssh->state && ssh->state->poisoned)
+		return SSH_ERR_PROTOCOL_ERROR;
 	if (ssh->state && ssh->state->mux)
 		return ssh_packet_send_mux(ssh);
 	return ssh_packet_send2(ssh);
@@ -2961,6 +2973,34 @@ sshpkt_disconnect(struct ssh *ssh, const char *fmt,...)
 	    (r = sshpkt_send(ssh)) != 0)
 		return r;
 	return 0;
+}
+
+/*
+ * Logs a protocol violation by the peer, sends a disconnect packet and
+ * returns SSH_ERR_PROTOCOL_ERROR for the caller to propagate.
+ * This does not terminate the connection, but does "poison" the packet
+ * code so further attempts to read/write will fail with the same error.
+ */
+int
+sshpkt_protocol_error(struct ssh *ssh, const char *fmt,...)
+{
+	char buf[1024], remote_id[512];
+	va_list args;
+	int r;
+
+	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
+	va_start(args, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, args);
+	va_end(args);
+
+	logit("Disconnecting %s: %.100s", remote_id, buf);
+	if ((r = sshpkt_disconnect(ssh, "%s", buf)) != 0 ||
+	    (r = ssh_packet_write_wait(ssh)) != 0)
+		return r;
+	if (ssh->state == NULL)
+		cleanup_exit(255); /* Can't poison? then exit */
+	ssh->state->poisoned = 1;
+	return SSH_ERR_PROTOCOL_ERROR;
 }
 
 /* roundup current message to pad bytes */

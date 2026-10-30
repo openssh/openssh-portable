@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.197 2026/10/30 01:16:44 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.198 2026/10/30 04:36:21 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -235,7 +235,7 @@ kex_protocol_error(int type, uint32_t seq, struct ssh *ssh)
 
 	/* If in strict mode, any unexpected message is an error */
 	if ((ssh->kex->flags & KEX_INITIAL) && ssh->kex->kex_strict) {
-		ssh_packet_disconnect(ssh, "strict KEX violation: "
+		return sshpkt_protocol_error(ssh, "strict KEX violation: "
 		    "unexpected packet type %u (seqnr %u)", type, seq);
 	}
 	error_f("type %u seq %u", type, seq);
@@ -660,7 +660,7 @@ kex_input_kexinit(int type, uint32_t seq, struct ssh *ssh)
 	free(kex->name);
 	kex->name = NULL;
 	if ((kex->flags & KEX_INIT_RECVD) != 0) {
-		ssh_packet_disconnect(ssh,
+		return sshpkt_protocol_error(ssh,
 		    "multiple KEXINIT received from peer");
 	}
 	kex->flags |= KEX_INIT_RECVD;
@@ -1004,10 +1004,12 @@ kex_choose_conf(struct ssh *ssh, uint32_t seq)
 		}
 		if (kex->kex_strict) {
 			debug3_f("will use strict KEX ordering");
-			if (seq != 0)
-				ssh_packet_disconnect(ssh,
+			if (seq != 0) {
+				r = sshpkt_protocol_error(ssh,
 				    "strict KEX violation: "
 				    "KEXINIT was not the first packet");
+				goto out;
+			}
 		}
 	}
 
