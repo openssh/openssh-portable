@@ -1,4 +1,4 @@
-/* $OpenBSD: krl.c,v 1.66 2026/10/17 11:47:42 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.67 2026/10/30 05:33:18 djm Exp $ */
 /*
  * Copyright (c) 2012 Damien Miller <djm@mindrot.org>
  *
@@ -78,14 +78,23 @@ static int blob_cmp(struct revoked_blob *a, struct revoked_blob *b);
 RB_HEAD(revoked_blob_tree, revoked_blob);
 RB_GENERATE_STATIC(revoked_blob_tree, revoked_blob, tree_entry, blob_cmp)
 
-/* Tracks revoked certs for a single CA */
+/*
+ * Tracks revoked certs for a single CA. These are held in a list, to preserve
+ * their order, and in a tree indexed by the serialised CA key for searching.
+ */
 struct revoked_certs {
 	struct sshkey *ca_key;
+	u_char *ca_blob;
+	size_t ca_blob_len;
 	struct revoked_serial_tree revoked_serials;
 	struct revoked_key_id_tree revoked_key_ids;
 	TAILQ_ENTRY(revoked_certs) entry;
+	RB_ENTRY(revoked_certs) tree_entry;
 };
 TAILQ_HEAD(revoked_certs_list, revoked_certs);
+static int ca_cmp(struct revoked_certs *a, struct revoked_certs *b);
+RB_HEAD(revoked_certs_tree, revoked_certs);
+RB_GENERATE_STATIC(revoked_certs_tree, revoked_certs, tree_entry, ca_cmp)
 
 struct ssh_krl {
 	uint64_t krl_version;
@@ -96,6 +105,7 @@ struct ssh_krl {
 	struct revoked_blob_tree revoked_sha1s;
 	struct revoked_blob_tree revoked_sha256s;
 	struct revoked_certs_list revoked_certs;
+	struct revoked_certs_tree revoked_certs_by_ca;
 };
 
 /* Return equal if a and b overlap */
@@ -126,6 +136,20 @@ blob_cmp(struct revoked_blob *a, struct revoked_blob *b)
 		return memcmp(a->blob, b->blob, a->len);
 }
 
+/* NB. the wildcard CA has a NULL, zero-length blob */
+static int
+ca_cmp(struct revoked_certs *a, struct revoked_certs *b)
+{
+	size_t len = MINIMUM(a->ca_blob_len, b->ca_blob_len);
+	int r;
+
+	if (len != 0 && (r = memcmp(a->ca_blob, b->ca_blob, len)) != 0)
+		return r;
+	if (a->ca_blob_len == b->ca_blob_len)
+		return 0;
+	return a->ca_blob_len > b->ca_blob_len ? 1 : -1;
+}
+
 struct ssh_krl *
 ssh_krl_init(void)
 {
@@ -137,6 +161,7 @@ ssh_krl_init(void)
 	RB_INIT(&krl->revoked_sha1s);
 	RB_INIT(&krl->revoked_sha256s);
 	TAILQ_INIT(&krl->revoked_certs);
+	RB_INIT(&krl->revoked_certs_by_ca);
 	return krl;
 }
 
@@ -158,6 +183,7 @@ revoked_certs_free(struct revoked_certs *rc)
 		free(rki);
 	}
 	sshkey_free(rc->ca_key);
+	free(rc->ca_blob);
 	freezero(rc, sizeof(*rc));
 }
 
@@ -188,6 +214,7 @@ ssh_krl_free(struct ssh_krl *krl)
 	}
 	TAILQ_FOREACH_SAFE(rc, &krl->revoked_certs, entry, trc) {
 		TAILQ_REMOVE(&krl->revoked_certs, rc, entry);
+		RB_REMOVE(revoked_certs_tree, &krl->revoked_certs_by_ca, rc);
 		revoked_certs_free(rc);
 	}
 	free(krl);
@@ -216,34 +243,43 @@ static int
 revoked_certs_for_ca_key(struct ssh_krl *krl, const struct sshkey *ca_key,
     struct revoked_certs **rcp, int allow_create)
 {
-	struct revoked_certs *rc;
+	struct revoked_certs find, *rc = NULL;
 	int r;
 
 	*rcp = NULL;
-	TAILQ_FOREACH(rc, &krl->revoked_certs, entry) {
-		if ((ca_key == NULL && rc->ca_key == NULL) ||
-		    sshkey_equal(rc->ca_key, ca_key)) {
-			*rcp = rc;
-			return 0;
-		}
-	}
-	if (!allow_create)
-		return 0;
-	/* If this CA doesn't exist in the list then add it now */
-	if ((rc = calloc(1, sizeof(*rc))) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	if (ca_key == NULL)
-		rc->ca_key = NULL;
-	else if ((r = sshkey_from_private(ca_key, &rc->ca_key)) != 0) {
-		free(rc);
+	memset(&find, 0, sizeof(find));
+	if (ca_key != NULL && (r = sshkey_to_blob(ca_key,
+	    &find.ca_blob, &find.ca_blob_len)) != 0)
 		return r;
+	if ((rc = RB_FIND(revoked_certs_tree, &krl->revoked_certs_by_ca,
+	    &find)) != NULL || !allow_create) {
+		r = 0;
+		goto out;
 	}
+	/* If this CA doesn't exist in the tree then add it now */
+	if ((rc = calloc(1, sizeof(*rc))) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (ca_key != NULL &&
+	    (r = sshkey_from_private(ca_key, &rc->ca_key)) != 0) {
+		free(rc);
+		rc = NULL;
+		goto out;
+	}
+	rc->ca_blob = find.ca_blob;
+	rc->ca_blob_len = find.ca_blob_len;
+	find.ca_blob = NULL;
 	RB_INIT(&rc->revoked_serials);
 	RB_INIT(&rc->revoked_key_ids);
 	TAILQ_INSERT_TAIL(&krl->revoked_certs, rc, entry);
+	RB_INSERT(revoked_certs_tree, &krl->revoked_certs_by_ca, rc);
 	KRL_DBG(("new CA %s", ca_key == NULL ? "*" : sshkey_type(ca_key)));
+	r = 0;
+ out:
+	free(find.ca_blob);
 	*rcp = rc;
-	return 0;
+	return r;
 }
 
 static int
@@ -325,6 +361,25 @@ insert_serial_range(struct revoked_serial_tree *rt, uint64_t lo, uint64_t hi)
 	return 0;
 }
 
+/*
+ * Revoke a range of serials. If *rcp is NULL, then it will be set to the
+ * revoked_certs for ca_key, so callers making multiple revocations for the
+ * same CA need only search for it once.
+ */
+static int
+revoke_serial_range(struct ssh_krl *krl, const struct sshkey *ca_key,
+    struct revoked_certs **rcp, uint64_t lo, uint64_t hi)
+{
+	int r;
+
+	if (lo > hi || lo == 0)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (*rcp == NULL &&
+	    (r = revoked_certs_for_ca_key(krl, ca_key, rcp, 1)) != 0)
+		return r;
+	return insert_serial_range(&(*rcp)->revoked_serials, lo, hi);
+}
+
 int
 ssh_krl_revoke_cert_by_serial(struct ssh_krl *krl, const struct sshkey *ca_key,
     uint64_t serial)
@@ -336,25 +391,21 @@ int
 ssh_krl_revoke_cert_by_serial_range(struct ssh_krl *krl,
     const struct sshkey *ca_key, uint64_t lo, uint64_t hi)
 {
-	struct revoked_certs *rc;
-	int r;
+	struct revoked_certs *rc = NULL;
 
-	if (lo > hi || lo == 0)
-		return SSH_ERR_INVALID_ARGUMENT;
-	if ((r = revoked_certs_for_ca_key(krl, ca_key, &rc, 1)) != 0)
-		return r;
-	return insert_serial_range(&rc->revoked_serials, lo, hi);
+	return revoke_serial_range(krl, ca_key, &rc, lo, hi);
 }
 
-int
-ssh_krl_revoke_cert_by_key_id(struct ssh_krl *krl, const struct sshkey *ca_key,
-    const char *key_id)
+/* Revoke a key ID. *rcp is treated as per revoke_serial_range() */
+static int
+revoke_key_id(struct ssh_krl *krl, const struct sshkey *ca_key,
+    struct revoked_certs **rcp, const char *key_id)
 {
 	struct revoked_key_id *rki, *erki;
-	struct revoked_certs *rc;
 	int r;
 
-	if ((r = revoked_certs_for_ca_key(krl, ca_key, &rc, 1)) != 0)
+	if (*rcp == NULL &&
+	    (r = revoked_certs_for_ca_key(krl, ca_key, rcp, 1)) != 0)
 		return r;
 
 	KRL_DBG(("revoke %s", key_id));
@@ -363,12 +414,21 @@ ssh_krl_revoke_cert_by_key_id(struct ssh_krl *krl, const struct sshkey *ca_key,
 		free(rki);
 		return SSH_ERR_ALLOC_FAIL;
 	}
-	erki = RB_INSERT(revoked_key_id_tree, &rc->revoked_key_ids, rki);
+	erki = RB_INSERT(revoked_key_id_tree, &(*rcp)->revoked_key_ids, rki);
 	if (erki != NULL) {
 		free(rki->key_id);
 		free(rki);
 	}
 	return 0;
+}
+
+int
+ssh_krl_revoke_cert_by_key_id(struct ssh_krl *krl, const struct sshkey *ca_key,
+    const char *key_id)
+{
+	struct revoked_certs *rc = NULL;
+
+	return revoke_key_id(krl, ca_key, &rc, key_id);
 }
 
 /* Convert "key" to a public key blob without any certificate information */
@@ -897,6 +957,7 @@ parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 	struct bitmap *bitmap = NULL;
 	char *key_id = NULL;
 	struct sshkey *ca_key = NULL;
+	struct revoked_certs *rc = NULL;
 
 	if ((subsect = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
@@ -922,8 +983,8 @@ parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 			while (sshbuf_len(subsect) > 0) {
 				if ((r = sshbuf_get_u64(subsect, &serial)) != 0)
 					goto out;
-				if ((r = ssh_krl_revoke_cert_by_serial(krl,
-				    ca_key, serial)) != 0)
+				if ((r = revoke_serial_range(krl, ca_key, &rc,
+				    serial, serial)) != 0)
 					goto out;
 			}
 			break;
@@ -931,8 +992,8 @@ parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 			if ((r = sshbuf_get_u64(subsect, &serial_lo)) != 0 ||
 			    (r = sshbuf_get_u64(subsect, &serial_hi)) != 0)
 				goto out;
-			if ((r = ssh_krl_revoke_cert_by_serial_range(krl,
-			    ca_key, serial_lo, serial_hi)) != 0)
+			if ((r = revoke_serial_range(krl, ca_key, &rc,
+			    serial_lo, serial_hi)) != 0)
 				goto out;
 			break;
 		case KRL_SECTION_CERT_SERIAL_BITMAP:
@@ -957,8 +1018,9 @@ parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 				}
 				if (!bitmap_test_bit(bitmap, serial))
 					continue;
-				if ((r = ssh_krl_revoke_cert_by_serial(krl,
-				    ca_key, serial_lo + serial)) != 0)
+				if ((r = revoke_serial_range(krl, ca_key, &rc,
+				    serial_lo + serial,
+				    serial_lo + serial)) != 0)
 					goto out;
 			}
 			bitmap_free(bitmap);
@@ -969,8 +1031,8 @@ parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 				if ((r = sshbuf_get_cstring(subsect,
 				    &key_id, NULL)) != 0)
 					goto out;
-				if ((r = ssh_krl_revoke_cert_by_key_id(krl,
-				    ca_key, key_id)) != 0)
+				if ((r = revoke_key_id(krl, ca_key, &rc,
+				    key_id)) != 0)
 					goto out;
 				free(key_id);
 				key_id = NULL;
