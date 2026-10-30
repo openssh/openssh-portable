@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-client.c,v 1.27 2026/10/30 01:41:01 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-client.c,v 1.28 2026/10/30 04:48:41 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -480,15 +480,20 @@ pkcs11_key_free(struct sshkey *key)
 	if ((r = sshkey_putb(key, keyblob)) != 0)
 		fatal_fr(r, "serialise key");
 
-	/* repack keys */
+	/*
+	 * Remove one record of the key and repack. A key may legitimately be
+	 * recorded more than once, e.g. when pkcs11_make_cert() is called
+	 * repeatedly for the same certificate, so remove the first match only
+	 * and leave any others for the remaining sshkey instances.
+	 */
 	for (i = 0; i < helper->nkeyblobs; i++) {
-		if (sshbuf_equals(keyblob, helper->keyblobs[i]) == 0) {
-			if (found)
-				fatal_f("key recorded more than once");
+		if (!found && sshbuf_equals(keyblob, helper->keyblobs[i]) == 0) {
+			sshbuf_free(helper->keyblobs[i]);
 			found = 1;
 		} else if (found)
 			helper->keyblobs[i - 1] = helper->keyblobs[i];
 	}
+	sshbuf_free(keyblob);
 	if (found) {
 		helper->keyblobs = xrecallocarray(helper->keyblobs,
 		    helper->nkeyblobs, helper->nkeyblobs - 1,
