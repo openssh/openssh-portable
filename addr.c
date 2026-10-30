@@ -1,4 +1,4 @@
-/* $OpenBSD: addr.c,v 1.10 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: addr.c,v 1.11 2026/10/30 06:24:55 djm Exp $ */
 
 /*
  * Copyright (c) 2004-2008 Damien Miller <djm@mindrot.org>
@@ -506,5 +506,11 @@ addr_netmatch(const struct xaddr *host, const struct xaddr *net, u_int masklen)
 		return -1;
 	if (addr_and(&tmp_result, host, &tmp_mask) == -1)
 		return -1;
+	/*
+	 * A network specified without an interface scope (e.g. fe80::/10)
+	 * matches hosts in any scope; otherwise the scope must match too.
+	 */
+	if (net->af == AF_INET6 && net->scope_id == 0)
+		tmp_result.scope_id = 0;
 	return addr_cmp(&tmp_result, net);
 }
