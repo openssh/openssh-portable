@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.42 2026/07/07 02:17:18 djm Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.43 2026/10/30 01:30:55 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -101,7 +101,10 @@ userauth_gssapi(struct ssh *ssh, const char *method)
 			goid.length   = len - 2;
 			ssh_gssapi_test_oid_supported(&ms, &goid, &present);
 		} else {
+			/* client error; counts against MaxAuthTries */
 			logit_f("badly formed OID received");
+			free(doid);
+			return (0);
 		}
 	} while (mechs > 0 && !present);
 
