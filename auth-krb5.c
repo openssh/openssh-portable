@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-krb5.c,v 1.26 2026/02/08 19:54:31 dtucker Exp $ */
+/* $OpenBSD: auth-krb5.c,v 1.27 2026/10/30 02:31:35 djm Exp $ */
 /*
  *    Kerberos v5 authentication and ticket-passing routines.
  *
@@ -228,6 +228,9 @@ krb5_cleanup_proc(Authctxt *authctxt)
 		krb5_cc_destroy(authctxt->krb5_ctx, authctxt->krb5_fwd_ccache);
 		authctxt->krb5_fwd_ccache = NULL;
 	}
+	authctxt->krb5_ticket_file = NULL;
+	free(authctxt->krb5_ccname);
+	authctxt->krb5_ccname = NULL;
 	if (authctxt->krb5_user) {
 		krb5_free_principal(authctxt->krb5_ctx, authctxt->krb5_user);
 		authctxt->krb5_user = NULL;

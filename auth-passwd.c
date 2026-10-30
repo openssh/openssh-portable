@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-passwd.c,v 1.49 2025/05/08 17:32:53 tedu Exp $ */
+/* $OpenBSD: auth-passwd.c,v 1.50 2026/10/30 02:31:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -96,8 +96,12 @@ auth_password(struct ssh *ssh, const char *password)
 #ifdef KRB5
 	if (options.kerberos_authentication == 1) {
 		int ret = auth_krb5_password(authctxt, password);
-		if (ret == 1 || ret == 0)
+		if (ret == 1 || ret == 0) {
+			/* Don't keep a ticket cache for a refused login. */
+			if (ret && !ok)
+				krb5_cleanup_proc(authctxt);
 			return ret && ok;
+		}
 		/* Fall back to ordinary passwd authentication. */
 	}
 #endif
