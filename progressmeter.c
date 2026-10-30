@@ -1,4 +1,4 @@
-/* $OpenBSD: progressmeter.c,v 1.57 2026/03/29 01:08:13 djm Exp $ */
+/* $OpenBSD: progressmeter.c,v 1.58 2026/10/30 01:26:02 djm Exp $ */
 /*
  * Copyright (c) 2003 Nils Nordman.  All rights reserved.
  *
@@ -269,15 +269,21 @@ stop_progress_meter(void)
 {
 	alarm(0);
 
-	if (!can_output())
-		return;
+	if (can_output()) {
+		/* Ensure we complete the progress */
+		if (cur_pos != end_pos)
+			refresh_progress_meter(1);
+		atomicio(vwrite, STDOUT_FILENO, "\n", 1);
+	}
 
-	/* Ensure we complete the progress */
-	if (cur_pos != end_pos)
-		refresh_progress_meter(1);
-
-	atomicio(vwrite, STDOUT_FILENO, "\n", 1);
+	/*
+	 * Always forget the caller's file name and counter, even when we
+	 * are not in the foreground and could not print; they don't outlive
+	 * the transfer and must not be used by a later refresh.
+	 */
 	file = NULL;
+	counter = NULL;
+	alarm_fired = 0;
 }
 
 static void
