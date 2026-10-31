@@ -2069,6 +2069,9 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 	struct request *ack = NULL;
 	struct requests acks;
 	size_t handle_len;
+	char *tmp_path = NULL;
+	const char *write_path;
+	int use_temp;
 
 	debug2_f("upload local \"%s\" to remote \"%s\"",
 	    local_path, remote_path);
@@ -2097,10 +2100,57 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 	if (!preserve_flag)
 		a.flags &= ~SSH2_FILEXFER_ATTR_ACMODTIME;
 
+	/*
+	 * Non-inplace uploads write to a temporary remote name and rename
+	 * only after a successful transfer. This avoids replacing an
+	 * existing valid destination with a truncated file on ENOSPC.
+	 */
+	use_temp = (!inplace_flag && !resume);
+	write_path = remote_path;
+
+	/* Best-effort free-space check before opening the destination. */
+	if (!resume && (conn->exts & SFTP_EXT_STATVFS) != 0) {
+		struct sftp_statvfs stv;
+		const char *slash;
+		char *dir;
+
+		slash = strrchr(remote_path, '/');
+		if (slash == NULL || strcmp(remote_path, "/") == 0)
+			dir = xstrdup(".");
+		else if (slash == remote_path)
+			dir = xstrdup("/");
+		else {
+			dir = xstrdup(remote_path);
+			dir[(size_t)(slash - remote_path)] = '\0';
+		}
+		if (sftp_statvfs(conn, dir, &stv, 1) == 0) {
+			uint64_t avail = stv.f_frsize * stv.f_bavail;
+
+			if (avail < (uint64_t)sb.st_size) {
+				error("insufficient remote space for \"%s\": "
+				    "need %llu bytes, ~%llu available",
+				    remote_path,
+				    (unsigned long long)sb.st_size,
+				    (unsigned long long)avail);
+				free(dir);
+				close(local_fd);
+				return -1;
+			}
+		}
+		free(dir);
+	}
+
+	if (use_temp) {
+		xasprintf(&tmp_path, "%s.scp%ld", remote_path, (long)getpid());
+		write_path = tmp_path;
+		debug("uploading via temporary \"%s\"", tmp_path);
+	}
+
 	if (resume) {
 		/* Get remote file size if it exists */
 		if (sftp_stat(conn, remote_path, 0, &c) != 0) {
 			close(local_fd);
+			free(tmp_path);
 			return -1;
 		}
 
@@ -2108,11 +2158,13 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 			error("resume \"%s\": destination file "
 			    "same size or larger", local_path);
 			close(local_fd);
+			free(tmp_path);
 			return -1;
 		}
 
 		if (lseek(local_fd, (off_t)c.size, SEEK_SET) == -1) {
 			close(local_fd);
+			free(tmp_path);
 			return -1;
 		}
 		highwater = c.size;
@@ -2124,10 +2176,11 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 	else if (!inplace_flag)
 		openmode |= SSH2_FXF_TRUNC;
 
-	/* Send open request */
-	if (send_open(conn, remote_path, "dest", openmode, &a,
+	/* Send open request (temporary path when use_temp). */
+	if (send_open(conn, write_path, "dest", openmode, &a,
 	    &handle, &handle_len) != 0) {
 		close(local_fd);
+		free(tmp_path);
 		return -1;
 	}
 
@@ -2241,7 +2294,7 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 		highwater = maxack;
 	}
 	if (status != SSH2_FX_OK) {
-		error("write remote \"%s\": %s", remote_path, fx2txt(status));
+		error("write remote \"%s\": %s", write_path, fx2txt(status));
 		status = SSH2_FX_FAILURE;
 	}
 
@@ -2269,6 +2322,21 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 		status = SSH2_FX_FAILURE;
 
 	free(handle);
+
+	/*
+	 * Atomic replace: promote the temporary file only after a full
+	 * successful upload. On failure, delete the temp and leave any
+	 * previous destination file untouched.
+	 */
+	if (use_temp) {
+		if (status == SSH2_FX_OK && !interrupted) {
+			if (sftp_rename(conn, tmp_path, remote_path, 0) != 0)
+				status = SSH2_FX_FAILURE;
+		} else {
+			(void)sftp_rm(conn, tmp_path);
+		}
+		free(tmp_path);
+	}
 
 	return status == SSH2_FX_OK ? 0 : -1;
 }

@@ -1366,11 +1366,12 @@ source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 
 	if (src_is_dir && iamrecursive) {
 		if (sftp_upload_dir(conn, src, abs_dst, pflag,
-		    SFTP_PROGRESS_ONLY, 0, 0, 1, 1) != 0) {
+		    SFTP_PROGRESS_ONLY, 0, 0, 1, 0) != 0) {
 			error("failed to upload directory %s to %s", src, targ);
 			errs = 1;
 		}
-	} else if (sftp_upload(conn, src, abs_dst, pflag, 0, 0, 1) != 0) {
+	} else if (sftp_upload(conn, src, abs_dst, pflag, 0, 0, 0) != 0) {
+		/* inplace=0: temp upload + rename (see sftp_upload) */
 		error("failed to upload file %s to %s", src, targ);
 		errs = 1;
 	}
