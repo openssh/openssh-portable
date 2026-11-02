@@ -1,4 +1,4 @@
-#	$OpenBSD: cfgparse.sh,v 1.13 2026/10/30 08:12:58 djm Exp $
+#	$OpenBSD: cfgparse.sh,v 1.14 2026/11/02 07:06:52 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="sshd config parse"
@@ -24,7 +24,7 @@ verbose "reparse regress config"
 # Detect IPv6 support and if found, define variables for the needed
 # config lines.  This allows tests to also work on Portable platforms
 # lacking IPv6 support without having diffs that make syncs harder.
-if $SUDO ${SSHD} -tq -f $OBJ/sshd_config_minimal -oListenAddress=::1 ; then
+if ${SSH} -Qaddressfamily | grep inet6 >/dev/null; then
 	trace "IPv6 support detected"
 	LISTENADDRESS_IPV6_LOOPBACK="listenaddress ::1"
 	LISTENADDRESS_IPV6_LOOPBACK_1234="listenaddress [::1]:1234"
