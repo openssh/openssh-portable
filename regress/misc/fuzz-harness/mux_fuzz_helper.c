@@ -44,6 +44,7 @@ volatile sig_atomic_t quit_pending = 0;
 
 /* Externs that sshconnect.c declares. */
 int hostkey_trusted = 0;
+int hostkey_untrusted = 0;
 
 /* Temporary: LSan off while upstream mux.c parse-chain leaks remain. */
 int
