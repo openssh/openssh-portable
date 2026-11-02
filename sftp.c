@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.263 2026/10/30 04:54:01 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.264 2026/11/02 12:55:33 jsg Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2352,7 +2352,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 				err = -1;
 				goto bad;
 			}
-		if (parse_dispatch_command(conn, cmd,
+			if (parse_dispatch_command(conn, cmd,
 			    &remote_path, startdir, 1, 0) != 0) {
 				err = -1;
 				goto bad;
