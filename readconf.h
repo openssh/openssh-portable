@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.165 2026/10/30 04:14:37 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.166 2026/11/02 06:49:42 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -260,6 +260,7 @@ int	 default_ssh_port(void);
 int	 option_clear_or_none(const char *);
 int	 config_has_permitted_cnames(Options *);
 void	 dump_client_config(Options *o, const char *host);
+char	*supported_address_family(void);
 
 void	 add_local_forward(Options *, const struct Forward *);
 void	 add_remote_forward(Options *, const struct Forward *);

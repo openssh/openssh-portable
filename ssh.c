@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.646 2026/10/30 08:19:30 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.647 2026/11/02 06:49:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -820,6 +820,8 @@ main(int ac, char **av)
 				cp = sshkey_alg_list(0, 1, 1, '\n');
 			else if (strcmp(optarg, "protocol-version") == 0)
 				cp = xstrdup("2");
+			else if (strcasecmp(optarg, "addressfamily") == 0)
+				cp = supported_address_family();
 			else if (strcmp(optarg, "compression") == 0) {
 				cp = xstrdup(compression_alg_list(0));
 				len = strlen(cp);
@@ -828,13 +830,16 @@ main(int ac, char **av)
 						cp[n] = '\n';
 			} else if (strcmp(optarg, "help") == 0) {
 				cp = xstrdup(
+				    "addressfamily\n"
 				    "cipher\ncipher-auth\ncompression\nkex\n"
 				    "key\nkey-cert\nkey-plain\nkey-sig\nmac\n"
 				    "protocol-version\nsig");
 			}
 			if (cp == NULL)
 				fatal("Unsupported query \"%s\"", optarg);
-			printf("%s\n", cp);
+			printf("%s", cp);
+			if ((len = strlen(cp)) == 0 || cp[len-1] != '\n')
+				printf("\n");
 			free(cp);
 			exit(0);
 			break;

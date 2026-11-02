@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.423 2026/10/30 08:42:29 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.424 2026/11/02 06:49:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3620,6 +3620,20 @@ parse_ssh_uri(const char *uri, char **userp, char **hostp, int *portp)
 	free(host);
 	free(path);
 	return r;
+}
+
+char *
+supported_address_family(void)
+{
+	char buf[1024];
+	int i;
+
+	buf[0] = '\0';
+	for (i = 0; multistate_addressfamily[i].key != NULL; i++) {
+		strlcat(buf, multistate_addressfamily[i].key, sizeof(buf));
+		strlcat(buf, "\n", sizeof(buf));
+	}
+	return xstrdup(buf);
 }
 
 /* XXX the following is a near-verbatim copy from servconf.c; refactor */
