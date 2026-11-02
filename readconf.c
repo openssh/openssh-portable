@@ -3630,6 +3630,10 @@ supported_address_family(void)
 
 	buf[0] = '\0';
 	for (i = 0; multistate_addressfamily[i].key != NULL; i++) {
+#ifndef HAVE_GETADDRINFO
+		if (strcmp(multistate_addressfamily[i].key, "inet6") == 0)
+			continue;
+#endif
 		strlcat(buf, multistate_addressfamily[i].key, sizeof(buf));
 		strlcat(buf, "\n", sizeof(buf));
 	}
