@@ -2,6 +2,7 @@
 // Covers readconf.c: process_config_line_depth() and related parsing logic.
 
 #include <sys/types.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -27,6 +28,22 @@ static struct passwd fuzz_pw;
 static char fuzz_username[] = "fuzzer";
 static char fuzz_home[] = "/tmp";
 static char fuzz_shell[] = "/bin/sh";
+
+// readconf.c treats a bad configuration line as fatal() — correct for the
+// real client, but it ends the process, so a fuzzer input containing any
+// invalid line would stop the run instead of returning.  Catch the exit
+// path (fatal() calls cleanup_exit()) and longjmp back into the harness,
+// as the other readconf/connection harnesses do.
+static jmp_buf fuzz_env;
+static volatile int in_fuzz = 0;
+
+extern "C" void
+cleanup_exit(int code)
+{
+    if (in_fuzz)
+        longjmp(fuzz_env, code ? code : 1);
+    _exit(code);
+}
 
 static void init_pw(void) {
     fuzz_pw.pw_name = fuzz_username;
@@ -62,8 +79,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     // Process each line through the config parser
     // Errors are intentional (fuzzing) — suppress but don't crash
-    read_config_file(tmpfile, &fuzz_pw, "fuzz.example.com", "fuzz.example.com",
-                     NULL, &options, 0, NULL);
+    in_fuzz = 1;
+    if (setjmp(fuzz_env) == 0) {
+        read_config_file(tmpfile, &fuzz_pw, "fuzz.example.com",
+                         "fuzz.example.com", NULL, &options, 0, NULL);
+    }
+    in_fuzz = 0;
 
     // Clean up allocated options
     // (options cleanup is intentionally omitted; leak sanitizer disabled for fuzzing)
