@@ -147,6 +147,8 @@ jobs:
         path: |
           config.h
           config.log
+          Makefile
+          openbsd-compat/Makefile
           regress/*.log
           regress/log/*
           regress/valgrind-out/
