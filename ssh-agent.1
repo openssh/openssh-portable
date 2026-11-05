@@ -136,6 +136,7 @@ Specify an option when starting
 .Nm .
 The supported options are:
 .Cm allow-remote-pkcs11 ,
+.Cm confirm-forwarded ,
 .Cm no-restrict-websafe
 and
 .Cm websafe-allow .
@@ -152,6 +153,20 @@ client is remote is performed by
 .Xr ssh 1 ,
 and use of other tools to forward access to the agent socket may circumvent
 this restriction.
+.Pp
+The
+.Cm confirm-forwarded
+option requires confirmation, as if the key had been added using
+.Xr ssh-add 1
+.Fl c ,
+whenever a key is used through a forwarded agent connection.
+Keys used by local clients do not require confirmation unless they were
+added using
+.Fl c .
+As above, forwarded connections are identified by
+.Xr ssh 1
+and use of other tools to forward access to the agent socket may circumvent
+this.
 .Pp
 The
 .Cm no-restrict-websafe
