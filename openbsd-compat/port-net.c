@@ -258,6 +258,7 @@ sys_tun_open(int tun, int mode, char **ifname)
 		debug("%s: ioctl(%d, TUNSIFHEAD, 1): %s", __func__, fd,
 		    strerror(errno));
 		close(fd);
+		return (-1);
 	}
 #endif
 
