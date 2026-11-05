@@ -397,7 +397,7 @@ agent_cleanup_stale(const char *pathspec, const char *username, uid_t uid,
 	DIR *d = NULL;
 	struct dirent *dp;
 	struct stat sb;
-	char *prefix = NULL, *dir = NULL, *path;
+	char *prefix = NULL, *dir = NULL, *path = NULL;
 	struct timespec now, sub, *mtimp = NULL;
 
 	/* Only clean up user socket directories */
@@ -427,6 +427,7 @@ agent_cleanup_stale(const char *pathspec, const char *username, uid_t uid,
 		}
 		xasprintf(&prefix, "s.%s.", path);
 		free(path);
+		path = NULL;
 	}
 
 	if ((d = opendir(dir)) == NULL) {
@@ -435,14 +436,19 @@ agent_cleanup_stale(const char *pathspec, const char *username, uid_t uid,
 		goto out;
 	}
 	while ((dp = readdir(d)) != NULL) {
+		free(path);
+		xasprintf(&path, "%s/%s", dir, dp->d_name);
 #ifdef HAVE_DIRENT_D_TYPE
 		if (dp->d_type != DT_SOCK && dp->d_type != DT_UNKNOWN)
 			continue;
 #endif
 		if (fstatat(dirfd(d), dp->d_name,
-		    &sb, AT_SYMLINK_NOFOLLOW) != 0 && errno != ENOENT) {
-			error_f("stat \"%s/%s\": %s",
-			    dir, dp->d_name, strerror(errno));
+		    &sb, AT_SYMLINK_NOFOLLOW) != 0) {
+			/* entry may have been removed since readdir */
+			if (errno != ENOENT) {
+				error_f("stat \"%s/%s\": %s",
+				    dir, dp->d_name, strerror(errno));
+			}
 			continue;
 		}
 		if (!S_ISSOCK(sb.st_mode))
@@ -465,16 +471,15 @@ agent_cleanup_stale(const char *pathspec, const char *username, uid_t uid,
 			    "from different host", dir, dp->d_name);
 			continue;
 		}
-		xasprintf(&path, "%s/%s", dir, dp->d_name);
 		if (socket_is_stale(path)) {
 			debug_f("cleanup stale socket %s", path);
 			unlinkat(dirfd(d), dp->d_name, 0);
 		}
-		free(path);
 	}
  out:
 	if (d != NULL)
 		closedir(d);
+	free(path);
 	free(dir);
 	free(prefix);
 }
