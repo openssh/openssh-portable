@@ -681,7 +681,7 @@ pkcs11_sign_ecdsa(struct sshkey *key,
 		error("C_Sign failed: %lu", rv);
 		goto done;
 	}
-	if (slen < 64 || slen > 132 || slen % 2) {
+	if (slen < 64 || slen > 132 || slen % 2 || slen > (CK_ULONG)siglen) {
 		error_f("bad signature length: %lu", (u_long)slen);
 		goto done;
 	}
