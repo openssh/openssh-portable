@@ -828,7 +828,8 @@ sshauthopt_serialise(const struct sshauthopt *opts, struct sshbuf *m,
 	 * depends on it.
 	 */
 	if ((r = serialise_nullable_string(m,
-	    untrusted ? "yes" : opts->cert_principals)) != 0 ||
+	    (untrusted && opts->cert_principals != NULL) ?
+	    "yes" : opts->cert_principals)) != 0 ||
 	    (r = serialise_nullable_string(m,
 	    (untrusted && opts->force_command != NULL) ?
 	    "true" : opts->force_command)) != 0 ||
