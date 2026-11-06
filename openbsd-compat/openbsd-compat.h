@@ -35,6 +35,7 @@
 #include <sys/socket.h>
 
 #include <stddef.h>  /* for wchar_t */
+#include <stdlib.h>  /* must precede the mkstemp() macro below */
 
 /* OpenBSD function replacements */
 #include "base64.h"
