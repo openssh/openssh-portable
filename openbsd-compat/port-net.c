@@ -204,6 +204,9 @@ sys_tun_open(int tun, int mode, char **ifname)
 #ifdef HAVE_NET_IF_TUN_H
 #include <net/if_tun.h>
 #endif
+#ifdef HAVE_NET_TUN_IF_TUN_H
+#include <net/tun/if_tun.h>
+#endif
 
 int
 sys_tun_open(int tun, int mode, char **ifname)

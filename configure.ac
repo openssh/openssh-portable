@@ -488,6 +488,7 @@ AC_CHECK_HEADERS([ \
 	maillock.h \
 	ndir.h \
 	net/if_tun.h \
+	net/tun/if_tun.h \
 	netdb.h \
 	pam/pam_appl.h \
 	pty.h \
@@ -863,6 +864,15 @@ int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS"
 	TEST_MALLOC_OPTIONS="AFGJPRX"
+	AC_DEFINE([LOCKED_PASSWD_PREFIX], ["*LOCKED*"], [Account locked with pw(1)])
+	AC_DEFINE([SSH_TUN_FREEBSD], [1], [Open tunnel devices the FreeBSD way])
+	AC_DEFINE([SSH_TUN_COMPAT_AF], [1],
+	    [Use tunnel device compatibility to OpenBSD])
+	# DragonFly doesn't have "struct lastlog" but supports utmpx similar to
+	# FreeBSD.
+	SKIP_DISABLE_LASTLOG_DEFINE=yes
+	# DragonFly uses UTX_DB_LASTLOGX for setutxdb() to get lastlog entries.
+	CFLAGS="$CFLAGS -DUTXDB_LASTLOGIN=UTX_DB_LASTLOGX"
 	;;
 *-*-haiku*)
 	LIBS="$LIBS -lbsd "
@@ -5739,7 +5749,9 @@ dnl wtmpx detection
 AC_MSG_CHECKING([if your system defines WTMPX_FILE])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
+#ifdef HAVE_UTMP_H
 #include <utmp.h>
+#endif
 #ifdef HAVE_UTMPX_H
 #include <utmpx.h>
 #endif
