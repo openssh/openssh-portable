@@ -1996,7 +1996,7 @@ AC_ARG_WITH([wtmpdb],
 
 AUDIT_MODULE=none
 AC_ARG_WITH([audit],
-	[  --with-audit=module     Enable audit support (modules=debug,bsm,linux)],
+	[  --with-audit=module     Enable audit support (modules=debug,bsm,linux,aix)],
 	[
 	  AC_MSG_CHECKING([for supported audit module])
 	  case "$withval" in
@@ -2032,6 +2032,18 @@ AC_ARG_WITH([audit],
 		AC_CHECK_HEADERS([libaudit.h])
 		SSHDLIBS="$SSHDLIBS -laudit"
 		AC_DEFINE([USE_LINUX_AUDIT], [1], [Use Linux audit module])
+		;;
+	  aix)
+		AC_MSG_RESULT([aix])
+		AUDIT_MODULE=aix
+		dnl    Checks for headers and functions (sys/audit.h is
+		dnl    already checked for above)
+		if test "x$ac_cv_header_sys_audit_h" != "xyes" ; then
+			AC_MSG_ERROR([AIX audit enabled and sys/audit.h not found])
+		fi
+		AC_CHECK_FUNCS([auditwrite], [],
+		    [AC_MSG_ERROR([AIX audit enabled and auditwrite not found])])
+		AC_DEFINE([USE_AIX_AUDIT], [1], [Use AIX audit module])
 		;;
 	  debug)
 		AUDIT_MODULE=debug

@@ -997,6 +997,14 @@ mm_bsdauth_respond(void *ctx, u_int numresponses, char **responses)
 void
 mm_audit_event(struct ssh *ssh, ssh_audit_event_t event)
 {
+	mm_audit_event_detail(ssh, event, NULL);
+}
+
+/* Payload: u32 event, cstring detail (empty if none). */
+void
+mm_audit_event_detail(struct ssh *ssh, ssh_audit_event_t event,
+    const char *detail)
+{
 	struct sshbuf *m;
 	int r;
 
@@ -1004,7 +1012,8 @@ mm_audit_event(struct ssh *ssh, ssh_audit_event_t event)
 
 	if ((m = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
-	if ((r = sshbuf_put_u32(m, event)) != 0)
+	if ((r = sshbuf_put_u32(m, event)) != 0 ||
+	    (r = sshbuf_put_cstring(m, detail != NULL ? detail : "")) != 0)
 		fatal_fr(r, "buffer error");
 
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_AUDIT_EVENT, m);

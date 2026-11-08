@@ -34,6 +34,11 @@
 #include "log.h"
 #include "hostfile.h"
 #include "auth.h"
+#include "packet.h"
+#include "ssherr.h"
+#include "monitor_wrap.h"
+
+extern struct monitor *pmonitor;
 
 /*
  * Care must be taken when using this since it WILL NOT be initialized when
@@ -100,6 +105,9 @@ audit_event_lookup(ssh_audit_event_t ev)
 		{SSH_NOLOGIN,			"NOLOGIN"},
 		{SSH_CONNECTION_CLOSE,		"CONNECTION_CLOSE"},
 		{SSH_CONNECTION_ABANDON,	"CONNECTION_ABANDON"},
+		{SSH_BAD_PCKT,			"BAD_PCKT"},
+		{SSH_CIPHER_NO_MATCH,		"CIPHER_NO_MATCH"},
+		{SSH_SESSION_OPEN,		"SESSION_OPEN"},
 		{SSH_AUDIT_UNKNOWN,		"AUDIT_UNKNOWN"}
 	};
 
@@ -107,6 +115,64 @@ audit_event_lookup(ssh_audit_event_t ev)
 		if (event_lookup[i].event == ev)
 			break;
 	return(event_lookup[i].name);
+}
+
+# if !defined(USE_AIX_AUDIT)
+/*
+ * Like audit_event(), with an extra human-readable detail string (may be
+ * NULL).  Modules that can record the detail define their own version.
+ */
+void
+audit_event_detail(struct ssh *ssh, ssh_audit_event_t event,
+    const char *detail)
+{
+	if (detail != NULL)
+		debug("audit event detail: %.256s", detail);
+	audit_event(ssh, event);
+}
+# endif /* !defined USE_AIX_AUDIT */
+
+/*
+ * Server-only hook for ssh_packet_set_fatal_cb(), called from the packet
+ * layer just before a connection-terminating error is reported.  Raises
+ * SSH_CIPHER_NO_MATCH or SSH_BAD_PCKT for the errors listed below; anything
+ * else (closed, timed out, disconnected, system errors, other algorithm
+ * mismatches, local/internal errors) is not a bad packet and is ignored.
+ */
+void
+audit_packet_fatal_cb(struct ssh *ssh, int r, const char *msg)
+{
+	ssh_audit_event_t event;
+
+	switch (r) {
+	case SSH_ERR_NO_CIPHER_ALG_MATCH:
+		event = SSH_CIPHER_NO_MATCH;
+		break;
+	/*
+	 * Peer sent something malformed: bad length/padding (CONN_CORRUPT),
+	 * failed integrity check (MAC_INVALID), protocol violation
+	 * (PROTOCOL_ERROR), truncated or unparsable message
+	 * (MESSAGE_INCOMPLETE, INVALID_FORMAT, incl. bad banner).
+	 * SSH_ERR_INVALID_ARGUMENT is deliberately not listed: it reports
+	 * a local API misuse, not bad input from the peer.
+	 */
+	case SSH_ERR_CONN_CORRUPT:
+	case SSH_ERR_MAC_INVALID:
+	case SSH_ERR_PROTOCOL_ERROR:
+	case SSH_ERR_MESSAGE_INCOMPLETE:
+	case SSH_ERR_INVALID_FORMAT:
+		event = SSH_BAD_PCKT;
+		break;
+	default:
+		return;
+	}
+
+	if (mm_is_monitor())
+		audit_event_detail(ssh, event, msg);
+	else if (pmonitor != NULL)
+		mm_audit_event_detail(ssh, event, msg);
+	else
+		debug_f("no monitor, event %d not reported", event);
 }
 
 # ifndef CUSTOM_SSH_AUDIT_EVENTS

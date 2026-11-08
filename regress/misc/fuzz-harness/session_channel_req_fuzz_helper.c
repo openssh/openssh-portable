@@ -97,6 +97,13 @@ mm_audit_run_command(const char *cmd)
 	(void)cmd;
 }
 
+void
+mm_audit_event(struct ssh *ssh, ssh_audit_event_t event)
+{
+	(void)ssh;
+	(void)event;
+}
+
 int
 mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 {

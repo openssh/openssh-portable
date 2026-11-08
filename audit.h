@@ -43,15 +43,20 @@ enum ssh_audit_event_type {
 	SSH_NOLOGIN,		/* denied by /etc/nologin, not implemented */
 	SSH_CONNECTION_CLOSE,	/* closed after attempting auth or session */
 	SSH_CONNECTION_ABANDON,	/* closed without completing auth */
-	SSH_AUDIT_UNKNOWN
+	SSH_BAD_PCKT,		/* malformed packet or protocol/MAC error */
+	SSH_CIPHER_NO_MATCH,	/* no matching cipher algorithm found */
+	SSH_SESSION_OPEN,	/* login session opened */
+	SSH_AUDIT_UNKNOWN	/* must remain last */
 };
 typedef enum ssh_audit_event_type ssh_audit_event_t;
 
 void	audit_connection_from(const char *, int);
 void	audit_event(struct ssh *, ssh_audit_event_t);
+void	audit_event_detail(struct ssh *, ssh_audit_event_t, const char *);
 void	audit_session_open(struct logininfo *);
 void	audit_session_close(struct logininfo *);
 void	audit_run_command(const char *);
 ssh_audit_event_t audit_classify_auth(const char *);
+void	audit_packet_fatal_cb(struct ssh *, int, const char *);
 
 #endif /* _SSH_AUDIT_H */

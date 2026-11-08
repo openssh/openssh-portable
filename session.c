@@ -1230,7 +1230,7 @@ do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 }
 
 static void
-do_nologin(struct passwd *pw)
+do_nologin(struct ssh *ssh, struct passwd *pw)
 {
 	FILE *f = NULL;
 	char buf[1024], *nl, *def_nl = _PATH_NOLOGIN;
@@ -1250,6 +1250,10 @@ do_nologin(struct passwd *pw)
 
 	/* /etc/nologin exists.  Print its contents if we can and exit. */
 	logit("User %.100s not allowed because %s exists", pw->pw_name, nl);
+#ifdef SSH_AUDIT_EVENTS
+	/* unprivileged session child: report via the monitor */
+	mm_audit_event(ssh, SSH_NOLOGIN);
+#endif
 	if ((f = fopen(nl, "r")) != NULL) {
 		while (fgets(buf, sizeof(buf), f))
 			fputs(buf, stderr);
@@ -1502,7 +1506,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 #else /* HAVE_OSF_SIA */
 	/* When PAM is enabled we rely on it to do the nologin check */
 	if (!options.use_pam)
-		do_nologin(pw);
+		do_nologin(ssh, pw);
 	do_setusercontext(pw);
 	/*
 	 * PAM session modules in do_setusercontext may have
