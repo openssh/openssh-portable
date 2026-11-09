@@ -1,4 +1,4 @@
-/* $OpenBSD: krl.c,v 1.67 2026/10/30 05:33:18 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.68 2026/11/09 05:37:58 djm Exp $ */
 /*
  * Copyright (c) 2012 Damien Miller <djm@mindrot.org>
  *
@@ -126,28 +126,22 @@ key_id_cmp(struct revoked_key_id *a, struct revoked_key_id *b)
 static int
 blob_cmp(struct revoked_blob *a, struct revoked_blob *b)
 {
-	int r;
-
-	if (a->len != b->len) {
-		if ((r = memcmp(a->blob, b->blob, MINIMUM(a->len, b->len))) != 0)
-			return r;
+	if (a->len != b->len)
 		return a->len > b->len ? 1 : -1;
-	} else
-		return memcmp(a->blob, b->blob, a->len);
+	if (a->len == 0)
+		return 0;
+	return memcmp(a->blob, b->blob, a->len);
 }
 
 /* NB. the wildcard CA has a NULL, zero-length blob */
 static int
 ca_cmp(struct revoked_certs *a, struct revoked_certs *b)
 {
-	size_t len = MINIMUM(a->ca_blob_len, b->ca_blob_len);
-	int r;
-
-	if (len != 0 && (r = memcmp(a->ca_blob, b->ca_blob, len)) != 0)
-		return r;
-	if (a->ca_blob_len == b->ca_blob_len)
+	if (a->ca_blob_len != b->ca_blob_len)
+		return a->ca_blob_len > b->ca_blob_len ? 1 : -1;
+	if (a->ca_blob_len == 0)
 		return 0;
-	return a->ca_blob_len > b->ca_blob_len ? 1 : -1;
+	return memcmp(a->ca_blob, b->ca_blob, a->ca_blob_len);
 }
 
 struct ssh_krl *
