@@ -228,7 +228,7 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 	 * Authentication is accepted if the encrypted passwords
 	 * are identical.
 	 */
-	ret = encrypted_password != NULL &&
+	ret = encrypted_password != NULL && salt != NULL &&
 	    strlen(pw_password) >= MIN_PASSWORD_HASH_LEN &&
 	    strcmp(encrypted_password, pw_password) == 0;
 	freezero(pw_password, strlen(pw_password));
