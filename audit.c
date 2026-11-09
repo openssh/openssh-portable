@@ -36,6 +36,9 @@
 #include "auth.h"
 #include "packet.h"
 #include "ssherr.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 #include "monitor_wrap.h"
 
 extern struct monitor *pmonitor;
