@@ -2642,10 +2642,16 @@ main(int argc, char **argv)
 			global_rflag = 1;
 			break;
 		case 'R':
-			num_requests = strtol(optarg, &cp, 10);
-			if (num_requests == 0 || *cp != '\0')
-				fatal("Invalid number of requests \"%s\"",
-				    optarg);
+			/*
+			 * Bound the value so that a negative argument cannot
+			 * wrap into an enormous size_t; -X nrequests= uses
+			 * the same range.
+			 */
+			llv = strtonum(optarg, 1, 256 * 1024, &errstr);
+			if (errstr != NULL)
+				fatal("Invalid number of requests \"%s\": %s",
+				    optarg, errstr);
+			num_requests = (size_t)llv;
 			break;
 		case 's':
 			sftp_server = optarg;
