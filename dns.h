@@ -33,7 +33,8 @@ enum sshfp_types {
 	SSHFP_KEY_RSA = 1,
 	SSHFP_KEY_DSA = 2,
 	SSHFP_KEY_ECDSA = 3,
-	SSHFP_KEY_ED25519 = 4
+	SSHFP_KEY_ED25519 = 4,
+	SSHFP_KEY_MLDSA44ED25519 = 5
 };
 
 enum sshfp_hashes {
