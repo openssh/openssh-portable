@@ -224,13 +224,13 @@ ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
 	$(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) $(GSSLIBS) $(CHANNELLIBS)
 
 sshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
-	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(SSHDLIBS) $(LIBS) $(CHANNELLIBS)
+	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(SSHDLIBS) $(LIBS) $(CHANNELLIBS) $(LDFLAGS_SSHD)
 
 sshd-session$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHD_SESSION_OBJS)
-	$(LD) -o $@ $(SSHD_SESSION_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(SSHDLIBS) $(LIBS) $(GSSLIBS) $(K5LIBS) $(CHANNELLIBS) $(LIBWTMPDB)
+	$(LD) -o $@ $(SSHD_SESSION_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(SSHDLIBS) $(LIBS) $(GSSLIBS) $(K5LIBS) $(CHANNELLIBS) $(LIBWTMPDB) $(LDFLAGS_SSHD_SESSION)
 
 sshd-auth$(EXEEXT): libssh.a $(LIBCOMPAT) $(SSHD_AUTH_OBJS)
-	$(LD) -o $@ $(SSHD_AUTH_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(SSHDLIBS) $(LIBS) $(GSSLIBS) $(K5LIBS) $(CHANNELLIBS) $(LIBWTMPDB)
+	$(LD) -o $@ $(SSHD_AUTH_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(SSHDLIBS) $(LIBS) $(GSSLIBS) $(K5LIBS) $(CHANNELLIBS) $(LIBWTMPDB) $(LDFLAGS_SSHD_AUTH)
 
 scp$(EXEEXT): $(LIBCOMPAT) libssh.a $(SCP_OBJS)
 	$(LD) -o $@ $(SCP_OBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
