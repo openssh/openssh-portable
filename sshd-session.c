@@ -1149,6 +1149,9 @@ main(int ac, char **av)
 		fatal("Unable to create connection");
 	the_active_state = ssh;
 	ssh_packet_set_server(ssh);
+#ifdef SSH_AUDIT_EVENTS
+	ssh_packet_set_fatal_cb(audit_packet_fatal_cb);
+#endif
 	ssh_packet_set_qos(ssh, options.ip_qos_interactive,
 	    options.ip_qos_bulk);
 

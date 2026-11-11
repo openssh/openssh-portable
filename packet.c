@@ -2076,6 +2076,19 @@ sshpkt_fmt_connection_id(struct ssh *ssh, char *s, size_t l)
 }
 
 /*
+ * Optional hook, called once from sshpkt_vfatal() before the connection is
+ * torn down.  Only the server binaries register it (to raise audit events);
+ * it is NULL, and therefore a no-op, in the client.
+ */
+static void (*packet_fatal_cb)(struct ssh *, int, const char *);
+
+void
+ssh_packet_set_fatal_cb(void (*cb)(struct ssh *, int, const char *))
+{
+	packet_fatal_cb = cb;
+}
+
+/*
  * Pretty-print connection-terminating errors and exit.
  */
 static void
@@ -2083,6 +2096,14 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 {
 	char *tag = NULL, remote_id[512];
 	int oerrno = errno;
+	static int in_fatal_cb;
+
+	/* Never run the hook twice or recursively; we are about to exit. */
+	if (packet_fatal_cb != NULL && !in_fatal_cb) {
+		in_fatal_cb = 1;
+		packet_fatal_cb(ssh, r, ssh_err(r));
+		errno = oerrno;
+	}
 
 	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 

@@ -110,6 +110,7 @@ u_int	 ssh_packet_get_protocol_flags(struct ssh *);
 void	 ssh_packet_set_interactive(struct ssh *, int);
 void	 ssh_packet_set_qos(struct ssh *, int, int);
 void     ssh_packet_set_server(struct ssh *);
+void	 ssh_packet_set_fatal_cb(void (*)(struct ssh *, int, const char *));
 void     ssh_packet_set_authenticated(struct ssh *);
 void     ssh_packet_set_mux(struct ssh *);
 int	 ssh_packet_get_mux(struct ssh *);
