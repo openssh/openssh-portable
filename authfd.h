@@ -66,6 +66,7 @@ int	ssh_agent_sign(int sock, const struct sshkey *key,
 int	ssh_agent_bind_hostkey(int sock, const struct sshkey *key,
     const struct sshbuf *session_id, const struct sshbuf *signature,
     int forwarding);
+int	ssh_agent_bind_hostname(int sock, const char *hostname);
 
 int	ssh_agent_query_extensions(int sock, char ***exts);
 

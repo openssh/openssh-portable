@@ -81,6 +81,7 @@
 #include "ssh-pkcs11.h"
 #include "sk-api.h"
 #include "myproposal.h"
+#include "utf8.h"
 #include "version.h"
 
 #ifndef DEFAULT_ALLOWED_PROVIDERS
@@ -98,6 +99,8 @@
 #define AGENT_MAX_SESSION_IDS		16
 /* Maximum size of session ID */
 #define AGENT_MAX_SID_LEN		128
+/* Maximum length of hostname sent by session-hostname@openssh.com */
+#define AGENT_MAX_HOSTNAME_LEN		1024
 /* Maximum number of destination constraints to accept on a key */
 #define AGENT_MAX_DEST_CONSTRAINTS	1024
 /* Maximum number of destination constraint hostkeys to hold across all keys */
@@ -130,6 +133,7 @@ typedef struct socket_entry {
 	size_t nsession_ids;
 	struct hostkey_sid *session_ids;
 	int session_bind_attempted;
+	char *hostname;
 } SocketEntry;
 
 u_int sockets_alloc = 0;
@@ -181,6 +185,12 @@ static char *allowed_providers;
  */
 static int remote_add_provider;
 
+/*
+ * Require confirmation for all signatures requested over forwarded
+ * connections (identified by session-bind@openssh.com).
+ */
+static int confirm_forwarded;
+
 /* locking */
 #define LOCK_SIZE	32
 #define LOCK_SALT_SIZE	16
@@ -214,6 +224,7 @@ close_socket(SocketEntry *e)
 		sshbuf_free(e->session_ids[i].sid);
 	}
 	free(e->session_ids);
+	free(e->hostname);
 	memset(e, '\0', sizeof(*e));
 	e->fd = -1;
 	e->type = AUTH_UNUSED;
@@ -575,6 +586,19 @@ socket_is_remote(SocketEntry *e)
 	return e->session_bind_attempted || (e->nsession_ids != 0);
 }
 
+/*
+ * Unlike socket_is_remote(), this is false for connections that ssh(1)
+ * bound for its own user authentication.
+ */
+static int
+socket_is_forwarded(SocketEntry *e)
+{
+	/* A failed bind may have been an attempt to bind for forwarding */
+	if (e->nsession_ids == 0)
+		return e->session_bind_attempted;
+	return e->session_ids[0].forwarded;
+}
+
 /* return matching private key for given public key */
 static Identity *
 lookup_identity(struct sshkey *key)
@@ -631,7 +655,7 @@ confirm_key(Identity *id, const char *extra)
 	if (p != NULL &&
 	    ask_permission("Allow use of key %s?\nKey fingerprint %s.%s%s",
 	    id->comment, p,
-	    extra == NULL ? "" : "\n", extra == NULL ? "" : extra))
+	    extra == NULL ? "" : "\n\n", extra == NULL ? "" : extra))
 		ret = 0;
 	free(p);
 
@@ -873,6 +897,56 @@ buf_equal(const struct sshbuf *a, const struct sshbuf *b)
 	return 0;
 }
 
+/*
+ * Describe a signature request received over a forwarded connection for
+ * the confirmation prompt. user, sid and hostkey are from the parsed
+ * request; user is NULL if it isn't a login request. The user name comes
+ * from the requester. The destination host key is only shown if the
+ * request is for the session most recently bound by the remote ssh(1),
+ * whose host key signature the agent verified. Returns NULL on error.
+ * The forwarding host name was supplied by the local ssh(1) before it
+ * bound the connection.
+ */
+static char *
+describe_forwarded_request(SocketEntry *e, const char *user,
+    const struct sshbuf *sid, const struct sshkey *hostkey)
+{
+	struct hostkey_sid *last = NULL;
+	char *fp = NULL, *to = NULL, *dest = NULL, *ret = NULL;
+	int width = INT_MAX;
+
+	if (e->nsession_ids > 1)
+		last = &e->session_ids[e->nsession_ids - 1];
+	/* Signing anything but a login is unusual, so make it stand out */
+	if (user == NULL)
+		dest = xstrdup("\nNOT A LOGIN REQUEST");
+	else {
+		if (last != NULL && !last->forwarded &&
+		    buf_equal(sid, last->sid) == 0 &&
+		    (hostkey == NULL || sshkey_equal(hostkey, last->key))) {
+			if ((fp = sshkey_fingerprint(last->key,
+			    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+				fatal_f("fingerprint failed");
+			xasprintf(&to, "host key %s %s",
+			    sshkey_type(last->key), fp);
+		}
+		if (asmprintf(&dest, INT_MAX, &width, "for login as \"%s\" "
+		    "to %s", user, to == NULL ? "unverified destination" :
+		    to) < 0)
+			goto out;
+	}
+	if (e->hostname == NULL || e->nsession_ids == 0)
+		xasprintf(&ret, "requested via agent forwarding\n%s", dest);
+	else
+		xasprintf(&ret, "requested from host \"%s\" via agent "
+		    "forwarding\n%s", e->hostname, dest);
+ out:
+	free(fp);
+	free(to);
+	free(dest);
+	return ret;
+}
+
 /* ssh2 only */
 static void
 process_sign_request2(SocketEntry *e)
@@ -880,7 +954,7 @@ process_sign_request2(SocketEntry *e)
 	u_char *signature = NULL;
 	size_t slen = 0;
 	u_int compat = 0, flags;
-	int r, ok = -1, retried = 0;
+	int r, ok = -1, retried = 0, width, confirm;
 	char *fp = NULL, *pin = NULL, *prompt = NULL;
 	char *user = NULL, *sig_dest = NULL;
 	const char *fwd_host = NULL, *dest_host = NULL;
@@ -929,7 +1003,6 @@ process_sign_request2(SocketEntry *e)
 		debug_f("user=%s", user);
 		if (identity_permitted(id, e, user, &fwd_host, &dest_host) != 0)
 			goto send;
-		/* XXX display fwd_host/dest_host in askpass UI */
 		/*
 		 * Ensure that the session ID is the most recent one
 		 * registered on the socket - it should have been bound by
@@ -961,10 +1034,34 @@ process_sign_request2(SocketEntry *e)
 			    "recently bound session");
 			goto send;
 		}
-		xasprintf(&sig_dest, "public key authentication request for "
-		    "user \"%s\" to listed host", user);
+		/*
+		 * The user name comes from the requester; don't let embedded
+		 * newlines add lines to the confirmation prompt. The host
+		 * names are those of the destination constraints that
+		 * matched the hops bound to this connection.
+		 */
+		width = INT_MAX;
+		if (asmprintf(&sig_dest, INT_MAX, &width,
+		    "public key authentication request for user \"%s\" "
+		    "to host \"%s\"%s%s%s", user, dest_host,
+		    fwd_host == NULL ? "" : " via host \"",
+		    fwd_host == NULL ? "" : fwd_host,
+		    fwd_host == NULL ? "" : "\"") < 0) {
+			error_f("asmprintf failed");
+			goto send;
+		}
 	}
-	if (id->confirm && confirm_key(id, sig_dest) != 0) {
+	confirm = id->confirm || (confirm_forwarded && socket_is_forwarded(e));
+	if (confirm && sig_dest == NULL && socket_is_forwarded(e)) {
+		/* Only destination-constrained requests were parsed above */
+		(void)parse_userauth_request(data, key, &user, &sid, &hostkey);
+		if ((sig_dest = describe_forwarded_request(e, user, sid,
+		    hostkey)) == NULL) {
+			error_f("failed to describe forwarded request");
+			goto send;
+		}
+	}
+	if (confirm && confirm_key(id, sig_dest) != 0) {
 		verbose_f("user refused key");
 		goto send;
 	}
@@ -1834,6 +1931,48 @@ process_ext_session_bind(SocketEntry *e)
 	return r == 0 ? 1 : 0;
 }
 
+/*
+ * Records the name of the host that the connection is about to be bound
+ * to. Only accepted before the first session-bind@openssh.com, so that
+ * the name can only come from the ssh(1) that opened the connection and
+ * not from a remote host using it as a forwarded agent.
+ */
+static int
+process_ext_session_hostname(SocketEntry *e)
+{
+	int r, width = INT_MAX;
+	char *hostname = NULL;
+	size_t len;
+
+	debug2_f("entering");
+	/*
+	 * Not an error: with multi-hop forwarding, each intermediate ssh(1)
+	 * sends one over a connection that is already bound.
+	 */
+	if (e->session_bind_attempted || e->hostname != NULL) {
+		debug_f("ignoring hostname after session bind");
+		return 0;
+	}
+	if ((r = sshbuf_get_cstring(e->request, &hostname, &len)) != 0) {
+		error_fr(r, "parse");
+		return 0;
+	}
+	if (len == 0 || len > AGENT_MAX_HOSTNAME_LEN) {
+		error_f("invalid hostname length %zu", len);
+		free(hostname);
+		return 0;
+	}
+	/* It is only ever displayed, so store it escaped */
+	if (asmprintf(&e->hostname, INT_MAX, &width, "%s", hostname) < 0) {
+		error_f("asmprintf failed");
+		free(hostname);
+		return 0;
+	}
+	free(hostname);
+	debug_f("recorded hostname \"%s\"", e->hostname);
+	return 1;
+}
+
 static int
 process_ext_query(SocketEntry *e)
 {
@@ -1846,7 +1985,8 @@ process_ext_query(SocketEntry *e)
 	if ((r = sshbuf_put_u8(msg, SSH_AGENT_EXTENSION_RESPONSE)) != 0 ||
 	    (r = sshbuf_put_cstring(msg, "query")) != 0 ||
 	    /* string[]     supported extension types */
-	    (r = sshbuf_put_cstring(msg, "session-bind@openssh.com")) != 0)
+	    (r = sshbuf_put_cstring(msg, "session-bind@openssh.com")) != 0 ||
+	    (r = sshbuf_put_cstring(msg, "session-hostname@openssh.com")) != 0)
 		fatal_fr(r, "compose");
 	if ((r = sshbuf_put_stringb(e->output, msg)) != 0)
 		fatal_fr(r, "enqueue");
@@ -1869,12 +2009,15 @@ process_extension(SocketEntry *e)
 
 	/*
 	 * This function can be called while the agent is locked to allow
-	 * session binds to be processed for new channels.
+	 * session binds (and the hostnames that precede them) to be
+	 * processed for new channels.
 	 * Other operations should be refused when locked.
 	 */
 
 	if (strcmp(name, "session-bind@openssh.com") == 0) {
 		success = process_ext_session_bind(e);
+	} else if (strcmp(name, "session-hostname@openssh.com") == 0) {
+		success = process_ext_session_hostname(e);
 	} else if (locked) {
 		debug_f("attempt to use extension \"%s\" while locked", name);
 		goto generic_fail;
@@ -2383,6 +2526,8 @@ main(int ac, char **av)
 				restrict_websafe = 0;
 			else if (strcmp(optarg, "allow-remote-pkcs11") == 0)
 				remote_add_provider = 1;
+			else if (strcmp(optarg, "confirm-forwarded") == 0)
+				confirm_forwarded = 1;
 			else if ((ccp = strprefix(optarg,
 			    "websafe-allow=", 0)) != NULL) {
 				if (websafe_allowlist != NULL)
