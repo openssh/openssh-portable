@@ -777,6 +777,7 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 		this_result = 1;
 		if ((negate = (attrib[0] == '!')))
 			attrib++;
+		attributes++;
 		/* Criterion "all" has no argument and must appear alone */
 		if (strcasecmp(attrib, "all") == 0) {
 			if (attributes > 1 ||
@@ -794,7 +795,6 @@ match_cfg_line(Options *options, const char *full_line, int *acp, char ***avp,
 				result = negate ? 0 : 1;
 			goto out;
 		}
-		attributes++;
 		/* criteria "final" and "canonical" have no argument */
 		if (strcasecmp(attrib, "canonical") == 0 ||
 		    strcasecmp(attrib, "final") == 0) {
