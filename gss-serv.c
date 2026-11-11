@@ -279,7 +279,7 @@ ssh_gssapi_getclient(Gssctxt *ctx, ssh_gssapi_client *client)
 {
 	int i = 0;
 
-	gss_buffer_desc ename;
+	gss_buffer_desc ename = GSS_C_EMPTY_BUFFER;
 
 	client->userok = 0;
 	client->mech = NULL;
@@ -309,8 +309,11 @@ ssh_gssapi_getclient(Gssctxt *ctx, ssh_gssapi_client *client)
 
 	if ((ctx->major = ssh_gssapi_parse_ename(ctx,&ename,
 	    &client->exportedname))) {
+		gss_release_buffer(&ctx->minor, &ename);
 		return (ctx->major);
 	}
+
+	gss_release_buffer(&ctx->minor, &ename);
 
 	/* We can't copy this structure, so we just move the pointer to it */
 	client->creds = ctx->client_creds;
