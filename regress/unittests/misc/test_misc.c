@@ -7,6 +7,14 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/queue.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <poll.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -14,9 +22,18 @@
 
 #include "../test_helper/test_helper.h"
 
+#include "channels.h"
+#include "canohost.h"
+#include "monitor_fdpass.h"
+#include "packet.h"
+
 #include "log.h"
 #include "misc.h"
 #include "xmalloc.h"
+
+#ifndef ASSERT_SSIZE_T_EQ
+#define ASSERT_SSIZE_T_EQ(a1, a2) ASSERT_LONG_LONG_EQ((long long)(a1), (long long)(a2))
+#endif
 
 void test_misc(void);
 
@@ -459,6 +476,314 @@ test_skip_space(void)
 	TEST_DONE();
 }
 
+static void
+test_stdio_fwd_socket(void)
+{
+	struct ssh *ssh;
+	Channel *c;
+	int sp[2], in, out;
+	char ch;
+	struct pollfd pfd;
+#ifndef DISABLE_FD_PASSING
+	int mux_sp[2];
+#endif
+	int s1, s2;
+	int p1[2], p2[2];
+	int lfd;
+	struct sockaddr_in sin;
+	socklen_t sinlen;
+
+	log_init("test_misc", SYSLOG_LEVEL_QUIET, SYSLOG_FACILITY_AUTH, 0);
+
+	ssh = ssh_packet_set_connection(NULL, -1, -1);
+	ASSERT_PTR_NE(ssh, NULL);
+	channel_init_channels(ssh);
+
+	TEST_START("stdio_fwd dup socketpair");
+	ASSERT_INT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, sp), 0);
+	ASSERT_INT_EQ(unset_nonblock(sp[0]), 0);
+	ASSERT_INT_EQ(set_nonblock(sp[1]), 0);
+	in = dup(sp[0]);
+	out = dup(sp[0]);
+	ASSERT_INT_NE(in, -1);
+	ASSERT_INT_NE(out, -1);
+	c = channel_connect_stdio_fwd(ssh, "127.0.0.1", 22, in, out,
+	    CHANNEL_NONBLOCK_STDIO);
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_INT_EQ(c->sock, in);
+	ASSERT_INT_EQ(c->rfd, in);
+	ASSERT_INT_EQ(c->wfd, in);
+	ASSERT_INT_EQ(fcntl(out, F_GETFL), -1);
+	ASSERT_INT_EQ(errno, EBADF);
+	ASSERT_INT_EQ(c->force_drain, 0);
+	ASSERT_INT_EQ(c->restore_block, CHANNEL_RESTORE_RFD);
+#ifndef HAVE_CYGWIN
+	ASSERT_INT_NE(fcntl(sp[0], F_GETFL) & O_NONBLOCK, 0);
+#endif
+
+	/* Half-close */
+	chan_rcvd_ieof(ssh, c);
+	ASSERT_INT_EQ(c->ostate, CHAN_OUTPUT_CLOSED);
+	ASSERT_INT_EQ(c->istate, CHAN_INPUT_OPEN);
+	pfd.fd = sp[1];
+	pfd.events = POLLIN;
+	ASSERT_INT_GE(poll(&pfd, 1, 1000), 1);
+	ASSERT_SSIZE_T_EQ(read(sp[1], &ch, 1), 0);
+
+	channel_free(ssh, c);
+#ifndef HAVE_CYGWIN
+	ASSERT_INT_EQ(fcntl(sp[0], F_GETFL) & O_NONBLOCK, 0);
+#endif
+	close(sp[0]);
+	close(sp[1]);
+	TEST_DONE();
+
+#ifndef DISABLE_FD_PASSING
+	TEST_START("stdio_fwd SCM_RIGHTS socketpair");
+	ASSERT_INT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, sp), 0);
+	ASSERT_INT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, mux_sp), 0);
+	ASSERT_INT_EQ(mm_send_fd(mux_sp[0], sp[0]), 0);
+	ASSERT_INT_EQ(mm_send_fd(mux_sp[0], sp[0]), 0);
+	in = mm_receive_fd(mux_sp[1]);
+	out = mm_receive_fd(mux_sp[1]);
+	ASSERT_INT_GE(in, 0);
+	ASSERT_INT_GE(out, 0);
+	ASSERT_INT_NE(in, out);
+	c = channel_connect_stdio_fwd(ssh, "127.0.0.1", 22, in, out,
+	    CHANNEL_NONBLOCK_SET);
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_INT_EQ(c->sock, in);
+	ASSERT_INT_EQ(c->rfd, in);
+	ASSERT_INT_EQ(c->wfd, in);
+	ASSERT_INT_EQ(fcntl(out, F_GETFL), -1);
+	ASSERT_INT_EQ(errno, EBADF);
+	ASSERT_INT_EQ(c->force_drain, 0);
+
+	/* Half-close with sp[0] still open in client */
+	ASSERT_INT_EQ(set_nonblock(sp[1]), 0);
+	chan_rcvd_ieof(ssh, c);
+	pfd.fd = sp[1];
+	pfd.events = POLLIN;
+	ASSERT_INT_GE(poll(&pfd, 1, 1000), 1);
+	ASSERT_SSIZE_T_EQ(read(sp[1], &ch, 1), 0);
+
+	channel_free(ssh, c);
+	close(sp[0]);
+	close(sp[1]);
+	close(mux_sp[0]);
+	close(mux_sp[1]);
+	TEST_DONE();
+#endif
+
+	TEST_START("stdio_fwd distinct sockets not collapsed");
+	ASSERT_INT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, sp), 0);
+	c = channel_connect_stdio_fwd(ssh, "127.0.0.1", 22, sp[0], sp[1],
+	    CHANNEL_NONBLOCK_SET);
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_INT_EQ(c->sock, -1);
+	ASSERT_INT_EQ(c->rfd, sp[0]);
+	ASSERT_INT_EQ(c->wfd, sp[1]);
+	ASSERT_INT_EQ(c->force_drain, 1);
+	channel_free(ssh, c);
+
+	s1 = socket(AF_UNIX, SOCK_STREAM, 0);
+	s2 = socket(AF_UNIX, SOCK_STREAM, 0);
+	ASSERT_INT_NE(s1, -1);
+	ASSERT_INT_NE(s2, -1);
+	c = channel_connect_stdio_fwd(ssh, "127.0.0.1", 22, s1, s2,
+	    CHANNEL_NONBLOCK_SET);
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_INT_EQ(c->sock, -1);
+	ASSERT_INT_EQ(c->rfd, s1);
+	ASSERT_INT_EQ(c->wfd, s2);
+	ASSERT_INT_EQ(c->force_drain, 1);
+	channel_free(ssh, c);
+	TEST_DONE();
+
+	TEST_START("stdio_fwd pipes preserve force_drain and restore_block");
+	ASSERT_INT_EQ(pipe(p1), 0);
+	ASSERT_INT_EQ(pipe(p2), 0);
+	ASSERT_INT_EQ(unset_nonblock(p1[0]), 0);
+	ASSERT_INT_EQ(unset_nonblock(p2[1]), 0);
+	in = dup(p1[0]);
+	out = dup(p2[1]);
+	ASSERT_INT_NE(in, -1);
+	ASSERT_INT_NE(out, -1);
+	c = channel_connect_stdio_fwd(ssh, "127.0.0.1", 22, in, out,
+	    CHANNEL_NONBLOCK_STDIO);
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_INT_EQ(c->sock, -1);
+	ASSERT_INT_EQ(c->rfd, in);
+	ASSERT_INT_EQ(c->wfd, out);
+	ASSERT_INT_EQ(c->force_drain, 1);
+	ASSERT_INT_EQ(c->restore_block,
+	    CHANNEL_RESTORE_RFD | CHANNEL_RESTORE_WFD);
+#ifndef HAVE_CYGWIN
+	ASSERT_INT_NE(fcntl(p1[0], F_GETFL) & O_NONBLOCK, 0);
+	ASSERT_INT_NE(fcntl(p2[1], F_GETFL) & O_NONBLOCK, 0);
+#endif
+
+	channel_free(ssh, c);
+#ifndef HAVE_CYGWIN
+	ASSERT_INT_EQ(fcntl(p1[0], F_GETFL) & O_NONBLOCK, 0);
+	ASSERT_INT_EQ(fcntl(p2[1], F_GETFL) & O_NONBLOCK, 0);
+#endif
+	close(p1[0]);
+	close(p1[1]);
+	close(p2[0]);
+	close(p2[1]);
+	TEST_DONE();
+
+	TEST_START("stdio_fwd dup tcp socket");
+	lfd = socket(AF_INET, SOCK_STREAM, 0);
+	ASSERT_INT_NE(lfd, -1);
+	memset(&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	sin.sin_port = 0;
+	ASSERT_INT_EQ(bind(lfd, (struct sockaddr *)&sin, sizeof(sin)), 0);
+	ASSERT_INT_EQ(listen(lfd, 1), 0);
+	sinlen = sizeof(sin);
+	ASSERT_INT_EQ(getsockname(lfd, (struct sockaddr *)&sin, &sinlen), 0);
+
+	s1 = socket(AF_INET, SOCK_STREAM, 0);
+	ASSERT_INT_NE(s1, -1);
+	ASSERT_INT_EQ(connect(s1, (struct sockaddr *)&sin, sizeof(sin)), 0);
+	s2 = accept(lfd, NULL, NULL);
+	ASSERT_INT_NE(s2, -1);
+	close(lfd);
+
+	/* Verify opposite ends are NOT collapsed */
+	in = dup(s1);
+	out = dup(s2);
+	ASSERT_INT_NE(in, -1);
+	ASSERT_INT_NE(out, -1);
+	c = channel_connect_stdio_fwd(ssh, "127.0.0.1", 22, in, out,
+	    CHANNEL_NONBLOCK_SET);
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_INT_EQ(c->sock, -1);
+	ASSERT_INT_EQ(c->rfd, in);
+	ASSERT_INT_EQ(c->wfd, out);
+	ASSERT_INT_EQ(c->force_drain, 1);
+	channel_free(ssh, c);
+
+	/* Verify duplicate descriptors ARE collapsed */
+	ASSERT_INT_EQ(unset_nonblock(s1), 0);
+	ASSERT_INT_EQ(set_nonblock(s2), 0);
+	in = dup(s1);
+	out = dup(s1);
+	ASSERT_INT_NE(in, -1);
+	ASSERT_INT_NE(out, -1);
+	c = channel_connect_stdio_fwd(ssh, "127.0.0.1", 22, in, out,
+	    CHANNEL_NONBLOCK_STDIO);
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_INT_EQ(c->sock, in);
+	ASSERT_INT_EQ(c->rfd, in);
+	ASSERT_INT_EQ(c->wfd, in);
+	ASSERT_INT_EQ(fcntl(out, F_GETFL), -1);
+	ASSERT_INT_EQ(errno, EBADF);
+	ASSERT_INT_EQ(c->force_drain, 0);
+	ASSERT_INT_EQ(c->restore_block, CHANNEL_RESTORE_RFD);
+#ifndef HAVE_CYGWIN
+	ASSERT_INT_NE(fcntl(s1, F_GETFL) & O_NONBLOCK, 0);
+#endif
+
+	/* Half-close */
+	chan_rcvd_ieof(ssh, c);
+	pfd.fd = s2;
+	pfd.events = POLLIN;
+	ASSERT_INT_GE(poll(&pfd, 1, 1000), 1);
+	ASSERT_SSIZE_T_EQ(read(s2, &ch, 1), 0);
+
+	channel_free(ssh, c);
+#ifndef HAVE_CYGWIN
+	ASSERT_INT_EQ(fcntl(s1, F_GETFL) & O_NONBLOCK, 0);
+#endif
+	close(s1);
+	close(s2);
+	TEST_DONE();
+
+	channel_free_channels(ssh);
+	free(ssh->chanctxt);
+	ssh->chanctxt = NULL;
+	ssh_packet_free(ssh);
+}
+
+static void
+test_rforward_loopback_bind_addr(void)
+{
+	struct ssh *ssh;
+	struct Forward fwd;
+	struct ForwardOptions fwd_opts;
+	int probe_fd, bind_127_0_0_2_ok, r, alloc_port = 0;
+	struct sockaddr_in sin;
+	Channel *c;
+	char *local_ip;
+	u_int i;
+
+	log_init("test_misc", SYSLOG_LEVEL_QUIET, SYSLOG_FACILITY_AUTH, 0);
+
+	ssh = ssh_packet_set_connection(NULL, -1, -1);
+	ASSERT_PTR_NE(ssh, NULL);
+	channel_init_channels(ssh);
+	channel_permit_all(ssh, FORWARD_REMOTE);
+
+	probe_fd = socket(AF_INET, SOCK_STREAM, 0);
+	ASSERT_INT_NE(probe_fd, -1);
+	memset(&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = htonl(0x7f000002); /* 127.0.0.2 */
+	bind_127_0_0_2_ok = (bind(probe_fd, (struct sockaddr *)&sin,
+	    sizeof(sin)) == 0);
+	close(probe_fd);
+
+	TEST_START("rforward 127.0.0.2 with GatewayPorts=no");
+	memset(&fwd, 0, sizeof(fwd));
+	memset(&fwd_opts, 0, sizeof(fwd_opts));
+	fwd.listen_host = "127.0.0.2";
+	fwd.listen_port = 0;
+	fwd_opts.gateway_ports = 0;
+	r = channel_setup_remote_fwd_listener(ssh, &fwd, &alloc_port,
+	    &fwd_opts);
+	if (bind_127_0_0_2_ok) {
+		ASSERT_INT_EQ(r, 1);
+		c = channel_by_id(ssh, 0);
+		ASSERT_PTR_NE(c, NULL);
+		ASSERT_PTR_NE(c->listening_addr, NULL);
+		ASSERT_STRING_EQ(c->listening_addr, "127.0.0.2");
+		local_ip = get_local_ipaddr(c->sock);
+		ASSERT_STRING_EQ(local_ip, "127.0.0.2");
+		free(local_ip);
+		channel_free(ssh, c);
+	} else {
+		ASSERT_INT_EQ(r, 0);
+	}
+	TEST_DONE();
+
+	TEST_START("rforward non-loopback overridden when GatewayPorts=no");
+	memset(&fwd, 0, sizeof(fwd));
+	memset(&fwd_opts, 0, sizeof(fwd_opts));
+	fwd.listen_host = "192.0.2.1";
+	fwd.listen_port = 0;
+	fwd_opts.gateway_ports = 0;
+	r = channel_setup_remote_fwd_listener(ssh, &fwd, &alloc_port,
+	    &fwd_opts);
+	ASSERT_INT_EQ(r, 1);
+	c = NULL;
+	for (i = 0; i < 16; i++) {
+		if ((c = channel_by_id(ssh, i)) != NULL)
+			break;
+	}
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_PTR_EQ(c->listening_addr, NULL);
+	channel_close_all(ssh);
+	channel_free_channels(ssh);
+	free(ssh->chanctxt);
+	ssh->chanctxt = NULL;
+	ssh_packet_free(ssh);
+	TEST_DONE();
+}
+
 void
 test_misc(void)
 {
@@ -472,4 +797,6 @@ test_misc(void)
 	test_path_absolute();
 	test_stringlist();
 	test_skip_space();
+	test_stdio_fwd_socket();
+	test_rforward_loopback_bind_addr();
 }

@@ -146,7 +146,7 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		pidfile putty.rsa2 ready regress.log remote_pid \
 		revoked-* rsa rsa-agent rsa-agent.pub rsa.pub rsa_ssh2_cr.prv \
 		rsa_ssh2_crnl.prv scp-ssh-wrapper.exe \
-		scp-ssh-wrapper.scp setuid-allowed sftp-server.log \
+		scp-ssh-wrapper.scp setuid-allowed sftp-server.log sockpipe \
 		sftp-server.sh sftp.log ssh-log-wrapper.sh ssh.log \
 		ssh-agent.log ssh-add.log slow-sftp-server.sh \
 		ssh-rsa_oldfmt knownhosts_command \

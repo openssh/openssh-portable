@@ -108,6 +108,38 @@ cmp ${DATA} ${COPY}		|| fail "ssh: corrupted copy of ${DATA}"
 kill $netcat_pid 2>/dev/null
 rm -f ${COPY} $OBJ/unix-[123].fwd
 
+for mode in "" "-S $CTL"; do
+	verbose "test $tid: stdio forward socket half-close ($mode)"
+	rm -f ${COPY} ${COPY}.1
+	$NC -N -l 127.0.0.1 $((${PORT} + 3)) < ${DATA} > ${COPY} &
+	netcat_pid=$!
+	sleep 1
+	(sleep 1; cat ${DATA}) | \
+	    $OBJ/sockpipe \
+	    ${SSH} -F $OBJ/ssh_config $mode -W 127.0.0.1:$((${PORT} + 3)) otherhost \
+	    > ${COPY}.1 2>>$TEST_SSH_LOGFILE
+	r=$?
+	for _i in 1 2 3 4 5; do
+		kill -0 $netcat_pid 2>/dev/null || break
+		sleep 1
+	done
+	kill $netcat_pid 2>/dev/null
+	wait $netcat_pid 2>/dev/null
+	if [ $r -ne 0 ]; then
+		rm -f ${COPY} ${COPY}.1
+		fail "stdio forward ($mode): exited with $r"
+	fi
+	if ! cmp ${DATA} ${COPY}.1; then
+		rm -f ${COPY} ${COPY}.1
+		fail "stdio forward ($mode): corrupted server->client data"
+	fi
+	if ! cmp ${DATA} ${COPY}; then
+		rm -f ${COPY} ${COPY}.1
+		fail "stdio forward ($mode): server did not receive client data after half-close"
+	fi
+done
+rm -f ${COPY} ${COPY}.1
+
 for s in 0 1 4 5 44; do
    for mode in "" "-Oproxy"; do
 	trace "exit status $s over multiplexed connection ($mode)"
