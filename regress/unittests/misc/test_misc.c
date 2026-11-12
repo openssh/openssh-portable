@@ -7,12 +7,18 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/queue.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../test_helper/test_helper.h"
+
+#include "channels.h"
+#include "packet.h"
 
 #include "log.h"
 #include "misc.h"
@@ -459,6 +465,60 @@ test_skip_space(void)
 	TEST_DONE();
 }
 
+static void
+test_stdio_fwd_socket(void)
+{
+	struct ssh *ssh;
+	Channel *c;
+	int in, out;
+	int p1[2], p2[2];
+
+	log_init("test_misc", SYSLOG_LEVEL_QUIET, SYSLOG_FACILITY_AUTH, 0);
+
+	ssh = ssh_packet_set_connection(NULL, -1, -1);
+	ASSERT_PTR_NE(ssh, NULL);
+	channel_init_channels(ssh);
+
+	TEST_START("stdio_fwd pipes preserve force_drain and restore_block");
+	ASSERT_INT_EQ(pipe(p1), 0);
+	ASSERT_INT_EQ(pipe(p2), 0);
+	ASSERT_INT_EQ(unset_nonblock(p1[0]), 0);
+	ASSERT_INT_EQ(unset_nonblock(p2[1]), 0);
+	in = dup(p1[0]);
+	out = dup(p2[1]);
+	ASSERT_INT_NE(in, -1);
+	ASSERT_INT_NE(out, -1);
+	c = channel_connect_stdio_fwd(ssh, "127.0.0.1", 22, in, out,
+	    CHANNEL_NONBLOCK_STDIO);
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_INT_EQ(c->sock, -1);
+	ASSERT_INT_EQ(c->rfd, in);
+	ASSERT_INT_EQ(c->wfd, out);
+	ASSERT_INT_EQ(c->force_drain, 1);
+	ASSERT_INT_EQ(c->restore_block,
+	    CHANNEL_RESTORE_RFD | CHANNEL_RESTORE_WFD);
+#ifndef HAVE_CYGWIN
+	ASSERT_INT_NE(fcntl(p1[0], F_GETFL) & O_NONBLOCK, 0);
+	ASSERT_INT_NE(fcntl(p2[1], F_GETFL) & O_NONBLOCK, 0);
+#endif
+
+	channel_free(ssh, c);
+#ifndef HAVE_CYGWIN
+	ASSERT_INT_EQ(fcntl(p1[0], F_GETFL) & O_NONBLOCK, 0);
+	ASSERT_INT_EQ(fcntl(p2[1], F_GETFL) & O_NONBLOCK, 0);
+#endif
+	close(p1[0]);
+	close(p1[1]);
+	close(p2[0]);
+	close(p2[1]);
+	TEST_DONE();
+
+	channel_free_channels(ssh);
+	free(ssh->chanctxt);
+	ssh->chanctxt = NULL;
+	ssh_packet_free(ssh);
+}
+
 void
 test_misc(void)
 {
@@ -472,4 +532,5 @@ test_misc(void)
 	test_path_absolute();
 	test_stringlist();
 	test_skip_space();
+	test_stdio_fwd_socket();
 }

@@ -1785,7 +1785,6 @@ channel_connect_stdio_fwd(struct ssh *ssh,
 	c->listening_port = 0;
 	c->force_drain = 1;
 
-	channel_register_fds(ssh, c, in, out, -1, 0, 1, 0);
 	port_open_helper(ssh, c, port_to_connect == PORT_STREAMLOCAL ?
 	    "direct-streamlocal@openssh.com" : "direct-tcpip");
 

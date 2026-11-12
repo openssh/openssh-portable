@@ -725,7 +725,8 @@ UNITTESTS_TEST_MISC_OBJS=\
 	regress/unittests/misc/test_hpdelim.o \
 	regress/unittests/misc/test_ptimeout.o \
 	regress/unittests/misc/test_xextendf.o \
-	regress/unittests/misc/test_misc.o
+	regress/unittests/misc/test_misc.o \
+	$(P11OBJS) $(SKOBJS)
 
 regress/unittests/misc/test_misc$(EXEEXT): \
     ${UNITTESTS_TEST_MISC_OBJS} \
