@@ -1767,6 +1767,62 @@ channel_decode_socks5(Channel *c, struct sshbuf *input, struct sshbuf *output)
 	return success;
 }
 
+/*
+ * Return non-zero if fd1 and fd2 refer to the same underlying socket.
+ */
+static int
+same_socket_fd(int fd1, int fd2)
+{
+	struct stat st1, st2;
+	struct sockaddr_storage addr1, addr2;
+	socklen_t len1, len2;
+
+	if (fd1 < 0 || fd2 < 0)
+		return 0;
+	if (fd1 == fd2)
+		return 1;
+	if (fstat(fd1, &st1) == -1 || fstat(fd2, &st2) == -1)
+		return 0;
+	if (!S_ISSOCK(st1.st_mode) || !S_ISSOCK(st2.st_mode))
+		return 0;
+
+	/*
+	 * Linux, Solaris/Illumos, Cygwin, and BSD/macOS AF_UNIX sockets
+	 * (via unp_ino) populate a unique non-zero st_ino per socket.
+	 */
+	if (st1.st_ino != 0 || st2.st_ino != 0)
+		return st1.st_dev == st2.st_dev && st1.st_ino == st2.st_ino;
+
+	/*
+	 * On BSD and macOS, AF_INET and AF_INET6 sockets leave st_ino == 0
+	 * in soo_stat(). Compare the connected socket 4-tuple via
+	 * getsockname(2) and getpeername(2).
+	 */
+	len1 = sizeof(addr1);
+	len2 = sizeof(addr2);
+	memset(&addr1, 0, sizeof(addr1));
+	memset(&addr2, 0, sizeof(addr2));
+	if (getsockname(fd1, (struct sockaddr *)&addr1, &len1) == -1 ||
+	    getsockname(fd2, (struct sockaddr *)&addr2, &len2) == -1)
+		return 0;
+	if (addr1.ss_family != AF_INET && addr1.ss_family != AF_INET6)
+		return 0;
+	if (len1 != len2 || memcmp(&addr1, &addr2, len1) != 0)
+		return 0;
+
+	len1 = sizeof(addr1);
+	len2 = sizeof(addr2);
+	memset(&addr1, 0, sizeof(addr1));
+	memset(&addr2, 0, sizeof(addr2));
+	if (getpeername(fd1, (struct sockaddr *)&addr1, &len1) == -1 ||
+	    getpeername(fd2, (struct sockaddr *)&addr2, &len2) == -1)
+		return 0;
+	if (len1 != len2 || memcmp(&addr1, &addr2, len1) != 0)
+		return 0;
+
+	return 1;
+}
+
 Channel *
 channel_connect_stdio_fwd(struct ssh *ssh,
     const char *host_to_connect, int port_to_connect,
@@ -1776,6 +1832,11 @@ channel_connect_stdio_fwd(struct ssh *ssh,
 
 	debug_f("%s:%d", host_to_connect, port_to_connect);
 
+	if (in != out && same_socket_fd(in, out)) {
+		close(out);
+		out = in;
+	}
+
 	c = channel_new(ssh, "stdio-forward", SSH_CHANNEL_OPENING, in, out,
 	    -1, CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
 	    0, "stdio-forward", nonblock);
@@ -1783,7 +1844,7 @@ channel_connect_stdio_fwd(struct ssh *ssh,
 	c->path = xstrdup(host_to_connect);
 	c->host_port = port_to_connect;
 	c->listening_port = 0;
-	c->force_drain = 1;
+	c->force_drain = (in != out);
 
 	port_open_helper(ssh, c, port_to_connect == PORT_STREAMLOCAL ?
 	    "direct-streamlocal@openssh.com" : "direct-tcpip");
