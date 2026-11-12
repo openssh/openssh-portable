@@ -3867,6 +3867,27 @@ channel_set_af(struct ssh *ssh, int af)
 }
 
 
+#ifndef IN_LOOPBACKNET
+#define IN_LOOPBACKNET 127
+#endif
+
+static int
+fwd_addr_is_loopback(const char *addr)
+{
+	struct in_addr in4;
+	struct in6_addr in6;
+
+	if (addr == NULL)
+		return 0;
+	if (inet_pton(AF_INET, addr, &in4) == 1 &&
+	    (ntohl(in4.s_addr) >> 24) == IN_LOOPBACKNET)
+		return 1;
+	if (inet_pton(AF_INET6, addr, &in6) == 1 &&
+	    IN6_IS_ADDR_LOOPBACK(&in6))
+		return 1;
+	return 0;
+}
+
 /*
  * Determine whether or not a port forward listens to loopback, the
  * specified address or wildcard. On the client, a specified bind
@@ -3880,7 +3901,7 @@ channel_set_af(struct ssh *ssh, int af)
  * "0.0.0.0"               -> wildcard v4/v6 if SSH_OLD_FORWARD_ADDR
  * "" (empty string), "*"  -> wildcard v4/v6
  * "localhost"             -> loopback v4/v6
- * "127.0.0.1" / "::1"     -> accepted even if gateway_ports isn't set
+ * "127.0.0.0/8" / "::1"   -> accepted even if gateway_ports isn't set
  */
 static const char *
 channel_fwd_bind_addr(struct ssh *ssh, const char *listen_addr, int *wildcardp,
@@ -3922,8 +3943,7 @@ channel_fwd_bind_addr(struct ssh *ssh, const char *listen_addr, int *wildcardp,
 			 */
 			addr = listen_addr;
 		}
-	} else if (strcmp(listen_addr, "127.0.0.1") == 0 ||
-	    strcmp(listen_addr, "::1") == 0) {
+	} else if (fwd_addr_is_loopback(listen_addr)) {
 		/*
 		 * If a specific IPv4/IPv6 localhost address has been
 		 * requested then accept it even if gateway_ports is in

@@ -709,6 +709,81 @@ test_stdio_fwd_socket(void)
 	ssh_packet_free(ssh);
 }
 
+static void
+test_rforward_loopback_bind_addr(void)
+{
+	struct ssh *ssh;
+	struct Forward fwd;
+	struct ForwardOptions fwd_opts;
+	int probe_fd, bind_127_0_0_2_ok, r, alloc_port = 0;
+	struct sockaddr_in sin;
+	Channel *c;
+	char *local_ip;
+	u_int i;
+
+	log_init("test_misc", SYSLOG_LEVEL_QUIET, SYSLOG_FACILITY_AUTH, 0);
+
+	ssh = ssh_packet_set_connection(NULL, -1, -1);
+	ASSERT_PTR_NE(ssh, NULL);
+	channel_init_channels(ssh);
+	channel_permit_all(ssh, FORWARD_REMOTE);
+
+	probe_fd = socket(AF_INET, SOCK_STREAM, 0);
+	ASSERT_INT_NE(probe_fd, -1);
+	memset(&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = htonl(0x7f000002); /* 127.0.0.2 */
+	bind_127_0_0_2_ok = (bind(probe_fd, (struct sockaddr *)&sin,
+	    sizeof(sin)) == 0);
+	close(probe_fd);
+
+	TEST_START("rforward 127.0.0.2 with GatewayPorts=no");
+	memset(&fwd, 0, sizeof(fwd));
+	memset(&fwd_opts, 0, sizeof(fwd_opts));
+	fwd.listen_host = "127.0.0.2";
+	fwd.listen_port = 0;
+	fwd_opts.gateway_ports = 0;
+	r = channel_setup_remote_fwd_listener(ssh, &fwd, &alloc_port,
+	    &fwd_opts);
+	if (bind_127_0_0_2_ok) {
+		ASSERT_INT_EQ(r, 1);
+		c = channel_by_id(ssh, 0);
+		ASSERT_PTR_NE(c, NULL);
+		ASSERT_PTR_NE(c->listening_addr, NULL);
+		ASSERT_STRING_EQ(c->listening_addr, "127.0.0.2");
+		local_ip = get_local_ipaddr(c->sock);
+		ASSERT_STRING_EQ(local_ip, "127.0.0.2");
+		free(local_ip);
+		channel_free(ssh, c);
+	} else {
+		ASSERT_INT_EQ(r, 0);
+	}
+	TEST_DONE();
+
+	TEST_START("rforward non-loopback overridden when GatewayPorts=no");
+	memset(&fwd, 0, sizeof(fwd));
+	memset(&fwd_opts, 0, sizeof(fwd_opts));
+	fwd.listen_host = "192.0.2.1";
+	fwd.listen_port = 0;
+	fwd_opts.gateway_ports = 0;
+	r = channel_setup_remote_fwd_listener(ssh, &fwd, &alloc_port,
+	    &fwd_opts);
+	ASSERT_INT_EQ(r, 1);
+	c = NULL;
+	for (i = 0; i < 16; i++) {
+		if ((c = channel_by_id(ssh, i)) != NULL)
+			break;
+	}
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_PTR_EQ(c->listening_addr, NULL);
+	channel_close_all(ssh);
+	channel_free_channels(ssh);
+	free(ssh->chanctxt);
+	ssh->chanctxt = NULL;
+	ssh_packet_free(ssh);
+	TEST_DONE();
+}
+
 void
 test_misc(void)
 {
@@ -723,4 +798,5 @@ test_misc(void)
 	test_stringlist();
 	test_skip_space();
 	test_stdio_fwd_socket();
+	test_rforward_loopback_bind_addr();
 }
