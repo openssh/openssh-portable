@@ -64,16 +64,16 @@ struct sftp_limits {
  * Initialise a SSH filexfer connection. Returns NULL on error or
  * a pointer to a initialized sftp_conn struct on success.
  */
-struct sftp_conn *sftp_init(int, int, u_int, u_int, uint64_t);
+struct sftp_conn *sftp_init(int, int, size_t, u_int, uint64_t);
 void sftp_free(struct sftp_conn *);
 
-u_int sftp_proto_version(struct sftp_conn *);
+uint32_t sftp_proto_version(struct sftp_conn *);
 
 /* Query server limits */
 int sftp_get_limits(struct sftp_conn *, struct sftp_limits *);
 
 /* Close file referred to by 'handle' */
-int sftp_close(struct sftp_conn *, const u_char *, u_int);
+int sftp_close(struct sftp_conn *, const u_char *, size_t);
 
 /* Read contents of 'path' to NULL-terminated array 'dir' */
 int sftp_readdir(struct sftp_conn *, const char *, SFTP_DIRENT ***);
@@ -103,7 +103,7 @@ int sftp_lstat(struct sftp_conn *, const char *, int, Attrib *);
 int sftp_setstat(struct sftp_conn *, const char *, Attrib *);
 
 /* Set file attributes of open file 'handle' */
-int sftp_fsetstat(struct sftp_conn *, const u_char *, u_int, Attrib *);
+int sftp_fsetstat(struct sftp_conn *, const u_char *, size_t, Attrib *);
 
 /* Set file attributes of 'path', not following symlinks */
 int sftp_lsetstat(struct sftp_conn *conn, const char *path, Attrib *a);
@@ -133,7 +133,7 @@ int sftp_hardlink(struct sftp_conn *, const char *, const char *);
 int sftp_symlink(struct sftp_conn *, const char *, const char *);
 
 /* Call fsync() on open file 'handle' */
-int sftp_fsync(struct sftp_conn *conn, u_char *, u_int);
+int sftp_fsync(struct sftp_conn *conn, u_char *, size_t);
 
 /*
  * Download 'remote_path' to 'local_path'. Preserve permissions and times
