@@ -182,7 +182,7 @@ encode_attrib(struct sshbuf *b, const Attrib *a)
 
 /* Convert from SSH2_FX_ status to text error message */
 const char *
-fx2txt(int status)
+fx2txt(uint32_t status)
 {
 	switch (status) {
 	case SSH2_FX_OK:

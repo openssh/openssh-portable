@@ -16,7 +16,6 @@
  */
 
 /* XXX: memleaks */
-/* XXX: signed vs unsigned */
 /* XXX: remove all logging, only return status codes */
 /* XXX: copy between two remote sites */
 
@@ -78,11 +77,11 @@ extern int showprogress;
 struct sftp_conn {
 	int fd_in;
 	int fd_out;
-	u_int download_buflen;
-	u_int upload_buflen;
+	size_t download_buflen;
+	size_t upload_buflen;
 	u_int num_requests;
-	u_int version;
-	u_int msg_id;
+	uint32_t version;
+	uint32_t msg_id;
 #define SFTP_EXT_POSIX_RENAME		0x00000001
 #define SFTP_EXT_STATVFS		0x00000002
 #define SFTP_EXT_FSTATVFS		0x00000004
@@ -100,7 +99,7 @@ struct sftp_conn {
 
 /* Tracks in-progress requests during file transfers */
 struct request {
-	u_int id;
+	uint32_t id;
 	size_t len;
 	uint64_t offset;
 	TAILQ_ENTRY(request) tq;
@@ -108,11 +107,11 @@ struct request {
 TAILQ_HEAD(requests, request);
 
 static u_char *
-get_handle(struct sftp_conn *conn, u_int expected_id, size_t *len,
+get_handle(struct sftp_conn *conn, uint32_t expected_id, size_t *len,
     const char *errfmt, ...) __attribute__((format(printf, 4, 5)));
 
 static struct request *
-request_enqueue(struct requests *requests, u_int id, size_t len,
+request_enqueue(struct requests *requests, uint32_t id, size_t len,
     uint64_t offset)
 {
 	struct request *req;
@@ -126,7 +125,7 @@ request_enqueue(struct requests *requests, u_int id, size_t len,
 }
 
 static struct request *
-request_find(struct requests *requests, u_int id)
+request_find(struct requests *requests, uint32_t id)
 {
 	struct request *req;
 
@@ -175,7 +174,7 @@ send_msg(struct sftp_conn *conn, struct sshbuf *m)
 static void
 get_msg_extended(struct sftp_conn *conn, struct sshbuf *m, int initial)
 {
-	u_int msg_len;
+	uint32_t msg_len;
 	u_char *p;
 	int r;
 
@@ -218,8 +217,8 @@ get_msg(struct sftp_conn *conn, struct sshbuf *m)
 }
 
 static void
-send_string_request(struct sftp_conn *conn, u_int id, u_int code, const char *s,
-    u_int len)
+send_string_request(struct sftp_conn *conn, uint32_t id, u_char code, const char *s,
+    size_t len)
 {
 	struct sshbuf *msg;
 	int r;
@@ -236,8 +235,8 @@ send_string_request(struct sftp_conn *conn, u_int id, u_int code, const char *s,
 }
 
 static void
-send_string_attrs_request(struct sftp_conn *conn, u_int id, u_int code,
-    const void *s, u_int len, Attrib *a)
+send_string_attrs_request(struct sftp_conn *conn, uint32_t id, u_char code,
+    const void *s, size_t len, Attrib *a)
 {
 	struct sshbuf *msg;
 	int r;
@@ -255,12 +254,12 @@ send_string_attrs_request(struct sftp_conn *conn, u_int id, u_int code,
 	sshbuf_free(msg);
 }
 
-static u_int
-get_status(struct sftp_conn *conn, u_int expected_id)
+static uint32_t
+get_status(struct sftp_conn *conn, uint32_t expected_id)
 {
 	struct sshbuf *msg;
 	u_char type;
-	u_int id, status;
+	uint32_t id, status;
 	int r;
 
 	if ((msg = sshbuf_new()) == NULL)
@@ -286,11 +285,11 @@ get_status(struct sftp_conn *conn, u_int expected_id)
 }
 
 static u_char *
-get_handle(struct sftp_conn *conn, u_int expected_id, size_t *len,
+get_handle(struct sftp_conn *conn, uint32_t expected_id, size_t *len,
     const char *errfmt, ...)
 {
 	struct sshbuf *msg;
-	u_int id, status;
+	uint32_t id, status;
 	u_char type;
 	u_char *handle;
 	char errmsg[256];
@@ -331,10 +330,10 @@ get_handle(struct sftp_conn *conn, u_int expected_id, size_t *len,
 }
 
 static int
-get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet, Attrib *a)
+get_decode_stat(struct sftp_conn *conn, uint32_t expected_id, int quiet, Attrib *a)
 {
 	struct sshbuf *msg;
-	u_int id;
+	uint32_t id;
 	u_char type;
 	int r;
 	Attrib attr;
@@ -352,7 +351,7 @@ get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet, Attrib *a)
 	if (id != expected_id)
 		fatal("ID mismatch (%u != %u)", id, expected_id);
 	if (type == SSH2_FXP_STATUS) {
-		u_int status;
+		uint32_t status;
 
 		if ((r = sshbuf_get_u32(msg, &status)) != 0)
 			fatal_fr(r, "parse status");
@@ -383,11 +382,11 @@ get_decode_stat(struct sftp_conn *conn, u_int expected_id, int quiet, Attrib *a)
 
 static int
 get_decode_statvfs(struct sftp_conn *conn, struct sftp_statvfs *st,
-    u_int expected_id, int quiet)
+    uint32_t expected_id, int quiet)
 {
 	struct sshbuf *msg;
 	u_char type;
-	u_int id;
+	uint32_t id;
 	uint64_t flag;
 	int r;
 
@@ -403,7 +402,7 @@ get_decode_statvfs(struct sftp_conn *conn, struct sftp_statvfs *st,
 	if (id != expected_id)
 		fatal("ID mismatch (%u != %u)", id, expected_id);
 	if (type == SSH2_FXP_STATUS) {
-		u_int status;
+		uint32_t status;
 
 		if ((r = sshbuf_get_u32(msg, &status)) != 0)
 			fatal_fr(r, "parse status");
@@ -441,7 +440,7 @@ get_decode_statvfs(struct sftp_conn *conn, struct sftp_statvfs *st,
 }
 
 struct sftp_conn *
-sftp_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
+sftp_init(int fd_in, int fd_out, size_t transfer_buflen, u_int num_requests,
     uint64_t limit_kbps)
 {
 	u_char type;
@@ -564,10 +563,11 @@ sftp_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 			ret->download_buflen = MAXIMUM(ret->download_buflen, 64);
 			ret->upload_buflen = MAXIMUM(ret->upload_buflen, 64);
 			debug3("server upload/download buffer sizes "
-			    "%llu / %llu; using %u / %u",
+			    "%llu / %llu; using %llu / %llu",
 			    (unsigned long long)limits.write_length,
 			    (unsigned long long)limits.read_length,
-			    ret->upload_buflen, ret->download_buflen);
+			    (unsigned long long)ret->upload_buflen,
+				(unsigned long long)ret->download_buflen);
 		}
 	}
 
@@ -596,7 +596,7 @@ sftp_free(struct sftp_conn *conn)
 	freezero(conn, sizeof(*conn));
 }
 
-u_int
+uint32_t
 sftp_proto_version(struct sftp_conn *conn)
 {
 	return conn->version;
@@ -605,7 +605,7 @@ sftp_proto_version(struct sftp_conn *conn)
 int
 sftp_get_limits(struct sftp_conn *conn, struct sftp_limits *limits)
 {
-	u_int id, msg_id;
+	uint32_t id, msg_id;
 	u_char type;
 	struct sshbuf *msg;
 	int r;
@@ -657,9 +657,9 @@ sftp_get_limits(struct sftp_conn *conn, struct sftp_limits *limits)
 }
 
 int
-sftp_close(struct sftp_conn *conn, const u_char *handle, u_int handle_len)
+sftp_close(struct sftp_conn *conn, const u_char *handle, size_t handle_len)
 {
-	u_int id, status;
+	uint32_t id, status;
 	struct sshbuf *msg;
 	int r;
 
@@ -689,8 +689,8 @@ sftp_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
     SFTP_DIRENT ***dir)
 {
 	struct sshbuf *msg;
-	u_int count, id, i, expected_id, ents = 0;
-	size_t handle_len;
+	uint32_t count, id, i, expected_id;
+	size_t handle_len, ents = 0;
 	u_char type, *handle;
 	int status = SSH2_FX_FAILURE;
 	int r;
@@ -747,7 +747,7 @@ sftp_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
 			fatal("ID mismatch (%u != %u)", id, expected_id);
 
 		if (type == SSH2_FXP_STATUS) {
-			u_int rstatus;
+			uint32_t rstatus;
 
 			if ((r = sshbuf_get_u32(msg, &rstatus)) != 0)
 				fatal_fr(r, "parse status");
@@ -807,14 +807,14 @@ sftp_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
 			free(longname);
 		}
 	}
-	status = 0;
+	status = SSH2_FX_OK;
 
  out:
 	sshbuf_free(msg);
 	sftp_close(conn, handle, handle_len);
 	free(handle);
 
-	if (status != 0 && dir != NULL) {
+	if (status != SSH2_FX_OK && dir != NULL) {
 		/* Don't return results on error */
 		sftp_free_dirents(*dir);
 		*dir = NULL;
@@ -851,7 +851,7 @@ void sftp_free_dirents(SFTP_DIRENT **s)
 int
 sftp_rm(struct sftp_conn *conn, const char *path)
 {
-	u_int status, id;
+	uint32_t status, id;
 
 	debug2("Sending SSH2_FXP_REMOVE \"%s\"", path);
 
@@ -866,7 +866,7 @@ sftp_rm(struct sftp_conn *conn, const char *path)
 int
 sftp_mkdir(struct sftp_conn *conn, const char *path, Attrib *a, int print_flag)
 {
-	u_int status, id;
+	uint32_t status, id;
 
 	debug2("Sending SSH2_FXP_MKDIR \"%s\"", path);
 
@@ -917,7 +917,7 @@ sftp_mkpath(struct sftp_conn *conn, const char *path, Attrib *a, int print_flag)
 int
 sftp_rmdir(struct sftp_conn *conn, const char *path)
 {
-	u_int status, id;
+	uint32_t status, id;
 
 	debug2("Sending SSH2_FXP_RMDIR \"%s\"", path);
 
@@ -935,7 +935,7 @@ sftp_rmdir(struct sftp_conn *conn, const char *path)
 int
 sftp_stat(struct sftp_conn *conn, const char *path, int quiet, Attrib *a)
 {
-	u_int id;
+	uint32_t id;
 
 	debug2("Sending SSH2_FXP_STAT \"%s\"", path);
 
@@ -951,7 +951,7 @@ sftp_stat(struct sftp_conn *conn, const char *path, int quiet, Attrib *a)
 int
 sftp_lstat(struct sftp_conn *conn, const char *path, int quiet, Attrib *a)
 {
-	u_int id;
+	uint32_t id;
 
 	if (conn->version == 0) {
 		do_log2(quiet ? SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO,
@@ -968,10 +968,10 @@ sftp_lstat(struct sftp_conn *conn, const char *path, int quiet, Attrib *a)
 
 #ifdef notyet
 int
-sftp_fstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
+sftp_fstat(struct sftp_conn *conn, const u_char *handle, size_t handle_len,
     int quiet, Attrib *a)
 {
-	u_int id;
+	uint32_t id;
 
 	debug2("Sending SSH2_FXP_FSTAT \"%s\"");
 
@@ -986,7 +986,7 @@ sftp_fstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
 int
 sftp_setstat(struct sftp_conn *conn, const char *path, Attrib *a)
 {
-	u_int status, id;
+	uint32_t status, id;
 
 	debug2("Sending SSH2_FXP_SETSTAT \"%s\"", path);
 
@@ -1002,10 +1002,10 @@ sftp_setstat(struct sftp_conn *conn, const char *path, Attrib *a)
 }
 
 int
-sftp_fsetstat(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
+sftp_fsetstat(struct sftp_conn *conn, const u_char *handle, size_t handle_len,
     Attrib *a)
 {
-	u_int status, id;
+	uint32_t status, id;
 
 	debug2("Sending SSH2_FXP_FSETSTAT");
 
@@ -1025,7 +1025,7 @@ static char *
 sftp_realpath_expand(struct sftp_conn *conn, const char *path, int expand)
 {
 	struct sshbuf *msg;
-	u_int expected_id, count, id;
+	uint32_t expected_id, count, id;
 	char *filename, *longname;
 	Attrib a;
 	u_char type;
@@ -1062,7 +1062,7 @@ sftp_realpath_expand(struct sftp_conn *conn, const char *path, int expand)
 		fatal("ID mismatch (%u != %u)", id, expected_id);
 
 	if (type == SSH2_FXP_STATUS) {
-		u_int status;
+		uint32_t status;
 		char *errmsg;
 
 		if ((r = sshbuf_get_u32(msg, &status)) != 0 ||
@@ -1124,7 +1124,7 @@ sftp_copy(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 	Attrib junk, attr;
 	struct sshbuf *msg;
 	u_char *old_handle, *new_handle;
-	u_int mode, status, id;
+	uint32_t mode, status, id;
 	size_t old_handle_len, new_handle_len;
 	int r;
 
@@ -1238,7 +1238,7 @@ sftp_rename(struct sftp_conn *conn, const char *oldpath, const char *newpath,
     int force_legacy)
 {
 	struct sshbuf *msg;
-	u_int status, id;
+	uint32_t status, id;
 	int r, use_ext = (conn->exts & SFTP_EXT_POSIX_RENAME) && !force_legacy;
 
 	if ((msg = sshbuf_new()) == NULL)
@@ -1282,7 +1282,7 @@ int
 sftp_hardlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 {
 	struct sshbuf *msg;
-	u_int status, id;
+	uint32_t status, id;
 	int r;
 
 	if ((conn->exts & SFTP_EXT_HARDLINK) == 0) {
@@ -1320,7 +1320,7 @@ int
 sftp_symlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 {
 	struct sshbuf *msg;
-	u_int status, id;
+	uint32_t status, id;
 	int r;
 
 	if (conn->version < 3) {
@@ -1353,10 +1353,10 @@ sftp_symlink(struct sftp_conn *conn, const char *oldpath, const char *newpath)
 }
 
 int
-sftp_fsync(struct sftp_conn *conn, u_char *handle, u_int handle_len)
+sftp_fsync(struct sftp_conn *conn, u_char *handle, size_t handle_len)
 {
 	struct sshbuf *msg;
-	u_int status, id;
+	uint32_t status, id;
 	int r;
 
 	/* Silently return if the extension is not supported */
@@ -1389,7 +1389,7 @@ char *
 sftp_readlink(struct sftp_conn *conn, const char *path)
 {
 	struct sshbuf *msg;
-	u_int expected_id, count, id;
+	uint32_t expected_id, count, id;
 	char *filename, *longname;
 	Attrib a;
 	u_char type;
@@ -1412,7 +1412,7 @@ sftp_readlink(struct sftp_conn *conn, const char *path)
 		fatal("ID mismatch (%u != %u)", id, expected_id);
 
 	if (type == SSH2_FXP_STATUS) {
-		u_int status;
+		uint32_t status;
 
 		if ((r = sshbuf_get_u32(msg, &status)) != 0)
 			fatal_fr(r, "parse status");
@@ -1448,7 +1448,7 @@ sftp_statvfs(struct sftp_conn *conn, const char *path, struct sftp_statvfs *st,
     int quiet)
 {
 	struct sshbuf *msg;
-	u_int id;
+	uint32_t id;
 	int r;
 
 	if ((conn->exts & SFTP_EXT_STATVFS) == 0) {
@@ -1475,11 +1475,11 @@ sftp_statvfs(struct sftp_conn *conn, const char *path, struct sftp_statvfs *st,
 
 #ifdef notyet
 int
-sftp_fstatvfs(struct sftp_conn *conn, const u_char *handle, u_int handle_len,
+sftp_fstatvfs(struct sftp_conn *conn, const u_char *handle, uint32_t handle_len,
     struct sftp_statvfs *st, int quiet)
 {
 	struct sshbuf *msg;
-	u_int id;
+	uint32_t id;
 
 	if ((conn->exts & SFTP_EXT_FSTATVFS) == 0) {
 		error("Server does not support fstatvfs@openssh.com extension");
@@ -1508,7 +1508,7 @@ int
 sftp_lsetstat(struct sftp_conn *conn, const char *path, Attrib *a)
 {
 	struct sshbuf *msg;
-	u_int status, id;
+	uint32_t status, id;
 	int r;
 
 	if ((conn->exts & SFTP_EXT_LSETSTAT) == 0) {
@@ -1538,8 +1538,8 @@ sftp_lsetstat(struct sftp_conn *conn, const char *path, Attrib *a)
 }
 
 static void
-send_read_request(struct sftp_conn *conn, u_int id, uint64_t offset,
-    u_int len, const u_char *handle, u_int handle_len)
+send_read_request(struct sftp_conn *conn, uint32_t id, uint64_t offset,
+    size_t len, const u_char *handle, size_t handle_len)
 {
 	struct sshbuf *msg;
 	int r;
@@ -1558,14 +1558,14 @@ send_read_request(struct sftp_conn *conn, u_int id, uint64_t offset,
 
 static int
 send_open(struct sftp_conn *conn, const char *path, const char *tag,
-    u_int openmode, Attrib *a, u_char **handlep, size_t *handle_lenp)
+    uint32_t openmode, Attrib *a, u_char **handlep, size_t *handle_lenp)
 {
 	Attrib junk;
 	u_char *handle;
 	size_t handle_len;
 	struct sshbuf *msg;
 	int r;
-	u_int id;
+	uint32_t id;
 
 	debug2("Sending SSH2_FXP_OPEN \"%s\"", path);
 
@@ -1622,9 +1622,11 @@ sftp_download(struct sftp_conn *conn, const char *remote_path,
 	int local_fd = -1, write_error, seen_zerolen = 0;
 	int read_error, write_errno, lmodified = 0, reordered = 0, r;
 	uint64_t offset = 0, size, highwater = 0, maxack = 0;
-	u_int mode, id, buflen, num_req, max_req, status = SSH2_FX_OK;
+	uint32_t id, status = SSH2_FX_OK;
+	mode_t mode;
+	u_int num_req, max_req;
 	off_t progress_counter;
-	size_t handle_len;
+	size_t buflen, handle_len;
 	struct stat st;
 	struct requests requests;
 	struct request *req;
@@ -2058,7 +2060,8 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
     int fsync_flag, int inplace_flag)
 {
 	int r, local_fd;
-	u_int openmode, id, status = SSH2_FX_OK, status2, reordered = 0;
+	uint32_t openmode, id, status = SSH2_FX_OK, status2;
+	u_int reordered = 0;
 	off_t offset, progress_counter;
 	u_char type, *handle, *data;
 	struct sshbuf *msg;
@@ -2145,7 +2148,7 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 	if ((msg = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
 	for (;;) {
-		int len;
+		ssize_t len;
 
 		/*
 		 * Can't use atomicio here because it returns 0 on EOF,
@@ -2174,8 +2177,8 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 			    (r = sshbuf_put_string(msg, data, len)) != 0)
 				fatal_fr(r, "compose");
 			send_msg(conn, msg);
-			debug3("Sent message SSH2_FXP_WRITE I:%u O:%llu S:%u",
-			    id, (unsigned long long)offset, len);
+			debug3("Sent message SSH2_FXP_WRITE I:%u O:%llu S:%llu",
+			    id, (unsigned long long)offset, (unsigned long long)len);
 		} else if (TAILQ_FIRST(&acks) == NULL)
 			break;
 
@@ -2184,7 +2187,7 @@ sftp_upload(struct sftp_conn *conn, const char *local_path,
 
 		if (id == startid || len == 0 ||
 		    id - ackid >= conn->num_requests) {
-			u_int rid;
+			uint32_t rid;
 
 			sshbuf_reset(msg);
 			get_msg(conn, msg);
@@ -2433,11 +2436,11 @@ sftp_upload_dir(struct sftp_conn *conn, const char *src, const char *dst,
 
 static void
 handle_dest_replies(struct sftp_conn *to, const char *to_path, int synchronous,
-    u_int *nreqsp, u_int *write_errorp)
+    u_int *nreqsp, uint32_t *write_errorp)
 {
 	struct sshbuf *msg;
 	u_char type;
-	u_int id, status;
+	uint32_t id, status;
 	int r;
 	struct pollfd pfd;
 
@@ -2504,13 +2507,14 @@ sftp_crossload(struct sftp_conn *from, struct sftp_conn *to,
     Attrib *a, int preserve_flag)
 {
 	struct sshbuf *msg;
-	int write_error, read_error, r, seen_zerolen = 0;
+	int r, seen_zerolen = 0;
 	uint64_t offset = 0, size;
-	u_int id, buflen, num_req, max_req, status = SSH2_FX_OK;
+	uint32_t write_error, read_error, id, status = SSH2_FX_OK;
+	u_int num_req, max_req;
 	u_int num_upload_req;
 	off_t progress_counter;
 	u_char *from_handle, *to_handle;
-	size_t from_handle_len, to_handle_len;
+	size_t buflen, from_handle_len, to_handle_len;
 	struct requests requests;
 	struct request *req;
 	u_char type;
@@ -2912,7 +2916,8 @@ sftp_get_users_groups_by_id(struct sftp_conn *conn,
     char ***usernamesp, char ***groupnamesp)
 {
 	struct sshbuf *msg, *uidbuf, *gidbuf;
-	u_int i, expected_id, id;
+	u_int i;
+	uint32_t expected_id, id;
 	char *name, **usernames = NULL, **groupnames = NULL;
 	u_char type;
 	int r;
@@ -2950,7 +2955,7 @@ sftp_get_users_groups_by_id(struct sftp_conn *conn,
 	if (id != expected_id)
 		fatal("ID mismatch (%u != %u)", id, expected_id);
 	if (type == SSH2_FXP_STATUS) {
-		u_int status;
+		uint32_t status;
 		char *errmsg;
 
 		if ((r = sshbuf_get_u32(msg, &status)) != 0 ||
