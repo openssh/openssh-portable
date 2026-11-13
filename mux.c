@@ -81,7 +81,7 @@ struct mux_stdio_confirm_ctx {
 
 /* Context for global channel callback */
 struct mux_channel_confirm_ctx {
-	u_int cid;	/* channel id */
+	int cid;	/* channel id, or -1 if control channel closed */
 	u_int rid;	/* request id */
 	int fid;	/* forward id */
 };
@@ -105,6 +105,7 @@ static Channel *mux_listener_channel = NULL;
 
 struct mux_master_state {
 	int hello_rcvd;
+	struct mux_channel_confirm_ctx *fctx;
 };
 
 /* mux protocol messages */
@@ -207,10 +208,16 @@ static void
 mux_master_control_cleanup_cb(struct ssh *ssh, int cid, int force, void *unused)
 {
 	Channel *sc, *c = channel_by_id(ssh, cid);
+	struct mux_master_state *state;
 
 	debug3_f("entering for channel %d", cid);
 	if (c == NULL)
 		fatal_f("channel_by_id(%i) == NULL", cid);
+	state = (struct mux_master_state *)c->mux_ctx;
+	if (state != NULL && state->fctx != NULL) {
+		state->fctx->cid = -1;
+		state->fctx = NULL;
+	}
 	if (c->have_ctl_child_id) {
 		if ((sc = channel_by_id(ssh, c->ctl_child_id)) == NULL)
 			fatal_f("channel %d missing session channel %u",
@@ -643,16 +650,11 @@ mux_confirm_remote_forward(struct ssh *ssh, int type, uint32_t seq, void *ctxt)
 	struct mux_channel_confirm_ctx *fctx = ctxt;
 	char *failmsg = NULL;
 	struct Forward *rfwd;
-	Channel *c;
+	Channel *c = NULL;
 	struct sshbuf *out;
 	u_int port;
 	int r;
 
-	if ((c = channel_by_id(ssh, fctx->cid)) == NULL) {
-		/* no channel for reply */
-		error_f("unknown channel");
-		return;
-	}
 	if ((out = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new");
 	if (fctx->fid >= options.num_remote_forwards ||
@@ -717,6 +719,15 @@ mux_confirm_remote_forward(struct ssh *ssh, int type, uint32_t seq, void *ctxt)
 	reply_error(out, MUX_S_FAILURE, fctx->rid, failmsg);
 	free(failmsg);
  out:
+	if (fctx->cid == -1) {
+		debug2_f("control channel already closed");
+		sshbuf_free(out);
+		free(fctx);
+		return;
+	}
+	if ((c = channel_by_id(ssh, fctx->cid)) == NULL)
+		fatal_f("unknown channel %d", fctx->cid);
+	((struct mux_master_state *)c->mux_ctx)->fctx = NULL;
 	if ((r = sshbuf_put_stringb(c->output, out)) != 0)
 		fatal_fr(r, "enqueue");
 	sshbuf_free(out);
@@ -871,6 +882,8 @@ mux_master_process_open_fwd(struct ssh *ssh, u_int rid,
 		add_local_forward(&options, &fwd);
 		freefwd = 0;
 	} else {
+		struct mux_master_state *state =
+		    (struct mux_master_state *)c->mux_ctx;
 		struct mux_channel_confirm_ctx *fctx;
 
 		fwd.handle = channel_request_remote_forwarding(ssh, &fwd);
@@ -881,6 +894,7 @@ mux_master_process_open_fwd(struct ssh *ssh, u_int rid,
 		fctx->cid = c->self;
 		fctx->rid = rid;
 		fctx->fid = options.num_remote_forwards - 1;
+		state->fctx = fctx;
 		client_register_global_confirm(mux_confirm_remote_forward,
 		    fctx);
 		freefwd = 0;
