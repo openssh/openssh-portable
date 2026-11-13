@@ -1329,6 +1329,9 @@ mux_tty_alloc_failed(struct ssh *ssh, Channel *c)
 
 	debug3_f("channel %d: TTY alloc failed", c->self);
 
+	if (c->ctl_chan == -1)
+		return;
+
 	if ((mux_chan = channel_by_id(ssh, c->ctl_chan)) == NULL)
 		fatal_f("channel %d missing mux %d", c->self, c->ctl_chan);
 
