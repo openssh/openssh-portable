@@ -1440,6 +1440,11 @@ mux_session_confirm(struct ssh *ssh, int id, int success, void *arg)
 		fatal_f("cctx == NULL");
 	if ((c = channel_by_id(ssh, id)) == NULL)
 		fatal_f("no channel for id %d", id);
+	if (c->ctl_chan == -1) {
+		/* Client disconnected before open confirmation arrived */
+		debug2_f("channel %d: control channel already closed", id);
+		goto out;
+	}
 	if ((cc = channel_by_id(ssh, c->ctl_chan)) == NULL)
 		fatal_f("channel %d lacks control channel %d",
 		    id, c->ctl_chan);
@@ -1494,6 +1499,7 @@ mux_session_confirm(struct ssh *ssh, int id, int success, void *arg)
 	if (cc->mux_pause <= 0)
 		fatal_f("mux_pause %d", cc->mux_pause);
 	cc->mux_pause = 0; /* start processing messages again */
+ out:
 	c->open_confirm_ctx = NULL;
 	sshbuf_free(cctx->cmd);
 	free(cctx->term);
