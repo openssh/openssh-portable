@@ -53,17 +53,11 @@ AC_CHECK_TOOLS([AR], [ar])
 AC_PATH_PROG([CAT], [cat])
 AC_PATH_PROG([KILL], [kill])
 AC_PATH_PROG([SED], [sed])
-AC_PATH_PROG([TEST_MINUS_S_SH], [bash])
-AC_PATH_PROG([TEST_MINUS_S_SH], [ksh])
-AC_PATH_PROG([TEST_MINUS_S_SH], [sh])
-AC_PATH_PROG([SH], [bash])
-AC_PATH_PROG([SH], [ksh])
-AC_PATH_PROG([SH], [sh])
+AC_PATH_PROGS([POSIX_SHELL], [bash ksh sh])
 AC_PATH_PROG([GROFF], [groff])
 AC_PATH_PROGS([NROFF], [nroff awf])
 AC_PATH_PROG([MANDOC], [mandoc])
 AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
-AC_SUBST([TEST_SHELL], [sh])
 
 dnl select manpage formatter to be used to build "cat" format pages.
 if test "x$MANDOC" != "x" ; then
@@ -1283,7 +1277,6 @@ if (setsockopt(s, IPPROTO_IP, IP_TOS, &one, sizeof(one)) == -1)
 		fi
 		],
 	)
-	TEST_SHELL=$SHELL	# let configure find us a capable shell
 	;;
 *-*-sunos4*)
 	CPPFLAGS="$CPPFLAGS -DSUNOS4"
@@ -1328,7 +1321,6 @@ if (setsockopt(s, IPPROTO_IP, IP_TOS, &one, sizeof(one)) == -1)
 	AC_DEFINE([BROKEN_SETREGID])
 	AC_DEFINE([PASSWD_NEEDS_USERNAME], [1], [must supply username to passwd])
 	AC_DEFINE([LOCKED_PASSWD_STRING], ["*LK*"])
-	TEST_SHELL=$SHELL	# let configure find us a capable shell
 	;;
 # UnixWare 7.x, OpenUNIX 8
 *-*-sysv5*)
@@ -1341,7 +1333,6 @@ if (setsockopt(s, IPPROTO_IP, IP_TOS, &one, sizeof(one)) == -1)
 	AC_DEFINE([BROKEN_SETREGID])
 	AC_DEFINE([PASSWD_NEEDS_USERNAME])
 	AC_DEFINE([BROKEN_TCGETATTR_ICANON])
-	TEST_SHELL=$SHELL	# let configure find us a capable shell
 	case "$host" in
 	*-*-sysv5SCO_SV*)	# SCO OpenServer 6.x
 		maildir=/var/spool/mail
@@ -1381,7 +1372,6 @@ if (setsockopt(s, IPPROTO_IP, IP_TOS, &one, sizeof(one)) == -1)
 	AC_DEFINE([PASSWD_NEEDS_USERNAME])
 	AC_CHECK_FUNCS([getluid setluid])
 	MANTYPE=man
-	TEST_SHELL=$SHELL	# let configure find us a capable shell
 	SKIP_DISABLE_LASTLOG_DEFINE=yes
 	;;
 *-dec-osf*)
@@ -3598,7 +3588,7 @@ AC_ARG_WITH([prngd-socket],
 			AC_MSG_CHECKING([for PRNGD/EGD socket])
 			# Insert other locations here
 			for sock in /var/run/egd-pool /dev/egd-pool /etc/entropy; do
-				if test -r $sock && $TEST_MINUS_S_SH -c "test -S $sock -o -p $sock" ; then
+				if test -r $sock && $POSIX_SHELL -c "test -S $sock -o -p $sock" ; then
 					PRNGD_SOCKET="$sock"
 					AC_DEFINE_UNQUOTED([PRNGD_SOCKET], ["$PRNGD_SOCKET"])
 					break;
@@ -5851,6 +5841,7 @@ CFLAGS_NOPIE=`echo "$CFLAGS" | sed 's/^-fPIE //;s/ -fPIE//g'`
 AC_SUBST([LDFLAGS_NOPIE])
 AC_SUBST([CFLAGS_NOPIE])
 AC_SUBST([COMPATINCLUDES])
+AC_SUBST([POSIX_SHELL])
 
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \
