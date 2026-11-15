@@ -33,7 +33,7 @@ jobs:
         release: ${{ matrix.target }}
         usesh: true
         prepare: |
-          timeout 600 pkg install -y sudo || pkg install -y sudo
+          .github/install_sudo.sh
           pw useradd builder -m
           echo "builder ALL=(ALL:ALL) NOPASSWD: ALL" >>/usr/local/etc/sudoers
           mkdir -p /var/empty /usr/local/etc
@@ -98,10 +98,7 @@ jobs:
         prepare: |
           case $(uname -r) in
           12.*|13.*)
-            timeout 600 ftp ftp://ftp.sudo.ws/pub/sudo/sudo-1.8.32.tar.gz || \
-              ftp ftp://ftp.sudo.ws/pub/sudo/sudo-1.8.32.tar.gz
-            tar xfz sudo-1.8.32.tar.gz
-            (cd sudo-1.8.32 && ./configure --sysconfdir=/usr/local/etc && make && make install)
+            .github/install_sudo.sh
             ;;
           *)
             timeout 600 pkg install -y sudo || pkg install -y sudo
