@@ -105,6 +105,10 @@
 /* Max length of username constraint */
 #define AGENT_USER_CONSTRAINT_MAX_LEN	256
 
+#ifdef __OpenBSD__
+mode_t _permit_setugid = S_ISGID;
+#endif
+
 /* XXX store hostkey_sid in a refcounted tree */
 
 typedef enum {
