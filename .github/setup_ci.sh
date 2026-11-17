@@ -256,7 +256,8 @@ fi
 
 if [ ! -z "${INSTALL_LIBRESSL}" ]; then
     if [ "${INSTALL_LIBRESSL}" = "master" ]; then
-	(mkdir -p ${HOME}/libressl && cd ${HOME}/libressl &&
+	(rm -rf ${HOME}/libressl &&
+	 mkdir -p ${HOME}/libressl && cd ${HOME}/libressl &&
 	 git clone https://github.com/libressl-portable/portable.git &&
 	 cd ${HOME}/libressl/portable &&
 	 git checkout ${INSTALL_LIBRESSL} &&
@@ -266,6 +267,7 @@ if [ ! -z "${INSTALL_LIBRESSL}" ]; then
     else
 	LIBRESSL_URLBASE=https://cdn.openbsd.org/pub/OpenBSD/LibreSSL
 	(cd ${HOME} &&
+	 rm -rf libressl-${INSTALL_LIBRESSL} &&
 	 wget ${LIBRESSL_URLBASE}/libressl-${INSTALL_LIBRESSL}.tar.gz &&
 	 tar xfz libressl-${INSTALL_LIBRESSL}.tar.gz &&
 	 cd libressl-${INSTALL_LIBRESSL} &&
@@ -274,7 +276,8 @@ if [ ! -z "${INSTALL_LIBRESSL}" ]; then
 fi
 
 if [ ! -z "${INSTALL_BORINGSSL}" ]; then
-    (cd ${HOME} && git clone https://boringssl.googlesource.com/boringssl &&
+    (cd ${HOME} && rm -rf boringssl &&
+     git clone https://boringssl.googlesource.com/boringssl &&
      cd ${HOME}/boringssl && mkdir build && cd build &&
      cmake -GNinja  -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. && ninja &&
      mkdir -p /opt/boringssl/lib &&
@@ -283,7 +286,8 @@ if [ ! -z "${INSTALL_BORINGSSL}" ]; then
 fi
 
 if [ ! -z "${INSTALL_AWSLC}" ]; then
-    (cd ${HOME} && git clone --depth 1 --branch v1.46.1 https://github.com/aws/aws-lc.git &&
+    (cd ${HOME} && rm -rf aws-lc &&
+     git clone --depth 1 --branch v1.46.1 https://github.com/aws/aws-lc.git &&
      cd ${HOME}/aws-lc && mkdir build && cd build &&
      cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF .. && ninja &&
      mkdir -p /opt/aws-lc/lib &&
