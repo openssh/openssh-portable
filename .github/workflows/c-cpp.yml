@@ -76,8 +76,8 @@ jobs:
           - { target: ubuntu-26.04, config: clang-19 }
           - { target: ubuntu-26.04, config: clang-22 }
           - { target: ubuntu-latest, config: boringssl }
-          - { target: ubuntu-latest, config: aws-lc }
           - { target: ubuntu-latest, config: hardenedmalloc }
+          - { target: ubuntu-24.04,  config: aws-lc }
           - { target: ubuntu-latest, config: libressl-master }
           - { target: ubuntu-latest, config: libressl-3.2.7 }
           - { target: ubuntu-latest, config: libressl-3.3.6 }
