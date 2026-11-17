@@ -70,9 +70,11 @@ jobs:
           # - { target: ubuntu-22.04, config: valgrind-pam-1 }
           - { target: ubuntu-22.04, config: valgrind-unit }
           - { target: ubuntu-22.04, config: without-openssl }
-          - { target: ubuntu-latest, config: gcc-14 }
-          - { target: ubuntu-latest, config: clang-15 }
-          - { target: ubuntu-latest, config: clang-19 }
+          - { target: ubuntu-24.04, config: gcc-14 }
+          - { target: ubuntu-24.04, config: clang-15 }
+          - { target: ubuntu-26.04, config: clang-17 }
+          - { target: ubuntu-26.04, config: clang-19 }
+          - { target: ubuntu-26.04, config: clang-22 }
           - { target: ubuntu-latest, config: boringssl }
           - { target: ubuntu-latest, config: aws-lc }
           - { target: ubuntu-latest, config: hardenedmalloc }
@@ -120,8 +122,8 @@ jobs:
           - { target: ubuntu-latest, config: dropbear-versions }
           - { target: ubuntu-latest, config: putty-versions }
           - { target: ubuntu-latest, config: zlib-develop }
-          - { target: ubuntu-latest, config: tcmalloc }
-          - { target: ubuntu-latest, config: musl }
+          - { target: ubuntu-24.04,  config: tcmalloc }
+          - { target: ubuntu-24.04,  config: musl }
           - { target: ubuntu-22.04-arm, config: kitchensink }
           - { target: ubuntu-24.04-arm, config: kitchensink }
           - { target: macos-15, config: pam }
