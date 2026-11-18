@@ -3911,14 +3911,12 @@ channel_fwd_bind_addr(struct ssh *ssh, const char *listen_addr, int *wildcardp,
 				    "\"%s\" overridden by server "
 				    "GatewayPorts", listen_addr);
 			}
-		} else if (strcmp(listen_addr, "localhost") != 0 ||
-		    strcmp(listen_addr, "127.0.0.1") == 0 ||
-		    strcmp(listen_addr, "::1") == 0) {
+		} else if (strcmp(listen_addr, "localhost") != 0) {
 			/*
-			 * Accept explicit localhost address when
-			 * GatewayPorts=yes. The "localhost" hostname is
-			 * deliberately skipped here so it will listen on all
-			 * available local address families.
+			 * Accept explicit bind address on the client or when
+			 * GatewayPorts=clientspecified. The "localhost"
+			 * hostname is deliberately skipped here so it will
+			 * listen on all available local address families.
 			 */
 			addr = listen_addr;
 		}

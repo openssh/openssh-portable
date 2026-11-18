@@ -719,7 +719,7 @@ test_rforward_loopback_bind_addr(void)
 	struct sockaddr_in sin;
 	Channel *c;
 	char *local_ip;
-	u_int i;
+	u_int i, nfound;
 
 	log_init("test_misc", SYSLOG_LEVEL_QUIET, SYSLOG_FACILITY_AUTH, 0);
 
@@ -776,6 +776,50 @@ test_rforward_loopback_bind_addr(void)
 	}
 	ASSERT_PTR_NE(c, NULL);
 	ASSERT_PTR_EQ(c->listening_addr, NULL);
+	channel_free_all(ssh);
+	TEST_DONE();
+
+	TEST_START("rforward explicit bind addr with "
+	    "GatewayPorts=clientspecified");
+	memset(&fwd, 0, sizeof(fwd));
+	memset(&fwd_opts, 0, sizeof(fwd_opts));
+	fwd.listen_host = "0.0.0.0";
+	fwd.listen_port = 0;
+	fwd_opts.gateway_ports = 2;
+	r = channel_setup_remote_fwd_listener(ssh, &fwd, &alloc_port,
+	    &fwd_opts);
+	ASSERT_INT_EQ(r, 1);
+	c = NULL;
+	for (i = 0; i < 16; i++) {
+		if ((c = channel_by_id(ssh, i)) != NULL)
+			break;
+	}
+	ASSERT_PTR_NE(c, NULL);
+	ASSERT_PTR_NE(c->listening_addr, NULL);
+	ASSERT_STRING_EQ(c->listening_addr, "0.0.0.0");
+	local_ip = get_local_ipaddr(c->sock);
+	ASSERT_STRING_EQ(local_ip, "0.0.0.0");
+	free(local_ip);
+	channel_free_all(ssh);
+	TEST_DONE();
+
+	TEST_START("rforward localhost with GatewayPorts=clientspecified");
+	memset(&fwd, 0, sizeof(fwd));
+	memset(&fwd_opts, 0, sizeof(fwd_opts));
+	fwd.listen_host = "localhost";
+	fwd.listen_port = 0;
+	fwd_opts.gateway_ports = 2;
+	r = channel_setup_remote_fwd_listener(ssh, &fwd, &alloc_port,
+	    &fwd_opts);
+	ASSERT_INT_EQ(r, 1);
+	nfound = 0;
+	for (i = 0; i < 16; i++) {
+		if ((c = channel_by_id(ssh, i)) == NULL)
+			continue;
+		nfound++;
+		ASSERT_PTR_EQ(c->listening_addr, NULL);
+	}
+	ASSERT_INT_GE(nfound, 1);
 	channel_free_all(ssh);
 	TEST_DONE();
 
