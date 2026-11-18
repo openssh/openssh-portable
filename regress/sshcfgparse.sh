@@ -117,5 +117,22 @@ EOD
 f=`${SSH} -GF $OBJ/ssh_config.0 host true | awk '/^stdinnull /{print$2}'`
 expect_result_present "$f" "yes"
 
+# "all" must appear alone in a Match block.  Use an option that is
+# accepted regardless of the ./configure flags (e.g. "Compression yes" is
+# rejected when built --without-zlib).
+verbose "Match all"
+cat >$OBJ/ssh_config.0 <<EOD
+Match all
+	Port 1234
+EOD
+${SSH} -GF $OBJ/ssh_config.0 host >/dev/null 2>&1 || \
+	fail "standalone Match all rejected"
+cat >$OBJ/ssh_config.0 <<EOD
+Match user foo all
+	Port 1234
+EOD
+${SSH} -GF $OBJ/ssh_config.0 host >/dev/null 2>&1 && \
+	fail "Match combined with all accepted"
+
 # cleanup
 rm -f $OBJ/ssh_config.[012]
