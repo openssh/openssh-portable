@@ -347,7 +347,8 @@ input_userauth_info_response(int type, uint32_t seq, struct ssh *ssh)
 	switch (res) {
 	case 0:
 		/* Success! */
-		authenticated = authctxt->valid ? 1 : 0;
+		authenticated = authctxt->valid || (authctxt->deferred &&
+		    strcmp(kbdintctxt->device->name, "pam") == 0);
 		break;
 	case 1:
 		/* Authentication needs further interaction */
