@@ -50,4 +50,4 @@ int	 encode_attrib(struct sshbuf *, const Attrib *);
 char	*ls_file(const char *, const struct stat *, int, int,
     const char *, const char *);
 
-const char *fx2txt(int);
+const char *fx2txt(uint32_t);
