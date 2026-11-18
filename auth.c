@@ -456,6 +456,20 @@ check_key_in_hostfiles(struct passwd *pw, struct sshkey *key, const char *host,
 	return host_status;
 }
 
+void
+auth_invalid_user(struct ssh *ssh, const char *user)
+{
+	logit("Invalid user %.100s from %.100s port %d",
+	    user, ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
+#ifdef CUSTOM_FAILED_LOGIN
+	record_failed_login(ssh, user,
+	    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
+#endif
+#ifdef SSH_AUDIT_EVENTS
+	audit_event(ssh, SSH_INVALID_USER);
+#endif
+}
+
 struct passwd *
 getpwnamallow(struct ssh *ssh, const char *user, int *notfound)
 {
@@ -505,15 +519,6 @@ getpwnamallow(struct ssh *ssh, const char *user, int *notfound)
 	}
 	if (pw == NULL) {
 		*notfound = 1;
-		logit("Invalid user %.100s from %.100s port %d",
-		    user, ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-#ifdef CUSTOM_FAILED_LOGIN
-		record_failed_login(ssh, user,
-		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
-#endif
-#ifdef SSH_AUDIT_EVENTS
-		audit_event(ssh, SSH_INVALID_USER);
-#endif /* SSH_AUDIT_EVENTS */
 		return (NULL);
 	}
 	if (!allowed_user(ssh, pw))

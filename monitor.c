@@ -873,6 +873,8 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	if (pwent == NULL) {
 		invalid_user = 1;
+		if (notfound && !authctxt->deferred)
+			auth_invalid_user(ssh, authctxt->user);
 		if ((r = sshbuf_put_u8(m, 0)) != 0)
 			fatal_fr(r, "assemble fakepw");
 		authctxt->pw = fakepw();

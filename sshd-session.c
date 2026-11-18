@@ -1341,6 +1341,9 @@ cleanup_exit(int i)
 {
 	if (the_active_state != NULL && the_authctxt != NULL) {
 		do_cleanup(the_active_state, the_authctxt);
+		if (mm_is_monitor() && !the_authctxt->authenticated &&
+		    the_authctxt->deferred && the_authctxt->user != NULL)
+			auth_invalid_user(the_active_state, the_authctxt->user);
 		if (privsep_is_preauth &&
 		    pmonitor != NULL && pmonitor->m_pid > 1) {
 			debug("Killing privsep child %d", pmonitor->m_pid);

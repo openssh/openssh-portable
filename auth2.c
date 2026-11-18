@@ -312,7 +312,8 @@ input_userauth_request(int type, uint32_t seq, struct ssh *ssh)
 			/* Invalid user, fake password information */
 			authctxt->pw = fakepw();
 #ifdef SSH_AUDIT_EVENTS
-			mm_audit_event(ssh, SSH_INVALID_USER);
+			if (!authctxt->deferred)
+				mm_audit_event(ssh, SSH_INVALID_USER);
 #endif
 		}
 #ifdef USE_PAM
