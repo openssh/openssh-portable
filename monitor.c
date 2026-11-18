@@ -159,6 +159,9 @@ static pid_t monitor_child_pid;
 static int auth_attempted = 0;
 static int invalid_user = 0;
 static int compat_set = 0;
+#ifdef USE_PAM
+static struct sshbuf *pre_match_options, *initial_options;
+#endif
 
 struct mon_table {
 	enum monitor_reqtype type;
@@ -317,6 +320,16 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 		/* Record that auth was attempted to set exit status later */
 		if ((ent->flags & MON_AUTH) != 0)
 			auth_attempted = 1;
+
+#ifdef USE_PAM
+		if (authenticated && authctxt->deferred) {
+			if (ent->type != MONITOR_REQ_PAM_FREE_CTX ||
+			    authctxt->service == NULL ||
+			    strcmp(authctxt->service, "ssh-connection") != 0)
+				fatal_f("unexpected authentication for deferred user");
+			authenticated = monitor_pam_account(ssh, pmonitor);
+		}
+#endif
 
 		/* Special handling for multiple required authentications */
 		if (options.num_auth_methods != 0) {
@@ -865,6 +878,11 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 	if ((r = sshbuf_get_cstring(m, &authctxt->user, NULL)) != 0)
 		fatal_fr(r, "parse");
 
+#ifdef USE_PAM
+	if (options.use_pam &&
+	    (r = serialise_server_options(&options, &pre_match_options)) != 0)
+		fatal_fr(r, "save configuration before Match");
+#endif
 	pwent = getpwnamallow(ssh, authctxt->user, &notfound);
 
 	setproctitle("%s [priv]", pwent ? authctxt->user : "unknown");
@@ -923,6 +941,16 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	/* Send active options to unpriv */
 	mm_encode_server_options(m);
+
+#ifdef USE_PAM
+	if (authctxt->deferred) {
+		if ((r = serialise_server_options(&options, &initial_options)) != 0)
+			fatal_fr(r, "save initial configuration");
+	} else {
+		sshbuf_free(pre_match_options);
+		pre_match_options = NULL;
+	}
+#endif
 
 	/* Create valid auth method lists */
 	if (auth2_setup_methods_lists(authctxt) != 0) {
@@ -1160,6 +1188,57 @@ mm_answer_pam_start(struct ssh *ssh, int sock, struct sshbuf *m)
 	return (0);
 }
 
+static void
+pam_recheck_user(struct ssh *ssh)
+{
+	ServerOptions active = options;
+	struct sshbuf *resolved;
+	struct passwd *pw;
+	int r, notfound;
+
+	/* Resolve Match without inheriting the invalid-user settings. */
+	initialize_server_options(&options);
+	if ((r = deserialise_server_options(pre_match_options, &options)) != 0)
+		fatal_fr(r, "restore configuration before Match");
+	pw = getpwnamallow(ssh, authctxt->user, &notfound);
+	authctxt->deferred = notfound;
+	if (options.refuse_connection) {
+		logit("administratively prohibited connection for %.100s "
+		    "from %.128s port %d", authctxt->user, ssh_remote_ipaddr(ssh),
+		    ssh_remote_port(ssh));
+		cleanup_exit(EXIT_CONFIG_REFUSED);
+	}
+	if (pw == NULL)
+		fatal_f("deferred user %.100s not permitted after PAM",
+		    authctxt->user);
+	/* Match must not have been resolved for an invalid user. */
+	if (server_get_connection_info(ssh, 0, 0)->user_invalid)
+		fatal_f("inconsistent lookup for deferred user %.100s",
+		    authctxt->user);
+	if ((r = serialise_server_options(&options, &resolved)) != 0)
+		fatal_fr(r, "save resolved configuration");
+	if (sshbuf_equals(initial_options, resolved) != 0)
+		fatal_f("configuration changed for deferred user %.100s; "
+		    "reconnect to apply it", authctxt->user);
+	sshbuf_free(resolved);
+	sshbuf_free(pre_match_options);
+	sshbuf_free(initial_options);
+	pre_match_options = initial_options = NULL;
+	free_server_options(&options);
+	options = active;
+
+	if (pw->pw_uid == 0 && !auth_root_allowed(ssh, auth_method)) {
+#ifdef SSH_AUDIT_EVENTS
+		audit_event(ssh, SSH_LOGIN_ROOT_DENIED);
+#endif
+		pwfree(pw);
+		cleanup_exit(255);
+	}
+	authctxt->pw = pw;
+	authctxt->valid = 1;
+	invalid_user = 0;
+}
+
 static int
 mm_answer_pam_account(struct ssh *ssh, int sock, struct sshbuf *m)
 {
@@ -1169,7 +1248,11 @@ mm_answer_pam_account(struct ssh *ssh, int sock, struct sshbuf *m)
 	if (!options.use_pam)
 		fatal_f("PAM not enabled");
 
-	ret = do_pam_account();
+	if (authctxt->deferred) {
+		pam_recheck_user(ssh);
+		ret = 1;
+	} else
+		ret = do_pam_account();
 
 	if ((r = sshbuf_put_u32(m, ret)) != 0 ||
 	    (r = sshbuf_put_stringb(m, loginmsg)) != 0)

@@ -380,12 +380,20 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *packet_method,
 	int r, partial = 0;
 
 	if (authenticated) {
+		if (authctxt->postponed)
+			fatal("INTERNAL ERROR: authenticated and postponed");
+#ifdef USE_PAM
+		if (authctxt->deferred) {
+			if (!mm_do_pam_account())
+				fatal_f("re-check of deferred account failed");
+			authctxt->deferred = 0;
+			authctxt->valid = 1;
+		}
+#endif
 		if (!authctxt->valid) {
 			fatal("INTERNAL ERROR: authenticated invalid user %s",
 			    authctxt->user);
 		}
-		if (authctxt->postponed)
-			fatal("INTERNAL ERROR: authenticated and postponed");
 		/* prefer primary authmethod name to possible synonym */
 		if ((m = authmethod_byname(method)) == NULL)
 			fatal("INTERNAL ERROR: bad method %s", method);
