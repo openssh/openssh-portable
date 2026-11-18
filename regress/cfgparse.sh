@@ -21,6 +21,22 @@ verbose "reparse regress config"
  $SUDO ${SSHD} -T -f $OBJ/sshd_config.1 >$OBJ/sshd_config.2 &&
  diff $OBJ/sshd_config.1 $OBJ/sshd_config.2) || fail "reparse regress config"
 
+if grep -qi '^usepam ' $OBJ/sshd_config.2; then
+	verbose "scope PAMDeferUnknownUsers by login name"
+	cat > $OBJ/sshd_config.1 <<EOD
+${SSHD_KEYS}
+UsePAM yes
+PAMDeferUnknownUsers no
+Match User *@example.com
+    PAMDeferUnknownUsers yes
+EOD
+	for pair in user@example.com:yes user@example.net:no; do
+		$SUDO ${SSHD} -T -f $OBJ/sshd_config.1 -C user=${pair%:*} |
+		    grep -iq "^pamdeferunknownusers ${pair#*:}$" ||
+		    fail "PAMDeferUnknownUsers for ${pair%:*}"
+	done
+fi
+
 # Detect IPv6 support and if found, define variables for the needed
 # config lines.  This allows tests to also work on Portable platforms
 # lacking IPv6 support without having diffs that make syncs harder.

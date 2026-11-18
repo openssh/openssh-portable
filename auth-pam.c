@@ -904,7 +904,8 @@ sshpam_query(void *ctx, char **name, char **info,
 			/* FALLTHROUGH */
 		case PAM_SUCCESS:
 			if (type == PAM_SUCCESS) {
-				if (!sshpam_authctxt->valid ||
+				if ((!sshpam_authctxt->valid &&
+				    !sshpam_authctxt->deferred) ||
 				    (sshpam_authctxt->pw->pw_uid == 0 &&
 				    options.permit_root_login != PERMIT_YES))
 					fatal("Internal error: PAM auth "
@@ -981,7 +982,7 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 	}
 	if ((buffer = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
-	if (sshpam_authctxt->valid &&
+	if ((sshpam_authctxt->valid || sshpam_authctxt->deferred) &&
 	    (sshpam_authctxt->pw->pw_uid != 0 ||
 	    options.permit_root_login == PERMIT_YES)) {
 		if ((r = sshbuf_put_cstring(buffer, *resp)) != 0)
@@ -1270,8 +1271,8 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 	 * by PermitRootLogin, use an invalid password to prevent leaking
 	 * information via timing (eg if the PAM config has a delay on fail).
 	 */
-	if (!authctxt->valid || (authctxt->pw->pw_uid == 0 &&
-	    options.permit_root_login != PERMIT_YES))
+	if ((!authctxt->valid && !authctxt->deferred) ||
+	    (authctxt->pw->pw_uid == 0 && options.permit_root_login != PERMIT_YES))
 		sshpam_password = fake = fake_password(password);
 
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
@@ -1289,7 +1290,7 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 		sshpam_err = check_pam_user(authctxt);
 	if (sshpam_err == PAM_MAXTRIES)
 		sshpam_set_maxtries_reached(1);
-	if (sshpam_err == PAM_SUCCESS && authctxt->valid) {
+	if (sshpam_err == PAM_SUCCESS && (authctxt->valid || authctxt->deferred)) {
 		debug("PAM: password authentication accepted for %.100s",
 		    authctxt->user);
 		return 1;

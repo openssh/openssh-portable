@@ -330,6 +330,7 @@ mm_decode_activate_server_options(struct ssh *ssh, struct sshbuf *m)
 struct passwd *
 mm_getpwnamallow(struct ssh *ssh, const char *username)
 {
+	Authctxt *authctxt = ssh->authctxt;
 	struct sshbuf *m;
 	struct passwd *pw;
 	size_t len;
@@ -351,7 +352,8 @@ mm_getpwnamallow(struct ssh *ssh, const char *username)
 
 	if ((r = sshbuf_get_u8(m, &ok)) != 0)
 		fatal_fr(r, "parse success");
-	if (ok == 0) {
+	if (ok != 1) {
+		authctxt->deferred = ok == MM_PWNAM_DEFERRED;
 		pw = NULL;
 		goto out;
 	}

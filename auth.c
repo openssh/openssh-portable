@@ -456,8 +456,22 @@ check_key_in_hostfiles(struct passwd *pw, struct sshkey *key, const char *host,
 	return host_status;
 }
 
+void
+auth_invalid_user(struct ssh *ssh, const char *user)
+{
+	logit("Invalid user %.100s from %.100s port %d",
+	    user, ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
+#ifdef CUSTOM_FAILED_LOGIN
+	record_failed_login(ssh, user,
+	    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
+#endif
+#ifdef SSH_AUDIT_EVENTS
+	audit_event(ssh, SSH_INVALID_USER);
+#endif
+}
+
 struct passwd *
-getpwnamallow(struct ssh *ssh, const char *user)
+getpwnamallow(struct ssh *ssh, const char *user, int *notfound)
 {
 #ifdef HAVE_LOGIN_CAP
 	extern login_cap_t *lc;
@@ -471,6 +485,9 @@ getpwnamallow(struct ssh *ssh, const char *user)
 	struct passwd *pw;
 	struct connection_info *ci;
 	u_int i;
+	int lookup_errno;
+
+	*notfound = 0;
 
 	ci = server_get_connection_info(ssh, 1, options.use_dns);
 	ci->user = user;
@@ -489,21 +506,19 @@ getpwnamallow(struct ssh *ssh, const char *user)
 	aix_setauthdb(user);
 #endif
 
+	errno = 0;
 	pw = getpwnam(user);
+	lookup_errno = errno;
 
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_restoreauthdb();
 #endif
+	if (pw == NULL && lookup_errno != 0) {
+		error_f("getpwnam for %.100s: %s", user, strerror(lookup_errno));
+		return (NULL);
+	}
 	if (pw == NULL) {
-		logit("Invalid user %.100s from %.100s port %d",
-		    user, ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-#ifdef CUSTOM_FAILED_LOGIN
-		record_failed_login(ssh, user,
-		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
-#endif
-#ifdef SSH_AUDIT_EVENTS
-		audit_event(ssh, SSH_INVALID_USER);
-#endif /* SSH_AUDIT_EVENTS */
+		*notfound = 1;
 		return (NULL);
 	}
 	if (!allowed_user(ssh, pw))

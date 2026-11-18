@@ -57,6 +57,7 @@ struct Authctxt {
 	int		 authenticated;	/* authenticated and alarms cancelled */
 	int		 postponed;	/* authentication needs another step */
 	int		 valid;		/* user exists and is allowed to login */
+	int		 deferred;	/* PAM may provision this user */
 	int		 attempt;
 	int		 failures;
 	int		 pk_ok_failures;
@@ -191,7 +192,8 @@ int	bsdauth_query(void *, char **, char **, u_int *, char ***, u_int **);
 int	bsdauth_respond(void *, u_int, char **);
 
 int	allowed_user(struct ssh *, struct passwd *);
-struct passwd * getpwnamallow(struct ssh *, const char *user);
+void	 auth_invalid_user(struct ssh *, const char *);
+struct passwd * getpwnamallow(struct ssh *, const char *, int *);
 
 char	*expand_authorized_keys(const char *, struct passwd *pw);
 char	*authorized_principals_file(struct passwd *);
