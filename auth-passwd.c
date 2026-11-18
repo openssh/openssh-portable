@@ -93,7 +93,8 @@ auth_password(struct ssh *ssh, const char *password)
 	if (pw->pw_uid == 0 && options.permit_root_login != PERMIT_YES)
 		ok = 0;
 #endif
-	if (*password == '\0' && options.permit_empty_passwd == 0)
+	if (*password == '\0' &&
+	    (options.permit_empty_passwd == 0 || authctxt->deferred))
 		return 0;
 
 #ifdef KRB5
@@ -120,7 +121,8 @@ auth_password(struct ssh *ssh, const char *password)
 #endif
 #ifdef USE_PAM
 	if (options.use_pam)
-		return (sshpam_auth_passwd(authctxt, password) && ok);
+		return (sshpam_auth_passwd(authctxt, password) &&
+		    (ok || authctxt->deferred));
 #endif
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	if (!expire_checked) {

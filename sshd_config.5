@@ -1458,9 +1458,14 @@ This allows a PAM module or name service module that creates accounts on
 their first login, such as one provided by a remote identity or directory
 service, to provision the account as part of authentication.
 .Pp
-Only PAM keyboard-interactive authentication can provision an account.
+PAM keyboard-interactive authentication can provision an account.
 The account must exist once that authentication, including PAM account
 management, has completed.
+With
+.Cm PasswordAuthentication ,
+PAM password authentication can also provision an account, as long as it is
+created during PAM authentication, before PAM account management.
+Empty passwords cannot be used to provision an account.
 .Pp
 If the effective server configuration changes after the user is created,
 the client must reconnect so authentication uses the new configuration

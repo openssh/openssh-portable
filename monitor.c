@@ -323,7 +323,8 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 
 #ifdef USE_PAM
 		if (authenticated && authctxt->deferred) {
-			if (ent->type != MONITOR_REQ_PAM_FREE_CTX ||
+			if ((ent->type != MONITOR_REQ_AUTHPASSWORD &&
+			    ent->type != MONITOR_REQ_PAM_FREE_CTX) ||
 			    authctxt->service == NULL ||
 			    strcmp(authctxt->service, "ssh-connection") != 0)
 				fatal_f("unexpected authentication for deferred user");
