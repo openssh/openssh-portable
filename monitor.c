@@ -846,7 +846,7 @@ int
 mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 {
 	struct passwd *pwent;
-	int r, allowed = 0;
+	int r, allowed = 0, notfound;
 
 	debug3_f("entering");
 
@@ -860,7 +860,7 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 	if ((r = sshbuf_get_cstring(m, &authctxt->user, NULL)) != 0)
 		fatal_fr(r, "parse");
 
-	pwent = getpwnamallow(ssh, authctxt->user);
+	pwent = getpwnamallow(ssh, authctxt->user, &notfound);
 
 	setproctitle("%s [priv]", pwent ? authctxt->user : "unknown");
 
