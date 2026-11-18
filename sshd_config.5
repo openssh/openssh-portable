@@ -1380,6 +1380,7 @@ Available keywords are
 .Cm LogLevel ,
 .Cm MaxAuthTries ,
 .Cm MaxSessions ,
+.Cm PAMDeferUnknownUsers ,
 .Cm PAMServiceName ,
 .Cm PasswordAuthentication ,
 .Cm PermitEmptyPasswords ,
@@ -1448,6 +1449,42 @@ and
 key exchange methods.
 The default is
 .Pa /etc/moduli .
+.It Cm PAMDeferUnknownUsers
+Controls whether
+.Xr sshd 8
+lets PAM authenticate usernames that are not yet present in the system
+user database.
+This allows a PAM module or name service module that creates accounts on
+their first login, such as one provided by a remote identity or directory
+service, to provision the account as part of authentication.
+.Pp
+Only PAM keyboard-interactive authentication can provision an account.
+The account must exist once that authentication, including PAM account
+management, has completed.
+.Pp
+If the effective server configuration changes after the user is created,
+the client must reconnect so authentication uses the new configuration
+from the start.
+Other methods, such as public key or host-based authentication, require the
+user to exist, so for a user created on its first login they can only be
+used after a PAM-based method, for example as a later method in
+.Cm AuthenticationMethods .
+.Pp
+This option has no effect unless
+.Cm UsePAM
+is enabled.
+.Pp
+It may be used in a
+.Cm Match
+block, for example to only defer usernames within a particular domain:
+.Bd -literal -offset indent
+PAMDeferUnknownUsers no
+Match User *@example.com
+    PAMDeferUnknownUsers yes
+.Ed
+.Pp
+The default is
+.Cm yes .
 .It Cm PAMServiceName
 Specifies the service name used for Pluggable Authentication Modules (PAM)
 authentication, authorisation and session controls when

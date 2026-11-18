@@ -1211,6 +1211,9 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 	case sUsePAM:
 		intptr = &options->use_pam;
 		goto parse_flag;
+	case sPAMDeferUnknownUsers:
+		intptr = &options->pam_defer_unknown_users;
+		goto parse_flag;
 	case sPAMServiceName:
 		charptr = &options->pam_service_name;
 		arg = argv_next(&ac, &av);
@@ -4329,6 +4332,7 @@ dump_config(ServerOptions *o)
 	/* integer arguments */
 #ifdef USE_PAM
 	dump_cfg_fmtint(sUsePAM, o->use_pam);
+	dump_cfg_fmtint(sPAMDeferUnknownUsers, o->pam_defer_unknown_users);
 	dump_cfg_string(sPAMServiceName, o->pam_service_name);
 #endif
 	dump_cfg_int(sLoginGraceTime, o->login_grace_time);
