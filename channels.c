@@ -1570,7 +1570,7 @@ static void
 channel_pre_mux_client(struct ssh *ssh, Channel *c)
 {
 	c->io_want = 0;
-	if (c->istate == CHAN_INPUT_OPEN && !c->mux_pause &&
+	if (c->istate == CHAN_INPUT_OPEN && c->mux_pause <= 1 &&
 	    sshbuf_check_reserve(c->input, CHAN_RBUF) == 0)
 		c->io_want |= SSH_CHAN_IO_RFD;
 	if (c->istate == CHAN_INPUT_WAIT_DRAIN) {
@@ -2604,8 +2604,19 @@ channel_post_mux_client_read(struct ssh *ssh, Channel *c)
 		return;
 	if (c->istate != CHAN_INPUT_OPEN && c->istate != CHAN_INPUT_WAIT_DRAIN)
 		return;
-	if (c->mux_pause)
+	if (c->mux_pause) {
+		char b;
+		ssize_t len = recv(c->rfd, &b, 1, MSG_PEEK);
+
+		if (len == -1 && (errno == EINTR || errno == EAGAIN ||
+		    errno == EWOULDBLOCK))
+			return;
+		if (len <= 0)
+			chan_read_failed(ssh, c);
+		else
+			c->mux_pause = 2;
 		return;
+	}
 
 	/*
 	 * Don't not read past the precise end of packets to

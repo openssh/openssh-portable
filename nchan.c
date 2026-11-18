@@ -312,7 +312,7 @@ chan_write_failed(struct ssh *ssh, Channel *c)
 	case CHAN_OUTPUT_OPEN:
 	case CHAN_OUTPUT_WAIT_DRAIN:
 		chan_shutdown_write(ssh, c);
-		if (strcmp(c->ctype, "session") == 0)
+		if (strcmp(c->ctype, "session") == 0 && c->have_remote_id)
 			chan_send_eow2(ssh, c);
 		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
