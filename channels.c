@@ -3880,7 +3880,7 @@ channel_set_af(struct ssh *ssh, int af)
  * "0.0.0.0"               -> wildcard v4/v6 if SSH_OLD_FORWARD_ADDR
  * "" (empty string), "*"  -> wildcard v4/v6
  * "localhost"             -> loopback v4/v6
- * "127.0.0.1" / "::1"     -> accepted even if gateway_ports isn't set
+ * "127.0.0.0/8" / "::1"   -> accepted even if gateway_ports isn't set
  */
 static const char *
 channel_fwd_bind_addr(struct ssh *ssh, const char *listen_addr, int *wildcardp,
@@ -3922,8 +3922,7 @@ channel_fwd_bind_addr(struct ssh *ssh, const char *listen_addr, int *wildcardp,
 			 */
 			addr = listen_addr;
 		}
-	} else if (strcmp(listen_addr, "127.0.0.1") == 0 ||
-	    strcmp(listen_addr, "::1") == 0) {
+	} else if (addr_match_cidr_list(listen_addr, "127.0.0.0/8,::1") == 1) {
 		/*
 		 * If a specific IPv4/IPv6 localhost address has been
 		 * requested then accept it even if gateway_ports is in
