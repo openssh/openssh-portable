@@ -1866,6 +1866,8 @@ client_request_agent(struct ssh *ssh, const char *request_type, int rchan)
 			debug_fr(r, "ssh_get_authentication_socket");
 		return NULL;
 	}
+	if ((r = ssh_agent_bind_hostname(sock, options.host_arg)) != 0)
+		debug2_fr(r, "ssh_agent_bind_hostname");
 	if ((r = ssh_agent_bind_hostkey(sock, ssh->kex->initial_hostkey,
 	    ssh->kex->session_id, ssh->kex->initial_sig, 1)) == 0)
 		debug_f("bound agent to hostkey");

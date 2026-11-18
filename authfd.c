@@ -745,6 +745,30 @@ ssh_remove_all_identities(int sock, int version)
 	return r;
 }
 
+/*
+ * Tells the agent the name of the host that the following
+ * ssh_agent_bind_hostkey() is for, for display in confirmation prompts.
+ */
+int
+ssh_agent_bind_hostname(int sock, const char *hostname)
+{
+	struct sshbuf *msg;
+	int r;
+
+	if (hostname == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if ((msg = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_put_u8(msg, SSH_AGENTC_EXTENSION)) != 0 ||
+	    (r = sshbuf_put_cstring(msg, "session-hostname@openssh.com")) != 0 ||
+	    (r = sshbuf_put_cstring(msg, hostname)) != 0)
+		goto out;
+	r = ssh_request_reply_decode(sock, msg);
+ out:
+	sshbuf_free(msg);
+	return r;
+}
+
 /* Binds a session ID to a hostkey via the initial KEX signature. */
 int
 ssh_agent_bind_hostkey(int sock, const struct sshkey *key,
