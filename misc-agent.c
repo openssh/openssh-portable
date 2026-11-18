@@ -440,9 +440,12 @@ agent_cleanup_stale(const char *pathspec, const char *username, uid_t uid,
 			continue;
 #endif
 		if (fstatat(dirfd(d), dp->d_name,
-		    &sb, AT_SYMLINK_NOFOLLOW) != 0 && errno != ENOENT) {
-			error_f("stat \"%s/%s\": %s",
-			    dir, dp->d_name, strerror(errno));
+		    &sb, AT_SYMLINK_NOFOLLOW) != 0) {
+			/* entry may have been removed since readdir */
+			if (errno != ENOENT) {
+				error_f("stat \"%s/%s\": %s",
+				    dir, dp->d_name, strerror(errno));
+			}
 			continue;
 		}
 		if (!S_ISSOCK(sb.st_mode))
