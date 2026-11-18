@@ -1812,32 +1812,47 @@ mm_answer_term(struct ssh *ssh, int sock, struct sshbuf *req)
 }
 
 #ifdef SSH_AUDIT_EVENTS
+#define MM_AUDIT_DETAIL_MAX	256
+
 /* Report that an audit event occurred */
 int
 mm_answer_audit_event(struct ssh *ssh, int socket, struct sshbuf *m)
 {
 	u_int n;
 	ssh_audit_event_t event;
+	char *detail = NULL;
 	int r;
 
 	debug3_f("entering");
 
-	if ((r = sshbuf_get_u32(m, &n)) != 0)
+	if ((r = sshbuf_get_u32(m, &n)) != 0 ||
+	    (r = sshbuf_get_cstring(m, &detail, NULL)) != 0)
 		fatal_fr(r, "buffer error");
+	/* The detail comes from the unprivileged child: bound its length. */
+	if (strlen(detail) > MM_AUDIT_DETAIL_MAX)
+		detail[MM_AUDIT_DETAIL_MAX] = '\0';
 	event = (ssh_audit_event_t)n;
 	switch (event) {
+	case SSH_AUTH_FAIL_NONE:
+	case SSH_AUTH_FAIL_PASSWD:
+	case SSH_AUTH_FAIL_KBDINT:
 	case SSH_AUTH_FAIL_PUBKEY:
 	case SSH_AUTH_FAIL_HOSTBASED:
 	case SSH_AUTH_FAIL_GSSAPI:
+	case SSH_AUDIT_UNKNOWN:
+	case SSH_NOLOGIN:
 	case SSH_LOGIN_EXCEED_MAXTRIES:
 	case SSH_LOGIN_ROOT_DENIED:
 	case SSH_CONNECTION_CLOSE:
 	case SSH_INVALID_USER:
-		audit_event(ssh, event);
+	case SSH_BAD_PCKT:
+	case SSH_CIPHER_NO_MATCH:
+		audit_event_detail(ssh, event, detail);
 		break;
 	default:
 		fatal("Audit event type %d not permitted", event);
 	}
+	free(detail);
 
 	return (0);
 }
