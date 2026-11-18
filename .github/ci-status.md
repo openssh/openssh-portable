@@ -32,9 +32,3 @@ master :
 [![C/C++ CI](../../../actions/workflows/c-cpp.yml/badge.svg?branch=V_10_2)](../../../actions/workflows/c-cpp.yml?query=branch:V_10_2)
 [![VM CI](../../../actions/workflows/vm.yml/badge.svg?branch=V_10_2)](../../../actions/workflows/vm.yml?query=branch:V_10_2)
 [![C/C++ CI self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml/badge.svg?branch=V_10_2)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml?query=branch:V_10_2)
-
-10.1 :
-[![C/C++ CI](../../../actions/workflows/c-cpp.yml/badge.svg?branch=V_10_1)](../../../actions/workflows/c-cpp.yml?query=branch:V_10_1)
-[![VM CI](../../../actions/workflows/vm.yml/badge.svg?branch=V_10_1)](../../../actions/workflows/vm.yml?query=branch:V_10_1)
-[![C/C++ CI self-hosted](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml/badge.svg?branch=V_10_1)](https://github.com/openssh/openssh-portable-selfhosted/actions/workflows/selfhosted.yml?query=branch:V_10_1)
-
