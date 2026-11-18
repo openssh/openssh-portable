@@ -302,6 +302,7 @@ clean:	regressclean
 	rm -f *.out core survey
 	rm -f regress/check-perm$(EXEEXT)
 	rm -f regress/mkdtemp$(EXEEXT)
+	rm -f regress/sockpipe$(EXEEXT)
 	rm -f regress/unittests/test_helper/*.a
 	rm -f regress/unittests/test_helper/*.o
 	rm -f regress/unittests/authopt/*.o
@@ -345,6 +346,7 @@ distclean:	regressclean
 	rm -rf autom4te.cache
 	rm -f regress/check-perm
 	rm -f regress/mkdtemp
+	rm -f regress/sockpipe
 	rm -f regress/unittests/test_helper/*.a
 	rm -f regress/unittests/test_helper/*.o
 	rm -f regress/unittests/authopt/*.o
@@ -586,6 +588,10 @@ regress/mkdtemp$(EXEEXT): $(srcdir)/regress/mkdtemp.c $(REGRESSLIBS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(srcdir)/regress/mkdtemp.c \
 	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(TESTLIBS)
 
+regress/sockpipe$(EXEEXT): $(srcdir)/regress/sockpipe.c $(REGRESSLIBS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(srcdir)/regress/sockpipe.c \
+	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(TESTLIBS)
+
 UNITTESTS_TEST_HELPER_OBJS=\
 	regress/unittests/test_helper/test_helper.o \
 	regress/unittests/test_helper/fuzz.o
@@ -725,7 +731,8 @@ UNITTESTS_TEST_MISC_OBJS=\
 	regress/unittests/misc/test_hpdelim.o \
 	regress/unittests/misc/test_ptimeout.o \
 	regress/unittests/misc/test_xextendf.o \
-	regress/unittests/misc/test_misc.o
+	regress/unittests/misc/test_misc.o \
+	$(P11OBJS) $(SKOBJS)
 
 regress/unittests/misc/test_misc$(EXEEXT): \
     ${UNITTESTS_TEST_MISC_OBJS} \
@@ -789,6 +796,7 @@ regress-binaries: regress-prep $(LIBCOMPAT) \
 	regress/netcat$(EXEEXT) \
 	regress/check-perm$(EXEEXT) \
 	regress/mkdtemp$(EXEEXT) \
+	regress/sockpipe$(EXEEXT) \
 	$(SK_DUMMY_LIBRARY)
 
 regress-unit-binaries: regress-prep $(REGRESSLIBS) \

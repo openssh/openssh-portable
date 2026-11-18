@@ -93,6 +93,47 @@ cp ${OBJ}/authorized_keys_${USER} ${OBJ}/authorized_keys_${USER}.bak
 check_lfwd Y "default configuration"
 check_rfwd Y "default configuration"
 
+# Check if 127.0.0.2 is bindable on this platform before testing 127.0.0.2 rfwd
+$NC -l 127.0.0.2 $RFWD_PORT </dev/null >/dev/null 2>&1 &
+_nc_pid=$!
+sleep 1
+_nc_bindable=0
+if kill -0 $_nc_pid 2>/dev/null; then
+	_nc_bindable=1
+	kill $_nc_pid 2>/dev/null
+fi
+wait $_nc_pid 2>/dev/null
+if test $_nc_bindable -eq 1; then
+	${SSH} -F $OBJ/ssh_proxy \
+	    -R127.0.0.2:$RFWD_PORT:127.0.0.1:$PORT \
+	    -o ExitOnForwardFailure=yes \
+	    -MS $CTL -o ControlPersist=yes \
+	    -Nf host
+	mux_cmd check >/dev/null
+	_result=$?
+	_sshpid=$(controlmaster_pid)
+	if test $_result -eq 0; then
+		${SSH} -F $OBJ/ssh_config -oHostName=127.0.0.2 -p $RFWD_PORT \
+		    -oConnectionAttempts=4 host true >/dev/null 2>&1
+		_res_127_0_0_2=$?
+		${SSH} -F $OBJ/ssh_config -oHostName=127.0.0.1 -p $RFWD_PORT \
+		    -oConnectionAttempts=1 host true >/dev/null 2>&1
+		_res_127_0_0_1=$?
+		mux_cmd exit >/dev/null
+		wait_for_process_to_exit $_sshpid
+		if test $_res_127_0_0_2 -ne 0; then
+			fail "check_rfwd 127.0.0.2 failed (expecting success)"
+		fi
+		if test $_res_127_0_0_1 -eq 0; then
+			fail "check_rfwd 127.0.0.2 bound to 127.0.0.1 instead"
+		fi
+	else
+		test -n "$_sshpid" && kill $_sshpid 2>/dev/null
+		rm -f $CTL
+		fail "check_rfwd 127.0.0.2 ssh master failed"
+	fi
+fi
+
 # Usage: lperm_tests yes|local|remote|no Y|N Y|N Y|N Y|N Y|N Y|N
 lperm_tests() {
 	_tcpfwd=$1
