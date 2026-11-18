@@ -304,6 +304,8 @@ input_userauth_request(int type, uint32_t seq, struct ssh *ssh)
 		authctxt->user = xstrdup(user);
 		authctxt->service = xstrdup(service);
 		authctxt->style = style ? xstrdup(style) : NULL;
+		if (strcmp(service, "ssh-connection") != 0)
+			authctxt->deferred = 0;
 		if (authctxt->pw && strcmp(service, "ssh-connection")==0) {
 			authctxt->valid = 1;
 			debug2_f("setting up authctxt for %s", user);

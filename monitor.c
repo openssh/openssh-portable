@@ -891,9 +891,14 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	if (pwent == NULL) {
 		invalid_user = 1;
+#ifdef USE_PAM
+		authctxt->deferred = notfound && options.use_pam &&
+		    options.pam_defer_unknown_users;
+#endif
 		if (notfound && !authctxt->deferred)
 			auth_invalid_user(ssh, authctxt->user);
-		if ((r = sshbuf_put_u8(m, 0)) != 0)
+		if ((r = sshbuf_put_u8(m,
+		    authctxt->deferred ? MM_PWNAM_DEFERRED : 0)) != 0)
 			fatal_fr(r, "assemble fakepw");
 		authctxt->pw = fakepw();
 		goto out;
@@ -1003,6 +1008,8 @@ mm_answer_authserv(struct ssh *ssh, int sock, struct sshbuf *m)
 	    (r = sshbuf_get_cstring(m, &authctxt->style, NULL)) != 0)
 		fatal_fr(r, "parse");
 	debug3_f("service=%s, style=%s", authctxt->service, authctxt->style);
+	if (strcmp(authctxt->service, "ssh-connection") != 0)
+		authctxt->deferred = 0;
 
 	if (strlen(authctxt->style) == 0) {
 		free(authctxt->style);
