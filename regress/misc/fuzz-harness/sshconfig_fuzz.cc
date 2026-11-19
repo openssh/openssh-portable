@@ -2,7 +2,7 @@
 // Covers readconf.c: process_config_line_depth() and related parsing logic.
 
 #include <sys/types.h>
-#include <stdio.h>
+#include <setjmp.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +27,16 @@ static struct passwd fuzz_pw;
 static char fuzz_username[] = "fuzzer";
 static char fuzz_home[] = "/tmp";
 static char fuzz_shell[] = "/bin/sh";
+static jmp_buf fuzz_env;
+static volatile int in_fuzz = 0;
+
+extern "C" void
+cleanup_exit(int code)
+{
+    if (in_fuzz)
+        longjmp(fuzz_env, code ? code : 1);
+    _exit(code);
+}
 
 static void init_pw(void) {
     fuzz_pw.pw_name = fuzz_username;
@@ -44,30 +54,30 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         initialized = 1;
     }
 
-    // Write fuzz input to a temp file (read_config_file requires a path)
-    char tmpfile[] = "/tmp/sshconfig_fuzz_XXXXXX";
-    int fd = mkstemp(tmpfile);
-    if (fd < 0)
-        return 0;
-
-    if (write(fd, data, size) != (ssize_t)size) {
-        close(fd);
-        unlink(tmpfile);
-        return 0;
-    }
-    close(fd);
-
     Options options;
-    initialize_options(&options);
+    char *line;
+    int active = 1;
+    int r;
 
-    // Process each line through the config parser
-    // Errors are intentional (fuzzing) — suppress but don't crash
-    read_config_file(tmpfile, &fuzz_pw, "fuzz.example.com", "fuzz.example.com",
-                     NULL, &options, 0, NULL);
+    initialize_options(&options);
+    line = static_cast<char *>(xmalloc(size + 1));
+    memcpy(line, data, size);
+    line[size] = '\0';
+
+    // Invalid configuration may return an error or call fatal().
+    in_fuzz = 1;
+    if (setjmp(fuzz_env) == 0) {
+        r = process_config_line(&options, &fuzz_pw, "fuzz.example.com",
+                                "fuzz.example.com", NULL, line, "<fuzz>", 1,
+                                &active, 0);
+    } else {
+        r = -1;
+    }
+    in_fuzz = 0;
 
     // Clean up allocated options
     // (options cleanup is intentionally omitted; leak sanitizer disabled for fuzzing)
 
-    unlink(tmpfile);
-    return 0;
+    free(line);
+    return r == 0 ? 0 : -1;
 }

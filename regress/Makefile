@@ -44,6 +44,7 @@ LTESTS= 	connect \
 		yes-head \
 		login-timeout \
 		agent \
+		agent-identity-fingerprint \
 		agent-getpeereid \
 		agent-timeout \
 		agent-ptrace \
@@ -129,7 +130,7 @@ EXTRA_TESTS=	agent-pkcs11
 #EXTRA_TESTS+= 	cipher-speed
 
 USERNAME=		${LOGNAME}
-CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
+CLEANFILES=	*.core actual agent-fp* ssh_proxy_fp sshd_proxy_fp agent-key.* authorized_keys_${USERNAME} \
 		authorized_keys_${USERNAME}.* \
 		authorized_principals_${USERNAME} \
 		banner.in banner.out cert_host_key* cert_user_key* \
