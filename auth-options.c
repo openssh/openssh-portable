@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.104 2026/10/30 00:58:02 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.105 2026/11/20 22:52:55 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -610,8 +610,8 @@ sshauthopt_merge(const struct sshauthopt *primary,
 	/* Earliest expiry time should win */
 	if (primary->valid_before != 0)
 		ret->valid_before = primary->valid_before;
-	if (additional->valid_before != 0 &&
-	    additional->valid_before < ret->valid_before)
+	if (additional->valid_before != 0 && (ret->valid_before == 0 ||
+	    additional->valid_before < ret->valid_before))
 		ret->valid_before = additional->valid_before;
 
 	/*
