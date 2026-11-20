@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.7 2026/09/16 04:56:12 djm Exp $ */
+/* 	$OpenBSD: tests.c,v 1.8 2026/11/20 22:53:47 djm Exp $ */
 
 /*
  * Regress test for keys options functions.
@@ -102,6 +102,7 @@ compare_opts(const struct sshauthopt *opts,
 	FLAG_EQ(restricted);
 	FLAG_EQ(cert_authority);
 #undef FLAG_EQ
+	ASSERT_U64_EQ(opts->valid_before, expected->valid_before);
 
 #define STR_EQ(x) \
 	do { \
@@ -560,6 +561,46 @@ test_merge(void)
 	expected = default_authkey_opts();
 	expected->env = commasplit("foo=a,bar=b", &expected->nenv);
 	CHECK_SUCCESS_AND_CLEANUP();
+	TEST_DONE();
+
+	PREPARE("expiry-time primary only", "all_permit",
+	    "expiry-time=\"20300101\"");
+	expected = default_authkey_opts();
+	expected->valid_before = key_opts->valid_before;
+	ASSERT_U64_NE(expected->valid_before, 0);
+	CHECK_SUCCESS_AND_CLEANUP();
+	TEST_DONE();
+
+	TEST_START("sshauthopt_merge expiry-time additional only");
+	key_opts = default_authkey_opts();
+	cert_opts = sshauthopt_parse("expiry-time=\"20300101\"", &errstr);
+	ASSERT_PTR_NE(cert_opts, NULL);
+	merge_opts = sshauthopt_merge(key_opts, cert_opts, &errstr);
+	expected = default_authkey_opts();
+	expected->valid_before = cert_opts->valid_before;
+	compare_opts(merge_opts, expected);
+	sshauthopt_free(expected);
+	sshauthopt_free(merge_opts);
+	sshauthopt_free(key_opts);
+	sshauthopt_free(cert_opts);
+	TEST_DONE();
+
+	TEST_START("sshauthopt_merge expiry-time earliest wins");
+	key_opts = sshauthopt_parse("expiry-time=\"20310101\"", &errstr);
+	ASSERT_PTR_NE(key_opts, NULL);
+	cert_opts = sshauthopt_parse("expiry-time=\"20300101\"", &errstr);
+	ASSERT_PTR_NE(cert_opts, NULL);
+	merge_opts = sshauthopt_merge(key_opts, cert_opts, &errstr);
+	expected = default_authkey_opts();
+	expected->valid_before = cert_opts->valid_before;
+	compare_opts(merge_opts, expected);
+	sshauthopt_free(merge_opts);
+	merge_opts = sshauthopt_merge(cert_opts, key_opts, &errstr);
+	compare_opts(merge_opts, expected);
+	sshauthopt_free(expected);
+	sshauthopt_free(merge_opts);
+	sshauthopt_free(key_opts);
+	sshauthopt_free(cert_opts);
 	TEST_DONE();
 }
 
