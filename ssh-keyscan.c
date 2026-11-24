@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.173 2026/10/30 07:46:41 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.174 2026/11/24 23:59:37 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -102,6 +102,7 @@ typedef struct Connection {
 	u_char c_status;	/* State of connection on this file desc. */
 #define CS_UNUSED 0		/* File descriptor unused */
 #define CS_CON 1		/* Waiting to connect/read greeting */
+#define CS_KEX 2		/* Key exchange in progress */
 	int c_fd;		/* Quick lookup: c->c_fd == c - fdcon */
 	int c_keytype;		/* Only one of KT_* */
 	sig_atomic_t c_done;	/* SSH2 done */
@@ -300,11 +301,8 @@ keygrab_ssh2(con *c)
 	c->c_ssh->kex->kex[KEX_KEM_MLKEM768X25519_SHA256] = kex_gen_client;
 	c->c_ssh->kex->kex[KEX_KEM_MLKEM768ECDH_SHA256] = kex_gen_client;
 	ssh_set_verify_host_key_callback(c->c_ssh, key_print_wrapper);
-	/*
-	 * do the key-exchange until an error occurs or until
-	 * the key_print_wrapper() callback sets c_done.
-	 */
-	ssh_dispatch_run(c->c_ssh, DISPATCH_BLOCK, &c->c_done);
+	/* The key exchange itself is driven from the event loop by conkex() */
+	c->c_status = CS_KEX;
 }
 
 static void
@@ -481,6 +479,37 @@ conrecycle(int s)
 	return (ret);
 }
 
+/*
+ * Advance the key exchange as far as possible without blocking, so that
+ * the event loop retains control of connection timeouts.  This continues
+ * until an error occurs or until the key_print_wrapper() callback aborts
+ * the key exchange.
+ */
+static void
+conkex(int s)
+{
+	con *c = &fdcon[s];
+	int r;
+
+	if ((r = ssh_packet_process_read(c->c_ssh, s)) != 0 &&
+	    (r != SSH_ERR_SYSTEM_ERROR || (errno != EAGAIN &&
+	    errno != EWOULDBLOCK && errno != EINTR))) {
+		debug_f("%s: read: %s", c->c_name, ssh_err(r));
+		confree(s);
+		return;
+	}
+	if ((r = ssh_dispatch_run(c->c_ssh, DISPATCH_NONBLOCK,
+	    &c->c_done)) != 0 ||
+	    (r = ssh_packet_write_poll(c->c_ssh)) != 0) {
+		debug_f("%s: %s", c->c_name, ssh_err(r));
+		confree(s);
+		return;
+	}
+	read_wait[s].events = POLLIN;
+	if (ssh_packet_have_data_to_write(c->c_ssh))
+		read_wait[s].events |= POLLOUT;
+}
+
 static void
 congreet(int s)
 {
@@ -577,7 +606,7 @@ congreet(int s)
 		    c->c_name, ssh_port, chop(buf));
 	}
 	keygrab_ssh2(c);
-	confree(s);
+	conkex(s);
 }
 
 static void
@@ -585,10 +614,16 @@ conread(int s)
 {
 	con *c = &fdcon[s];
 
-	if (c->c_status != CS_CON)
+	switch (c->c_status) {
+	case CS_CON:
+		congreet(s);
+		break;
+	case CS_KEX:
+		conkex(s);
+		break;
+	default:
 		fatal("conread: invalid status %d", c->c_status);
-
-	congreet(s);
+	}
 }
 
 static void
@@ -615,7 +650,7 @@ conloop(void)
 	for (i = 0; i < maxfd; i++) {
 		if (read_wait[i].revents & (POLLHUP|POLLERR|POLLNVAL))
 			confree(i);
-		else if (read_wait[i].revents & (POLLIN))
+		else if (read_wait[i].revents & (POLLIN|POLLOUT))
 			conread(i);
 	}
 
