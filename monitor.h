@@ -70,6 +70,9 @@ enum monitor_reqtype {
 struct ssh;
 struct sshbuf;
 
+/* A third result in MONITOR_ANS_PWNAM, alongside 0 and 1. */
+#define MM_PWNAM_DEFERRED 2
+
 struct monitor {
 	int			 m_recvfd;
 	int			 m_sendfd;

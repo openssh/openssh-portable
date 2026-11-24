@@ -123,7 +123,7 @@ int mm_answer_state(struct ssh *, int, struct sshbuf *);
 
 #ifdef USE_PAM
 int mm_answer_pam_start(struct ssh *, int, struct sshbuf *);
-int mm_answer_pam_account(struct ssh *, int, struct sshbuf *);
+static int mm_answer_pam_account(struct ssh *, int, struct sshbuf *);
 int mm_answer_pam_init_ctx(struct ssh *, int, struct sshbuf *);
 int mm_answer_pam_query(struct ssh *, int, struct sshbuf *);
 int mm_answer_pam_respond(struct ssh *, int, struct sshbuf *);
@@ -159,6 +159,9 @@ static pid_t monitor_child_pid;
 static int auth_attempted = 0;
 static int invalid_user = 0;
 static int compat_set = 0;
+#ifdef USE_PAM
+static struct sshbuf *pre_match_options, *initial_options;
+#endif
 
 struct mon_table {
 	enum monitor_reqtype type;
@@ -192,7 +195,6 @@ struct mon_table mon_dispatch_proto20[] = {
     {MONITOR_REQ_AUTHPASSWORD, MON_AUTH, mm_answer_authpassword},
 #ifdef USE_PAM
     {MONITOR_REQ_PAM_START, MON_ONCE, mm_answer_pam_start},
-    {MONITOR_REQ_PAM_ACCOUNT, 0, mm_answer_pam_account},
     {MONITOR_REQ_PAM_INIT_CTX, MON_ONCE, mm_answer_pam_init_ctx},
     {MONITOR_REQ_PAM_QUERY, 0, mm_answer_pam_query},
     {MONITOR_REQ_PAM_RESPOND, MON_ONCE, mm_answer_pam_respond},
@@ -262,6 +264,22 @@ monitor_permit_authentications(int permit)
 	}
 }
 
+#ifdef USE_PAM
+static int
+monitor_pam_account(struct ssh *ssh, struct monitor *pmonitor)
+{
+	struct sshbuf *m;
+	int ret;
+
+	if ((m = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	mm_request_receive_expect(pmonitor->m_sendfd, MONITOR_REQ_PAM_ACCOUNT, m);
+	ret = mm_answer_pam_account(ssh, pmonitor->m_sendfd, m);
+	sshbuf_free(m);
+	return ret;
+}
+#endif
+
 void
 monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 {
@@ -303,6 +321,17 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 		if ((ent->flags & MON_AUTH) != 0)
 			auth_attempted = 1;
 
+#ifdef USE_PAM
+		if (authenticated && authctxt->deferred) {
+			if ((ent->type != MONITOR_REQ_AUTHPASSWORD &&
+			    ent->type != MONITOR_REQ_PAM_FREE_CTX) ||
+			    authctxt->service == NULL ||
+			    strcmp(authctxt->service, "ssh-connection") != 0)
+				fatal_f("unexpected authentication for deferred user");
+			authenticated = monitor_pam_account(ssh, pmonitor);
+		}
+#endif
+
 		/* Special handling for multiple required authentications */
 		if (options.num_auth_methods != 0) {
 			if (authenticated &&
@@ -323,18 +352,8 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 				authenticated = 0;
 #ifdef USE_PAM
 			/* PAM needs to perform account checks after auth */
-			if (options.use_pam && authenticated) {
-				struct sshbuf *m;
-
-				if ((m = sshbuf_new()) == NULL)
-					fatal("%s: sshbuf_new failed",
-					    __func__);
-				mm_request_receive_expect(pmonitor->m_sendfd,
-				    MONITOR_REQ_PAM_ACCOUNT, m);
-				authenticated = mm_answer_pam_account(
-				    ssh, pmonitor->m_sendfd, m);
-				sshbuf_free(m);
-			}
+			if (options.use_pam && authenticated)
+				authenticated = monitor_pam_account(ssh, pmonitor);
 #endif
 		}
 		if (ent->flags & (MON_AUTHDECIDE|MON_ALOG)) {
@@ -846,7 +865,7 @@ int
 mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 {
 	struct passwd *pwent;
-	int r, allowed = 0;
+	int r, allowed = 0, notfound;
 
 	debug3_f("entering");
 
@@ -860,7 +879,12 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 	if ((r = sshbuf_get_cstring(m, &authctxt->user, NULL)) != 0)
 		fatal_fr(r, "parse");
 
-	pwent = getpwnamallow(ssh, authctxt->user);
+#ifdef USE_PAM
+	if (options.use_pam &&
+	    (r = serialise_server_options(&options, &pre_match_options)) != 0)
+		fatal_fr(r, "save configuration before Match");
+#endif
+	pwent = getpwnamallow(ssh, authctxt->user, &notfound);
 
 	setproctitle("%s [priv]", pwent ? authctxt->user : "unknown");
 
@@ -868,7 +892,14 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	if (pwent == NULL) {
 		invalid_user = 1;
-		if ((r = sshbuf_put_u8(m, 0)) != 0)
+#ifdef USE_PAM
+		authctxt->deferred = notfound && options.use_pam &&
+		    options.pam_defer_unknown_users;
+#endif
+		if (notfound && !authctxt->deferred)
+			auth_invalid_user(ssh, authctxt->user);
+		if ((r = sshbuf_put_u8(m,
+		    authctxt->deferred ? MM_PWNAM_DEFERRED : 0)) != 0)
 			fatal_fr(r, "assemble fakepw");
 		authctxt->pw = fakepw();
 		goto out;
@@ -916,6 +947,16 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	/* Send active options to unpriv */
 	mm_encode_server_options(m);
+
+#ifdef USE_PAM
+	if (authctxt->deferred) {
+		if ((r = serialise_server_options(&options, &initial_options)) != 0)
+			fatal_fr(r, "save initial configuration");
+	} else {
+		sshbuf_free(pre_match_options);
+		pre_match_options = NULL;
+	}
+#endif
 
 	/* Create valid auth method lists */
 	if (auth2_setup_methods_lists(authctxt) != 0) {
@@ -968,6 +1009,8 @@ mm_answer_authserv(struct ssh *ssh, int sock, struct sshbuf *m)
 	    (r = sshbuf_get_cstring(m, &authctxt->style, NULL)) != 0)
 		fatal_fr(r, "parse");
 	debug3_f("service=%s, style=%s", authctxt->service, authctxt->style);
+	if (strcmp(authctxt->service, "ssh-connection") != 0)
+		authctxt->deferred = 0;
 
 	if (strlen(authctxt->style) == 0) {
 		free(authctxt->style);
@@ -1147,14 +1190,64 @@ mm_answer_pam_start(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	start_pam(ssh);
 
-	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_ACCOUNT, 1);
 	if (options.kbd_interactive_authentication)
 		monitor_permit(mon_dispatch, MONITOR_REQ_PAM_INIT_CTX, 1);
 
 	return (0);
 }
 
-int
+static void
+pam_recheck_user(struct ssh *ssh)
+{
+	ServerOptions active = options;
+	struct sshbuf *resolved;
+	struct passwd *pw;
+	int r, notfound;
+
+	/* Resolve Match without inheriting the invalid-user settings. */
+	initialize_server_options(&options);
+	if ((r = deserialise_server_options(pre_match_options, &options)) != 0)
+		fatal_fr(r, "restore configuration before Match");
+	pw = getpwnamallow(ssh, authctxt->user, &notfound);
+	authctxt->deferred = notfound;
+	if (options.refuse_connection) {
+		logit("administratively prohibited connection for %.100s "
+		    "from %.128s port %d", authctxt->user, ssh_remote_ipaddr(ssh),
+		    ssh_remote_port(ssh));
+		cleanup_exit(EXIT_CONFIG_REFUSED);
+	}
+	if (pw == NULL)
+		fatal_f("deferred user %.100s not permitted after PAM",
+		    authctxt->user);
+	/* Match must not have been resolved for an invalid user. */
+	if (server_get_connection_info(ssh, 0, 0)->user_invalid)
+		fatal_f("inconsistent lookup for deferred user %.100s",
+		    authctxt->user);
+	if ((r = serialise_server_options(&options, &resolved)) != 0)
+		fatal_fr(r, "save resolved configuration");
+	if (sshbuf_equals(initial_options, resolved) != 0)
+		fatal_f("configuration changed for deferred user %.100s; "
+		    "reconnect to apply it", authctxt->user);
+	sshbuf_free(resolved);
+	sshbuf_free(pre_match_options);
+	sshbuf_free(initial_options);
+	pre_match_options = initial_options = NULL;
+	free_server_options(&options);
+	options = active;
+
+	if (pw->pw_uid == 0 && !auth_root_allowed(ssh, auth_method)) {
+#ifdef SSH_AUDIT_EVENTS
+		audit_event(ssh, SSH_LOGIN_ROOT_DENIED);
+#endif
+		pwfree(pw);
+		cleanup_exit(255);
+	}
+	authctxt->pw = pw;
+	authctxt->valid = 1;
+	invalid_user = 0;
+}
+
+static int
 mm_answer_pam_account(struct ssh *ssh, int sock, struct sshbuf *m)
 {
 	u_int ret;
@@ -1163,7 +1256,11 @@ mm_answer_pam_account(struct ssh *ssh, int sock, struct sshbuf *m)
 	if (!options.use_pam)
 		fatal_f("PAM not enabled");
 
-	ret = do_pam_account();
+	if (authctxt->deferred) {
+		pam_recheck_user(ssh);
+		ret = 1;
+	} else
+		ret = do_pam_account();
 
 	if ((r = sshbuf_put_u32(m, ret)) != 0 ||
 	    (r = sshbuf_put_stringb(m, loginmsg)) != 0)
