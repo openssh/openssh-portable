@@ -3167,7 +3167,13 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 		 * usually suboptimal compared to head-drop. Better to have
 		 * backpressure at read time? (i.e. read + discard)
 		 */
-		if (plen > c->remote_window || plen > c->remote_maxpacket) {
+		/*
+		 * The peer charges the window for the datagram plus its
+		 * 4-byte length header (see channel_input_data()), so we
+		 * must account for it in the same way.
+		 */
+		if (plen + 4 > c->remote_window ||
+		    plen + 4 > c->remote_maxpacket) {
 			debug("channel %d: datagram too big", c->self);
 			return 0;
 		}
@@ -3177,7 +3183,7 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 		    (r = sshpkt_put_string(ssh, pkt, plen)) != 0 ||
 		    (r = sshpkt_send(ssh)) != 0)
 			fatal_fr(r, "channel %i: send datagram", c->self);
-		c->remote_window -= plen;
+		c->remote_window -= plen + 4;
 		return 1;
 	}
 
