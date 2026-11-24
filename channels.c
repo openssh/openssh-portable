@@ -2392,9 +2392,14 @@ channel_handle_wfd(struct ssh *ssh, Channel *c)
 		/* ignore truncated writes, datagrams might get lost */
 		len = write(c->wfd, buf, dlen);
 		free(data);
+		/*
+		 * The datagram has already been removed from c->output, so it
+		 * is dropped on EAGAIN too; account for it as consumed so the
+		 * window is not leaked.
+		 */
 		if (len == -1 && (errno == EINTR || errno == EAGAIN ||
 		    errno == EWOULDBLOCK))
-			return 1;
+			goto out;
 		if (len <= 0)
 			goto write_fail;
 		goto out;
