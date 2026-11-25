@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.429 2026/10/30 09:00:39 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.430 2026/11/25 08:26:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -689,6 +689,8 @@ client_wait_until_can_do_something(struct ssh *ssh, struct pollfd **pfdp,
 	struct timespec timeout;
 	int ret, oready;
 	u_int p;
+	uint64_t ibytes;
+	static uint64_t last_ibytes;
 
 	*conn_in_readyp = *conn_out_readyp = 0;
 
@@ -724,8 +726,19 @@ client_wait_until_can_do_something(struct ssh *ssh, struct pollfd **pfdp,
 	set_control_persist_exit_time(ssh);
 	if (control_persist_exit_time > 0)
 		ptimeout_deadline_monotime(&timeout, control_persist_exit_time);
-	if (options.server_alive_interval > 0)
+	if (options.server_alive_interval > 0) {
+		/*
+		 * Only count complete packets that passed their MAC check
+		 * as having heard from the server; raw data on the socket
+		 * is unauthenticated and could have come from anyone.
+		 */
+		ssh_packet_get_bytes(ssh, &ibytes, NULL);
+		if (ibytes != last_ibytes) {
+			schedule_server_alive_check();
+			last_ibytes = ibytes;
+		}
 		ptimeout_deadline_monotime(&timeout, server_alive_time);
+	}
 	if (options.rekey_interval > 0 && !ssh_packet_is_rekeying(ssh)) {
 		ptimeout_deadline_sec(&timeout,
 		    ssh_packet_get_rekey_timeout(ssh));
@@ -797,7 +810,6 @@ client_process_net_input(struct ssh *ssh)
 	 * Read input from the server, and add any such data to the buffer of
 	 * the packet subsystem.
 	 */
-	schedule_server_alive_check();
 	if ((r = ssh_packet_process_read(ssh, connection_in)) == 0)
 		return; /* success */
 	if (r == SSH_ERR_SYSTEM_ERROR) {

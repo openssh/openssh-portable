@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.250 2026/10/30 05:16:48 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.251 2026/11/25 08:26:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -158,6 +158,8 @@ wait_until_can_do_something(struct ssh *ssh,
 	int client_alive_scheduled = 0;
 	u_int p;
 	time_t now;
+	uint64_t ibytes;
+	static uint64_t last_ibytes;
 	static time_t last_client_time, unused_connection_expiry;
 
 	*conn_in_readyp = *conn_out_readyp = 0;
@@ -197,11 +199,19 @@ wait_until_can_do_something(struct ssh *ssh,
 	 * analysis more difficult, but we're not doing it yet.
 	 */
 	if (options.client_alive_interval) {
-		/* Time we last heard from the client OR sent a keepalive */
-		if (last_client_time == 0)
+		/*
+		 * Time we last heard from the client OR sent a keepalive.
+		 * Only count complete packets that passed their MAC check
+		 * as having heard from the client; raw data on the socket
+		 * is unauthenticated and could have come from anyone.
+		 */
+		ssh_packet_get_bytes(ssh, &ibytes, NULL);
+		if (last_client_time == 0 || ibytes != last_ibytes) {
 			last_client_time = now;
-		ptimeout_deadline_sec(&timeout, options.client_alive_interval);
-		/* XXX ? deadline_monotime(last_client_time + alive_interval) */
+			last_ibytes = ibytes;
+		}
+		ptimeout_deadline_monotime(&timeout,
+		    last_client_time + options.client_alive_interval);
 		client_alive_scheduled = 1;
 	}
 
@@ -238,16 +248,14 @@ wait_until_can_do_something(struct ssh *ssh,
 
 	now = monotime(); /* need to reset after ppoll() */
 	/* ClientAliveInterval probing */
-	if (client_alive_scheduled) {
-		if (ret == 0 &&
-		    now >= last_client_time + options.client_alive_interval) {
-			/* ppoll timed out and we're due to probe */
-			client_alive_check(ssh);
-			last_client_time = now;
-		} else if (ret != 0 && *conn_in_readyp) {
-			/* Data from peer; reset probe timer. */
-			last_client_time = now;
-		}
+	if (client_alive_scheduled && !*conn_in_readyp &&
+	    now >= last_client_time + options.client_alive_interval) {
+		/*
+		 * We're due to probe. We can't rely on the ppoll timing out
+		 * since activity on channels can keep waking it up.
+		 */
+		client_alive_check(ssh);
+		last_client_time = now;
 	}
 
 	/* UnusedConnectionTimeout handling */
