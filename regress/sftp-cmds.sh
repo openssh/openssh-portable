@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.23 2025/10/13 00:55:45 djm Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.24 2026/11/25 23:01:06 djm Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -58,6 +58,14 @@ printf "lcd ${OBJ}\nlls\n" | sftpserver_with_stdout | \
 verbose "$tid: lls w/path"
 echo "lls ${OBJ}" | sftpserver_with_stdout | \
 	grep copy.dd >/dev/null || fail "lls w/path failed"
+
+verbose "$tid: lls w/glob"
+echo "lls -d ${OBJ}/cop*.dd" | sftpserver_with_stdout | \
+	grep copy.dd >/dev/null || fail "lls w/glob failed"
+
+verbose "$tid: lls shell metacharacters"
+echo "lls \"\$(touch ${COPY}.1)\"" | sftpserver
+test -f ${COPY}.1 && fail "lls passed arguments to shell"
 
 verbose "$tid: ls"
 echo "ls ${OBJ}" | sftpserver || fail "ls failed"
