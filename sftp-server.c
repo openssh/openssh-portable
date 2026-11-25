@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.156 2026/07/01 00:52:23 dtucker Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.157 2026/11/25 07:07:26 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1816,7 +1816,8 @@ process_extended(uint32_t id)
 
 /* stolen from ssh-agent */
 
-static void
+/* Returns 1 if a request was consumed from iqueue, 0 if none was complete */
+static int
 process(void)
 {
 	u_int msg_len;
@@ -1829,7 +1830,7 @@ process(void)
 
 	buf_len = sshbuf_len(iqueue);
 	if (buf_len < 5)
-		return;		/* Incomplete message. */
+		return 0;	/* Incomplete message. */
 	cp = sshbuf_ptr(iqueue);
 	msg_len = get_u32(cp);
 	if (msg_len > SFTP_MAX_MSG_LENGTH) {
@@ -1838,7 +1839,7 @@ process(void)
 		sftp_server_cleanup_exit(11);
 	}
 	if (buf_len < msg_len + 4)
-		return;
+		return 0;
 	if ((r = sshbuf_consume(iqueue, 4)) != 0)
 		fatal_fr(r, "consume");
 	buf_len -= 4;
@@ -1873,8 +1874,10 @@ process(void)
 				break;
 			}
 		}
-		if (handlers[i].handler == NULL)
+		if (handlers[i].handler == NULL) {
 			error("Unknown message %u", type);
+			send_status(id, SSH2_FX_OP_UNSUPPORTED);
+		}
 	}
 	/* discard the remaining bytes from the current packet */
 	if (buf_len < sshbuf_len(iqueue)) {
@@ -1889,6 +1892,7 @@ process(void)
 	if (msg_len > consumed &&
 	    (r = sshbuf_consume(iqueue, msg_len - consumed)) != 0)
 		fatal_fr(r, "consume");
+	return 1;
 }
 
 /* Cleanup handler that logs active handles upon normal exit */
@@ -2116,12 +2120,20 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		/*
 		 * Process requests from client if we can fit the results
 		 * into the output buffer, otherwise stop processing input
-		 * and let the output queue drain.
+		 * and let the output queue drain. Handle every complete
+		 * request already in iqueue rather than relying on a queued
+		 * reply to wake poll() for the next one, otherwise a request
+		 * that produces no reply would leave the rest waiting for an
+		 * event that never comes.
 		 */
-		r = sshbuf_check_reserve(oqueue, SFTP_MAX_MSG_LENGTH);
-		if (r == 0)
-			process();
-		else if (r != SSH_ERR_NO_BUFFER_SPACE)
-			fatal_fr(r, "reserve");
+		for (;;) {
+			r = sshbuf_check_reserve(oqueue, SFTP_MAX_MSG_LENGTH);
+			if (r == SSH_ERR_NO_BUFFER_SPACE)
+				break;
+			else if (r != 0)
+				fatal_fr(r, "reserve");
+			if (!process())
+				break;
+		}
 	}
 }
