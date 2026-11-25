@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkeyfile.c,v 1.8 2026/04/02 07:48:13 djm Exp $ */
+/* $OpenBSD: auth2-pubkeyfile.c,v 1.9 2026/11/25 21:16:04 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -52,6 +52,39 @@
 #include "ssherr.h"
 #include "xmalloc.h"
 
+/*
+ * The files processed here may be under the user's control and are read in
+ * full for every key a client offers, before it has proven possession of
+ * any. Rate-limit the messages logged about individual lines so that the
+ * contents of a file can't be used to flood the log. Returns the level at
+ * which a message usually logged at "level" should be logged now.
+ */
+static LogLevel
+ratelimited_loglevel(LogLevel level)
+{
+	static struct log_ratelimit_ctx ratelimit;
+	static int init_done, warned;
+	int ratelimited;
+	u_int ndropped = 0;
+
+	if (!init_done) {
+		init_done = 1;
+		log_ratelimit_init(&ratelimit, 16, 60, 30, 2*60);
+	}
+	ratelimited = log_ratelimit(&ratelimit, time(NULL), NULL, &ndropped);
+	if (ratelimited && !warned) {
+		/* Process is per-connection; it may not live to log periodically */
+		warned = 1;
+		logit("authorized keys/principals logging rate-limited: "
+		    "further messages logged at debug level");
+	}
+	if (ndropped != 0) {
+		logit("authorized keys/principals logging rate-limited: "
+		    "additional %u messages dropped", ndropped);
+	}
+	return ratelimited ? SYSLOG_LEVEL_DEBUG1 : level;
+}
+
 int
 auth_authorise_keyopts(struct passwd *pw, struct sshauthopt *opts,
     int allow_cert_authority, const char *remote_ip, const char *remote_host,
@@ -99,7 +132,8 @@ auth_authorise_keyopts(struct passwd *pw, struct sshauthopt *opts,
 			auth_debug_add("%s: invalid from criteria", loc);
 			/* FALLTHROUGH */
 		case 0:
-			logit("%s: Authentication tried for %.100s with "
+			do_log2(ratelimited_loglevel(SYSLOG_LEVEL_INFO),
+			    "%s: Authentication tried for %.100s with "
 			    "correct key but not from a permitted "
 			    "host (host=%.200s, ip=%.200s, required=%.200s).",
 			    loc, pw->pw_name, remote_host, remote_ip,
@@ -121,10 +155,12 @@ auth_authorise_keyopts(struct passwd *pw, struct sshauthopt *opts,
 		case -1:
 		default:
 			/* invalid */
-			error("%s: Certificate source-address invalid", loc);
+			do_log2(ratelimited_loglevel(SYSLOG_LEVEL_ERROR),
+			    "%s: Certificate source-address invalid", loc);
 			/* FALLTHROUGH */
 		case 0:
-			logit("%s: Authentication tried for %.100s with valid "
+			do_log2(ratelimited_loglevel(SYSLOG_LEVEL_INFO),
+			    "%s: Authentication tried for %.100s with valid "
 			    "certificate but not from a permitted source "
 			    "address (%.200s).", loc, pw->pw_name, remote_ip);
 			auth_debug_add("%s: Your address '%.200s' is not "
@@ -391,7 +427,8 @@ auth_check_authkey_line(struct passwd *pw, struct sshkey *key,
 	goto out;
 
  cert_fail_reason:
-	error("Refusing certificate ID \"%s\" serial=%llu "
+	do_log2(ratelimited_loglevel(SYSLOG_LEVEL_ERROR),
+	    "Refusing certificate ID \"%s\" serial=%llu "
 	    "signed by %s CA %s via %s: %s", key->cert->key_id,
 	    (unsigned long long)key->cert->serial,
 	    sshkey_type(key->cert->signature_key), fp, loc, reason);
@@ -400,7 +437,7 @@ auth_check_authkey_line(struct passwd *pw, struct sshkey *key,
 	goto out;
 
  fail_reason:
-	error("%s at %s", reason, loc);
+	do_log2(ratelimited_loglevel(SYSLOG_LEVEL_ERROR), "%s at %s", reason, loc);
 	auth_debug_add("%s", reason);
  out:
 	free(fp);
