@@ -5556,7 +5556,7 @@ x11_request_forwarding_with_spoofing(struct ssh *ssh, int client_session_id,
 	}
 
 	/* Convert the fake data into hex. */
-	new_data = tohex(sc->x11_fake_data, data_len);
+	new_data = tohex(sc->x11_fake_data, sc->x11_fake_data_len);
 
 	/* Send the request packet. */
 	channel_request_start(ssh, client_session_id, "x11-req", want_reply);
