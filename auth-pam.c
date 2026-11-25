@@ -219,6 +219,8 @@ static int
 pthread_cancel(sp_pthread_t thread)
 {
 	ssh_signal(SIGCHLD, sshpam_oldsig);
+	if (sshpam_thread_status != -1)
+		return 0;
 	return (kill(thread, SIGTERM));
 }
 
