@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.51 2026/10/24 18:08:57 millert Exp $ */
+/*	$OpenBSD: glob.c,v 1.52 2026/11/25 15:20:50 millert Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -656,8 +656,6 @@ glob2(Char *pathbuf, Char *pathbuf_last, Char *pathend, Char *pathend_last,
 			if ((pglob->gl_flags & GLOB_LIMIT) &&
 			    limitp->glim_stat++ >= GLOB_LIMIT_STAT) {
 				errno = 0;
-				*pathend++ = SEP;
-				*pathend = EOS;
 				return(GLOB_NOSPACE);
 			}
 			if (g_lstat(pathbuf, &sb, pglob))
@@ -754,8 +752,6 @@ glob3(Char *pathbuf, Char *pathbuf_last, Char *pathend, Char *pathend_last,
 		if ((pglob->gl_flags & GLOB_LIMIT) &&
 		    limitp->glim_readdir++ >= GLOB_LIMIT_READDIR) {
 			errno = 0;
-			*pathend++ = SEP;
-			*pathend = EOS;
 			err = GLOB_NOSPACE;
 			break;
 		}
