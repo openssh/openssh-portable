@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.500 2026/10/30 08:23:58 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.501 2026/11/25 06:29:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1295,10 +1295,11 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
     int delete_host, int hash_hosts)
 {
 	char *cp, tmp[PATH_MAX], old[PATH_MAX];
-	int r, fd, oerrno, inplace = 0;
+	int r, fd, infd, oerrno, inplace;
 	struct known_hosts_ctx ctx;
 	u_int foreach_options;
 	struct stat sb;
+	FILE *in;
 
 	if (!have_identity) {
 		cp = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE, pw->pw_uid);
@@ -1308,8 +1309,26 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 		free(cp);
 		have_identity = 1;
 	}
-	if (stat(identity_file, &sb) != 0)
+
+	/*
+	 * Find hosts goes to stdout, hash and deletions happen in-place
+	 * A corner case is ssh-keygen -HF foo, which should go to stdout
+	 */
+	inplace = !find_host && (hash_hosts || delete_host);
+
+	/*
+	 * Open the file once and take both its mode and its contents from
+	 * that descriptor, so the permissions applied to the copy are those
+	 * of the file actually read.
+	 */
+	if ((infd = open(identity_file, O_RDONLY)) == -1)
+		fatal("Cannot open %s: %s", identity_file, strerror(errno));
+	if (fstat(infd, &sb) != 0)
 		fatal("Cannot stat %s: %s", identity_file, strerror(errno));
+	if (inplace && !S_ISREG(sb.st_mode))
+		fatal("%s is not a regular file", identity_file);
+	if ((in = fdopen(infd, "r")) == NULL)
+		fatal("fdopen: %s", strerror(errno));
 
 	memset(&ctx, 0, sizeof(ctx));
 	ctx.out = stdout;
@@ -1318,11 +1337,7 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 	ctx.find_host = find_host;
 	ctx.delete_host = delete_host;
 
-	/*
-	 * Find hosts goes to stdout, hash and deletions happen in-place
-	 * A corner case is ssh-keygen -HF foo, which should go to stdout
-	 */
-	if (!find_host && (hash_hosts || delete_host)) {
+	if (inplace) {
 		if (strlcpy(tmp, identity_file, sizeof(tmp)) >= sizeof(tmp) ||
 		    strlcat(tmp, ".XXXXXXXXXX", sizeof(tmp)) >= sizeof(tmp) ||
 		    strlcpy(old, identity_file, sizeof(old)) >= sizeof(old) ||
@@ -1336,25 +1351,33 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 			unlink(tmp);
 			fatal("fdopen: %s", strerror(oerrno));
 		}
-		(void)fchmod(fd, sb.st_mode & 0644);
-		inplace = 1;
 	}
 	/* XXX support identity_file == "-" for stdin */
 	foreach_options = find_host ? HKF_WANT_MATCH : 0;
 	foreach_options |= print_fingerprint ? HKF_WANT_PARSE_KEY : 0;
-	if ((r = hostkeys_foreach(identity_file, (find_host || !hash_hosts) ?
+	if ((r = hostkeys_foreach_file(identity_file, in,
+	    (find_host || !hash_hosts) ?
 	    known_hosts_find_delete : known_hosts_hash, &ctx, name, NULL,
 	    foreach_options, 0)) != 0) {
 		if (inplace)
 			unlink(tmp);
 		fatal_fr(r, "hostkeys_foreach");
 	}
+	fclose(in);
 
 	/* Don't replace the original with an incompletely-written copy */
-	if (inplace && (ferror(ctx.out) || fclose(ctx.out) != 0)) {
-		oerrno = errno;
-		unlink(tmp);
-		fatal("write %s: %s", tmp, strerror(oerrno));
+	if (inplace) {
+		/*
+		 * Keep the copy private unless it is about to replace the
+		 * original, in which case it inherits the original's mode.
+		 */
+		if (!ctx.invalid && (!delete_host || ctx.found_key))
+			(void)fchmod(fd, sb.st_mode & 0644);
+		if (ferror(ctx.out) || fclose(ctx.out) != 0) {
+			oerrno = errno;
+			unlink(tmp);
+			fatal("write %s: %s", tmp, strerror(oerrno));
+		}
 	}
 
 	if (ctx.invalid) {
