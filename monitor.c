@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.263 2026/10/30 04:52:11 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.264 2026/11/25 20:42:32 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -893,6 +893,7 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 		fatal_fr(r, "parse");
 
 	pwent = getpwnamallow(ssh, authctxt->user);
+	auth_attempted = 1;
 
 	setproctitle("%s [priv]", pwent ? authctxt->user : "unknown");
 

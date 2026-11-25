@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.27 2026/11/25 07:18:36 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.28 2026/11/25 20:42:32 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -1365,10 +1365,13 @@ cleanup_exit(int i)
 	if (the_active_state != NULL && mm_is_monitor())
 		audit_event(the_active_state, SSH_CONNECTION_ABANDON);
 #endif
-	/* Override default fatal exit value when auth was attempted */
-	if (i == 255 && monitor_auth_attempted())
-		_exit(EXIT_AUTH_ATTEMPTED);
+	/*
+	 * Override default fatal exit value when auth was attempted.
+	 * An invalid user takes precedence over a plain auth failure.
+	 */
 	if (i == 255 && monitor_invalid_user())
 		_exit(EXIT_INVALID_USER);
+	if (i == 255 && monitor_auth_attempted())
+		_exit(EXIT_AUTH_ATTEMPTED);
 	_exit(i);
-}
+ }
