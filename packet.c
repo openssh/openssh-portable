@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.350 2026/10/31 03:29:22 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.351 2026/11/25 06:57:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -89,6 +89,7 @@
 #include "sshbuf.h"
 #include "version.h"
 #include "utf8.h"
+#include "ssh.h"
 
 #ifdef PACKET_DEBUG
 #define DBG(x) x
@@ -227,6 +228,9 @@ struct session_state {
 
 	/* Set to permanently poison this connection instance */
 	int poisoned;
+
+	/* Number of packets of unsupported type recevied in preauth */
+	int nunimpl_packets;
 
 	/* Hook for fuzzing inbound packets */
 	ssh_packet_hook_fn *hook_in;
@@ -3008,6 +3012,21 @@ sshpkt_protocol_error(struct ssh *ssh, const char *fmt,...)
 		return r;
 	ssh->state->poisoned = 1;
 	return SSH_ERR_PROTOCOL_ERROR;
+}
+
+/*
+ * Record reception of an unknown packet type.
+ * We limit these in preauth to avoid logspam.
+ */
+int
+sshpkt_record_unimplemented(struct ssh *ssh, int type, uint32_t seq)
+{
+	if (ssh == NULL || ssh->state == NULL ||
+	    ssh->state->after_authentication || !ssh->state->server_side)
+		return 0;
+	if (++ssh->state->nunimpl_packets < SSH_MAX_PREAUTH_UNIMPL_MESSAGES)
+		return 0;
+	return sshpkt_protocol_error(ssh, "too many unknown packets");
 }
 
 /* roundup current message to pad bytes */

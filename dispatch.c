@@ -1,4 +1,4 @@
-/* $OpenBSD: dispatch.c,v 1.35 2026/03/03 09:57:25 dtucker Exp $ */
+/* $OpenBSD: dispatch.c,v 1.36 2026/11/25 06:57:05 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -42,7 +42,8 @@ dispatch_protocol_error(int type, uint32_t seq, struct ssh *ssh)
 	int r;
 
 	logit_f("type %d seq %u", type, seq);
-	if ((r = sshpkt_start(ssh, SSH2_MSG_UNIMPLEMENTED)) != 0 ||
+	if ((r = sshpkt_record_unimplemented(ssh, type, seq)) != 0 ||
+	    (r = sshpkt_start(ssh, SSH2_MSG_UNIMPLEMENTED)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, seq)) != 0 ||
 	    (r = sshpkt_send(ssh)) != 0 ||
 	    (r = ssh_packet_write_wait(ssh)) != 0)

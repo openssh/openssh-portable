@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.198 2026/10/30 04:36:21 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.199 2026/11/25 06:57:05 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -239,7 +239,8 @@ kex_protocol_error(int type, uint32_t seq, struct ssh *ssh)
 		    "unexpected packet type %u (seqnr %u)", type, seq);
 	}
 	error_f("type %u seq %u", type, seq);
-	if ((r = sshpkt_start(ssh, SSH2_MSG_UNIMPLEMENTED)) != 0 ||
+	if ((r = sshpkt_record_unimplemented(ssh, type, seq)) != 0 ||
+	    (r = sshpkt_start(ssh, SSH2_MSG_UNIMPLEMENTED)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, seq)) != 0 ||
 	    (r = sshpkt_send(ssh)) != 0)
 		return r;

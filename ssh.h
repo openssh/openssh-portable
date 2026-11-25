@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.h,v 1.91 2024/09/25 23:01:39 jsg Exp $ */
+/* $OpenBSD: ssh.h,v 1.92 2026/11/25 06:57:05 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -91,3 +91,7 @@
 /* Limits for banner exchange */
 #define SSH_MAX_BANNER_LEN		8192
 #define SSH_MAX_PRE_BANNER_LINES	1024
+
+/* Other preauth limits */
+#define SSH_MAX_PREAUTH_UNIMPL_MESSAGES	32
+
