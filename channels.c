@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.479 2026/11/25 08:31:58 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.480 2026/11/25 21:53:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -44,6 +44,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <sys/resource.h>
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/queue.h>
@@ -85,6 +86,10 @@
 
 /* -- agent forwarding */
 #define	NUM_SOCKS	10
+
+/* -- forwarded connections */
+/* Number of file descriptors that forwarded connections must leave free */
+#define CHANNEL_RESERVED_FDS	32
 
 /* -- X11 forwarding */
 /* X11 port for display :0 */
@@ -1987,6 +1992,37 @@ channel_before_prepare_io_rdynamic(struct ssh *ssh, Channel *c)
 	}
 }
 
+/*
+ * Forwarded connections are initiated by parties that we don't necessarily
+ * trust (e.g. anyone who can reach a listener) and may stay open for as long
+ * as they please, so don't let them exhaust the file descriptors of this
+ * process: some must remain available for things like the mux listener,
+ * new sessions and their fds. As descriptors are allocated lowest-first,
+ * it is sufficient to refuse those that fall in the reserved range at the
+ * top. Takes the result of accept(2)/socket(2) and returns it unchanged
+ * unless it is such a descriptor, in which case it is closed and -1 is
+ * returned with errno set as if the limit had been reached.
+ */
+static int
+channel_fwd_fd(int fd)
+{
+	long maxfd = -1;
+#ifdef RLIMIT_NOFILE
+	struct rlimit rlim;
+
+	if (getrlimit(RLIMIT_NOFILE, &rlim) == 0 &&
+	    rlim.rlim_cur != RLIM_INFINITY && rlim.rlim_cur <= LONG_MAX)
+		maxfd = (long)rlim.rlim_cur;
+#endif
+	if (fd == -1 || maxfd <= CHANNEL_RESERVED_FDS ||
+	    fd < maxfd - CHANNEL_RESERVED_FDS)
+		return fd;
+	debug2_f("fd %d in reserved range (limit %ld), refusing", fd, maxfd);
+	close(fd);
+	errno = EMFILE;
+	return -1;
+}
+
 /* This is our fake X11 server socket. */
 static void
 channel_post_x11_listener(struct ssh *ssh, Channel *c)
@@ -2002,7 +2038,8 @@ channel_post_x11_listener(struct ssh *ssh, Channel *c)
 
 	debug("X11 connection requested.");
 	addrlen = sizeof(addr);
-	newsock = accept(c->sock, (struct sockaddr *)&addr, &addrlen);
+	newsock = channel_fwd_fd(accept(c->sock, (struct sockaddr *)&addr,
+	    &addrlen));
 	if (c->single_connection) {
 		oerrno = errno;
 		debug2("single_connection: closing X11 listener.");
@@ -2140,7 +2177,8 @@ channel_post_port_listener(struct ssh *ssh, Channel *c)
 	}
 
 	addrlen = sizeof(addr);
-	newsock = accept(c->sock, (struct sockaddr *)&addr, &addrlen);
+	newsock = channel_fwd_fd(accept(c->sock, (struct sockaddr *)&addr,
+	    &addrlen));
 	if (newsock == -1) {
 		if (errno != EINTR && errno != EWOULDBLOCK &&
 		    errno != ECONNABORTED)
@@ -2181,7 +2219,8 @@ channel_post_auth_listener(struct ssh *ssh, Channel *c)
 		return;
 
 	addrlen = sizeof(addr);
-	newsock = accept(c->sock, (struct sockaddr *)&addr, &addrlen);
+	newsock = channel_fwd_fd(accept(c->sock, (struct sockaddr *)&addr,
+	    &addrlen));
 	if (newsock == -1) {
 		error("accept from auth socket: %.100s", strerror(errno));
 		if (errno == EMFILE || errno == ENFILE)
@@ -4845,8 +4884,8 @@ connect_next(struct ssh *ssh, struct channel_connect *cctx)
 		}
 		debug_f("start for host %.100s ([%.100s]:%s)",
 		    cctx->host, ntop, strport);
-		if ((sock = socket(cctx->ai->ai_family, cctx->ai->ai_socktype,
-		    cctx->ai->ai_protocol)) == -1) {
+		if ((sock = channel_fwd_fd(socket(cctx->ai->ai_family,
+		    cctx->ai->ai_socktype, cctx->ai->ai_protocol))) == -1) {
 			if (cctx->ai->ai_next == NULL)
 				error("socket: %.100s", strerror(errno));
 			else
@@ -5336,8 +5375,7 @@ connect_local_xsocket_path(const char *pathname)
 	int sock;
 	struct sockaddr_un addr;
 
-	sock = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sock == -1) {
+	if ((sock = channel_fwd_fd(socket(AF_UNIX, SOCK_STREAM, 0))) == -1) {
 		error("socket: %.100s", strerror(errno));
 		return -1;
 	}
@@ -5480,7 +5518,8 @@ x11_connect_display(struct ssh *ssh)
 	}
 	for (ai = aitop; ai; ai = ai->ai_next) {
 		/* Create a socket. */
-		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+		sock = channel_fwd_fd(socket(ai->ai_family, ai->ai_socktype,
+		    ai->ai_protocol));
 		if (sock == -1) {
 			debug2("socket: %.100s", strerror(errno));
 			continue;
