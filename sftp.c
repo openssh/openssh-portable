@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.265 2026/11/25 07:11:03 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.266 2026/11/25 20:48:31 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2297,6 +2297,22 @@ complete(EditLine *el, int ch)
 }
 #endif /* USE_LIBEDIT */
 
+/*
+ * Returns nonzero if path can only refer to a directory, i.e. its final
+ * component is empty (trailing slash), "." or "..".
+ */
+static int
+path_must_be_dir(const char *path)
+{
+	const char *cp;
+
+	if ((cp = strrchr(path, '/')) == NULL)
+		cp = path;
+	else
+		cp++;
+	return *cp == '\0' || strcmp(cp, ".") == 0 || strcmp(cp, "..") == 0;
+}
+
 static int
 interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 {
@@ -2355,7 +2371,13 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		dir = xstrdup(file1);
 		dir = sftp_make_absolute(dir, remote_path);
 
-		if (sftp_remote_is_dir(conn, dir) && file2 == NULL) {
+		/*
+		 * A path that cannot name a file (trailing slash, "." or
+		 * "..") is always treated as a directory regardless of what
+		 * the server says; "cd" will fail if it doesn't exist.
+		 */
+		if (file2 == NULL && (path_must_be_dir(file1) ||
+		    sftp_remote_is_dir(conn, dir))) {
 			if (!quiet)
 				mprintf("Changing to: %s\n", dir);
 			r = snprintf(cmd, sizeof cmd, "cd \"%s\"", dir);
