@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.278 2026/10/01 07:10:56 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.279 2026/11/25 20:02:49 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1302,7 +1302,8 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 static char *
 prepare_remote_path(struct sftp_conn *conn, const char *path)
 {
-	size_t nslash;
+	char *user, *home, *ret;
+	size_t nslash, ulen;
 
 	/* Handle ~ prefixed paths */
 	if (*path == '\0' || strcmp(path, "~") == 0)
@@ -1314,12 +1315,50 @@ prepare_remote_path(struct sftp_conn *conn, const char *path)
 			return xstrdup(".");
 		return xstrdup(path + 2 + nslash);
 	}
-	if (sftp_can_expand_path(conn))
-		return sftp_expand_path(conn, path);
-	/* No protocol extension */
-	error("server expand-path extension is required "
-	    "for ~user paths in SFTP mode");
-	return NULL;
+	if (!sftp_can_expand_path(conn)) {
+		/* No protocol extension */
+		error("server expand-path extension is required "
+		    "for ~user paths in SFTP mode");
+		return NULL;
+	}
+	/*
+	 * Only have the server expand the ~user prefix and append the rest
+	 * of the path locally, so that the server's reply cannot change
+	 * the components that the user requested.
+	 */
+	ulen = strcspn(path, "/");
+	user = xstrdup(path);
+	user[ulen] = '\0';
+	home = sftp_expand_path(conn, user);
+	free(user);
+	if (home == NULL)
+		return NULL;
+	path += ulen;
+	path += strspn(path, "/");
+	if (*path == '\0')
+		return home;
+	ret = sftp_path_append(home, path);
+	free(home);
+	return ret;
+}
+
+/*
+ * The expansion of a path that consists of nothing but a ~user prefix is
+ * chosen entirely by the server, so its last component can't be trusted to
+ * name the destination. Returns the user name for such paths, else NULL.
+ */
+static char *
+remote_path_user_only(const char *path)
+{
+	char *user;
+	size_t len;
+
+	if (*path != '~' || (len = strcspn(path + 1, "/")) == 0 ||
+	    strspn(path + 1 + len, "/") != strlen(path + 1 + len))
+		return NULL;
+	user = xstrdup(path + 1);
+	user[len] = '\0';
+	return user;
 }
 
 void
@@ -1546,7 +1585,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	char *abs_src = NULL;
 	char *abs_dst = NULL;
 	glob_t g;
-	char *filename, *tmp = NULL;
+	char *filename, *tmp = NULL, *user = NULL;
 	int i, r, err = 0, dst_is_dir;
 	struct stat st;
 
@@ -1560,6 +1599,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 		err = -1;
 		goto out;
 	}
+	user = remote_path_user_only(src);
 
 	debug3_f("copying remote %s to local %s", abs_src, dst);
 	if ((r = sftp_glob(conn, abs_src, GLOB_NOCHECK|GLOB_MARK,
@@ -1614,6 +1654,10 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 			goto out;
 		}
 
+		/* Name the destination after what the user asked for */
+		if (user != NULL)
+			filename = user;
+
 		/* Special handling for destination of '..' */
 		if (strcmp(filename, "..") == 0)
 			filename = "."; /* Download to dest, not dest/.. */
@@ -1642,6 +1686,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 out:
 	free(abs_src);
 	free(tmp);
+	free(user);
 	globfree(&g);
 	if (err == -1)
 		errs = 1;
@@ -1991,7 +2036,7 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
     char *src, char *targ)
 {
 	char *target = NULL, *filename = NULL, *abs_dst = NULL;
-	char *abs_src = NULL, *tmp = NULL;
+	char *abs_src = NULL, *tmp = NULL, *user = NULL;
 	glob_t g;
 	int i, r, targetisdir, err = 0;
 
@@ -2001,6 +2046,7 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 	if ((abs_src = prepare_remote_path(from, src)) == NULL ||
 	    (target = prepare_remote_path(to, targ)) == NULL)
 		cleanup_exit(255);
+	user = remote_path_user_only(src);
 	memset(&g, 0, sizeof(g));
 
 	targetisdir = sftp_remote_is_dir(to, target);
@@ -2043,6 +2089,10 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 			goto out;
 		}
 
+		/* Name the destination after what the user asked for */
+		if (user != NULL)
+			filename = user;
+
 		/* Special handling for source of '..' */
 		if (strcmp(filename, "..") == 0)
 			filename = "."; /* Download to dest, not dest/.. */
@@ -2073,6 +2123,7 @@ out:
 	free(abs_dst);
 	free(target);
 	free(tmp);
+	free(user);
 	globfree(&g);
 	if (err == -1)
 		errs = 1;
