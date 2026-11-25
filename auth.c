@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.166 2026/10/30 04:39:16 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.167 2026/11/25 21:16:32 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -83,6 +83,7 @@ extern struct sshauthopt *auth_opts;
 
 /* Debugging messages */
 static struct sshbuf *auth_debug;
+#define AUTH_DEBUG_MAX	(64 * 1024)	/* max bytes of messages to retain */
 
 /*
  * Check if the user is allowed to log in via ssh. If user is listed
@@ -597,9 +598,14 @@ auth_debug_add(const char *fmt,...)
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 	debug3("%s", buf);
-	if (auth_debug != NULL)
-		if ((r = sshbuf_put_cstring(auth_debug, buf)) != 0)
-			fatal_fr(r, "sshbuf_put_cstring");
+	/*
+	 * Messages accumulate until authentication succeeds and many
+	 * originate from user-controlled files, so bound their total size.
+	 */
+	if (auth_debug == NULL || sshbuf_len(auth_debug) >= AUTH_DEBUG_MAX)
+		return;
+	if ((r = sshbuf_put_cstring(auth_debug, buf)) != 0)
+		fatal_fr(r, "sshbuf_put_cstring");
 }
 
 void
