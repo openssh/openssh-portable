@@ -122,8 +122,6 @@ int mm_answer_term(struct ssh *, int, struct sshbuf *);
 int mm_answer_state(struct ssh *, int, struct sshbuf *);
 
 #ifdef USE_PAM
-int mm_answer_pam_start(struct ssh *, int, struct sshbuf *);
-int mm_answer_pam_account(struct ssh *, int, struct sshbuf *);
 int mm_answer_pam_init_ctx(struct ssh *, int, struct sshbuf *);
 int mm_answer_pam_query(struct ssh *, int, struct sshbuf *);
 int mm_answer_pam_respond(struct ssh *, int, struct sshbuf *);
@@ -191,8 +189,6 @@ struct mon_table mon_dispatch_proto20[] = {
     {MONITOR_REQ_AUTH2_READ_BANNER, MON_ONCE, mm_answer_auth2_read_banner},
     {MONITOR_REQ_AUTHPASSWORD, MON_AUTH, mm_answer_authpassword},
 #ifdef USE_PAM
-    {MONITOR_REQ_PAM_START, MON_ONCE, mm_answer_pam_start},
-    {MONITOR_REQ_PAM_ACCOUNT, 0, mm_answer_pam_account},
     {MONITOR_REQ_PAM_INIT_CTX, MON_ONCE, mm_answer_pam_init_ctx},
     {MONITOR_REQ_PAM_QUERY, 0, mm_answer_pam_query},
     {MONITOR_REQ_PAM_RESPOND, MON_ONCE, mm_answer_pam_respond},
@@ -262,11 +258,38 @@ monitor_permit_authentications(int permit)
 	}
 }
 
+#ifdef USE_PAM
+static int
+monitor_pam_account(struct ssh *ssh, struct monitor *pmonitor)
+{
+	struct sshbuf *m;
+	u_int ret;
+	int r;
+
+	if (!options.use_pam)
+		fatal_f("PAM not enabled");
+	if ((m = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	mm_request_receive_expect(pmonitor->m_sendfd,
+	    MONITOR_REQ_PAM_ACCOUNT, m);
+	if ((ret = do_pam_account()) > INT_MAX)
+		fatal_f("do_pam_account bad return %u", ret);
+	if ((r = sshbuf_put_u32(m, ret)) != 0 ||
+	    (r = sshbuf_put_stringb(m, loginmsg)) != 0)
+		fatal_fr(r, "buffer error");
+	sshbuf_reset(loginmsg);
+
+	mm_request_send(pmonitor->m_sendfd, MONITOR_ANS_PAM_ACCOUNT, m);
+	sshbuf_free(m);
+	return (int)ret;
+}
+#endif
+
 void
 monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 {
 	struct mon_table *ent;
-	int status, authenticated = 0, partial = 0;
+	int status, pam_account_failed = 0, authenticated = 0, partial = 0;
 
 	debug3("preauth child monitor started");
 
@@ -315,6 +338,10 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 		}
 
 		if (authenticated) {
+			if (pam_account_failed) {
+				fatal_f("authentication success after "
+				    "PAM account failure");
+			}
 			if (!(ent->flags & MON_AUTHDECIDE))
 				fatal_f("unexpected authentication from %d",
 				    ent->type);
@@ -322,18 +349,23 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 			    !auth_root_allowed(ssh, auth_method))
 				authenticated = 0;
 #ifdef USE_PAM
-			/* PAM needs to perform account checks after auth */
-			if (options.use_pam && authenticated) {
-				struct sshbuf *m;
-
-				if ((m = sshbuf_new()) == NULL)
-					fatal("%s: sshbuf_new failed",
-					    __func__);
-				mm_request_receive_expect(pmonitor->m_sendfd,
-				    MONITOR_REQ_PAM_ACCOUNT, m);
-				authenticated = mm_answer_pam_account(
-				    ssh, pmonitor->m_sendfd, m);
-				sshbuf_free(m);
+			/*
+			 * If PAM is enabled and authentication was successful,
+			 * then the unpriv process is next expected to make a
+			 * MONITOR_REQ_PAM_ACCOUNT request. This can cancel
+			 * the successful authentication and return a reason
+			 * to the client.
+			 */
+			if (options.use_pam && authenticated &&
+			    !monitor_pam_account(ssh, pmonitor)) {
+				pam_account_failed = 1;
+				authenticated = 0;
+				/*
+				 * If the account check failed then the unpriv
+				 * process is expected to fatal() immediately
+				 * It will be prevented from circumventing
+				 * this by the pam_account_failed check above.
+				 */
 			}
 #endif
 		}
@@ -874,6 +906,11 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 		goto out;
 	}
 
+#ifdef USE_PAM
+	if (options.use_pam)
+		start_pam(ssh);
+#endif
+
 	allowed = 1;
 	authctxt->pw = pwent;
 	authctxt->valid = 1;
@@ -936,7 +973,7 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 
 #ifdef USE_PAM
 	if (options.use_pam)
-		monitor_permit(mon_dispatch, MONITOR_REQ_PAM_START, 1);
+		monitor_permit(mon_dispatch, MONITOR_REQ_PAM_INIT_CTX, 1);
 #endif
 
 	return (0);
@@ -1139,42 +1176,6 @@ mm_answer_bsdauthrespond(struct ssh *ssh, int sock, struct sshbuf *m)
 #endif
 
 #ifdef USE_PAM
-int
-mm_answer_pam_start(struct ssh *ssh, int sock, struct sshbuf *m)
-{
-	if (!options.use_pam)
-		fatal_f("UsePAM not set, but ended up in %s anyway", __func__);
-
-	start_pam(ssh);
-
-	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_ACCOUNT, 1);
-	if (options.kbd_interactive_authentication)
-		monitor_permit(mon_dispatch, MONITOR_REQ_PAM_INIT_CTX, 1);
-
-	return (0);
-}
-
-int
-mm_answer_pam_account(struct ssh *ssh, int sock, struct sshbuf *m)
-{
-	u_int ret;
-	int r;
-
-	if (!options.use_pam)
-		fatal_f("PAM not enabled");
-
-	ret = do_pam_account();
-
-	if ((r = sshbuf_put_u32(m, ret)) != 0 ||
-	    (r = sshbuf_put_stringb(m, loginmsg)) != 0)
-		fatal_fr(r, "buffer error");
-	sshbuf_reset(loginmsg);
-
-	mm_request_send(sock, MONITOR_ANS_PAM_ACCOUNT, m);
-
-	return (ret);
-}
-
 static void *sshpam_ctxt, *sshpam_authok;
 extern KbdintDevice sshpam_device;
 

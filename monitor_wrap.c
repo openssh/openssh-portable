@@ -704,21 +704,6 @@ mm_session_pty_cleanup2(Session *s)
 }
 
 #ifdef USE_PAM
-void
-mm_start_pam(struct ssh *ssh)
-{
-	struct sshbuf *m;
-
-	debug3_f("entering");
-	if (!options.use_pam)
-		fatal_f("UsePAM=no, but ended up in %s anyway", __func__);
-	if ((m = sshbuf_new()) == NULL)
-		fatal_f("sshbuf_new failed");
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_START, m);
-
-	sshbuf_free(m);
-}
-
 u_int
 mm_do_pam_account(void)
 {

@@ -315,10 +315,6 @@ input_userauth_request(int type, uint32_t seq, struct ssh *ssh)
 			mm_audit_event(ssh, SSH_INVALID_USER);
 #endif
 		}
-#ifdef USE_PAM
-		if (options.use_pam)
-			mm_start_pam(ssh);
-#endif
 		ssh_packet_set_log_preamble(ssh, "%suser %s",
 		    authctxt->valid ? "authenticating " : "invalid ", user);
 		setproctitle("%s [net]", authctxt->valid ? user : "unknown");
