@@ -92,6 +92,8 @@ aix_usrinfo(struct passwd *pw)
 }
 
 # ifdef WITH_AIXAUTHENTICATE
+void *login_state = 0;
+
 /*
  * Remove embedded newlines in string (if any).
  * Used before logging messages returned by AIX authentication functions
@@ -166,6 +168,46 @@ aix_valid_authentications(const char *user)
 }
 
 /*
+ * Check if the user's login restrictions permit a login attempt.
+ * This is called before each authentication attempt so that restrictions
+ * (such as maximum failed login attempts) are re-evaluated against the
+ * current state in the security database.
+ *
+ * Returns 1 if login is permitted, 0 if not.
+ */
+int
+check_loginrestrictions_name(char *name)
+{
+	char *msg = NULL;
+	int result, permitted = 0;
+
+	/*
+	 * Clear the login state to make sure we re-check the unsuccessful
+	 * login count for each login attempt.  If we don't clear the login
+	 * state, loginrestrictionsx() doesn't pick up the updated
+	 * unsuccessful login count after each loginfailed() call.
+	 */
+	if (login_state) {
+		free(login_state);
+		login_state = NULL;
+	}
+
+	result = loginrestrictionsx(name, 0, NULL, &msg, &login_state);
+
+	if (result == 0)
+		permitted = 1;
+	if (msg == NULL)
+		msg = xstrdup("(none)");
+	aix_remove_embedded_newlines(msg);
+	debug("AIX/loginrestrictions returned %d msg %.100s", result, msg);
+
+	if (!permitted)
+		logit("Login restricted for %s: %.100s", name, msg);
+	free(msg);
+	return permitted;
+}
+
+/*
  * Do authentication via AIX's authenticate routine.  We loop until the
  * reenter parameter is 0, but normally authenticate is called only once.
  *
@@ -179,16 +221,33 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 	char *authmsg = NULL, *msg = NULL, *name = ctxt->pw->pw_name;
 	int r, authsuccess = 0, expired, reenter, result;
 
+	/*
+	 * Before attempting authentication, check the user's login
+	 * restrictions to see if they have exceeded their maximum failed
+	 * login attempts.
+	 */
+	if (strcasecmp(ctxt->pw->pw_name, ctxt->user) == 0)
+		name = ctxt->user;
+	if (!check_loginrestrictions_name(name))
+		return 0;
+
 	do {
-		result = authenticate((char *)name, (char *)password, &reenter,
-		    &authmsg);
-		aix_remove_embedded_newlines(authmsg);
+		result = authenticatex((char *)name, (char *)password, &reenter,
+		    &authmsg, &login_state);
+		if (result == 0 && authmsg && *authmsg) {
+			if ((r = sshbuf_put(ctxt->loginmsg, authmsg,
+			    strlen(authmsg))) != 0)
+				fatal_f("%s", ssh_err(r));
+			aix_remove_embedded_newlines(authmsg);
+		}
 		debug3("AIX/authenticate result %d, authmsg %.100s", result,
 		    authmsg);
 	} while (reenter);
 
 	if (!aix_valid_authentications(name))
 		result = -1;
+
+	ctxt->pw = pwcopy(getpwnam(name));
 
 	if (result == 0) {
 		authsuccess = 1;
@@ -202,7 +261,7 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 		/*
 		 * Check if the user's password is expired.
 		 */
-		expired = passwdexpired(name, &msg);
+		expired = passwdexpiredx(name, &msg, &login_state);
 		if (msg && *msg) {
 			if ((r = sshbuf_put(ctxt->loginmsg,
 			    msg, strlen(msg))) != 0)
@@ -241,8 +300,10 @@ int
 sys_auth_allowed_user(struct passwd *pw, struct sshbuf *loginmsg)
 {
 	char *msg = NULL;
-	int r, result, permitted = 0;
+	int r, result, permitted = 0, locked;
 	struct stat st;
+
+	aix_setauthdb(pw->pw_name);
 
 	/*
 	 * Don't perform checks for root account (PermitRootLogin controls
@@ -254,7 +315,21 @@ sys_auth_allowed_user(struct passwd *pw, struct sshbuf *loginmsg)
 		return 1;
 	}
 
-	result = loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &msg);
+	/*
+	 * Check if the account is permanently locked before calling
+	 * loginrestrictionsx().  A locked account cannot log in under
+	 * any circumstances, and checking S_LOCKED first avoids creating
+	 * a login_state handle for an account that will never succeed.
+	 */
+	if (getuserattr(pw->pw_name, S_LOCKED, &locked, SEC_BOOL) == -1)
+		locked = 0;
+	if (locked) {
+		logit("Account locked for %s", pw->pw_name);
+		aix_restoreauthdb();
+		return 0;
+	}
+
+	result = loginrestrictionsx(pw->pw_name, 0, NULL, &msg, &login_state);
 	if (result == 0)
 		permitted = 1;
 	/*
@@ -276,6 +351,7 @@ sys_auth_allowed_user(struct passwd *pw, struct sshbuf *loginmsg)
 	if (!permitted)
 		logit("Login restricted for %s: %.100s", pw->pw_name, msg);
 	free(msg);
+	aix_restoreauthdb();
 	return permitted;
 }
 
