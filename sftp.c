@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.266 2026/11/25 20:48:31 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.267 2026/11/25 22:58:30 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -345,22 +345,6 @@ local_do_shell(const char *args)
 		error("Shell exited abnormally");
 	else if (WEXITSTATUS(status))
 		error("Shell exited with status %d", WEXITSTATUS(status));
-}
-
-static void
-local_do_ls(const char *args)
-{
-	if (!args || !*args)
-		local_do_shell(_PATH_LS);
-	else {
-		int len = strlen(_PATH_LS " ") + strlen(args) + 1;
-		char *buf = xmalloc(len);
-
-		/* XXX: quoting - rip quoting code from ftp? */
-		snprintf(buf, len, _PATH_LS " %s", args);
-		local_do_shell(buf);
-		free(buf);
-	}
 }
 
 /* Strip one path (usually the pwd) from the start of another */
@@ -1377,6 +1361,60 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 	}
 	*argcp = argc;
 	return argv;
+}
+
+/*
+ * Run ls(1) on the local system. The arguments use the same quoting and
+ * glob(3) rules as every other command (and so match what filename
+ * completion produces); they are never passed to a shell, which would
+ * interpret them differently.
+ */
+static void
+local_do_ls(const char *args)
+{
+	char **argv;
+	int i, j, argc, status;
+	arglist ls_args;
+	glob_t g;
+	pid_t pid;
+
+	if ((argv = makeargv(args, &argc, 0, NULL, NULL)) == NULL)
+		return;
+
+	memset(&ls_args, 0, sizeof(ls_args));
+	addargs(&ls_args, "%s", _PATH_LS);
+	for (i = 0; i < argc; i++) {
+		memset(&g, 0, sizeof(g));
+		/* GLOB_NOCHECK: options and non-matching words pass through */
+		if (glob(argv[i], GLOB_NOCHECK|GLOB_TILDE, NULL, &g) != 0) {
+			error("Couldn't expand \"%s\"", argv[i]);
+			globfree(&g);
+			freeargs(&ls_args);
+			return;
+		}
+		for (j = 0; g.gl_pathv[j] != NULL; j++)
+			addargs(&ls_args, "%s", g.gl_pathv[j]);
+		globfree(&g);
+	}
+
+	if ((pid = fork()) == -1)
+		fatal("Couldn't fork: %s", strerror(errno));
+
+	if (pid == 0) {
+		execvp(_PATH_LS, ls_args.list);
+		fprintf(stderr, "Couldn't execute \"%s\": %s\n", _PATH_LS,
+		    strerror(errno));
+		_exit(1);
+	}
+	freeargs(&ls_args);
+	while (waitpid(pid, &status, 0) == -1)
+		if (errno != EINTR)
+			fatal("Couldn't wait for child: %s", strerror(errno));
+	if (!WIFEXITED(status))
+		error("%s exited abnormally", _PATH_LS);
+	else if (WEXITSTATUS(status))
+		error("%s exited with status %d", _PATH_LS,
+		    WEXITSTATUS(status));
 }
 
 static int
