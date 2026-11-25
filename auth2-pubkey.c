@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.133 2026/10/30 09:04:01 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.134 2026/11/25 08:11:39 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -239,8 +239,7 @@ userauth_pubkey(struct ssh *ssh, const char *method)
 		authenticated = 0;
 		if (mm_user_key_allowed(ssh, pw, key, 1, &authopts) &&
 		    mm_sshkey_verify(key, sig, slen,
-		    sshbuf_ptr(b), sshbuf_len(b),
-		    (ssh->compat & SSH_BUG_SIGTYPE) == 0 ? pkalg : NULL,
+		    sshbuf_ptr(b), sshbuf_len(b), pkalg,
 		    ssh->compat, &sig_details) == 0) {
 			authenticated = 1;
 		}
