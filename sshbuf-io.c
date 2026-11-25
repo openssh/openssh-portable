@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-io.c,v 1.4 2026/07/05 00:16:21 djm Exp $ */
+/*	$OpenBSD: sshbuf-io.c,v 1.5 2026/11/25 21:02:17 djm Exp $ */
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -47,6 +47,9 @@ sshbuf_load_fd(int fd, struct sshbuf **blobp)
 		return SSH_ERR_INVALID_FORMAT;
 	if ((blob = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
+	if (S_ISREG(st.st_mode) && st.st_size > 0 &&
+	    (r = sshbuf_allocate(blob, st.st_size)) != 0)
+		goto out;
 	for (;;) {
 		if ((len = atomicio(read, fd, buf, sizeof(buf))) == 0) {
 			if (errno == EPIPE)
