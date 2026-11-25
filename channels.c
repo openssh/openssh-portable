@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.478 2026/10/30 07:30:52 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.479 2026/11/25 08:31:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1076,6 +1076,9 @@ channel_find_open(struct ssh *ssh)
 	for (i = 0; i < ssh->chanctxt->channels_alloc; i++) {
 		c = ssh->chanctxt->channels[i];
 		if (c == NULL || !c->have_remote_id)
+			continue;
+		/* peer will not reply to requests on a channel being closed */
+		if ((c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) != 0)
 			continue;
 		switch (c->type) {
 		case SSH_CHANNEL_CLOSED:
