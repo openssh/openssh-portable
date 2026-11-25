@@ -315,7 +315,14 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 			    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
 # endif
 # ifdef SSH_AUDIT_EVENTS
-		audit_event(ssh, audit_classify_auth(method));
+		/*
+		 * auditwrite() needs privilege: raise the event directly in
+		 * the monitor, but proxy it to the monitor from sshd-auth.
+		 */
+		if (mm_is_monitor())
+			audit_event(ssh, audit_classify_auth(method));
+		else
+			mm_audit_event(ssh, audit_classify_auth(method));
 # endif
 	}
 #endif

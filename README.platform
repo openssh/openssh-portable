@@ -39,6 +39,62 @@ instead the PermitRootLogin setting in sshd_config is used.
 If you are using the IBM compiler you probably want to use CC=xlc rather
 than the default of cc.
 
+If sshd is built with --with-audit=aix, selected sshd events are written to
+the AIX audit subsystem using auditwrite(3).  This is done by the privileged
+sshd-session process only.  The events must be registered, added to a class,
+and auditing must be running, otherwise they will not be recorded.
+
+1. Register the events in /etc/security/audit/events.  The message is a
+   single formatted string, so each event uses a printf "%s" format:
+
+	SSH_exceedmtrix = printf "%s"
+	SSH_rootdned = printf "%s"
+	SSH_authsuccess = printf "%s"
+	SSH_failnone = printf "%s"
+	SSH_failpasswd = printf "%s"
+	SSH_failkbdint = printf "%s"
+	SSH_failpubkey = printf "%s"
+	SSH_failhstbsd = printf "%s"
+	SSH_failgssapi = printf "%s"
+	SSH_invldusr = printf "%s"
+	SSH_nologin = printf "%s"
+	SSH_connclose = printf "%s"
+	SSH_connabndn = printf "%s"
+	SSH_badpckt = printf "%s"
+	SSH_cipmismatch = printf "%s"
+	SSH_sessionopn = printf "%s"
+	SSH_auditknwn = printf "%s"
+
+2. Add the events to a class in the "classes:" stanza of
+   /etc/security/audit/config, and add that class to each user to be audited
+   in the "users:" stanza (for example "root = general,sshaud"):
+
+	sshaud = SSH_exceedmtrix,SSH_rootdned,SSH_authsuccess,SSH_failnone,
+	    SSH_failpasswd,SSH_failkbdint,SSH_failpubkey,SSH_failhstbsd,
+	    SSH_failgssapi,SSH_invldusr,SSH_nologin,SSH_connclose,
+	    SSH_connabndn,SSH_badpckt,SSH_cipmismatch,SSH_sessionopn,
+	    SSH_auditknwn
+
+   The example is wrapped here to fit the page.  Write the class on a
+   single line in the configuration file, as it was when this was tested.
+
+3. Start auditing with "audit start" (restart it after changing the
+   configuration).
+
+4. Records can be viewed with, for example,
+   "auditstream -c sshaud | auditpr -v".  The verbose output shows the
+   message, which contains the user, remote address and port, and the
+   reason or authentication method.
+
+Notes:
+ - SSH_connclose is written when a user who has logged in disconnects.
+   SSH_connabndn is written only for connections that did not finish
+   authenticating.
+ - SSH_failnone is currently never written.
+ - SSH_nologin is written only when UsePAM is "no"; with PAM the nologin
+   check is done by PAM.
+ - SSH_sessionopn is written only for sessions that are allocated a tty.
+
 
 Cygwin
 ------
