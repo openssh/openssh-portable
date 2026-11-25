@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.264 2026/11/02 12:55:33 jsg Exp $ */
+/* $OpenBSD: sftp.c,v 1.265 2026/11/25 07:11:03 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2161,16 +2161,28 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 			ins[0] = '\\';
 			memcpy(ins + 1, tmp2 + i, clen);
 			ins[clen + 1] = '\0';
+			/*
+			 * Escape everything that makeargv() or glob(3) treat
+			 * specially: quotes, backslash, all isspace() chars,
+			 * comment and glob characters. Within a quoted
+			 * argument only the quote and backslash need it.
+			 */
 			switch (tmp2[i]) {
 			case '\'':
 			case '"':
 			case '\\':
 			case '\t':
+			case '\n':
+			case '\v':
+			case '\f':
+			case '\r':
 			case '[':
 			case ' ':
 			case '#':
 			case '*':
-				if (quote == '\0' || tmp2[i] == quote) {
+			case '?':
+				if (quote == '\0' || tmp2[i] == quote ||
+				    tmp2[i] == '\\') {
 					if (el_insertstr(el, ins) == -1)
 						fatal("el_insertstr "
 						    "failed.");
