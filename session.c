@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.354 2026/10/30 02:31:36 djm Exp $ */
+/* $OpenBSD: session.c,v 1.355 2026/11/25 07:57:58 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1947,6 +1947,14 @@ session_subsystem_req(struct ssh *ssh, Session *s)
 		logit("subsystem request for %.100s by user %s failed, %s",
 		    s->subsys, s->pw->pw_name,
 		    found ? "execution failed" : "subsystem not found");
+		/*
+		 * The channel is still larval and may receive a shell, exec
+		 * or another subsystem request; don't leave it marked as a
+		 * subsystem.
+		 */
+		s->is_subsystem = SUBSYSTEM_NONE;
+		free(s->subsys);
+		s->subsys = NULL;
 	}
 
 	return success;
