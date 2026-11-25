@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.c,v 1.42 2026/10/30 02:18:03 djm Exp $ */
+/* $OpenBSD: sshsig.c,v 1.43 2026/11/25 08:48:52 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -35,6 +35,7 @@
 #include "match.h"
 #include "digest.h"
 #include "myproposal.h"
+#include "sk-api.h"
 
 #define SIG_VERSION		0x01
 #define MAGIC_PREAMBLE		"SSHSIG"
@@ -892,10 +893,65 @@ cert_filter_principals(const char *path, u_long linenum,
 	return success ? 0 : r;
 }
 
+/*
+ * Check the critical options of a certificate used for signing. The only
+ * critical option that is meaningful here is "verify-required", which is
+ * enforced against the signature details (if any); a certificate that
+ * carries any other critical option is refused, as sshd(8) does for unknown
+ * critical options.
+ */
+static int
+cert_check_critical_options(const struct sshkey *cert,
+    const struct sshkey_sig_details *sig_details, const char **reason)
+{
+	struct sshbuf *c = NULL;
+	char *name = NULL;
+	size_t len;
+	int r = SSH_ERR_INTERNAL_ERROR;
+
+	if ((c = sshbuf_fromb(cert->cert->critical)) == NULL) {
+		*reason = "Certificate critical options allocation failed";
+		return SSH_ERR_ALLOC_FAIL;
+	}
+	while (sshbuf_len(c) > 0) {
+		free(name);
+		name = NULL;
+		if ((r = sshbuf_get_cstring(c, &name, NULL)) != 0 ||
+		    (r = sshbuf_get_string_direct(c, NULL, &len)) != 0) {
+			*reason = "Certificate critical options corrupt";
+			goto out;
+		}
+		if (strcmp(name, "verify-required") != 0 || len != 0) {
+			*reason = "Certificate contains unsupported "
+			    "critical options";
+			r = SSH_ERR_KEY_CERT_INVALID;
+			goto out;
+		}
+		/*
+		 * sig_details is only present for FIDO signatures that
+		 * have been verified; find-principals doesn't have them.
+		 */
+		if (sig_details != NULL && (sig_details->sk_flags &
+		    SSH_SK_USER_VERIFICATION_REQD) == 0) {
+			*reason = "Certificate user verification "
+			    "requirement not met";
+			r = SSH_ERR_KEY_CERT_INVALID;
+			goto out;
+		}
+	}
+	/* success */
+	r = 0;
+ out:
+	free(name);
+	sshbuf_free(c);
+	return r;
+}
+
 static int
 check_allowed_keys_line(const char *path, u_long linenum, char *line,
     const struct sshkey *sign_key, const char *principal,
-    const char *sig_namespace, uint64_t verify_time, char **principalsp)
+    const char *sig_namespace, uint64_t verify_time,
+    const struct sshkey_sig_details *sig_details, char **principalsp)
 {
 	struct sshkey *found_key = NULL;
 	char *principals = NULL;
@@ -925,6 +981,12 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 			error("%s:%lu: certificate signed with disallowed "
 			    "algorithm %s", path, linenum,
 			    sign_key->cert->signature_type);
+			goto done;
+		}
+		if ((r = cert_check_critical_options(sign_key, sig_details,
+		    &reason)) != 0) {
+			error("%s:%lu: certificate not authorized: %s",
+			    path, linenum, reason);
 			goto done;
 		}
 		if (principal) {
@@ -997,7 +1059,8 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 
 int
 sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
-    const char *principal, const char *sig_namespace, uint64_t verify_time)
+    const char *principal, const char *sig_namespace, uint64_t verify_time,
+    const struct sshkey_sig_details *sig_details)
 {
 	FILE *f = NULL;
 	char *line = NULL;
@@ -1017,7 +1080,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
 		r = check_allowed_keys_line(path, linenum, line, sign_key,
-		    principal, sig_namespace, verify_time, NULL);
+		    principal, sig_namespace, verify_time, sig_details, NULL);
 		free(line);
 		line = NULL;
 		linesize = 0;
@@ -1057,7 +1120,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
 		r = check_allowed_keys_line(path, linenum, line,
-		    sign_key, NULL, NULL, verify_time, principals);
+		    sign_key, NULL, NULL, verify_time, NULL, principals);
 		free(line);
 		line = NULL;
 		linesize = 0;

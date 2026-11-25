@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.501 2026/11/25 06:29:41 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.502 2026/11/25 08:48:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2951,7 +2951,8 @@ sig_verify(const char *signature, const char *sig_namespace,
 	}
 
 	if (allowed_keys != NULL && (r = sshsig_check_allowed_keys(allowed_keys,
-	    sign_key, principal, sig_namespace, verify_time)) != 0) {
+	    sign_key, principal, sig_namespace, verify_time,
+	    sig_details)) != 0) {
 		debug3_fr(r, "sshsig_check_allowed_keys");
 		goto done;
 	}

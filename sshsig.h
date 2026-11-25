@@ -1,4 +1,4 @@
-/* $OpenBSD: sshsig.h,v 1.11 2021/11/27 07:14:46 djm Exp $ */
+/* $OpenBSD: sshsig.h,v 1.12 2026/11/25 08:48:52 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -83,10 +83,12 @@ int sshsig_dearmor(struct sshbuf *sig, struct sshbuf **out);
 
 /*
  * Checks whether a particular key/principal/namespace is permitted by
- * an allowed_keys file. Returns 0 on success.
+ * an allowed_keys file. sig_details are those returned when the signature
+ * was verified, or NULL if not available. Returns 0 on success.
  */
 int sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
-    const char *principal, const char *ns, uint64_t verify_time);
+    const char *principal, const char *ns, uint64_t verify_time,
+    const struct sshkey_sig_details *sig_details);
 
 /* Parse zero or more allowed_keys signature options */
 struct sshsigopt *sshsigopt_parse(const char *opts,
