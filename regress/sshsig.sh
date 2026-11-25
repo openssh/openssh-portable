@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.17 2026/06/16 10:58:42 dtucker Exp $
+#	$OpenBSD: sshsig.sh,v 1.18 2026/11/25 08:49:18 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -6,7 +6,7 @@ tid="sshsig"
 DATA2=$OBJ/${DATANAME}.2
 cat ${DATA} ${DATA} > ${DATA2}
 
-rm -f $OBJ/sshsig-*.sig $OBJ/wrong-key* $OBJ/sigca-key*
+rm -f $OBJ/sshsig-*.sig $OBJ/wrong-key* $OBJ/sigca-key* $OBJ/sigcrit*
 
 sig_namespace="test-$$"
 sig_principal="user-$$@example.com"
@@ -504,6 +504,50 @@ for t in $SIGNKEYS; do
 		-Overify-time=19840101 \
 		< $DATA >/dev/null 2>&1 && \
 		fail "accepted signature for $t key with expired CA but valid cert"
+
+	# Certificates with unsupported critical options
+	(printf "$sig_principal cert-authority " ;
+	 cat $CA_PUB) > $OBJ/allowed_signers
+	cp $privkey $OBJ/sigcrit
+	cp $privkey.pub $OBJ/sigcrit.pub
+	for o in critical:test@example.com force-command=/bin/true \
+	    source-address=127.0.0.1 ; do
+		trace "$tid: key type $t verify cert with $o"
+		${SSHKEYGEN} -q -s $CA_PRIV -I "critical" -O $o \
+		    -n $sig_principal $OBJ/sigcrit.pub || \
+			fatal "couldn't sign ${t} with $o"
+		SSH_AUTH_SOCK=/nonexistent ${SSHKEYGEN} -q -Y sign \
+		    -f $OBJ/sigcrit-cert.pub -n $sig_namespace \
+		    < $DATA > $OBJ/sshsig-crit.sig 2>/dev/null || \
+			fail "sign using $t cert with $o failed"
+		${SSHKEYGEN} -vvv -Y verify -s $OBJ/sshsig-crit.sig \
+			-n $sig_namespace -I $sig_principal \
+			-f $OBJ/allowed_signers < $DATA >/dev/null 2>&1 && \
+			fail "accepted signature for $t cert with $o"
+		${SSHKEYGEN} -vvv -Y find-principals -s $OBJ/sshsig-crit.sig \
+			-f $OBJ/allowed_signers >/dev/null 2>&1 && \
+			fail "find-principals succeeded for $t cert with $o"
+	done
+
+	# Certificate requiring user verification that the signature lacks
+	# (the regress sk keys are enrolled without user verification)
+	case "$t" in
+	sk-*)
+		trace "$tid: key type $t verify cert with verify-required"
+		${SSHKEYGEN} -q -s $CA_PRIV -I "critical" -O verify-required \
+		    -n $sig_principal $OBJ/sigcrit.pub || \
+			fatal "couldn't sign ${t} with verify-required"
+		SSH_AUTH_SOCK=/nonexistent ${SSHKEYGEN} -q -Y sign \
+		    -f $OBJ/sigcrit-cert.pub -n $sig_namespace \
+		    < $DATA > $OBJ/sshsig-crit.sig 2>/dev/null || \
+			fail "sign using $t cert with verify-required failed"
+		${SSHKEYGEN} -vvv -Y verify -s $OBJ/sshsig-crit.sig \
+			-n $sig_namespace -I $sig_principal \
+			-f $OBJ/allowed_signers < $DATA >/dev/null 2>&1 && \
+			fail "accepted signature for $t cert without user verification"
+		;;
+	esac
+	rm -f $OBJ/sigcrit $OBJ/sigcrit.pub $OBJ/sigcrit-cert.pub
 
 done
 
