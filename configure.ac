@@ -982,6 +982,9 @@ int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE([_PATH_BTMP], ["/var/log/btmp"], [log for bad login attempts])
 	AC_DEFINE([USE_BTMP])
 	AC_DEFINE([LINUX_OOM_ADJUST], [1], [Adjust Linux out-of-memory killer])
+	AC_DEFINE([SSH_INACT_STYLE_DAYS_AFTER_EXPIRY], [1],
+		[Define if shadow password sp_inact is interpreted as the
+		number of days after password expiry to lock an account])
 	AC_ARG_WITH([linux-memlock-onfault],
 		[  --with-linux-memlock-onfault Enables memory locking on Linux],
 		[

@@ -78,6 +78,27 @@ auth_shadow_acctexpired(struct spwd *spw)
 			fatal_fr(r, "buffer error");
 	}
 
+#ifdef SSH_INACT_STYLE_DAYS_AFTER_EXPIRY
+	/*
+	 * On Linux (at least), sp_inact is the number of days after the
+	 * password has expired until the account is disabled (shadow(5)).
+	 */
+	do {
+		long long pwage = (long long)today - spw->sp_lstchg;
+
+		debug3_f("sp_lstchg %lld sp_max %lld sp_inact %lld pwage %lld",
+		    (long long)spw->sp_lstchg, (long long)spw->sp_max,
+		    (long long)spw->sp_inact, pwage);
+		if (spw->sp_lstchg > 0 && spw->sp_max >= 0 &&
+		    spw->sp_inact >= 0 && pwage > spw->sp_max &&
+		    pwage - spw->sp_max > spw->sp_inact) {
+			logit("Account %.100s has expired (password inactive)",
+			    spw->sp_namp);
+			return 1;
+		}
+	} while (0);
+#endif
+
 	return 0;
 }
 
