@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.279 2026/11/25 20:02:49 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.280 2026/11/25 21:21:51 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -2182,16 +2182,30 @@ run_err(const char *fmt,...)
 {
 	static FILE *fp;
 	va_list ap;
+	char *msg, *encmsg;
+	size_t len;
 
 	++errs;
 	if (fp != NULL || (remout != -1 && (fp = fdopen(remout, "w")))) {
-		(void) fprintf(fp, "%c", 0x01);
-		(void) fprintf(fp, "scp: ");
 		va_start(ap, fmt);
-		(void) vfprintf(fp, fmt, ap);
+		xvasprintf(&msg, fmt, ap);
 		va_end(ap);
-		(void) fprintf(fp, "\n");
+		/*
+		 * Error messages are a single protocol record; a newline in
+		 * the message (e.g. from a filename) would let the rest of
+		 * it be parsed by the peer as further records.
+		 */
+		if (strchr(msg, '\n') != NULL) {
+			len = strlen(msg) * 4 + 1;
+			encmsg = xmalloc(len);
+			strnvis(encmsg, msg, len, VIS_NL);
+			free(msg);
+			msg = encmsg;
+		}
+		(void) fprintf(fp, "%c", 0x01);
+		(void) fprintf(fp, "scp: %s\n", msg);
 		(void) fflush(fp);
+		free(msg);
 	}
 
 	if (!iamremote) {
