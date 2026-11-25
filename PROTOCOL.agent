@@ -104,4 +104,26 @@ A SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED will return SSH_AGENT_SUCCESS
 if any key (plain private or certificate) was successfully loaded, or
 SSH_AGENT_FAILURE if no key was loaded.
 
+4. session-hostname@openssh.com extension
+
+This extension allows a ssh client to tell the agent the name of the
+host that it is about to bind an agent connection to using
+session-bind@openssh.com, so that the agent can show it to the user,
+e.g. when asking for confirmation of a key use.
+
+	byte		SSH_AGENTC_EXTENSION (0x1b)
+	string		session-hostname@openssh.com
+	string		hostname
+
+Where 'hostname' is the destination host as specified by the user.
+
+This message must be sent before the first session-bind@openssh.com
+message on the connection, and may only be sent once. An agent will
+refuse it otherwise. This ensures that, for forwarded agent connections,
+the name was supplied by the ssh client that opened the connection to
+the agent and not by the remote host.
+
+The hostname is informational only. Agents must not use it for access
+control decisions, which should be based on the bound host keys.
+
 $OpenBSD: PROTOCOL.agent,v 1.26 2026/06/02 06:18:27 djm Exp $
