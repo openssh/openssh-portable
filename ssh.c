@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.647 2026/11/02 06:49:42 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.648 2026/11/25 07:42:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -619,6 +619,36 @@ set_addrinfo_port(struct addrinfo *addrs, int port)
 			    sin6_port = htons(port);
 			break;
 		}
+	}
+}
+
+/* Optionally set the SSH_AUTHSOCKET_ENV_NAME variable from IdentityAgent */
+static void
+set_identity_agent(void)
+{
+	const char *cp, *p;
+
+	if (options.identity_agent == NULL ||
+	    strcmp(options.identity_agent, SSH_AUTHSOCKET_ENV_NAME) == 0)
+		return;
+	if (strcmp(options.identity_agent, "none") == 0) {
+		unsetenv(SSH_AUTHSOCKET_ENV_NAME);
+		return;
+	}
+	cp = options.identity_agent;
+	/* legacy (limited) format */
+	if (cp[0] == '$' && cp[1] != '{') {
+		if (!valid_env_name(cp + 1)) {
+			fatal("Invalid IdentityAgent "
+			    "environment variable name %s", cp);
+		}
+		if ((p = getenv(cp + 1)) == NULL)
+			unsetenv(SSH_AUTHSOCKET_ENV_NAME);
+		else
+			setenv(SSH_AUTHSOCKET_ENV_NAME, p, 1);
+	} else {
+		/* identity_agent specifies a path directly */
+		setenv(SSH_AUTHSOCKET_ENV_NAME, cp, 1);
 	}
 }
 
@@ -1659,31 +1689,8 @@ main(int ac, char **av)
 	/* load options.identity_files */
 	load_public_identity_files(cinfo);
 
-	/* optionally set the SSH_AUTHSOCKET_ENV_NAME variable */
-	if (options.identity_agent &&
-	    strcmp(options.identity_agent, SSH_AUTHSOCKET_ENV_NAME) != 0) {
-		if (strcmp(options.identity_agent, "none") == 0) {
-			unsetenv(SSH_AUTHSOCKET_ENV_NAME);
-		} else {
-			cp = options.identity_agent;
-			/* legacy (limited) format */
-			if (cp[0] == '$' && cp[1] != '{') {
-				if (!valid_env_name(cp + 1)) {
-					fatal("Invalid IdentityAgent "
-					    "environment variable name %s", cp);
-				}
-				if ((p = getenv(cp + 1)) == NULL)
-					unsetenv(SSH_AUTHSOCKET_ENV_NAME);
-				else
-					setenv(SSH_AUTHSOCKET_ENV_NAME, p, 1);
-			} else {
-				/* identity_agent specifies a path directly */
-				setenv(SSH_AUTHSOCKET_ENV_NAME, cp, 1);
-			}
-		}
-	}
-
 	if (dump_pubkeys) {
+		set_identity_agent();
 		pubkey_dump(ssh);
 		exit(0);
 	}
@@ -1728,6 +1735,13 @@ main(int ac, char **av)
 	    &timeout_ms, options.tcp_keep_alive) != 0)
 		exit(255);
 
+	/*
+	 * IdentityAgent applies to this connection only, so don't touch the
+	 * environment until after any ProxyCommand/ProxyJump has been
+	 * started: the proxy (e.g. a ssh to a jump host) must not inherit
+	 * the destination's agent.
+	 */
+	set_identity_agent();
 
 	ssh_packet_set_timeout(ssh, options.server_alive_interval,
 	    options.server_alive_count_max);
