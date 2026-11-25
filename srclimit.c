@@ -81,20 +81,6 @@ srclimit_mask_addr(const struct xaddr *addr, int bits, struct xaddr *masked)
 	return 0;
 }
 
-static int
-srclimit_peer_addr(int sock, struct xaddr *addr)
-{
-	struct sockaddr_storage storage;
-	socklen_t addrlen = sizeof(storage);
-	struct sockaddr *sa = (struct sockaddr *)&storage;
-
-	if (getpeername(sock, sa, &addrlen) != 0)
-		return 1;	/* not remote socket? */
-	if (addr_sa_to_xaddr(sa, addrlen, addr) != 0)
-		return 1;	/* unknown address family? */
-	return 0;
-}
-
 void
 srclimit_init(int max, int persource, int ipv4len, int ipv6len,
     struct per_source_penalty *penalty_conf, const char *penalty_exempt_conf)
@@ -127,7 +113,7 @@ srclimit_init(int max, int persource, int ipv4len, int ipv6len,
 
 /* returns 1 if connection allowed, 0 if not allowed. */
 int
-srclimit_check_allow(int sock, int id)
+srclimit_check_allow(const struct xaddr *peer, int id)
 {
 	struct xaddr xa, xb;
 	int i, bits, first_unused, count = 0;
@@ -136,9 +122,10 @@ srclimit_check_allow(int sock, int id)
 	if (max_persource == INT_MAX)	/* no limit */
 		return 1;
 
-	debug_f("sock %d id %d limit %d", sock, id, max_persource);
-	if (srclimit_peer_addr(sock, &xa) != 0)
-		return 1;
+	debug_f("id %d limit %d", id, max_persource);
+	if (peer == NULL)
+		return 1;	/* not remote socket? */
+	xa = *peer;
 	bits = xa.af == AF_INET ? ipv4_masklen : ipv6_masklen;
 	if (srclimit_mask_addr(&xa, bits, &xb) != 0)
 		return 1;
@@ -256,7 +243,7 @@ addr_masklen_ntop(struct xaddr *addr, int masklen, char *s, size_t slen)
 }
 
 int
-srclimit_penalty_check_allow(int sock, const char **reason)
+srclimit_penalty_check_allow(const struct xaddr *peer, const char **reason)
 {
 	struct xaddr addr;
 	struct penalty find, *penalty;
@@ -268,8 +255,9 @@ srclimit_penalty_check_allow(int sock, const char **reason)
 
 	if (!penalty_cfg.enabled)
 		return 1;
-	if (srclimit_peer_addr(sock, &addr) != 0)
-		return 1;
+	if (peer == NULL)
+		return 1;	/* not remote socket? */
+	addr = *peer;
 	if (penalty_exempt != NULL) {
 		if (addr_ntop(&addr, addr_s, sizeof(addr_s)) != 0)
 			return 1; /* shouldn't happen */

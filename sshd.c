@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.635 2026/09/16 07:47:29 jsg Exp $ */
+/* $OpenBSD: sshd.c,v 1.636 2026/11/25 21:08:49 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 2002 Niels Provos.  All rights reserved.
@@ -222,14 +222,11 @@ child_alloc(void)
 
 /* Register a new connection in the children array; child pid comes later */
 static struct early_child *
-child_register(int pipefd, int sockfd)
+child_register(int pipefd, int sockfd, const struct xaddr *peer)
 {
 	int i, lport, rport;
 	char *laddr = NULL, *raddr = NULL;
 	struct early_child *child = NULL;
-	struct sockaddr_storage addr;
-	socklen_t addrlen = sizeof(addr);
-	struct sockaddr *sa = (struct sockaddr *)&addr;
 
 	for (i = 0; i < options.max_startups; i++) {
 		if (children[i].pipefd != -1 ||
@@ -249,9 +246,10 @@ child_register(int pipefd, int sockfd)
 	if ((child->config = sshbuf_fromb(config)) == NULL)
 		fatal_f("sshbuf_fromb failed");
 	/* record peer address, if available */
-	if (getpeername(sockfd, sa, &addrlen) == 0 &&
-	   addr_sa_to_xaddr(sa, addrlen, &child->addr) == 0)
+	if (peer != NULL) {
+		child->addr = *peer;
 		child->have_addr = 1;
+	}
 	/* format peer address string for logs */
 	if ((lport = get_local_port(sockfd)) == 0 ||
 	    (rport = get_peer_port(sockfd)) == 0) {
@@ -586,7 +584,8 @@ should_drop_connection(int startups)
  * while in that state.
  */
 static int
-drop_connection(int sock, int startups, int notify_pipe)
+drop_connection(int sock, const struct xaddr *peer, int startups,
+    int notify_pipe)
 {
 	static struct log_ratelimit_ctx ratelimit_maxstartups;
 	static struct log_ratelimit_ctx ratelimit_penalty;
@@ -605,13 +604,13 @@ drop_connection(int sock, int startups, int notify_pipe)
 	}
 
 	/* PerSourcePenalties */
-	if (!srclimit_penalty_check_allow(sock, &subreason)) {
+	if (!srclimit_penalty_check_allow(peer, &subreason)) {
 		reason = "PerSourcePenalties";
 		rl = &ratelimit_penalty;
 	} else {
 		/* MaxStartups */
 		if (!should_drop_connection(startups) &&
-		    srclimit_check_allow(sock, notify_pipe) == 1)
+		    srclimit_check_allow(peer, notify_pipe) == 1)
 			return 0;
 		reason = "MaxStartups";
 		rl = &ratelimit_maxstartups;
@@ -920,6 +919,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 	const u_char *ptr;
 	char c = 0;
 	struct sockaddr_storage from;
+	struct xaddr peer_addr, *peer;
 	struct early_child *child;
 	struct sshbuf *buf;
 	socklen_t fromlen;
@@ -1149,7 +1149,15 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 				close(*newsock);
 				continue;
 			}
-			if (drop_connection(*newsock,
+			/*
+			 * Use the peer address returned by accept(); the
+			 * peer may already have reset the connection, in
+			 * which case getpeername() would fail and the
+			 * connection would escape the per-source limits.
+			 */
+			peer = addr_sa_to_xaddr((struct sockaddr *)&from,
+			    fromlen, &peer_addr) == 0 ? &peer_addr : NULL;
+			if (drop_connection(*newsock, peer,
 			    children_active, config_s[0])) {
 				close(*newsock);
 				close(config_s[0]);
@@ -1186,7 +1194,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 			platform_pre_fork();
 			set_nonblock(config_s[0]);
 			listening++;
-			child = child_register(config_s[0], *newsock);
+			child = child_register(config_s[0], *newsock, peer);
 			if ((child->pid = fork()) == 0) {
 				/*
 				 * Child.  Close the listening and

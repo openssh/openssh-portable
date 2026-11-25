@@ -19,7 +19,7 @@ struct per_source_penalty;
 
 void	srclimit_init(int, int, int, int,
     struct per_source_penalty *, const char *);
-int	srclimit_check_allow(int, int);
+int	srclimit_check_allow(const struct xaddr *, int);
 void	srclimit_done(int);
 
 #define SRCLIMIT_PENALTY_NONE			0
@@ -38,5 +38,5 @@ void	srclimit_done(int);
 #define EXIT_INVALID_USER	7	/* invalid user supplied */
 
 void	srclimit_penalise(struct xaddr *, int);
-int	srclimit_penalty_check_allow(int, const char **);
+int	srclimit_penalty_check_allow(const struct xaddr *, const char **);
 void	srclimit_penalty_info(void);
