@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.119 2026/10/30 08:39:48 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.120 2026/11/25 07:37:15 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -53,6 +53,7 @@
 
 /* from ssh.c */
 extern int tty_flag;
+extern int debug_flag;
 extern Options options;
 extern char *host;
 extern struct sshbuf *command;
@@ -2192,6 +2193,68 @@ mux_client_request_session(int fd)
 	exit(exitval);
 }
 
+/*
+ * No session requested (SessionType=none / ssh -N): don't ask the master
+ * for one or hand it our stdio. The forwardings are held by the master,
+ * so just stick around until it goes away or we are signalled.
+ */
+static int
+mux_client_no_session(int fd)
+{
+	struct sshbuf *m;
+	u_int type;
+	int r;
+
+	debug3_f("entering");
+
+	if ((muxserver_pid = mux_client_request_alive(fd)) == 0) {
+		error_f("master alive request failed");
+		return -1;
+	}
+
+	ssh_signal(SIGPIPE, SIG_IGN);
+
+	if (pledge("stdio proc", NULL) == -1)
+		fatal_f("pledge(): %s", strerror(errno));
+	platform_pledge_mux();
+
+	ssh_signal(SIGHUP, control_client_sighandler);
+	ssh_signal(SIGINT, control_client_sighandler);
+	ssh_signal(SIGTERM, control_client_sighandler);
+
+	if (options.fork_after_authentication) {
+		debug("forking to background");
+		if (daemon(1, 1) == -1)
+			fatal("daemon() failed: %.200s", strerror(errno));
+		if (stdfd_devnull(1, 1,
+		    !(log_is_on_stderr() && debug_flag)) == -1)
+			error_f("stdfd_devnull failed");
+	}
+
+	/*
+	 * Stick around until the master closes the client_fd.
+	 */
+	if ((m = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new");
+	if (mux_client_read_packet(fd, m) != 0) {
+		sshbuf_free(m);
+		if (errno == EINTR && muxclient_terminate != 0) {
+			debug2("Exiting on signal: %s",
+			    strsignal(muxclient_terminate));
+			/* No remote exit status, as for a non-mux ssh -N */
+			return muxclient_terminate == SIGTERM ? 0 : 255;
+		}
+		if (errno == EPIPE) {
+			debug2("Control master terminated");
+			return 0;
+		}
+		fatal_f("mux_client_read_packet: %s", strerror(errno));
+	}
+	if ((r = sshbuf_get_u32(m, &type)) != 0)
+		fatal_fr(r, "parse type");
+	fatal_f("master returned unexpected message %u", type);
+}
+
 static int
 mux_client_proxy(int fd)
 {
@@ -2389,7 +2452,7 @@ int
 muxclient(const char *path)
 {
 	struct sockaddr_un addr;
-	int sock, timeout = options.connection_timeout, timeout_ms = -1;
+	int r, sock, timeout = options.connection_timeout, timeout_ms = -1;
 	u_int pid;
 	char *info = NULL;
 
@@ -2486,6 +2549,11 @@ muxclient(const char *path)
 		if (mux_client_forwards(sock, 0) != 0) {
 			error_f("master forward request failed");
 			return -1;
+		}
+		if (options.session_type == SESSION_TYPE_NONE) {
+			if ((r = mux_client_no_session(sock)) == -1)
+				return -1;
+			exit(r);
 		}
 		mux_client_request_session(sock);
 		return -1;
