@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.174 2026/11/24 23:59:37 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.175 2026/11/25 17:08:58 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -52,6 +52,7 @@
 #include "ssh_api.h"
 #include "dns.h"
 #include "addr.h"
+#include "utf8.h"
 
 /* Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
    Default value is AF_UNSPEC means both IPv4 and IPv6. */
@@ -602,7 +603,7 @@ congreet(int s)
 	}
 	/* The comment names the host, which -H promises not to reveal */
 	if (!quiet && !hash_hosts) {
-		fprintf(stdout, "%c %s:%d %s\n", print_sshfp ? ';' : '#',
+		fmprintf(stdout, "%c %s:%d %s\n", print_sshfp ? ';' : '#',
 		    c->c_name, ssh_port, chop(buf));
 	}
 	keygrab_ssh2(c);
