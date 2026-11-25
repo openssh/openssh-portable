@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.480 2026/11/25 21:53:11 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.481 2026/11/25 22:14:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2835,7 +2835,7 @@ channel_handler(struct ssh *ssh, int table, struct timespec *timeout)
 		if (c->type == SSH_CHANNEL_OPEN && c->bulk)
 			sc->nbulk++;
 		/* Try to keep IO going while rekeying */
-		if (ssh_packet_is_rekeying(ssh) && c->type != SSH_CHANNEL_OPEN)
+		if (ssh_packet_can_enqueue(ssh) && c->type != SSH_CHANNEL_OPEN)
 			continue;
 		if (c->delayed) {
 			if (table == CHAN_PRE)
