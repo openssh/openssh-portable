@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.502 2026/11/25 08:48:52 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.503 2026/11/25 23:17:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1295,7 +1295,7 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
     int delete_host, int hash_hosts)
 {
 	char *cp, tmp[PATH_MAX], old[PATH_MAX];
-	int r, fd, infd, oerrno, inplace;
+	int r, fd = -1, infd, oerrno, inplace;
 	struct known_hosts_ctx ctx;
 	u_int foreach_options;
 	struct stat sb;
@@ -1371,7 +1371,7 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 		 * Keep the copy private unless it is about to replace the
 		 * original, in which case it inherits the original's mode.
 		 */
-		if (!ctx.invalid && (!delete_host || ctx.found_key))
+		if (!ctx.invalid && (!delete_host || ctx.found_key) && fd != -1)
 			(void)fchmod(fd, sb.st_mode & 0644);
 		if (ferror(ctx.out) || fclose(ctx.out) != 0) {
 			oerrno = errno;
