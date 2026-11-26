@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.394 2026/11/26 19:18:53 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.395 2026/11/26 20:01:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1533,10 +1533,12 @@ check_host_key(char *hostname, const struct ssh_conn_info *cinfo,
 	return 0;
 
 fail:
-	if (want_cert && host_status != HOST_REVOKED) {
+	if (want_cert && host_status != HOST_REVOKED && !clobber_port) {
 		/*
 		 * No matching certificate. Downgrade cert to raw key and
 		 * search normally.
+		 * Don't do this in the port-less lookup: the caller will
+		 * downgrade and retry itself.
 		 */
 		debug("No matching CA found. Retry with plain key");
 		if ((r = sshkey_from_private(host_key, &raw_key)) != 0)
