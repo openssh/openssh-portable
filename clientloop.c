@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.430 2026/11/25 08:26:59 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.431 2026/11/26 21:51:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -354,9 +354,14 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 			}
 
 			if (timeout == 0) {
-				/* auth doesn't time out */
+				/*
+				 * auth doesn't time out. This must be requested
+				 * explicitly: without a "timeout" argument,
+				 * xauth(1) asks for a cookie that the X server
+				 * purges after 60s of disuse.
+				 */
 				xasprintf(&cmd, "%s -f %s generate %s %s "
-				    "untrusted 2>%s",
+				    "untrusted timeout 0 2>%s",
 				    xauth_path, xauthfile, display,
 				    SSH_X11_PROTO, _PATH_DEVNULL);
 			} else {
