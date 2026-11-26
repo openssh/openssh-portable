@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.336 2026/10/30 07:18:18 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.337 2026/11/26 05:42:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1097,6 +1097,17 @@ process_remove_all_identities(SocketEntry *e)
 	send_status(e, 1);
 }
 
+/* removes all keys if a signal has asked for that */
+static void
+check_keydrop(void)
+{
+	if (!signalled_keydrop)
+		return;
+	logit("signal %d received; removing all keys", (int)signalled_keydrop);
+	remove_all_identities();
+	signalled_keydrop = 0;
+}
+
 /* removes expired keys and returns number of seconds until the next expiry */
 static time_t
 reaper(void)
@@ -1942,6 +1953,15 @@ process_message(u_int socknum)
 
 	debug_f("socket %u (fd=%d) type %d", socknum, e->fd, type);
 
+	/*
+	 * Requests served earlier in this pass of the main loop may have
+	 * taken a long time (e.g. slow signatures or confirmation dialogs).
+	 * Don't let this one use keys that have expired or that we were
+	 * told to drop in the meantime.
+	 */
+	check_keydrop();
+	(void) reaper();
+
 	/* check whether agent is locked */
 	if (locked && type != SSH_AGENTC_UNLOCK) {
 		switch (type) {
@@ -2711,12 +2731,7 @@ skip:
 			cleanup_exit((signalled_exit == SIGTERM &&
 			    socket_activated) ? 0 : 2);
 		}
-		if (signalled_keydrop) {
-			logit("signal %d received; removing all keys",
-			    (int)signalled_keydrop);
-			remove_all_identities();
-			signalled_keydrop = 0;
-		}
+		check_keydrop();
 		ptimeout_init(&timeout);
 		prepare_poll(&pfd, &npfd, &timeout, maxfds);
 		result = ppoll(pfd, npfd, ptimeout_get_tsp(&timeout), &osigset);
