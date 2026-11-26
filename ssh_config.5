@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.435 2026/10/30 08:42:29 djm Exp $
-.Dd $Mdocdate: October 30 2026 $
+.\" $OpenBSD: ssh_config.5,v 1.436 2026/11/26 19:18:53 djm Exp $
+.Dd $Mdocdate: November 26 2026 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -353,6 +353,8 @@ section of
 to specify the key's lifetime in
 .Xr ssh-agent 1 ,
 after which it will automatically be removed.
+Keys that are already held by the agent are never replaced, so that any
+constraints they were added with remain in force.
 The argument must be
 .Cm no
 (the default),
