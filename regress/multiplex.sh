@@ -188,6 +188,116 @@ if ! echo "$conninfo" | egrep -- "-> 127.0.0.1:$port" >/dev/null; then
        fail "conninfo"
 fi
 
+get_mux_sshd_pid() {
+	MUX_SSHD_NET_PID=`echo 'echo $PPID' | \
+	    ${SSH} -F $OBJ/ssh_config -S $CTL otherhost exec sh 2>/dev/null`
+}
+
+mux_log_count() {
+	_c=`grep -c "$1" "$TEST_REGRESS_LOGFILE" 2>/dev/null || true`
+	echo "${_c:-0}"
+}
+
+wait_mux_log_inc() {
+	_pat="$1"
+	_base="$2"
+	_j=0
+	while [ "$_j" -lt 30 ]; do
+		kill -0 "$SSH_PID" 2>/dev/null || return 1
+		_cur=`mux_log_count "$_pat"`
+		[ "$_cur" -gt "$_base" ] && return 0
+		sleep 1
+		_j=`expr $_j + 1`
+	done
+	return 1
+}
+
+recover_mux_master_if_dead() {
+	if ! kill -0 "$SSH_PID" 2>/dev/null; then
+		wait "$SSH_PID" 2>/dev/null
+		rm -f "$CTL"
+		start_mux_master
+		get_mux_sshd_pid
+	fi
+}
+
+get_mux_sshd_pid
+
+if [ -z "$MUX_SSHD_NET_PID" ] || ! $SUDO kill -0 "$MUX_SSHD_NET_PID" 2>/dev/null; then
+	fail "missing mux sshd user child pid"
+else
+	verbose "test $tid: stdio forward client abort during open"
+	base_new=`mux_log_count "mux_master_process_stdio_fwd: channel_new:"`
+	base_clean=`mux_log_count "mux_master_control_cleanup_cb: entering"`
+	base_confirm=`mux_log_count "mux_stdio_confirm:.*control channel already closed"`
+	trap '$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null; cleanup' INT TERM EXIT
+	$SUDO kill -STOP "$MUX_SSHD_NET_PID"
+	${SSH} -F $OBJ/ssh_config -S $CTL -W 127.0.0.1:$PORT otherhost </dev/null >/dev/null 2>&1 &
+	mux_pid=$!
+	trap '$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null; kill "$mux_pid" 2>/dev/null; cleanup' INT TERM EXIT
+	wait_mux_log_inc "mux_master_process_stdio_fwd: channel_new:" "$base_new" || fail "stdio fwd open not seen by master"
+	kill "$mux_pid" 2>/dev/null
+	wait "$mux_pid" 2>/dev/null
+	wait_mux_log_inc "mux_master_control_cleanup_cb: entering" "$base_clean" || fail "stdio fwd client disconnect not detected while paused"
+	$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null
+	trap cleanup INT TERM EXIT
+	wait_mux_log_inc "mux_stdio_confirm:.*control channel already closed" "$base_confirm" || fail "stdio fwd confirm not seen by master"
+	${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck otherhost >/dev/null 2>&1 || fail "master died after stdio fwd abort"
+	${SSH} -F $OBJ/ssh_config -S $CTL otherhost true || fail "session after stdio fwd abort failed"
+	recover_mux_master_if_dead
+
+	verbose "test $tid: session client abort during open"
+	rm -f $OBJ/orphaned_cmd
+	base_new=`mux_log_count "mux_master_process_new_session: channel_new:"`
+	base_clean=`mux_log_count "mux_master_control_cleanup_cb: entering"`
+	base_confirm=`mux_log_count "mux_session_confirm:.*control channel already closed"`
+	trap '$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null; cleanup' INT TERM EXIT
+	$SUDO kill -STOP "$MUX_SSHD_NET_PID"
+	${SSH} -F $OBJ/ssh_config -S $CTL otherhost "touch $OBJ/orphaned_cmd" </dev/null >/dev/null 2>&1 &
+	mux_pid=$!
+	trap '$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null; kill "$mux_pid" 2>/dev/null; cleanup' INT TERM EXIT
+	wait_mux_log_inc "mux_master_process_new_session: channel_new:" "$base_new" || fail "session open not seen by master"
+	kill "$mux_pid" 2>/dev/null
+	wait "$mux_pid" 2>/dev/null
+	wait_mux_log_inc "mux_master_control_cleanup_cb: entering" "$base_clean" || fail "session client disconnect not detected while paused"
+	$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null
+	trap cleanup INT TERM EXIT
+	wait_mux_log_inc "mux_session_confirm:.*control channel already closed" "$base_confirm" || fail "session confirm not seen by master"
+	${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck otherhost >/dev/null 2>&1 || fail "master died after session abort"
+	${SSH} -F $OBJ/ssh_config -S $CTL otherhost true || fail "session after session abort failed"
+	test ! -f $OBJ/orphaned_cmd || fail "orphaned session command executed"
+	rm -f $OBJ/orphaned_cmd
+	recover_mux_master_if_dead
+
+	verbose "test $tid: remote forward client abort during open"
+	base_new=`mux_log_count "mux_master_process_open_fwd: channel"`
+	base_clean=`mux_log_count "mux_master_control_cleanup_cb: entering"`
+	base_proxy=`mux_log_count "mux_master_process_proxy: channel"`
+	base_confirm=`mux_log_count "mux_confirm_remote_forward: control channel already closed"`
+	trap '$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null; cleanup' INT TERM EXIT
+	$SUDO kill -STOP "$MUX_SSHD_NET_PID"
+	${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -R 127.0.0.1:0:127.0.0.1:$PORT otherhost </dev/null >/dev/null 2>&1 &
+	mux_pid=$!
+	trap '$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null; kill "$mux_pid" 2>/dev/null; cleanup' INT TERM EXIT
+	wait_mux_log_inc "mux_master_process_open_fwd: channel" "$base_new" || fail "remote fwd open not seen by master"
+	kill "$mux_pid" 2>/dev/null
+	wait "$mux_pid" 2>/dev/null
+	wait_mux_log_inc "mux_master_control_cleanup_cb: entering" "$base_clean" || fail "remote fwd client disconnect not detected while paused"
+	${SSH} -F $OBJ/ssh_config -S $CTL -N -Oproxy otherhost </dev/null >/dev/null 2>&1 &
+	proxy_pid=$!
+	trap '$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null; kill "$proxy_pid" 2>/dev/null; cleanup' INT TERM EXIT
+	wait_mux_log_inc "mux_master_process_proxy: channel" "$base_proxy" || fail "proxy not seen by master"
+	$SUDO kill -CONT "$MUX_SSHD_NET_PID" 2>/dev/null
+	trap 'kill "$proxy_pid" 2>/dev/null; cleanup' INT TERM EXIT
+	wait_mux_log_inc "mux_confirm_remote_forward: control channel already closed" "$base_confirm" || fail "remote fwd confirm not seen by master"
+	${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck otherhost >/dev/null 2>&1 || fail "master died after remote fwd abort"
+	${SSH} -F $OBJ/ssh_config -S $CTL otherhost true || fail "session after remote fwd abort failed"
+	kill "$proxy_pid" 2>/dev/null
+	wait "$proxy_pid" 2>/dev/null
+	trap cleanup INT TERM EXIT
+	recover_mux_master_if_dead
+fi
+
 verbose "test $tid: cmd exit"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oexit otherhost >>$TEST_REGRESS_LOGFILE 2>&1 \
     || fail "send exit command failed" 
