@@ -53,6 +53,7 @@
 #include "compat.h"
 #include "cipher.h"
 #include "sshkey.h"
+#include "digest.h"
 #include "kex.h"
 #include "sshconnect.h"
 #include "authfile.h"
@@ -327,6 +328,7 @@ struct cauthctxt {
 	/* pubkey */
 	struct idlist keys;
 	int agent_fd;
+	int pubkey_prepared;
 	/* hostbased */
 	Sensitive *sensitive;
 	char *oktypes, *ktypes;
@@ -450,6 +452,11 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	authctxt.mech_tried = 0;
 #endif
 	authctxt.agent_fd = -1;
+	if (options.agent_identity_fingerprint != NULL) {
+		/* Report an unavailable key even if the server omits publickey. */
+		pubkey_prepare(ssh, &authctxt);
+		authctxt.pubkey_prepared = 1;
+	}
 	if (authctxt.method == NULL)
 		fatal_f("internal error: cannot send userauth none request");
 
@@ -638,6 +645,10 @@ input_userauth_failure(int type, uint32_t seq, struct ssh *ssh)
 		    authctxt->method->name);
 		/* reset state */
 		pubkey_reset(authctxt);
+	} else if (options.agent_identity_fingerprint != NULL &&
+	    strcmp(authctxt->method->name, "publickey") == 0) {
+		error("Selected agent identity %s was rejected by the server",
+		    options.agent_identity_fingerprint);
 	}
 	debug("Authentications that can continue: %s", authlist);
 
@@ -1759,6 +1770,76 @@ order_identities_by_prio(struct idlist *list)
 	}
 }
 
+/* Select exactly one identity held by the agent, without trying file keys. */
+static void
+pubkey_prepare_agent_fingerprint(struct ssh *ssh, Authctxt *authctxt)
+{
+	struct ssh_identitylist *idlist;
+	struct identity *id;
+	char *fp, *alg = NULL;
+	int agent_fd = -1, r, found = 0;
+	size_t j;
+
+	if ((r = get_agent_identities(ssh, &agent_fd, &idlist)) != 0) {
+		error("Selected agent identity %s is unavailable: %s",
+		    options.agent_identity_fingerprint, ssh_err(r));
+		return;
+	}
+	for (j = 0; j < idlist->nkeys; j++) {
+		fp = sshkey_fingerprint(idlist->keys[j], SSH_DIGEST_SHA256,
+		    SSH_FP_DEFAULT);
+		if (fp == NULL)
+			fatal_f("sshkey_fingerprint failed");
+		r = strcmp(fp, options.agent_identity_fingerprint);
+		free(fp);
+		if (r != 0)
+			continue;
+		found = 1;
+		if (sshkey_check_rsa_length(idlist->keys[j],
+		    options.required_rsa_size) != 0) {
+			error("Selected agent identity %s does not meet "
+			    "RequiredRSASize",
+			    options.agent_identity_fingerprint);
+			break;
+		}
+		if (!key_type_allowed_by_config(idlist->keys[j])) {
+			error("Selected agent identity %s is excluded by "
+			    "PubkeyAcceptedAlgorithms",
+			    options.agent_identity_fingerprint);
+			break;
+		}
+		if (ssh != NULL && ssh->kex != NULL &&
+		    ssh->kex->server_sig_algs != NULL) {
+			alg = key_sig_algorithm(ssh, idlist->keys[j]);
+			if (alg == NULL) {
+				error("Selected agent identity %s has no "
+				    "server-supported signature algorithm",
+				    options.agent_identity_fingerprint);
+				break;
+			}
+			free(alg);
+		}
+		id = xcalloc(1, sizeof(*id));
+		id->key = idlist->keys[j];
+		id->filename = idlist->comments[j];
+		idlist->keys[j] = NULL;
+		idlist->comments[j] = NULL;
+		id->agent_fd = agent_fd;
+		id->userprovided = 1;
+		TAILQ_INSERT_TAIL(&authctxt->keys, id, next);
+		debug("Selected agent identity %s", options.agent_identity_fingerprint);
+		break;
+	}
+	if (!found)
+		error("Selected agent identity %s is not present in the agent",
+		    options.agent_identity_fingerprint);
+	ssh_free_identitylist(idlist);
+	if (TAILQ_EMPTY(&authctxt->keys))
+		ssh_close_authentication_socket(agent_fd);
+	else
+		authctxt->agent_fd = agent_fd;
+}
+
 /*
  * try keys in the following order:
  *	1. certificates listed in the config file
@@ -1784,6 +1865,10 @@ pubkey_prepare(struct ssh *ssh, Authctxt *authctxt)
 	TAILQ_INIT(&agent_keys); /* keys supported by the agent */
 	preferred = &authctxt->keys;
 	TAILQ_INIT(preferred);	/* preferred order of keys */
+	if (options.agent_identity_fingerprint != NULL) {
+		pubkey_prepare_agent_fingerprint(ssh, authctxt);
+		return;
+	}
 
 	/* list of keys stored in the filesystem and PKCS#11 */
 	for (i = 0; i < options.num_identity_files; i++) {
@@ -1994,11 +2079,10 @@ userauth_pubkey(struct ssh *ssh)
 	Identity *id;
 	int sent = 0;
 	char *ident;
-	static int prepared;
 
-	if (!prepared) {
+	if (!authctxt->pubkey_prepared) {
 		pubkey_prepare(ssh, authctxt);
-		prepared = 1;
+		authctxt->pubkey_prepared = 1;
 	}
 
 	while ((id = TAILQ_FIRST(&authctxt->keys))) {
