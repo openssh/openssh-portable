@@ -1,4 +1,4 @@
-#	$OpenBSD: krl.sh,v 1.13 2025/05/06 06:05:48 djm Exp $
+#	$OpenBSD: krl.sh,v 1.14 2026/11/26 20:10:36 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key revocation lists"
@@ -214,3 +214,26 @@ for f in $OBJ/krl-keys $OBJ/krl-cert $OBJ/krl-all \
 done
 
 test_all
+
+# Check that a '#' inside a key ID is not mistaken for the start of a comment.
+verbose "$tid: key ID containing comment character"
+for n in 1 2 3 ; do
+	$SSHKEYGEN -t $ktype1 -f $OBJ/revoked-id$n -C "" -N "" > /dev/null \
+		|| fatal "$SSHKEYGEN failed"
+done
+$SSHKEYGEN -s $OBJ/revoked-ca -I "revoked#1" $OBJ/revoked-id1 \
+	>/dev/null 2>&1 || fatal "$SSHKEYGEN sign failed"
+$SSHKEYGEN -s $OBJ/revoked-ca -I "revoked" $OBJ/revoked-id2 \
+	>/dev/null 2>&1 || fatal "$SSHKEYGEN sign failed"
+$SSHKEYGEN -s $OBJ/revoked-ca -I "commented" $OBJ/revoked-id3 \
+	>/dev/null 2>&1 || fatal "$SSHKEYGEN sign failed"
+cat << EOF > $OBJ/revoked-keyid-comment
+# comment
+id: revoked#1
+id: commented # comment
+EOF
+$SSHKEYGEN -kf $OBJ/krl-keyid-comment -s $OBJ/revoked-ca.pub \
+	$OBJ/revoked-keyid-comment >/dev/null || fatal "$SSHKEYGEN KRL failed"
+check_krl $OBJ/revoked-id1-cert.pub $OBJ/krl-keyid-comment y "ID with #"
+check_krl $OBJ/revoked-id2-cert.pub $OBJ/krl-keyid-comment n "ID prefix"
+check_krl $OBJ/revoked-id3-cert.pub $OBJ/krl-keyid-comment y "ID with comment"
