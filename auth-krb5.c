@@ -74,6 +74,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 #ifndef HEIMDAL
 	krb5_creds creds;
 	krb5_principal server;
+	krb5_verify_init_creds_opt vopt;
 #endif
 	krb5_error_code problem;
 	krb5_ccache ccache = NULL;
@@ -150,8 +151,15 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 		goto out;
 
 	restore_uid();
+	/*
+	 * Require the KDC to prove itself against the host keytab; by
+	 * default libkrb5 silently skips this when the keytab is missing
+	 * or has no key for the server principal.
+	 */
+	krb5_verify_init_creds_opt_init(&vopt);
+	krb5_verify_init_creds_opt_set_ap_req_nofail(&vopt, 1);
 	problem = krb5_verify_init_creds(authctxt->krb5_ctx, &creds, server,
-	    NULL, NULL, NULL);
+	    NULL, NULL, &vopt);
 	krb5_free_principal(authctxt->krb5_ctx, server);
 	temporarily_use_uid(authctxt->pw);
 	if (problem)
