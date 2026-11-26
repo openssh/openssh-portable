@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.28 2026/11/25 20:42:32 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.29 2026/11/26 22:16:57 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -383,6 +383,7 @@ privsep_postauth(struct ssh *ssh, Authctxt *authctxt)
 	/* New socket pair */
 	monitor_reinit(pmonitor);
 
+	pmonitor->m_child_reaped = 0;
 	pmonitor->m_pid = fork();
 	if (pmonitor->m_pid == -1)
 		fatal("fork of unprivileged child failed");
@@ -1350,8 +1351,8 @@ cleanup_exit(int i)
 {
 	if (the_active_state != NULL && the_authctxt != NULL) {
 		do_cleanup(the_active_state, the_authctxt);
-		if (privsep_is_preauth &&
-		    pmonitor != NULL && pmonitor->m_pid > 1) {
+		if (privsep_is_preauth && pmonitor != NULL &&
+		    pmonitor->m_pid > 1 && !pmonitor->m_child_reaped) {
 			debug("Killing privsep child %d", pmonitor->m_pid);
 			if (kill(pmonitor->m_pid, SIGKILL) != 0 &&
 			    errno != ESRCH) {

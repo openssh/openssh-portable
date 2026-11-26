@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.264 2026/11/25 20:42:32 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.265 2026/11/26 22:16:57 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -408,6 +408,7 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 			continue;
 		fatal_f("waitpid: %s", strerror(errno));
 	}
+	pmonitor->m_child_reaped = 1;
 	if (WIFEXITED(status)) {
 		if (WEXITSTATUS(status) != 0)
 			fatal_f("preauth child %ld exited with status %d",
@@ -1803,6 +1804,10 @@ mm_answer_term(struct ssh *ssh, int sock, struct sshbuf *req)
 		sshpam_cleanup();
 #endif
 
+	/* Don't forward signals to the child's PID once it has been reaped */
+	ssh_signal(SIGHUP, SIG_IGN);
+	ssh_signal(SIGTERM, SIG_IGN);
+	ssh_signal(SIGINT, SIG_IGN);
 	while (waitpid(pmonitor->m_pid, &status, 0) == -1)
 		if (errno != EINTR)
 			exit(1);

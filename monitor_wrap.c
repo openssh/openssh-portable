@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.153 2026/10/30 05:38:16 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.154 2026/11/26 22:16:57 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -123,12 +123,22 @@ mm_reap(void)
 
 	if (!mm_is_monitor())
 		return;
+	/*
+	 * Once the child has been reaped its PID may be reused by an
+	 * unrelated process, so stop forwarding signals to it and record
+	 * that it is gone for cleanup_exit(). m_pid must remain set as
+	 * mm_is_monitor() depends on it.
+	 */
+	ssh_signal(SIGHUP, SIG_IGN);
+	ssh_signal(SIGTERM, SIG_IGN);
+	ssh_signal(SIGINT, SIG_IGN);
 	while (waitpid(pmonitor->m_pid, &status, 0) == -1) {
 		if (errno == EINTR)
 			continue;
 		pmonitor->m_pid = -1;
 		fatal_f("waitpid: %s", strerror(errno));
 	}
+	pmonitor->m_child_reaped = 1;
 	if (WIFEXITED(status)) {
 		if (WEXITSTATUS(status) != 0) {
 			debug_f("child exited with status %d",
