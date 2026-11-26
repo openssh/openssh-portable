@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.43 2026/09/23 21:45:51 djm Exp $
+#	$OpenBSD: multiplex.sh,v 1.44 2026/11/26 03:45:20 djm Exp $
 #	Placed in the Public Domain.
 
 tid="connection multiplexing"
@@ -16,11 +16,13 @@ P=3301  # test port
 wait_for_mux_master_ready()
 {
 	for i in 1 2 3 4 5 6 7 8 9; do
-		${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck otherhost \
-		    >/dev/null 2>&1 && return 0
+		test -S "$CTL" && break
 		sleep $i
 	done
-	fatal "mux master never becomes ready"
+	# Bound the hello exchange and disable fallback to a direct connection.
+	${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck -oConnectTimeout=10 \
+	    -oProxyCommand=false otherhost >/dev/null 2>&1 ||
+	    fatal "mux master never becomes ready"
 }
 
 maybe_add_scp_path_to_sshd
