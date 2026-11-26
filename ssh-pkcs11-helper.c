@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.31 2026/02/11 17:03:17 dtucker Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.32 2026/11/26 05:37:28 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -42,7 +42,13 @@
 
 static char *providername; /* Provider for this helper */
 
-#define MAX_MSG_LENGTH		10240 /*XXX*/
+/*
+ * Must be able to hold any request ssh-agent accepts (AGENT_MAX_LEN in
+ * ssh-agent.c) plus the few bytes ssh-pkcs11-client.c adds when it
+ * forwards a signature request, otherwise a large sign request (e.g. one
+ * carrying a big host certificate) terminates the helper.
+ */
+#define MAX_MSG_LENGTH		(256*1024 + 1024)
 
 /* input and output queue */
 struct sshbuf *iqueue;
