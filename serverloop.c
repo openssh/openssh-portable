@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.252 2026/11/25 22:14:23 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.253 2026/11/26 03:12:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -389,9 +389,7 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		if (sigprocmask(SIG_SETMASK, &osigset, NULL) == -1)
 			error_f("osigset sigprocmask: %s", strerror(errno));
 
-		if (ssh_packet_can_enqueue(ssh))
-			channel_after_poll(ssh, pfd, npfd_active);
-
+		channel_after_poll(ssh, pfd, npfd_active);
 		if (conn_in_ready &&
 		    process_input(ssh, connection_in) < 0)
 			break;

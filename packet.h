@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.111 2026/11/25 22:14:23 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.112 2026/11/26 03:12:24 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -104,7 +104,6 @@ void	 ssh_packet_clear_keys(struct ssh *);
 void	 ssh_clear_newkeys(struct ssh *, int);
 
 int	 ssh_packet_is_rekeying(struct ssh *);
-int	 ssh_packet_can_enqueue(struct ssh *);
 int	 ssh_packet_check_rekey(struct ssh *);
 void     ssh_packet_set_protocol_flags(struct ssh *, u_int);
 u_int	 ssh_packet_get_protocol_flags(struct ssh *);

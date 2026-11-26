@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.352 2026/11/25 22:14:23 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.353 2026/11/26 03:12:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -98,18 +98,6 @@
 #endif
 
 #define PACKET_MAX_SIZE (256 * 1024)
-
-/*
- * Limits on the packets that may be queued for sending until a key exchange
- * completes. The queue is flushed to the output buffer in one go, so there
- * is no point in holding more data than could fit there.
- */
-#define PACKET_MAX_QUEUED	(64 * 1024)
-#define PACKET_MAX_QUEUED_BYTES	SSHBUF_SIZE_MAX
-
-/* Channels will keep enqueuing data until these thresholds are hit */
-#define PACKET_QUEUED_FULL	((3 * PACKET_MAX_QUEUED) / 4)
-#define PACKET_QUEUED_BYTES	((3 * PACKET_MAX_QUEUED_BYTES) / 4)
 
 struct packet_state {
 	uint32_t seqnr;
@@ -248,10 +236,7 @@ struct session_state {
 	ssh_packet_hook_fn *hook_in;
 	void *hook_in_ctx;
 
-	/* Packets held by ssh_packet_send2() until key exchange completes */
 	TAILQ_HEAD(, packet) outgoing;
-	u_int outgoing_npackets;
-	size_t outgoing_nbytes;
 };
 
 struct ssh *
@@ -314,16 +299,6 @@ ssh_packet_is_rekeying(struct ssh *ssh)
 {
 	return ssh->state->rekeying ||
 	    (ssh->kex != NULL && ssh->kex->done == 0);
-}
-
-/* Returns nonzero if a packet can be enqueued at this time */
-int
-ssh_packet_can_enqueue(struct ssh *ssh)
-{
-	if (ssh == NULL || ssh->state == NULL || !ssh_packet_is_rekeying(ssh))
-		return 1;
-	return ssh->state->outgoing_npackets < PACKET_QUEUED_FULL &&
-	    ssh->state->outgoing_nbytes < PACKET_QUEUED_BYTES;
 }
 
 /*
@@ -1460,25 +1435,12 @@ ssh_packet_send2(struct ssh *ssh)
 		if (need_rekey)
 			debug3_f("rekex triggered");
 		debug("enqueue packet: %u", type);
-		/*
-		 * The queue only drains once the peer has completed the key
-		 * exchange. Don't let a peer that stalls it exhaust our memory.
-		 */
-		if (state->outgoing_npackets >= PACKET_MAX_QUEUED ||
-		    sshbuf_len(state->outgoing_packet) >
-		    PACKET_MAX_QUEUED_BYTES - state->outgoing_nbytes) {
-			error("too many packets queued while waiting for "
-			    "peer to complete key exchange");
-			return SSH_ERR_NO_BUFFER_SPACE;
-		}
 		p = calloc(1, sizeof(*p));
 		if (p == NULL)
 			return SSH_ERR_ALLOC_FAIL;
 		p->type = type;
 		p->payload = state->outgoing_packet;
 		TAILQ_INSERT_TAIL(&state->outgoing, p, next);
-		state->outgoing_npackets++;
-		state->outgoing_nbytes += sshbuf_len(p->payload);
 		state->outgoing_packet = sshbuf_new();
 		if (state->outgoing_packet == NULL)
 			return SSH_ERR_ALLOC_FAIL;
@@ -1520,8 +1482,6 @@ ssh_packet_send2(struct ssh *ssh)
 			sshbuf_free(state->outgoing_packet);
 			state->outgoing_packet = p->payload;
 			TAILQ_REMOVE(&state->outgoing, p, next);
-			state->outgoing_npackets--;
-			state->outgoing_nbytes -= sshbuf_len(p->payload);
 			memset(p, 0, sizeof(*p));
 			free(p);
 			if ((r = ssh_packet_send2_wrapped(ssh)) != 0)
