@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.424 2026/11/02 06:49:42 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.425 2026/11/26 19:30:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1308,9 +1308,6 @@ parse_time:
 			break;
 		}
 		/* ForwardAgent wasn't 'yes' or 'no', assume a path */
-		if (*activep && *intptr == -1)
-			*intptr = 1;
-
 		charptr = &options->forward_agent_sock_path;
 		goto parse_agent_path;
 
@@ -2493,6 +2490,12 @@ parse_pubkey_algos:
 			error("%.200s line %d: Invalid environment name %s.",
 			    filename, linenum, arg);
 			goto out;
+		}
+		if (*activep && opcode == oForwardAgent) {
+			/* Ignore the path if ForwardAgent was already set */
+			if (options->forward_agent != -1)
+				break;
+			options->forward_agent = 1;
 		}
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(arg);
