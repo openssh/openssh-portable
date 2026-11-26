@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.504 2026/11/26 06:24:26 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.505 2026/11/26 20:09:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2380,13 +2380,18 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 		lnum++;
 		was_explicit_key = was_sha1 = was_sha256 = was_hash = 0;
 		cp = line + strspn(line, " \t");
-		/* Trim trailing space, comments and strip \n */
+		/*
+		 * Trim trailing space, comments and strip \n. A '#' starts a
+		 * comment only at the start of the line or after whitespace,
+		 * since key IDs may legitimately contain this character.
+		 */
 		for (i = 0, r = -1; cp[i] != '\0'; i++) {
-			if (cp[i] == '#' || cp[i] == '\n') {
+			if (cp[i] == '\n' ||
+			    (cp[i] == '#' && (i == 0 || r != -1))) {
 				cp[i] = '\0';
 				break;
 			}
-			if (cp[i] == ' ' || cp[i] == '\t') {
+			if (cp[i] == ' ' || cp[i] == '\t' || cp[i] == '\r') {
 				/* Remember the start of a span of whitespace */
 				if (r == -1)
 					r = i;
