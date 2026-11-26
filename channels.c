@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.483 2026/11/26 03:44:28 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.484 2026/11/26 19:50:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2817,6 +2817,19 @@ channel_garbage_collect(struct ssh *ssh, Channel *c)
 
 enum channel_table { CHAN_PRE, CHAN_POST };
 
+static int
+channel_can_enqueue_during_rekey(struct ssh *ssh, const Channel *c)
+{
+	if (!ssh_packet_can_enqueue(ssh))
+		return 0;
+	/* Mux channels must continue to run so their exits can be noted. */
+	if (c->type == SSH_CHANNEL_OPEN ||
+	    c->type == SSH_CHANNEL_MUX_CLIENT ||
+	    c->type == SSH_CHANNEL_MUX_LISTENER)
+		return 1;
+	return 0;
+}
+
 static void
 channel_handler(struct ssh *ssh, int table, struct timespec *timeout)
 {
@@ -2839,8 +2852,7 @@ channel_handler(struct ssh *ssh, int table, struct timespec *timeout)
 		 * the packet queue reaches its soft limit.
 		 */
 		if (ssh_packet_is_rekeying(ssh) &&
-		    (c->type != SSH_CHANNEL_OPEN ||
-		    !ssh_packet_can_enqueue(ssh)))
+		    !channel_can_enqueue_during_rekey(ssh, c))
 			continue;
 		if (c->delayed) {
 			if (table == CHAN_PRE)
