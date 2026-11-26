@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.337 2026/11/26 05:42:21 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.338 2026/11/26 21:35:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -180,10 +180,11 @@ static char *socket_dirspec;
 static char *allowed_providers;
 
 /*
- * Allows PKCS11 providers or SK keys that use non-internal providers to
- * be added over a remote connection (identified by session-bind@openssh.com).
+ * Allows PKCS11 providers or SK keys to be added over a remote connection
+ * (identified by session-bind@openssh.com).
  */
-static int remote_add_provider;
+static int remote_add_p11;
+static int remote_add_fido;
 
 /* locking */
 #define LOCK_SIZE	32
@@ -1435,15 +1436,21 @@ process_add_identity(SocketEntry *e)
 			    "authenticator-hosted key", sshkey_type(k));
 			goto out;
 		}
+		/*
+		 * Refuse remote addition of all SK keys, including those
+		 * using the internal provider: every field of the key is
+		 * passed to the local authenticator as-is, so a remote
+		 * client could otherwise probe it without user interaction.
+		 */
+		if (socket_is_remote(e) && !remote_add_fido) {
+			verbose("failed add of SK provider \"%.100s\": "
+			    "remote addition of providers is disabled",
+			    sk_provider);
+			goto out;
+		}
 		if (strcasecmp(sk_provider, "internal") == 0) {
 			debug_f("internal provider");
 		} else {
-			if (socket_is_remote(e) && !remote_add_provider) {
-				verbose("failed add of SK provider \"%.100s\": "
-				    "remote addition of providers is disabled",
-				    sk_provider);
-				goto out;
-			}
 			if (realpath(sk_provider, canonical_provider) == NULL) {
 				verbose("failed provider \"%.100s\": "
 				    "realpath: %s", sk_provider,
@@ -1648,7 +1655,7 @@ process_add_smartcard_key(SocketEntry *e)
 		goto send;
 	}
 	dump_dest_constraints(__func__, dest_constraints, ndest_constraints);
-	if (socket_is_remote(e) && !remote_add_provider) {
+	if (socket_is_remote(e) && !remote_add_p11) {
 		verbose("failed PKCS#11 add of \"%.100s\": remote addition of "
 		    "providers is disabled", provider);
 		goto send;
@@ -1724,7 +1731,7 @@ process_remove_smartcard_key(SocketEntry *e)
 	}
 	free(pin);
 
-	if (socket_is_remote(e) && !remote_add_provider) {
+	if (socket_is_remote(e) && !remote_add_p11) {
 		verbose("failed PKCS#11 remove of \"%.100s\": remote removal of "
 		    "providers is disabled", provider);
 		goto send;
@@ -2405,8 +2412,10 @@ main(int ac, char **av)
 		case 'O':
 			if (strcmp(optarg, "no-restrict-websafe") == 0)
 				restrict_websafe = 0;
+			else if (strcmp(optarg, "allow-remote-fido") == 0)
+				remote_add_fido = 1;
 			else if (strcmp(optarg, "allow-remote-pkcs11") == 0)
-				remote_add_provider = 1;
+				remote_add_p11 = 1;
 			else if ((ccp = strprefix(optarg,
 			    "websafe-allow=", 0)) != NULL) {
 				if (websafe_allowlist != NULL)
