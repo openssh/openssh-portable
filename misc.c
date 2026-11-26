@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.223 2026/10/30 08:07:36 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.224 2026/11/26 19:25:34 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2625,6 +2625,9 @@ parse_absolute_time(const char *s, uint64_t *tp)
 		if ((tt = mktime(&tm)) == -1 && tm.tm_wday == -1)
 			return SSH_ERR_INVALID_FORMAT;
 	}
+	/* *tp is unsigned, so times before the epoch can't be represented */
+	if (tt < 0)
+		return SSH_ERR_INVALID_FORMAT;
 	/* success */
 	*tp = (uint64_t)tt;
 	return 0;
