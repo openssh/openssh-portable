@@ -1,4 +1,4 @@
-#	$OpenBSD: sshcfgparse.sh,v 1.12 2026/10/30 08:12:58 djm Exp $
+#	$OpenBSD: sshcfgparse.sh,v 1.13 2026/11/26 19:31:25 djm Exp $
 #	Placed in the Public Domain.
 
 tid="ssh config parse"
@@ -89,6 +89,18 @@ f=`${SSH} -GF none -oforwardagent=yes host | awk '/^forwardagent /{print$2}'`
 expect_result_present "$f" "yes"
 f=`${SSH} -GF none '-oforwardagent=SSH_AUTH_SOCK.forward' host | awk '/^forwardagent /{print$2}'`
 expect_result_present "$f" "SSH_AUTH_SOCK.forward"
+# First obtained value wins, whether it is a flag or a path.
+for first in yes no SSH_AUTH_SOCK.first ; do
+	for second in yes no SSH_AUTH_SOCK.second ; do
+		f=`${SSH} -GF none -oforwardagent=$first \
+		    -oforwardagent=$second host | \
+		    awk '/^forwardagent /{print$2}'`
+		expect_result_present "$f" "$first"
+	done
+done
+f=`${SSH} -GF none -A -oforwardagent=SSH_AUTH_SOCK.forward host | \
+    awk '/^forwardagent /{print$2}'`
+expect_result_present "$f" "yes"
 
 verbose "command line override"
 cat >$OBJ/ssh_config.0 <<EOD
