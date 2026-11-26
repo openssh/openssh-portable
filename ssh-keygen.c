@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.505 2026/11/26 20:09:35 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.506 2026/11/26 21:43:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -943,9 +943,9 @@ do_fingerprint(struct passwd *pw)
 {
 	FILE *f;
 	struct sshkey *public = NULL;
-	char *comment = NULL, *cp, *ep, *line = NULL;
+	char *comment = NULL, *cp, *line = NULL;
 	size_t linesize = 0;
-	int i, invalid = 1;
+	int invalid = 1;
 	const char *path;
 	u_long lnum = 0;
 
@@ -961,8 +961,11 @@ do_fingerprint(struct passwd *pw)
 
 	while (getline(&line, &linesize, f) != -1) {
 		lnum++;
-		cp = line;
-		cp[strcspn(cp, "\r\n")] = '\0';
+		/*
+		 * Only trim the end of the line; the programs that consume
+		 * these files don't stop at an embedded CR, so neither may we.
+		 */
+		rtrim(line);
 		/* Trim leading space and comments */
 		cp = line + strspn(line, " \t");
 		if (*cp == '#' || *cp == '\0')
@@ -992,31 +995,26 @@ do_fingerprint(struct passwd *pw)
 		/*
 		 * If it's not a private key, then this must be prepared to
 		 * accept a public key prefixed with a hostname or options.
-		 * Try a bare key first, otherwise skip the leading stuff.
+		 * Try a bare key first, otherwise skip the leading stuff
+		 * the same way that ssh(1) and sshd(8) do.
 		 */
 		comment = NULL;
 		if ((public = try_read_key(&cp)) == NULL) {
-			i = strtol(cp, &ep, 10);
-			if (i == 0 || ep == NULL ||
-			    (*ep != ' ' && *ep != '\t')) {
-				int quoted = 0;
-
-				comment = cp;
-				for (; *cp && (quoted || (*cp != ' ' &&
-				    *cp != '\t')); cp++) {
-					if (*cp == '\\' && cp[1] == '"')
-						cp++;	/* Skip both */
-					else if (*cp == '"')
-						quoted = !quoted;
-				}
-				if (!*cp)
-					continue;
+			comment = cp;
+			if (*cp == '@') {
+				/* known_hosts marker; hostnames follow */
+				cp += strcspn(cp, " \t");
+				skip_space(&cp);
+				cp += strcspn(cp, " \t");
+			} else
+				(void)sshkey_advance_past_options(&cp);
+			if (*cp != '\0')
 				*cp++ = '\0';
-			}
+			skip_space(&cp);
 		}
 		/* Retry after parsing leading hostname/key options */
 		if (public == NULL && (public = try_read_key(&cp)) == NULL) {
-			debug("%s:%lu: not a public key", path, lnum);
+			logit("%s:%lu: not a public key", path, lnum);
 			continue;
 		}
 
