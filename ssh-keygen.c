@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.503 2026/11/25 23:17:47 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.504 2026/11/26 06:24:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2120,10 +2120,26 @@ add_cert_option(char *opt)
 		fatal("Unsupported certificate option \"%s\"", opt);
 }
 
+/*
+ * Prepare a string taken from a certificate or key file for display.
+ * Escapes control characters, including newlines, so they can't mess up
+ * the output. Caller must free the result.
+ */
+static char *
+escape_string(const char *s)
+{
+	char *ret;
+	int width = INT_MAX;
+
+	if (asmprintf(&ret, INT_MAX, &width, "%s", s) == -1)
+		fatal_f("asmprintf failed");
+	return ret;
+}
+
 static void
 show_options(struct sshbuf *optbuf, int in_critical)
 {
-	char *name, *arg, *hex;
+	char *name, *arg, *hex, *esc;
 	struct sshbuf *options, *option = NULL;
 	int r;
 
@@ -2135,7 +2151,9 @@ show_options(struct sshbuf *optbuf, int in_critical)
 		if ((r = sshbuf_get_cstring(options, &name, NULL)) != 0 ||
 		    (r = sshbuf_froms(options, &option)) != 0)
 			fatal_fr(r, "parse option");
-		printf("                %s", name);
+		esc = escape_string(name);
+		printf("                %s", esc);
+		free(esc);
 		if (!in_critical &&
 		    (strcmp(name, "permit-X11-forwarding") == 0 ||
 		    strcmp(name, "permit-agent-forwarding") == 0 ||
@@ -2149,7 +2167,9 @@ show_options(struct sshbuf *optbuf, int in_critical)
 		    strcmp(name, "source-address") == 0)) {
 			if ((r = sshbuf_get_cstring(option, &arg, NULL)) != 0)
 				fatal_fr(r, "parse critical");
-			printf(" %s\n", arg);
+			esc = escape_string(arg);
+			printf(" %s\n", esc);
+			free(esc);
 			free(arg);
 		} else if (in_critical &&
 		    strcmp(name, "verify-required") == 0) {
@@ -2173,7 +2193,7 @@ show_options(struct sshbuf *optbuf, int in_critical)
 static void
 print_cert(struct sshkey *key)
 {
-	char valid[64], *key_fp, *ca_fp;
+	char valid[64], *key_fp, *ca_fp, *esc;
 	u_int i;
 
 	key_fp = sshkey_fingerprint(key, fingerprint_hash, SSH_FP_DEFAULT);
@@ -2189,16 +2209,20 @@ print_cert(struct sshkey *key)
 	printf("        Signing CA: %s %s (using %s)\n",
 	    sshkey_type(key->cert->signature_key), ca_fp,
 	    key->cert->signature_type);
-	printf("        Key ID: \"%s\"\n", key->cert->key_id);
+	esc = escape_string(key->cert->key_id);
+	printf("        Key ID: \"%s\"\n", esc);
+	free(esc);
 	printf("        Serial: %llu\n", (unsigned long long)key->cert->serial);
 	printf("        Valid: %s\n", valid);
 	printf("        Principals: ");
 	if (key->cert->nprincipals == 0)
 		printf("(none)\n");
 	else {
-		for (i = 0; i < key->cert->nprincipals; i++)
-			printf("\n                %s",
-			    key->cert->principals[i]);
+		for (i = 0; i < key->cert->nprincipals; i++) {
+			esc = escape_string(key->cert->principals[i]);
+			printf("\n                %s", esc);
+			free(esc);
+		}
 		printf("\n");
 	}
 	printf("        Critical Options: ");
@@ -2544,11 +2568,14 @@ check_krl_key(struct ssh_krl *krl, const struct sshkey *k,
     const char *path, const char *comment)
 {
 	int r;
+	char *esc;
 
 	r = ssh_krl_check_key(krl, k);
+	esc = escape_string(comment);
 	printf("%s%s%s%s: %s\n", path,
-	    *comment ? " (" : "", comment, *comment ? ")" : "",
+	    *esc ? " (" : "", esc, *esc ? ")" : "",
 	    r == 0 ? "ok" : "REVOKED");
+	free(esc);
 	return r != 0;
 }
 
