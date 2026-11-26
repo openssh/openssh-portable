@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.224 2026/11/26 19:25:34 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.225 2026/11/26 20:05:40 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
@@ -2029,6 +2029,7 @@ int
 unix_listener(const char *path, int backlog, int unlink_first)
 {
 	struct sockaddr_un sunaddr;
+	struct stat st;
 	int saved_errno, sock;
 
 	memset(&sunaddr, 0, sizeof(sunaddr));
@@ -2048,6 +2049,17 @@ unix_listener(const char *path, int backlog, int unlink_first)
 		return -1;
 	}
 	if (unlink_first == 1) {
+		/*
+		 * Only ever remove an existing socket; the path may have been
+		 * supplied by a remote peer (e.g. streamlocal-forward) and must
+		 * not be usable to delete arbitrary files.
+		 */
+		if (lstat(path, &st) == 0 && !S_ISSOCK(st.st_mode)) {
+			error_f("refusing to unlink non-socket %s", path);
+			close(sock);
+			errno = EADDRINUSE;
+			return -1;
+		}
 		if (unlink(path) != 0 && errno != ENOENT)
 			error("unlink(%s): %.100s", path, strerror(errno));
 	}
