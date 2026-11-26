@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.338 2026/11/26 21:35:58 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.339 2026/11/26 22:26:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -104,6 +104,8 @@
 #define AGENT_MAX_DEST_CONSTRAINT_KEYS	16384
 /* Maximum number of associated certificate constraints to accept on a key */
 #define AGENT_MAX_EXT_CERTS		1024
+/* Maximum number of identities to hold; cf. MAX_AGENT_IDENTITIES in authfd.c */
+#define AGENT_MAX_IDENTITIES		2048
 /* Max length of username constraint */
 #define AGENT_USER_CONSTRAINT_MAX_LEN	256
 
@@ -1479,6 +1481,10 @@ process_add_identity(SocketEntry *e)
 	if (lifetime && !death)
 		death = monotime() + lifetime;
 	if ((id = lookup_identity(k)) == NULL) {
+		if (idtab->nentries >= AGENT_MAX_IDENTITIES) {
+			error_f("too many identities");
+			goto out;
+		}
 		id = xcalloc(1, sizeof(Identity));
 		TAILQ_INSERT_TAIL(&idtab->idlist, id, next);
 		/* Increment the number of identities. */
@@ -1596,7 +1602,7 @@ no_identities(SocketEntry *e)
 
 #ifdef ENABLE_PKCS11
 /* Add an identity to idlist; takes ownership of 'key' and 'comment' */
-static void
+static int
 add_p11_identity(struct sshkey *key, char *comment, const char *provider,
     time_t death, u_int confirm, struct dest_constraint *dest_constraints,
     size_t ndest_constraints)
@@ -1613,7 +1619,13 @@ add_p11_identity(struct sshkey *key, char *comment, const char *provider,
 		error_f("too many destination constraint hostkeys loaded");
 		sshkey_free(key);
 		free(comment);
-		return;
+		return 0;
+	}
+	if (idtab->nentries >= AGENT_MAX_IDENTITIES) {
+		error_f("too many identities");
+		sshkey_free(key);
+		free(comment);
+		return -1;
 	}
 	id = xcalloc(1, sizeof(Identity));
 	id->key = key;
@@ -1626,6 +1638,7 @@ add_p11_identity(struct sshkey *key, char *comment, const char *provider,
 	id->ndest_constraints = ndest_constraints;
 	TAILQ_INSERT_TAIL(&idtab->idlist, id, next);
 	idtab->nentries++;
+	return 0;
 }
 
 static void
@@ -1687,18 +1700,18 @@ process_add_smartcard_key(SocketEntry *e)
 				continue;
 			if (pkcs11_make_cert(keys[i], certs[j], &k) != 0)
 				continue;
-			add_p11_identity(k, xstrdup(comments[i]),
+			if (add_p11_identity(k, xstrdup(comments[i]),
 			    canonical_provider, death, confirm,
-			    dest_constraints, ndest_constraints);
-			success = 1;
+			    dest_constraints, ndest_constraints) == 0)
+				success = 1;
 		}
 		if (!cert_only && lookup_identity(keys[i]) == NULL) {
-			add_p11_identity(keys[i], comments[i],
+			if (add_p11_identity(keys[i], comments[i],
 			    canonical_provider, death, confirm,
-			    dest_constraints, ndest_constraints);
+			    dest_constraints, ndest_constraints) == 0)
+				success = 1;
 			keys[i] = NULL;		/* transferred */
 			comments[i] = NULL;	/* transferred */
-			success = 1;
 		}
 		/* XXX update constraints for existing keys */
 		sshkey_free(keys[i]);
