@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.482 2026/11/26 03:12:24 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.483 2026/11/26 03:44:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2834,8 +2834,13 @@ channel_handler(struct ssh *ssh, int table, struct timespec *timeout)
 		/* Count open channels in bulk state */
 		if (c->type == SSH_CHANNEL_OPEN && c->bulk)
 			sc->nbulk++;
-		/* Try to keep IO going while rekeying */
-		if (ssh_packet_is_rekeying(ssh) && c->type != SSH_CHANNEL_OPEN)
+		/*
+		 * During rekey, keep I/O going on open channels until
+		 * the packet queue reaches its soft limit.
+		 */
+		if (ssh_packet_is_rekeying(ssh) &&
+		    (c->type != SSH_CHANNEL_OPEN ||
+		    !ssh_packet_can_enqueue(ssh)))
 			continue;
 		if (c->delayed) {
 			if (table == CHAN_PRE)
