@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_convtime.c,v 1.4 2025/12/05 07:43:24 djm Exp $ */
+/* 	$OpenBSD: test_convtime.c,v 1.5 2026/11/26 19:27:26 djm Exp $ */
 /*
  * Regress test for misc time conversion functions.
  *
@@ -149,6 +149,16 @@ test_convtime(void)
 	    SSH_ERR_INVALID_FORMAT);
 	ASSERT_INT_EQ(parse_absolute_time("20000101UTCUTC", &t),
 	    SSH_ERR_INVALID_FORMAT);
+	/* Before the epoch */
+	ASSERT_INT_EQ(parse_absolute_time("19691231", &t),
+	    SSH_ERR_INVALID_FORMAT);
+	ASSERT_INT_EQ(parse_absolute_time("19691231Z", &t),
+	    SSH_ERR_INVALID_FORMAT);
+	ASSERT_INT_EQ(parse_absolute_time("19691231235959UTC", &t),
+	    SSH_ERR_INVALID_FORMAT);
+	/* Epoch itself */
+	ASSERT_INT_EQ(parse_absolute_time("19700101Z", &t), 0);
+	ASSERT_U64_EQ(t, 0);
 
 	TEST_DONE();
 }
