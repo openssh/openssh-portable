@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.484 2026/11/26 19:50:53 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.485 2026/11/27 18:15:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -66,6 +66,10 @@
 #include <time.h>
 #include <unistd.h>
 
+#ifdef WITH_ASR
+#include <asr.h>
+#endif
+
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh2.h"
@@ -123,6 +127,12 @@ struct channel_connect {
 	char *host;
 	int port;
 	struct addrinfo *ai, *aitop;
+#ifdef WITH_ASR
+	struct asr_query *query;
+	int resolve_fd;
+	int resolve_events;
+	double resolve_deadline;
+#endif
 };
 
 /*
@@ -236,6 +246,7 @@ static const char *channel_rfwd_bind_host(const char *listen_host);
 
 /* non-blocking connect helpers */
 static int connect_next(struct ssh *, struct channel_connect *);
+static void channel_connect_failed(struct ssh *, Channel *, const char *);
 static Channel *rdynamic_connect_prepare(struct ssh *, char *, char *);
 static int rdynamic_connect_finish(struct ssh *, Channel *);
 
@@ -324,6 +335,10 @@ channel_lookup(struct ssh *ssh, int id)
 static void
 free_connect_ctx(struct channel_connect *cctx)
 {
+#ifdef WITH_ASR
+	if (cctx->query != NULL)
+		asr_abort(cctx->query);
+#endif
 	free(cctx->host);
 	if (cctx->aitop) {
 		if (cctx->aitop->ai_family == AF_UNIX)
@@ -339,6 +354,9 @@ channel_free_connect_ctx(Channel *c)
 {
 	if (c == NULL || c->connect_ctx == NULL)
 		return;
+	c->pfds[4] = -1;
+	c->io_want &= ~SSH_CHAN_IO_RESOLVE;
+	c->io_ready &= ~SSH_CHAN_IO_RESOLVE;
 	free_connect_ctx(c->connect_ctx);
 	free(c->connect_ctx);
 	c->connect_ctx = NULL;
@@ -593,6 +611,8 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	}
 	/* Initialize and return new channel. */
 	c = sc->channels[found] = xcalloc(1, sizeof(Channel));
+	for (i = 0; i < sizeof(c->pfds) / sizeof(c->pfds[0]); i++)
+		c->pfds[i] = -1;
 	if ((c->input = sshbuf_new()) == NULL ||
 	    (c->output = sshbuf_new()) == NULL ||
 	    (c->extended = sshbuf_new()) == NULL)
@@ -955,9 +975,12 @@ channel_close_all(struct ssh *ssh)
 {
 	u_int i;
 
-	for (i = 0; i < ssh->chanctxt->channels_alloc; i++)
-		if (ssh->chanctxt->channels[i] != NULL)
+	for (i = 0; i < ssh->chanctxt->channels_alloc; i++) {
+		if (ssh->chanctxt->channels[i] != NULL) {
+			channel_free_connect_ctx(ssh->chanctxt->channels[i]);
 			channel_close_fds(ssh, ssh->chanctxt->channels[i]);
+		}
+	}
 }
 
 /*
@@ -1406,6 +1429,12 @@ channel_pre_listener(struct ssh *ssh, Channel *c)
 static void
 channel_pre_connecting(struct ssh *ssh, Channel *c)
 {
+#ifdef WITH_ASR
+	if (c->connect_ctx != NULL && c->connect_ctx->query != NULL) {
+		c->io_want = c->connect_ctx->resolve_events;
+		return;
+	}
+#endif
 	debug3("channel %d: waiting for connection", c->self);
 	c->io_want = SSH_CHAN_IO_SOCK_W;
 }
@@ -1532,6 +1561,16 @@ void
 channel_force_close(struct ssh *ssh, Channel *c, int abandon)
 {
 	debug3_f("channel %d: forcibly closing", c->self);
+	if (c->connect_ctx != NULL) {
+		if (c->type == SSH_CHANNEL_CONNECTING &&
+		    (c->flags & CHAN_CLOSE_RCVD) == 0) {
+			channel_connect_failed(ssh, c, "Connection cancelled");
+			return;
+		}
+		channel_free_connect_ctx(c);
+		channel_close_fds(ssh, c);
+		c->type = SSH_CHANNEL_OPEN;
+	}
 	if (c->istate == CHAN_INPUT_OPEN)
 		chan_read_failed(ssh, c);
 	if (c->istate == CHAN_INPUT_WAIT_DRAIN) {
@@ -2237,11 +2276,90 @@ channel_post_auth_listener(struct ssh *ssh, Channel *c)
 		fatal_fr(r, "channel %i", c->self);
 }
 
+#ifdef WITH_ASR
+/* Returns -1 on failure, 0 while pending, or 1 with addresses available. */
+static int
+connect_resolve(struct channel_connect *cctx, const char **errmsg)
+{
+	struct asr_result ar;
+
+	if (asr_run(cctx->query, &ar) == 0) {
+		cctx->resolve_fd = ar.ar_fd;
+		cctx->resolve_events = ar.ar_cond == ASR_WANT_READ ?
+		    SSH_CHAN_IO_RESOLVE_R : SSH_CHAN_IO_RESOLVE_W;
+		cctx->resolve_deadline = ar.ar_timeout < 0 ? 0 :
+		    monotime_double() + ar.ar_timeout / 1000.0;
+		return 0;
+	}
+	/* asr_run() has freed the query, including its descriptor. */
+	cctx->query = NULL;
+	cctx->resolve_fd = -1;
+	cctx->resolve_events = 0;
+	cctx->resolve_deadline = 0;
+	if (ar.ar_gai_errno != 0) {
+		errno = ar.ar_errno;
+		*errmsg = ssh_gai_strerror(ar.ar_gai_errno);
+		return -1;
+	}
+	cctx->ai = cctx->aitop = ar.ar_addrinfo;
+	return 1;
+}
+#endif
+
+static void
+channel_connect_failed(struct ssh *ssh, Channel *c, const char *errmsg)
+{
+	int r;
+
+	channel_free_connect_ctx(c);
+	channel_close_fds(ssh, c);
+	if (c->type == SSH_CHANNEL_RDYNAMIC_FINISH) {
+		rdynamic_close(ssh, c);
+		return;
+	}
+	if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_OPEN_FAILURE)) != 0 ||
+	    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
+	    (r = sshpkt_put_u32(ssh, SSH2_OPEN_CONNECT_FAILED)) != 0 ||
+	    (r = sshpkt_put_cstring(ssh, errmsg)) != 0 ||
+	    (r = sshpkt_put_cstring(ssh, "")) != 0 ||
+	    (r = sshpkt_send(ssh)) != 0)
+		fatal_fr(r, "channel %i: failure", c->self);
+	chan_mark_dead(ssh, c);
+}
+
 static void
 channel_post_connecting(struct ssh *ssh, Channel *c)
 {
 	int err = 0, sock, isopen, r;
 	socklen_t sz = sizeof(err);
+#ifdef WITH_ASR
+	const char *errmsg = NULL;
+	struct channel_connect *cctx = c->connect_ctx;
+
+	if (cctx != NULL && cctx->query != NULL) {
+		if ((c->io_ready & SSH_CHAN_IO_RESOLVE) == 0 &&
+		    (cctx->resolve_deadline == 0 ||
+		    monotime_double() < cctx->resolve_deadline))
+			return;
+		if (!c->have_remote_id)
+			fatal_f("channel %d: no remote id", c->self);
+		if ((r = connect_resolve(cctx, &errmsg)) == 0)
+			return;
+		c->pfds[4] = -1;
+		c->io_want &= ~SSH_CHAN_IO_RESOLVE;
+		c->io_ready &= ~SSH_CHAN_IO_RESOLVE;
+		if (r == -1) {
+			error("connect_to %.100s: unknown host (%s)",
+			    cctx->host, errmsg);
+			channel_connect_failed(ssh, c, errmsg);
+		} else if ((sock = connect_next(ssh, cctx)) == -1)
+			channel_connect_failed(ssh, c, strerror(errno));
+		else
+			channel_register_fds(ssh, c, sock, sock, -1, 0, 1, 0);
+		/* The new socket has not been polled, even if its fd was reused. */
+		return;
+	}
+#endif
 
 	if ((c->io_ready & SSH_CHAN_IO_SOCK_W) == 0)
 		return;
@@ -2265,6 +2383,9 @@ channel_post_connecting(struct ssh *ssh, Channel *c)
 		channel_free_connect_ctx(c);
 		c->type = SSH_CHANNEL_OPEN;
 		channel_set_used_time(ssh, c);
+		/* EOF may have arrived before we had a socket to shut down. */
+		if (c->ostate == CHAN_OUTPUT_CLOSED)
+			(void)shutdown(c->sock, SHUT_WR);
 		if (isopen) {
 			/* no message necessary */
 		} else {
@@ -2290,21 +2411,8 @@ channel_post_connecting(struct ssh *ssh, Channel *c)
 		/* Exhausted all addresses for this destination */
 		error("connect_to %.100s port %d: failed.",
 		    c->connect_ctx->host, c->connect_ctx->port);
-		channel_free_connect_ctx(c);
-		if (isopen) {
-			rdynamic_close(ssh, c);
-		} else {
-			if ((r = sshpkt_start(ssh,
-			    SSH2_MSG_CHANNEL_OPEN_FAILURE)) != 0 ||
-			    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
-			    (r = sshpkt_put_u32(ssh,
-			    SSH2_OPEN_CONNECT_FAILED)) != 0 ||
-			    (r = sshpkt_put_cstring(ssh, strerror(err))) != 0 ||
-			    (r = sshpkt_put_cstring(ssh, "")) != 0 ||
-			    (r = sshpkt_send(ssh)) != 0)
-				fatal_fr(r, "channel %i: failure", c->self);
-			chan_mark_dead(ssh, c);
-		}
+		channel_connect_failed(ssh, c, strerror(err));
+		return;
 	}
 
 	/* New non-blocking connection in progress */
@@ -2873,6 +2981,14 @@ channel_handler(struct ssh *ssh, int table, struct timespec *timeout)
 			} else if (c->notbefore <= now) {
 				/* Run handlers that are not paused. */
 				(*ftab[c->type])(ssh, c);
+#ifdef WITH_ASR
+				if (timeout != NULL && c->connect_ctx != NULL &&
+				    c->connect_ctx->query != NULL &&
+				    c->connect_ctx->resolve_deadline != 0) {
+					ptimeout_deadline_monotime_double(timeout,
+					    c->connect_ctx->resolve_deadline);
+				}
+#endif
 				/* inactivity timeouts must interrupt poll() */
 				if (timeout != NULL &&
 				    c->type == SSH_CHANNEL_OPEN &&
@@ -2920,11 +3036,11 @@ dump_channel_poll(const char *func, const char *what, Channel *c,
     u_int pollfd_offset, struct pollfd *pfd)
 {
 #ifdef DEBUG_CHANNEL_POLL
-	debug3("%s: channel %d: %s r%d w%d e%d s%d c->pfds [ %d %d %d %d ] "
+	debug3("%s: channel %d: %s r%d w%d e%d s%d c->pfds [ %d %d %d %d %d ] "
 	    "io_want 0x%02x io_ready 0x%02x pfd[%u].fd=%d "
 	    "pfd.ev 0x%02x pfd.rev 0x%02x", func, c->self, what,
 	    c->rfd, c->wfd, c->efd, c->sock,
-	    c->pfds[0], c->pfds[1], c->pfds[2], c->pfds[3],
+	    c->pfds[0], c->pfds[1], c->pfds[2], c->pfds[3], c->pfds[4],
 	    c->io_want, c->io_ready,
 	    pollfd_offset, pfd->fd, pfd->events, pfd->revents);
 #endif
@@ -2935,16 +3051,17 @@ static void
 channel_prepare_pollfd(Channel *c, u_int *next_pollfd,
     struct pollfd *pfd, u_int npfd)
 {
-	u_int ev, p = *next_pollfd;
+	u_int i, ev, p = *next_pollfd;
 
 	if (c == NULL)
 		return;
-	if (p + 4 > npfd) {
+	if (p + CHANNEL_ENTRY_NPOLLFD > npfd) {
 		/* Shouldn't happen */
 		fatal_f("channel %d: bad pfd offset %u (max %u)",
 		    c->self, p, npfd);
 	}
-	c->pfds[0] = c->pfds[1] = c->pfds[2] = c->pfds[3] = -1;
+	for (i = 0; i < sizeof(c->pfds) / sizeof(c->pfds[0]); i++)
+		c->pfds[i] = -1;
 	/*
 	 * prepare c->rfd
 	 *
@@ -3030,6 +3147,18 @@ channel_prepare_pollfd(Channel *c, u_int *next_pollfd,
 			p++;
 		}
 	}
+#ifdef WITH_ASR
+	if (c->connect_ctx != NULL && c->connect_ctx->query != NULL &&
+	    c->connect_ctx->resolve_fd != -1 &&
+	    (c->io_want & SSH_CHAN_IO_RESOLVE) != 0) {
+		c->pfds[4] = p;
+		pfd[p].fd = c->connect_ctx->resolve_fd;
+		pfd[p].events = (c->io_want & SSH_CHAN_IO_RESOLVE_R) ?
+		    POLLIN : POLLOUT;
+		dump_channel_poll(__func__, "resolver", c, p, &pfd[p]);
+		p++;
+	}
+#endif
 	*next_pollfd = p;
 }
 
@@ -3048,10 +3177,14 @@ channel_prepare_poll(struct ssh *ssh, struct pollfd **pfdp, u_int *npfd_allocp,
 			continue;
 		sc->channels[i]->io_want = sc->channels[i]->io_ready = 0;
 	}
-	/* Allocate 4x pollfd for each channel (rfd, wfd, efd, sock) */
-	if (sc->channels_alloc >= (INT_MAX / 4) - npfd_reserved)
+	/*
+	 * Allocate CHANNEL_ENTRY_NPOLLFD pollfd per channel (rfd, wfd,
+	 * efd, sock, resolver).
+	 */
+	if (npfd_reserved > INT_MAX || sc->channels_alloc >
+	    (INT_MAX - npfd_reserved) / CHANNEL_ENTRY_NPOLLFD)
 		fatal_f("too many channels"); /* shouldn't happen */
-	npfd += sc->channels_alloc * 4;
+	npfd += sc->channels_alloc * CHANNEL_ENTRY_NPOLLFD;
 	if (npfd > *npfd_allocp) {
 		*pfdp = xrecallocarray(*pfdp, *npfd_allocp,
 		    npfd, sizeof(**pfdp));
@@ -3180,6 +3313,15 @@ channel_after_poll(struct ssh *ssh, struct pollfd *pfd, u_int npfd)
 			    "sockw", POLLOUT, SSH_CHAN_IO_SOCK_W);
 			dump_channel_poll(__func__, "sock", c, p, pfd);
 		}
+#ifdef WITH_ASR
+		if (c->connect_ctx != NULL && c->connect_ctx->query != NULL &&
+		    (p = c->pfds[4]) != -1) {
+			fd_ready(c, p, pfd, npfd, c->connect_ctx->resolve_fd,
+			    "resolver/r", POLLIN, SSH_CHAN_IO_RESOLVE_R);
+			fd_ready(c, p, pfd, npfd, c->connect_ctx->resolve_fd,
+			    "resolver/w", POLLOUT, SSH_CHAN_IO_RESOLVE_W);
+		}
+#endif
 	}
 	channel_handler(ssh, CHAN_POST, NULL);
 }
@@ -3810,6 +3952,8 @@ channel_input_oclose(int type, uint32_t seq, struct ssh *ssh)
 		ssh_packet_disconnect(ssh, "Invalid oclose message");
 	}
 	chan_rcvd_oclose(ssh, c);
+	if (c->connect_ctx != NULL)
+		channel_force_close(ssh, c, 0);
 	return 0;
 }
 
@@ -4933,18 +5077,22 @@ connect_next(struct ssh *ssh, struct channel_connect *cctx)
 }
 
 /*
- * Return connecting socket to remote host:port or local socket path,
- * passing back the failure reason if appropriate.
+ * Start connecting to a remote host:port or local socket path.
+ * Return 0 on success (possibly still resolving, with *sockp == -1),
+ * or -1 on failure, passing back the failure reason if appropriate.
  */
 static int
 connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
-    char *ctype, char *rname, struct channel_connect *cctx,
-    int *reason, const char **errmsg)
+    struct channel_connect *cctx, int *sockp, int *reason, const char **errmsg)
 {
 	struct addrinfo hints;
 	int gaierr;
-	int sock = -1;
+	const char *errstr = NULL;
 	char strport[NI_MAXSERV];
+
+	*sockp = -1;
+	cctx->host = xstrdup(name);
+	cctx->port = port;
 
 	if (port == PORT_STREAMLOCAL) {
 		struct sockaddr_un *sunaddr;
@@ -4975,29 +5123,41 @@ connect_to_helper(struct ssh *ssh, const char *name, int port, int socktype,
 		hints.ai_family = ssh->chanctxt->IPv4or6;
 		hints.ai_socktype = socktype;
 		snprintf(strport, sizeof strport, "%d", port);
+#ifdef WITH_ASR
+		cctx->resolve_fd = -1;
+		if ((cctx->query = getaddrinfo_async(name, strport,
+		    &hints, NULL)) == NULL) {
+			errstr = ssh_gai_strerror(EAI_SYSTEM);
+			gaierr = -1;
+		} else
+			gaierr = connect_resolve(cctx, &errstr);
+		if (gaierr == 0)
+			return 0;
+		if (gaierr == -1) {
+#else
 		if ((gaierr = getaddrinfo(name, strport, &hints, &cctx->aitop))
 		    != 0) {
+			errstr = ssh_gai_strerror(gaierr);
+#endif
 			if (errmsg != NULL)
-				*errmsg = ssh_gai_strerror(gaierr);
+				*errmsg = errstr;
 			if (reason != NULL)
 				*reason = SSH2_OPEN_CONNECT_FAILED;
 			error("connect_to %.100s: unknown host (%s)", name,
-			    ssh_gai_strerror(gaierr));
+			    errstr);
 			return -1;
 		}
 	}
 
-	cctx->host = xstrdup(name);
-	cctx->port = port;
 	cctx->ai = cctx->aitop;
 
-	if ((sock = connect_next(ssh, cctx)) == -1) {
+	if ((*sockp = connect_next(ssh, cctx)) == -1) {
 		error("connect to %.100s port %d failed: %s",
 		    name, port, strerror(errno));
 		return -1;
 	}
 
-	return sock;
+	return 0;
 }
 
 /* Return CONNECTING channel to remote host:port or local socket path */
@@ -5010,9 +5170,8 @@ connect_to(struct ssh *ssh, const char *host, int port,
 	int sock;
 
 	memset(&cctx, 0, sizeof(cctx));
-	sock = connect_to_helper(ssh, host, port, SOCK_STREAM, ctype, rname,
-	    &cctx, NULL, NULL);
-	if (sock == -1) {
+	if (connect_to_helper(ssh, host, port, SOCK_STREAM, &cctx, &sock,
+	    NULL, NULL) == -1) {
 		free_connect_ctx(&cctx);
 		return NULL;
 	}
@@ -5127,9 +5286,8 @@ channel_connect_to_port(struct ssh *ssh, const char *host, u_short port,
 	}
 
 	memset(&cctx, 0, sizeof(cctx));
-	sock = connect_to_helper(ssh, host, port, SOCK_STREAM, ctype, rname,
-	    &cctx, reason, errmsg);
-	if (sock == -1) {
+	if (connect_to_helper(ssh, host, port, SOCK_STREAM, &cctx, &sock,
+	    reason, errmsg) == -1) {
 		free_connect_ctx(&cctx);
 		return NULL;
 	}
@@ -5235,7 +5393,7 @@ rdynamic_connect_prepare(struct ssh *ssh, char *ctype, char *rname)
 	return c;
 }
 
-/* Return CONNECTING socket to remote host:port or local socket path */
+/* Start a reverse dynamic connection; return 0 on success, -1 on failure. */
 static int
 rdynamic_connect_finish(struct ssh *ssh, Channel *c)
 {
@@ -5262,18 +5420,17 @@ rdynamic_connect_finish(struct ssh *ssh, Channel *c)
 	}
 
 	memset(&cctx, 0, sizeof(cctx));
-	sock = connect_to_helper(ssh, c->path, c->host_port, SOCK_STREAM, NULL,
-	    NULL, &cctx, NULL, NULL);
-	if (sock == -1)
+	if (connect_to_helper(ssh, c->path, c->host_port, SOCK_STREAM,
+	    &cctx, &sock, NULL, NULL) == -1) {
 		free_connect_ctx(&cctx);
-	else {
-		/* similar to SSH_CHANNEL_CONNECTING but we've already sent the open */
-		c->type = SSH_CHANNEL_RDYNAMIC_FINISH;
-		c->connect_ctx = xmalloc(sizeof(cctx));
-		memcpy(c->connect_ctx, &cctx, sizeof(cctx));
-		channel_register_fds(ssh, c, sock, sock, -1, 0, 1, 0);
+		return -1;
 	}
-	return sock;
+	/* Like SSH_CHANNEL_CONNECTING, but the open was already confirmed. */
+	c->type = SSH_CHANNEL_RDYNAMIC_FINISH;
+	c->connect_ctx = xmalloc(sizeof(cctx));
+	memcpy(c->connect_ctx, &cctx, sizeof(cctx));
+	channel_register_fds(ssh, c, sock, sock, -1, 0, 1, 0);
+	return 0;
 }
 
 /* -- X11 forwarding */

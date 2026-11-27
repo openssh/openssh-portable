@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.172 2026/10/30 05:16:48 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.173 2026/11/27 18:15:18 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -119,7 +119,7 @@ typedef int mux_callback_fn(struct ssh *, struct Channel *);
  * because we use local channel ID -1 for housekeeping. Remote channels have
  * a dedicated "have_remote_id" flag to indicate their validity.
  */
-
+#define CHANNEL_ENTRY_NPOLLFD	5 /* r/w/e/sock/resolver */
 struct Channel {
 	int     type;		/* channel type/state */
 
@@ -136,7 +136,7 @@ struct Channel {
 	int     sock;		/* sock fd */
 	u_int	io_want;	/* bitmask of SSH_CHAN_IO_* */
 	u_int	io_ready;	/* bitmask of SSH_CHAN_IO_* */
-	int	pfds[4];	/* pollfd entries for rfd/wfd/efd/sock */
+	int	pfds[CHANNEL_ENTRY_NPOLLFD];
 	int     ctl_chan;	/* control channel (multiplexed connections) */
 	uint32_t ctl_child_id;	/* child session for mux controllers */
 	int	have_ctl_child_id;/* non-zero if ctl_child_id is valid */
@@ -255,6 +255,9 @@ struct Channel {
 #define SSH_CHAN_IO_SOCK_R		0x10
 #define SSH_CHAN_IO_SOCK_W		0x20
 #define SSH_CHAN_IO_SOCK		(SSH_CHAN_IO_SOCK_R|SSH_CHAN_IO_SOCK_W)
+#define SSH_CHAN_IO_RESOLVE_R		0x40
+#define SSH_CHAN_IO_RESOLVE_W		0x80
+#define SSH_CHAN_IO_RESOLVE		(SSH_CHAN_IO_RESOLVE_R|SSH_CHAN_IO_RESOLVE_W)
 
 /* Read buffer size */
 #define CHAN_RBUF	(16*1024)
