@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.157 2026/11/25 07:07:26 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.158 2026/11/27 18:51:23 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -2102,7 +2102,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 				fatal_fr(r, "sshbuf_put");
 		}
 		/* send oqueue to stdout */
-		if (pfd[1].revents & (POLLOUT|POLLHUP)) {
+		if (pfd[1].revents & (POLLOUT|POLLHUP|POLLERR)) {
 			len = write(out, sshbuf_ptr(oqueue), olen);
 			if (len == 0 || (len == -1 && errno == EPIPE)) {
 				debug("write eof");
