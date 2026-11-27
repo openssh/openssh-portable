@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.158 2026/11/27 18:51:23 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.159 2026/11/27 18:52:41 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -53,6 +53,9 @@ char *sftp_realpath(const char *, char *); /* sftp-realpath.c */
 
 /* Maximum data read that we are willing to accept */
 #define SFTP_MAX_READ_LENGTH (SFTP_MAX_MSG_LENGTH - 1024)
+
+/* Maximum amount of request or reply data we are willing to queue */
+#define SFTP_MAX_QUEUE_LENGTH (8 * SFTP_MAX_MSG_LENGTH)
 
 /* Our verbosity */
 static LogLevel log_level = SYSLOG_LEVEL_ERROR;
@@ -2046,6 +2049,15 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		fatal_f("sshbuf_new failed");
 	if ((oqueue = sshbuf_new()) == NULL)
 		fatal_f("sshbuf_new failed");
+	/*
+	 * Limit the queues so that the backpressure applied by the loop
+	 * below kicks in after a few messages rather than at the sshbuf
+	 * maximum; a client that stops reading its replies must not be
+	 * able to make us buffer an unbounded amount of data.
+	 */
+	if ((r = sshbuf_set_max_size(iqueue, SFTP_MAX_QUEUE_LENGTH)) != 0 ||
+	    (r = sshbuf_set_max_size(oqueue, SFTP_MAX_QUEUE_LENGTH)) != 0)
+		fatal_fr(r, "sshbuf_set_max_size");
 
 	if (homedir != NULL) {
 		if (chdir(homedir) != 0) {
