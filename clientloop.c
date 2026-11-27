@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.431 2026/11/26 21:51:26 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.432 2026/11/27 19:55:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -820,13 +820,18 @@ client_process_net_input(struct ssh *ssh)
 	if (r == SSH_ERR_SYSTEM_ERROR) {
 		if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK)
 			return;
-		if (errno == EPIPE) {
-			quit_message("Connection to %s closed by remote host.",
-			    host);
-			return;
-		}
 	}
-	quit_message("Read from remote host %s: %s", host, ssh_err(r));
+	if (r == SSH_ERR_SYSTEM_ERROR && errno == EPIPE)
+		quit_message("Connection to %s closed by remote host.", host);
+	else
+		quit_message("Read from remote host %s: %s", host, ssh_err(r));
+	/*
+	 * The server may send the exit-status ahead of the remainder of the
+	 * session's output, so don't report it if the connection was lost
+	 * before the session completed.
+	 */
+	if (!session_closed || !channel_output_closed(ssh, session_ident))
+		exit_status = -1;
 }
 
 static void

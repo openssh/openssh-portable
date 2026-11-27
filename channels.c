@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.486 2026/11/27 19:21:51 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.487 2026/11/27 19:55:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1167,6 +1167,22 @@ channel_find_open(struct ssh *ssh)
 		}
 	}
 	return -1;
+}
+
+/*
+ * Returns non-zero if the channel is closed or has completed its
+ * pre-close drain.
+ */
+int
+channel_output_closed(struct ssh *ssh, int id)
+{
+	Channel *c;
+
+	if (id == -1 || (c = channel_by_id(ssh, id)) == NULL)
+		return 0;
+	return c->ostate == CHAN_OUTPUT_CLOSED ||
+	    (c->ostate == CHAN_OUTPUT_WAIT_DRAIN &&
+	    sshbuf_len(c->output) == 0 && !CHANNEL_EFD_OUTPUT_ACTIVE(c));
 }
 
 /* Returns the state of the channel's extended usage flag */

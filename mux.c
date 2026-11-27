@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.120 2026/11/25 07:37:15 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.121 2026/11/27 19:55:40 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -106,6 +106,8 @@ static Channel *mux_listener_channel = NULL;
 
 struct mux_master_state {
 	int hello_rcvd;
+	int exitval_seen;
+	u_int exitval;
 };
 
 /* mux protocol messages */
@@ -187,6 +189,9 @@ static void
 mux_master_session_cleanup_cb(struct ssh *ssh, int cid, int force, void *unused)
 {
 	Channel *cc, *c = channel_by_id(ssh, cid);
+	struct mux_master_state *state;
+	struct sshbuf *m;
+	int r;
 
 	debug3_f("entering for channel %d", cid);
 	if (c == NULL)
@@ -195,6 +200,24 @@ mux_master_session_cleanup_cb(struct ssh *ssh, int cid, int force, void *unused)
 		if ((cc = channel_by_id(ssh, c->ctl_chan)) == NULL)
 			fatal_f("channel %d missing control channel %d",
 			    c->self, c->ctl_chan);
+		/*
+		 * Now that the session has closed, pass on any exit status
+		 * received for it. A forced close discarded its output, so
+		 * report nothing in that case.
+		 */
+		state = (struct mux_master_state *)cc->mux_ctx;
+		if (!force && state != NULL && state->exitval_seen) {
+			debug3_f("channel %d: exit message, exitval %u",
+			    c->self, state->exitval);
+			if ((m = sshbuf_new()) == NULL)
+				fatal_f("sshbuf_new");
+			if ((r = sshbuf_put_u32(m, MUX_S_EXIT_MESSAGE)) != 0 ||
+			    (r = sshbuf_put_u32(m, c->self)) != 0 ||
+			    (r = sshbuf_put_u32(m, state->exitval)) != 0 ||
+			    (r = sshbuf_put_stringb(cc->output, m)) != 0)
+				fatal_fr(r, "reply");
+			sshbuf_free(m);
+		}
 		c->ctl_chan = -1;
 		cc->ctl_child_id = 0;
 		cc->have_ctl_child_id = 0;
@@ -1292,27 +1315,27 @@ mux_master_read_cb(struct ssh *ssh, Channel *c)
 	return ret;
 }
 
+/*
+ * Record the exit status of a mux client's session. The server may send it
+ * ahead of the remainder of the session's output, so it is not passed on to
+ * the client until the session channel has closed (see
+ * mux_master_session_cleanup_cb); a client whose session was cut short by
+ * loss of the connection must not see it.
+ */
 void
 mux_exit_message(struct ssh *ssh, Channel *c, int exitval)
 {
-	struct sshbuf *m;
+	struct mux_master_state *state;
 	Channel *mux_chan;
-	int r;
 
 	debug3_f("channel %d: exit message, exitval %d", c->self, exitval);
 
 	if ((mux_chan = channel_by_id(ssh, c->ctl_chan)) == NULL)
 		fatal_f("channel %d missing mux %d", c->self, c->ctl_chan);
-
-	/* Append exit message packet to control socket output queue */
-	if ((m = sshbuf_new()) == NULL)
-		fatal_f("sshbuf_new");
-	if ((r = sshbuf_put_u32(m, MUX_S_EXIT_MESSAGE)) != 0 ||
-	    (r = sshbuf_put_u32(m, c->self)) != 0 ||
-	    (r = sshbuf_put_u32(m, exitval)) != 0 ||
-	    (r = sshbuf_put_stringb(mux_chan->output, m)) != 0)
-		fatal_fr(r, "reply");
-	sshbuf_free(m);
+	if ((state = (struct mux_master_state *)mux_chan->mux_ctx) == NULL)
+		fatal_f("channel %d: mux_ctx == NULL", mux_chan->self);
+	state->exitval = exitval;
+	state->exitval_seen = 1;
 }
 
 void
