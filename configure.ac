@@ -4889,7 +4889,8 @@ AC_SEARCH_LIBS([getrrsetbyname], [resolv],
 		AC_CHECK_MEMBER([HEADER.ad],
 			[AC_DEFINE([HAVE_HEADER_AD], [1],
 			    [Define if HEADER.ad exists in arpa/nameser.h])], ,
-			[#include <arpa/nameser.h>])
+			[#include <sys/types.h>
+			#include <arpa/nameser.h>])
 	])
 
 AC_MSG_CHECKING([if struct __res_state _res is an extern])
