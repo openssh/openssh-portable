@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.36 2026/04/07 07:40:40 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.37 2026/11/27 18:38:32 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -89,7 +89,8 @@ void	sshbuf_reset(struct sshbuf *buf);
 size_t	sshbuf_max_size(const struct sshbuf *buf);
 
 /*
- * Set the maximum size of buf
+ * Set the maximum size of buf. Note that the buffer may allocate a small
+ * fractional slack above max_size to avoid pathological compaction.
  * Returns 0 on success, or a negative SSH_ERR_* error code on failure.
  */
 int	sshbuf_set_max_size(struct sshbuf *buf, size_t max_size);
@@ -409,6 +410,8 @@ u_int	sshbuf_refcount(const struct sshbuf *buf);
 # define SSHBUF_SIZE_INIT	256		/* Initial allocation */
 # define SSHBUF_SIZE_INC	256		/* Preferred increment length */
 # define SSHBUF_PACK_MIN	8192		/* Minimum packable offset */
+# define SSHBUF_SLACK_DIV	2		/* Extra alloc = max_size / N */
+# define SSHBUF_GROW_DIV	4		/* Grow alloc by alloc / N */
 
 /* # define SSHBUF_ABORT abort */
 /* # define SSHBUF_DEBUG */
