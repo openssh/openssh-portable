@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.339 2026/11/26 22:26:35 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.340 2026/11/27 12:30:29 stsp Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1612,14 +1612,14 @@ add_p11_identity(struct sshkey *key, char *comment, const char *provider,
 	if (lookup_identity(key) != NULL) {
 		sshkey_free(key);
 		free(comment);
-		return;
+		return -1;
 	}
 	if (check_dest_constraint_space(dest_constraints, ndest_constraints,
 	    NULL) != 0) {
 		error_f("too many destination constraint hostkeys loaded");
 		sshkey_free(key);
 		free(comment);
-		return 0;
+		return -1;
 	}
 	if (idtab->nentries >= AGENT_MAX_IDENTITIES) {
 		error_f("too many identities");
