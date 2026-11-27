@@ -2100,6 +2100,24 @@ AC_COMPILE_IFELSE(
 CFLAGS="$SAVED_CFLAGS"
 AC_SUBST([PICFLAG])
 
+AC_CACHE_CHECK([for the asynchronous resolver API], [ac_cv_have_asr], [
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <asr.h>
+	]], [[
+		struct asr_query *q;
+		struct asr_result ar;
+		q = getaddrinfo_async("localhost", "22", 0, 0);
+		if (q != 0 && asr_run(q, &ar) == 0)
+			asr_abort(q);
+	]])], [ac_cv_have_asr=yes], [ac_cv_have_asr=no])
+])
+if test "x$ac_cv_have_asr" = "xyes"; then
+	AC_DEFINE([WITH_ASR], [1], [Use the asynchronous resolver API])
+fi
+
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS([ \
 	auth_hostok \
