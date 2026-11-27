@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.356 2026/11/25 08:37:34 djm Exp $ */
+/* $OpenBSD: session.c,v 1.357 2026/11/27 19:21:51 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2683,6 +2683,9 @@ do_cleanup(struct ssh *ssh, Authctxt *authctxt)
 
 	/* remove agent socket */
 	auth_sock_cleanup_proc(authctxt->pw);
+
+	/* remove the socket files of any remaining streamlocal listeners */
+	channel_stop_listening(ssh);
 
 	/* remove userauth info */
 	if (auth_info_file != NULL) {
