@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd-session.c,v 1.29 2026/11/26 22:16:57 djm Exp $ */
+/* $OpenBSD: sshd-session.c,v 1.30 2026/11/28 02:33:49 djm Exp $ */
 /*
  * SSH2 implementation:
  * Privilege Separation:
@@ -220,7 +220,7 @@ grace_alarm_handler(int sig)
 		(void)sigaction(SIGTERM, &sa, NULL);
 		kill(0, SIGTERM);
 	} else if (privsep_is_preauth && pmonitor != NULL &&
-	    pmonitor->m_pid > 1) {
+	    !pmonitor->m_child_reaped && pmonitor->m_pid > 1) {
 		/*
 		 * The process group signal above does not reach the privsep
 		 * child if we are not the group leader (e.g. started via

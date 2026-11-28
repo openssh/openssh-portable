@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.265 2026/11/26 22:16:57 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.266 2026/11/28 02:33:49 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -406,6 +406,8 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 	while (waitpid(pmonitor->m_pid, &status, 0) == -1) {
 		if (errno == EINTR)
 			continue;
+		pmonitor->m_child_reaped = 1;
+		pmonitor->m_pid = -1;
 		fatal_f("waitpid: %s", strerror(errno));
 	}
 	pmonitor->m_child_reaped = 1;
