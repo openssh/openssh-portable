@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.506 2026/11/26 21:43:27 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.507 2026/11/28 02:27:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2605,7 +2605,7 @@ check_krl_file(struct ssh_krl *krl, const char *path, int *revokedp)
 		if (*cp == '#' || *cp == '\0')
 			continue;
 		/* Stop if this looks like a private key */
-		if (strncmp(cp, "-----BEGIN", 10) == 0)
+		if (nkeys == 0 && strncmp(cp, "-----BEGIN", 10) == 0)
 			break;
 		if ((k = try_read_key(&cp)) == NULL)
 			fatal("%s:%lu: invalid key", path, lnum);
@@ -2624,7 +2624,8 @@ static void
 do_check_krl(struct passwd *pw, int print_krl, int argc, char **argv)
 {
 	int i, r, ret = 0;
-	char *comment;
+	char *comment, *pubpath;
+	u_long nkeys;
 	struct ssh_krl *krl;
 	struct sshkey *k;
 
@@ -2638,6 +2639,11 @@ do_check_krl(struct passwd *pw, int print_krl, int argc, char **argv)
 		if (check_krl_file(krl, argv[i], &ret) != 0)
 			continue;
 		/* No public keys found; try the ".pub" suffix or a private key */
+		xasprintf(&pubpath, "%s.pub", argv[i]);
+		nkeys = check_krl_file(krl, pubpath, &ret);
+		free(pubpath);
+		if (nkeys != 0)
+			continue;
 		if ((r = sshkey_load_public(argv[i], &k, &comment)) != 0)
 			fatal_r(r, "Cannot load public key %s", argv[i]);
 		if (check_krl_key(krl, k, argv[i],
