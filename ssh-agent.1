@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.92 2026/11/26 23:34:34 naddy Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.93 2026/11/28 02:32:00 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: November 26 2026 $
+.Dd $Mdocdate: November 28 2026 $
 .Dt SSH-AGENT 1
 .Os
 .Sh NAME
@@ -145,13 +145,13 @@ The
 .Cm allow-remote-pkcs11
 option allows clients of a forwarded
 .Nm
-to load PKCS#11 or FIDO provider libraries, and to remove PKCS#11 providers.
-By default only local clients may perform these operations.
+to load and remove PKCS#11 provider libraries.
 Similarly, the
 .Cm allow-remote-fido
-option prevents clients of a forwarded
+option allows clients of a forwarded
 .Nm
-from adding FIDO keys.
+to add FIDO keys and specify FIDO provider libraries.
+By default only local clients may perform these operations.
 Note that signalling that an
 .Nm
 client is remote is performed by
