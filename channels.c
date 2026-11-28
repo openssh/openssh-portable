@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.488 2026/11/28 02:23:05 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.489 2026/11/28 02:37:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2593,6 +2593,7 @@ channel_handle_wfd(struct ssh *ssh, Channel *c)
 			return 1;
 		if (len <= 0)
 			goto write_fail;
+		channel_set_used_time(ssh, c);
 		goto out;
 	}
 
