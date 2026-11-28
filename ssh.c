@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.648 2026/11/25 07:42:28 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.649 2026/11/28 02:01:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1880,6 +1880,7 @@ control_persist_detach(void)
 	pid_t pid;
 
 	debug_f("backgrounding master process");
+	ssh_proxy_command_forget();
 
 	/*
 	 * master (current process) into the background, and make the

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.433 2026/11/28 01:11:46 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.434 2026/11/28 02:01:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1350,6 +1350,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 				/* fake EOF on stdin */
 				if ((r = sshbuf_put_u8(bin, 4)) != 0)
 					fatal_fr(r, "sshbuf_put_u8");
+				ssh_proxy_command_forget();
 				return -1;
 			case '?':
 				print_escape_help(berr, efc->escape_char,

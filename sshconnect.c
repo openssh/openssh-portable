@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.395 2026/11/26 20:01:05 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.396 2026/11/28 02:01:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -318,6 +318,16 @@ ssh_proxy_command_reaped(pid_t pid)
 {
 	if (pid == proxy_command_pid)
 		proxy_command_pid = 0;
+}
+
+/*
+ * Called when detaching ControlPersist to ensure ProxyCommand cleanup
+ * only happens in original process.
+ */
+void
+ssh_proxy_command_forget(void)
+{
+	proxy_command_pid = 0;
 }
 
 void
