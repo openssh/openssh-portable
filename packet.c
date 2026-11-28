@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.354 2026/11/26 03:44:28 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.355 2026/11/28 02:08:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3047,9 +3047,14 @@ sshpkt_protocol_error(struct ssh *ssh, const char *fmt,...)
 	if (ssh->state == NULL)
 		cleanup_exit(255); /* Can't poison? then exit */
 
-	if ((r = sshpkt_disconnect(ssh, "%s", buf)) != 0 ||
-	    (r = ssh_packet_write_wait(ssh)) != 0)
+	if ((r = sshpkt_disconnect(ssh, "%s", buf)) != 0) {
+		ssh->state->poisoned = 1;
 		return r;
+	}
+	if ((r = ssh_packet_write_wait(ssh)) != 0) {
+		ssh->state->poisoned = 1;
+		return r;
+	}
 	ssh->state->poisoned = 1;
 	return SSH_ERR_PROTOCOL_ERROR;
 }
