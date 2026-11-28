@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.432 2026/11/27 19:55:40 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.433 2026/11/28 01:11:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -830,7 +830,7 @@ client_process_net_input(struct ssh *ssh)
 	 * session's output, so don't report it if the connection was lost
 	 * before the session completed.
 	 */
-	if (!session_closed || !channel_output_closed(ssh, session_ident))
+	if (!session_closed && !channel_output_closed(ssh, session_ident))
 		exit_status = -1;
 }
 
