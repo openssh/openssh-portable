@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.121 2026/11/27 19:55:40 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.122 2026/11/28 02:35:02 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1216,6 +1216,14 @@ mux_master_process_proxy(struct ssh *ssh, u_int rid,
 	int r;
 
 	debug_f("channel %d: proxy request", c->self);
+
+	if (hostkey_untrusted) {
+		logit_f("refusing multiplex proxy: host key is not trusted");
+		reply_error(reply, MUX_S_PERMISSION_DENIED, rid,
+		    "Multiplex proxy is disabled to avoid "
+		    "man-in-the-middle attacks");
+		return 0;
+	}
 
 	if (options.control_master == SSHCTL_MASTER_ASK ||
 	    options.control_master == SSHCTL_MASTER_AUTO_ASK) {
