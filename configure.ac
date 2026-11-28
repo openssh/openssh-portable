@@ -3170,7 +3170,18 @@ if test "x$openssl" = "xyes" ; then
 			AC_MSG_ERROR([OpenSSL library not found.])
 		],
 		[
-			AC_MSG_WARN([cross compiling: not checking])
+			# Cross compiling: take the major version from the
+			# headers so we still select the 1.1x API.
+			AC_MSG_RESULT([cross compiling: checking headers])
+			AC_COMPUTE_INT([ssl_hdr_major], [OPENSSL_VERSION_NUMBER >> 28],
+			    [#include <openssl/opensslv.h>], [ssl_hdr_major=unknown])
+			AC_MSG_CHECKING([OpenSSL major version in headers])
+			AC_MSG_RESULT([$ssl_hdr_major])
+			case "$ssl_hdr_major" in
+			3|4)	# OpenSSL 3 & 4; we use the 1.1x API
+				CPPFLAGS="$CPPFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
+				;;
+			esac
 		]
 	)
 
