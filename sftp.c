@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.267 2026/11/25 22:58:30 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.268 2026/11/28 02:21:11 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1244,6 +1244,8 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 				argvs[j++] = '\0';
 				argc++;
 				state = MA_START;
+				if (lastquote != NULL)
+					*lastquote = '\0';
 			} else if (state != MA_START)
 				argvs[j++] = arg[i];
 		} else if (arg[i] == '"' || arg[i] == '\'') {
@@ -1253,11 +1255,15 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 				state = q;
 				if (lastquote != NULL)
 					*lastquote = arg[i];
-			} else if (state == MA_UNQUOTED)
+			} else if (state == MA_UNQUOTED) {
 				state = q;
-			else if (state == q)
+				if (lastquote != NULL)
+					*lastquote = arg[i];
+			} else if (state == q) {
 				state = MA_UNQUOTED;
-			else
+				if (lastquote != NULL)
+					*lastquote = '\0';
+			} else
 				argvs[j++] = arg[i];
 		} else if (arg[i] == '\\') {
 			if (state == MA_SQUOTE || state == MA_DQUOTE) {
@@ -2219,8 +2225,8 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 			case '#':
 			case '*':
 			case '?':
-				if (quote == '\0' || tmp2[i] == quote ||
-				    tmp2[i] == '\\') {
+				if (terminated || quote == '\0' ||
+				    tmp2[i] == quote || tmp2[i] == '\\') {
 					if (el_insertstr(el, ins) == -1)
 						fatal("el_insertstr "
 						    "failed.");
