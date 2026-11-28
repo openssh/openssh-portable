@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.h,v 1.29 2026/11/26 22:16:57 djm Exp $ */
+/* $OpenBSD: monitor.h,v 1.30 2026/11/28 02:33:10 djm Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -76,7 +76,7 @@ struct monitor {
 	int			 m_log_sendfd;
 	struct kex		**m_pkex;
 	pid_t			 m_pid;
-	int			 m_child_reaped;
+	volatile sig_atomic_t	 m_child_reaped;
 };
 
 struct monitor *monitor_init(void);
