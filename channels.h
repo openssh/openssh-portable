@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.175 2026/11/27 19:55:40 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.176 2026/11/28 02:23:05 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -387,6 +387,8 @@ int	 channel_cancel_rport_listener(struct ssh *, struct Forward *);
 int	 channel_cancel_lport_listener(struct ssh *, struct Forward *,
 	    int, struct ForwardOptions *);
 int	 permitopen_port(const char *);
+
+int	 channel_fwd_fd(int);
 
 /* x11 forwarding */
 

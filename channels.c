@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.487 2026/11/27 19:55:40 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.488 2026/11/28 02:23:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2088,7 +2088,7 @@ channel_before_prepare_io_rdynamic(struct ssh *ssh, Channel *c)
  * unless it is such a descriptor, in which case it is closed and -1 is
  * returned with errno set as if the limit had been reached.
  */
-static int
+int
 channel_fwd_fd(int fd)
 {
 	long maxfd = -1;

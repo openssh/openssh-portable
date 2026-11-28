@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.434 2026/11/28 02:01:19 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.435 2026/11/28 02:23:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1887,6 +1887,10 @@ client_request_agent(struct ssh *ssh, const char *request_type, int rchan)
 	if (r != 0) {
 		if (r != SSH_ERR_AGENT_NOT_PRESENT)
 			debug_fr(r, "ssh_get_authentication_socket");
+		return NULL;
+	}
+	if ((sock = channel_fwd_fd(sock)) == -1) {
+		error("Agent forwarding socket: %s", strerror(errno));
 		return NULL;
 	}
 	if ((r = ssh_agent_bind_hostkey(sock, ssh->kex->initial_hostkey,
