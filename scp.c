@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.280 2026/11/25 21:21:51 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.281 2026/11/28 02:24:49 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1298,11 +1298,29 @@ tolocal(int argc, char **argv, enum scp_mode_e mode, char *sftp_direct)
 	sftp_free(conn);
 }
 
+static char *
+escape_glob(const char *s)
+{
+	size_t i, o, len;
+	char *ret;
+
+	len = strlen(s);
+	ret = xcalloc(2, len + 1);
+	for (i = o = 0; i < len; i++) {
+		if (strchr("[]?*\\", s[i]) != NULL)
+			ret[o++] = '\\';
+		ret[o++] = s[i];
+	}
+	ret[o] = '\0';
+	return ret;
+}
+
 /* Prepare remote path, handling ~ by assuming cwd is the homedir */
 static char *
-prepare_remote_path(struct sftp_conn *conn, const char *path)
+prepare_remote_path(struct sftp_conn *conn, const char *path,
+    int escape_glob_chars)
 {
-	char *user, *home, *ret;
+	char *user, *home, *ehome, *ret;
 	size_t nslash, ulen;
 
 	/* Handle ~ prefixed paths */
@@ -1333,6 +1351,11 @@ prepare_remote_path(struct sftp_conn *conn, const char *path)
 	free(user);
 	if (home == NULL)
 		return NULL;
+	if (escape_glob_chars) {
+		ehome = escape_glob(home);
+		free(home);
+		home = ehome;
+	}
 	path += ulen;
 	path += strspn(path, "/");
 	if (*path == '\0')
@@ -1384,7 +1407,7 @@ source_sftp(int argc, char *src, char *targ, struct sftp_conn *conn)
 	 * No need to glob here - the local shell already took care of
 	 * the expansions
 	 */
-	if ((target = prepare_remote_path(conn, targ)) == NULL)
+	if ((target = prepare_remote_path(conn, targ, 0)) == NULL)
 		cleanup_exit(255);
 	target_is_dir = sftp_remote_is_dir(conn, target);
 	if (targetshouldbedirectory && !target_is_dir) {
@@ -1595,7 +1618,7 @@ sink_sftp(int argc, char *dst, const char *src, struct sftp_conn *conn)
 	 * Here, we need remote glob as SFTP can not depend on remote shell
 	 * expansions
 	 */
-	if ((abs_src = prepare_remote_path(conn, src)) == NULL) {
+	if ((abs_src = prepare_remote_path(conn, src, 1)) == NULL) {
 		err = -1;
 		goto out;
 	}
@@ -2043,8 +2066,8 @@ throughlocal_sftp(struct sftp_conn *from, struct sftp_conn *to,
 	if ((filename = basename(src)) == NULL)
 		fatal("basename %s: %s", src, strerror(errno));
 
-	if ((abs_src = prepare_remote_path(from, src)) == NULL ||
-	    (target = prepare_remote_path(to, targ)) == NULL)
+	if ((abs_src = prepare_remote_path(from, src, 1)) == NULL ||
+	    (target = prepare_remote_path(to, targ, 0)) == NULL)
 		cleanup_exit(255);
 	user = remote_path_user_only(src);
 	memset(&g, 0, sizeof(g));
